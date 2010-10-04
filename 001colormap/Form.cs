@@ -57,19 +57,23 @@ namespace _001colormap
     protected void generate ()
     {
       // !!!{{ TODO - generate custom palette based on baseColor1 & baseColor2
-      colors = new Color[ 4 ];
+
+      colors = new Color[ 5 ];
       colors[ 0 ] = baseColor1;
       float r = baseColor1.R;
       float g = baseColor1.G;
       float b = baseColor1.B;
-      float dr = (baseColor2.R - r) / 3.0f;
-      float dg = (baseColor2.G - g) / 3.0f;
-      float db = (baseColor2.B - b) / 3.0f;
+      float dr = (baseColor2.R - r) / 4.0f;
+      float dg = (baseColor2.G - g) / 4.0f;
+      float db = (baseColor2.B - b) / 4.0f;
       r += dr; g += dg; b += db;
       colors[ 1 ] = Color.FromArgb( (int)r, (int)g, (int)b );
       r += dr; g += dg; b += db;
       colors[ 2 ] = Color.FromArgb( (int)r, (int)g, (int)b );
-      colors[ 3 ] = baseColor2;
+      r += dr; g += dg; b += db;
+      colors[ 3 ] = Color.FromArgb( (int)r, (int)g, (int)b );
+      colors[ 4 ] = baseColor2;
+
       // !!!}}
 
       pictureBox1.Invalidate();

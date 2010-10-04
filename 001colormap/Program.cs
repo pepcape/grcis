@@ -36,7 +36,7 @@ namespace _001colormap
         gfx.FillRectangle( brushes[ i ], 0, y, width, stripHeight );
         for ( int j = 0; j < stripes; j++ )
         {
-          gfx.DrawString( "Text sample", myFont, brushes[ j ], 4 + j * columnWidth, y + 4 );
+          gfx.DrawString( "Sample", myFont, brushes[ j ], 4 + j * columnWidth, y + 4 );
         }
       }
     }
