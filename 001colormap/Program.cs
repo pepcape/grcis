@@ -28,6 +28,8 @@ namespace _001colormap
       Brush[] brushes = new Brush[ stripes ];
       for ( int i = 0; i < stripes; i++ )
         brushes[ i ] = new SolidBrush( Form1.colors[ i ] );
+      Brush brBlack = new SolidBrush( Color.Black );
+      Brush brWhite = new SolidBrush( Color.White );
 
       // 2. draw color stripes:
       Font myFont = new System.Drawing.Font( "Helvetica", 10, FontStyle.Regular );
@@ -38,6 +40,9 @@ namespace _001colormap
         {
           gfx.DrawString( "Sample", myFont, brushes[ j ], 4 + j * columnWidth, y + 4 );
         }
+        gfx.DrawString( Form1.color2string( Form1.colors[ i ] ),
+                        myFont, Form1.colors[ i ].GetBrightness() < 0.5f ? brWhite : brBlack,
+                        12, y + stripHeight - 20 );
       }
     }
   }

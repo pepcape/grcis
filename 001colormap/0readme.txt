@@ -25,6 +25,8 @@ Podrobnosti:
 Vstupní barvy jsou v promìnných "baseColor1" a "baseColor2"
 Výstup je tøeba zapsat do pole barev "colors". Toto pole mùžete
 zvìtšit na potøebnou velikost (viz první pøíkaz new Color[]).
+Poèet barev (zadávaný uživatelem) najdete v promìnné numCol
+.. nemusíte ho použít, klidnì udìlejte paletu pevné délky..
 
 Termín:
 -------

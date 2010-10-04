@@ -13,18 +13,18 @@ namespace _001colormap
   {
     public static Color[] colors;
 
-    public static Color baseColor1 = Color.FromArgb( 40, 160, 0 );
-    public static Color baseColor2 = Color.FromArgb( 0, 200, 50 );
+    public static Color baseColor1 = Color.FromArgb( 180,  60,   0 );
+    public static Color baseColor2 = Color.FromArgb( 255, 240, 220 );
+    public static int numCol = 4;
 
     public Form1 ()
     {
       InitializeComponent();
       baseBox1.color = baseColor1;
+      label1.Text = color2string( baseColor1 );
       baseBox2.color = baseColor2;
-      colors = new[] { Color.FromArgb( 0, 0, 0 ),
-                       Color.FromArgb( 255, 0, 0 ),
-                       Color.FromArgb( 0, 255, 0 ),
-                       Color.FromArgb( 0, 0, 255 ) };
+      label2.Text = color2string( baseColor2 );
+      generate();
     }
 
     private void button1_Click ( object sender, EventArgs e )
@@ -37,7 +37,7 @@ namespace _001colormap
       DialogResult res = colorDialog1.ShowDialog();
       baseColor1 = colorDialog1.Color;
       baseBox1.color = baseColor1;
-      label1.Text = "[" + baseColor1.R + ',' + baseColor1.G + ',' + baseColor1.B + ']';
+      label1.Text = color2string( baseColor1 );
       baseBox1.Invalidate();
       label1.Invalidate();
       generate();
@@ -48,31 +48,42 @@ namespace _001colormap
       DialogResult res = colorDialog1.ShowDialog();
       baseColor2 = colorDialog1.Color;
       baseBox2.color = baseColor2;
-      label2.Text = "[" + baseColor2.R + ',' + baseColor2.G + ',' + baseColor2.B + ']';
+      label2.Text = color2string( baseColor2 );
       baseBox2.Invalidate();
       label2.Invalidate();
       generate();
     }
 
+    private void numColors_ValueChanged ( object sender, EventArgs e )
+    {
+      numCol = (int)numColors.Value;
+      if ( numCol > 9 ) numCol = 9;
+      if ( numCol < 3 ) numCol = 3;
+      generate();
+    }
+
+    public static string color2string ( Color col )
+    {
+      return "[" + col.R + ',' + col.G + ',' + col.B + ']';
+    }
+
     protected void generate ()
     {
-      // !!!{{ TODO - generate custom palette based on baseColor1 & baseColor2
+      // !!!{{ TODO - generate custom palette based on numCol, baseColor1 [and baseColor2]
 
-      colors = new Color[ 5 ];
+      colors = new Color[ numCol ];
       colors[ 0 ] = baseColor1;
       float r = baseColor1.R;
       float g = baseColor1.G;
       float b = baseColor1.B;
-      float dr = (baseColor2.R - r) / 4.0f;
-      float dg = (baseColor2.G - g) / 4.0f;
-      float db = (baseColor2.B - b) / 4.0f;
-      r += dr; g += dg; b += db;
-      colors[ 1 ] = Color.FromArgb( (int)r, (int)g, (int)b );
-      r += dr; g += dg; b += db;
-      colors[ 2 ] = Color.FromArgb( (int)r, (int)g, (int)b );
-      r += dr; g += dg; b += db;
-      colors[ 3 ] = Color.FromArgb( (int)r, (int)g, (int)b );
-      colors[ 4 ] = baseColor2;
+      float dr = (baseColor2.R - r) / (numCol - 1.0f);
+      float dg = (baseColor2.G - g) / (numCol - 1.0f);
+      float db = (baseColor2.B - b) / (numCol - 1.0f);
+      for ( int i = 1; i < numCol; i++ )
+      {
+        r += dr; g += dg; b += db;
+        colors[ i ] = Color.FromArgb( (int)r, (int)g, (int)b );
+      }
 
       // !!!}}
 
