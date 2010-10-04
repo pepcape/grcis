@@ -129,7 +129,7 @@
       this.Controls.Add( this.pictureBox1 );
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
       this.Name = "Form1";
-      this.Text = "Paleta";
+      this.Text = "001 Paleta";
       ((System.ComponentModel.ISupportInitialize)(this.baseBox2)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.baseBox1)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
