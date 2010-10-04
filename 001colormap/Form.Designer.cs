@@ -34,9 +34,12 @@
       this.buttonColor2 = new System.Windows.Forms.Button();
       this.label1 = new System.Windows.Forms.Label();
       this.label2 = new System.Windows.Forms.Label();
+      this.numColors = new System.Windows.Forms.NumericUpDown();
+      this.label3 = new System.Windows.Forms.Label();
       this.baseBox2 = new _001colormap.BaseBox();
       this.baseBox1 = new _001colormap.BaseBox();
       this.pictureBox1 = new _001colormap.MyBox();
+      ((System.ComponentModel.ISupportInitialize)(this.numColors)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.baseBox2)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.baseBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -88,6 +91,38 @@
       this.label2.TabIndex = 6;
       this.label2.Text = "--";
       // 
+      // numColors
+      // 
+      this.numColors.Location = new System.Drawing.Point( 516, 265 );
+      this.numColors.Maximum = new decimal( new int[] {
+            9,
+            0,
+            0,
+            0} );
+      this.numColors.Minimum = new decimal( new int[] {
+            3,
+            0,
+            0,
+            0} );
+      this.numColors.Name = "numColors";
+      this.numColors.Size = new System.Drawing.Size( 74, 20 );
+      this.numColors.TabIndex = 8;
+      this.numColors.Value = new decimal( new int[] {
+            4,
+            0,
+            0,
+            0} );
+      this.numColors.ValueChanged += new System.EventHandler( this.numColors_ValueChanged );
+      // 
+      // label3
+      // 
+      this.label3.AutoSize = true;
+      this.label3.Location = new System.Drawing.Point( 433, 266 );
+      this.label3.Name = "label3";
+      this.label3.Size = new System.Drawing.Size( 64, 13 );
+      this.label3.TabIndex = 9;
+      this.label3.Text = "Palette size:";
+      // 
       // baseBox2
       // 
       this.baseBox2.color = System.Drawing.Color.Empty;
@@ -119,6 +154,8 @@
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 694, 372 );
+      this.Controls.Add( this.label3 );
+      this.Controls.Add( this.numColors );
       this.Controls.Add( this.label2 );
       this.Controls.Add( this.label1 );
       this.Controls.Add( this.baseBox2 );
@@ -130,10 +167,12 @@
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
       this.Name = "Form1";
       this.Text = "001 Paleta";
+      ((System.ComponentModel.ISupportInitialize)(this.numColors)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.baseBox2)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.baseBox1)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
       this.ResumeLayout( false );
+      this.PerformLayout();
 
     }
 
@@ -148,5 +187,7 @@
     public BaseBox baseBox2;
     public System.Windows.Forms.Label label1;
     public System.Windows.Forms.Label label2;
+    public System.Windows.Forms.NumericUpDown numColors;
+    private System.Windows.Forms.Label label3;
   }
 }
