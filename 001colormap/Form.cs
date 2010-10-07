@@ -35,6 +35,7 @@ namespace _001colormap
     private void buttonColor1_Click ( object sender, EventArgs e )
     {
       DialogResult res = colorDialog1.ShowDialog();
+      if ( res == DialogResult.Cancel ) return;
       baseColor1 = colorDialog1.Color;
       baseBox1.color = baseColor1;
       label1.Text = color2string( baseColor1 );
@@ -46,6 +47,7 @@ namespace _001colormap
     private void buttonColor2_Click ( object sender, EventArgs e )
     {
       DialogResult res = colorDialog1.ShowDialog();
+      if ( res == DialogResult.Cancel ) return;
       baseColor2 = colorDialog1.Color;
       baseBox2.color = baseColor2;
       label2.Text = color2string( baseColor2 );
