@@ -8,7 +8,7 @@ namespace _003colortransform
 {
   class Transform
   {
-    public static void TransformImage ( ref Bitmap input, out Bitmap output, double param )
+    public static void TransformImage ( Bitmap input, out Bitmap output, double param )
     {
       // !!!{{ TODO: write your own color transformation code here
 
