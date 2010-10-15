@@ -44,9 +44,11 @@ namespace _003colortransform
 
     private void recompute ()
     {
+      if ( inputImage == null ) return;
+
       Bitmap ibmp = (Bitmap)inputImage;
       Bitmap bmp;
-      Transform.TransformImage( ref ibmp, out bmp, (double)numericParam.Value );
+      Transform.TransformImage( ibmp, out bmp, (double)numericParam.Value );
       pictureResult.Image = bmp;
     }
 

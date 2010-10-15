@@ -45,9 +45,11 @@ namespace _002warping
 
     private void rewarp ()
     {
+      if ( inputImage == null ) return;
+
       Bitmap ibmp = (Bitmap)inputImage;
       Bitmap bmp;
-      Warping.WarpImage( ref ibmp, out bmp, warp );
+      Warping.WarpImage( ibmp, out bmp, warp );
       outputPictureBox.Image = bmp;
     }
 

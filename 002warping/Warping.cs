@@ -8,7 +8,7 @@ namespace _002warping
 {
   public class Warping
   {
-    public static void WarpImage ( ref Bitmap input, out Bitmap output, IWarp warp )
+    public static void WarpImage ( Bitmap input, out Bitmap output, IWarp warp )
     {
       // !!!{{ TODO: write your own warping algorithm here
 
