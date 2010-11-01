@@ -19,7 +19,7 @@ namespace _001colormap
 
       int width = this.Size.Width;
       int height = this.Size.Height;
-      int stripes = Form1.colors.Count();
+      int stripes = Form1.colors.Length();
       int stripHeight = height / stripes;
       int columnWidth = width / stripes;
       int y = 0;
