@@ -15,18 +15,38 @@ namespace _007bluenoise
       int width = input.Width;
       int height = input.Height;
       output = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
-      for ( int y = 0; y < height; y++ )
+      float[,] buf = new float[2, width + 2];
+      int bi = 0;
+      for ( int i = 0; i < 2; i++ )
+        for ( int j = 0; j < width+2; j++ )
+          buf[i,j] = 0.0f;
+
+      for ( int y = 0; y < height; y++, bi = 1 - bi )
         for ( int x = 0; x < width; x++ )
         {
-          int xm1 = x > 0 ? x - 1 : x + 1;
-          int ym1 = y > 0 ? y - 1 : y + 1;
-          float gray0 = input.GetPixel( x,   y   ).GetBrightness();
-          float gray1 = input.GetPixel( xm1, y   ).GetBrightness();
-          float gray2 = input.GetPixel( x,   ym1 ).GetBrightness();
-          float gray3 = input.GetPixel( xm1, ym1 ).GetBrightness();
-          int gray = (int)(63.75 * (gray0 + gray1 + gray2 + gray3));
-          Color col = Color.FromArgb( gray, gray, gray );
+          float gray = input.GetPixel( x, y ).GetBrightness() + buf[bi, x+1];
+          int res;
+          float err;
+          if ( gray > 0.5f )
+          {
+            res = 255;
+            err = 1.0f - gray;
+          }
+          else
+          {
+            res = 0;
+            err = gray;
+          }
+          Color col = Color.FromArgb( res, res, res );
           output.SetPixel( x, y, col );
+
+          // error distribution
+          err /= 16.0f;
+          buf[bi, x+1]    = 0.0f;
+          buf[bi, x+2]   += err * 7.0f;
+          buf[1-bi, x]   += err * 3.0f;
+          buf[1-bi, x+1] += err * 5.0f;
+          buf[1-bi, x+2]  = err;
         }
 
       // !!!}}
