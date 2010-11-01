@@ -15,6 +15,7 @@ namespace _005denoise
       int width = input.Width;
       int height = input.Height;
       output = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+
       for ( int y = 0; y < height; y++ )
         for ( int x = 0; x < width; x++ )
         {

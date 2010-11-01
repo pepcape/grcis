@@ -44,10 +44,14 @@ namespace _005denoise
     {
       if ( inputImage == null ) return;
 
+      Cursor.Current = Cursors.WaitCursor;
+
       Bitmap ibmp = (Bitmap)inputImage;
       Bitmap bmp;
       Denoise.TransformImage( ibmp, out bmp, (double)numericParam.Value );
       pictureBox1.Image = bmp;
+
+      Cursor.Current = Cursors.Default;
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
@@ -65,7 +69,7 @@ namespace _005denoise
       pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
-    private void numericParam_ValueChanged ( object sender, EventArgs e )
+    private void buttonRecalc_Click ( object sender, EventArgs e )
     {
       recompute();
     }
