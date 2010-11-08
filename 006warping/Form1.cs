@@ -44,8 +44,7 @@ namespace _006warping
     {
       if ( inputImage == null ) return;
 
-      Bitmap ibmp = (Bitmap)inputImage;
-      pictureResult.Image = ibmp;
+      pictureResult.SetPicture( (Bitmap)inputImage );
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
@@ -60,7 +59,7 @@ namespace _006warping
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureResult.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      pictureResult.GetPicture().Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
     private void numericParam_ValueChanged ( object sender, EventArgs e )
