@@ -28,7 +28,7 @@
     /// </summary>
     private void InitializeComponent ()
     {
-      this.pictureResult = new System.Windows.Forms.PictureBox();
+      this.pictureResult = new GUIPictureBox();
       this.buttonOpen = new System.Windows.Forms.Button();
       this.buttonSave = new System.Windows.Forms.Button();
       this.numericParam = new System.Windows.Forms.NumericUpDown();
@@ -112,19 +112,17 @@
       this.MinimumSize = new System.Drawing.Size( 620, 200 );
       this.Name = "Form1";
       this.Text = "006 drag warping";
-      ((System.ComponentModel.ISupportInitialize)(this.pictureResult)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericParam)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureResult)).EndInit();
       this.ResumeLayout( false );
-
     }
 
     #endregion
 
-    public System.Windows.Forms.PictureBox pictureResult;
+    public GUIPictureBox pictureResult;
     public System.Windows.Forms.Button buttonOpen;
     public System.Windows.Forms.Button buttonSave;
     public System.Windows.Forms.NumericUpDown numericParam;
     private System.Windows.Forms.Label label1;
   }
 }
-
