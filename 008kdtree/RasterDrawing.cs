@@ -79,6 +79,56 @@ namespace Raster
       img.SetPixel( x1, y1, color );
     }
 
+    public static Color ColorRamp ( double x )
+    {
+      if ( x < 0.0 ) x = 0.0;
+      else
+      if ( x > 1.0 ) x = 1.0;
+
+      int R, G, B;
+
+        // I:   [  0,  0,  0] to [  0,  0,255]
+      if ( x <= 0.2 )
+      {
+        R =
+        G = 0;
+        B = (int)( x * 1275.0 + 0.5 );
+      }
+      else
+        // II:  [  0,  0,255] to [  0,255,128]
+      if ( (x -= 0.2) <= 0.2 )
+      {
+        R = 0;
+        G = (int)( x * 1275.0 + 0.5 );
+        B = (int)( 255.5 - x * 635.0 );
+      }
+      else
+        // III: [  0,255,128] to [128,255,  0]
+      if ( (x -= 0.2) <= 0.2 )
+      {
+        R = (int)( x * 640.0 + 0.5 );
+        G = 255;
+        B = (int)( 128.5 - x * 640.0 );
+      }
+      else
+        // IV:  [128,255,  0] to [255,255,  0]
+      if ( (x -= 0.2) <= 0.2 )
+      {
+        R = (int)( 128.5 + x * 635.0 );
+        G = 255;
+        B = 0;
+      }
+      else
+        // V:   [255,255,  0] to [255,  0,  0]
+      {
+        R = 255;
+        G = (int)( 255.5 - (x - 0.2) * 1275.0 );
+        B = 0;
+      }
+
+      return Color.FromArgb( R, G, B );
+    }
+
     public static long Hash ( Bitmap img )
     {
       int width  = img.Width;
