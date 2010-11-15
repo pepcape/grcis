@@ -46,7 +46,7 @@ namespace _010quadtree
         int x = rnd.Next( SIZE );
         int y = rnd.Next( SIZE );
         Color col = Color.FromArgb( rnd.Next( 255 ), rnd.Next( 255 ), rnd.Next( 255 ) );
-        Draw.FloodFill4( output, x, y, col );
+        //Draw.FloodFill4( output, x, y, col );
       }
 
       sw.Stop();
