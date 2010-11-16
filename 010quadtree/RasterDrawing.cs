@@ -163,6 +163,9 @@ namespace Raster
 
     public static long ImageCompare ( Bitmap img1, Bitmap img2, Bitmap xor )
     {
+      if ( img1 == null || img2 == null )
+        return 7L;
+
       int width  = img1.Width;
       int height = img1.Height;
 
