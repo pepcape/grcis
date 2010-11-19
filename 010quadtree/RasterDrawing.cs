@@ -152,7 +152,7 @@ namespace Raster
         {
           ptr = (byte*)data.Scan0 + y * data.Stride;
 
-          for ( int x = width * pixelSize; --x > 0; ptr++ )
+          for ( int x = width * pixelSize; x-- > 0; ptr++ )
             result = result * 101L + 147L * ptr[ 0 ];
         }
       }
@@ -203,7 +203,7 @@ namespace Raster
           ptr2 = (byte*)data2.Scan0 + y * data2.Stride;
           ptro = (outp == null) ? null : (byte*)outp.Scan0 + y * outp.Stride;
 
-          for ( int x = width * pixelSize; --x > 0; ptr1++, ptr2++ )
+          for ( int x = width * pixelSize; x-- > 0; ptr1++, ptr2++ )
           {
             byte xorbyte = (byte)(ptr1[ 0 ] ^ ptr2[ 0 ]);
             if ( xorbyte != 0 ) result++;
