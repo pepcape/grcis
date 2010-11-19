@@ -102,7 +102,7 @@ namespace Raster
         {
           ptr = (byte*)data.Scan0 + y * data.Stride;
 
-          for ( int x = width * pixelSize; --x > 0 ; ptr++ )
+          for ( int x = width * pixelSize; x-- > 0 ; ptr++ )
             result = result * 101L + 147L * ptr[ 0 ];
         }
       }
