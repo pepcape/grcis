@@ -37,9 +37,17 @@
       this.buttonRedraw = new System.Windows.Forms.Button();
       this.labelFaces = new System.Windows.Forms.Label();
       this.checkNormals = new System.Windows.Forms.CheckBox();
+      this.buttonSaveOBJ = new System.Windows.Forms.Button();
+      this.label2 = new System.Windows.Forms.Label();
+      this.numericElevation = new System.Windows.Forms.NumericUpDown();
+      this.buttonGenerate = new System.Windows.Forms.Button();
+      this.numericVariant = new System.Windows.Forms.NumericUpDown();
+      this.label3 = new System.Windows.Forms.Label();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericAzimuth)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.numericElevation)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.numericVariant)).BeginInit();
       this.SuspendLayout();
       // 
       // panel1
@@ -52,14 +60,14 @@
       this.panel1.Controls.Add( this.pictureBox1 );
       this.panel1.Location = new System.Drawing.Point( 13, 13 );
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size( 680, 380 );
+      this.panel1.Size = new System.Drawing.Size( 680, 350 );
       this.panel1.TabIndex = 0;
       // 
       // pictureBox1
       // 
       this.pictureBox1.Location = new System.Drawing.Point( 0, 0 );
       this.pictureBox1.Name = "pictureBox1";
-      this.pictureBox1.Size = new System.Drawing.Size( 680, 380 );
+      this.pictureBox1.Size = new System.Drawing.Size( 680, 350 );
       this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
       this.pictureBox1.TabIndex = 2;
       this.pictureBox1.TabStop = false;
@@ -67,7 +75,7 @@
       // buttonOpen
       // 
       this.buttonOpen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonOpen.Location = new System.Drawing.Point( 13, 411 );
+      this.buttonOpen.Location = new System.Drawing.Point( 13, 377 );
       this.buttonOpen.Name = "buttonOpen";
       this.buttonOpen.Size = new System.Drawing.Size( 108, 23 );
       this.buttonOpen.TabIndex = 1;
@@ -88,9 +96,9 @@
       // 
       // numericAzimuth
       // 
-      this.numericAzimuth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.numericAzimuth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.numericAzimuth.DecimalPlaces = 1;
-      this.numericAzimuth.Location = new System.Drawing.Point( 268, 414 );
+      this.numericAzimuth.Location = new System.Drawing.Point( 395, 378 );
       this.numericAzimuth.Maximum = new decimal( new int[] {
             360,
             0,
@@ -107,18 +115,18 @@
       // 
       // label1
       // 
-      this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point( 218, 417 );
+      this.label1.Location = new System.Drawing.Point( 333, 418 );
       this.label1.Name = "label1";
-      this.label1.Size = new System.Drawing.Size( 47, 13 );
+      this.label1.Size = new System.Drawing.Size( 54, 13 );
       this.label1.TabIndex = 4;
-      this.label1.Text = "Azimuth:";
+      this.label1.Text = "Elevation:";
       // 
       // buttonRedraw
       // 
-      this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonRedraw.Location = new System.Drawing.Point( 417, 412 );
+      this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonRedraw.Location = new System.Drawing.Point( 476, 412 );
       this.buttonRedraw.Name = "buttonRedraw";
       this.buttonRedraw.Size = new System.Drawing.Size( 95, 23 );
       this.buttonRedraw.TabIndex = 5;
@@ -130,7 +138,7 @@
       // 
       this.labelFaces.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelFaces.AutoSize = true;
-      this.labelFaces.Location = new System.Drawing.Point( 133, 417 );
+      this.labelFaces.Location = new System.Drawing.Point( 133, 383 );
       this.labelFaces.Name = "labelFaces";
       this.labelFaces.Size = new System.Drawing.Size( 33, 13 );
       this.labelFaces.TabIndex = 6;
@@ -138,20 +146,96 @@
       // 
       // checkNormals
       // 
-      this.checkNormals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkNormals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.checkNormals.AutoSize = true;
-      this.checkNormals.Location = new System.Drawing.Point( 346, 417 );
+      this.checkNormals.Location = new System.Drawing.Point( 479, 381 );
       this.checkNormals.Name = "checkNormals";
       this.checkNormals.Size = new System.Drawing.Size( 62, 17 );
       this.checkNormals.TabIndex = 7;
       this.checkNormals.Text = "normals";
       this.checkNormals.UseVisualStyleBackColor = true;
       // 
+      // buttonSaveOBJ
+      // 
+      this.buttonSaveOBJ.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonSaveOBJ.Location = new System.Drawing.Point( 586, 377 );
+      this.buttonSaveOBJ.Name = "buttonSaveOBJ";
+      this.buttonSaveOBJ.Size = new System.Drawing.Size( 107, 23 );
+      this.buttonSaveOBJ.TabIndex = 8;
+      this.buttonSaveOBJ.Text = "Save OBJ";
+      this.buttonSaveOBJ.UseVisualStyleBackColor = true;
+      this.buttonSaveOBJ.Click += new System.EventHandler( this.buttonSaveOBJ_Click );
+      // 
+      // label2
+      // 
+      this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.label2.AutoSize = true;
+      this.label2.Location = new System.Drawing.Point( 333, 380 );
+      this.label2.Name = "label2";
+      this.label2.Size = new System.Drawing.Size( 47, 13 );
+      this.label2.TabIndex = 9;
+      this.label2.Text = "Azimuth:";
+      // 
+      // numericElevation
+      // 
+      this.numericElevation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.numericElevation.DecimalPlaces = 1;
+      this.numericElevation.Location = new System.Drawing.Point( 395, 414 );
+      this.numericElevation.Maximum = new decimal( new int[] {
+            360,
+            0,
+            0,
+            0} );
+      this.numericElevation.Name = "numericElevation";
+      this.numericElevation.Size = new System.Drawing.Size( 62, 20 );
+      this.numericElevation.TabIndex = 10;
+      this.numericElevation.Value = new decimal( new int[] {
+            10,
+            0,
+            0,
+            0} );
+      // 
+      // buttonGenerate
+      // 
+      this.buttonGenerate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonGenerate.Location = new System.Drawing.Point( 13, 410 );
+      this.buttonGenerate.Name = "buttonGenerate";
+      this.buttonGenerate.Size = new System.Drawing.Size( 108, 23 );
+      this.buttonGenerate.TabIndex = 11;
+      this.buttonGenerate.Text = "Generate";
+      this.buttonGenerate.UseVisualStyleBackColor = true;
+      this.buttonGenerate.Click += new System.EventHandler( this.buttonGenerate_Click );
+      // 
+      // numericVariant
+      // 
+      this.numericVariant.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.numericVariant.DecimalPlaces = 2;
+      this.numericVariant.Location = new System.Drawing.Point( 182, 413 );
+      this.numericVariant.Name = "numericVariant";
+      this.numericVariant.Size = new System.Drawing.Size( 73, 20 );
+      this.numericVariant.TabIndex = 12;
+      // 
+      // label3
+      // 
+      this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.label3.AutoSize = true;
+      this.label3.Location = new System.Drawing.Point( 133, 416 );
+      this.label3.Name = "label3";
+      this.label3.Size = new System.Drawing.Size( 43, 13 );
+      this.label3.TabIndex = 13;
+      this.label3.Text = "Variant:";
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.label3 );
+      this.Controls.Add( this.numericVariant );
+      this.Controls.Add( this.buttonGenerate );
+      this.Controls.Add( this.numericElevation );
+      this.Controls.Add( this.label2 );
+      this.Controls.Add( this.buttonSaveOBJ );
       this.Controls.Add( this.checkNormals );
       this.Controls.Add( this.labelFaces );
       this.Controls.Add( this.buttonRedraw );
@@ -167,6 +251,8 @@
       this.panel1.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericAzimuth)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.numericElevation)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.numericVariant)).EndInit();
       this.ResumeLayout( false );
       this.PerformLayout();
 
@@ -183,6 +269,12 @@
     private System.Windows.Forms.Button buttonRedraw;
     private System.Windows.Forms.Label labelFaces;
     private System.Windows.Forms.CheckBox checkNormals;
+    private System.Windows.Forms.Button buttonSaveOBJ;
+    private System.Windows.Forms.Label label2;
+    private System.Windows.Forms.NumericUpDown numericElevation;
+    private System.Windows.Forms.Button buttonGenerate;
+    private System.Windows.Forms.NumericUpDown numericVariant;
+    private System.Windows.Forms.Label label3;
   }
 }
 

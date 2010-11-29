@@ -40,9 +40,29 @@ namespace _013scene
       objReader.MirrorConversion = true;
       StreamReader reader    = new StreamReader( new FileStream( ofd.FileName, FileMode.Open ) );
       int faces = objReader.ReadBrep( reader, scene );
+      scene.BuildCornerTable();
+      int errors = scene.CheckCornerTable( null );
 
-      labelFaces.Text = String.Format( "{0} faces", faces );
+      labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
       redraw();
+    }
+
+    private void buttonGenerate_Click ( object sender, EventArgs e )
+    {
+      Cursor.Current = Cursors.WaitCursor;
+      int variant = (int)numericVariant.Value;
+
+      scene.Reset();
+      Construction cn = new Construction();
+      int faces = cn.AddMesh( scene, Matrix4.Identity, variant );
+      scene.BuildCornerTable();
+      int errors = scene.CheckCornerTable( null );
+
+      Cursor.Current = Cursors.Default;
+
+      labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      redraw();
+
     }
 
     private void redraw ()
@@ -58,14 +78,20 @@ namespace _013scene
       Wireframe renderer = new Wireframe();
       renderer.Perspective = false;
       renderer.Azimuth     = (double)numericAzimuth.Value;
-      renderer.Elevation   = 20.0;
+      renderer.Elevation   = (double)numericElevation.Value;
       renderer.ViewVolume  =  8.0;
       renderer.Distance    = 30.0;
+      renderer.DrawNormals = checkNormals.Checked;
       renderer.Render( outputImage, scene );
 
       pictureBox1.Image = outputImage;
 
       Cursor.Current = Cursors.Default;
+    }
+
+    private void buttonRedraw_Click ( object sender, EventArgs e )
+    {
+      redraw();
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
@@ -83,9 +109,23 @@ namespace _013scene
       outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
-    private void buttonRedraw_Click ( object sender, EventArgs e )
+    private void buttonSaveOBJ_Click ( object sender, EventArgs e )
     {
-      redraw();
+      if ( scene == null || scene.Triangles < 1 ) return;
+
+      SaveFileDialog sfd = new SaveFileDialog();
+      sfd.Title = "Save OBJ file";
+      sfd.Filter = "OBJ Files|*.obj";
+      sfd.AddExtension = true;
+      sfd.FileName = "";
+      if ( sfd.ShowDialog() != DialogResult.OK )
+        return;
+
+      WavefrontObj objWriter = new WavefrontObj();
+      objWriter.MirrorConversion = true;
+      StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) );
+      objWriter.WriteBrep( writer, scene );
+      writer.Close();
     }
   }
 }
