@@ -4,6 +4,7 @@ using System.Linq;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
+using System.IO;
 using System.Diagnostics;
 using OpenTK;
 
@@ -78,6 +79,17 @@ namespace Scene3D
       get
       {
         return (geometry == null) ? 0 : geometry.Count;
+      }
+    }
+
+    /// <summary>
+    /// Current number of normal vectors in the scene (should be 0 or the same as Vertices).
+    /// </summary>
+    public int Normals
+    {
+      get
+      {
+        return (normals == null) ? 0 : normals.Count;
       }
     }
 
@@ -252,6 +264,7 @@ namespace Scene3D
     /// </summary>
     public void BuildCornerTable ()
     {
+      // !!! TODO: actually build the corner-table!
     }
 
     /// <summary>

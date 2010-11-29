@@ -48,6 +48,12 @@ namespace Scene3D
 
     #region File-format API
 
+    /// <summary>
+    /// Reads one 3D scene from a given stream (containing text variant of Wavefront OBJ format).
+    /// </summary>
+    /// <param name="reader">Already open text reader</param>
+    /// <param name="scene">Scene to be modified</param>
+    /// <returns>Number of faces read</returns>
     public int ReadBrep ( StreamReader reader, SceneBrep scene )
     {
       if ( reader == null ) return SceneBrep.NULL;
@@ -139,6 +145,43 @@ namespace Scene3D
       while ( !reader.EndOfStream );
 
       return faces;
+    }
+
+    /// <summary>
+    /// Writes the whole B-rep scene to a given text stream (uses text variant of Wavefront OBJ format).
+    /// </summary>
+    /// <param name="writer">Already open text writer</param>
+    /// <param name="scene">Scene to write</param>
+    public void WriteBrep ( StreamWriter writer, SceneBrep scene )
+    {
+      if ( scene == null || scene.Triangles < 1 ) return;
+
+      int i;
+      for ( i = 0; i < scene.Vertices; i++ )
+      {
+        Vector3 v = scene.GetVertex( i );
+        writer.WriteLine( "{0} {1} {2} {3}", VERTEX, v.X, v.Y, v.Z );
+      }
+
+      bool hasNormals = scene.Normals > 0;
+      if ( hasNormals )
+        for ( i = 0; i < scene.Vertices; i++ )
+        {
+          Vector3 n = scene.GetNormal( i );
+          writer.WriteLine( "{0} {1} {2} {3}", VERTEX_NORMAL, n.X, n.Y, n.Z );
+        }
+
+      for ( i = 0; i < scene.Triangles; i++ )
+      {
+        int A, B, C;
+        scene.GetTriangleVertices( i, out A, out B, out C );
+        A++; B++; C++;
+        if ( hasNormals )
+          writer.WriteLine( "{0} {1}//{1} {2}//{2} {3}//{3}", FACE, A, B, C );
+        else
+          writer.WriteLine( "{0} {1} {2} {3}", FACE, A, B, C );
+      }
+
     }
 
     #endregion
