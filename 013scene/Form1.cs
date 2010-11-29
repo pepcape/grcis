@@ -37,6 +37,7 @@ namespace _013scene
         return;
 
       WavefrontObj objReader = new WavefrontObj();
+      objReader.MirrorConversion = true;
       StreamReader reader    = new StreamReader( new FileStream( ofd.FileName, FileMode.Open ) );
       int faces = objReader.ReadBrep( reader, scene );
 
@@ -54,6 +55,13 @@ namespace _013scene
       int height = panel1.Height;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
+      Wireframe renderer = new Wireframe();
+      renderer.Perspective = false;
+      renderer.Azimuth     = (double)numericAzimuth.Value;
+      renderer.Elevation   = 20.0;
+      renderer.ViewVolume  =  8.0;
+      renderer.Distance    = 30.0;
+      renderer.Render( outputImage, scene );
 
       pictureBox1.Image = outputImage;
 

@@ -213,7 +213,7 @@ namespace Scene3D
     {
       Debug.Assert( geometry != null, "Invalid G[] size" );
       tr *= 3;
-      Debug.Assert( vertexPtr != null && 0 >= tr && tr + 2 < vertexPtr.Count,
+      Debug.Assert( vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
                     "Invalid triangle handle" );
 
       v1 = vertexPtr[ tr ];
@@ -232,7 +232,7 @@ namespace Scene3D
     {
       Debug.Assert( geometry != null, "Invalid G[] size" );
       tr *= 3;
-      Debug.Assert( vertexPtr != null && 0 >= tr && tr + 2 < vertexPtr.Count,
+      Debug.Assert( vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
                     "Invalid triangle handle" );
 
       int h1 = vertexPtr[ tr ];
