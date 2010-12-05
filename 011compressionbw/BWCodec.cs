@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Text;
 using System.IO;
 using System.IO.Compression;
+using Support;
 
 namespace _011compressionbw
 {
@@ -37,7 +38,7 @@ namespace _011compressionbw
 
       // !!!{{ TODO: add the encoding code here
 
-      DeflateStream ds = new DeflateStream( outs, CompressionMode.Compress, true );
+      DeflateStream ds = new BufferedDeflateStream( 16384, outs, CompressionMode.Compress, true );
 
       // file header: [ MAGIC, width, height ]
       ds.WriteByte( (byte)((MAGIC >> 24) & 0xff) );

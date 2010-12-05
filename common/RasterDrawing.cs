@@ -160,5 +160,102 @@ namespace Raster
       img.UnlockBits( data );
       return result;
     }
+
+    public static long ImageCompare ( Bitmap img1, Bitmap img2, Bitmap xor )
+    {
+      if ( img1 == null || img2 == null )
+        return 7L;
+
+      int width  = img1.Width;
+      int height = img1.Height;
+
+      if ( width  != img2.Width ||
+           height != img2.Height ) return 11L;
+
+      PixelFormat fmt = img1.PixelFormat;
+      if ( !fmt.Equals( img2.PixelFormat ) )
+        return 11L;
+
+      int pixelSize = 1;
+      if ( fmt.Equals( PixelFormat.Format24bppRgb ) )
+        pixelSize = 3;
+      if ( fmt.Equals( PixelFormat.Format32bppArgb ) ||
+           fmt.Equals( PixelFormat.Format32bppPArgb ) )
+        pixelSize = 4;
+
+      if ( (xor != null) &&
+           (xor.Width < width || xor.Height < height || !fmt.Equals( xor.PixelFormat )) )
+        xor = null;
+
+      long result = 0L;
+      BitmapData data1 = img1.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, fmt );
+      BitmapData data2 = img2.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, fmt );
+      BitmapData outp  = (xor == null) ? null : xor.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, fmt );
+      unsafe
+      {
+        byte* ptr1;
+        byte* ptr2;
+        byte* ptro;
+
+        for ( int y = 0; y < height; y++ )
+        {
+          ptr1 = (byte*)data1.Scan0 + y * data1.Stride;
+          ptr2 = (byte*)data2.Scan0 + y * data2.Stride;
+          ptro = (outp == null) ? null : (byte*)outp.Scan0 + y * outp.Stride;
+
+          for ( int x = width * pixelSize; x-- > 0; ptr1++, ptr2++ )
+          {
+            byte xorbyte = (byte)(ptr1[ 0 ] ^ ptr2[ 0 ]);
+            if ( xorbyte != 0 ) result++;
+            if ( outp != null )
+            {
+              ptro[ 0 ] = xorbyte;
+              ptro++;
+            }
+          }
+        }
+      }
+
+      img1.UnlockBits( data1 );
+      img2.UnlockBits( data2 );
+      if ( outp != null ) xor.UnlockBits( outp );
+
+      return result;
+    }
+
+    public static long ImageCompareBW ( Bitmap img1, Bitmap img2, Bitmap xor )
+    {
+      if ( img1 == null || img2 == null )
+        return 7L;
+
+      int width = img1.Width;
+      int height = img1.Height;
+
+      if ( width != img2.Width ||
+           height != img2.Height ) return 11L;
+
+      if ( xor != null )
+      {
+        if ( width != xor.Width ||
+             height != xor.Height )
+          xor = null;
+      }
+
+      long result = 0L;
+      for ( int y = 0; y < height; y++ )
+        for ( int x = 0; x < width; x++ )
+        {
+          int gr1 = (img1.GetPixel( x, y ).GetBrightness() < 0.5f) ? 0 : 255;
+          int gr2 = (img2.GetPixel( x, y ).GetBrightness() < 0.5f) ? 0 : 255;
+          if ( gr1 != gr2 ) result++;
+          if ( xor != null )
+          {
+            gr1 ^= gr2;
+            xor.SetPixel( x, y, Color.FromArgb( gr1, gr1, gr1 ) );
+          }
+        }
+
+      return result;
+    }
   }
 }
