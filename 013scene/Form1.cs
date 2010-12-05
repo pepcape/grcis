@@ -50,7 +50,7 @@ namespace _013scene
     private void buttonGenerate_Click ( object sender, EventArgs e )
     {
       Cursor.Current = Cursors.WaitCursor;
-      int variant = (int)numericVariant.Value;
+      float variant = (float)numericVariant.Value;
 
       scene.Reset();
       Construction cn = new Construction();
@@ -62,7 +62,6 @@ namespace _013scene
 
       labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
       redraw();
-
     }
 
     private void redraw ()

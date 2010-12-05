@@ -36,7 +36,7 @@ namespace Scene3D
     /// <param name="m">Transform matrix (object-space to world-space)</param>
     /// <param name="variant">Shape variant if needed</param>
     /// <returns>Number of generated faces (0 in case of failure)</returns>
-    public int AddMesh ( SceneBrep scene, Matrix4 m, int variant )
+    public int AddMesh ( SceneBrep scene, Matrix4 m, float variant )
     {
       // !!!{{ TODO: put your Mesh-construction code here
 

@@ -21,9 +21,9 @@ namespace Scene3D
       x.Normalize();
       y.Normalize();
       z = Vector3.Multiply( z, -1.0f );
-      Matrix4 tmp = new Matrix4( new Vector4(x),
-                                 new Vector4(y),
-                                 new Vector4(z),
+      Matrix4 tmp = new Matrix4( new Vector4( x ),
+                                 new Vector4( y ),
+                                 new Vector4( z ),
                                  Vector4.UnitW );
       tmp.Transpose();
 
@@ -106,18 +106,34 @@ namespace Scene3D
       double cx = 0.0;
       double cy = 0.0;
       double cz = 0.0;
+      float minx = float.MaxValue;
+      float miny = float.MaxValue;
+      float minz = float.MaxValue;
+      float maxx = float.MinValue;
+      float maxy = float.MinValue;
+      float maxz = float.MinValue;
       int n = scene.Vertices;
       int i;
+
       for ( i = 0; i < n; i++ )
       {
         Vector3 vi = scene.GetVertex( i );
         cx += vi.X;
         cy += vi.Y;
         cz += vi.Z;
+        if ( vi.X < minx ) minx = vi.X;
+        if ( vi.Y < miny ) miny = vi.Y;
+        if ( vi.Z < minz ) minz = vi.Z;
+        if ( vi.X > maxx ) maxx = vi.X;
+        if ( vi.Y > maxy ) maxy = vi.Y;
+        if ( vi.Z > maxz ) maxz = vi.Z;
       }
       Vector3 center = new Vector3( (float)(cx / n),
                                     (float)(cy / n),
                                     (float)(cz / n) );
+      float diameter = (float)Math.Sqrt( (maxx - minx) * (maxx - minx) +
+                                         (maxy - miny) * (maxy - miny) +
+                                         (maxz - minz) * (maxz - minz) );
 
       // and the rest of projection matrix goes here:
       int width    = output.Width;
@@ -166,9 +182,22 @@ namespace Scene3D
         gr.DrawLine( pen, C.X, C.Y, A.X, A.Y );
       }
 
-      if ( DrawNormals )
+      if ( DrawNormals && scene.Normals > 0 )
       {
-        // !!! TODO: normal rendering
+        pen = new Pen( Color.FromArgb( 255, 80, 80 ), 1.0f );
+        n = scene.Vertices;
+        for ( i = 0; i < n; i++ )
+        {
+          Vector3 V, N;
+          V = scene.GetVertex( i );
+          N = scene.GetNormal( i );
+          N.Normalize();
+          N *= diameter * 0.03f;
+          N += V;
+          V = Vector3.Transform( V, compound );
+          N = Vector3.Transform( N, compound );
+          gr.DrawLine( pen, V.X, V.Y, N.X, N.Y );
+        }
       }
     }
 
