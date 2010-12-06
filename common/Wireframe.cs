@@ -10,27 +10,8 @@ using OpenTK.Graphics;
 
 namespace Scene3D
 {
-  public class Support
+  public class Geometry
   {
-    public static Matrix4 LookAt ( Vector3 camera, Vector3 center, Vector3 up )
-    {
-      Vector3 z = center - camera;
-      z.Normalize();
-      Vector3 x = Vector3.Cross( up, z );
-      Vector3 y = Vector3.Cross(  z, x );
-      x.Normalize();
-      y.Normalize();
-      z = Vector3.Multiply( z, -1.0f );
-      Matrix4 tmp = new Matrix4( new Vector4( x ),
-                                 new Vector4( y ),
-                                 new Vector4( z ),
-                                 Vector4.UnitW );
-      tmp.Transpose();
-
-      Matrix4 transl = Matrix4.CreateTranslation( Vector3.Multiply( camera, -1.0f ) );
-      return Matrix4.Mult( transl, tmp );
-    }
-
     public static Matrix4 SetViewport ( int x0, int y0, int width, int height )
     {
       Matrix4 tr = Matrix4.CreateTranslation( 1.0f, 1.0f, 1.0f );
@@ -143,27 +124,27 @@ namespace Scene3D
       double el    = Elevation / 180.0 * Math.PI;
 
       Vector3 eye   = new Vector3( (float)(center.X + Distance * Math.Sin( az ) * Math.Cos( el )),
-                                   (float)(center.Y + Distance * Math.Cos( az ) * Math.Cos( el )),
-                                   (float)(center.Z + Distance * Math.Sin( el )) );
+                                   (float)(center.Y + Distance * Math.Sin( el )),
+                                   (float)(center.Z + Distance * Math.Cos( az ) * Math.Cos( el )) );
       Matrix4 modelView = Matrix4.LookAt( eye, center, Vector3.UnitY );
-                          /* Support.LookAt( eye, center, Vector3.UnitZ ); */
       Matrix4 proj;
 
       if ( Perspective )
       {
-        float vv = (float)(ViewVolume / 180.0 * Math.PI);
-        proj = Matrix4.CreatePerspectiveFieldOfView( vv, aspect, 1.0f, 500.0f );
+        // float vv = (float)(ViewVolume / 180.0 * Math.PI);
+        float vv = (float)(2.0 * Math.Atan2( diameter * 0.5, Distance ));
+        proj = Matrix4.CreatePerspectiveFieldOfView( vv, aspect, 1.0f, 50.0f );
       }
       else
       {
-        float vHalf = (float)(ViewVolume * 0.5);
+        float vHalf = diameter * 0.52f;
         proj = Matrix4.CreateOrthographicOffCenter( -vHalf, vHalf,
                                                     -vHalf / aspect, vHalf / aspect,
                                                     1.0f, 50.0f );
       }
 
       Matrix4 compound = Matrix4.Mult( modelView, proj );
-      Matrix4 viewport = Support.SetViewport( 0, 0, width, height );
+      Matrix4 viewport = Geometry.SetViewport( 0, 0, width, height );
       compound = Matrix4.Mult( compound, viewport );
 
       // wireframe rendering:
@@ -172,14 +153,17 @@ namespace Scene3D
       n = scene.Triangles;
       for ( i = 0; i < n; i++ )
       {
-        Vector3 A, B, C;
+        Vector4 A, B, C;
         scene.GetTriangleVertices( i, out A, out B, out C );
-        A = Vector3.Transform( A, compound );
-        B = Vector3.Transform( B, compound );
-        C = Vector3.Transform( C, compound );
-        gr.DrawLine( pen, A.X, A.Y, B.X, B.Y );
-        gr.DrawLine( pen, B.X, B.Y, C.X, C.Y );
-        gr.DrawLine( pen, C.X, C.Y, A.X, A.Y );
+        A = Vector4.Transform( A, compound );
+        B = Vector4.Transform( B, compound );
+        C = Vector4.Transform( C, compound );
+        Vector2 a = new Vector2( A.X / A.W, A.Y / A.W );
+        Vector2 b = new Vector2( B.X / B.W, B.Y / B.W );
+        Vector2 c = new Vector2( C.X / C.W, C.Y / C.W );
+        gr.DrawLine( pen, a.X, a.Y, b.X, b.Y );
+        gr.DrawLine( pen, b.X, b.Y, c.X, c.Y );
+        gr.DrawLine( pen, c.X, c.Y, a.X, a.Y );
       }
 
       if ( DrawNormals && scene.Normals > 0 )
@@ -188,15 +172,16 @@ namespace Scene3D
         n = scene.Vertices;
         for ( i = 0; i < n; i++ )
         {
-          Vector3 V, N;
-          V = scene.GetVertex( i );
-          N = scene.GetNormal( i );
+          Vector4 V = new Vector4( scene.GetVertex( i ), 1.0f );
+          Vector3 N = scene.GetNormal( i );
           N.Normalize();
           N *= diameter * 0.03f;
-          N += V;
-          V = Vector3.Transform( V, compound );
-          N = Vector3.Transform( N, compound );
-          gr.DrawLine( pen, V.X, V.Y, N.X, N.Y );
+          Vector4 W = V + new Vector4( N );
+          V = Vector4.Transform( V, compound );
+          W = Vector4.Transform( W, compound );
+          Vector2 v = new Vector2( V.X / V.W, V.Y / V.W );
+          Vector2 w = new Vector2( W.X / W.W, W.Y / W.W );
+          gr.DrawLine( pen, v.X, v.Y, w.X, w.Y );
         }
       }
     }
