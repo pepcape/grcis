@@ -115,6 +115,7 @@ namespace Scene3D
       float diameter = (float)Math.Sqrt( (maxx - minx) * (maxx - minx) +
                                          (maxy - miny) * (maxy - miny) +
                                          (maxz - minz) * (maxz - minz) );
+      if ( Distance < diameter ) Distance = diameter;
 
       // and the rest of projection matrix goes here:
       int width    = output.Width;
@@ -131,7 +132,6 @@ namespace Scene3D
 
       if ( Perspective )
       {
-        // float vv = (float)(ViewVolume / 180.0 * Math.PI);
         float vv = (float)(2.0 * Math.Atan2( diameter * 0.5, Distance ));
         proj = Matrix4.CreatePerspectiveFieldOfView( vv, aspect, 1.0f, 50.0f );
       }

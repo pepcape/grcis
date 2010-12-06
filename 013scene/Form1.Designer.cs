@@ -43,6 +43,7 @@
       this.buttonGenerate = new System.Windows.Forms.Button();
       this.numericVariant = new System.Windows.Forms.NumericUpDown();
       this.label3 = new System.Windows.Forms.Label();
+      this.checkPerspective = new System.Windows.Forms.CheckBox();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericAzimuth)).BeginInit();
@@ -103,7 +104,7 @@
             0,
             0,
             0} );
-      this.numericAzimuth.Location = new System.Drawing.Point( 395, 378 );
+      this.numericAzimuth.Location = new System.Drawing.Point( 368, 378 );
       this.numericAzimuth.Maximum = new decimal( new int[] {
             720,
             0,
@@ -127,7 +128,7 @@
       // 
       this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point( 333, 418 );
+      this.label1.Location = new System.Drawing.Point( 306, 418 );
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size( 54, 13 );
       this.label1.TabIndex = 4;
@@ -136,9 +137,9 @@
       // buttonRedraw
       // 
       this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonRedraw.Location = new System.Drawing.Point( 476, 412 );
+      this.buttonRedraw.Location = new System.Drawing.Point( 446, 412 );
       this.buttonRedraw.Name = "buttonRedraw";
-      this.buttonRedraw.Size = new System.Drawing.Size( 95, 23 );
+      this.buttonRedraw.Size = new System.Drawing.Size( 125, 23 );
       this.buttonRedraw.TabIndex = 5;
       this.buttonRedraw.Text = "Redraw";
       this.buttonRedraw.UseVisualStyleBackColor = true;
@@ -158,7 +159,7 @@
       // 
       this.checkNormals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.checkNormals.AutoSize = true;
-      this.checkNormals.Location = new System.Drawing.Point( 479, 381 );
+      this.checkNormals.Location = new System.Drawing.Point( 513, 381 );
       this.checkNormals.Name = "checkNormals";
       this.checkNormals.Size = new System.Drawing.Size( 62, 17 );
       this.checkNormals.TabIndex = 7;
@@ -180,7 +181,7 @@
       // 
       this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.label2.AutoSize = true;
-      this.label2.Location = new System.Drawing.Point( 333, 380 );
+      this.label2.Location = new System.Drawing.Point( 306, 380 );
       this.label2.Name = "label2";
       this.label2.Size = new System.Drawing.Size( 47, 13 );
       this.label2.TabIndex = 9;
@@ -195,7 +196,7 @@
             0,
             0,
             0} );
-      this.numericElevation.Location = new System.Drawing.Point( 395, 414 );
+      this.numericElevation.Location = new System.Drawing.Point( 368, 414 );
       this.numericElevation.Maximum = new decimal( new int[] {
             90,
             0,
@@ -245,11 +246,25 @@
       this.label3.TabIndex = 13;
       this.label3.Text = "Variant:";
       // 
+      // checkPerspective
+      // 
+      this.checkPerspective.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.checkPerspective.AutoSize = true;
+      this.checkPerspective.Checked = true;
+      this.checkPerspective.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkPerspective.Location = new System.Drawing.Point( 450, 380 );
+      this.checkPerspective.Name = "checkPerspective";
+      this.checkPerspective.Size = new System.Drawing.Size( 55, 17 );
+      this.checkPerspective.TabIndex = 14;
+      this.checkPerspective.Text = "persp.";
+      this.checkPerspective.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.checkPerspective );
       this.Controls.Add( this.label3 );
       this.Controls.Add( this.numericVariant );
       this.Controls.Add( this.buttonGenerate );
@@ -295,6 +310,7 @@
     private System.Windows.Forms.Button buttonGenerate;
     private System.Windows.Forms.NumericUpDown numericVariant;
     private System.Windows.Forms.Label label3;
+    private System.Windows.Forms.CheckBox checkPerspective;
   }
 }
 
