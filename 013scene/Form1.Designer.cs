@@ -98,12 +98,22 @@
       // 
       this.numericAzimuth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.numericAzimuth.DecimalPlaces = 1;
-      this.numericAzimuth.Location = new System.Drawing.Point( 395, 378 );
-      this.numericAzimuth.Maximum = new decimal( new int[] {
-            360,
+      this.numericAzimuth.Increment = new decimal( new int[] {
+            10,
             0,
             0,
             0} );
+      this.numericAzimuth.Location = new System.Drawing.Point( 395, 378 );
+      this.numericAzimuth.Maximum = new decimal( new int[] {
+            720,
+            0,
+            0,
+            0} );
+      this.numericAzimuth.Minimum = new decimal( new int[] {
+            720,
+            0,
+            0,
+            -2147483648} );
       this.numericAzimuth.Name = "numericAzimuth";
       this.numericAzimuth.Size = new System.Drawing.Size( 62, 20 );
       this.numericAzimuth.TabIndex = 3;
@@ -180,12 +190,22 @@
       // 
       this.numericElevation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.numericElevation.DecimalPlaces = 1;
-      this.numericElevation.Location = new System.Drawing.Point( 395, 414 );
-      this.numericElevation.Maximum = new decimal( new int[] {
-            360,
+      this.numericElevation.Increment = new decimal( new int[] {
+            10,
             0,
             0,
             0} );
+      this.numericElevation.Location = new System.Drawing.Point( 395, 414 );
+      this.numericElevation.Maximum = new decimal( new int[] {
+            90,
+            0,
+            0,
+            0} );
+      this.numericElevation.Minimum = new decimal( new int[] {
+            90,
+            0,
+            0,
+            -2147483648} );
       this.numericElevation.Name = "numericElevation";
       this.numericElevation.Size = new System.Drawing.Size( 62, 20 );
       this.numericElevation.TabIndex = 10;

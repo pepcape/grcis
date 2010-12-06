@@ -255,6 +255,28 @@ namespace Scene3D
       v3 = (h3 < 0 || h3 >= geometry.Count) ? Vector3.Zero : geometry[ h3 ];
     }
 
+    /// <summary>
+    /// Returns vertex coordinates of the given triangle.
+    /// </summary>
+    /// <param name="tr">Triangle handle</param>
+    /// <param name="v1">Variable to receive the 1st vertex coordinates</param>
+    /// <param name="v2">Variable to receive the 2nd vertex coordinates</param>
+    /// <param name="v3">Variable to receive the 3rd vertex coordinates</param>
+    public void GetTriangleVertices ( int tr, out Vector4 v1, out Vector4 v2, out Vector4 v3 )
+    {
+      Debug.Assert( geometry != null, "Invalid G[] size" );
+      tr *= 3;
+      Debug.Assert( vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
+                    "Invalid triangle handle" );
+
+      int h1 = vertexPtr[ tr ];
+      int h2 = vertexPtr[ tr + 1 ];
+      int h3 = vertexPtr[ tr + 2 ];
+      v1 = new Vector4( (h1 < 0 || h1 >= geometry.Count) ? Vector3.Zero : geometry[ h1 ], 1.0f );
+      v2 = new Vector4( (h2 < 0 || h2 >= geometry.Count) ? Vector3.Zero : geometry[ h2 ], 1.0f );
+      v3 = new Vector4( (h3 < 0 || h3 >= geometry.Count) ? Vector3.Zero : geometry[ h3 ], 1.0f );
+    }
+
     #endregion
 
     #region Corner-table API
