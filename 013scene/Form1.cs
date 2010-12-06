@@ -40,6 +40,7 @@ namespace _013scene
       objReader.MirrorConversion = false;
       StreamReader reader = new StreamReader( new FileStream( ofd.FileName, FileMode.Open ) );
       int faces = objReader.ReadBrep( reader, scene );
+      reader.Close();
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
 
@@ -75,11 +76,11 @@ namespace _013scene
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       Wireframe renderer = new Wireframe();
-      renderer.Perspective = true;
+      renderer.Perspective = checkPerspective.Checked;
       renderer.Azimuth     = (double)numericAzimuth.Value;
       renderer.Elevation   = (double)numericElevation.Value;
       renderer.ViewVolume  = 30.0;
-      renderer.Distance    = 20.0;
+      renderer.Distance    = 10.0;
       renderer.DrawNormals = checkNormals.Checked;
       renderer.Render( outputImage, scene );
 

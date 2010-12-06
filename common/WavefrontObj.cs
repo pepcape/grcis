@@ -60,6 +60,23 @@ namespace Scene3D
 
       Debug.Assert( scene != null );
       scene.Reset();
+      return ReadBrep( reader, scene, Matrix4.Identity );
+    }
+
+    /// <summary>
+    /// Reads one 3D scene from a given stream (containing text variant of Wavefront OBJ format).
+    /// </summary>
+    /// <param name="reader">Already open text reader</param>
+    /// <param name="scene">Scene to be modified</param>
+    /// <param name="scene">Matrix for instancing</param>
+    /// <returns>Number of faces read</returns>
+    public int ReadBrep ( StreamReader reader, SceneBrep scene, Matrix4 m )
+    {
+      if ( reader == null ) return SceneBrep.NULL;
+
+      Debug.Assert( scene != null );
+      int v0 = scene.Vertices;
+
       int faces = 0;
       List<Vector3> normals = new List<Vector3>( 256 );
       int[] f = new int[ 3 ];
@@ -88,7 +105,7 @@ namespace Scene3D
 
             if ( MirrorConversion )
               coord.Z = -coord.Z;
-            scene.AddVertex( coord );
+            scene.AddVertex( Vector3.Transform( coord, m ) );
             break;
 
           case VERTEX_NORMAL:
@@ -102,7 +119,7 @@ namespace Scene3D
 
             if ( MirrorConversion )
               norm.Z = -norm.Z;
-            normals.Add( norm );
+            normals.Add( Vector3.TransformNormal( norm, m ) );
             break;
 
           case FACE:
@@ -116,7 +133,7 @@ namespace Scene3D
               ti = ni = SceneBrep.NULL;
               // 0 .. vertex coord index
               if ( !int.TryParse( vt[ 0 ], out f[ i ] ) ) break;
-              f[ i ]--;
+              f[ i ] = v0 + f[ i ] - 1;
               if ( vt.Length >= 2 )
               {
                 // 1 .. texture coord index (not yet)
@@ -160,7 +177,7 @@ namespace Scene3D
       for ( i = 0; i < scene.Vertices; i++ )
       {
         Vector3 v = scene.GetVertex( i );
-        writer.WriteLine( "{0} {1} {2} {3}", VERTEX, v.X, v.Y, v.Z );
+        writer.WriteLine( String.Format( CultureInfo.InvariantCulture, "{0} {1} {2} {3}", new object[] { VERTEX, v.X, v.Y, v.Z } ) );
       }
 
       bool hasNormals = scene.Normals > 0;
@@ -168,7 +185,7 @@ namespace Scene3D
         for ( i = 0; i < scene.Vertices; i++ )
         {
           Vector3 n = scene.GetNormal( i );
-          writer.WriteLine( "{0} {1} {2} {3}", VERTEX_NORMAL, n.X, n.Y, n.Z );
+          writer.WriteLine( String.Format( CultureInfo.InvariantCulture, "{0} {1} {2} {3}", new object[] { VERTEX_NORMAL, n.X, n.Y, n.Z } ) );
         }
 
       for ( i = 0; i < scene.Triangles; i++ )
