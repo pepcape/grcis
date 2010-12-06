@@ -257,5 +257,40 @@ namespace Raster
 
       return result;
     }
+
+    public static float ImageRMSE ( Bitmap img1, Bitmap img2, Bitmap xor )
+    {
+      if ( img1 == null || img2 == null )
+        return 1000.0f;
+
+      int width  = img1.Width;
+      int height = img1.Height;
+
+      if ( width != img2.Width ||
+           height != img2.Height ) return 2000.0f;
+
+      if ( xor != null )
+      {
+        if ( width != xor.Width ||
+             height != xor.Height )
+          xor = null;
+      }
+
+      double sum = 0.0;
+      for ( int y = 0; y < height; y++ )
+        for ( int x = 0; x < width; x++ )
+        {
+          int gr1 = (int)(img1.GetPixel( x, y ).GetBrightness() * 255.0f);
+          int gr2 = (int)(img2.GetPixel( x, y ).GetBrightness() * 255.0f);
+          sum += (gr1 - gr2) * (gr1 - gr2);
+          if ( xor != null )
+          {
+            gr1 ^= gr2;
+            xor.SetPixel( x, y, Color.FromArgb( gr1, gr1, gr1 ) );
+          }
+        }
+
+      return (float)Math.Sqrt( sum / (width * height) );
+    }
   }
 }
