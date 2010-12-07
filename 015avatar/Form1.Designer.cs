@@ -35,6 +35,7 @@
       this.numericVariant = new System.Windows.Forms.NumericUpDown();
       this.label3 = new System.Windows.Forms.Label();
       this.glControl1 = new OpenTK.GLControl();
+      this.labelFps = new System.Windows.Forms.Label();
       ((System.ComponentModel.ISupportInitialize)(this.numericVariant)).BeginInit();
       this.SuspendLayout();
       // 
@@ -114,13 +115,29 @@
       this.glControl1.VSync = false;
       this.glControl1.Load += new System.EventHandler( this.glControl1_Load );
       this.glControl1.Paint += new System.Windows.Forms.PaintEventHandler( this.glControl1_Paint );
+      this.glControl1.MouseMove += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseMove );
+      this.glControl1.KeyUp += new System.Windows.Forms.KeyEventHandler( this.glControl1_KeyUp );
+      this.glControl1.MouseDown += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseDown );
       this.glControl1.Resize += new System.EventHandler( this.glControl1_Resize );
+      this.glControl1.MouseUp += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseUp );
+      this.glControl1.KeyDown += new System.Windows.Forms.KeyEventHandler( this.glControl1_KeyDown );
+      // 
+      // labelFps
+      // 
+      this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.labelFps.AutoSize = true;
+      this.labelFps.Location = new System.Drawing.Point( 586, 382 );
+      this.labelFps.Name = "labelFps";
+      this.labelFps.Size = new System.Drawing.Size( 27, 13 );
+      this.labelFps.TabIndex = 18;
+      this.labelFps.Text = "Fps:";
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.labelFps );
       this.Controls.Add( this.glControl1 );
       this.Controls.Add( this.label3 );
       this.Controls.Add( this.numericVariant );
@@ -146,6 +163,7 @@
     private System.Windows.Forms.NumericUpDown numericVariant;
     private System.Windows.Forms.Label label3;
     private OpenTK.GLControl glControl1;
+    private System.Windows.Forms.Label labelFps;
   }
 }
 
