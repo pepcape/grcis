@@ -64,6 +64,9 @@
     <Compile Include="..\common\WavefrontObj.cs">
       <Link>WavefrontObj.cs</Link>
     </Compile>
+    <Compile Include="Avatar.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Construction.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
