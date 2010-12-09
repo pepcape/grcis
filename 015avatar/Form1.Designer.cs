@@ -38,6 +38,8 @@
       this.labelFps = new System.Windows.Forms.Label();
       this.label1 = new System.Windows.Forms.Label();
       this.numericInstances = new System.Windows.Forms.NumericUpDown();
+      this.checkSmooth = new System.Windows.Forms.CheckBox();
+      this.checkWireframe = new System.Windows.Forms.CheckBox();
       ((System.ComponentModel.ISupportInitialize)(this.numericVariant)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericInstances)).BeginInit();
       this.SuspendLayout();
@@ -56,6 +58,7 @@
       // buttonSave
       // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonSave.Enabled = false;
       this.buttonSave.Location = new System.Drawing.Point( 586, 412 );
       this.buttonSave.Name = "buttonSave";
       this.buttonSave.Size = new System.Drawing.Size( 107, 23 );
@@ -164,11 +167,36 @@
             0,
             0} );
       // 
+      // checkSmooth
+      // 
+      this.checkSmooth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkSmooth.AutoSize = true;
+      this.checkSmooth.Location = new System.Drawing.Point( 286, 381 );
+      this.checkSmooth.Name = "checkSmooth";
+      this.checkSmooth.Size = new System.Drawing.Size( 102, 17 );
+      this.checkSmooth.TabIndex = 21;
+      this.checkSmooth.Text = "Smooth shading";
+      this.checkSmooth.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.checkSmooth.UseVisualStyleBackColor = true;
+      // 
+      // checkWireframe
+      // 
+      this.checkWireframe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkWireframe.AutoSize = true;
+      this.checkWireframe.Location = new System.Drawing.Point( 409, 381 );
+      this.checkWireframe.Name = "checkWireframe";
+      this.checkWireframe.Size = new System.Drawing.Size( 74, 17 );
+      this.checkWireframe.TabIndex = 22;
+      this.checkWireframe.Text = "Wireframe";
+      this.checkWireframe.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.checkWireframe );
+      this.Controls.Add( this.checkSmooth );
       this.Controls.Add( this.numericInstances );
       this.Controls.Add( this.label1 );
       this.Controls.Add( this.labelFps );
@@ -201,6 +229,8 @@
     private System.Windows.Forms.Label labelFps;
     private System.Windows.Forms.Label label1;
     private System.Windows.Forms.NumericUpDown numericInstances;
+    private System.Windows.Forms.CheckBox checkSmooth;
+    private System.Windows.Forms.CheckBox checkWireframe;
   }
 }
 

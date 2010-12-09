@@ -38,9 +38,14 @@ namespace _015avatar
     private Vector3 up = Vector3.UnitY;
 
     /// <summary>
-    /// Horizontal field-of-view angle in radians.
+    /// Vertical field-of-view angle in radians.
     /// </summary>
-    private float fov = 1.2f;
+    private float fov = 1.0f;
+
+    /// <summary>
+    /// Camera's far point.
+    /// </summary>
+    private float far = 200.0f;
 
     #endregion
 
@@ -103,7 +108,7 @@ namespace _015avatar
 
       // 2. set projection matrix
       GL.MatrixMode( MatrixMode.Projection );
-      Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView( fov, wid / (float)hei, 0.1f, 100.0f );
+      Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView( fov, wid / (float)hei, 0.1f, far );
       GL.LoadMatrix( ref proj );
     }
 
@@ -141,11 +146,14 @@ namespace _015avatar
 
       frameCounter++;
       GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
+      GL.ShadeModel( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
+      GL.PolygonMode( MaterialFace.FrontAndBack, checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
 
       SetCamera();
 
       // Scene rendering:
-      if ( scene != null &&
+      if ( useVBO &&
+           scene != null &&
            scene.Triangles > 0 )        // scene is nonempty => render it
       {
         GL.Color3( Color.Yellow );
@@ -154,10 +162,12 @@ namespace _015avatar
         GL.VertexPointer( 3, VertexPointerType.Float, stride, IntPtr.Zero );
         if ( scene.Normals > 0 )
           GL.NormalPointer( NormalPointerType.Float, stride, (IntPtr)Vector3.SizeInBytes );
+        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
+        GL.ColorPointer( 3, ColorPointerType.Float, 0, IntPtr.Zero );
 
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
 
-        // Scene multiple instancing:
+        // Multiple instancing of the scene:
         Vector3 center;
         float delta = scene.GetDiameter( out center ) * 0.8f;
         int n = (int)numericInstances.Value;
