@@ -24,8 +24,19 @@ namespace _015avatar
     /// </summary>
     bool loaded = false;
 
+    #region OpenGL globals
+
+    private uint[] VBOid = new uint[ 2 ];
+    private int stride = 0;
+
+    #endregion
+
+    #region FPS counter
+
     long lastFpsTime = 0L;
     int fpsCounter = 0;
+
+    #endregion
 
     public Form1 ()
     {
@@ -54,7 +65,8 @@ namespace _015avatar
       int errors = scene.CheckCornerTable( null );
 
       labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
-      Render();
+      PrepareDataBuffers();
+      glControl1.Invalidate();
     }
 
     private void buttonGenerate_Click ( object sender, EventArgs e )
@@ -71,7 +83,8 @@ namespace _015avatar
       Cursor.Current = Cursors.Default;
 
       labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
-      Render();
+      PrepareDataBuffers();
+      glControl1.Invalidate();
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
@@ -92,8 +105,16 @@ namespace _015avatar
     private void glControl1_Load ( object sender, EventArgs e )
     {
       loaded = true;
+
+      // OpenGL init code:
       GL.ClearColor( Color.DarkBlue );
+      GL.Enable( EnableCap.DepthTest );
+
+      // VBO init:
+      GL.GenBuffers( 2, VBOid );
+
       SetupViewport();
+
       Application.Idle += new EventHandler( Application_Idle );
     }
 
@@ -109,5 +130,56 @@ namespace _015avatar
     {
       Render();
     }
+
+    /// <summary>
+    /// Prepare VBO content and upload it to the GPU.
+    /// </summary>
+    private void PrepareDataBuffers ()
+    {
+      if ( scene != null &&
+           scene.Triangles > 0 )
+      {
+        GL.EnableClientState( ArrayCap.VertexArray );
+        if ( scene.Normals > 0 )
+          GL.EnableClientState( ArrayCap.NormalArray );
+        GL.EnableClientState( ArrayCap.IndexArray );
+
+        // Vertex array: coord [normal]
+        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
+        int vertexBufferSize = scene.VertexBufferSize( true, true, false );
+        GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
+        IntPtr videoMemoryPtr = GL.MapBuffer( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
+        unsafe
+        {
+          stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, true, false );
+        }
+        GL.UnmapBuffer( BufferTarget.ArrayBuffer );
+        GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
+
+        GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)(scene.Triangles * 3 * sizeof( uint )), IntPtr.Zero, BufferUsageHint.StaticDraw );
+        videoMemoryPtr = GL.MapBuffer( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
+        unsafe
+        {
+          scene.FillIndexBuffer( (uint*)videoMemoryPtr.ToPointer() );
+        }
+        GL.UnmapBuffer( BufferTarget.ElementArrayBuffer );
+        GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
+      }
+      else
+      {
+        GL.DisableClientState( ArrayCap.VertexArray );
+        GL.DisableClientState( ArrayCap.NormalArray );
+        GL.DisableClientState( ArrayCap.IndexArray );
+
+        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
+        GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
+        GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
+        GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
+        GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
+      }
+    }
+
   }
 }
