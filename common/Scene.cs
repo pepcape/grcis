@@ -131,8 +131,8 @@ namespace Scene3D
 
       if ( normals != null )
       {
-        Debug.Assert( normals.Count != handle, "Invalid N[] size" );
-        normals.Add( Vector3.UnitX );
+        Debug.Assert( normals.Count == handle, "Invalid N[] size" );
+        normals.Add( Vector3.UnitY );
       }
 
       return handle;
@@ -275,6 +275,73 @@ namespace Scene3D
       v1 = new Vector4( (h1 < 0 || h1 >= geometry.Count) ? Vector3.Zero : geometry[ h1 ], 1.0f );
       v2 = new Vector4( (h2 < 0 || h2 >= geometry.Count) ? Vector3.Zero : geometry[ h2 ], 1.0f );
       v3 = new Vector4( (h3 < 0 || h3 >= geometry.Count) ? Vector3.Zero : geometry[ h3 ], 1.0f );
+    }
+
+    /// <summary>
+    /// Computes vertex array size (VBO) in bytes.
+    /// </summary>
+    /// <param name="vertices">Use vertex coordinates?</param>
+    /// <param name="norm">Use normal vectors?</param>
+    /// <param name="textures">Use texture coordinates?</param>
+    /// <returns>Buffer size in bytes</returns>
+    public int VertexBufferSize ( bool vertices, bool norm, bool textures )
+    {
+      Debug.Assert( geometry != null, "Invalid G[]" );
+
+      int size = 0;
+      if ( vertices )
+        size += Vertices * 3 * sizeof( float );
+      if ( norm && Normals > 0 )
+        size += Vertices * 3 * sizeof( float );
+
+      return size;
+    }
+
+    /// <summary>
+    /// Fill vertex data into the provided memory array (VBO after MapBuffer).
+    /// </summary>
+    /// <param name="ptr">Memory pointer</param>
+    /// <param name="vertices">Use vertex coordinates?</param>
+    /// <param name="norm">Use normal vectors?</param>
+    /// <param name="textures">Use texture coordinates?</param>
+    /// <returns>Stride (vertex size) in bytes</returns>
+    public unsafe int FillVertexBuffer ( float* ptr, bool vertices, bool norm, bool textures )
+    {
+      if ( geometry == null ) return 0;
+
+      if ( norm && Normals < Vertices )
+        norm = false;
+
+      int i;
+      for ( i = 0; i < Vertices; i++ )
+      {
+        if ( vertices )
+        {
+          *ptr++ = geometry[ i ].X;
+          *ptr++ = geometry[ i ].Y;
+          *ptr++ = geometry[ i ].Z;
+        }
+        if ( norm )
+        {
+          *ptr++ = normals[ i ].X;
+          *ptr++ = normals[ i ].Y;
+          *ptr++ = normals[ i ].Z;
+        }
+      }
+
+      return sizeof( float ) * ((vertices ? 3 : 0) + (norm ? 3 : 0));
+    }
+
+    /// <summary>
+    /// Fills index data into provided memory array (VBO after MapBuffer).
+    /// </summary>
+    /// <param name="ptr">Memory pointer</param>
+    public unsafe void FillIndexBuffer ( uint* ptr )
+    {
+      if ( vertexPtr == null ) return;
+
+      foreach ( int i in vertexPtr )
+        *ptr++ = (uint)i;
     }
 
     #endregion
