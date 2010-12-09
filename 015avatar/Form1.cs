@@ -24,10 +24,15 @@ namespace _015avatar
     /// </summary>
     bool loaded = false;
 
+    /// <summary>
+    /// Are we allowed to use VBO?
+    /// </summary>
+    bool useVBO = true;
+
     #region OpenGL globals
 
-    private uint[] VBOid = new uint[ 2 ];
-    private int stride = 0;
+    private uint[] VBOid = new uint[ 3 ];       // vertex array (coords, normals), index array, color array
+    private int stride = 0;                     // stride for vertex array
 
     #endregion
 
@@ -110,9 +115,12 @@ namespace _015avatar
       // OpenGL init code:
       GL.ClearColor( Color.DarkBlue );
       GL.Enable( EnableCap.DepthTest );
+      GL.ShadeModel( ShadingModel.Flat );
 
       // VBO init:
-      GL.GenBuffers( 2, VBOid );
+      GL.GenBuffers( 3, VBOid );
+      if ( GL.GetError() != ErrorCode.NoError )
+        useVBO = false;
 
       SetupViewport();
 
@@ -137,13 +145,14 @@ namespace _015avatar
     /// </summary>
     private void PrepareDataBuffers ()
     {
-      if ( scene != null &&
+      if ( useVBO &&
+           scene != null &&
            scene.Triangles > 0 )
       {
         GL.EnableClientState( ArrayCap.VertexArray );
         if ( scene.Normals > 0 )
           GL.EnableClientState( ArrayCap.NormalArray );
-        GL.EnableClientState( ArrayCap.IndexArray );
+        GL.EnableClientState( ArrayCap.ColorArray );
 
         // Vertex array: coord [normal]
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
@@ -166,19 +175,40 @@ namespace _015avatar
         }
         GL.UnmapBuffer( BufferTarget.ElementArrayBuffer );
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
+
+        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
+        // generate random color table:
+        Random rnd = new Random( 12 );
+        float[] colorTable = new float[ scene.Vertices * 3 ];
+        for ( int i = 0; i < scene.Vertices * 3; i++ )
+          colorTable[i] = (float)rnd.NextDouble();
+        unsafe
+        {
+          fixed ( float* ct = colorTable )
+          {
+            GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)(scene.Vertices * 3 * sizeof( float )), (IntPtr)ct, BufferUsageHint.StaticDraw );
+          }
+        }
+        GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
       }
       else
       {
         GL.DisableClientState( ArrayCap.VertexArray );
         GL.DisableClientState( ArrayCap.NormalArray );
-        GL.DisableClientState( ArrayCap.IndexArray );
+        GL.DisableClientState( ArrayCap.ColorArray );
 
-        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-        GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
-        GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
-        GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
-        GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
+        if ( useVBO )
+        {
+          GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
+          GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
+          GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
+          GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+          GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
+          GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
+          GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
+          GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
+          GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
+        }
       }
     }
 
