@@ -106,29 +106,41 @@ namespace _015avatar
     }
 
     /// <summary>
-    /// Rendering of one frame.
+    /// Setup of a camera called for every frame prior to any rendering.
     /// </summary>
-    private void Render ()
+    private void SetCamera ()
     {
-      if ( !loaded ) return;
+      // !!!{{ TODO: add camera setup here
 
       // Animation based on simple linear dynamics:
       timeInSeconds = DateTime.Now.Ticks * 1.0e-7;
       if ( animate )
       {
         float dTime = (float)(timeInSeconds - lastFrameTime);
-        eye        += dEye * dTime;
-        pointAt    += dPointAt * dTime;
+        eye += dEye * dTime;
+        pointAt += dPointAt * dTime;
       }
       lastFrameTime = timeInSeconds;
-
-      fpsCounter++;
-      GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
 
       // Current modelview matrix based on eye and pointAt position:
       GL.MatrixMode( MatrixMode.Modelview );
       Matrix4 lookAt = Matrix4.LookAt( eye, pointAt, up );
       GL.LoadMatrix( ref lookAt );
+
+      // !!!}}
+    }
+
+    /// <summary>
+    /// Rendering of one frame.
+    /// </summary>
+    private void Render ()
+    {
+      if ( !loaded ) return;
+
+      fpsCounter++;
+      GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
+
+      SetCamera();
 
       // Scene rendering:
       if ( scene != null &&
