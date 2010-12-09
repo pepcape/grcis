@@ -36,7 +36,10 @@
       this.label3 = new System.Windows.Forms.Label();
       this.glControl1 = new OpenTK.GLControl();
       this.labelFps = new System.Windows.Forms.Label();
+      this.label1 = new System.Windows.Forms.Label();
+      this.numericInstances = new System.Windows.Forms.NumericUpDown();
       ((System.ComponentModel.ISupportInitialize)(this.numericVariant)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.numericInstances)).BeginInit();
       this.SuspendLayout();
       // 
       // buttonOpen
@@ -114,30 +117,60 @@
       this.glControl1.TabIndex = 17;
       this.glControl1.VSync = false;
       this.glControl1.Load += new System.EventHandler( this.glControl1_Load );
+      this.glControl1.MouseWheel += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseWheel );
       this.glControl1.Paint += new System.Windows.Forms.PaintEventHandler( this.glControl1_Paint );
       this.glControl1.MouseMove += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseMove );
       this.glControl1.KeyUp += new System.Windows.Forms.KeyEventHandler( this.glControl1_KeyUp );
       this.glControl1.MouseDown += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseDown );
       this.glControl1.Resize += new System.EventHandler( this.glControl1_Resize );
       this.glControl1.MouseUp += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseUp );
-      this.glControl1.MouseWheel += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseWheel );
       this.glControl1.KeyDown += new System.Windows.Forms.KeyEventHandler( this.glControl1_KeyDown );
       // 
       // labelFps
       // 
       this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelFps.AutoSize = true;
-      this.labelFps.Location = new System.Drawing.Point( 586, 382 );
+      this.labelFps.Location = new System.Drawing.Point( 564, 382 );
       this.labelFps.Name = "labelFps";
       this.labelFps.Size = new System.Drawing.Size( 27, 13 );
       this.labelFps.TabIndex = 18;
       this.labelFps.Text = "Fps:";
+      // 
+      // label1
+      // 
+      this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.label1.AutoSize = true;
+      this.label1.Location = new System.Drawing.Point( 283, 417 );
+      this.label1.Name = "label1";
+      this.label1.Size = new System.Drawing.Size( 56, 13 );
+      this.label1.TabIndex = 19;
+      this.label1.Text = "Instances:";
+      // 
+      // numericInstances
+      // 
+      this.numericInstances.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.numericInstances.Location = new System.Drawing.Point( 349, 413 );
+      this.numericInstances.Minimum = new decimal( new int[] {
+            1,
+            0,
+            0,
+            0} );
+      this.numericInstances.Name = "numericInstances";
+      this.numericInstances.Size = new System.Drawing.Size( 57, 20 );
+      this.numericInstances.TabIndex = 20;
+      this.numericInstances.Value = new decimal( new int[] {
+            1,
+            0,
+            0,
+            0} );
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.numericInstances );
+      this.Controls.Add( this.label1 );
       this.Controls.Add( this.labelFps );
       this.Controls.Add( this.glControl1 );
       this.Controls.Add( this.label3 );
@@ -150,6 +183,7 @@
       this.Name = "Form1";
       this.Text = "015 avatar";
       ((System.ComponentModel.ISupportInitialize)(this.numericVariant)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.numericInstances)).EndInit();
       this.ResumeLayout( false );
       this.PerformLayout();
 
@@ -165,6 +199,8 @@
     private System.Windows.Forms.Label label3;
     private OpenTK.GLControl glControl1;
     private System.Windows.Forms.Label labelFps;
+    private System.Windows.Forms.Label label1;
+    private System.Windows.Forms.NumericUpDown numericInstances;
   }
 }
 

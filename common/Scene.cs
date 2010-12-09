@@ -344,6 +344,46 @@ namespace Scene3D
         *ptr++ = (uint)i;
     }
 
+    /// <summary>
+    /// Computes center point and diameter of the scene.
+    /// </summary>
+    /// <param name="center">Center point</param>
+    /// <returns>Diameter</returns>
+    public float GetDiameter ( out Vector3 center )
+    {
+      // center of the object = point to look at:
+      double cx = 0.0;
+      double cy = 0.0;
+      double cz = 0.0;
+      float minx = float.MaxValue;
+      float miny = float.MaxValue;
+      float minz = float.MaxValue;
+      float maxx = float.MinValue;
+      float maxy = float.MinValue;
+      float maxz = float.MinValue;
+      int i;
+
+      for ( i = 0; i < Vertices; i++ )
+      {
+        Vector3 vi = GetVertex( i );
+        cx += vi.X;
+        cy += vi.Y;
+        cz += vi.Z;
+        if ( vi.X < minx ) minx = vi.X;
+        if ( vi.Y < miny ) miny = vi.Y;
+        if ( vi.Z < minz ) minz = vi.Z;
+        if ( vi.X > maxx ) maxx = vi.X;
+        if ( vi.Y > maxy ) maxy = vi.Y;
+        if ( vi.Z > maxz ) maxz = vi.Z;
+      }
+      center = new Vector3( (float)(cx / Vertices),
+                            (float)(cy / Vertices),
+                            (float)(cz / Vertices) );
+      return (float)Math.Sqrt( (maxx - minx) * (maxx - minx) +
+                               (maxy - miny) * (maxy - miny) +
+                               (maxz - minz) * (maxz - minz) );
+    }
+
     #endregion
 
     #region Corner-table API

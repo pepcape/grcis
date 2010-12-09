@@ -34,7 +34,8 @@ namespace _015avatar
     #region FPS counter
 
     long lastFpsTime = 0L;
-    int fpsCounter = 0;
+    int frameCounter = 0;
+    long triangleCounter = 0L;
 
     #endregion
 
