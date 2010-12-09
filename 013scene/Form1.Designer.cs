@@ -198,12 +198,12 @@
             0} );
       this.numericElevation.Location = new System.Drawing.Point( 368, 414 );
       this.numericElevation.Maximum = new decimal( new int[] {
-            90,
+            89,
             0,
             0,
             0} );
       this.numericElevation.Minimum = new decimal( new int[] {
-            90,
+            89,
             0,
             0,
             -2147483648} );

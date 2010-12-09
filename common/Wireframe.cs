@@ -120,8 +120,8 @@ namespace Scene3D
       // wireframe rendering:
       Graphics gr = Graphics.FromImage( output );
       Pen pen = new Pen( Color.FromArgb( 255, 255, 80 ), 1.0f );
-      n = scene.Triangles;
-      for ( i = 0; i < n; i++ )
+      int n = scene.Triangles;
+      for ( int i = 0; i < n; i++ )
       {
         Vector4 A, B, C;
         scene.GetTriangleVertices( i, out A, out B, out C );
@@ -140,7 +140,7 @@ namespace Scene3D
       {
         pen = new Pen( Color.FromArgb( 255, 80, 80 ), 1.0f );
         n = scene.Vertices;
-        for ( i = 0; i < n; i++ )
+        for ( int i = 0; i < n; i++ )
         {
           Vector4 V = new Vector4( scene.GetVertex( i ), 1.0f );
           Vector3 N = scene.GetNormal( i );
