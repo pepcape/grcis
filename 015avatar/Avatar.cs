@@ -80,10 +80,12 @@ namespace _015avatar
         long now = DateTime.Now.Ticks;
         if ( now - lastFpsTime > 10000000 )      // more than 1 sec
         {
-          double fps = fpsCounter * 1.0e7 / (now - lastFpsTime);
+          double fps = frameCounter * 1.0e7 / (now - lastFpsTime);
+          double tps = triangleCounter * 1.0e7 / (now - lastFpsTime);
           lastFpsTime = now;
-          fpsCounter = 0;
-          labelFps.Text = String.Format( "FPS: {0:0.0}", fps );
+          frameCounter = 0;
+          triangleCounter = 0L;
+          labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0.0}m", fps, (tps * 1.0e-6) );
         }
       }
     }
@@ -137,7 +139,7 @@ namespace _015avatar
     {
       if ( !loaded ) return;
 
-      fpsCounter++;
+      frameCounter++;
       GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
 
       SetCamera();
@@ -154,10 +156,28 @@ namespace _015avatar
           GL.NormalPointer( NormalPointerType.Float, stride, (IntPtr)Vector3.SizeInBytes );
 
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-        GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+
+        // Scene multiple instancing:
+        Vector3 center;
+        float delta = scene.GetDiameter( out center ) * 0.8f;
+        int n = (int)numericInstances.Value;
+        for ( int j = 0; j++ < n; )
+        {
+          GL.PushMatrix();
+          for ( int i = 0; i++ < n; )
+          {
+            triangleCounter += scene.Triangles;
+            GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+            GL.Translate( delta, 0.0f, 0.0f );
+          }
+          GL.PopMatrix();
+          GL.Translate( 0.0f, 0.0f, delta );
+        }
+
       }
       else                              // single yellow triangle..
       {
+        triangleCounter++;
         GL.Color3( Color.Yellow );
         GL.Begin( BeginMode.Triangles );
         GL.Vertex3( -2.0f, -2.0f, 0.0f );
@@ -186,7 +206,7 @@ namespace _015avatar
     {
       if ( !loaded ) return;
 
-      fpsCounter++;
+      frameCounter++;
       GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
 
       GL.MatrixMode( MatrixMode.Modelview );
@@ -198,6 +218,7 @@ namespace _015avatar
         timeInSeconds = DateTime.Now.Ticks * 1.0e-7;
       GL.Rotate( (float)Math.IEEERemainder( timeInSeconds * 45.0, 360.0 ), Vector3.UnitZ );
 
+      triangleCounter++;
       GL.Color3( Color.Yellow );
       GL.Begin( BeginMode.Triangles );
       GL.Vertex3( -20.0f, -20.0f, 0.0f );
