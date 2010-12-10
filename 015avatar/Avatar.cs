@@ -171,17 +171,23 @@ namespace _015avatar
         Vector3 center;
         float delta = scene.GetDiameter( out center ) * 0.8f;
         int n = (int)numericInstances.Value;
-        for ( int j = 0; j++ < n; )
+        for ( int k = 0; k++ < n; )
         {
           GL.PushMatrix();
-          for ( int i = 0; i++ < n; )
+          for ( int j = 0; j++ < n; )
           {
-            triangleCounter += scene.Triangles;
-            GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
-            GL.Translate( delta, 0.0f, 0.0f );
+            GL.PushMatrix();
+            for ( int i = 0; i++ < n; )
+            {
+              triangleCounter += scene.Triangles;
+              GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+              GL.Translate( delta, 0.0f, 0.0f );
+            }
+            GL.PopMatrix();
+            GL.Translate( 0.0f, 0.0f, delta );
           }
           GL.PopMatrix();
-          GL.Translate( 0.0f, 0.0f, delta );
+          GL.Translate( 0.0f, delta, 0.0f );
         }
 
       }
