@@ -152,7 +152,12 @@
       // numericInstances
       // 
       this.numericInstances.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.numericInstances.Location = new System.Drawing.Point( 349, 413 );
+      this.numericInstances.Location = new System.Drawing.Point( 349, 414 );
+      this.numericInstances.Maximum = new decimal( new int[] {
+            25,
+            0,
+            0,
+            0} );
       this.numericInstances.Minimum = new decimal( new int[] {
             1,
             0,
