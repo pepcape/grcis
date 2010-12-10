@@ -7,6 +7,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using OpenTK;
+using Edge = System.Collections.Generic.KeyValuePair<int, int>;
 
 namespace Scene3D
 {
@@ -46,6 +47,9 @@ namespace Scene3D
     /// Valid only for topological scene (triangles are connected).
     /// </summary>
     protected List<int> oppositePtr = null;
+
+    public int statEdges = 0;
+    public int statShared = 0;
 
     #endregion
 
@@ -393,7 +397,48 @@ namespace Scene3D
     /// </summary>
     public void BuildCornerTable ()
     {
-      // !!! TODO: actually build the corner-table!
+      if ( geometry  == null || geometry.Count  < 1 ||
+           vertexPtr == null || vertexPtr.Count < 1 )
+      {
+        Reset();
+        return;
+      }
+
+      int n = vertexPtr.Count;
+      oppositePtr = new List<int>( n );
+      for ( int i = 0; i < n; i++ )
+        oppositePtr.Add( NULL );
+      Dictionary< Edge, int > edges = new Dictionary< Edge, int >();
+
+      statEdges = statShared = 0;
+      for ( int i = 0; i < n; i++ )               // process one corner
+      {
+        int cmin = cVertex( cPrev( i ) );
+        int cmax = cVertex( cNext( i ) );
+        if ( cmin < 0 || cmax < 0 ) continue;
+
+        if ( cmin > cmax )
+        {
+          int tmp = cmin;
+          cmin = cmax;
+          cmax = tmp;
+        }
+        Edge edge = new Edge( cmin, cmax );
+        if ( edges.ContainsKey( edge ) )
+        {
+          int other = edges[ edge ];
+          Debug.Assert( oppositePtr[ other ] == NULL );
+          oppositePtr[ other ] = i;
+          oppositePtr[ i ] = other;
+          edges.Remove( edge );
+          statShared++;
+        }
+        else
+        {
+          edges.Add( edge, i );
+          statEdges++;
+        }
+      }
     }
 
     /// <summary>
