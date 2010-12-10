@@ -283,7 +283,10 @@ namespace _015avatar
       // !!!{{ TODO: add the event handler here
 
       if ( e.KeyCode == Keys.R )              // R => reset camera position
-        eye = new Vector3( 1.0f, 2.0f, 10.0f );
+      {
+        eye  = new Vector3( 1.0f, 2.0f, 10.0f );
+        dEye = Vector3.Zero;
+      }
 
       if ( e.KeyCode == Keys.Space )          // space => toggle animation mode
       {
