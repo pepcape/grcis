@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Diagnostics;
 using System.IO;
 using OpenTK;
 using Scene3D;
@@ -29,7 +30,6 @@ namespace _017graph
       int height  = panel1.Height;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
-      GraphRendering renderer = new GraphRendering();
       FunctionsR2ToR fun = new FunctionsR2ToR();
       fun.Variant = (int)numericVariant.Value;
       double centerx = 0.5 * (fun.MinX + fun.MaxX);
@@ -40,6 +40,7 @@ namespace _017graph
       fun.MinZ = centerz - coef * (centerz - fun.MinZ);
       fun.MaxZ = centerz + coef * (fun.MaxZ - centerz);
 
+      GraphRendering renderer = new GraphRendering();
       renderer.Perspective = checkPerspective.Checked;
       renderer.Azimuth     = (double)numericAzimuth.Value;
       renderer.Elevation   = (double)numericElevation.Value;
@@ -47,7 +48,14 @@ namespace _017graph
       renderer.Distance    = 10.0;
       renderer.Rows        = (int)numericRows.Value;
       renderer.Columns     = (int)numericColumns.Value;
+
+      Stopwatch sw = new Stopwatch();
+      sw.Start();
+
       renderer.Render( outputImage, fun );
+
+      sw.Stop();
+      labelElapsed.Text = String.Format( "Elapsed: {0:f}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
       pictureBox1.Image = outputImage;
 

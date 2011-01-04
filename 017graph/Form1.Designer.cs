@@ -45,6 +45,7 @@
       this.label6 = new System.Windows.Forms.Label();
       this.numericRows = new System.Windows.Forms.NumericUpDown();
       this.numericColumns = new System.Windows.Forms.NumericUpDown();
+      this.labelElapsed = new System.Windows.Forms.Label();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericAzimuth)).BeginInit();
@@ -313,11 +314,22 @@
             0,
             0} );
       // 
+      // labelElapsed
+      // 
+      this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.labelElapsed.AutoSize = true;
+      this.labelElapsed.Location = new System.Drawing.Point( 524, 382 );
+      this.labelElapsed.Name = "labelElapsed";
+      this.labelElapsed.Size = new System.Drawing.Size( 48, 13 );
+      this.labelElapsed.TabIndex = 21;
+      this.labelElapsed.Text = "Elapsed:";
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.labelElapsed );
       this.Controls.Add( this.numericColumns );
       this.Controls.Add( this.numericRows );
       this.Controls.Add( this.label6 );
@@ -370,6 +382,7 @@
     private System.Windows.Forms.Label label6;
     private System.Windows.Forms.NumericUpDown numericRows;
     private System.Windows.Forms.NumericUpDown numericColumns;
+    private System.Windows.Forms.Label labelElapsed;
   }
 }
 
