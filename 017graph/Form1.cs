@@ -25,18 +25,28 @@ namespace _017graph
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      int width  = panel1.Width;
-      int height = panel1.Height;
+      int width   = panel1.Width;
+      int height  = panel1.Height;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       GraphRendering renderer = new GraphRendering();
       FunctionsR2ToR fun = new FunctionsR2ToR();
       fun.Variant = (int)numericVariant.Value;
+      double centerx = 0.5 * (fun.MinX + fun.MaxX);
+      double centerz = 0.5 * (fun.MinZ + fun.MaxZ);
+      double coef = (double)numericParam.Value;
+      fun.MinX = centerx - coef * (centerx - fun.MinX);
+      fun.MaxX = centerx + coef * (fun.MaxX - centerx);
+      fun.MinZ = centerz - coef * (centerz - fun.MinZ);
+      fun.MaxZ = centerz + coef * (fun.MaxZ - centerz);
+
       renderer.Perspective = checkPerspective.Checked;
       renderer.Azimuth     = (double)numericAzimuth.Value;
       renderer.Elevation   = (double)numericElevation.Value;
       renderer.ViewVolume  = 30.0;
       renderer.Distance    = 10.0;
+      renderer.Rows        = (int)numericRows.Value;
+      renderer.Columns     = (int)numericColumns.Value;
       renderer.Render( outputImage, fun );
 
       pictureBox1.Image = outputImage;

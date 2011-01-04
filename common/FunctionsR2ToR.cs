@@ -55,22 +55,51 @@ namespace Scene3D
 
     public FunctionsR2ToR ()
     {
-      variant = 0;
-      MinX = -3.0;
-      MaxX =  3.0;
-      MinZ = -3.0;
-      MaxZ =  3.0;
+      Variant = 0;
     }
 
     public double f ( double x, double z )
     {
-      return Math.Cos( x * x + z * z );
+      switch ( variant )
+      {
+        case 0:
+          return Math.Cos( x * x + z * z );
+
+        case 1:
+          return Math.Cos( x ) + Math.Cos( z );
+
+        default:
+          return 1.0;
+      }
     }
 
     public int Variant
     {
-      get;
-      set;
+      get
+      {
+        return variant;
+      }
+
+      set
+      {
+        variant = value;
+        switch ( variant )
+        {
+          case 0:
+            MinX = -3.0;
+            MaxX =  3.0;
+            MinZ = -3.0;
+            MaxZ =  3.0;
+            break;
+
+          case 1:
+            MinX = -5.0;
+            MaxX =  5.0;
+            MinZ = -5.0;
+            MaxZ =  5.0;
+            break;
+        }
+      }
     }
 
     public double MinX

@@ -181,10 +181,20 @@
       // 
       this.numericParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.numericParam.DecimalPlaces = 2;
+      this.numericParam.Increment = new decimal( new int[] {
+            1,
+            0,
+            0,
+            65536} );
       this.numericParam.Location = new System.Drawing.Point( 82, 412 );
       this.numericParam.Name = "numericParam";
       this.numericParam.Size = new System.Drawing.Size( 62, 20 );
       this.numericParam.TabIndex = 12;
+      this.numericParam.Value = new decimal( new int[] {
+            1,
+            0,
+            0,
+            0} );
       // 
       // label3
       // 
@@ -192,9 +202,9 @@
       this.label3.AutoSize = true;
       this.label3.Location = new System.Drawing.Point( 13, 415 );
       this.label3.Name = "label3";
-      this.label3.Size = new System.Drawing.Size( 58, 13 );
+      this.label3.Size = new System.Drawing.Size( 46, 13 );
       this.label3.TabIndex = 13;
-      this.label3.Text = "Parameter:";
+      this.label3.Text = "Domain:";
       // 
       // checkPerspective
       // 
@@ -221,6 +231,7 @@
       // 
       // numericVariant
       // 
+      this.numericVariant.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.numericVariant.Location = new System.Drawing.Point( 82, 378 );
       this.numericVariant.Name = "numericVariant";
       this.numericVariant.Size = new System.Drawing.Size( 62, 20 );
@@ -249,7 +260,17 @@
       // numericRows
       // 
       this.numericRows.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.numericRows.Increment = new decimal( new int[] {
+            10,
+            0,
+            0,
+            0} );
       this.numericRows.Location = new System.Drawing.Point( 234, 379 );
+      this.numericRows.Maximum = new decimal( new int[] {
+            300,
+            0,
+            0,
+            0} );
       this.numericRows.Minimum = new decimal( new int[] {
             1,
             0,
@@ -259,7 +280,7 @@
       this.numericRows.Size = new System.Drawing.Size( 49, 20 );
       this.numericRows.TabIndex = 19;
       this.numericRows.Value = new decimal( new int[] {
-            10,
+            20,
             0,
             0,
             0} );
@@ -267,7 +288,17 @@
       // numericColumns
       // 
       this.numericColumns.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.numericColumns.Increment = new decimal( new int[] {
+            10,
+            0,
+            0,
+            0} );
       this.numericColumns.Location = new System.Drawing.Point( 234, 413 );
+      this.numericColumns.Maximum = new decimal( new int[] {
+            300,
+            0,
+            0,
+            0} );
       this.numericColumns.Minimum = new decimal( new int[] {
             1,
             0,
@@ -277,7 +308,7 @@
       this.numericColumns.Size = new System.Drawing.Size( 49, 20 );
       this.numericColumns.TabIndex = 20;
       this.numericColumns.Value = new decimal( new int[] {
-            10,
+            20,
             0,
             0,
             0} );

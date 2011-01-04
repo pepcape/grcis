@@ -42,6 +42,16 @@ namespace Scene3D
     /// </summary>
     public double ViewVolume { get; set; }
 
+    /// <summary>
+    /// Number of quad columns (x-direction).
+    /// </summary>
+    public int Columns { get; set; }
+
+    /// <summary>
+    /// Number of quad rows (z-direction).
+    /// </summary>
+    public int Rows { get; set; }
+
     #endregion
 
     #region Construction
@@ -56,6 +66,24 @@ namespace Scene3D
       Elevation   = 20.0;
       Distance    = 10.0;
       ViewVolume  = 60.0;
+      Columns     = 12;
+      Rows        = 12;
+    }
+
+    #endregion
+
+    #region Rendering support
+
+    protected Matrix4 compound;
+
+    protected IFunctionR2ToR f;
+
+    protected void transform ( float x, float z, out float xf, out float yf )
+    {
+      Vector4 A = new Vector4( x, (float)f.f( x, z ), z, 1.0f );
+      A = Vector4.Transform( A, compound );
+      xf = A.X / A.W;
+      yf = A.Y / A.W;
     }
 
     #endregion
@@ -67,10 +95,11 @@ namespace Scene3D
       if ( output == null ||
            funct  == null ) return;
 
+      f = funct;
       Vector3 center;
       center.X = 0.5f * (float)(funct.MaxX + funct.MinX);
-      center.Y = 0.0f;
       center.Z = 0.5f * (float)(funct.MaxZ + funct.MinZ);
+      center.Y = (float)f.f( center.X, center.Z );
 
       float diameter = (float)((funct.MaxX - funct.MinX) + (funct.MaxZ - funct.MinZ));
       if ( Distance < diameter ) Distance = diameter;
@@ -101,7 +130,7 @@ namespace Scene3D
                                                     1.0f, 50.0f );
       }
 
-      Matrix4 compound = Matrix4.Mult( modelView, proj );
+      compound = Matrix4.Mult( modelView, proj );
       Matrix4 viewport = Geometry.SetViewport( 0, 0, width, height );
       compound = Matrix4.Mult( compound, viewport );
 
@@ -110,25 +139,39 @@ namespace Scene3D
       Graphics gr = Graphics.FromImage( output );
       Pen pen = new Pen( Color.FromArgb( 255, 255, 80 ), 1.0f );
 
-      // !!!}}
+      float x, dx;
+      float z, dz;
+      dx = (float)(funct.MaxX - funct.MinX) / Columns;
+      dz = (float)(funct.MaxZ - funct.MinZ) / Rows;
+      z = (float)funct.MinZ;
+      float ax, ay, bx, by;
 
-      /*
-      int n = scene.Triangles;
-      for ( int i = 0; i < n; i++ )
+      x = (float)funct.MinX;
+      for ( int i = 1; i < Columns; i++, x += dx )
       {
-        Vector4 A, B, C;
-        scene.GetTriangleVertices( i, out A, out B, out C );
-        A = Vector4.Transform( A, compound );
-        B = Vector4.Transform( B, compound );
-        C = Vector4.Transform( C, compound );
-        Vector2 a = new Vector2( A.X / A.W, A.Y / A.W );
-        Vector2 b = new Vector2( B.X / B.W, B.Y / B.W );
-        Vector2 c = new Vector2( C.X / C.W, C.Y / C.W );
-        gr.DrawLine( pen, a.X, a.Y, b.X, b.Y );
-        gr.DrawLine( pen, b.X, b.Y, c.X, c.Y );
-        gr.DrawLine( pen, c.X, c.Y, a.X, a.Y );
+        transform( x,      z, out ax, out ay );
+        transform( x + dx, z, out bx, out by );
+        gr.DrawLine( pen, ax, ay, bx, by );
       }
-      */
+
+      for ( int j = 1; j < Rows; j++, z += dz )
+      {
+        x = (float)funct.MinX;
+        transform( x, z,      out ax, out ay );
+        transform( x, z + dz, out bx, out by );
+        gr.DrawLine( pen, ax, ay, bx, by );
+
+        for ( int i = 1; i < Columns; i++, x += dx )
+        {
+          transform( x,      z + dz, out ax, out ay );
+          transform( x + dx, z + dz, out bx, out by );
+          gr.DrawLine( pen, ax, ay, bx, by );
+          transform( x + dx, z,      out ax, out ay );
+          gr.DrawLine( pen, ax, ay, bx, by );
+        }
+      }
+
+      // !!!}}
 
     }
 
