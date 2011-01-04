@@ -92,7 +92,7 @@ namespace Scene3D
       Vector3 center;
       center.X = 0.5f * (float)(f.MaxX + f.MinX);
       center.Z = 0.5f * (float)(f.MaxZ + f.MinZ);
-      center.Y = (float)f.f( center.X, center.Z );
+      center.Y = (float)( 0.5 * f.f( center.X, center.Z ) );
 
       float diameter = (float)((f.MaxX - f.MinX) + (f.MaxZ - f.MinZ));
       if ( Distance < diameter ) Distance = diameter;

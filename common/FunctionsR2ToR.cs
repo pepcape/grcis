@@ -60,6 +60,7 @@ namespace Scene3D
 
     public double f ( double x, double z )
     {
+      double r;
       switch ( variant )
       {
         case 0:
@@ -67,6 +68,14 @@ namespace Scene3D
 
         case 1:
           return Math.Cos( x ) + Math.Cos( z );
+
+        case 2:
+          r = Math.Sqrt( x * x + z * z );
+          return (r <= Double.Epsilon) ? 20.0 : (20.0 * Math.Sin( r ) / r );
+
+        case 3:
+          r = x * x + z * z;
+          return (r <= Double.Epsilon) ? 20.0 : (20.0 * Math.Sin( r ) / r);
 
         default:
           return 1.0;
@@ -97,6 +106,20 @@ namespace Scene3D
             MaxX =  5.0;
             MinZ = -5.0;
             MaxZ =  5.0;
+            break;
+
+          case 2:
+            MinX = -30.0;
+            MaxX =  30.0;
+            MinZ = -30.0;
+            MaxZ =  30.0;
+            break;
+
+          case 3:
+            MinX = -10.0;
+            MaxX =  10.0;
+            MinZ = -10.0;
+            MaxZ =  10.0;
             break;
         }
       }
