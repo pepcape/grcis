@@ -86,34 +86,27 @@ namespace Scene3D
       yf = A.Y / A.W;
     }
 
-    #endregion
-
-    #region Rendering API
-
-    public void Render ( Bitmap output, IFunctionR2ToR funct )
+    protected void prepareProjection ( Bitmap output, IFunctionR2ToR funct )
     {
-      if ( output == null ||
-           funct  == null ) return;
-
       f = funct;
       Vector3 center;
-      center.X = 0.5f * (float)(funct.MaxX + funct.MinX);
-      center.Z = 0.5f * (float)(funct.MaxZ + funct.MinZ);
+      center.X = 0.5f * (float)(f.MaxX + f.MinX);
+      center.Z = 0.5f * (float)(f.MaxZ + f.MinZ);
       center.Y = (float)f.f( center.X, center.Z );
 
-      float diameter = (float)((funct.MaxX - funct.MinX) + (funct.MaxZ - funct.MinZ));
+      float diameter = (float)((f.MaxX - f.MinX) + (f.MaxZ - f.MinZ));
       if ( Distance < diameter ) Distance = diameter;
 
       // and the rest of projection matrix goes here:
-      int width    = output.Width;
-      int height   = output.Height;
+      int width = output.Width;
+      int height = output.Height;
       float aspect = width / (float)height;
-      double az    = Azimuth / 180.0 * Math.PI;
-      double el    = Elevation / 180.0 * Math.PI;
+      double az = Azimuth / 180.0 * Math.PI;
+      double el = Elevation / 180.0 * Math.PI;
 
-      Vector3 eye   = new Vector3( (float)(center.X + Distance * Math.Sin( az ) * Math.Cos( el )),
-                                   (float)(center.Y + Distance * Math.Sin( el )),
-                                   (float)(center.Z + Distance * Math.Cos( az ) * Math.Cos( el )) );
+      Vector3 eye = new Vector3( (float)(center.X + Distance * Math.Sin( az ) * Math.Cos( el )),
+                                 (float)(center.Y + Distance * Math.Sin( el )),
+                                 (float)(center.Z + Distance * Math.Cos( az ) * Math.Cos( el )) );
       Matrix4 modelView = Matrix4.LookAt( eye, center, Vector3.UnitY );
       Matrix4 proj;
 
@@ -133,19 +126,31 @@ namespace Scene3D
       compound = Matrix4.Mult( modelView, proj );
       Matrix4 viewport = Geometry.SetViewport( 0, 0, width, height );
       compound = Matrix4.Mult( compound, viewport );
+    }
+
+    #endregion
+
+    #region Rendering API
+
+    public void Render ( Bitmap output, IFunctionR2ToR funct )
+    {
+      if ( output == null ||
+           funct  == null ) return;
+
+      prepareProjection( output, funct );
 
       // !!!{{ TODO: add the graph rendering code here
 
       Graphics gr = Graphics.FromImage( output );
       Pen pen = new Pen( Color.FromArgb( 255, 255, 80 ), 1.0f );
 
-      float x, dx;
-      float z, dz;
-      dx = (float)(funct.MaxX - funct.MinX) / Columns;
-      dz = (float)(funct.MaxZ - funct.MinZ) / Rows;
-      z = (float)funct.MinZ;
+      float x, dx, z, dz;
       float ax, ay, bx, by;
 
+      dx = (float)(funct.MaxX - funct.MinX) / Columns;
+      dz = (float)(funct.MaxZ - funct.MinZ) / Rows;
+
+      z = (float)funct.MinZ;
       x = (float)funct.MinX;
       for ( int i = 1; i < Columns; i++, x += dx )
       {
