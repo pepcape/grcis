@@ -104,7 +104,29 @@ namespace _016videoslow
 
     private void buttonDecode_Click ( object sender, EventArgs e )
     {
-      VideoCodec vc = new VideoCodec();
+      string fn = String.Format( textOutputMask.Text, 0 );
+      string dir = Path.GetDirectoryName( fn );
+      Directory.CreateDirectory( dir );
+
+      FileStream fs = new FileStream( videoFileName, FileMode.Open );
+      Stream s;
+
+      if ( fs != null )
+      {
+        VideoCodec vc = new VideoCodec();
+        s = vc.DecodeHeader( fs );
+        int i = 0;
+        do
+        {
+          frameImage = vc.DecodeFrame( i, s );
+          if ( frameImage == null ) return;
+          fn = String.Format( textOutputMask.Text, i++ );
+          frameImage.Save( fn, ImageFormat.Png );
+        }
+        while ( true );
+
+        s.Close();
+      }
     }
   }
 }
