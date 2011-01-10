@@ -76,7 +76,13 @@ namespace _010quadtree
 
     private void buttonRecode_Click ( object sender, EventArgs e )
     {
-      if ( inputImage == null ) return;
+      if ( inputImage == null )
+      {
+        inputImage  = (Bitmap)Image.FromFile( "toucan.png" );
+        outputImage =
+        diffImage   = null;
+      }
+
       Cursor.Current = Cursors.WaitCursor;
 
       Stopwatch sw = new Stopwatch();
