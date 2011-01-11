@@ -20,7 +20,7 @@ namespace _009floodfill
 
     private void redraw ()
     {
-      const int SIZE = 600;
+      const int SIZE = 800;
 
       Cursor.Current = Cursors.WaitCursor;
       Bitmap output = new Bitmap( SIZE, SIZE, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
