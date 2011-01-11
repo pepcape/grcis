@@ -90,7 +90,7 @@
       this.numericSize.Size = new System.Drawing.Size( 71, 20 );
       this.numericSize.TabIndex = 3;
       this.numericSize.Value = new decimal( new int[] {
-            20,
+            30,
             0,
             0,
             0} );
