@@ -9,4 +9,32 @@ using OpenTK;
 
 namespace Rendering
 {
+  public class RayScene : IRayScene
+  {
+    public IIntersectable Intersectable
+    {
+      get;
+      set;
+    }
+
+    public ICamera Camera
+    {
+      get;
+      set;
+    }
+
+    public List<ILightSource> Sources
+    {
+      get;
+      set;
+    }
+
+    public RayScene ()
+    {
+      Camera = new StaticCamera( new Vector3d( 0.0, 0.0, -10.0 ),
+                                 new Vector3d( 0.0, 0.0, 1.0 ), 60.0 );
+      Sources = new LinkedList<ILightSource>();
+      Sources.Add( new PointLightSource( new Vector4d( -10.0, 8.0, 3.0, 1.0 ), 1.0 ) );
+    }
+  }
 }

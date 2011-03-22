@@ -33,7 +33,13 @@ namespace _018raycasting
       SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
       sis.Width  = width;
       sis.Height = height;
-      //sis.ImageFunction = RayCasting;
+
+      // default constructor of the RayScene .. custom scene
+      RayScene scene = new RayScene();
+      scene.Camera.Width  = width;
+      scene.Camera.Height = height;
+
+      sis.ImageFunction = new RayCasting( scene );
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
