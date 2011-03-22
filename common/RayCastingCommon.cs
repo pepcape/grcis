@@ -146,6 +146,13 @@ namespace Rendering
   /// </summary>
   public interface ILightSource
   {
+    /// <summary>
+    /// Returns intensity (incl. color) of the source contribution to the given scene point.
+    /// </summary>
+    /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
+    /// <param name="dir">Direction to the source is set here (optional, can be null).</param>
+    /// <returns></returns>
+    double[] GetIntensity ( Intersection intersection, Vector3d dir );
   }
 
   /// <summary>
@@ -175,6 +182,7 @@ namespace Rendering
   /// </summary>
   public interface ISceneNode : IIntersectable
   {
+    
   }
 
   public interface ISolid : ISceneNode, IIntersectable
