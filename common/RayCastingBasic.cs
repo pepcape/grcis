@@ -166,13 +166,14 @@ namespace Rendering
     /// <param name="y">Origin position within a viewport (vertical coordinate).</param>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
-    /// <returns></returns>
-    public bool GetRay ( double x, double y, Vector4d p0, Vector3d p1 )
+    /// <returns>True if the ray (viewport position) is valid.</returns>
+    public bool GetRay ( double x, double y, ref Vector4d p0, ref Vector3d p1 )
     {
       p0 = center;
       p1 = origin + x * dx + y * dy;
       p1 = p1 - center;
       p1.Normalize();
+      return true;
     }
   }
 
@@ -196,8 +197,8 @@ namespace Rendering
     /// </summary>
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="dir">Direction to the source is set here (optional, can be null).</param>
-    /// <returns></returns>
-    public double[] GetIntensity ( Intersection intersection, Vector3d dir )
+    /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
+    public double[] GetIntensity ( Intersection intersection, ref Vector3d dir )
     {
       if ( intersection == null ) return null;
       Vector3d d = coordinate - intersection.CoordWorld;

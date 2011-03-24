@@ -137,8 +137,8 @@ namespace Rendering
     /// <param name="y">Origin position within a viewport (vertical coordinate).</param>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
-    /// <returns></returns>
-    bool GetRay ( double x, double y, Vector4d p0, Vector3d p1 );
+    /// <returns>True if the ray (viewport position) is valid.</returns>
+    bool GetRay ( double x, double y, ref Vector4d p0, ref Vector3d p1 );
   }
 
   /// <summary>
@@ -151,8 +151,44 @@ namespace Rendering
     /// </summary>
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="dir">Direction to the source is set here (optional, can be null).</param>
-    /// <returns></returns>
-    double[] GetIntensity ( Intersection intersection, Vector3d dir );
+    /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
+    double[] GetIntensity ( Intersection intersection, ref Vector3d dir );
+  }
+
+  /// <summary>
+  /// Reflection model - deals with local interaction between light and material surface.
+  /// Entry point of the light ray is assumed to be equal to the exit point.
+  /// </summary>
+  public interface IReflectionModel
+  {
+    double[] ColorReflection ( IMaterial material, Intersection intersection, Vector3d input, Vector3d output );
+
+    double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output );
+  }
+
+  /// <summary>
+  /// Abstract material description.
+  /// Each IReflectionModel should define its own derivation with specific properties.
+  /// </summary>
+  public interface IMaterial
+  {
+    /// <summary>
+    /// Base surface color.
+    /// </summary>
+    double[] Color
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Absolute index of refraction.
+    /// </summary>
+    double n
+    {
+      get;
+      set;
+    }
   }
 
   /// <summary>
@@ -166,7 +202,7 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
-    LinkedList<Intersection> Intersect ( Vector4d p0, Vector3d p1 );
+    List<Intersection> Intersect ( Vector4d p0, Vector3d p1 );
   }
 
   public enum SetOperation
@@ -318,7 +354,7 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
-    public LinkedList<Intersection> Intersect ( Vector4d p0, Vector3d p1 )
+    public List<Intersection> Intersect ( Vector4d p0, Vector3d p1 )
     {
       return null;
     }
