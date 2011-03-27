@@ -14,6 +14,40 @@ namespace Rendering
   #region Interfaces
 
   /// <summary>
+  /// Function from continuous 2D space (virtual screen) to some color space.
+  /// Usually does all the rendering job except for anti-aliasing.
+  /// </summary>
+  public interface IImageFunction
+  {
+    /// <summary>
+    /// Domain width.
+    /// </summary>
+    double Width
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Domain height.
+    /// </summary>
+    double Height
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Computes one image sample.
+    /// </summary>
+    /// <param name="x">Horizontal coordinate.</param>
+    /// <param name="y">Vertical coordinate.</param>
+    /// <param name="color">Computed sample color.</param>
+    /// <returns>Hash-value used for adaptive subsampling.</returns>
+    long GetSample ( double x, double y, double[] color );
+  }
+
+  /// <summary>
   /// Algorithm capable of synthesizing raster image from virtual 3D scene.
   /// Usually associated with an IImageFunction object (which does the actual job).
   /// </summary>
@@ -54,48 +88,6 @@ namespace Rendering
     /// <param name="x2"></param>
     /// <param name="y2"></param>
     void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 );
-
-  }
-
-  /// <summary>
-  /// Function from continuous 2D space (virtual screen) to some color space.
-  /// Usually does all the rendering job except for anti-aliasing.
-  /// </summary>
-  public interface IImageFunction
-  {
-    double[] BackgroundColor
-    {
-      get;
-      set;
-    }
-
-    /// <summary>
-    /// Domain width.
-    /// </summary>
-    double Width
-    {
-      get;
-      set;
-    }
-
-    /// <summary>
-    /// Domain height.
-    /// </summary>
-    double Height
-    {
-      get;
-      set;
-    }
-
-    /// <summary>
-    /// Computes one image sample.
-    /// </summary>
-    /// <param name="x">Horizontal coordinate.</param>
-    /// <param name="y">Vertical coordinate.</param>
-    /// <param name="color">Computed sample color.</param>
-    /// <returns>Hash-value used for adaptive subsampling.</returns>
-    long GetSample ( double x, double y, double[] color );
-
   }
 
   /// <summary>
@@ -202,44 +194,45 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
-    List<Intersection> Intersect ( Vector4d p0, Vector3d p1 );
-  }
-
-  public enum SetOperation
-  {
-    Union,
-    Intersection,
-    Difference,
-    Xor,
+    LinkedList<Intersection> Intersect ( Vector4d p0, Vector3d p1 );
   }
 
   /// <summary>
-  /// General scene node (hierarchical 3D scene used in ray-based rendering).
+  /// Data container for Ray-based scene rendering: complete scene definition including camera.
   /// </summary>
-  public interface ISceneNode : IIntersectable
-  {
-    
-  }
-
-  public interface ISolid : ISceneNode, IIntersectable
-  {
-  }
-
   public interface IRayScene
   {
+    /// <summary>
+    /// Scene model (whatever is able to compute ray intersections).
+    /// </summary>
     IIntersectable Intersectable
     {
       get;
       set;
     }
 
+    /// <summary>
+    /// Background color.
+    /// </summary>
+    double[] BackgroundColor
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Camera = primary ray generator.
+    /// </summary>
     ICamera Camera
     {
       get;
       set;
     }
 
-    List<ILightSource> Sources
+    /// <summary>
+    /// Set of light sources.
+    /// </summary>
+    ICollection<ILightSource> Sources
     {
       get;
       set;
@@ -341,32 +334,44 @@ namespace Rendering
       get;
       set;
     }
-  }
 
-  /// <summary>
-  /// Common code for ISceneNode.
-  /// </summary>
-  public class DefaultSceneNode : ISceneNode
-  {
     /// <summary>
-    /// Computes the complete intersection of the given ray with the object. 
+    /// Supplement data object for intersection completion.
     /// </summary>
-    /// <param name="p0">Ray origin.</param>
-    /// <param name="p1">Ray direction vector.</param>
-    /// <returns>Sorted list of intersection records.</returns>
-    public List<Intersection> Intersect ( Vector4d p0, Vector3d p1 )
+    public object SolidData
     {
-      return null;
+      get;
+      set;
     }
-  }
-
-  /// <summary>
-  /// Inner CSG node (associated with a set operation).
-  /// </summary>
-  public class InnerNode : DefaultSceneNode
-  {
   }
 
   #endregion
 
+  #region Support
+
+  public class Geometry
+  {
+    public static Vector3d specularRefraction ( Vector3d normal, double n, Vector3d input )
+    {
+      normal.Normalize();
+      input.Normalize();
+      double d = Vector3d.Dot( normal, input );
+
+      if ( d < 0.0 )                        // (N*L) should be > 0.0 (N and L in the same half-space)
+      {
+        d  = -d;
+        normal = normal * -1.0;
+      }
+      else
+        n  = 1.0 / n;
+
+      double cos2 = 1.0 - n * n * (1.0 - d * d);
+      if ( cos2 <= 0.0 ) return Vector3d.Zero; // total reflection
+
+      d = n * d - Math.Sqrt( cos2 );
+      return( normal * d - input * n );
+    }
+  }
+
+  #endregion
 }

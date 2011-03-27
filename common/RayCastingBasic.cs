@@ -10,6 +10,10 @@ using OpenTK;
 
 namespace Rendering
 {
+  /// <summary>
+  /// Image synthesizer w/o antialiasing or any other fancy stuff.
+  /// Uses just one sample per pixel.
+  /// </summary>
   public class SimpleImageSynthesizer : IRenderer
   {
     /// <summary>
@@ -69,6 +73,9 @@ namespace Rendering
     }
   }
 
+  /// <summary>
+  /// Simple camera with center of projection and planar projection surface.
+  /// </summary>
   public class StaticCamera : ICamera
   {
     /// <summary>
@@ -76,7 +83,7 @@ namespace Rendering
     /// </summary>
     public double AspectRatio
     {
-      get { return width / height };
+      get { return width / height; }
       set
       {
         height = width / value;
@@ -91,7 +98,7 @@ namespace Rendering
     /// </summary>
     public double Width
     {
-      get { return width };
+      get { return width; }
       set
       {
         width = value;
@@ -106,7 +113,7 @@ namespace Rendering
     /// </summary>
     public double Height
     {
-      get { return height };
+      get { return height; }
       set
       {
         height = value;
@@ -169,7 +176,10 @@ namespace Rendering
     /// <returns>True if the ray (viewport position) is valid.</returns>
     public bool GetRay ( double x, double y, ref Vector4d p0, ref Vector3d p1 )
     {
-      p0 = center;
+      p0.X = center.X;
+      p0.Y = center.Y;
+      p0.Z = center.Z;
+      p0.W = 1.0;
       p1 = origin + x * dx + y * dy;
       p1 = p1 - center;
       p1.Normalize();
@@ -201,8 +211,12 @@ namespace Rendering
     public double[] GetIntensity ( Intersection intersection, ref Vector3d dir )
     {
       if ( intersection == null ) return null;
-      Vector3d d = coordinate - intersection.CoordWorld;
-      if ( Vector3d.Dot( d, intersection.Normal ) <= 0.0 ) return null;
+      Vector4d d = coordinate - intersection.CoordWorld;
+      Vector3d d3d;
+      d3d.X = d.X;
+      d3d.Y = d.Y;
+      d3d.Z = d.Z;
+      if ( Vector3d.Dot( d3d, intersection.Normal ) <= 0.0 ) return null;
 
       if ( dir != null )
       {
@@ -213,6 +227,170 @@ namespace Rendering
       }
 
       return intensity;
+    }
+  }
+
+  /// <summary>
+  /// Simple Phong-like reflectance model: material description.
+  /// </summary>
+  public class PhongMaterial : IMaterial
+  {
+    /// <summary>
+    /// Base surface color.
+    /// </summary>
+    public double[] Color
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Coefficient of diffuse reflection.
+    /// </summary>
+    public double Kd
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Coefficient of specular reflection.
+    /// </summary>
+    public double Ks
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Specular exponent.
+    /// </summary>
+    public int H
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Ambient term (for ambient light sources only).
+    /// </summary>
+    public double Ka
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Coefficient of transparency.
+    /// </summary>
+    public double Kt
+    {
+      get;
+      set;
+    }
+
+    protected double _n;
+
+    /// <summary>
+    /// Absolute index of refraction.
+    /// </summary>
+    public double n
+    {
+      get { return _n; }
+      set
+      {
+        _n = value;
+        cosTotal = _n > 1.0 ? (Math.Sqrt(_n * _n - 1.0) / _n) : 0.0;
+      }
+    }
+
+    public double cosTotal = 0.0;
+
+    public PhongMaterial ( double[] color, double ka, double kd, double ks, int h )
+    {
+      Color = color;
+      Ka = ka;
+      Kd = kd;
+      Ks = ks;
+      H  = h;
+      Kt = 0.0;
+      n  = 1.5;
+    }
+
+    public PhongMaterial () : this( new double[] { 1.0, 0.9, 0.4 }, 0.2, 0.5, 0.3, 16 )
+    {
+    }
+  }
+
+  /// <summary>
+  /// Simple Phong-like reflectance model: the model itself.
+  /// </summary>
+  public class PhongModel : IReflectionModel
+  {
+    public double[] ColorReflection ( IMaterial material, Intersection intersection, Vector3d input, Vector3d output )
+    {
+      return ColorReflection( material, intersection.Normal, input, output );
+    }
+
+    public double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output )
+    {
+      if ( !(material is PhongMaterial) ) return null;
+
+      PhongMaterial mat = (PhongMaterial)material;
+      int bands = mat.Color.Length;
+      double[] result = new double[ bands ];
+      bool viewOut = Vector3d.Dot( output, normal ) > 0.0;
+      double coef;
+
+      if ( input.LengthSquared <= Double.Epsilon )    // ambient term only..
+      {
+          // dim ambient light if viewer is inside
+        coef = viewOut ? mat.Ka : (mat.Ka * mat.Kt);
+        for ( int i = 0; i < bands; i++ )
+          result[i] = coef * mat.Color[i];
+
+        return result;
+      }
+
+        // directional light source:
+      double cosAlpha = Vector3d.Dot( input, normal );
+      bool   lightOut = cosAlpha > 0.0;
+      double ks = mat.Ks;
+      double kd = mat.Kd;
+      double kt = mat.Kt;
+
+      Vector3d r = Vector3d.Zero;
+      coef       = 1.0;
+      if ( viewOut == lightOut )            // viewer and source are on the same side..
+      {
+        double cos2 = cosAlpha + cosAlpha;
+        r = normal * cos2 - input;
+
+        if ( !lightOut &&                   // total reflection check
+             -cosAlpha <= mat.cosTotal )
+          if ( (ks += kt) + kd > 1.0 )
+            ks = 1.0 - kd;
+      }
+      else                                  // opposite sides => use specular refraction
+      {
+        r = Geometry.specularRefraction( normal, mat.n, input );
+        coef = kt;
+      }
+
+      double diffuse = coef * kd * Math.Abs( cosAlpha );
+      double specular = 0.0;
+
+      if ( r != Vector3d.Zero )
+      {
+        double cosBeta = Vector3d.Dot( r, output );
+        if ( cosBeta > 0.0 )
+          specular = coef * ks * Math.Pow( cosBeta, mat.H );
+      }
+
+      for ( int i = 0; i < bands; i++ )
+        result[i] = diffuse * mat.Color[i] + specular;
+
+      return result;
     }
   }
 
