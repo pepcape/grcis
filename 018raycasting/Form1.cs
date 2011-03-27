@@ -36,10 +36,10 @@ namespace _018raycasting
 
       // default constructor of the RayScene .. custom scene
       RayScene scene = new RayScene();
-      scene.Camera.Width  = width;
-      scene.Camera.Height = height;
-
-      sis.ImageFunction = new RayCasting( scene );
+      IImageFunction imf = new RayCasting( scene );
+      imf.Width  = width;
+      imf.Height = height;
+      sis.ImageFunction = imf;
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
