@@ -213,6 +213,31 @@ namespace Rendering
       foreach ( ISceneNode n in children )
       {
         Vector4d origin = Vector4d.Transform( p0, n.FromParent );
+        Vector4d target = p0;
+        target.X += p0.W * p1.X;
+        target.Y += p0.W * p1.Y;
+        target.Z += p0.W * p1.Z;
+        target = Vector4d.Transform( target, n.FromParent );
+        target.X /= target.W;
+        target.Y /= target.Y;
+        target.Z /= target.Z;
+        Vector3d dir;
+        dir.X = target.X - origin.X / origin.W;
+        dir.Y = target.Y - origin.Y / origin.W;
+        dir.Z = target.Z - origin.Z / origin.W;
+        // ray in local child's coords: [ origin, dir ]
+        LinkedList<Intersection> partial = n.Intersect( origin, dir );
+        Intersection i = null;
+        for ( LinkedList<Intersection>.Enumerator e = partial.GetEnumerator();
+              (i = e.Current) != null && i.T <= 0.0; )
+          if ( !e.MoveNext() ) break;
+
+        if ( i != null )
+          if ( result.First == null )
+            result.AddFirst( i );
+          else
+            if ( i.T < result.First.Value.T )
+              result.AddFirst( i );
       }
       return result;
     }
