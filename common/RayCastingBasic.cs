@@ -373,7 +373,7 @@ namespace Rendering
       }
       else                                  // opposite sides => use specular refraction
       {
-        r = Geometry.specularRefraction( normal, mat.n, input );
+        r = Geometry.SpecularRefraction( normal, mat.n, input );
         coef = kt;
       }
 
@@ -394,4 +394,70 @@ namespace Rendering
     }
   }
 
+  public class Sphere : DefaultSceneNode, ISolid
+  {
+    public override LinkedList<Intersection> Intersect( Vector4d p0, Vector3d p1 )
+    {
+      // ray origin:
+      double Ox = p0.X;
+      double Oy = p0.Y;
+      double Oz = p0.Z;
+      double Ow = p0.W;
+      if ( Geometry.IsZero( Ow ) )
+        return null;
+
+      Ow  = 1.0 / Ow;
+      Ox *= Ow;
+      Oy *= Ow;
+      Oz *= Ow;
+
+      // ray direction vector (of arbitrary size):
+      double Dx = p1.X;
+      double Dy = p1.Y;
+      double Dz = p1.Z;
+
+      double OD = Ox * Dx + Oy * Dy + Oz * Dz;
+      double DD = Dx * Dx + Dy * Dy + Dz * Dz;
+      double OO = Ox * Ox + Oy * Oy + Oz * Oz;
+      double  d = OD * OD + DD * (1.0 - OO); // discriminant
+      if ( d <= 0.0 ) return null;           // no intersections
+
+      d = Math.Sqrt( d );
+
+      // there will be two intersections: (-OD - d) / DD, (-OD + d) / DD
+      LinkedList<Intersection> result = new LinkedList<Intersection>();
+
+      Intersection i;
+
+      // first intersection (-OD - d) / DD:
+      i = new Intersection( this );
+      i.T = (-OD - d) / DD;
+      i.Enter =
+      i.Front = true;
+      i.CoordObject = new Vector4d(
+        Ox + i.T * Dx,
+        Oy + i.T * Dy,
+        Oz + i.T * Dz,
+        1.0 );
+      result.AddLast( i );
+
+      // second intersection (-OD + d) / DD:
+      i = new Intersection( this );
+      i.T = (-OD + d) / DD;
+      i.Enter =
+      i.Front = false;
+      i.CoordObject = new Vector4d(
+        Ox + i.T * Dx,
+        Oy + i.T * Dy,
+        Oz + i.T * Dz,
+        1.0 );
+      result.AddLast( i );
+
+      return result;
+    }
+
+    public void CompleteIntersection ( Intersection inter )
+    {
+    }
+  }
 }

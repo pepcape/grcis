@@ -343,6 +343,11 @@ namespace Rendering
       get;
       set;
     }
+
+    public Intersection ( ISolid s )
+    {
+      Solid = s;
+    }
   }
 
   #endregion
@@ -351,7 +356,12 @@ namespace Rendering
 
   public class Geometry
   {
-    public static Vector3d specularRefraction ( Vector3d normal, double n, Vector3d input )
+    public static bool IsZero ( double a )
+    {
+      return( a <= Double.Epsilon && a >= -Double.Epsilon );
+    }
+
+    public static Vector3d SpecularRefraction ( Vector3d normal, double n, Vector3d input )
     {
       normal.Normalize();
       input.Normalize();
