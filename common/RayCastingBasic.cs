@@ -192,11 +192,11 @@ namespace Rendering
   /// </summary>
   public class PointLightSource : ILightSource
   {
-    protected Vector4d coordinate;
+    protected Vector3d coordinate;
 
     protected double[] intensity;
 
-    public PointLightSource ( Vector4d coord, double intens )
+    public PointLightSource ( Vector3d coord, double intens )
     {
       coordinate = coord;
       intensity = new double[] { intens, intens, intens };
@@ -211,19 +211,13 @@ namespace Rendering
     public double[] GetIntensity ( Intersection intersection, ref Vector3d dir )
     {
       if ( intersection == null ) return null;
-      Vector4d d = coordinate - intersection.CoordWorld;
-      Vector3d d3d;
-      d3d.X = d.X;
-      d3d.Y = d.Y;
-      d3d.Z = d.Z;
-      if ( Vector3d.Dot( d3d, intersection.Normal ) <= 0.0 ) return null;
+      Vector3d d = coordinate - intersection.CoordWorld;
+      if ( Vector3d.Dot( d, intersection.Normal ) <= 0.0 ) return null;
 
       if ( dir != null )
       {
         d.Normalize();
-        dir.X = d.X;
-        dir.Y = d.Y;
-        dir.Z = d.Z;
+        dir = d;
       }
 
       return intensity;
@@ -396,20 +390,12 @@ namespace Rendering
 
   public class Sphere : DefaultSceneNode, ISolid
   {
-    public override LinkedList<Intersection> Intersect( Vector4d p0, Vector3d p1 )
+    public override LinkedList<Intersection> Intersect( Vector3d p0, Vector3d p1 )
     {
       // ray origin:
       double Ox = p0.X;
       double Oy = p0.Y;
       double Oz = p0.Z;
-      double Ow = p0.W;
-      if ( Geometry.IsZero( Ow ) )
-        return null;
-
-      Ow  = 1.0 / Ow;
-      Ox *= Ow;
-      Oy *= Ow;
-      Oz *= Ow;
 
       // ray direction vector (of arbitrary size):
       double Dx = p1.X;
@@ -434,11 +420,10 @@ namespace Rendering
       i.T = (-OD - d) / DD;
       i.Enter =
       i.Front = true;
-      i.CoordObject = new Vector4d(
+      i.CoordLocal = new Vector3d(
         Ox + i.T * Dx,
         Oy + i.T * Dy,
-        Oz + i.T * Dz,
-        1.0 );
+        Oz + i.T * Dz );
       result.AddLast( i );
 
       // second intersection (-OD + d) / DD:
@@ -446,11 +431,10 @@ namespace Rendering
       i.T = (-OD + d) / DD;
       i.Enter =
       i.Front = false;
-      i.CoordObject = new Vector4d(
+      i.CoordLocal = new Vector3d(
         Ox + i.T * Dx,
         Oy + i.T * Dy,
-        Oz + i.T * Dz,
-        1.0 );
+        Oz + i.T * Dz );
       result.AddLast( i );
 
       return result;
@@ -458,6 +442,20 @@ namespace Rendering
 
     public void CompleteIntersection ( Intersection inter )
     {
+      inter.LocalToWorld = ToWorld();
+      inter.WorldToLocal = inter.LocalToWorld;
+      inter.WorldToLocal.Invert();
+      inter.CoordWorld = Vector3d.TransformPosition( inter.CoordLocal, inter.LocalToWorld );
+        // normal vector:
+      Vector3d tu, tv;
+      Geometry.GetAxes( inter.CoordLocal, out tu, out tv );
+      tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
+      tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
+      inter.Normal = Vector3d.Cross( tu, tv );
+        // 2D texture coordinates:
+      double r = Math.Sqrt( inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y );
+      inter.TextureCoord = new Vector2d( Geometry.IsZero( r ) ? 0.0 : (Math.Atan2( inter.CoordLocal.Y, inter.CoordLocal.X ) / (2.0 * Math.PI) + 0.5 ),
+                                         Math.Atan2( r, inter.CoordLocal.Z ) / Math.PI );
     }
   }
 }

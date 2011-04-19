@@ -130,7 +130,7 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>True if the ray (viewport position) is valid.</returns>
-    bool GetRay ( double x, double y, ref Vector4d p0, ref Vector3d p1 );
+    bool GetRay ( double x, double y, ref Vector3d p0, ref Vector3d p1 );
   }
 
   /// <summary>
@@ -194,7 +194,7 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
-    LinkedList<Intersection> Intersect ( Vector4d p0, Vector3d p1 );
+    LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 );
   }
 
   /// <summary>
@@ -278,16 +278,16 @@ namespace Rendering
     /// <summary>
     /// World coordinates of an intersection.
     /// </summary>
-    public Vector4d CoordWorld
+    public Vector3d CoordWorld
     {
       get;
       set;
     }
 
     /// <summary>
-    /// Object coordinates of an intersection.
+    /// Local (solid's) coordinates of an intersection.
     /// </summary>
-    public Vector4d CoordObject
+    public Vector3d CoordLocal
     {
       get;
       set;
@@ -308,13 +308,13 @@ namespace Rendering
       set;
     }
 
-    public Matrix4d ObjectToWorld
+    public Matrix4d LocalToWorld
     {
       get;
       set;
     }
 
-    public Matrix4d WorldToObject
+    public Matrix4d WorldToLocal
     {
       get;
       set;
@@ -380,6 +380,44 @@ namespace Rendering
 
       d = n * d - Math.Sqrt( cos2 );
       return( normal * d - input * n );
+    }
+
+    /// <summary>
+    /// Finds two other axes to the given vector, their vector product will
+    /// give the original vector, all three vectors will be perpendicular to each other.
+    /// </summary>
+    /// <param name="p"></param>
+    /// <param name="p1"></param>
+    /// <param name="p2"></param>
+    public static void GetAxes ( Vector3d p, out Vector3d p1, out Vector3d p2 )
+    {
+      double ax = Math.Abs( p.X );
+      double ay = Math.Abs( p.Y );
+      double az = Math.Abs( p.Z );
+
+      if ( ax >= az &&
+           ay >= az )                       // ax, ay are dominant
+      {
+        p1.X = -p.Y;
+        p1.Y =  p.X;
+        p1.Z =  0.0;
+      }
+      else
+      if ( ax >= ay &&
+           az >= ay )                       // ax, az are dominant
+      {
+        p1.X = -p.Z;
+        p1.Y =  0.0;
+        p1.Z =  p.X;
+      }
+      else                                  // ay, az are dominant
+      {
+        p1.X =  0.0;
+        p1.Y = -p.Z;
+        p1.Z =  p.Y;
+      }
+
+      Vector3d.Cross( ref p, ref p1, out p2 );
     }
   }
 
