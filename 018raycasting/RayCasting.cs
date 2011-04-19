@@ -40,7 +40,7 @@ namespace Rendering
       Camera = new StaticCamera( new Vector3d( 0.0, 0.0, -10.0 ),
                                  new Vector3d( 0.0, 0.0, 1.0 ), 60.0 );
       Sources = new LinkedList<ILightSource>();
-      Sources.Add( new PointLightSource( new Vector4d( -10.0, 8.0, 3.0, 1.0 ), 1.0 ) );
+      Sources.Add( new PointLightSource( new Vector3d( -10.0, 8.0, 3.0 ), 1.0 ) );
       BackgroundColor = new double[] { 0.0, 0.1, 0.2 };
     }
   }

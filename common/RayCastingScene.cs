@@ -103,6 +103,12 @@ namespace Rendering
     /// <param name="name">Attribute name.</param>
     /// <param name="value">Attribute value.</param>
     void SetAttribute ( string name, object value );
+
+    /// <summary>
+    /// Returns transform from the local coordinates to the world space.
+    /// </summary>
+    /// <returns>Transform matrix from the local coordinates to the world space.</returns>
+    Matrix4d ToWorld ();
   }
 
   /// <summary>
@@ -177,12 +183,23 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Returns transform from the local coordinates to the world space.
+    /// </summary>
+    /// <returns>Transform matrix from the local coordinates to the world space.</returns>
+    public Matrix4d ToWorld ()
+    {
+      Matrix4d result = ToParent;
+      if ( Parent != null ) result = result * Parent.ToWorld();
+      return result;
+    }
+
+    /// <summary>
     /// Computes the complete intersection of the given ray with the object. 
     /// </summary>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
-    public virtual LinkedList<Intersection> Intersect ( Vector4d p0, Vector3d p1 )
+    public virtual LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
     {
       return null;
     }
@@ -207,24 +224,13 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
-    public override LinkedList<Intersection> Intersect ( Vector4d p0, Vector3d p1 )
+    public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
     {
       LinkedList<Intersection> result = new LinkedList<Intersection>();
       foreach ( ISceneNode n in children )
       {
-        Vector4d origin = Vector4d.Transform( p0, n.FromParent );
-        Vector4d target = p0;
-        target.X += p0.W * p1.X;
-        target.Y += p0.W * p1.Y;
-        target.Z += p0.W * p1.Z;
-        target = Vector4d.Transform( target, n.FromParent );
-        target.X /= target.W;
-        target.Y /= target.Y;
-        target.Z /= target.Z;
-        Vector3d dir;
-        dir.X = target.X - origin.X / origin.W;
-        dir.Y = target.Y - origin.Y / origin.W;
-        dir.Z = target.Z - origin.Z / origin.W;
+        Vector3d origin = Vector3d.TransformPosition( p0, n.FromParent );
+        Vector3d dir    = Vector3d.TransformVector(   p1, n.FromParent );
         // ray in local child's coords: [ origin, dir ]
         LinkedList<Intersection> partial = n.Intersect( origin, dir );
         Intersection i = null;
