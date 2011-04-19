@@ -46,7 +46,7 @@ namespace Rendering
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="color">Computed pixel color.</param>
-    public void RenderPixel ( int x, int y, double[] color )
+    public virtual void RenderPixel ( int x, int y, double[] color )
     {
       ImageFunction.GetSample( x, y, color );
     }
@@ -59,7 +59,7 @@ namespace Rendering
     /// <param name="y1"></param>
     /// <param name="x2"></param>
     /// <param name="y2"></param>
-    public void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 )
+    public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 )
     {
       double[] color = new double[ 3 ];
       for ( int y = y1; y < y2; y++ )
@@ -174,12 +174,9 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>True if the ray (viewport position) is valid.</returns>
-    public bool GetRay ( double x, double y, ref Vector4d p0, ref Vector3d p1 )
+    public bool GetRay ( double x, double y, out Vector3d p0, out Vector3d p1 )
     {
-      p0.X = center.X;
-      p0.Y = center.Y;
-      p0.Z = center.Z;
-      p0.W = 1.0;
+      p0 = center;
       p1 = origin + x * dx + y * dy;
       p1 = p1 - center;
       p1.Normalize();
@@ -440,7 +437,7 @@ namespace Rendering
       return result;
     }
 
-    public void CompleteIntersection ( Intersection inter )
+    public virtual void CompleteIntersection ( Intersection inter )
     {
       inter.LocalToWorld = ToWorld();
       inter.WorldToLocal = inter.LocalToWorld;

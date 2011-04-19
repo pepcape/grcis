@@ -31,22 +31,22 @@ namespace Rendering
     /// <summary>
     /// Surface property = base color.
     /// </summary>
-    const string COLOR = "color";
+    public static string COLOR = "color";
 
     /// <summary>
     /// Surface property = texture.
     /// </summary>
-    const string TEXTURE = "texture";
+    public static string TEXTURE = "texture";
 
     /// <summary>
     /// (Perhaps) globally used reflectance model.
     /// </summary>
-    const string REFLECTANCE_MODEL = "reflectance";
+    public static string REFLECTANCE_MODEL = "reflectance";
 
     /// <summary>
     /// Surface property: material description. Must match used reflectance model.
     /// </summary>
-    const string MATERIAL = "material";
+    public static string MATERIAL = "material";
   }
 
   /// <summary>
