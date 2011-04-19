@@ -130,7 +130,7 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>True if the ray (viewport position) is valid.</returns>
-    bool GetRay ( double x, double y, ref Vector3d p0, ref Vector3d p1 );
+    bool GetRay ( double x, double y, out Vector3d p0, out Vector3d p1 );
   }
 
   /// <summary>

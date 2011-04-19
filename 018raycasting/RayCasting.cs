@@ -42,6 +42,9 @@ namespace Rendering
       Sources = new LinkedList<ILightSource>();
       Sources.Add( new PointLightSource( new Vector3d( -10.0, 8.0, 3.0 ), 1.0 ) );
       BackgroundColor = new double[] { 0.0, 0.1, 0.2 };
+      Sphere s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, new double[] { 1.0, 0.6, 0.0 } );
+      Intersectable = s;
     }
   }
 }
