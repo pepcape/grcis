@@ -1,11 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Text;
-using System.IO;
-using System.Diagnostics;
 using OpenTK;
 
 namespace Rendering
@@ -58,9 +52,9 @@ namespace Rendering
       if ( intersections != null && intersections.Count > 0 )
       {
         Intersection i = intersections.First.Value;
-        double[] col = (double[])i.Solid.GetAttribute( PropertyName.COLOR );
-        if ( col != null )
-          Array.Copy( col, color, Math.Min( col.Length, color.Length ) );
+        i.Complete();
+        if ( i.SurfaceColor != null )
+          Array.Copy( i.SurfaceColor, color, Math.Min( i.SurfaceColor.Length, color.Length ) );
         return 12L;
       }
 

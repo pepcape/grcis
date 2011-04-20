@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Text;
-using System.IO;
-using System.Diagnostics;
 using OpenTK;
 
 namespace Rendering
@@ -141,13 +136,13 @@ namespace Rendering
     /// </summary>
     protected void prepare ()
     {
-      Vector3d left = Vector3d.Cross( up, direction );
+      Vector3d left = Vector3d.Cross( direction, up );
       origin = center + direction;
       double halfWidth  = Math.Tan( 0.5 * hAngle );
       double halfHeight = halfWidth / AspectRatio;
       origin += up * halfHeight + left * halfWidth;
       dx = left * (-2.0 * halfWidth / width);
-      dy = up * (2.0 * halfHeight / height);
+      dy = -up * (2.0 * halfHeight / height);
     }
 
     /// <summary>
@@ -439,17 +434,14 @@ namespace Rendering
 
     public virtual void CompleteIntersection ( Intersection inter )
     {
-      inter.LocalToWorld = ToWorld();
-      inter.WorldToLocal = inter.LocalToWorld;
-      inter.WorldToLocal.Invert();
-      inter.CoordWorld = Vector3d.TransformPosition( inter.CoordLocal, inter.LocalToWorld );
-        // normal vector:
+      // normal vector:
       Vector3d tu, tv;
       Geometry.GetAxes( inter.CoordLocal, out tu, out tv );
       tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
       tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
       inter.Normal = Vector3d.Cross( tu, tv );
-        // 2D texture coordinates:
+
+      // 2D texture coordinates:
       double r = Math.Sqrt( inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y );
       inter.TextureCoord = new Vector2d( Geometry.IsZero( r ) ? 0.0 : (Math.Atan2( inter.CoordLocal.Y, inter.CoordLocal.X ) / (2.0 * Math.PI) + 0.5 ),
                                          Math.Atan2( r, inter.CoordLocal.Z ) / Math.PI );
