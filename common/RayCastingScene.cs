@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Text;
-using System.IO;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using OpenTK;
 
 // Interfaces and objects for ray-based rendering.
@@ -27,7 +20,6 @@ namespace Rendering
   /// </summary>
   public class PropertyName
   {
-
     /// <summary>
     /// Surface property = base color.
     /// </summary>
@@ -91,6 +83,15 @@ namespace Rendering
     }
 
     /// <summary>
+    /// True for object root (subject to animation). 3D texture coordinates should use Object space.
+    /// </summary>
+    bool ObjectRoot
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
     /// Retrieves value of the given Attribute. Looks in parent nodes if not found locally.
     /// </summary>
     /// <param name="name">Attribute name.</param>
@@ -105,10 +106,16 @@ namespace Rendering
     void SetAttribute ( string name, object value );
 
     /// <summary>
-    /// Returns transform from the local coordinates to the world space.
+    /// Returns transform from the Local space (Solid) to the World space.
     /// </summary>
-    /// <returns>Transform matrix from the local coordinates to the world space.</returns>
+    /// <returns>Transform matrix.</returns>
     Matrix4d ToWorld ();
+
+    /// <summary>
+    /// Returns transform from the Local space (Solid) to the Object space (subject to animation).
+    /// </summary>
+    /// <returns>Transform matrix.</returns>
+    Matrix4d ToObject ();
   }
 
   /// <summary>
@@ -162,9 +169,15 @@ namespace Rendering
       set;
     }
 
-    protected Dictionary< string, object > attributes;
+    public bool ObjectRoot
+    {
+      get;
+      set;
+    }
 
-    public object GetAttribute ( string name )
+    protected Dictionary<string, object> attributes;
+
+    public virtual object GetAttribute ( string name )
     {
       if ( attributes != null )
       {
@@ -175,7 +188,7 @@ namespace Rendering
       return null;
     }
 
-    public void SetAttribute ( string name, object value )
+    public virtual void SetAttribute ( string name, object value )
     {
       if ( attributes == null )
         attributes = new Dictionary< string, object >();
@@ -183,14 +196,23 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Returns transform from the local coordinates to the world space.
+    /// Returns transform from the Local space (Solid) to the World space.
     /// </summary>
-    /// <returns>Transform matrix from the local coordinates to the world space.</returns>
+    /// <returns>Transform matrix.</returns>
     public Matrix4d ToWorld ()
     {
-      Matrix4d result = ToParent;
-      if ( Parent != null ) result = result * Parent.ToWorld();
-      return result;
+      if ( Parent == null ) return Matrix4d.Identity;
+      return( ToParent * Parent.ToWorld() );
+    }
+
+    /// <summary>
+    /// Returns transform from the Local space (Solid) to the Object space (subject to animation).
+    /// </summary>
+    /// <returns>Transform matrix.</returns>
+    public Matrix4d ToObject ()
+    {
+      if ( ObjectRoot || Parent == null ) return Matrix4d.Identity;
+      return( ToParent * Parent.ToObject() );
     }
 
     /// <summary>
@@ -208,6 +230,7 @@ namespace Rendering
     {
       children = new LinkedList<ISceneNode>();
       attributes = null;
+      ObjectRoot = false;
     }
   }
 
@@ -217,6 +240,29 @@ namespace Rendering
   public class InnerNode : DefaultSceneNode
   {
     public SetOperation setOp;
+
+    /// <summary>
+    /// Creates an empty inner scene node.
+    /// </summary>
+    /// <param name="op">Set operation to use.</param>
+    public InnerNode ( SetOperation op )
+    {
+      setOp = op;
+    }
+
+    /// <summary>
+    /// Inserts one new child node to this parent node.
+    /// </summary>
+    /// <param name="ch">Child node to add.</param>
+    /// <param name="toParent">Transform from local space of the child to the parent's space.</param>
+    public void InsertChild ( ISceneNode ch, Matrix4d toParent )
+    {
+      children.AddLast( ch );
+      ch.ToParent   = toParent;
+      toParent.Invert();
+      ch.FromParent = toParent;
+      ch.Parent     = this;
+    }
 
     /// <summary>
     /// Computes the complete intersection of the given ray with the object. 
@@ -232,11 +278,17 @@ namespace Rendering
         Vector3d origin = Vector3d.TransformPosition( p0, n.FromParent );
         Vector3d dir    = Vector3d.TransformVector(   p1, n.FromParent );
         // ray in local child's coords: [ origin, dir ]
+
         LinkedList<Intersection> partial = n.Intersect( origin, dir );
+        if ( partial == null || partial.Count == 0 ) continue;
+
         Intersection i = null;
-        for ( LinkedList<Intersection>.Enumerator e = partial.GetEnumerator();
-              (i = e.Current) != null && i.T <= 0.0; )
-          if ( !e.MoveNext() ) break;
+        foreach ( Intersection inter in partial )
+          if ( inter.T > 0.0 )
+          {
+            i = inter;
+            break;
+          }
 
         if ( i != null )
           if ( result.First == null )
@@ -249,5 +301,4 @@ namespace Rendering
     }
 
   }
-
 }

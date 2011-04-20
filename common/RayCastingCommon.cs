@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Text;
-using System.IO;
-using System.Diagnostics;
 using OpenTK;
 
 // Common code for ray-based rendering.
@@ -250,6 +245,7 @@ namespace Rendering
   {
     /// <summary>
     /// True if the ray enters a solid interior of an object here (transition from an air to solid material).
+    /// (mandatory: Solid, InnerNode)
     /// </summary>
     public bool Enter
     {
@@ -259,6 +255,7 @@ namespace Rendering
 
     /// <summary>
     /// True if the ray enters solid geometry from outside (ray and surface normal have different directions).
+    /// (mandatory: Solid)
     /// </summary>
     public bool Front
     {
@@ -267,7 +264,8 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Parametric coordinate on the ray.
+    /// Parametric coordinate on the ray
+    /// (mandatory: Solid).
     /// </summary>
     public double T
     {
@@ -277,6 +275,7 @@ namespace Rendering
 
     /// <summary>
     /// World coordinates of an intersection.
+    /// (deferred: Scene graph)
     /// </summary>
     public Vector3d CoordWorld
     {
@@ -285,7 +284,18 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Object coordinates of an intersection (object is an animation unit).
+    /// (deferred: Scene graph)
+    /// </summary>
+    public Vector3d CoordObject
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
     /// Local (solid's) coordinates of an intersection.
+    /// (deferred: Solid)
     /// </summary>
     public Vector3d CoordLocal
     {
@@ -293,6 +303,10 @@ namespace Rendering
       set;
     }
 
+    /// <summary>
+    /// 2D texture coordinates.
+    /// (deferred: Solid)
+    /// </summary>
     public Vector2d TextureCoord
     {
       get;
@@ -301,6 +315,7 @@ namespace Rendering
 
     /// <summary>
     /// Normal vector in world coordinates.
+    /// (deferred: Solid)
     /// </summary>
     public Vector3d Normal
     {
@@ -308,18 +323,40 @@ namespace Rendering
       set;
     }
 
+    /// <summary>
+    /// Transform matrix from the local (Solid) space to the World space.
+    /// (deferred: Scene graph)
+    /// </summary>
     public Matrix4d LocalToWorld
     {
       get;
       set;
     }
 
+    /// <summary>
+    /// Transform matrix from the World space to the local (Solid) space.
+    /// (deferred: Scene graph)
+    /// </summary>
     public Matrix4d WorldToLocal
     {
       get;
       set;
     }
 
+    /// <summary>
+    /// Transform matrix from the local (Solid) space to the Object space.
+    /// (deferred: Scene graph)
+    /// </summary>
+    public Matrix4d LocalToObject
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Current surface color, used by textures and utilized by rendering algorithm in the end.
+    /// (deferred: Scene graph, textures..)
+    /// </summary>
     public double[] SurfaceColor
     {
       get;
@@ -328,6 +365,7 @@ namespace Rendering
 
     /// <summary>
     /// Solid this intersection comes from..
+    /// (mandatory: Solid)
     /// </summary>
     public ISolid Solid
     {
@@ -337,6 +375,7 @@ namespace Rendering
 
     /// <summary>
     /// Supplement data object for intersection completion.
+    /// (mandatory: Solid)
     /// </summary>
     public object SolidData
     {
@@ -347,6 +386,31 @@ namespace Rendering
     public Intersection ( ISolid s )
     {
       Solid = s;
+    }
+
+    /// <summary>
+    /// Complete non-mandatory (deferred) values in the Intersection instance.
+    /// </summary>
+    public void Complete ()
+    {
+      if ( Solid != null )
+      {
+        // world coordinates:
+        LocalToWorld = Solid.ToWorld();
+        WorldToLocal = LocalToWorld;
+        WorldToLocal.Invert();
+        CoordWorld = Vector3d.TransformPosition( CoordLocal, LocalToWorld );
+
+        // object coordinates:
+        LocalToObject = Solid.ToObject();
+        CoordObject = Vector3d.TransformPosition( CoordLocal, LocalToObject );
+
+        // appearance:
+        SurfaceColor = (double[])Solid.GetAttribute( PropertyName.COLOR );
+
+        // Solid is responsible for completing remaining values:
+        Solid.CompleteIntersection( this );
+      }
     }
   }
 
