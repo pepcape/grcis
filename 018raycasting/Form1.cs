@@ -15,38 +15,6 @@ namespace _018raycasting
       InitializeComponent();
     }
 
-    private void redraw ()
-    {
-      Cursor.Current = Cursors.WaitCursor;
-
-      int width   = panel1.Width;
-      int height  = panel1.Height;
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
-
-      SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
-      sis.Width  = width;
-      sis.Height = height;
-
-      // default constructor of the RayScene .. custom scene
-      RayScene scene = new RayScene();
-      IImageFunction imf = new RayCasting( scene );
-      imf.Width  = width;
-      imf.Height = height;
-      sis.ImageFunction = imf;
-
-      Stopwatch sw = new Stopwatch();
-      sw.Start();
-
-      sis.RenderRectangle( outputImage, 0, 0, width, height );
-
-      sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f}s", 1.0e-3 * sw.ElapsedMilliseconds );
-
-      pictureBox1.Image = outputImage;
-
-      Cursor.Current = Cursors.Default;
-    }
-
     private void buttonRedraw_Click ( object sender, EventArgs e )
     {
       redraw();
