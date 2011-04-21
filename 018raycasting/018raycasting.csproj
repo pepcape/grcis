@@ -54,6 +54,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\MathSupport.cs">
+      <Link>MathSupport.cs</Link>
+    </Compile>
     <Compile Include="..\common\RayCastingBasic.cs">
       <Link>RayCastingBasic.cs</Link>
     </Compile>

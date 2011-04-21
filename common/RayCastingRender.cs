@@ -58,8 +58,7 @@ namespace Rendering
           foreach ( ITexture tex in i.Textures )
             tex.Apply( i );
 
-        if ( i.SurfaceColor != null )
-          Array.Copy( i.SurfaceColor, color, Math.Min( i.SurfaceColor.Length, color.Length ) );
+        Array.Copy( i.SurfaceColor, color, Math.Min( i.SurfaceColor.Length, color.Length ) );
 
         return 12L;
       }
