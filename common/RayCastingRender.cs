@@ -53,8 +53,14 @@ namespace Rendering
       {
         Intersection i = intersections.First.Value;
         i.Complete();
+
+        if ( i.Textures != null )
+          foreach ( ITexture tex in i.Textures )
+            tex.Apply( i );
+
         if ( i.SurfaceColor != null )
           Array.Copy( i.SurfaceColor, color, Math.Min( i.SurfaceColor.Length, color.Length ) );
+
         return 12L;
       }
 

@@ -190,6 +190,24 @@ namespace Rendering
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
     LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 );
+
+    /// <summary>
+    /// Complete all relevant items in the given Intersection object.
+    /// </summary>
+    /// <param name="inter">Intersection instance to complete.</param>
+    void CompleteIntersection ( Intersection inter );
+  }
+
+  /// <summary>
+  /// Texture object: general value-modulator (value = color, normal vector..).
+  /// </summary>
+  public interface ITexture
+  {
+    /// <summary>
+    /// Apply the relevant value-modulation in the given Intersection instance.
+    /// </summary>
+    /// <param name="inter">Data object to modify.</param>
+    void Apply ( Intersection inter );
   }
 
   /// <summary>
@@ -364,6 +382,15 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Priority-list of relevant textures (less important to more important).
+    /// </summary>
+    public LinkedList<ITexture> Textures
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
     /// Solid this intersection comes from..
     /// (mandatory: Solid)
     /// </summary>
@@ -407,9 +434,12 @@ namespace Rendering
 
         // appearance:
         SurfaceColor = (double[])Solid.GetAttribute( PropertyName.COLOR );
+        Textures = Solid.GetTextures();
 
         // Solid is responsible for completing remaining values:
         Solid.CompleteIntersection( this );
+        if ( Enter != Front )
+          Normal = Vector3d.Multiply( Normal, -1.0 );
       }
     }
   }

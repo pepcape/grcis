@@ -26,7 +26,7 @@ namespace Rendering
     public static string COLOR = "color";
 
     /// <summary>
-    /// Surface property = texture.
+    /// Surface property = texture (multi-attribute).
     /// </summary>
     public static string TEXTURE = "texture";
 
@@ -99,6 +99,13 @@ namespace Rendering
     object GetAttribute ( string name );
 
     /// <summary>
+    /// Retrieves value of the given Attribute. Looks only in this node.
+    /// </summary>
+    /// <param name="name">Attribute name.</param>
+    /// <returns>Attribute value or null if not found.</returns>
+    object GetLocalAttribute ( string name );
+
+    /// <summary>
     /// Sets the new value of the given attribute.
     /// </summary>
     /// <param name="name">Attribute name.</param>
@@ -116,24 +123,25 @@ namespace Rendering
     /// </summary>
     /// <returns>Transform matrix.</returns>
     Matrix4d ToObject ();
+
+    /// <summary>
+    /// Collects texture sequence in the right (application) order.
+    /// </summary>
+    /// <returns>Sequence of textures or null.</returns>
+    LinkedList<ITexture> GetTextures ();
   }
 
   /// <summary>
-  /// Elementary solid - basic building block of a scene.
+  /// Elementary solid - atomic building block of a scene.
   /// </summary>
   public interface ISolid : ISceneNode
   {
-    /// <summary>
-    /// Complete all relevant items in the given Intersection object.
-    /// </summary>
-    /// <param name="inter">Intersection instance to complete.</param>
-    void CompleteIntersection ( Intersection inter );
   }
 
   /// <summary>
   /// Common code for ISceneNode.
   /// </summary>
-  public class DefaultSceneNode : ISceneNode
+  public abstract class DefaultSceneNode : ISceneNode
   {
     protected LinkedList<ISceneNode> children;
 
@@ -177,18 +185,29 @@ namespace Rendering
 
     protected Dictionary<string, object> attributes;
 
-    public virtual object GetAttribute ( string name )
+    public object GetAttribute ( string name )
     {
       if ( attributes != null )
       {
-        object result = attributes[ name ];
-        if ( result != null ) return result;
+        object result;
+        if ( attributes.TryGetValue( name, out result ) )
+          return result;
       }
       if ( Parent != null ) return Parent.GetAttribute( name );
       return null;
     }
 
-    public virtual void SetAttribute ( string name, object value )
+    public object GetLocalAttribute ( string name )
+    {
+      object result;
+      if ( attributes == null ||
+           !attributes.TryGetValue( name, out result ) )
+        return null;
+
+      return result;
+    }
+
+    public void SetAttribute ( string name, object value )
     {
       if ( attributes == null )
         attributes = new Dictionary< string, object >();
@@ -216,6 +235,36 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Collects texture sequence in the right (application) order.
+    /// </summary>
+    /// <returns>Sequence of textures or null.</returns>
+    public LinkedList<ITexture> GetTextures ()
+    {
+      LinkedList<ITexture> result = null;
+      if ( Parent != null )
+        result = Parent.GetTextures();
+
+      object local = GetLocalAttribute( PropertyName.TEXTURE );
+      if ( local == null ) return result;
+
+      if ( local is ITexture )
+      {
+        if ( result == null )
+          result = new LinkedList<ITexture>();
+        result.AddLast( (ITexture)local );
+      }
+      else
+        if ( local is IEnumerable<ITexture> )
+          if ( result == null )
+            result = new LinkedList<ITexture>( (IEnumerable<ITexture>)local );
+          else
+            foreach ( ITexture tex in (IEnumerable<ITexture>)local )
+              result.AddLast( tex );
+
+      return result;
+    }
+
+    /// <summary>
     /// Computes the complete intersection of the given ray with the object. 
     /// </summary>
     /// <param name="p0">Ray origin.</param>
@@ -225,6 +274,13 @@ namespace Rendering
     {
       return null;
     }
+
+    /// <summary>
+    /// Complete all relevant items in the given Intersection object.
+    /// </summary>
+    /// <param name="inter">Intersection instance to complete.</param>
+    public virtual void CompleteIntersection ( Intersection inter )
+    { }
 
     public DefaultSceneNode ()
     {

@@ -380,9 +380,19 @@ namespace Rendering
     }
   }
 
+  /// <summary>
+  /// Unit sphere as a simple solid able to compute ray-intersection, normal vector
+  /// and 2D texture coordinates.
+  /// </summary>
   public class Sphere : DefaultSceneNode, ISolid
   {
-    public override LinkedList<Intersection> Intersect( Vector3d p0, Vector3d p1 )
+    /// <summary>
+    /// Computes the complete intersection of the given ray with the object. 
+    /// </summary>
+    /// <param name="p0">Ray origin.</param>
+    /// <param name="p1">Ray direction vector.</param>
+    /// <returns>Sorted list of intersection records.</returns>
+    public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
     {
       // ray origin:
       double Ox = p0.X;
@@ -432,7 +442,11 @@ namespace Rendering
       return result;
     }
 
-    public virtual void CompleteIntersection ( Intersection inter )
+    /// <summary>
+    /// Complete all relevant items in the given Intersection object.
+    /// </summary>
+    /// <param name="inter">Intersection instance to complete.</param>
+    public override void CompleteIntersection ( Intersection inter )
     {
       // normal vector:
       Vector3d tu, tv;
