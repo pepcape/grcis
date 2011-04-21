@@ -56,6 +56,7 @@ namespace Rendering
       // sphere 5:
       s = new Sphere();
       s.SetAttribute( PropertyName.COLOR, new double[] { 0.2, 0.6, 0.0 } );
+      s.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 20.0, 20.0, new double[] { 1.0, 0.8, 0.2 } ) );
       root.InsertChild( s, Matrix4d.CreateTranslation( 4.4, 0.0, 0.0 ) );
 
       // background color:

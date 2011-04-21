@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTK;
+using MathSupport;
 
 namespace Rendering
 {
@@ -394,19 +395,9 @@ namespace Rendering
     /// <returns>Sorted list of intersection records.</returns>
     public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
     {
-      // ray origin:
-      double Ox = p0.X;
-      double Oy = p0.Y;
-      double Oz = p0.Z;
-
-      // ray direction vector (of arbitrary size):
-      double Dx = p1.X;
-      double Dy = p1.Y;
-      double Dz = p1.Z;
-
-      double OD = Ox * Dx + Oy * Dy + Oz * Dz;
-      double DD = Dx * Dx + Dy * Dy + Dz * Dz;
-      double OO = Ox * Ox + Oy * Oy + Oz * Oz;
+      double OD; Vector3d.Dot( ref p0, ref p1, out OD );
+      double DD; Vector3d.Dot( ref p1, ref p1, out DD );
+      double OO; Vector3d.Dot( ref p0, ref p0, out OO );
       double  d = OD * OD + DD * (1.0 - OO); // discriminant
       if ( d <= 0.0 ) return null;           // no intersections
 
@@ -414,7 +405,6 @@ namespace Rendering
 
       // there will be two intersections: (-OD - d) / DD, (-OD + d) / DD
       LinkedList<Intersection> result = new LinkedList<Intersection>();
-
       Intersection i;
 
       // first intersection (-OD - d) / DD:
@@ -423,9 +413,9 @@ namespace Rendering
       i.Enter =
       i.Front = true;
       i.CoordLocal = new Vector3d(
-        Ox + i.T * Dx,
-        Oy + i.T * Dy,
-        Oz + i.T * Dz );
+        p0.X + i.T * p1.X,
+        p0.Y + i.T * p1.Y,
+        p0.Z + i.T * p1.Z );
       result.AddLast( i );
 
       // second intersection (-OD + d) / DD:
@@ -434,9 +424,9 @@ namespace Rendering
       i.Enter =
       i.Front = false;
       i.CoordLocal = new Vector3d(
-        Ox + i.T * Dx,
-        Oy + i.T * Dy,
-        Oz + i.T * Dz );
+        p0.X + i.T * p1.X,
+        p0.Y + i.T * p1.Y,
+        p0.Z + i.T * p1.Z );
       result.AddLast( i );
 
       return result;
@@ -459,6 +449,65 @@ namespace Rendering
       double r = Math.Sqrt( inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y );
       inter.TextureCoord = new Vector2d( Geometry.IsZero( r ) ? 0.0 : (Math.Atan2( inter.CoordLocal.Y, inter.CoordLocal.X ) / (2.0 * Math.PI) + 0.5 ),
                                          Math.Atan2( r, inter.CoordLocal.Z ) / Math.PI );
+    }
+  }
+
+  /// <summary>
+  /// Simple texture able to modulate surface color.
+  /// </summary>
+  public class CheckerTexture : ITexture
+  {
+    /// <summary>
+    /// Alternative color.
+    /// </summary>
+    public double[] Color2
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Frequency in the u-direction.
+    /// </summary>
+    public double Fu
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Frequency in the v-direction.
+    /// </summary>
+    public double Fv
+    {
+      get;
+      set;
+    }
+
+    public CheckerTexture ( double fu, double fv, double[] color )
+    {
+      Fu = fu;
+      Fv = fv;
+      Color2 = (double[])color.Clone();
+    }
+
+    /// <summary>
+    /// Apply the relevant value-modulation in the given Intersection instance.
+    /// </summary>
+    /// <param name="inter">Data object to modify.</param>
+    /// <returns>Hash value (texture signature) for adaptive subsampling.</returns>
+    public long Apply ( Intersection inter )
+    {
+      double u = inter.TextureCoord.X * Fu;
+      double v = inter.TextureCoord.Y * Fv;
+
+      long ui = (long)Math.Floor( u );
+      long vi = (long)Math.Floor( v );
+
+      if ( ((ui + vi) & 1) != 0 )
+        Array.Copy( Color2, inter.SurfaceColor, Math.Min( Color2.Length, inter.SurfaceColor.Length ) );
+
+      return( ui + RandomStatic.numericRecipes( vi ) );
     }
   }
 }
