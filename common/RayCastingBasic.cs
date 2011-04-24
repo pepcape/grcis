@@ -62,6 +62,9 @@ namespace Rendering
         for ( int x = x1; x < x2; x++ )
         {
           ImageFunction.GetSample( x, y, color );
+          for ( int b = 0; b < 3; b++ )
+            if ( color[ b ] > 1.0 )
+              color[ b ] = 1.0;
           image.SetPixel( x, y, Color.FromArgb( (int)(color[ 0 ] * 255.0),
                                                 (int)(color[ 1 ] * 255.0),
                                                 (int)(color[ 2 ] * 255.0) ) );
@@ -199,20 +202,40 @@ namespace Rendering
     /// Returns intensity (incl. color) of the source contribution to the given scene point.
     /// </summary>
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
-    /// <param name="dir">Direction to the source is set here (optional, can be null).</param>
+    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source).</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    public double[] GetIntensity ( Intersection intersection, ref Vector3d dir )
+    public double[] GetIntensity ( Intersection intersection, out Vector3d dir )
     {
-      if ( intersection == null ) return null;
-      Vector3d d = coordinate - intersection.CoordWorld;
-      if ( Vector3d.Dot( d, intersection.Normal ) <= 0.0 ) return null;
+      dir = coordinate - intersection.CoordWorld;
+      if ( Vector3d.Dot( dir, intersection.Normal ) <= 0.0 )
+        return null;
 
-      if ( dir != null )
-      {
-        d.Normalize();
-        dir = d;
-      }
+      dir.Normalize();
+      return intensity;
+    }
+  }
 
+  /// <summary>
+  /// Ambient white light source.
+  /// </summary>
+  public class AmbientLightSource : ILightSource
+  {
+    protected double[] intensity;
+
+    public AmbientLightSource ( double intens )
+    {
+      intensity = new double[] { intens, intens, intens };
+    }
+
+    /// <summary>
+    /// Returns intensity (incl. color) of the source contribution to the given scene point.
+    /// </summary>
+    /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
+    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source).</param>
+    /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
+    public double[] GetIntensity ( Intersection intersection, out Vector3d dir )
+    {
+      dir = Vector3d.Zero;
       return intensity;
     }
   }
@@ -312,8 +335,13 @@ namespace Rendering
   /// <summary>
   /// Simple Phong-like reflectance model: the model itself.
   /// </summary>
-  public class PhongModel : IReflectionModel
+  public class PhongModel : IReflectanceModel
   {
+    public IMaterial DefaultMaterial ()
+    {
+      return new PhongMaterial();
+    }
+
     public double[] ColorReflection ( IMaterial material, Intersection intersection, Vector3d input, Vector3d output )
     {
       return ColorReflection( material, intersection.Normal, input, output );
@@ -329,17 +357,17 @@ namespace Rendering
       bool viewOut = Vector3d.Dot( output, normal ) > 0.0;
       double coef;
 
-      if ( input.LengthSquared <= Double.Epsilon )    // ambient term only..
+      if ( input.LengthSquared < 1.0e-6 )    // ambient term only..
       {
-          // dim ambient light if viewer is inside
+        // dim ambient light if viewer is inside
         coef = viewOut ? mat.Ka : (mat.Ka * mat.Kt);
         for ( int i = 0; i < bands; i++ )
-          result[i] = coef * mat.Color[i];
+          result[ i ] = coef * mat.Color[ i ];
 
         return result;
       }
 
-        // directional light source:
+      // directional light source:
       double cosAlpha = Vector3d.Dot( input, normal );
       bool   lightOut = cosAlpha > 0.0;
       double ks = mat.Ks;
@@ -444,6 +472,7 @@ namespace Rendering
       tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
       tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
       inter.Normal = Vector3d.Cross( tu, tv );
+      inter.Normal.Normalize();
 
       // 2D texture coordinates:
       double r = Math.Sqrt( inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y );

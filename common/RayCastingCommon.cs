@@ -137,17 +137,19 @@ namespace Rendering
     /// Returns intensity (incl. color) of the source contribution to the given scene point.
     /// </summary>
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
-    /// <param name="dir">Direction to the source is set here (optional, can be null).</param>
+    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source).</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    double[] GetIntensity ( Intersection intersection, ref Vector3d dir );
+    double[] GetIntensity ( Intersection intersection, out Vector3d dir );
   }
 
   /// <summary>
   /// Reflection model - deals with local interaction between light and material surface.
   /// Entry point of the light ray is assumed to be equal to the exit point.
   /// </summary>
-  public interface IReflectionModel
+  public interface IReflectanceModel
   {
+    IMaterial DefaultMaterial ();
+
     double[] ColorReflection ( IMaterial material, Intersection intersection, Vector3d input, Vector3d output );
 
     double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output );
@@ -383,6 +385,26 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Current reflectance model.
+    /// (deferred: Scene graph, textures..)
+    /// </summary>
+    public IReflectanceModel ReflectanceModel
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Matching material record.
+    /// (deferred: Scene graph, textures..)
+    /// </summary>
+    public IMaterial Material
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
     /// Priority-list of relevant textures (less important to more important).
     /// </summary>
     public LinkedList<ITexture> Textures
@@ -434,8 +456,14 @@ namespace Rendering
         CoordObject = Vector3d.TransformPosition( CoordLocal, LocalToObject );
 
         // appearance:
+        ReflectanceModel = (IReflectanceModel)Solid.GetAttribute( PropertyName.REFLECTANCE_MODEL );
+        if ( ReflectanceModel == null )
+          ReflectanceModel = new PhongModel();
+        Material = (IMaterial)Solid.GetAttribute( PropertyName.MATERIAL );
+        if ( Material == null )
+          Material = ReflectanceModel.DefaultMaterial();
         double[] col = (double[])Solid.GetAttribute( PropertyName.COLOR );
-        if ( col != null ) SurfaceColor = (double[])col.Clone();
+        SurfaceColor = (double[])((col != null) ? col.Clone() : Material.Color.Clone());
         Textures = Solid.GetTextures();
 
         // Solid is responsible for completing remaining values:
