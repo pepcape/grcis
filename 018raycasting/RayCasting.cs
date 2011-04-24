@@ -1,10 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
+﻿using System.Collections.Generic;
 using System.Windows.Forms;
 using OpenTK;
 using Rendering;
+
+namespace _018raycasting
+{
+  public partial class Form1 : Form
+  {
+    /// <summary>
+    /// Initialize ray-scene and image function (good enough for single samples).
+    /// </summary>
+    private void setImageFunction ()
+    {
+      // default constructor of the RayScene .. custom scene
+      scene = new RayScene();
+      imf   = new RayCasting( scene );
+    }
+
+    /// <summary>
+    /// Initialize image synthesizer (responsible for raster image computation).
+    /// The 'imf' member is already initialized.
+    /// </summary>
+    private void setRenderer ()
+    {
+      SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
+      sis.ImageFunction = imf;
+      rend = sis;
+    }
+  }
+}
 
 namespace Rendering
 {
@@ -44,6 +68,8 @@ namespace Rendering
     {
       // scene:
       CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
+      root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
+      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.5, 0.4, 12 ) );
       Intersectable = root;
       // sphere 1:
       Sphere s = new Sphere();
@@ -68,7 +94,7 @@ namespace Rendering
       root.InsertChild( s, Matrix4d.CreateTranslation( 4.4, 0.0, 0.0 ) );
 
       // background color:
-      BackgroundColor = new double[] { 0.0, 0.1, 0.2 };
+      BackgroundColor = new double[] { 0.0, 0.15, 0.2 };
 
       // camera:
       Camera = new StaticCamera( new Vector3d( 0.0, 0.0, -10.0 ),
@@ -76,7 +102,8 @@ namespace Rendering
 
       // light sources:
       Sources = new LinkedList<ILightSource>();
-      Sources.Add( new PointLightSource( new Vector3d( -10.0, 8.0, 3.0 ), 1.0 ) );
+      Sources.Add( new AmbientLightSource( 0.5 ) );
+      Sources.Add( new PointLightSource( new Vector3d( 0.0, 0.0, -3.0 ), 1.0 ) );
     }
   }
 
@@ -128,45 +155,5 @@ namespace Rendering
 
       // !!!}}
     }
-  }
-
-}
-
-namespace _018raycasting
-{
-  public partial class Form1 : Form
-  {
-    private void redraw ()
-    {
-      Cursor.Current = Cursors.WaitCursor;
-
-      int width = panel1.Width;
-      int height = panel1.Height;
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
-
-      SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
-      sis.Width = width;
-      sis.Height = height;
-
-      // default constructor of the RayScene .. custom scene
-      RayScene scene = new RayScene();
-      IImageFunction imf = new RayCasting( scene );
-      imf.Width = width;
-      imf.Height = height;
-      sis.ImageFunction = imf;
-
-      Stopwatch sw = new Stopwatch();
-      sw.Start();
-
-      sis.RenderRectangle( outputImage, 0, 0, width, height );
-
-      sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f}s", 1.0e-3 * sw.ElapsedMilliseconds );
-
-      pictureBox1.Image = outputImage;
-
-      Cursor.Current = Cursors.Default;
-    }
-
   }
 }

@@ -33,6 +33,7 @@
       this.buttonSave = new System.Windows.Forms.Button();
       this.buttonRedraw = new System.Windows.Forms.Button();
       this.labelElapsed = new System.Windows.Forms.Label();
+      this.labelSample = new System.Windows.Forms.Label();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.SuspendLayout();
@@ -58,6 +59,8 @@
       this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
       this.pictureBox1.TabIndex = 2;
       this.pictureBox1.TabStop = false;
+      this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler( this.pictureBox1_MouseMove );
+      this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler( this.pictureBox1_MouseDown );
       // 
       // buttonSave
       // 
@@ -91,11 +94,22 @@
       this.labelElapsed.TabIndex = 21;
       this.labelElapsed.Text = "Elapsed:";
       // 
+      // labelSample
+      // 
+      this.labelSample.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.labelSample.AutoSize = true;
+      this.labelSample.Location = new System.Drawing.Point( 282, 417 );
+      this.labelSample.Name = "labelSample";
+      this.labelSample.Size = new System.Drawing.Size( 45, 13 );
+      this.labelSample.TabIndex = 22;
+      this.labelSample.Text = "Sample:";
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.labelSample );
       this.Controls.Add( this.labelElapsed );
       this.Controls.Add( this.buttonRedraw );
       this.Controls.Add( this.buttonSave );
@@ -118,6 +132,7 @@
     private System.Windows.Forms.Button buttonSave;
     private System.Windows.Forms.Button buttonRedraw;
     private System.Windows.Forms.Label labelElapsed;
+    private System.Windows.Forms.Label labelSample;
   }
 }
 
