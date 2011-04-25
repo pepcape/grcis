@@ -268,170 +268,102 @@ namespace Rendering
     /// True if the ray enters a solid interior of an object here (transition from an air to solid material).
     /// (mandatory: Solid, InnerNode)
     /// </summary>
-    public bool Enter
-    {
-      get;
-      set;
-    }
+    public bool Enter;
 
     /// <summary>
     /// True if the ray enters solid geometry from outside (ray and surface normal have different directions).
     /// (mandatory: Solid)
     /// </summary>
-    public bool Front
-    {
-      get;
-      set;
-    }
+    public bool Front;
 
     /// <summary>
     /// Parametric coordinate on the ray
     /// (mandatory: Solid).
     /// </summary>
-    public double T
-    {
-      get;
-      set;
-    }
+    public double T;
 
     /// <summary>
     /// World coordinates of an intersection.
     /// (deferred: Scene graph)
     /// </summary>
-    public Vector3d CoordWorld
-    {
-      get;
-      set;
-    }
+    public Vector3d CoordWorld;
 
     /// <summary>
     /// Object coordinates of an intersection (object is an animation unit).
     /// (deferred: Scene graph)
     /// </summary>
-    public Vector3d CoordObject
-    {
-      get;
-      set;
-    }
+    public Vector3d CoordObject;
 
     /// <summary>
     /// Local (solid's) coordinates of an intersection.
     /// (deferred: Solid)
     /// </summary>
-    public Vector3d CoordLocal
-    {
-      get;
-      set;
-    }
+    public Vector3d CoordLocal;
 
     /// <summary>
     /// 2D texture coordinates.
     /// (deferred: Solid)
     /// </summary>
-    public Vector2d TextureCoord
-    {
-      get;
-      set;
-    }
+    public Vector2d TextureCoord;
 
     /// <summary>
     /// Normal vector in world coordinates.
     /// (deferred: Solid)
     /// </summary>
-    public Vector3d Normal
-    {
-      get;
-      set;
-    }
+    public Vector3d Normal;
 
     /// <summary>
     /// Transform matrix from the local (Solid) space to the World space.
     /// (deferred: Scene graph)
     /// </summary>
-    public Matrix4d LocalToWorld
-    {
-      get;
-      set;
-    }
+    public Matrix4d LocalToWorld;
 
     /// <summary>
     /// Transform matrix from the World space to the local (Solid) space.
     /// (deferred: Scene graph)
     /// </summary>
-    public Matrix4d WorldToLocal
-    {
-      get;
-      set;
-    }
+    public Matrix4d WorldToLocal;
 
     /// <summary>
     /// Transform matrix from the local (Solid) space to the Object space.
     /// (deferred: Scene graph)
     /// </summary>
-    public Matrix4d LocalToObject
-    {
-      get;
-      set;
-    }
+    public Matrix4d LocalToObject;
 
     /// <summary>
     /// Current surface color, used by textures and utilized by rendering algorithm in the end.
     /// (deferred: Scene graph, textures..)
     /// </summary>
-    public double[] SurfaceColor
-    {
-      get;
-      set;
-    }
+    public double[] SurfaceColor;
 
     /// <summary>
     /// Current reflectance model.
     /// (deferred: Scene graph, textures..)
     /// </summary>
-    public IReflectanceModel ReflectanceModel
-    {
-      get;
-      set;
-    }
+    public IReflectanceModel ReflectanceModel;
 
     /// <summary>
     /// Matching material record.
     /// (deferred: Scene graph, textures..)
     /// </summary>
-    public IMaterial Material
-    {
-      get;
-      set;
-    }
+    public IMaterial Material;
 
     /// <summary>
     /// Priority-list of relevant textures (less important to more important).
     /// </summary>
-    public LinkedList<ITexture> Textures
-    {
-      get;
-      set;
-    }
+    public LinkedList<ITexture> Textures;
 
     /// <summary>
     /// Solid this intersection comes from..
     /// (mandatory: Solid)
     /// </summary>
-    public ISolid Solid
-    {
-      get;
-      set;
-    }
+    public ISolid Solid;
 
     /// <summary>
     /// Supplement data object for intersection completion.
     /// (mandatory: Solid)
     /// </summary>
-    public object SolidData
-    {
-      get;
-      set;
-    }
+    public object SolidData;
 
     public Intersection ( ISolid s )
     {
@@ -449,11 +381,11 @@ namespace Rendering
         LocalToWorld = Solid.ToWorld();
         WorldToLocal = LocalToWorld;
         WorldToLocal.Invert();
-        CoordWorld = Vector3d.TransformPosition( CoordLocal, LocalToWorld );
+        Vector3d.TransformPosition( ref CoordLocal, ref LocalToWorld, out CoordWorld );
 
         // object coordinates:
         LocalToObject = Solid.ToObject();
-        CoordObject = Vector3d.TransformPosition( CoordLocal, LocalToObject );
+        Vector3d.TransformPosition( ref CoordLocal, ref LocalToObject, out CoordObject );
 
         // appearance:
         ReflectanceModel = (IReflectanceModel)Solid.GetAttribute( PropertyName.REFLECTANCE_MODEL );
@@ -468,8 +400,9 @@ namespace Rendering
 
         // Solid is responsible for completing remaining values:
         Solid.CompleteIntersection( this );
+        Normal.Normalize();
         if ( Enter != Front )
-          Normal = Vector3d.Multiply( Normal, -1.0 );
+          Vector3d.Multiply( ref Normal, -1.0, out Normal );
       }
 
       if ( SurfaceColor == null )

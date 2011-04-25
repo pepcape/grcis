@@ -39,10 +39,10 @@ namespace MathSupport
     /// Finds two other axes to the given vector, their vector product will
     /// give the original vector, all three vectors will be perpendicular to each other.
     /// </summary>
-    /// <param name="p"></param>
-    /// <param name="p1"></param>
-    /// <param name="p2"></param>
-    public static void GetAxes ( Vector3d p, out Vector3d p1, out Vector3d p2 )
+    /// <param name="p">Original non-zero vector.</param>
+    /// <param name="p1">First axis perpendicular to p.</param>
+    /// <param name="p2">Second axis perpendicular to p.</param>
+    public static void GetAxes ( ref Vector3d p, out Vector3d p1, out Vector3d p2 )
     {
       double ax = Math.Abs( p.X );
       double ay = Math.Abs( p.Y );
