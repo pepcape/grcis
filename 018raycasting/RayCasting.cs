@@ -10,22 +10,22 @@ namespace _018raycasting
     /// <summary>
     /// Initialize ray-scene and image function (good enough for single samples).
     /// </summary>
-    private void setImageFunction ()
+    private IImageFunction getImageFunction ()
     {
       // default constructor of the RayScene .. custom scene
       scene = new RayScene();
-      imf   = new RayCasting( scene );
+      return new RayCasting( scene );
     }
 
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// The 'imf' member has been already initialized..
     /// </summary>
-    private void setRenderer ()
+    private IRenderer getRenderer ()
     {
       SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
       sis.ImageFunction = imf;
-      rend = sis;
+      return sis;
     }
   }
 }

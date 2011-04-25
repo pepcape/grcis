@@ -40,12 +40,12 @@ namespace _018raycasting
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       if ( imf == null )
-        setImageFunction();
+        imf = getImageFunction();
       imf.Width  = width;
       imf.Height = height;
 
       if ( rend == null )
-        setRenderer();
+        rend = getRenderer();
       rend.Width  = width;
       rend.Height = height;
 
@@ -70,7 +70,7 @@ namespace _018raycasting
     private void singleSample ( int x, int y )
     {
       if ( imf == null )
-        setImageFunction();
+        imf = getImageFunction();
 
       imf.Width  = panel1.Width;
       imf.Height = panel1.Height;
