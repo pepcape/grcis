@@ -142,6 +142,15 @@ namespace Rendering
     double[] GetIntensity ( Intersection intersection, out Vector3d dir );
   }
 
+  public enum ReflectionComponent
+  {
+    DIFFUSE = 1,
+    SPECULAR_REFLECTION = 2,
+    SPECULAR_REFRACTION = 4,
+    SPECULAR = 6,
+    ALL = 7
+  }
+
   /// <summary>
   /// Reflection model - deals with local interaction between light and material surface.
   /// Entry point of the light ray is assumed to be equal to the exit point.
@@ -150,9 +159,9 @@ namespace Rendering
   {
     IMaterial DefaultMaterial ();
 
-    double[] ColorReflection ( IMaterial material, Intersection intersection, Vector3d input, Vector3d output );
+    double[] ColorReflection ( Intersection intersection, Vector3d input, Vector3d output, ReflectionComponent comp );
 
-    double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output );
+    double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output, ReflectionComponent comp );
   }
 
   /// <summary>
@@ -407,6 +416,19 @@ namespace Rendering
 
       if ( SurfaceColor == null )
         SurfaceColor = new double[] { 0.0, 0.2, 0.3 };
+    }
+
+    public static Intersection FirstIntersection ( LinkedList<Intersection> list, ref Vector3d p1 )
+    {
+      if ( list == null || list.Count < 1 )
+        return null;
+
+      double p1Squared = p1.X * p1.X + p1.Y * p1.Y + p1.Z * p1.Z;
+      foreach ( Intersection i in list )
+        if ( i.T > 0.0 && i.T * i.T * p1Squared > 1.0e-8 )
+          return i;
+
+      return null;
     }
   }
 

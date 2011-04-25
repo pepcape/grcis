@@ -10,7 +10,7 @@ namespace Rendering
   public class RayCasting : IImageFunction
   {
     /// <summary>
-    ///  Hash-multiplier for number of light sources.
+    /// Hash-multiplier for number of light sources.
     /// </summary>
     protected const long HASH_LIGHT   = 101L;
 
@@ -54,21 +54,22 @@ namespace Rendering
     public virtual long GetSample ( double x, double y, double[] color )
     {
       Vector3d p0, p1;
+      int bands = color.Length;
       if ( !scene.Camera.GetRay( x, y, out p0, out p1 ) )
       {
-        Array.Clear( color, 0, color.Length );                  // invalid ray -> black color
+        Array.Clear( color, 0, bands );                    // invalid ray -> black color
         return 1L;
       }
 
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect( p0, p1 );
-      if ( intersections == null || intersections.Count == 0 )  // no intersection -> background color
+      Intersection i = Intersection.FirstIntersection( intersections, ref p1 );
+      if ( i == null )            // no intersection -> background color
       {
-        Array.Copy( scene.BackgroundColor, color, Math.Min( scene.BackgroundColor.Length, color.Length ) );
+        Array.Copy( scene.BackgroundColor, color, bands );
         return 0L;
       }
 
       // there was at least one intersection
-      Intersection i = intersections.First.Value;
       i.Complete();
 
       // hash code for adaptive supersampling:
@@ -82,16 +83,17 @@ namespace Rendering
       // terminate if light sources are missing
       if ( scene.Sources == null || scene.Sources.Count < 1 )
       {
-        Array.Copy( i.SurfaceColor, color, Math.Min( i.SurfaceColor.Length, color.Length ) );
+        Array.Copy( i.SurfaceColor, color, bands );
         return hash;
       }
 
       // .. else apply the reflectance model for each source
       p1 = -p1;
       p1.Normalize();
+
       double[] colorBak = i.Material.Color;
       i.Material.Color = i.SurfaceColor;
-      Array.Clear( color, 0, color.Length );
+      Array.Clear( color, 0, bands );
 
       foreach ( ILightSource source in scene.Sources )
       {
@@ -99,10 +101,9 @@ namespace Rendering
         double[] intensity = source.GetIntensity( i, out dir );
         if ( intensity != null )
         {
-          double[] reflection = i.ReflectanceModel.ColorReflection( i.Material, i, dir, p1 );
+          double[] reflection = i.ReflectanceModel.ColorReflection( i, dir, p1, ReflectionComponent.ALL );
           if ( reflection != null )
           {
-            int bands = Math.Min( color.Length, Math.Min( reflection.Length, intensity.Length ) );
             for ( int b = 0; b < bands; b++ )
               color[ b ] += intensity[ b ] * reflection[ b ];
             hash = hash * HASH_LIGHT + source.GetHashCode();
@@ -114,5 +115,4 @@ namespace Rendering
       return hash;
     }
   }
-
 }

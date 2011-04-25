@@ -342,12 +342,12 @@ namespace Rendering
       return new PhongMaterial();
     }
 
-    public double[] ColorReflection ( IMaterial material, Intersection intersection, Vector3d input, Vector3d output )
+    public double[] ColorReflection ( Intersection intersection, Vector3d input, Vector3d output, ReflectionComponent comp )
     {
-      return ColorReflection( material, intersection.Normal, input, output );
+      return ColorReflection( intersection.Material, intersection.Normal, input, output, comp );
     }
 
-    public double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output )
+    public double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output, ReflectionComponent comp )
     {
       if ( !(material is PhongMaterial) ) return null;
 
@@ -357,7 +357,7 @@ namespace Rendering
       bool viewOut = Vector3d.Dot( output, normal ) > 0.0;
       double coef;
 
-      if ( input.LengthSquared < 1.0e-6 )    // ambient term only..
+      if ( input.Equals( Vector3d.Zero ) )    // ambient term only..
       {
         // dim ambient light if viewer is inside
         coef = viewOut ? mat.Ka : (mat.Ka * mat.Kt);
@@ -378,21 +378,25 @@ namespace Rendering
       coef       = 1.0;
       if ( viewOut == lightOut )            // viewer and source are on the same side..
       {
-        double cos2 = cosAlpha + cosAlpha;
-        r = normal * cos2 - input;
+        if ( (comp & ReflectionComponent.SPECULAR_REFLECTION) != 0 )
+        {
+          double cos2 = cosAlpha + cosAlpha;
+          r = normal * cos2 - input;
 
-        if ( !lightOut &&                   // total reflection check
-             -cosAlpha <= mat.cosTotal )
-          if ( (ks += kt) + kd > 1.0 )
-            ks = 1.0 - kd;
+          if ( !lightOut &&                   // total reflection check
+               -cosAlpha <= mat.cosTotal )
+            if ( (ks += kt) + kd > 1.0 )
+              ks = 1.0 - kd;
+        }
       }
       else                                  // opposite sides => use specular refraction
       {
-        r = Geometry.SpecularRefraction( normal, mat.n, input );
+        if ( (comp & ReflectionComponent.SPECULAR_REFRACTION) != 0 )
+          r = Geometry.SpecularRefraction( normal, mat.n, input );
         coef = kt;
       }
 
-      double diffuse = coef * kd * Math.Abs( cosAlpha );
+      double diffuse = (comp & ReflectionComponent.DIFFUSE) == 0 ? 0.0 : coef * kd * Math.Abs( cosAlpha );
       double specular = 0.0;
 
       if ( r != Vector3d.Zero )

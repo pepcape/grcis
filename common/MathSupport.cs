@@ -14,6 +14,13 @@ namespace MathSupport
       return( a <= Double.Epsilon && a >= -Double.Epsilon );
     }
 
+    public static void SpecularReflection ( ref Vector3d normal, ref Vector3d input, out Vector3d output )
+    {
+      double k;
+      Vector3d.Dot( ref normal, ref input, out k );
+      output = (k + k) * normal - input;
+    }
+
     public static Vector3d SpecularRefraction ( Vector3d normal, double n, Vector3d input )
     {
       normal.Normalize();
