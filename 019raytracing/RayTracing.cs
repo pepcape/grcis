@@ -136,13 +136,7 @@ namespace Rendering
         LinkedList<Intersection> partial = n.Intersect( origin, dir );
         if ( partial == null || partial.Count == 0 ) continue;
 
-        Intersection i = null;
-        foreach ( Intersection inter in partial )
-          if ( inter.T > 0.0 )
-          {
-            i = inter;
-            break;
-          }
+        Intersection i = Intersection.FirstIntersection( partial, ref p1 );
 
         if ( i != null )
           if ( result.First == null )
