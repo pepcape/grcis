@@ -19,7 +19,7 @@ namespace _018raycasting
 
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
-    /// The 'imf' member is already initialized.
+    /// The 'imf' member has been already initialized..
     /// </summary>
     private void setRenderer ()
     {
@@ -102,8 +102,8 @@ namespace Rendering
 
       // light sources:
       Sources = new LinkedList<ILightSource>();
-      Sources.Add( new AmbientLightSource( 0.5 ) );
-      Sources.Add( new PointLightSource( new Vector3d( 0.0, 0.0, -3.0 ), 1.0 ) );
+      Sources.Add( new AmbientLightSource( 0.8 ) );
+      Sources.Add( new PointLightSource( new Vector3d( -5.0, 3.0, -3.0 ), 1.0 ) );
     }
   }
 

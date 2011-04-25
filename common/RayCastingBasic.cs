@@ -440,10 +440,9 @@ namespace Rendering
       i.T = (-OD - d) / DD;
       i.Enter =
       i.Front = true;
-      i.CoordLocal = new Vector3d(
-        p0.X + i.T * p1.X,
-        p0.Y + i.T * p1.Y,
-        p0.Z + i.T * p1.Z );
+      i.CoordLocal.X = p0.X + i.T * p1.X;
+      i.CoordLocal.Y = p0.Y + i.T * p1.Y;
+      i.CoordLocal.Z = p0.Z + i.T * p1.Z;
       result.AddLast( i );
 
       // second intersection (-OD + d) / DD:
@@ -451,10 +450,9 @@ namespace Rendering
       i.T = (-OD + d) / DD;
       i.Enter =
       i.Front = false;
-      i.CoordLocal = new Vector3d(
-        p0.X + i.T * p1.X,
-        p0.Y + i.T * p1.Y,
-        p0.Z + i.T * p1.Z );
+      i.CoordLocal.X = p0.X + i.T * p1.X;
+      i.CoordLocal.Y = p0.Y + i.T * p1.Y;
+      i.CoordLocal.Z = p0.Z + i.T * p1.Z;
       result.AddLast( i );
 
       return result;
@@ -467,17 +465,16 @@ namespace Rendering
     public override void CompleteIntersection ( Intersection inter )
     {
       // normal vector:
-      Vector3d tu, tv;
-      Geometry.GetAxes( inter.CoordLocal, out tu, out tv );
+      Vector3d tu, tv, n;
+      Geometry.GetAxes( ref inter.CoordLocal, out tu, out tv );
       tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
       tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
-      inter.Normal = Vector3d.Cross( tu, tv );
-      inter.Normal.Normalize();
+      Vector3d.Cross( ref tu, ref tv, out inter.Normal );
 
       // 2D texture coordinates:
       double r = Math.Sqrt( inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y );
-      inter.TextureCoord = new Vector2d( Geometry.IsZero( r ) ? 0.0 : (Math.Atan2( inter.CoordLocal.Y, inter.CoordLocal.X ) / (2.0 * Math.PI) + 0.5 ),
-                                         Math.Atan2( r, inter.CoordLocal.Z ) / Math.PI );
+      inter.TextureCoord.X = Geometry.IsZero( r ) ? 0.0 : (Math.Atan2( inter.CoordLocal.Y, inter.CoordLocal.X ) / (2.0 * Math.PI) + 0.5 );
+      inter.TextureCoord.Y = Math.Atan2( r, inter.CoordLocal.Z ) / Math.PI;
     }
   }
 
@@ -489,29 +486,17 @@ namespace Rendering
     /// <summary>
     /// Alternative color.
     /// </summary>
-    public double[] Color2
-    {
-      get;
-      set;
-    }
+    public double[] Color2;
 
     /// <summary>
     /// Frequency in the u-direction.
     /// </summary>
-    public double Fu
-    {
-      get;
-      set;
-    }
+    public double Fu;
 
     /// <summary>
     /// Frequency in the v-direction.
     /// </summary>
-    public double Fv
-    {
-      get;
-      set;
-    }
+    public double Fv;
 
     public CheckerTexture ( double fu, double fv, double[] color )
     {
