@@ -465,7 +465,7 @@ namespace Rendering
     public override void CompleteIntersection ( Intersection inter )
     {
       // normal vector:
-      Vector3d tu, tv, n;
+      Vector3d tu, tv;
       Geometry.GetAxes( ref inter.CoordLocal, out tu, out tv );
       tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
       tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
