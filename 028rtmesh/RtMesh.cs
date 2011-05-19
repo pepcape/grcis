@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
+using MathSupport;
 using OpenTK;
 using Rendering;
-using System;
-using MathSupport;
 using Scene3D;
 
 namespace _028rtmesh
@@ -95,6 +95,30 @@ namespace Rendering
   /// </summary>
   public class TriangleMesh : DefaultSceneNode, ISolid
   {
+    protected class TmpData
+    {
+      /// <summary>
+      /// Face id (id of the intersected triangle).
+      /// </summary>
+      public int face;
+
+      /// <summary>
+      /// Barycentric coordinates in the intersected triangle.
+      /// </summary>
+      public Vector2d uv;
+
+      // Vertex ids.
+      //int va, vb, vc;
+
+      /// <summary>
+      /// Normal vector in B-rep coordinates.
+      /// </summary>
+      public Vector3 normal;
+    }
+
+    /// <summary>
+    /// Original mesh object (triangles in a Corner table).
+    /// </summary>
     protected SceneBrep mesh;
 
     public TriangleMesh ( SceneBrep m )
@@ -114,43 +138,68 @@ namespace Rendering
     /// <returns>Sorted list of intersection records.</returns>
     public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
     {
-      // !!!{{ TODO: add your actual intersection code here
+      // !!!{{ TODO: add your accelerated intersection code here
 
-      double OD;
-      Vector3d.Dot( ref p0, ref p1, out OD );
-      double DD;
-      Vector3d.Dot( ref p1, ref p1, out DD );
-      double OO;
-      Vector3d.Dot( ref p0, ref p0, out OO );
-      double d = OD * OD + DD * (1.0 - OO); // discriminant
-      if ( d <= 0.0 )
-        return null;           // no intersections
+      if ( mesh == null || mesh.Triangles < 1 ) return null;
 
-      d = Math.Sqrt( d );
-
-      // there will be two intersections: (-OD - d) / DD, (-OD + d) / DD
-      LinkedList<Intersection> result = new LinkedList<Intersection>();
+      LinkedList<Intersection> result = null;
       Intersection i;
 
-      // first intersection (-OD - d) / DD:
-      i = new Intersection( this );
-      i.T = (-OD - d) / DD;
-      i.Enter =
-      i.Front = true;
-      i.CoordLocal.X = p0.X + i.T * p1.X;
-      i.CoordLocal.Y = p0.Y + i.T * p1.Y;
-      i.CoordLocal.Z = p0.Z + i.T * p1.Z;
-      result.AddLast( i );
+      for ( int id = 0; id < mesh.Triangles; id++ )
+      {
+        Vector3 a, b, c;
+        mesh.GetTriangleVertices( id, out a, out b, out c );
+        Vector2d uv;
+        Vector3d aa, bb, cc;
+        aa.X = a.X; aa.Y = a.Y; aa.Z = a.Z;
+        bb.X = b.X; bb.Y = b.Y; bb.Z = b.Z;
+        cc.X = c.X; cc.Y = c.Y; cc.Z = c.Z;
+        double t = Geometry.RayTriangleIntersection( p0, p1, ref aa, ref bb, ref cc, out uv );
+        if ( Double.IsInfinity( t ) ) continue;
 
-      // second intersection (-OD + d) / DD:
-      i = new Intersection( this );
-      i.T = (-OD + d) / DD;
-      i.Enter =
-      i.Front = false;
-      i.CoordLocal.X = p0.X + i.T * p1.X;
-      i.CoordLocal.Y = p0.Y + i.T * p1.Y;
-      i.CoordLocal.Z = p0.Z + i.T * p1.Z;
-      result.AddLast( i );
+        if ( result == null )
+          result = new LinkedList<Intersection>();
+
+        // Compile the 1st Intersection instance:
+        i = new Intersection( this );
+        i.T = t;
+        i.Enter =
+        i.Front = true;
+        i.CoordLocal.X = p0.X + i.T * p1.X;
+        i.CoordLocal.Y = p0.Y + i.T * p1.Y;
+        i.CoordLocal.Z = p0.Z + i.T * p1.Z;
+
+        // Tmp data object
+        TmpData tmp = new TmpData();
+        tmp.face    = id;
+        tmp.uv      = uv;
+        Vector3 ba  = b - a;    // only the constant shading so far..
+        Vector3 ca  = c - a;
+        Vector3.Cross( ref ba, ref ca, out tmp.normal );
+        i.SolidData = tmp;
+
+        // Compile the 2nd Intersection instance:
+        i = new Intersection( this );
+        i.T = t + 1.0e-4;
+        i.Enter =
+        i.Front = false;
+        i.CoordLocal.X = p0.X + i.T * p1.X;
+        i.CoordLocal.Y = p0.Y + i.T * p1.Y;
+        i.CoordLocal.Z = p0.Z + i.T * p1.Z;
+
+        // Tmp data object
+        TmpData tmp2 = new TmpData();
+        tmp2.face    = id;
+        tmp2.uv      = uv;
+        tmp2.normal  = -tmp.normal;
+        i.SolidData  = tmp2;
+
+        result.AddLast( i );
+      }
+
+      if ( result != null )   // sort the result list
+      {
+      }
 
       return result;
 
@@ -166,16 +215,21 @@ namespace Rendering
       // !!!{{ TODO: add your actual completion code here
 
       // normal vector:
-      Vector3d tu, tv;
-      Geometry.GetAxes( ref inter.CoordLocal, out tu, out tv );
-      tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
-      tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
-      Vector3d.Cross( ref tu, ref tv, out inter.Normal );
+      if ( inter.SolidData is TmpData )
+      {
+        TmpData tmp = (TmpData)inter.SolidData;
+        Vector3d tu, tv;
+        Vector3d normal;
+        normal.X = tmp.normal.X; normal.Y = tmp.normal.Y; normal.Z = tmp.normal.Z;
+        Geometry.GetAxes( ref normal, out tu, out tv );
+        tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
+        tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
+        Vector3d.Cross( ref tu, ref tv, out inter.Normal );
+      }
 
-      // 2D texture coordinates:
-      double r = Math.Sqrt( inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y );
-      inter.TextureCoord.X = Geometry.IsZero( r ) ? 0.0 : (Math.Atan2( inter.CoordLocal.Y, inter.CoordLocal.X ) / (2.0 * Math.PI) + 0.5);
-      inter.TextureCoord.Y = Math.Atan2( r, inter.CoordLocal.Z ) / Math.PI;
+      // 2D texture coordinates (not yet):
+      inter.TextureCoord.X =
+      inter.TextureCoord.Y = 0.0;
 
       // !!!}}
     }
