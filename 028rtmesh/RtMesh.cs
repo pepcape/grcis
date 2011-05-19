@@ -80,8 +80,8 @@ namespace Rendering
       BackgroundColor = new double[] { 0.0, 0.15, 0.2 };
 
       // camera:
-      Camera = new StaticCamera( new Vector3d( 0.0, 0.0, -30.0 ),
-                                 new Vector3d( 0.0, 0.0, 1.0 ), 60.0 );
+      Camera = new StaticCamera( new Vector3d( 0.5, 2.0, -5.0 ),
+                                 new Vector3d( 0.1, -0.2, 0.9 ), 60.0 );
 
       // light sources:
       Sources = new LinkedList<ILightSource>();
@@ -121,9 +121,16 @@ namespace Rendering
     /// </summary>
     protected SceneBrep mesh;
 
+    public bool ShellMode
+    {
+      get;
+      set;
+    }
+
     public TriangleMesh ( SceneBrep m )
     {
       mesh = m;
+      ShellMode = false;
 
       // !!!{{ TODO: prepare acceleration structure for the mesh
 
@@ -175,8 +182,12 @@ namespace Rendering
         tmp.uv      = uv;
         Vector3 ba  = b - a;    // only the constant shading so far..
         Vector3 ca  = c - a;
-        Vector3.Cross( ref ba, ref ca, out tmp.normal );
+        Vector3.Cross( ref ca, ref ba, out tmp.normal );
         i.SolidData = tmp;
+
+        result.AddLast( i );
+
+        if ( !ShellMode ) continue;
 
         // Compile the 2nd Intersection instance:
         i = new Intersection( this );
@@ -199,6 +210,12 @@ namespace Rendering
 
       if ( result != null )   // sort the result list
       {
+        double t0 = result.First.Value.T;
+        foreach ( Intersection inte in result )
+        {
+          if ( inte.T < t0 )
+            t0 = inte.T;
+        }
       }
 
       return result;
