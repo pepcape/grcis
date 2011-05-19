@@ -79,6 +79,144 @@ namespace MathSupport
 
       Vector3d.Cross( ref p, ref p1, out p2 );
     }
+
+    public static bool RayBoxIntersection ( Vector3d p0, Vector3d p1, Vector3d ul, Vector3d size, out Vector2d result )
+    {
+      result.X =
+      result.Y = -1.0;
+      double tMin = Double.NegativeInfinity;
+      double tMax = Double.PositiveInfinity;
+      double t1, t2, mul;
+
+      // X axis:
+      if ( IsZero( p1.X ) )
+      {
+        if ( p0.X < ul.X ||
+             p0.X > ul.X + size.X )
+          return false;
+      }
+      else
+      {
+        mul = 1.0 / p1.X;
+        t1 = (ul.X - p0.X) * mul;
+        t2 = t1 + size.X * mul;
+
+        if ( mul > 0.0 )
+        {
+          if ( t1 > tMin ) tMin = t1;
+          if ( t2 < tMax ) tMax = t2;
+        }
+        else
+        {
+          if ( t2 > tMin ) tMin = t2;
+          if ( t1 < tMax ) tMax = t1;
+        }
+
+        if ( tMax < 0.0 ||
+             tMin > tMax ) return false;
+      }
+
+      // Y axis:
+      if ( IsZero( p1.Y ) )
+      {
+        if ( p0.Y < ul.Y ||
+             p0.Y > ul.Y + size.Y )
+          return false;
+      }
+      else
+      {
+        mul = 1.0 / p1.Y;
+        t1 = (ul.Y - p0.Y) * mul;
+        t2 = t1 + size.Y * mul;
+
+        if ( mul > 0.0 )
+        {
+          if ( t1 > tMin ) tMin = t1;
+          if ( t2 < tMax ) tMax = t2;
+        }
+        else
+        {
+          if ( t2 > tMin ) tMin = t2;
+          if ( t1 < tMax ) tMax = t1;
+        }
+
+        if ( tMax < 0.0 ||
+             tMin > tMax ) return false;
+      }
+
+      // Z axis:
+      if ( IsZero( p1.Z ) )
+      {
+        if ( p0.Z < ul.Z ||
+             p0.Z > ul.Z + size.Z )
+          return false;
+      }
+      else
+      {
+        mul = 1.0 / p1.Z;
+        t1 = (ul.Z - p0.Z) * mul;
+        t2 = t1 + size.Z * mul;
+
+        if ( mul > 0.0 )
+        {
+          if ( t1 > tMin ) tMin = t1;
+          if ( t2 < tMax ) tMax = t2;
+        }
+        else
+        {
+          if ( t2 > tMin ) tMin = t2;
+          if ( t1 < tMax ) tMax = t1;
+        }
+
+        if ( tMax < 0.0 ||
+             tMin > tMax ) return false;
+      }
+
+      result.X = tMin;
+      result.Y = tMax;
+      return true;
+    }
+
+    /// <summary>
+    /// Ray-triangle intersection test in 3D.
+    /// According to Tomas Moller, <a href="http://www.acm.org/jgt/">JGT</a>.
+    /// (origin + t * direction = (1 - u - v) * a + u * b + v * c)
+    /// </summary>
+    /// <param name="p0">Ray origin.</param>
+    /// <param name="p1">Ray direction vector.</param>
+    /// <param name="a">Vertex A of the triangle.</param>
+    /// <param name="b">Vertex B of the triangle.</param>
+    /// <param name="c">Vertex C of the triangle.</param>
+    /// <param name="uv">Barycentric coordinates of the intersection.</param>
+    /// <returns>Parametric coordinate on the ray if succeeded, Double.NegativeInfinity otherwise.</returns>
+    public static double RayTriangleIntersection ( Vector3d p0, Vector3d p1,
+                                                   ref Vector3d a, ref Vector3d b, ref Vector3d c,
+                                                   out Vector2d uv )
+    {
+      Vector3d e1 = b - a;
+      Vector3d e2 = c - a;
+      Vector3d pvec;
+      Vector3d.Cross( ref p1, ref e2, out pvec );
+      double det;
+      Vector3d.Dot( ref e1, ref pvec, out det );
+      uv.X = uv.Y = 0.0;
+      if ( IsZero( det ) ) return Double.NegativeInfinity;
+
+      double detInv = 1.0 / det;
+      Vector3d tvec = p0 - a;
+      Vector3d.Dot( ref tvec, ref pvec, out uv.X );
+      uv.X *= detInv;
+      if ( uv.X < 0.0 || uv.X > 1.0 ) return Double.NegativeInfinity;
+
+      Vector3d qvec;
+      Vector3d.Cross( ref tvec, ref e1, out qvec );
+      Vector3d.Dot( ref p1, ref qvec, out uv.Y );
+      uv.Y *= detInv;
+      if ( uv.Y < 0.0 || uv.X + uv.Y > 1.0 ) return Double.NegativeInfinity;
+
+      Vector3d.Dot( ref e2, ref qvec, out det );
+      return( detInv * det );
+    }
   }
 
   /// <summary>
