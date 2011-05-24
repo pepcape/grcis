@@ -45,7 +45,7 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Computes one image sample.
+    /// Computes one image sample. Simple variant, w/o an integration support.
     /// </summary>
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
@@ -53,9 +53,23 @@ namespace Rendering
     /// <returns>Hash-value used for adaptive subsampling.</returns>
     public virtual long GetSample ( double x, double y, double[] color )
     {
+      return GetSample( x, y, 0, 0, color );
+    }
+
+    /// <summary>
+    /// Computes one image sample. Internal integration support.
+    /// </summary>
+    /// <param name="x">Horizontal coordinate.</param>
+    /// <param name="y">Vertical coordinate.</param>
+    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
+    /// <param name="total">Total number of samples (for integration).</param>
+    /// <param name="color">Computed sample color.</param>
+    /// <returns>Hash-value used for adaptive subsampling.</returns>
+    public virtual long GetSample ( double x, double y, int rank, int total, double[] color )
+    {
       Vector3d p0, p1;
       int bands = color.Length;
-      if ( !scene.Camera.GetRay( x, y, out p0, out p1 ) )
+      if ( !scene.Camera.GetRay( x, y, rank, total, out p0, out p1 ) )
       {
         Array.Clear( color, 0, bands );                    // invalid ray -> black color
         return 1L;
@@ -78,7 +92,7 @@ namespace Rendering
       // apply all the textures fist..
       if ( i.Textures != null )
         foreach ( ITexture tex in i.Textures )
-          hash = hash * HASH_TEXTURE + tex.Apply( i );
+          hash = hash * HASH_TEXTURE + tex.Apply( i, rank, total );
 
       // terminate if light sources are missing
       if ( scene.Sources == null || scene.Sources.Count < 1 )
@@ -98,7 +112,7 @@ namespace Rendering
       foreach ( ILightSource source in scene.Sources )
       {
         Vector3d dir;
-        double[] intensity = source.GetIntensity( i, out dir );
+        double[] intensity = source.GetIntensity( i, rank, total, out dir );
         if ( intensity != null )
         {
           double[] reflection = i.ReflectanceModel.ColorReflection( i, dir, p1, ReflectionComponent.ALL );
