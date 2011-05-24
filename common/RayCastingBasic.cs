@@ -203,8 +203,14 @@ namespace Rendering
   /// </summary>
   public class PointLightSource : ILightSource
   {
+    /// <summary>
+    /// 3D coordinate of the source.
+    /// </summary>
     protected Vector3d coordinate;
 
+    /// <summary>
+    /// Intensity of the source expressed as color tuple.
+    /// </summary>
     protected double[] intensity;
 
     public PointLightSource ( Vector3d coord, double intens )
