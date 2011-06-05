@@ -121,7 +121,19 @@ namespace Rendering
     /// </summary>
     protected SceneBrep mesh;
 
+    /// <summary>
+    /// Shell mode: surface is considered as a thin shell (double-sided).
+    /// </summary>
     public bool ShellMode
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Smooth mode: smooth interpolation of surface normals (a la Phong shading).
+    /// </summary>
+    public bool Smooth
     {
       get;
       set;
@@ -131,6 +143,7 @@ namespace Rendering
     {
       mesh = m;
       ShellMode = false;
+      Smooth = true;
 
       // !!!{{ TODO: prepare acceleration structure for the mesh
 
@@ -138,7 +151,7 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Computes the complete intersection of the given ray with the object. 
+    /// Computes the complete intersection of the given ray with the object.
     /// </summary>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
@@ -180,7 +193,7 @@ namespace Rendering
         TmpData tmp = new TmpData();
         tmp.face    = id;
         tmp.uv      = uv;
-        Vector3 ba  = b - a;    // only the constant shading so far..
+        Vector3 ba  = b - a;    // temporary value for flat shading
         Vector3 ca  = c - a;
         Vector3.Cross( ref ba, ref ca, out tmp.normal );
         i.SolidData = tmp;
@@ -210,7 +223,7 @@ namespace Rendering
 
       if ( result == null )
         return null;
-      
+
       // Finalizing the result: sort the result list
       result.Sort();
       return new LinkedList<Intersection>( result );
@@ -230,6 +243,16 @@ namespace Rendering
       if ( inter.SolidData is TmpData )
       {
         TmpData tmp = (TmpData)inter.SolidData;
+
+        if ( Smooth && mesh.Normals > 0 )   // smooth interpolation of normal vectors
+        {
+          int v1, v2, v3;
+          mesh.GetTriangleVertices( tmp.face, out v1, out v2, out v3 );
+          tmp.normal  = mesh.GetNormal( v1 ) * (float)(1.0 - tmp.uv.X - tmp.uv.Y);
+          tmp.normal += mesh.GetNormal( v2 ) * (float)tmp.uv.X;
+          tmp.normal += mesh.GetNormal( v3 ) * (float)tmp.uv.Y;
+        }
+
         Vector3d tu, tv;
         Vector3d normal;
         normal.X = tmp.normal.X;
