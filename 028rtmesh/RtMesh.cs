@@ -149,7 +149,7 @@ namespace Rendering
 
       if ( mesh == null || mesh.Triangles < 1 ) return null;
 
-      LinkedList<Intersection> result = null;
+      List<Intersection> result = null;
       Intersection i;
 
       for ( int id = 0; id < mesh.Triangles; id++ )
@@ -165,7 +165,7 @@ namespace Rendering
         if ( Double.IsInfinity( t ) ) continue;
 
         if ( result == null )
-          result = new LinkedList<Intersection>();
+          result = new List<Intersection>();
 
         // Compile the 1st Intersection instance:
         i = new Intersection( this );
@@ -182,10 +182,10 @@ namespace Rendering
         tmp.uv      = uv;
         Vector3 ba  = b - a;    // only the constant shading so far..
         Vector3 ca  = c - a;
-        Vector3.Cross( ref ca, ref ba, out tmp.normal );
+        Vector3.Cross( ref ba, ref ca, out tmp.normal );
         i.SolidData = tmp;
 
-        result.AddLast( i );
+        result.Add( i );
 
         if ( !ShellMode ) continue;
 
@@ -205,20 +205,15 @@ namespace Rendering
         tmp2.normal  = -tmp.normal;
         i.SolidData  = tmp2;
 
-        result.AddLast( i );
+        result.Add( i );
       }
 
-      if ( result != null )   // sort the result list
-      {
-        double t0 = result.First.Value.T;
-        foreach ( Intersection inte in result )
-        {
-          if ( inte.T < t0 )
-            t0 = inte.T;
-        }
-      }
-
-      return result;
+      if ( result == null )
+        return null;
+      
+      // Finalizing the result: sort the result list
+      result.Sort();
+      return new LinkedList<Intersection>( result );
 
       // !!!}}
     }
@@ -237,7 +232,9 @@ namespace Rendering
         TmpData tmp = (TmpData)inter.SolidData;
         Vector3d tu, tv;
         Vector3d normal;
-        normal.X = tmp.normal.X; normal.Y = tmp.normal.Y; normal.Z = tmp.normal.Z;
+        normal.X = tmp.normal.X;
+        normal.Y = tmp.normal.Y;
+        normal.Z = tmp.normal.Z;
         Geometry.GetAxes( ref normal, out tu, out tv );
         tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
         tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
