@@ -317,7 +317,7 @@ namespace Rendering
   /// <summary>
   /// Intersection of a ray with a solid surface.
   /// </summary>
-  public class Intersection
+  public class Intersection : IComparable
   {
     /// <summary>
     /// True if the ray enters a solid interior of an object here (transition from an air to solid material).
@@ -475,6 +475,17 @@ namespace Rendering
           return i;
 
       return null;
+    }
+
+    /// <summary>
+    /// Canonic sort order: by a T value.
+    /// </summary>
+    /// <param name="obj">Instance to be compared to..</param>
+    /// <returns></returns>
+    public int CompareTo ( object obj )
+    {
+      Intersection i = (Intersection)obj;
+      return T.CompareTo( i.T );
     }
   }
 
