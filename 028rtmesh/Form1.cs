@@ -146,6 +146,7 @@ namespace _028rtmesh
       labelSample.Text = String.Format( "{0} faces", faces );
 
       imf = null;  // reset the scene object (to be sure)
+      rend = null; // reset the renderer as well..
     }
   }
 }
