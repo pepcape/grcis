@@ -11,7 +11,7 @@ namespace _002warping
 
     protected double factor = 1.0;
 
-    public double Factor
+    public override double Factor
     {
       get
       {

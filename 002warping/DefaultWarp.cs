@@ -7,6 +7,12 @@ namespace _002warping
 {
   public abstract class DefaultWarp : IWarp
   {
+    public virtual double Factor
+    {
+      get;
+      set;
+    }
+
     protected double scale = 1.0;
 
     protected int iwidth = 1;

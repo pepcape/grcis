@@ -8,6 +8,15 @@ namespace _002warping
   public interface IWarp
   {
     /// <summary>
+    /// Parameter value for the warping function..
+    /// </summary>
+    double Factor
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
     /// Sets output scaling.
     /// </summary>
     /// <param name="scale"></param>
