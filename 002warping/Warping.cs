@@ -2,10 +2,32 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
+using System.Windows.Forms;
 using System.Text;
 
 namespace _002warping
 {
+  public partial class FormWarping : Form
+  {
+    /// <summary>
+    /// Initialize the function-selection combo-box.
+    /// </summary>
+    protected void InitializeFunctions ()
+    {
+      functions = new List<IWarp>();
+
+      // 0:
+      functions.Add( new WarpMagniGlass() );
+      comboFunction.Items.Add( "MagniGlass" );
+
+      // 1:
+      // !!!{{ TODO: insert your own warping function here
+      // !!!}}
+
+      comboFunction.SelectedIndex = 0;
+    }
+  }
+
   public class Warping
   {
     public static void WarpImage ( Bitmap input, out Bitmap output, IWarp warp )

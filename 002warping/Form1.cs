@@ -12,11 +12,16 @@ namespace _002warping
   public partial class FormWarping : Form
   {
     protected Image inputImage = null;
-    protected WarpMagniGlass warp = new WarpMagniGlass();
+
+    /// <summary>
+    /// Available warping functions.
+    /// </summary>
+    protected List<IWarp> functions;
 
     public FormWarping ()
     {
       InitializeComponent();
+      InitializeFunctions();
     }
 
     private void buttonInput_Click ( object sender, EventArgs e )
@@ -40,24 +45,25 @@ namespace _002warping
 
       inputImage = Image.FromFile( ofd.FileName );
 
-      rewarp();
+      pictureBox1.Image = inputImage;
     }
 
     private void rewarp ()
     {
       if ( inputImage == null ) return;
 
-      Bitmap ibmp = (Bitmap)inputImage;
-      Bitmap bmp;
-      Warping.WarpImage( ibmp, out bmp, warp );
-      outputPictureBox.Image = bmp;
-    }
-
-    private void numericFactor_ValueChanged ( object sender, EventArgs e )
-    {
+      IWarp warp = functions[ comboFunction.SelectedIndex ];
       double fact = (double)numericFactor.Value;
       warp.Factor = fact;
 
+      Bitmap ibmp = (Bitmap)inputImage;
+      Bitmap bmp;
+      Warping.WarpImage( ibmp, out bmp, warp );
+      pictureBox1.Image = bmp;
+    }
+
+    private void buttonRedraw_Click ( object sender, EventArgs e )
+    {
       rewarp();
     }
 
@@ -75,7 +81,7 @@ namespace _002warping
       if ( sfd.FileName == "" )
         return;
 
-      outputPictureBox.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
   }
 }
