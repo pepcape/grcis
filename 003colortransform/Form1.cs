@@ -49,7 +49,7 @@ namespace _003colortransform
       Bitmap ibmp = (Bitmap)inputImage;
       Bitmap bmp;
       Transform.TransformImage( ibmp, out bmp, (double)numericParam.Value );
-      pictureResult.Image = bmp;
+      pictureBox1.Image = bmp;
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
@@ -66,10 +66,10 @@ namespace _003colortransform
       if ( sfd.FileName == "" )
         return;
 
-      pictureResult.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
-    private void numericParam_ValueChanged ( object sender, EventArgs e )
+    private void buttonRedraw_Click ( object sender, EventArgs e )
     {
       recompute();
     }
