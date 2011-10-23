@@ -14,7 +14,7 @@ namespace _035plasma
     protected Thread aThread = null;
 
     /// <summary>
-    /// Global simulation object. Re-entrant simulation of one frame.
+    /// Global simulation object. Simulation of one frame.
     /// </summary>
     protected Simulation sim = null;
 
@@ -23,6 +23,9 @@ namespace _035plasma
     /// </summary>
     volatile protected bool cont = true;
 
+    /// <summary>
+    /// Just for fun..
+    /// </summary>
     protected FpsMeter fps = new FpsMeter();
 
     delegate void SetImageCallback ( Bitmap newImage );
@@ -91,15 +94,15 @@ namespace _035plasma
 
       while ( cont )
       {
-        Bitmap newImage = sim.Simulate();
-        SetImage( newImage );
+        Bitmap image = sim.Simulate();
+        SetImage( image );
 
         float newFp = fps.Frame();
         if ( sim.Frame % 32 == 0 ) fp = newFp;
         SetText( String.Format( "Frame: {0} (FPS = {1:0.0})", sim.Frame, fp ) );
 
         //string fileName = String.Format( "out{0:0000}.png", i );
-        //newImage.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+        //image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
       }
 
       fps.Stop();

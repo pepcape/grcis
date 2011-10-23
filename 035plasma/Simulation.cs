@@ -14,7 +14,7 @@ namespace _035plasma
     {
       Width  = width;
       Height = height;
-      Frame  = 0;
+      Reset();
     }
 
     /// <summary>
@@ -49,41 +49,76 @@ namespace _035plasma
     /// </summary>
     public void Reset ()
     {
+      // !!!{{ TODO: put your simulation-reset code here
+
       Frame = 0;
+      simWidth  = Width;  /* / 4 */
+      simHeight = Height; /* / 4 */
+      s = new float[ simHeight, simWidth ];
+      rnd = new Random();
+
+      // !!!}}
     }
 
     /// <summary>
-    /// Simulation of single timestep.
+    /// Width of the simulation array.
+    /// </summary>
+    protected int simWidth;
+
+    /// <summary>
+    /// Height of the simulation array.
+    /// </summary>
+    protected int simHeight;
+
+    /// <summary>
+    /// The simulation array.
+    /// </summary>
+    protected float[ , ] s;
+
+    /// <summary>
+    /// Globally allocated (shared) random generator.
+    /// </summary>
+    protected Random rnd;
+
+    /// <summary>
+    /// Simulation of a single timestep.
     /// </summary>
     /// <returns>Visualization bitmap.</returns>
     public Bitmap Simulate ()
     {
       // !!!{{ TODO: put your simulation code here
 
-      Bitmap result = new Bitmap( Width, Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
-      Graphics gr = Graphics.FromImage( result );
+      PixelFormat fmt = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+      Bitmap result = new Bitmap( Width, Height, fmt );
 
-      int x0 = Width / 2;
-      int y0 = Height / 2;
-      int maxWid = x0 - 2;
-      int maxHei = y0 - 2;
+      for ( int i = 0; i < simHeight; i++ )
+        for ( int j = 0; j < simWidth; j++ )
+          s[ i, j ] = (float)rnd.NextDouble();
 
-      Pen p1 = new Pen( Color.FromArgb( 255, 255,  20 ), 1.0f );
-      Pen p2 = new Pen( Color.FromArgb(  60, 120, 255 ), 2.0f );
+      BitmapData data = result.LockBits( new Rectangle( 0, 0, Width, Height ), ImageLockMode.ReadOnly, fmt );
+      unsafe
+      {
+        byte* ptr;
 
-      double tim = 0.5 + 0.5 * Math.Sin( Frame * 0.01 );
-      int wid = (int)(tim * maxWid);
-      int hei = (int)(tim * maxHei);
-      gr.DrawEllipse( p2, x0 - hei, y0 - wid, hei + hei, wid + wid );
-      gr.DrawEllipse( p1, x0 - wid, y0 - hei, wid + wid, hei + hei );
+        for ( int y = 0; y < Height; y++ )
+        {
+          ptr = (byte*)data.Scan0 + y * data.Stride;
+
+          for ( int x = 0; x < Width; x++ )
+          {
+            byte c = (byte)(255.0f * s[ y % simHeight, x % simWidth ]);
+            ptr[ 0 ] = ptr[ 1 ] = ptr[ 2 ] = c;
+            ptr += 3;
+          }
+        }
+      }
+      result.UnlockBits( data );
 
       Frame++;
-      Thread.Sleep( 2 );
 
       return result;
 
       // !!!}}
     }
-
   }
 }
