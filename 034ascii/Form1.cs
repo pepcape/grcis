@@ -78,12 +78,12 @@ namespace _034ascii
             int w = int.Parse(txtWidth.Text);
             int h = int.Parse(txtHeight.Text);
 
-            string text = "";
+            string text = AsciiArt.Process( m_bmpOriginal, w, h );
+            Font   fnt  = AsciiArt.GetFont();
 
-            AsciiArt.Process(m_bmpOriginal, ref text, w, h);
-
-            Output dlgOut = new Output();
+            Output dlgOut  = new Output();
             dlgOut.WndText = text;
+            dlgOut.Fnt     = fnt;
             dlgOut.ShowDialog();
         }
     }

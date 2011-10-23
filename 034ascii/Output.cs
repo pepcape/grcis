@@ -23,9 +23,18 @@ namespace _034ascii
             set;
         }
 
+        public Font Fnt
+        {
+          get;
+          set;
+        }
+
         private void Output_Load(object sender, EventArgs e)
         {
             txtOutput.Text = WndText;
+            if ( Fnt != null )
+              txtOutput.Font = Fnt;
+            txtOutput.Select( 0, 0 );
         }
 
         private void btnSave_Click(object sender, EventArgs e)
