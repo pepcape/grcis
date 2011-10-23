@@ -1,27 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Text;
 
 namespace _034ascii
 {
     public class AsciiArt
     {
-        public static bool Process ( Bitmap src, ref string dest, int width, int height )
+        public static Font GetFont ()
         {
-            // !!!{{ TODO: replace this with your own code
+            // !!!{{ TODO: if you need a font different from the default one, change this..
+
+            return null;
+            //return new Font( "Lucida Console", 6.0f );
+
+            // !!!}}
+        }
+
+        public static string Process ( Bitmap src, int width, int height )
+        {
+            // !!!{{ TODO: replace this with your own bitmap -> ASCII conversion code
 
             if ( src == null || width <= 0 || height <= 0 )
-                return false;
-
-            dest = "";
+                return "";
 
             float widthBmp  = src.Width;
             float heightBmp = src.Height;
 
             const char MAX_LEVEL = '#';
             const char MIN_LEVEL = ' ';
+
+            string dest = "";
 
             for ( int y = 0; y < height; y++ )
             {
@@ -45,7 +53,7 @@ namespace _034ascii
 
             // !!!}}
 
-            return true;
+            return dest;
         }
     }
 }
