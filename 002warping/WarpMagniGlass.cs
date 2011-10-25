@@ -33,17 +33,16 @@ namespace _002warping
         double aspectRatio = iwidth / (double)iheight;
         aspectRatioTrimmed = 0.5 * Math.Min( 1.0, aspectRatio );
         halfFactorOffseted = 0.5 * (factor - 1.0);
-        halfOfAspectRatioX = 0.5 * aspectRatio;
         halfInverseFactorOffseted = 0.5 * (1.0 / factor - 1.0);
         dirty = false;
       }
       x /= iwidth;
       y /= iheight;
-      double ax = (x - halfOfAspectRatioX) / aspectRatioTrimmed;
+      double ax = (x - 0.5) / aspectRatioTrimmed;
       double ay = (y - 0.5) / aspectRatioTrimmed;
       double rr = ax * ax + ay * ay;    // radius squared
-      double mag = aspectRatioTrimmed * Math.Exp( halfFactorOffseted * Math.Log( rr ) );
-      u = halfOfAspectRatioX + mag * ax;
+      double mag = rr == 0 ? 0 : aspectRatioTrimmed * Math.Exp(halfFactorOffseted * Math.Log(rr));
+      u = 0.5 + mag * ax;
       v = 0.5 + mag * ay;
       u *= owidth;
       v *= oheight;
@@ -56,8 +55,6 @@ namespace _002warping
         double aspectRatio = iwidth / (double)iheight;
         aspectRatioTrimmed = 0.5 * Math.Min( 1.0, aspectRatio );
         halfFactorOffseted = 0.5 * (factor - 1.0);
-        halfOfAspectRatioX = 0.5 * aspectRatio;
-        halfOfAspectRatioY = 0.5 * 1 / aspectRatio;
         halfInverseFactorOffseted = 0.5 * (1.0 / factor - 1.0);
         dirty = false;
       }
