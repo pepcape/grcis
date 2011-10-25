@@ -6,7 +6,9 @@ using System.Text;
 
 namespace _008kdtree
 {
-
+  /// <summary>
+  /// Simple structure holding 2D line segment (end-point coordinates as floats).
+  /// </summary>
   public struct Segment2D
   {
     public float x1, y1, x2, y2;
@@ -22,6 +24,9 @@ namespace _008kdtree
   {
     #region protected data
 
+    /// <summary>
+    /// Copy of initial segment array (you might not need it).
+    /// </summary>
     protected List<Segment2D> segs;
 
     #endregion
@@ -37,16 +42,30 @@ namespace _008kdtree
 
     #region stat data
 
+    /// <summary>
+    /// Counter for ray-segment intersections.
+    /// </summary>
     protected long segmentCounter = 0L;
 
+    /// <summary>
+    /// Counter for ray-rectangle intersections.
+    /// </summary>
     protected long boxCounter = 0L;
 
+    /// <summary>
+    /// Counter for (log N-complex) heap operations.
+    /// </summary>
     protected long heapCounter = 0L;
 
     #endregion
 
     #region KD-tree API
 
+    /// <summary>
+    /// Initialize the data structure (KD-tree) here.
+    /// All old data should be destroyed (forgotten).
+    /// </summary>
+    /// <param name="segments">Array (cloud) of 2D line segments.</param>
     public void BuildTree ( List<Segment2D> segments )
     {
       // !!!{{ TODO: add the KD-tree bulding code here
@@ -56,6 +75,17 @@ namespace _008kdtree
       // !!!}}
     }
 
+    /// <summary>
+    /// Find at most k intersections with the given ray.
+    /// Results are returned as sorted array if ID-s (indices into the original segment array).
+    /// </summary>
+    /// <param name="ox">Ray origin - x-coordinate.</param>
+    /// <param name="oy">Ray origin - y-coordinate.</param>
+    /// <param name="dx">Ray direction - x-coordinate.</param>
+    /// <param name="dy">Ray direction - y-coordinate.</param>
+    /// <param name="k">Maximum result size (only the k closest intersections are requested).</param>
+    /// <param name="result">Actual number of segments returned (should be less or equal to k).</param>
+    /// <returns></returns>
     public int RayIntersect ( float ox, float oy, float dx, float dy, int k, int[] result )
     {
       // !!!{{ TODO: add the intersection code here
@@ -81,6 +111,12 @@ namespace _008kdtree
       // !!!}}
     }
 
+    /// <summary>
+    /// Request for current data-structure statistics
+    /// </summary>
+    /// <param name="segmentHits">Number of tests (ray vs. segment) performed.</param>
+    /// <param name="boxHits">Number of tests (ray vs. rectangle) performed.</param>
+    /// <param name="heapOperations">Number of heap-operations (of log N - complexity) performed.</param>
     public void GetStatistics ( out long segmentHits, out long boxHits, out long heapOperations )
     {
       // !!!{{ TODO: return requested statistics here
@@ -101,6 +137,18 @@ namespace _008kdtree
 
     #region support
 
+    /// <summary>
+    /// Ray vs. line segment intersection in 2D.
+    /// </summary>
+    /// <param name="ox">Ray origin - x-coordinate.</param>
+    /// <param name="oy">Ray origin - y-coordinate.</param>
+    /// <param name="dx">Ray direction - x-coordinate.</param>
+    /// <param name="dy">Ray direction - y-coordinate.</param>
+    /// <param name="ax">A endpoint - x-coordinate.</param>
+    /// <param name="ay">A endpoint - y-coordinate.</param>
+    /// <param name="bx">B endpoint - x-coordinate.</param>
+    /// <param name="by">B endpoint - y-coordinate.</param>
+    /// <returns>Parameter coordinate of the intersection or Double.NegativeInfinity if none exists.</returns>
     public static double RaySegment2D ( double ox, double oy, double dx, double dy,
                                         double ax, double ay, double bx, double by )
     {
