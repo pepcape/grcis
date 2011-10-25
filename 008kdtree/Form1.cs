@@ -36,7 +36,7 @@ namespace _008kdtree
       const double B     = 8.0 / 3.0;
 
       const double LINE_RADIUS_MIN = 0.3;
-      const double LINE_RADIUS_MAX = 1.0;
+      const double LINE_RADIUS_MAX = 0.8;
 
       // Lorentz attractor variables:
       double lx = 0.1;
