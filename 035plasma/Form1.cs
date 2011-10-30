@@ -58,25 +58,28 @@ namespace _035plasma
         labelElapsed.Text = text;
     }
 
-    delegate void EndSimulationCallback ();
+    delegate void StopSimulationCallback ();
 
-    protected void EndSimulation ()
+    protected void StopSimulation ()
     {
       if ( sim == null || aThread == null ) return;
-      cont = false;
-      aThread.Join();
 
       if ( buttonStart.InvokeRequired )
       {
-        EndSimulationCallback ea = new EndSimulationCallback( EndSimulation );
+        StopSimulationCallback ea = new StopSimulationCallback( StopSimulation );
         BeginInvoke( ea );
       }
       else
       {
+        // actually stop the simulation thread:
+        cont = false;
+        aThread.Join();
+        aThread = null;
+
+        // GUI stuff:
         buttonStart.Enabled = true;
         buttonReset.Enabled = true;
         buttonStop.Enabled = false;
-        aThread = null;
       }
     }
 
@@ -85,7 +88,7 @@ namespace _035plasma
       InitializeComponent();
     }
 
-    public void RenderSimulation ()
+    public void Simulation ()
     {
       int width  = (int)numericXres.Value;
       int height = (int)numericYres.Value;
@@ -98,8 +101,8 @@ namespace _035plasma
 
       while ( cont )
       {
-        Bitmap image = sim.Simulate();
-        SetImage( image );
+        sim.Simulate();
+        SetImage( sim.Visualize() );
 
         float newFp = fps.Frame();
         if ( sim.Frame % 32 == 0 ) fp = newFp;
@@ -121,13 +124,13 @@ namespace _035plasma
       buttonStop.Enabled  = true;
       cont = true;
 
-      aThread = new Thread( new ThreadStart( this.RenderSimulation ) );
+      aThread = new Thread( new ThreadStart( this.Simulation ) );
       aThread.Start();
     }
 
     private void buttonStop_Click ( object sender, EventArgs e )
     {
-      EndSimulation();
+      StopSimulation();
     }
 
     private void buttonReset_Click ( object sender, EventArgs e )
@@ -141,7 +144,28 @@ namespace _035plasma
 
     private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
     {
-      EndSimulation();
+      StopSimulation();
+    }
+
+    private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
+    {
+      if ( sim != null && e.Button == MouseButtons.Left )
+        if ( sim.MouseMove( e.Location ) && aThread == null )
+          SetImage( sim.Visualize() );
+    }
+
+    private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
+    {
+      if ( sim != null && e.Button == MouseButtons.Left )
+        if ( sim.MouseDown( e.Location ) && aThread == null )
+          SetImage( sim.Visualize() );
+    }
+
+    private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
+    {
+      if ( sim != null && e.Button == MouseButtons.Left )
+        if ( sim.MouseUp( e.Location ) && aThread == null )
+          SetImage( sim.Visualize() );
     }
   }
 }
