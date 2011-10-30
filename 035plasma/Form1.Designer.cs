@@ -183,6 +183,7 @@
       this.MinimumSize = new System.Drawing.Size( 720, 200 );
       this.Name = "Form1";
       this.Text = "035 plasma";
+      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler( this.Form1_FormClosing );
       this.panel1.ResumeLayout( false );
       this.panel1.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
