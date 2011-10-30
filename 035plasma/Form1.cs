@@ -62,6 +62,10 @@ namespace _035plasma
 
     protected void EndSimulation ()
     {
+      if ( sim == null || aThread == null ) return;
+      cont = false;
+      aThread.Join();
+
       if ( buttonStart.InvokeRequired )
       {
         EndSimulationCallback ea = new EndSimulationCallback( EndSimulation );
@@ -123,11 +127,6 @@ namespace _035plasma
 
     private void buttonStop_Click ( object sender, EventArgs e )
     {
-      if ( aThread == null ) return;
-
-      cont = false;
-      aThread.Join();
-
       EndSimulation();
     }
 
@@ -137,7 +136,12 @@ namespace _035plasma
         return;
 
       sim.Reset();
-      SetText( "Frame: 0" );
+      SetText( "Frame: 0 (FPS = 0.0)" );
+    }
+
+    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    {
+      EndSimulation();
     }
   }
 }
