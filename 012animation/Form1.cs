@@ -48,20 +48,27 @@ namespace _012animation
         labelElapsed.Text = text;
     }
 
-    delegate void EndAnimationCallback ();
+    delegate void StopAnimationCallback ();
 
-    protected void EndAnimation ()
+    protected void StopAnimation ()
     {
+      if ( aThread == null ) return;
+
       if ( buttonStart.InvokeRequired )
       {
-        EndAnimationCallback ea = new EndAnimationCallback( EndAnimation );
+        StopAnimationCallback ea = new StopAnimationCallback( StopAnimation );
         BeginInvoke( ea );
       }
       else
       {
+        // actually stop the animation:
+        cont = false;
+        aThread.Join();
+        aThread = null;
+
+        // GUI stuff:
         buttonStart.Enabled = true;
         buttonStop.Enabled = false;
-        aThread = null;
       }
     }
 
@@ -89,7 +96,7 @@ namespace _012animation
         newImage.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
       }
 
-      EndAnimation();
+      StopAnimation();
     }
 
     private void buttonStart_Click ( object sender, EventArgs e )
@@ -106,12 +113,12 @@ namespace _012animation
 
     private void buttonStop_Click ( object sender, EventArgs e )
     {
-      if ( aThread == null ) return;
+      StopAnimation();
+    }
 
-      cont = false;
-      aThread.Join();
-
-      EndAnimation();
+    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    {
+      StopAnimation();
     }
   }
 }
