@@ -38,13 +38,12 @@ namespace _036circles
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
     {
-      double param = (double)numericParam.Value;
       int width    = (int)numericXres.Value;
       int height   = (int)numericYres.Value;
 
       Canvas c = new Canvas( width, height );
 
-      Circles.Draw( c, (Bitmap)inputImage, param );
+      Circles.Draw( c, (Bitmap)inputImage, textParam.Text );
 
       pictureBox1.Image = outputImage = c.Finish();
       buttonSave.Enabled = true;

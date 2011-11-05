@@ -33,17 +33,16 @@
       this.numericXres = new System.Windows.Forms.NumericUpDown();
       this.label1 = new System.Windows.Forms.Label();
       this.label2 = new System.Windows.Forms.Label();
-      this.numericParam = new System.Windows.Forms.NumericUpDown();
       this.labelImageName = new System.Windows.Forms.Label();
       this.label3 = new System.Windows.Forms.Label();
       this.numericYres = new System.Windows.Forms.NumericUpDown();
       this.buttonLoadImage = new System.Windows.Forms.Button();
       this.buttonRedraw = new System.Windows.Forms.Button();
       this.buttonSave = new System.Windows.Forms.Button();
+      this.textParam = new System.Windows.Forms.TextBox();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericXres)).BeginInit();
-      ((System.ComponentModel.ISupportInitialize)(this.numericParam)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericYres)).BeginInit();
       this.SuspendLayout();
       // 
@@ -112,35 +111,6 @@
       this.label2.TabIndex = 6;
       this.label2.Text = "Param:";
       // 
-      // numericParam
-      // 
-      this.numericParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.numericParam.DecimalPlaces = 3;
-      this.numericParam.Increment = new decimal( new int[] {
-            1,
-            0,
-            0,
-            65536} );
-      this.numericParam.Location = new System.Drawing.Point( 192, 406 );
-      this.numericParam.Maximum = new decimal( new int[] {
-            1000000,
-            0,
-            0,
-            0} );
-      this.numericParam.Minimum = new decimal( new int[] {
-            1000000,
-            0,
-            0,
-            -2147483648} );
-      this.numericParam.Name = "numericParam";
-      this.numericParam.Size = new System.Drawing.Size( 95, 20 );
-      this.numericParam.TabIndex = 7;
-      this.numericParam.Value = new decimal( new int[] {
-            1,
-            0,
-            0,
-            0} );
-      // 
       // labelImageName
       // 
       this.labelImageName.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -198,9 +168,9 @@
       // buttonRedraw
       // 
       this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonRedraw.Location = new System.Drawing.Point( 316, 405 );
+      this.buttonRedraw.Location = new System.Drawing.Point( 341, 405 );
       this.buttonRedraw.Name = "buttonRedraw";
-      this.buttonRedraw.Size = new System.Drawing.Size( 126, 23 );
+      this.buttonRedraw.Size = new System.Drawing.Size( 115, 23 );
       this.buttonRedraw.TabIndex = 13;
       this.buttonRedraw.Text = "Redraw";
       this.buttonRedraw.UseVisualStyleBackColor = true;
@@ -218,18 +188,27 @@
       this.buttonSave.UseVisualStyleBackColor = true;
       this.buttonSave.Click += new System.EventHandler( this.buttonSave_Click );
       // 
+      // textParam
+      // 
+      this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.textParam.Location = new System.Drawing.Point( 189, 406 );
+      this.textParam.Name = "textParam";
+      this.textParam.Size = new System.Drawing.Size( 133, 20 );
+      this.textParam.TabIndex = 15;
+      this.textParam.Text = "1.00";
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 474 );
+      this.Controls.Add( this.textParam );
       this.Controls.Add( this.buttonSave );
       this.Controls.Add( this.buttonRedraw );
       this.Controls.Add( this.buttonLoadImage );
       this.Controls.Add( this.numericYres );
       this.Controls.Add( this.label3 );
       this.Controls.Add( this.labelImageName );
-      this.Controls.Add( this.numericParam );
       this.Controls.Add( this.label2 );
       this.Controls.Add( this.label1 );
       this.Controls.Add( this.numericXres );
@@ -241,7 +220,6 @@
       this.panel1.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericXres)).EndInit();
-      ((System.ComponentModel.ISupportInitialize)(this.numericParam)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericYres)).EndInit();
       this.ResumeLayout( false );
       this.PerformLayout();
@@ -255,13 +233,13 @@
     private System.Windows.Forms.NumericUpDown numericXres;
     private System.Windows.Forms.Label label1;
     private System.Windows.Forms.Label label2;
-    private System.Windows.Forms.NumericUpDown numericParam;
     private System.Windows.Forms.Label labelImageName;
     private System.Windows.Forms.Label label3;
     private System.Windows.Forms.NumericUpDown numericYres;
     private System.Windows.Forms.Button buttonLoadImage;
     private System.Windows.Forms.Button buttonRedraw;
     private System.Windows.Forms.Button buttonSave;
+    private System.Windows.Forms.TextBox textParam;
   }
 }
 

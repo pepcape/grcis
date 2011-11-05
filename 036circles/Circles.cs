@@ -5,7 +5,7 @@ namespace _036circles
 {
   public class Circles
   {
-    public static void Draw ( Canvas c, Bitmap input, double param )
+    public static void Draw ( Canvas c, Bitmap input, string param )
     {
       // !!!{{ TODO: put your drawing code here
 
@@ -16,7 +16,11 @@ namespace _036circles
       int i, j;
 
       c.Clear( Color.Black );
-      c.SetPenWidth( (float)param );
+
+      // example of passing numerical value through string param:
+      double w = 1.0;
+      if ( Double.TryParse( param, out w ) )
+        c.SetPenWidth( (float)w );
 
       // 1st quadrant - anti-aliased disks..
       c.SetAntiAlias( true );
