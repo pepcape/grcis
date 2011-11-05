@@ -72,6 +72,11 @@
       // numericXres
       // 
       this.numericXres.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.numericXres.Increment = new decimal( new int[] {
+            50,
+            0,
+            0,
+            0} );
       this.numericXres.Location = new System.Drawing.Point( 50, 406 );
       this.numericXres.Maximum = new decimal( new int[] {
             10000,
@@ -159,6 +164,11 @@
       // numericYres
       // 
       this.numericYres.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.numericYres.Increment = new decimal( new int[] {
+            50,
+            0,
+            0,
+            0} );
       this.numericYres.Location = new System.Drawing.Point( 50, 439 );
       this.numericYres.Maximum = new decimal( new int[] {
             10000,
@@ -177,7 +187,6 @@
       // buttonLoadImage
       // 
       this.buttonLoadImage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonLoadImage.Enabled = false;
       this.buttonLoadImage.Location = new System.Drawing.Point( 145, 436 );
       this.buttonLoadImage.Name = "buttonLoadImage";
       this.buttonLoadImage.Size = new System.Drawing.Size( 104, 23 );
@@ -200,12 +209,14 @@
       // buttonSave
       // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonSave.Location = new System.Drawing.Point( 598, 403 );
+      this.buttonSave.Enabled = false;
+      this.buttonSave.Location = new System.Drawing.Point( 598, 405 );
       this.buttonSave.Name = "buttonSave";
       this.buttonSave.Size = new System.Drawing.Size( 95, 23 );
       this.buttonSave.TabIndex = 14;
       this.buttonSave.Text = "Save image";
       this.buttonSave.UseVisualStyleBackColor = true;
+      this.buttonSave.Click += new System.EventHandler( this.buttonSave_Click );
       // 
       // Form1
       // 
@@ -223,7 +234,7 @@
       this.Controls.Add( this.label1 );
       this.Controls.Add( this.numericXres );
       this.Controls.Add( this.panel1 );
-      this.MinimumSize = new System.Drawing.Size( 720, 200 );
+      this.MinimumSize = new System.Drawing.Size( 600, 240 );
       this.Name = "Form1";
       this.Text = "036 circles";
       this.panel1.ResumeLayout( false );

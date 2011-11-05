@@ -1,40 +1,61 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Text;
 
 namespace _036circles
 {
-  public class Animation
+  public class Circles
   {
-    public Animation ()
+    public static void Draw ( Canvas c, Bitmap input, double param )
     {
-    }
+      // !!!{{ TODO: put your drawing code here
 
-    public Bitmap RenderFrame ( int width, int height, int currentFrame, int totalFrames )
-    {
-      // !!!{{ TODO: put your frame-rendering code here
+      int wq = c.Width  / 4;
+      int hq = c.Height / 4;
+      int minq = Math.Min( wq, hq );
+      double t;
+      int i, j;
 
-      Bitmap result = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
-      Graphics gr = Graphics.FromImage( result );
+      c.Clear( Color.Black );
+      c.SetPenWidth( (float)param );
 
-      int x0 = width / 2;
-      int y0 = height / 2;
-      int maxWid = x0 - 2;
-      int maxHei = y0 - 2;
+      // 1st quadrant - anti-aliased disks..
+      c.SetAntiAlias( true );
+      const int MAX_DISK = 30;
+      for ( i = 0, t = 0.0; i < MAX_DISK; i++, t += 0.65 )
+      {
+        float r = 5.0f + i * (minq * 0.7f - 5.0f) / MAX_DISK;
+        c.SetColor( Color.FromArgb( (i * 255) / MAX_DISK, 240, 255 - (i * 255) / MAX_DISK ) );
+        c.FillDisk( (float)(wq + r * Math.Sin( t )), (float)(hq + r * Math.Cos( t )), (float)(r * 0.3) );
+      }
 
-      Pen p1 = new Pen( Color.FromArgb( 255, 255,  20 ), 1.0f );
-      Pen p2 = new Pen( Color.FromArgb(  60, 120, 255 ), 2.0f );
+      // 2nd quadrant - anti-aliased circles..
+      const int MAX_CIRCLES = 60;
+      c.SetColor( Color.LemonChiffon );
+      for ( i = 0; i < MAX_CIRCLES; i++ )
+      {
+        t = i / (double)MAX_CIRCLES;
+        c.DrawCircle( (float)(c.Width - t * (wq + wq)), (float)(t * (hq + hq)), (float)(t * 0.9 * minq) );
+      }
 
-      double tim = currentFrame / (totalFrames - 1.0);
-      int wid = (int)(tim * maxWid);
-      int hei = (int)(tim * maxHei);
-      gr.DrawEllipse( p2, x0 - hei, y0 - wid, hei + hei, wid + wid );
-      gr.DrawEllipse( p1, x0 - wid, y0 - hei, wid + wid, hei + hei );
+      // 4th quadrant - jaggy circles..
+      c.SetColor( Color.LightCoral );
+      c.SetAntiAlias( false );
+      for ( i = 0; i < MAX_CIRCLES; i++ )
+      {
+        t = i / (double)MAX_CIRCLES;
+        c.DrawCircle( (float)(c.Width - t * (wq + wq)), (float)(c.Height - t * (hq + hq)), (float)(t * 0.9 * minq) );
+      }
 
-      return result;
+      // 3rd quadrant - jaggy disks..
+      const int DISKS = 12;
+      for ( j = 0; j < DISKS; j++ )
+        for ( i = 0; i < DISKS; i++ )
+        {
+          c.SetColor( ((i ^ j) & 1) == 0 ? Color.White : Color.Blue );
+          c.FillDisk( (float)(wq + (i - DISKS / 2) * (wq * 1.8f / DISKS)),
+                      (float)(3 * hq + (j - DISKS / 2) * (hq * 1.7f / DISKS)),
+                      (((i ^ j) & 15) + 1.0f)/ DISKS * minq * 0.08f  );
+        }
 
       // !!!}}
     }
