@@ -90,7 +90,10 @@ namespace _015avatar
           lastFpsTime = now;
           frameCounter = 0;
           triangleCounter = 0L;
-          labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0.0}m", fps, (tps * 1.0e-6) );
+          if ( tps < 5.0e5 )
+            labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0}k", fps, (tps * 1.0e-3) );
+          else
+            labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0.0}m", fps, (tps * 1.0e-6) );
         }
       }
     }
