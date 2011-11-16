@@ -184,6 +184,7 @@ namespace _037floodfill
         return;
 
       input = (Bitmap)Image.FromFile( ofd.FileName );
+      buttonStart.Enabled = true;
 
       // Automatic filename parsing..
       buttonLoad.Text = ofd.SafeFileName;

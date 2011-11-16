@@ -189,6 +189,7 @@
       // buttonStart
       // 
       this.buttonStart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonStart.Enabled = false;
       this.buttonStart.Location = new System.Drawing.Point( 397, 405 );
       this.buttonStart.Name = "buttonStart";
       this.buttonStart.Size = new System.Drawing.Size( 97, 23 );
