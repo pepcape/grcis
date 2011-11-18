@@ -108,6 +108,7 @@ namespace _038trackball
       reader.Close();
       scene.BuildCornerTable();
       diameter = scene.GetDiameter( out center );
+      scene.GenerateColors( 12 );
       ResetCamera();
 
       labelFile.Text = String.Format( "{0}: {1} faces", ofd.SafeFileName, faces );
@@ -139,8 +140,20 @@ namespace _038trackball
           stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, false, false, true );
         }
         GL.UnmapBuffer( BufferTarget.ArrayBuffer );
+
+        // Vertex array: color
+        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
+        vertexBufferSize = scene.VertexBufferSize( false, false, true, false );
+        GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
+        videoMemoryPtr = GL.MapBuffer( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
+        unsafe
+        {
+          scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), false, false, true, false );
+        }
+        GL.UnmapBuffer( BufferTarget.ArrayBuffer );
         GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
 
+        // Index buffer
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
         GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)(scene.Triangles * 3 * sizeof( uint )), IntPtr.Zero, BufferUsageHint.StaticDraw );
         videoMemoryPtr = GL.MapBuffer( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
@@ -150,21 +163,6 @@ namespace _038trackball
         }
         GL.UnmapBuffer( BufferTarget.ElementArrayBuffer );
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
-
-        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
-        // generate random color table:
-        Random rnd = new Random( 12 );
-        float[] colorTable = new float[ scene.Vertices * 3 ];
-        for ( int i = 0; i < scene.Vertices * 3; i++ )
-          colorTable[i] = (float)rnd.NextDouble();
-        unsafe
-        {
-          fixed ( float* ct = colorTable )
-          {
-            GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)(scene.Vertices * 3 * sizeof( float )), (IntPtr)ct, BufferUsageHint.StaticDraw );
-          }
-        }
-        GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
       }
       else
       {

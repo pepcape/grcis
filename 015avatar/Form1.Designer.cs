@@ -133,7 +133,7 @@
       // 
       this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelFps.AutoSize = true;
-      this.labelFps.Location = new System.Drawing.Point( 564, 382 );
+      this.labelFps.Location = new System.Drawing.Point( 574, 382 );
       this.labelFps.Name = "labelFps";
       this.labelFps.Size = new System.Drawing.Size( 27, 13 );
       this.labelFps.TabIndex = 18;
@@ -176,7 +176,7 @@
       // 
       this.checkSmooth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkSmooth.AutoSize = true;
-      this.checkSmooth.Location = new System.Drawing.Point( 286, 381 );
+      this.checkSmooth.Location = new System.Drawing.Point( 322, 381 );
       this.checkSmooth.Name = "checkSmooth";
       this.checkSmooth.Size = new System.Drawing.Size( 102, 17 );
       this.checkSmooth.TabIndex = 21;
@@ -188,7 +188,7 @@
       // 
       this.checkWireframe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkWireframe.AutoSize = true;
-      this.checkWireframe.Location = new System.Drawing.Point( 409, 381 );
+      this.checkWireframe.Location = new System.Drawing.Point( 433, 381 );
       this.checkWireframe.Name = "checkWireframe";
       this.checkWireframe.Size = new System.Drawing.Size( 74, 17 );
       this.checkWireframe.TabIndex = 22;
