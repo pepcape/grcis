@@ -1,14 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Drawing;
+using System.Windows.Forms;
+using System.Text;
+using System.IO;
+using System.Diagnostics;
+using System.Threading;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Scene3D;
 
-namespace _038trackball
+namespace _015avatar
 {
   public partial class Form1
   {
     /// <summary>
-    /// Renders a 3D scene, rendering code separated for clarity.
+    /// Rendering code itself (separated for clarity).
     /// </summary>
     private void RenderScene ()
     {
@@ -36,9 +44,28 @@ namespace _038trackball
         // index buffer
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
 
-        // engage!
-        triangleCounter += scene.Triangles;
-        GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+        // Multiple instancing of the scene:
+        Vector3 center;
+        float delta = scene.GetDiameter( out center ) * 0.8f;
+        int n = (int)numericInstances.Value;
+        for ( int k = 0; k++ < n; )
+        {
+          GL.PushMatrix();
+          for ( int j = 0; j++ < n; )
+          {
+            GL.PushMatrix();
+            for ( int i = 0; i++ < n; )
+            {
+              triangleCounter += scene.Triangles;
+              GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+              GL.Translate( delta, 0.0f, 0.0f );
+            }
+            GL.PopMatrix();
+            GL.Translate( 0.0f, 0.0f, delta );
+          }
+          GL.PopMatrix();
+          GL.Translate( 0.0f, delta, 0.0f );
+        }
 
       }
       else                              // color cube (JB)

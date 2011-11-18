@@ -155,59 +155,7 @@ namespace _015avatar
       SetCamera();
 
       // Scene rendering:
-      if ( useVBO &&
-           scene != null &&
-           scene.Triangles > 0 )        // scene is nonempty => render it
-      {
-        GL.Color3( Color.Yellow );
-
-        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-        if ( scene.Normals > 0 )
-        {
-          GL.NormalPointer( NormalPointerType.Float, stride, IntPtr.Zero );
-          GL.VertexPointer( 3, VertexPointerType.Float, stride, (IntPtr)Vector3.SizeInBytes );
-        }
-        else
-          GL.VertexPointer( 3, VertexPointerType.Float, stride, IntPtr.Zero );
-        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
-        GL.ColorPointer( 3, ColorPointerType.Float, 0, IntPtr.Zero );
-
-        GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-
-        // Multiple instancing of the scene:
-        Vector3 center;
-        float delta = scene.GetDiameter( out center ) * 0.8f;
-        int n = (int)numericInstances.Value;
-        for ( int k = 0; k++ < n; )
-        {
-          GL.PushMatrix();
-          for ( int j = 0; j++ < n; )
-          {
-            GL.PushMatrix();
-            for ( int i = 0; i++ < n; )
-            {
-              triangleCounter += scene.Triangles;
-              GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
-              GL.Translate( delta, 0.0f, 0.0f );
-            }
-            GL.PopMatrix();
-            GL.Translate( 0.0f, 0.0f, delta );
-          }
-          GL.PopMatrix();
-          GL.Translate( 0.0f, delta, 0.0f );
-        }
-
-      }
-      else                              // single yellow triangle..
-      {
-        triangleCounter++;
-        GL.Color3( Color.Yellow );
-        GL.Begin( BeginMode.Triangles );
-        GL.Vertex3( -2.0f, -2.0f, 0.0f );
-        GL.Vertex3( 3.0f, -2.0f, 0.0f );
-        GL.Vertex3( 0.0f, 4.0f, 0.0f );
-        GL.End();
-      }
+      RenderScene();
 
       glControl1.SwapBuffers();
     }
