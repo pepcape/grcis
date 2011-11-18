@@ -1,14 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.IO;
-using System.Diagnostics;
-using System.Threading;
+using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Scene3D;
@@ -17,7 +10,20 @@ namespace _038trackball
 {
   public partial class Form1 : Form
   {
+    /// <summary>
+    /// Scene read from file.
+    /// </summary>
     protected SceneBrep scene = new SceneBrep();
+
+    /// <summary>
+    /// Scene center point.
+    /// </summary>
+    protected Vector3 center = Vector3.Zero;
+
+    /// <summary>
+    /// Scene diameter.
+    /// </summary>
+    protected float diameter = 3.5f;
 
     /// <summary>
     /// GLControl guard flag.
@@ -80,6 +86,33 @@ namespace _038trackball
     private void glControl1_Paint ( object sender, PaintEventArgs e )
     {
       Render();
+    }
+
+    private void buttonOpen_Click ( object sender, EventArgs e )
+    {
+      OpenFileDialog ofd = new OpenFileDialog();
+
+      ofd.Title = "Open Scene File";
+      ofd.Filter = "Wavefront OBJ Files|*.obj" +
+          "|All scene types|*.obj";
+
+      ofd.FilterIndex = 1;
+      ofd.FileName = "";
+      if ( ofd.ShowDialog() != DialogResult.OK )
+        return;
+
+      WavefrontObj objReader = new WavefrontObj();
+      objReader.MirrorConversion = false;
+      StreamReader reader = new StreamReader( new FileStream( ofd.FileName, FileMode.Open ) );
+      int faces = objReader.ReadBrep( reader, scene );
+      reader.Close();
+      scene.BuildCornerTable();
+      diameter = scene.GetDiameter( out center );
+      ResetCamera();
+
+      labelFile.Text = String.Format( "{0}: {1} faces", ofd.SafeFileName, faces );
+      PrepareDataBuffers();
+      glControl1.Invalidate();
     }
 
     /// <summary>

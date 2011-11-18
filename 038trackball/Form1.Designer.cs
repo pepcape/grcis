@@ -36,6 +36,8 @@
       this.buttonReset = new System.Windows.Forms.Button();
       this.labelSensitivity = new System.Windows.Forms.Label();
       this.numericSensitivity = new System.Windows.Forms.NumericUpDown();
+      this.buttonOpen = new System.Windows.Forms.Button();
+      this.labelFile = new System.Windows.Forms.Label();
       ((System.ComponentModel.ISupportInitialize)(this.numericSensitivity)).BeginInit();
       this.SuspendLayout();
       // 
@@ -106,8 +108,8 @@
       // 
       // buttonReset
       // 
-      this.buttonReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonReset.Location = new System.Drawing.Point( 15, 411 );
+      this.buttonReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonReset.Location = new System.Drawing.Point( 602, 411 );
       this.buttonReset.Name = "buttonReset";
       this.buttonReset.Size = new System.Drawing.Size( 91, 23 );
       this.buttonReset.TabIndex = 22;
@@ -149,11 +151,34 @@
             0,
             65536} );
       // 
+      // buttonOpen
+      // 
+      this.buttonOpen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonOpen.Location = new System.Drawing.Point( 15, 411 );
+      this.buttonOpen.Name = "buttonOpen";
+      this.buttonOpen.Size = new System.Drawing.Size( 121, 23 );
+      this.buttonOpen.TabIndex = 25;
+      this.buttonOpen.Text = "Load scene";
+      this.buttonOpen.UseVisualStyleBackColor = true;
+      this.buttonOpen.Click += new System.EventHandler( this.buttonOpen_Click );
+      // 
+      // labelFile
+      // 
+      this.labelFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.labelFile.AutoSize = true;
+      this.labelFile.Location = new System.Drawing.Point( 166, 416 );
+      this.labelFile.Name = "labelFile";
+      this.labelFile.Size = new System.Drawing.Size( 88, 13 );
+      this.labelFile.TabIndex = 26;
+      this.labelFile.Text = "-- no file loaded --";
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.labelFile );
+      this.Controls.Add( this.buttonOpen );
       this.Controls.Add( this.numericSensitivity );
       this.Controls.Add( this.labelSensitivity );
       this.Controls.Add( this.buttonReset );
@@ -182,6 +207,8 @@
     private System.Windows.Forms.Button buttonReset;
     private System.Windows.Forms.Label labelSensitivity;
     private System.Windows.Forms.NumericUpDown numericSensitivity;
+    private System.Windows.Forms.Button buttonOpen;
+    private System.Windows.Forms.Label labelFile;
   }
 }
 

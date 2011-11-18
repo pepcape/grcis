@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 using OpenTK;
@@ -84,6 +83,30 @@ namespace _038trackball
     }
 
     /// <summary>
+    /// Setup of a camera called for every frame prior to any rendering.
+    /// </summary>
+    private void SetCamera ()
+    {
+      // !!!{{ TODO: add camera setup here
+
+      SetupViewport();
+
+      GL.MatrixMode( MatrixMode.Modelview );
+      Matrix4 modelview = Matrix4.CreateTranslation( -center ) *
+                          Matrix4.Scale( 1.0f / diameter ) *
+                          Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
+      GL.LoadMatrix( ref modelview );
+
+      // !!!}}
+    }
+
+    private void ResetCamera ()
+    {
+      // !!!{{ TODO: add camera reset code here
+      // !!!}}
+    }
+
+    /// <summary>
     /// Rendering of one frame.
     /// </summary>
     private void Render ()
@@ -96,11 +119,7 @@ namespace _038trackball
       GL.PolygonMode( MaterialFace.Front, PolygonMode.Fill );
       GL.Enable( EnableCap.CullFace );
 
-      SetupViewport();
-
-      GL.MatrixMode( MatrixMode.Modelview );
-      Matrix4 translation = Matrix4.CreateTranslation( 0.0f, 0.0f, -10.0f );
-      GL.LoadMatrix( ref translation );
+      SetCamera();
 
       RenderScene();
 
@@ -148,6 +167,9 @@ namespace _038trackball
     private void buttonReset_Click ( object sender, EventArgs e )
     {
       // !!!{{ TODO: add the event handler here
+
+      ResetCamera();
+
       // !!!}}
     }
   }
