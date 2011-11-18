@@ -37,7 +37,7 @@ namespace _038trackball
 
     #region OpenGL globals
 
-    private uint[] VBOid = new uint[ 3 ];       // vertex array (coords, normals), index array, color array
+    private uint[] VBOid = new uint[ 2 ];       // vertex array (colors, normals, coords), index array
     private int stride = 0;                     // stride for vertex array
 
     #endregion
@@ -65,7 +65,7 @@ namespace _038trackball
       GL.ShadeModel( ShadingModel.Flat );
 
       // VBO init:
-      GL.GenBuffers( 3, VBOid );
+      GL.GenBuffers( 2, VBOid );
       if ( GL.GetError() != ErrorCode.NoError )
         useVBO = false;
 
@@ -130,25 +130,14 @@ namespace _038trackball
           GL.EnableClientState( ArrayCap.NormalArray );
         GL.EnableClientState( ArrayCap.ColorArray );
 
-        // Vertex array: [normal] coord
+        // Vertex array: color [normal] coord
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-        int vertexBufferSize = scene.VertexBufferSize( true, false, false, true );
+        int vertexBufferSize = scene.VertexBufferSize( true, false, true, true );
         GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
         IntPtr videoMemoryPtr = GL.MapBuffer( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
         unsafe
         {
-          stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, false, false, true );
-        }
-        GL.UnmapBuffer( BufferTarget.ArrayBuffer );
-
-        // Vertex array: color
-        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
-        vertexBufferSize = scene.VertexBufferSize( false, false, true, false );
-        GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
-        videoMemoryPtr = GL.MapBuffer( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
-        unsafe
-        {
-          scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), false, false, true, false );
+          stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, false, true, true );
         }
         GL.UnmapBuffer( BufferTarget.ArrayBuffer );
         GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
@@ -178,9 +167,6 @@ namespace _038trackball
           GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
           GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
           GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
-          GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
-          GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
-          GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
         }
       }
     }

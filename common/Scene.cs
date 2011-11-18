@@ -81,6 +81,8 @@ namespace Scene3D
     {
       geometry    = new List<Vector3>( 256 );
       normals     = null;
+      colors      = null;
+      txtCoords   = null;
       vertexPtr   = new List<int>( 256 );
       oppositePtr = null;
     }

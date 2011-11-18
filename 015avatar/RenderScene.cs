@@ -25,21 +25,16 @@ namespace _015avatar
            scene != null &&
            scene.Triangles > 0 )        // scene is nonempty => render it
       {
-        GL.Color3( Color.Yellow );
-
-        // [normals] vertices
+        // colors [normals] vertices
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
+        GL.ColorPointer( 3, ColorPointerType.Float, stride, IntPtr.Zero );
         if ( scene.Normals > 0 )
         {
-          GL.NormalPointer( NormalPointerType.Float, stride, IntPtr.Zero );
-          GL.VertexPointer( 3, VertexPointerType.Float, stride, (IntPtr)Vector3.SizeInBytes );
+          GL.NormalPointer( NormalPointerType.Float, stride, (IntPtr)Vector3.SizeInBytes );
+          GL.VertexPointer( 3, VertexPointerType.Float, stride, (IntPtr)(Vector3.SizeInBytes * 2) );
         }
         else
-          GL.VertexPointer( 3, VertexPointerType.Float, stride, IntPtr.Zero );
-
-        // colors
-        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
-        GL.ColorPointer( 3, ColorPointerType.Float, 0, IntPtr.Zero );
+          GL.VertexPointer( 3, VertexPointerType.Float, stride, (IntPtr)Vector3.SizeInBytes );
 
         // index buffer
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
@@ -66,7 +61,6 @@ namespace _015avatar
           GL.PopMatrix();
           GL.Translate( 0.0f, delta, 0.0f );
         }
-
       }
       else                              // color cube (JB)
       {
