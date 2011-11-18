@@ -69,8 +69,9 @@ namespace _015avatar
       reader.Close();
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
+      scene.GenerateColors( 12 );
 
-      labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      labelFaces.Text = String.Format( "{0}: {1} faces, {2} errors", ofd.SafeFileName, faces, errors );
       PrepareDataBuffers();
       glControl1.Invalidate();
     }
@@ -164,8 +165,20 @@ namespace _015avatar
           stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, false, false, true );
         }
         GL.UnmapBuffer( BufferTarget.ArrayBuffer );
+
+        // Vertex array: color
+        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
+        vertexBufferSize = scene.VertexBufferSize( false, false, true, false );
+        GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
+        videoMemoryPtr = GL.MapBuffer( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
+        unsafe
+        {
+          scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), false, false, true, false );
+        }
+        GL.UnmapBuffer( BufferTarget.ArrayBuffer );
         GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
 
+        // Index buffer
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
         GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)(scene.Triangles * 3 * sizeof( uint )), IntPtr.Zero, BufferUsageHint.StaticDraw );
         videoMemoryPtr = GL.MapBuffer( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
@@ -175,21 +188,6 @@ namespace _015avatar
         }
         GL.UnmapBuffer( BufferTarget.ElementArrayBuffer );
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
-
-        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
-        // generate random color table:
-        Random rnd = new Random( 12 );
-        float[] colorTable = new float[ scene.Vertices * 3 ];
-        for ( int i = 0; i < scene.Vertices * 3; i++ )
-          colorTable[i] = (float)rnd.NextDouble();
-        unsafe
-        {
-          fixed ( float* ct = colorTable )
-          {
-            GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)(scene.Vertices * 3 * sizeof( float )), (IntPtr)ct, BufferUsageHint.StaticDraw );
-          }
-        }
-        GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
       }
       else
       {

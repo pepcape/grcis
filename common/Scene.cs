@@ -515,6 +515,25 @@ namespace Scene3D
                                (maxz - minz) * (maxz - minz) );
     }
 
+    /// <summary>
+    /// Generate random vertex colors.
+    /// </summary>
+    /// <param name="seed">Random seed</param>
+    public void GenerateColors ( int seed )
+    {
+      Random rnd = new Random( seed );
+
+      if ( colors == null || Colors < Vertices )
+      {
+        colors = new List<Vector3>( geometry.Count );
+        for ( int i = 0; i < geometry.Count; i++ )
+          colors.Add( new Vector3( (float)rnd.NextDouble(), (float)rnd.NextDouble(), (float)rnd.NextDouble() ) );
+      }
+      else
+        for ( int i = 0; i < geometry.Count; i++ )
+          colors[ i ] = new Vector3( (float)rnd.NextDouble(), (float)rnd.NextDouble(), (float)rnd.NextDouble() );
+    }
+
     #endregion
 
     #region Corner-table API
