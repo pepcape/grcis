@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -96,14 +96,14 @@ namespace _038trackball
           GL.EnableClientState( ArrayCap.NormalArray );
         GL.EnableClientState( ArrayCap.ColorArray );
 
-        // Vertex array: coord [normal]
+        // Vertex array: [normal] coord
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-        int vertexBufferSize = scene.VertexBufferSize( true, true, false );
+        int vertexBufferSize = scene.VertexBufferSize( true, false, false, true );
         GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
         IntPtr videoMemoryPtr = GL.MapBuffer( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
         unsafe
         {
-          stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, true, false );
+          stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, false, false, true );
         }
         GL.UnmapBuffer( BufferTarget.ArrayBuffer );
         GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
@@ -153,9 +153,5 @@ namespace _038trackball
         }
       }
     }
-
-    
-
-
   }
 }

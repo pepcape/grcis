@@ -162,9 +162,13 @@ namespace _015avatar
         GL.Color3( Color.Yellow );
 
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-        GL.VertexPointer( 3, VertexPointerType.Float, stride, IntPtr.Zero );
         if ( scene.Normals > 0 )
-          GL.NormalPointer( NormalPointerType.Float, stride, (IntPtr)Vector3.SizeInBytes );
+        {
+          GL.NormalPointer( NormalPointerType.Float, stride, IntPtr.Zero );
+          GL.VertexPointer( 3, VertexPointerType.Float, stride, (IntPtr)Vector3.SizeInBytes );
+        }
+        else
+          GL.VertexPointer( 3, VertexPointerType.Float, stride, IntPtr.Zero );
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 2 ] );
         GL.ColorPointer( 3, ColorPointerType.Float, 0, IntPtr.Zero );
 

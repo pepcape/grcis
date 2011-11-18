@@ -38,6 +38,16 @@ namespace Scene3D
     protected List<Vector3> normals = null;
 
     /// <summary>
+    /// Array of vertex colors (non mandatory).
+    /// </summary>
+    protected List<Vector3> colors = null;
+
+    /// <summary>
+    /// Array of 2D texture coordinates (non mandatory).
+    /// </summary>
+    protected List<Vector2> txtCoords = null;
+
+    /// <summary>
     /// Vertex pointer (handle) for each corner.
     /// </summary>
     protected List<int> vertexPtr = null;
@@ -98,6 +108,28 @@ namespace Scene3D
     }
 
     /// <summary>
+    /// Current number of vertex colors in the scene (should be 0 or the same as Vertices).
+    /// </summary>
+    public int Colors
+    {
+      get
+      {
+        return (colors == null) ? 0 : colors.Count;
+      }
+    }
+
+    /// <summary>
+    /// Current number of texture coordinates in the scene (should be 0 or the same as Vertices).
+    /// </summary>
+    public int TxtCoords
+    {
+      get
+      {
+        return (txtCoords == null) ? 0 : txtCoords.Count;
+      }
+    }
+
+    /// <summary>
     /// Current number of triangles in the scene.
     /// </summary>
     public int Triangles
@@ -137,6 +169,12 @@ namespace Scene3D
       {
         Debug.Assert( normals.Count == handle, "Invalid N[] size" );
         normals.Add( Vector3.UnitY );
+      }
+
+      if ( colors != null )
+      {
+        Debug.Assert( colors.Count == handle, "Invalid C[] size" );
+        colors.Add( Vector3.One );
       }
 
       return handle;
@@ -184,6 +222,70 @@ namespace Scene3D
       Debug.Assert( normals != null, "Invalid N[]" );
       Debug.Assert( 0 <= v && v < normals.Count, "Invalid vertex handle" );
       return normals[ v ];
+    }
+
+    /// <summary>
+    /// Assigns a color to an existing vertex
+    /// </summary>
+    /// <param name="v">Vertex handle</param>
+    /// <param name="color">New vertex color</param>
+    public void SetColor ( int v, Vector3 color )
+    {
+      Debug.Assert( geometry != null, "Invalid G[]" );
+      Debug.Assert( 0 <= v && v < geometry.Count, "Invalid vertex handle" );
+
+      if ( colors == null )
+      {
+        colors = new List<Vector3>( geometry.Count );
+        for ( int i = 0; i < geometry.Count; i++ )
+          colors.Add( Vector3.One );
+      }
+
+      colors[ v ] = color;
+    }
+
+    /// <summary>
+    /// Returns color of the given vertex.
+    /// </summary>
+    /// <param name="v">Vertex handle</param>
+    /// <returns>Vertex color</returns>
+    public Vector3 GetColor ( int v )
+    {
+      Debug.Assert( colors != null, "Invalid C[]" );
+      Debug.Assert( 0 <= v && v < colors.Count, "Invalid vertex handle" );
+      return colors[ v ];
+    }
+
+    /// <summary>
+    /// Assigns a texture coordinate to an existing vertex
+    /// </summary>
+    /// <param name="v">Vertex handle</param>
+    /// <param name="txt">New texture coordinate</param>
+    public void SetTxtCoord ( int v, Vector2 txt )
+    {
+      Debug.Assert( geometry != null, "Invalid G[]" );
+      Debug.Assert( 0 <= v && v < geometry.Count, "Invalid vertex handle" );
+
+      if ( txtCoords == null )
+      {
+        txtCoords = new List<Vector2>( geometry.Count );
+        for ( int i = 0; i < geometry.Count; i++ )
+          txtCoords.Add( Vector2.Zero );
+      }
+
+      txtCoords[ v ] = txt;
+    }
+
+    /// <summary>
+    /// Returns texture coordinate of the given vertex.
+    /// </summary>
+    /// <param name="v">Vertex handle</param>
+    /// <returns>Texture coordinate</returns>
+    public Vector2 GetTxtCoord ( int v )
+    {
+      Debug.Assert( txtCoords != null, "Invalid T[]" );
+      Debug.Assert( 0 <= v && v < txtCoords.Count, "Invalid vertex handle" );
+      return txtCoords[ v ];
     }
 
     /// <summary>
@@ -285,15 +387,20 @@ namespace Scene3D
     /// Computes vertex array size (VBO) in bytes.
     /// </summary>
     /// <param name="vertices">Use vertex coordinates?</param>
+    /// <param name="txt">Use texture coordinates?</param>
+    /// <param name="col">Use vertex colors?</param>
     /// <param name="norm">Use normal vectors?</param>
-    /// <param name="textures">Use texture coordinates?</param>
     /// <returns>Buffer size in bytes</returns>
-    public int VertexBufferSize ( bool vertices, bool norm, bool textures )
+    public int VertexBufferSize ( bool vertices, bool txt, bool col, bool norm )
     {
       Debug.Assert( geometry != null, "Invalid G[]" );
 
       int size = 0;
       if ( vertices )
+        size += Vertices * 3 * sizeof( float );
+      if ( txt && TxtCoords > 0 )
+        size += Vertices * 2 * sizeof( float );
+      if ( col && Colors > 0 )
         size += Vertices * 3 * sizeof( float );
       if ( norm && Normals > 0 )
         size += Vertices * 3 * sizeof( float );
@@ -306,12 +413,19 @@ namespace Scene3D
     /// </summary>
     /// <param name="ptr">Memory pointer</param>
     /// <param name="vertices">Use vertex coordinates?</param>
+    /// <param name="txt">Use texture coordinates?</param>
+    /// <param name="col">Use vertex colors?</param>
     /// <param name="norm">Use normal vectors?</param>
-    /// <param name="textures">Use texture coordinates?</param>
     /// <returns>Stride (vertex size) in bytes</returns>
-    public unsafe int FillVertexBuffer ( float* ptr, bool vertices, bool norm, bool textures )
+    public unsafe int FillVertexBuffer ( float* ptr, bool vertices, bool txt, bool col, bool norm )
     {
       if ( geometry == null ) return 0;
+
+      if ( txt && TxtCoords < Vertices )
+        txt = false;
+
+      if ( col && Colors < Vertices )
+        col = false;
 
       if ( norm && Normals < Vertices )
         norm = false;
@@ -319,11 +433,18 @@ namespace Scene3D
       int i;
       for ( i = 0; i < Vertices; i++ )
       {
-        if ( vertices )
+        // GL_T2F_C3F_N3F_V3F
+
+        if ( txt )
         {
-          *ptr++ = geometry[ i ].X;
-          *ptr++ = geometry[ i ].Y;
-          *ptr++ = geometry[ i ].Z;
+          *ptr++ = txtCoords[ i ].X;
+          *ptr++ = txtCoords[ i ].Y;
+        }
+        if ( col )
+        {
+          *ptr++ = colors[ i ].X;
+          *ptr++ = colors[ i ].Y;
+          *ptr++ = colors[ i ].Z;
         }
         if ( norm )
         {
@@ -331,9 +452,15 @@ namespace Scene3D
           *ptr++ = normals[ i ].Y;
           *ptr++ = normals[ i ].Z;
         }
+        if ( vertices )
+        {
+          *ptr++ = geometry[ i ].X;
+          *ptr++ = geometry[ i ].Y;
+          *ptr++ = geometry[ i ].Z;
+        }
       }
 
-      return sizeof( float ) * ((vertices ? 3 : 0) + (norm ? 3 : 0));
+      return sizeof( float ) * ((txt ? 2 : 0) + (col ? 3 : 0) + (norm ? 3 : 0) + (vertices ? 3 : 0));
     }
 
     /// <summary>
