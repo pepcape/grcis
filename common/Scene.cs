@@ -179,6 +179,12 @@ namespace Scene3D
         colors.Add( Vector3.One );
       }
 
+      if ( txtCoords != null )
+      {
+        Debug.Assert( txtCoords.Count == handle, "Invalid T[] size" );
+        txtCoords.Add( Vector2.Zero );
+      }
+
       return handle;
     }
 
