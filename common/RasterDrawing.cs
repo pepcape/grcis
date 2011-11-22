@@ -9,6 +9,55 @@ namespace Raster
 {
   public partial class Draw
   {
+    /// <summary>
+    /// Red component importance weight.
+    /// </summary>
+    public const int RED_WEIGHT   = 4897;
+
+    /// <summary>
+    /// Green component importance weight.
+    /// </summary>
+    public const int GREEN_WEIGHT = 9611;
+
+    /// <summary>
+    /// Blue component importance weight.
+    /// </summary>
+    public const int BLUE_WEIGHT  = 1876;
+
+    /// <summary>
+    /// Color importance shift.
+    /// </summary>
+    public const int WEIGHT_SHIFT = 14;
+
+    /**  */
+    /// <summary>
+    /// Color importance sum.
+    /// </summary>
+    public const int WEIGHT_TOTAL = 16384;
+
+    /// <summary>
+    /// RGB -> gray value convertor. Keeps original data amplitude..
+    /// </summary>
+    /// <param name="r">Red component</param>
+    /// <param name="g">Green component</param>
+    /// <param name="b">Blue component</param>
+    /// <returns>Gray (monochromatic) value</returns>
+    public static int RgbToGray ( int r, int g, int b )
+    {
+      return( ( r * RED_WEIGHT +
+                g * GREEN_WEIGHT +
+                b * BLUE_WEIGHT ) >> WEIGHT_SHIFT );
+    }
+
+    /// <summary>
+    /// Draws line into the Bitmap. integer coordinates, no anti-aliasing.
+    /// </summary>
+    /// <param name="img"></param>
+    /// <param name="x1"></param>
+    /// <param name="y1"></param>
+    /// <param name="x2"></param>
+    /// <param name="y2"></param>
+    /// <param name="color"></param>
     public static void Line ( Bitmap img, int x1, int y1, int x2, int y2, Color color )
     {
       int width  = img.Width;
@@ -161,6 +210,13 @@ namespace Raster
       return result;
     }
 
+    /// <summary>
+    /// Compares two color images for the merest difference
+    /// </summary>
+    /// <param name="img1">1st image to compare</param>
+    /// <param name="img2">2nd image to compare</param>
+    /// <param name="xor">Optional output image (XOR)</param>
+    /// <returns>Number of byte-differences</returns>
     public static long ImageCompare ( Bitmap img1, Bitmap img2, Bitmap xor )
     {
       if ( img1 == null || img2 == null )
@@ -172,9 +228,36 @@ namespace Raster
       if ( width  != img2.Width ||
            height != img2.Height ) return 11L;
 
+      long result = 0L;
       PixelFormat fmt = img1.PixelFormat;
       if ( !fmt.Equals( img2.PixelFormat ) )
-        return 11L;
+      {
+        // slow version:
+        if ( (xor != null) &&
+             (xor.Width < width || xor.Height < height ) )
+          xor = null;
+
+        for ( int y = 0; y < height; y++ )
+          for ( int x = 0; x < width; x++ )
+          {
+            Color c1 = img1.GetPixel( x, y );
+            Color c2 = img2.GetPixel( x, y );
+            byte xorR = (byte)(c1.R ^ c2.R);
+            if ( xorR != 0 ) result++;
+            byte xorG = (byte)(c1.G ^ c2.G);
+            if ( xorG != 0 ) result++;
+            byte xorB = (byte)(c1.B ^ c2.B);
+            if ( xorB != 0 ) result++;
+            if ( xor != null )
+              xor.SetPixel( x, y, Color.FromArgb( xorR, xorG, xorB ) );
+          }
+
+        return result;
+      }
+
+      if ( (xor != null) &&
+           (xor.Width < width || xor.Height < height || !fmt.Equals( xor.PixelFormat )) )
+        xor = null;
 
       int pixelSize = 1;
       if ( fmt.Equals( PixelFormat.Format24bppRgb ) )
@@ -183,11 +266,6 @@ namespace Raster
            fmt.Equals( PixelFormat.Format32bppPArgb ) )
         pixelSize = 4;
 
-      if ( (xor != null) &&
-           (xor.Width < width || xor.Height < height || !fmt.Equals( xor.PixelFormat )) )
-        xor = null;
-
-      long result = 0L;
       BitmapData data1 = img1.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, fmt );
       BitmapData data2 = img2.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, fmt );
       BitmapData outp  = (xor == null) ? null : xor.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, fmt );
