@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.IO.Compression;
 
 // Simple implementation classes of compression interfaces.
 namespace Compression
@@ -19,6 +20,7 @@ namespace Compression
       buffer = new byte[ bufferSize ];
       bPtr = 0;
       bitStream = null;
+      dflStream = null;
       position = 0L;
       openedDecode =
       openedEncode = false;
@@ -30,6 +32,7 @@ namespace Compression
     }
 
     protected Stream bitStream;
+    protected DeflateStream dflStream;
 
     /// <summary>
     /// Current stream used for binary (encoded) I/O.
@@ -40,6 +43,7 @@ namespace Compression
       {
         if ( bitStream != null ) Close();
         bitStream = value;
+        dflStream = null;
       }
       get
       {
@@ -67,6 +71,10 @@ namespace Compression
       openedDecode = !output;
       bPtr = 0;
       position = 0;
+      if ( output )
+        dflStream = new DeflateStream( bitStream, CompressionMode.Compress, true );
+      else
+        dflStream = new DeflateStream( bitStream, CompressionMode.Decompress, true );
       return true;
     }
 
@@ -109,9 +117,10 @@ namespace Compression
     {
       if ( bPtr > 0 )
       {
-        bitStream.Write( buffer, 0, bPtr );
+        dflStream.Write( buffer, 0, bPtr );
         bPtr = 0;
       }
+      if ( openedEncode ) dflStream.Flush();
     }
 
     /// <summary>
@@ -122,6 +131,8 @@ namespace Compression
       Flush();
       openedDecode =
       openedEncode = false;
+      dflStream.Close();
+      dflStream = null;
     }
 
     protected long position;
@@ -160,7 +171,7 @@ namespace Compression
 
       if ( bPtr >= buffer.Length )
       {
-        bitStream.Write( buffer, 0, bPtr );
+        dflStream.Write( buffer, 0, bPtr );
         bPtr = 0;
       }
       buffer[ bPtr++ ] = (byte)(symbol & 0xff);
@@ -184,7 +195,14 @@ namespace Compression
     /// <param name="length">Number of bits to write</param>
     public void PutBits ( long bits, int length )
     {
-      // !!! TODO !!!
+      if ( !openedEncode ) return;
+
+      while ( length > 0 )
+      {
+        int skip = (length - 1) & 0xf8;
+        Put( (int)((bits >> skip) & 0xff) );
+        length = skip;
+      }
     }
 
     /// <summary>
@@ -196,7 +214,7 @@ namespace Compression
       if ( !openedDecode ) return -1;
 
       position++;
-      return bitStream.ReadByte();
+      return dflStream.ReadByte();
     }
 
     /// <summary>
@@ -216,8 +234,16 @@ namespace Compression
     /// <returns>Read bits (or -1L if no bits are available)</returns>
     public long GetBits ( int length )
     {
-      // !!! TODO !!!
-      return 0L;
+      if ( !openedDecode ) return -1;
+
+      long result = 0L;
+      while ( length > 0 )
+      {
+        result = (result << 8) + Get();
+        length -= 8;
+      }
+
+      return result;
     }
   }
 
