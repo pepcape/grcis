@@ -66,7 +66,7 @@ namespace _042compressionpre
       long fileSize = fs.Position;
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Enc: {0:f}s, {1:0.0}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) / 1024.0 );
+      labelElapsed.Text = String.Format( "Enc: {0:f}s, {1:0.0}kb", 1.0e-3 * sw.ElapsedMilliseconds, fileSize / 1024.0 );
 
       // 3. image decoding
       fs.Seek( 0L, SeekOrigin.Begin );
