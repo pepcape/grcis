@@ -88,15 +88,16 @@ namespace _037floodfill
       Queue<Point> q = new Queue<Point>();
       int maxQ;
 
+      Color fill = Color.FromArgb( 255, 0, 0 );
       Color orig = working.GetPixel( x, y );
-      if ( orig.Equals( Color.Red ) )
+      if ( orig.Equals( fill ) )
       {
         SetText( "Queue: 0 (Max = 0)" );
         StopFill();
         return;
       }
 
-      working.SetPixel( x, y, Color.Red );
+      working.SetPixel( x, y, fill );
       q.Enqueue( new Point( x, y ) );
       maxQ = 1;
       counter = 1;
@@ -110,25 +111,25 @@ namespace _037floodfill
 
         if ( x > 0 && working.GetPixel( x - 1, y ).Equals( orig ) )
         {
-          working.SetPixel( x - 1, y, Color.Red );
+          working.SetPixel( x - 1, y, fill );
           q.Enqueue( new Point( x - 1, y ) );
         }
 
         if ( x < wid && working.GetPixel( x + 1, y ).Equals( orig ) )
         {
-          working.SetPixel( x + 1, y, Color.Red );
+          working.SetPixel( x + 1, y, fill );
           q.Enqueue( new Point( x + 1, y ) );
         }
 
         if ( y > 0 && working.GetPixel( x, y - 1 ).Equals( orig ) )
         {
-          working.SetPixel( x, y - 1, Color.Red );
+          working.SetPixel( x, y - 1, fill );
           q.Enqueue( new Point( x, y - 1 ) );
         }
 
         if ( y < hei && working.GetPixel( x, y + 1 ).Equals( orig ) )
         {
-          working.SetPixel( x, y + 1, Color.Red );
+          working.SetPixel( x, y + 1, fill );
           q.Enqueue( new Point( x, y + 1 ) );
         }
 
@@ -183,7 +184,9 @@ namespace _037floodfill
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      input = (Bitmap)Image.FromFile( ofd.FileName );
+      Image inp = Image.FromFile( ofd.FileName );
+      input = new Bitmap( inp );
+      inp.Dispose();
       buttonStart.Enabled = true;
 
       // Automatic filename parsing..
@@ -196,6 +199,10 @@ namespace _037floodfill
         if ( Int32.TryParse( parts[ len - 3 ], out xStart ) &&
              Int32.TryParse( parts[ len - 2 ], out yStart ) )
         {
+          if ( xStart < 0 ) xStart = 0;
+          if ( xStart >= input.Width ) xStart = input.Width - 1;
+          if ( yStart < 0 ) yStart = 0;
+          if ( yStart >= input.Height ) yStart = input.Height - 1;
           numericXstart.Value = xStart;
           numericYstart.Value = yStart;
         }
