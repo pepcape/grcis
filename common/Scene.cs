@@ -109,6 +109,16 @@ namespace Scene3D
       }
     }
 
+    public bool HasNormals ()
+    {
+      return (normals != null);
+    }
+
+    public int NormalBytes ()
+    {
+      return ((normals != null) ? 3 * sizeof( float ) : 0);
+    }
+
     /// <summary>
     /// Current number of vertex colors in the scene (should be 0 or the same as Vertices).
     /// </summary>
@@ -120,6 +130,16 @@ namespace Scene3D
       }
     }
 
+    public bool HasColors ()
+    {
+      return (colors != null);
+    }
+
+    public int ColorBytes ()
+    {
+      return ((colors != null) ? 3 * sizeof( float ) : 0);
+    }
+
     /// <summary>
     /// Current number of texture coordinates in the scene (should be 0 or the same as Vertices).
     /// </summary>
@@ -129,6 +149,16 @@ namespace Scene3D
       {
         return (txtCoords == null) ? 0 : txtCoords.Count;
       }
+    }
+
+    public bool HasTxtCoords ()
+    {
+      return (txtCoords != null);
+    }
+
+    public int TxtCoordsBytes ()
+    {
+      return ((txtCoords != null) ? 2 * sizeof( float ) : 0);
     }
 
     /// <summary>
