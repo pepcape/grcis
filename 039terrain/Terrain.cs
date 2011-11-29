@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Threading;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -13,68 +11,10 @@ namespace _039terrain
 {
   public partial class Form1
   {
-    // Realtime based animation:
-
-    #region Camera attributes
-
     /// <summary>
-    /// Current "up" vector.
+    /// Texture identifier (for one texture only, if you need more, extend the source code as needed)
     /// </summary>
-    private Vector3 up = Vector3.UnitY;
-
-    /// <summary>
-    /// Vertical field-of-view angle in radians.
-    /// </summary>
-    private float fov = 1.0f;
-
-    /// <summary>
-    /// Camera's far point.
-    /// </summary>
-    private float far = 200.0f;
-
-    #endregion
-      
-    #region OpenGL globals
-
-    private uint[] VBOid = new uint[ 2 ];
-
-    private int textureCoordOffset = 0;
-    private int colorOffset = 0;
-    private int normalOffset = 0;
-    private int vertexOffset = 0;
-    private int stride = 0;
-
-    #endregion
-
-    /// <summary>
-    /// Function called whenever the main application is idle..
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    private void Application_Idle ( object sender, EventArgs e )
-    {
-      while ( glControl1.IsIdle )
-      {
-        glControl1.Invalidate();
-        Thread.Sleep( 5 );
-
-        long now = DateTime.Now.Ticks;
-        if ( now - lastFpsTime > 10000000 )      // more than 1 sec
-        {
-          double fps = frameCounter * 1.0e7 / (now - lastFpsTime);
-          double tps = triangleCounter * 1.0e7 / (now - lastFpsTime);
-          lastFpsTime = now;
-          frameCounter = 0;
-          triangleCounter = 0L;
-          if ( tps < 5.0e5 )
-            labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0}k", fps, (tps * 1.0e-3) );
-          else
-            labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0.0}m", fps, (tps * 1.0e-6) );
-        }
-      }
-    }
-
-    private int textureId = -1; // only one texture, if you need more, extend the source code as needed
+    private int textureId = -1;
 
     private void glControl1_Load ( object sender, EventArgs e )
     {
@@ -119,15 +59,12 @@ namespace _039terrain
       scene.AddTriangle( 2, 1, 0 );
       scene.AddTriangle( 2, 3, 1 );
 
-      // this function upload the above data to the graphics card
-      UploadDataToGraphicsCard();
+      // this function uploads the data to the graphics card
+      PrepareData();
 
       // load a texture
       TexUtil.InitTexturing();
-      string path = "cgg256.png";
-      if ( !File.Exists( path ) )
-        path = "../../" + path;
-      textureId = TexUtil.CreateTextureFromFile( path );
+      textureId = TexUtil.CreateTextureFromFile( "cgg256.png", "../../cgg256.png" );
 
       // some global setups
       GL.ShadeModel( ShadingModel.Smooth );
@@ -148,46 +85,6 @@ namespace _039terrain
     }
 
     /// <summary>
-    /// Called in case the GLcontrol geometry changes.
-    /// </summary>
-    private void SetupViewport ()
-    {
-      int width  = glControl1.Width;
-      int height = glControl1.Height;
-
-      // 1. set ViewPort transform:
-      GL.Viewport( 0, 0, width, height );
-
-      // 2. set projection matrix
-      GL.MatrixMode( MatrixMode.Projection );
-      Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView( fov, width / (float)height, 0.1f, far );
-      GL.LoadMatrix( ref proj );
-    }
-
-    private double elevationAngle = 0.0;
-    private double azimuthAngle = 0.0;
-    private double zoom = 3.0;
-
-    /// <summary>
-    /// Camera setup, called for every frame prior to any rendering.
-    /// </summary>
-    private void SetCamera ()
-    {
-      Vector3 cameraPosition = new Vector3( 0.0f, 0, (float)upDownZoom.Value );
-
-      Matrix4 rotateX = Matrix4.CreateRotationX( (float)-elevationAngle );
-      Matrix4 rotateY = Matrix4.CreateRotationY( (float)azimuthAngle );
-
-      cameraPosition = Vector3.Transform( cameraPosition, rotateX );
-      cameraPosition = Vector3.Transform( cameraPosition, rotateY );
-
-      GL.MatrixMode( MatrixMode.Modelview );
-      Matrix4 lookAt = Matrix4.LookAt( cameraPosition, Vector3.Zero, up );
-
-      GL.LoadMatrix( ref lookAt );
-    }
-
-    /// <summary>
     /// Rendering of one frame.
     /// </summary>
     private void Render ()
@@ -197,6 +94,8 @@ namespace _039terrain
       frameCounter++;
       GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
 
+      // OpenGL light:
+      GL.MatrixMode( MatrixMode.Modelview );
       GL.PushMatrix();
       GL.LoadIdentity();
       GL.Light( LightName.Light1, LightParameter.Position, new Vector4( 50.0f, 2.0f, 0.0f, 1.0f ) );
@@ -252,89 +151,6 @@ namespace _039terrain
       glControl1.SwapBuffers();
     }
 
-    /// <summary>
-    /// Prepare VBO content and upload it to the GPU.
-    /// </summary>
-    private void UploadDataToGraphicsCard ()
-    {
-      Debug.Assert( scene != null, "Missing scene" );
-
-      if ( scene.Triangles == 0 )
-        return;
-
-      // enable the respective client states
-      GL.EnableClientState( ArrayCap.VertexArray );   // vertex array (positions?)
-
-      if ( scene.HasColors() )                        // colors, if any
-        GL.EnableClientState( ArrayCap.ColorArray );
-
-      if ( scene.HasNormals() )                       // normals, if any
-        GL.EnableClientState( ArrayCap.NormalArray );
-
-      if ( scene.HasTxtCoords() )                     // textures, if any
-        GL.EnableClientState( ArrayCap.TextureCoordArray );
-
-      // bind the vertex array (interleaved)
-      GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-
-      // query the size of the buffer in bytes
-      int vertexBufferSize = scene.VertexBufferSize(
-          true, // we always have vertex data
-          scene.HasTxtCoords(),
-          scene.HasColors(),
-          scene.HasNormals() );
-
-      // fill vertexData with data we will upload to the (vertex) buffer on the graphics card
-      float[] vertexData = new float[ vertexBufferSize / sizeof( float ) ];
-
-      // calculate the offsets in the interleaved array      
-      colorOffset  = textureCoordOffset + scene.TxtCoordsBytes();
-      normalOffset = colorOffset        + scene.ColorBytes();
-      vertexOffset = normalOffset       + scene.NormalBytes();
-
-      // convert data from SceneBrep to float[]
-      unsafe
-      {
-        fixed ( float* fixedVertexData = vertexData )
-        {
-          stride = scene.FillVertexBuffer(
-              fixedVertexData,
-              true,
-              scene.HasTxtCoords(),
-              scene.HasColors(),
-              scene.HasNormals() );
-        }
-      }
-
-      // upload vertex data to the graphics card
-      GL.BufferData(
-          BufferTarget.ArrayBuffer,
-          (IntPtr)vertexBufferSize,
-          vertexData,
-          BufferUsageHint.StaticDraw );
-
-      // index buffer
-
-      // convert from SceneBrep -> uint[]
-      uint[] indexData = new uint[ scene.Triangles * 3 ];
-
-      unsafe
-      {
-        fixed ( uint* unsafeIndexData = indexData )
-        {
-          scene.FillIndexBuffer( unsafeIndexData );
-        }
-      }
-
-      // upload to video memory
-      GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-      GL.BufferData(
-          BufferTarget.ElementArrayBuffer,
-          (IntPtr)(scene.Triangles * 3 * sizeof( uint )),
-          indexData,
-          BufferUsageHint.StaticDraw );
-    }
-
     private void buttonRegenerate_Click ( object sender, EventArgs e )
     {
       // !!!{{ TODO: add terrain regeneration code here (to reflect changed terrain parameters)
@@ -342,30 +158,6 @@ namespace _039terrain
       int iterations = (int)upDownIterations.Value;
       float roughness = (float)upDownRoughness.Value;
 
-      // !!!}}
-    }
-
-    private void glControl1_MouseDown ( object sender, MouseEventArgs e )
-    {
-      // !!!{{ TODO: add the event handler here
-      // !!!}}
-    }
-
-    private void glControl1_MouseUp ( object sender, MouseEventArgs e )
-    {
-      // !!!{{ TODO: add the event handler here
-      // !!!}}
-    }
-
-    private void glControl1_MouseMove ( object sender, MouseEventArgs e )
-    {
-      // !!!{{ TODO: add the event handler here
-      // !!!}}
-    }
-
-    private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
-    {
-      // !!!{{ TODO: add the event handler here
       // !!!}}
     }
 
@@ -380,28 +172,5 @@ namespace _039terrain
       // !!!{{ TODO: add the event handler here
       // !!!}}
     }
-
-    private void upDownAzimuth_ValueChanged ( object sender, EventArgs e )
-    {
-      azimuthAngle = (float)upDownAzimuth.Value;
-
-      if ( azimuthAngle < 0.0 )
-        azimuthAngle += Math.PI * 2.0f;
-      else if ( azimuthAngle > Math.PI * 2.0f )
-        azimuthAngle -= Math.PI * 2.0f;
-
-      upDownAzimuth.Value = (decimal)azimuthAngle;
-    }
-
-    private void upDownElevation_ValueChanged ( object sender, EventArgs e )
-    {
-      elevationAngle = (float)upDownElevation.Value;
-    }
-
-    private void upDownZoom_ValueChanged ( object sender, EventArgs e )
-    {
-      zoom = (float)upDownZoom.Value;
-    }
   }
-
 }
