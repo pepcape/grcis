@@ -273,6 +273,12 @@ namespace _039terrain
     {
       zoom = (float)upDownZoom.Value;
     }
-  }
 
+    private void buttonRegenerate_Click ( object sender, EventArgs e )
+    {
+      int iterations = (int)upDownIterations.Value;
+      float roughness = (float)upDownRoughness.Value;
+      Regenerate( iterations, roughness );
+    }
+  }
 }

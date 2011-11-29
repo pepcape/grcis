@@ -114,19 +114,9 @@
             0,
             0,
             0} );
-      this.upDownIterations.Minimum = new decimal( new int[] {
-            1,
-            0,
-            0,
-            0} );
       this.upDownIterations.Name = "upDownIterations";
       this.upDownIterations.Size = new System.Drawing.Size( 66, 20 );
       this.upDownIterations.TabIndex = 19;
-      this.upDownIterations.Value = new decimal( new int[] {
-            1,
-            0,
-            0,
-            0} );
       // 
       // upDownAzimuth
       // 
@@ -257,7 +247,7 @@
       // upDownRoughness
       // 
       this.upDownRoughness.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.upDownRoughness.DecimalPlaces = 2;
+      this.upDownRoughness.DecimalPlaces = 3;
       this.upDownRoughness.Increment = new decimal( new int[] {
             1,
             0,
@@ -272,6 +262,11 @@
       this.upDownRoughness.Name = "upDownRoughness";
       this.upDownRoughness.Size = new System.Drawing.Size( 65, 20 );
       this.upDownRoughness.TabIndex = 26;
+      this.upDownRoughness.Value = new decimal( new int[] {
+            1,
+            0,
+            0,
+            65536} );
       // 
       // Form1
       // 
