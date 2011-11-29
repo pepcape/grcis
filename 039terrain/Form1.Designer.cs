@@ -207,7 +207,7 @@
       this.upDownZoom.Size = new System.Drawing.Size( 63, 20 );
       this.upDownZoom.TabIndex = 24;
       this.upDownZoom.Value = new decimal( new int[] {
-            7,
+            3,
             0,
             0,
             0} );

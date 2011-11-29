@@ -10,13 +10,13 @@ using System.IO;
       TexUtil.InitTexturing();
 
       // Load a bitmap from disc, and put it in a GL texture.
-      int tex = TexUtil.CreateTextureFromFile("mybitmapfont.png");
+      int tex = TexUtil.CreateTextureFromFile( "mybitmapfont.png" );
 
       // Create a TextureFont object from the loaded texture.
-      TextureFont texFont = new TextureFont(tex);
+      TextureFont texFont = new TextureFont( tex );
 
       // Write something centered in the viewport.
-      texFont.WriteStringAt("Center", 10, 50, 50, 0);
+      texFont.WriteStringAt( "Center", 10, 50, 50, 0 );
 
 */
 
@@ -24,7 +24,7 @@ namespace TexLib
 {
   /// <summary>
   /// The TexUtil class is released under the MIT-license.
-  /// /Olof Bjarnason
+  /// /Olof Bjarnason/ updated by Josef Pelikan
   /// </summary>
   public static class TexUtil
   {
@@ -95,12 +95,19 @@ namespace TexLib
 
     /// <summary>
     /// Create an OpenGL texture (translucent or opaque) by loading a bitmap
-    /// from file. 24- and 32-bit bitmaps supported.
+    /// from file. Two alternative file-paths can be tried.
+    /// 24- and 32-bit bitmaps are supported.
     /// </summary>
-    public static int CreateTextureFromFile ( string path )
+    public static int CreateTextureFromFile ( string path1, string path2 )
     {
-      if ( File.Exists( path ) )
-        return CreateTextureFromBitmap( new Bitmap( Bitmap.FromFile( path ) ) );
+      if ( path1 != null &&
+           File.Exists( path1 ) )
+        return CreateTextureFromBitmap( new Bitmap( Bitmap.FromFile( path1 ) ) );
+
+      if ( path2 != null &&
+           File.Exists( path2 ) )
+        return CreateTextureFromBitmap( new Bitmap( Bitmap.FromFile( path2 ) ) );
+
       byte[] rgb = { 255,   0,   0,
                        0, 255,   0,
                        0,   0, 255,
@@ -113,7 +120,7 @@ namespace TexLib
     private static int CreateTexture ( int width, int height, bool alpha, byte[] bytes )
     {
       int expectedBytes = width * height * (alpha ? 4 : 3);
-      Debug.Assert( expectedBytes == bytes.Length );
+      Debug.Assert( expectedBytes <= bytes.Length );
       int tex = GiveMeATexture();
       Upload( width, height, alpha, bytes );
       SetParameters();
