@@ -35,36 +35,8 @@ namespace _039terrain
 
       Application.Idle += new EventHandler( Application_Idle );
 
-      // create a new scene
-      scene = new SceneBrep();
-
-      // dummy rectangle, facing to the camera
-      // notice that your terrain is supposed to be placed
-      // in the XZ plane (elevation increases along the positive Y axis)
-      scene.AddVertex( new Vector3( -0.5f, -0.5f, 0.0f ) );   // 0
-      scene.AddVertex( new Vector3( -0.5f, +0.5f, 0.0f ) );   // 1
-      scene.AddVertex( new Vector3( +0.5f, -0.5f, 0.0f ) );   // 2
-      scene.AddVertex( new Vector3( +0.5f, +0.5f, 0.0f ) );   // 3
-
-      scene.SetNormal( 0, Vector3.UnitZ );
-      scene.SetNormal( 1, Vector3.UnitZ );
-      scene.SetNormal( 2, Vector3.UnitZ );
-      scene.SetNormal( 3, Vector3.UnitZ );
-
-      scene.SetTxtCoord( 0, new Vector2( 1.0f, 0.0f ) );
-      scene.SetTxtCoord( 1, new Vector2( 1.0f, 1.0f ) );
-      scene.SetTxtCoord( 2, new Vector2( 0.0f, 0.0f ) );
-      scene.SetTxtCoord( 3, new Vector2( 0.0f, 1.0f ) );
-
-      scene.AddTriangle( 2, 1, 0 );
-      scene.AddTriangle( 2, 3, 1 );
-
-      // this function uploads the data to the graphics card
-      PrepareData();
-
-      // load a texture
-      TexUtil.InitTexturing();
-      textureId = TexUtil.CreateTextureFromFile( "cgg256.png", "../../cgg256.png" );
+      // initialize the  scene
+      Regenerate( 0, 0.1f );
 
       // some global setups
       GL.ShadeModel( ShadingModel.Smooth );
@@ -85,6 +57,51 @@ namespace _039terrain
     }
 
     /// <summary>
+    /// [Re-]generate the terrain data.
+    /// </summary>
+    /// <param name="iterations">Number of subdivision iteratons</param>
+    /// <param name="roughness">Roughness parameter</param>
+    private void Regenerate ( int iterations, float roughness )
+    {
+      // !!!{{ TODO: add terrain regeneration code here (to reflect the given terrain parameters)
+
+      scene.Reset();
+
+      // dummy rectangle, facing to the camera
+      // notice that your terrain is supposed to be placed
+      // in the XZ plane (elevation increases along the positive Y axis)
+      scene.AddVertex( new Vector3( -0.5f, roughness, -0.5f ) );   // 0
+      scene.AddVertex( new Vector3( -0.5f, 0.0f, +0.5f ) );   // 1
+      scene.AddVertex( new Vector3( +0.5f, 0.0f, -0.5f ) );   // 2
+      scene.AddVertex( new Vector3( +0.5f, 0.0f, +0.5f ) );   // 3
+
+      scene.SetNormal( 0, Vector3.UnitY );
+      scene.SetNormal( 1, Vector3.UnitY );
+      scene.SetNormal( 2, Vector3.UnitY );
+      scene.SetNormal( 3, Vector3.UnitY );
+
+      float txtExtreme = 1.0f + iterations;
+      scene.SetTxtCoord( 0, new Vector2( txtExtreme, 0.0f ) );
+      scene.SetTxtCoord( 1, new Vector2( txtExtreme, txtExtreme ) );
+      scene.SetTxtCoord( 2, new Vector2( 0.0f, 0.0f ) );
+      scene.SetTxtCoord( 3, new Vector2( 0.0f, txtExtreme ) );
+
+      scene.AddTriangle( 2, 1, 0 );
+      scene.AddTriangle( 2, 3, 1 );
+
+      // this function uploads the data to the graphics card
+      PrepareData();
+
+      // load a texture
+      TexUtil.InitTexturing();
+      if ( textureId >= 0 )
+        GL.DeleteTexture( textureId );
+      textureId = TexUtil.CreateTextureFromFile( "cgg256.png", "../../cgg256.png" );
+
+      // !!!}}
+    }
+
+    /// <summary>
     /// Rendering of one frame.
     /// </summary>
     private void Render ()
@@ -98,7 +115,7 @@ namespace _039terrain
       GL.MatrixMode( MatrixMode.Modelview );
       GL.PushMatrix();
       GL.LoadIdentity();
-      GL.Light( LightName.Light1, LightParameter.Position, new Vector4( 50.0f, 2.0f, 0.0f, 1.0f ) );
+      GL.Light( LightName.Light1, LightParameter.Position, new Vector4( 5.0f, 2.0f, 0.0f, 1.0f ) );
       //GL.Light( LightName.Light1, LightParameter.SpotDirection, new Vector4( 0.0f, 0.0f, -1.0f, 0.0f ) ); 
       GL.PopMatrix();
 
@@ -149,16 +166,6 @@ namespace _039terrain
 
       // swap buffers
       glControl1.SwapBuffers();
-    }
-
-    private void buttonRegenerate_Click ( object sender, EventArgs e )
-    {
-      // !!!{{ TODO: add terrain regeneration code here (to reflect changed terrain parameters)
-
-      int iterations = (int)upDownIterations.Value;
-      float roughness = (float)upDownRoughness.Value;
-
-      // !!!}}
     }
 
     private void glControl1_KeyDown ( object sender, KeyEventArgs e )
