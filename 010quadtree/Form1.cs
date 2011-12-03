@@ -42,8 +42,11 @@ namespace _010quadtree
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image =
-      inputImage  = (Bitmap)Image.FromFile( ofd.FileName );
+      Image inp = Image.FromFile( ofd.FileName );
+      inputImage = new Bitmap( inp );
+      inp.Dispose();
+
+      pictureBox1.Image = inputImage;
       outputImage =
       diffImage   = null;
     }
@@ -78,7 +81,9 @@ namespace _010quadtree
     {
       if ( inputImage == null )
       {
-        inputImage  = (Bitmap)Image.FromFile( "toucan.png" );
+        Image inp = Image.FromFile( "toucan.png" );
+        inputImage = new Bitmap( inp );
+        inp.Dispose();
         outputImage =
         diffImage   = null;
       }

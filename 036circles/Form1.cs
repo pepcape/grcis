@@ -32,7 +32,9 @@ namespace _036circles
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      inputImage = Image.FromFile( ofd.FileName );
+      Image inp = Image.FromFile( ofd.FileName );
+      inputImage = new Bitmap( inp );
+      inp.Dispose();
       labelImageName.Text = "Input: " + ofd.FileName;
     }
 

@@ -32,12 +32,12 @@ namespace _003colortransform
 
       ofd.FilterIndex = 6;
       ofd.FileName = "";
-      ofd.ShowDialog();
-
-      if ( ofd.FileName == "" )
+      if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      inputImage = Image.FromFile( ofd.FileName );
+      Image inp = Image.FromFile( ofd.FileName );
+      inputImage = new Bitmap( inp );
+      inp.Dispose();
 
       recompute();
     }
