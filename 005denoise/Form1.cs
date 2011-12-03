@@ -35,7 +35,9 @@ namespace _005denoise
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      inputImage = Image.FromFile( ofd.FileName );
+      Image inp = Image.FromFile( ofd.FileName );
+      inputImage = new Bitmap( inp );
+      inp.Dispose();
 
       recompute();
     }

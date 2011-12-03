@@ -87,7 +87,9 @@ namespace _016videoslow
       {
         VideoCodec vc = new VideoCodec();
 
-        frameImage = (Bitmap)Image.FromFile( fn );
+        Image inp = Image.FromFile( fn );
+        frameImage = new Bitmap( inp );
+        inp.Dispose();
         s = vc.EncodeHeader( frameImage.Width, frameImage.Height, (float)numericFps.Value, fs );
         int i = 0;
         do
@@ -95,7 +97,9 @@ namespace _016videoslow
           vc.EncodeFrame( i, frameImage, s );
           fn = String.Format( textInputMask.Text, ++i );
           if ( !File.Exists( fn ) ) break;
-          frameImage = (Bitmap)Image.FromFile( fn );
+          inp = Image.FromFile( fn );
+          frameImage = new Bitmap( inp );
+          inp.Dispose();
         } while ( true );
 
         s.Close();

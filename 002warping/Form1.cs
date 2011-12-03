@@ -30,20 +30,20 @@ namespace _002warping
 
       ofd.Title = "Open Image File";
       ofd.Filter = "Bitmap Files|*.bmp" +
-          "|Gif Files|*.gif" + 
+          "|Gif Files|*.gif" +
           "|JPEG Files|*.jpg" +
-          "|PNG Files|*.png" + 
+          "|PNG Files|*.png" +
           "|TIFF Files|*.tif" +
           "|All image types|*.bmp;*.gif;*.jpg;*.png;*.tif";
 
       ofd.FilterIndex = 6;
       ofd.FileName = "";
-      ofd.ShowDialog();
-
-      if ( ofd.FileName == "" )
+      if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      inputImage = Image.FromFile( ofd.FileName );
+      Image inp = Image.FromFile( ofd.FileName );
+      inputImage = new Bitmap( inp );
+      inp.Dispose();
 
       pictureBox1.Image = inputImage;
     }

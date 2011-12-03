@@ -42,8 +42,10 @@ namespace _011compressionbw
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image =
-      inputImage  = (Bitmap)Image.FromFile( ofd.FileName );
+      Image inp = Image.FromFile( ofd.FileName );
+      inputImage = new Bitmap( inp );
+      inp.Dispose();
+      pictureBox1.Image = inputImage;
       outputImage =
       diffImage   = null;
     }
