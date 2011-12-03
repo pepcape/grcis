@@ -60,8 +60,6 @@ namespace _038trackball
     {
       // !!!{{ TODO: add camera setup here
 
-      SetupViewport();
-
       GL.MatrixMode( MatrixMode.Modelview );
       Matrix4 modelview = Matrix4.CreateTranslation( -center ) *
                           Matrix4.Scale( 1.0f / diameter ) *
