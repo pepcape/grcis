@@ -2,6 +2,7 @@
 using System.IO;
 using Compression;
 using Raster;
+using System;
 
 namespace _014compressiontr
 {
@@ -35,6 +36,10 @@ namespace _014compressiontr
       // !!!{{ TODO: add the encoding code here
 
       IEntropyCodec c = new DeflateCodec();
+      c.MaxSymbol = 255;
+      if ( c.MaxSymbol < 255 )
+        throw new Exception( "Unappropriate codec used (alphabet too small)!" );
+
       c.BitStream = outs;
       c.Open( true );
 
