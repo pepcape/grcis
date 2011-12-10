@@ -1,0 +1,10 @@
+<lsystem>
+  <axiom name="F" />
+  <rule leftSide="F" weight="0.2" rightSide="FF" />
+  <rule leftSide="F" weight="1" rightSide="F[+F][-F]" />
+  <rule leftSide="F" weight="1" rightSide="F[+F][-F]/" />
+  <rule leftSide="F" weight="1" rightSide="F[+F]/[-F]/" />
+  <rule leftSide="F" weight="1" rightSide="F\[+F]/[-F]/" />
+  <rule leftSide="F" weight="1" rightSide="F\[+F]\[-F]/" />
+  <rule leftSide="F" weight="1" rightSide="F\[+F]\[-F]\" />
+</lsystem>
