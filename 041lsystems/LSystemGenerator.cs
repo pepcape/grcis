@@ -67,9 +67,7 @@ namespace _041lsystems
       {
         tmp += i.weight;
         if ( tmp >= val )
-        {
           return i.rule;
-        }
       }
       return "";
     }
@@ -111,9 +109,7 @@ namespace _041lsystems
     {
       string variables = "";
       foreach ( KeyValuePair<char, LSystemRule> ruleRec in mRules )
-      {
         variables += ruleRec.Key;
-      }
       return variables;
     }
 
@@ -132,9 +128,7 @@ namespace _041lsystems
     public string Rewrite ( char aVariable )
     {
       if ( !mRules.ContainsKey( aVariable ) )
-      {
         return aVariable.ToString();
-      }
       return mRules[ aVariable ].ApplyRule( mRandom.NextDouble() );
     }
 
@@ -154,14 +148,10 @@ namespace _041lsystems
     public bool RemoveRule ( LSystemRule.RuleRightSide aRightSide )
     {
       if ( aRightSide == null )
-      {
         return false;
-      }
       LSystemRule rule = mRules[ aRightSide.left ];
       if ( rule == null )
-      {
         return false;
-      }
       return rule.RemoveRightSide( aRightSide );
     }
 
@@ -184,9 +174,7 @@ namespace _041lsystems
             {
               string val = reader.Value;
               if ( val != null && val.Length > 0 )
-              {
                 start = val[ 0 ];
-              }
             }
           }
           if ( reader.Name.ToString() == "rule" )
@@ -200,14 +188,10 @@ namespace _041lsystems
               {
                 string val = reader.Value;
                 if ( val != null && val.Length > 0 )
-                {
                   lside = val[ 0 ];
-                }
               }
               if ( reader.Name.ToString() == "rightSide" )
-              {
                 rside = reader.Value;
-              }
               if ( reader.Name.ToString() == "weight" )
               {
                 string val = reader.Value;
@@ -292,9 +276,7 @@ namespace _041lsystems
         string current = "";
 
         foreach ( char variable in last )
-        {
           current += aLSystem.Rewrite( variable );
-        }
         aIterations.Add( current );
         last = current;
       }

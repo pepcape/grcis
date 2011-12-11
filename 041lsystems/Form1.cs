@@ -22,9 +22,7 @@ namespace _041lsystems
     {
       HashSet<char> alphabet = new HashSet<char>();
       foreach ( char i in textBox3.Text )
-      {
         alphabet.Add( i );
-      }
       startSymbol.Items.Clear();
       ruleLeftSideCombo.Items.Clear();
 
@@ -38,29 +36,24 @@ namespace _041lsystems
       }
     }
 
-    private void button2_Click ( object sender, EventArgs e )
+    private void generateButton_Click ( object sender, EventArgs e )
     {
       List<string> iterations;
       mLSystemGenerator.Generate( mLSystem, (int)iterationCount.Value, out iterations );
       resultList.Items.Clear();
       foreach ( string i in iterations )
-      {
-        resultList.Items.Add( i );
-      }
+        resultList.Items.Add( (i.Length < 7600) ? i : i.Substring( 0, 7580 ) + " <truncated>" );
     }
 
-    private void button1_Click ( object sender, EventArgs e )
+    private void addNewRuleButton_Click ( object sender, EventArgs e )
     {
       if ( ruleLeftSideCombo.Text == null || ruleLeftSideCombo.Text.Length == 0 )
-      {
-        System.Windows.Forms.MessageBox.Show( "Left side of the rule must be assigned" );
-      }
-      //ruleList.Items.Add( ruleLeftSideCombo.Text[0] + " (" + ruleWeight.Value.ToString("F03") + ") ==> " + ruleRightSide.Text );
+        MessageBox.Show( "Left side of the rule must not be empty!" );
       mLSystem.AddRule( ruleLeftSideCombo.Text[ 0 ], (float)ruleWeight.Value, ruleRightSide.Text );
-      fillRules();
+      FillRules();
     }
 
-    private void fillRules ()
+    private void FillRules ()
     {
       ruleList.BeginUpdate();
       ruleList.Items.Clear();
@@ -68,10 +61,7 @@ namespace _041lsystems
       {
         LSystemRule rule = ruleRec.Value;
         foreach ( LSystemRule.RuleRightSide rside in rule.mRightSides )
-        {
-          //ruleList.Items.Add(rule.mLeft + " (" + rside.weight.ToString("F03") + ") ==> " + rside.rule);
           ruleList.Items.Add( rside );
-        }
       }
       ruleList.EndUpdate();
       mLSystem.ToString();
@@ -101,13 +91,9 @@ namespace _041lsystems
       param.shortage = shortage.Value * 0.01;
       param.shrinkage = shrinkage.Value * 0.01;
       param.radius = System.Math.Max( 0.03, resultList.SelectedIndex * generationStep.Value * 0.01 );
+
       mLSystemRenderer.Render( (string)resultList.SelectedItem, resultList.SelectedIndex, param );
-      //mLSystemRenderer.Render("A[BA[CA]][CA[BA]]");
-      /*if (listBox2.Items.Count > 0 && listBox2.SelectedIndex >= 0)
-      {
-          mLSystemRenderer.Render("");
-      }
-      else { mLSystemRenderer.Render(""); }*/
+
       glCanvas.SwapBuffers();
     }
 
@@ -150,7 +136,7 @@ namespace _041lsystems
       glCanvas.Invalidate();
     }
 
-    private void redraw ( object sender, EventArgs e )
+    private void Redraw ( object sender, EventArgs e )
     {
       glCanvas.Invalidate();
     }
@@ -171,14 +157,13 @@ namespace _041lsystems
 
     private void glControl1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( !mOrbit )
-        return;
+      if ( !mOrbit ) return;
 
       Point p = new Point();
       p.X = mClickLocation.X - e.Location.X;
       p.Y = mClickLocation.Y - e.Location.Y;
       mClickLocation = e.Location;
-      double factor = -5.0 / (double)glCanvas.Width;// Math.PI / (double)Math.Min(glControl1.Width, glControl1.Height);
+      double factor = -5.0 / (double)glCanvas.Width;
 
       mLSystemRenderer.OrbitCamera( p.X * factor, p.Y * factor );
       glCanvas.Invalidate();
@@ -197,40 +182,39 @@ namespace _041lsystems
     private void loadButton_Click ( object sender, EventArgs e )
     {
       OpenFileDialog openDialog = new OpenFileDialog();
-      DialogResult res = openDialog.ShowDialog( this );
-      if ( res != DialogResult.OK )
-      {
+      openDialog.Title = "Open L-system rule file";
+      openDialog.Filter = "L-system rule files|*.xml" +
+                          "|All files|*.*";
+      openDialog.FilterIndex = 1;
+      openDialog.FileName = "";
+      if ( openDialog.ShowDialog() != DialogResult.OK )
         return;
-      }
+
       if ( !mLSystem.LoadFromFile( openDialog.FileName ) )
-      {
         MessageBox.Show( this, "Loading failed" );
-      }
-      fillRules();
+      FillRules();
       textBox3.Text = mLSystem.GetVariables();
       startSymbol.SelectedItem = mLSystem.start;
-      /*mAlphabet =
-      textBox3_TextChanged(sender, e);*/
     }
 
     private void saveButton_Click ( object sender, EventArgs e )
     {
       SaveFileDialog saveDialog = new SaveFileDialog();
-      DialogResult res = saveDialog.ShowDialog( this );
-      if ( res != DialogResult.OK )
-      {
+      saveDialog.Title = "Save L-system rule file";
+      saveDialog.Filter = "L-system rule files|*.xml";
+      saveDialog.AddExtension = true;
+      saveDialog.FileName = "";
+      if ( saveDialog.ShowDialog() != DialogResult.OK )
         return;
-      }
+
       if ( !mLSystem.SaveToFile( saveDialog.FileName ) )
-      {
         MessageBox.Show( this, "Saving failed" );
-      }
     }
 
-    private void button1_Click_1 ( object sender, EventArgs e )
+    private void resetButton_Click ( object sender, EventArgs e )
     {
       mLSystem.Reset();
-      fillRules();
+      FillRules();
     }
 
     private void glCanvas_MouseWheel ( object sender, System.Windows.Forms.MouseEventArgs e )

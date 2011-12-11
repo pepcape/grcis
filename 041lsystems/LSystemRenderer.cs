@@ -40,7 +40,7 @@ namespace _041lsystems
 
     public void Orbit ( double aYaw, double aPitch )
     {
-      Matrix4d m1 = Matrix4d.CreateFromAxisAngle( new Vector3d( 0.0, 0.0, 1.0 )/*mUp*/, aYaw );
+      Matrix4d m1 = Matrix4d.CreateFromAxisAngle( new Vector3d( 0.0, 0.0, 1.0 ) /* mUp */, aYaw );
       Matrix4d m2 = Matrix4d.CreateFromAxisAngle( mRight, aPitch );
       Matrix4d m = m1 * m2;
       Matrix4d mI = Matrix4d.Transpose( m );
@@ -49,7 +49,6 @@ namespace _041lsystems
       double dst = tmp.Length;
       tmp.Normalize();
 
-      //mEye = Vector3d.Transform(mEye - mCenter, m) + mCenter;
       mUp = Vector3d.Transform( mUp, mI );
       mUp.Normalize();
       tmp = Vector3d.Transform( tmp, mI );
@@ -65,9 +64,6 @@ namespace _041lsystems
       GL.LoadMatrix( ref lookAt );
     }
 
-    /*double mDistance;
-    double mAzimut;
-    double mElevation;*/
     Vector3d mCenter;
     Vector3d mEye;
     Vector3d mUp;
@@ -159,21 +155,21 @@ namespace _041lsystems
 
       GL.Color3( Color.Green );
       GL.Begin( BeginMode.Quads );
+
       GL.Normal3( 0.0f, 0.0f, 1.0f );
       GL.Vertex3( -10.0f, -10.0f, 0.0f );
       GL.Vertex3( 10.0f, -10.0f, 0.0f );
       GL.Vertex3( 10.0f, 10.0f, 0.0f );
       GL.Vertex3( -10.0f, 10.0f, 0.0f );
+
       GL.End();
 
       #endregion
 
       if ( aLSInstance == null || aParameters == null ) // exit if nothing to Render
-      {
         return;
-      }
 
-      //Initialize parameter stack
+      // Initialize parameter stack
       Stack<VisualisationParameters> parameterStack = new Stack<VisualisationParameters>();
       VisualisationParameters currentParameters = aParameters.Clone();
 
@@ -187,23 +183,29 @@ namespace _041lsystems
             currentParameters.length *= currentParameters.shortage;
             currentParameters.radius *= currentParameters.shrinkage;
             break;
+
           case '+':
             GL.Rotate( currentParameters.angle, 0.0f, 1.0f, 0.0f );
             break;
+
           case '-':
             GL.Rotate( -currentParameters.angle, 0.0f, 1.0f, 0.0f );
             break;
+
           case '/':
             GL.Rotate( 90.0f, 0.0f, 0.0f, 1.0f );
             break;
+
           case '\\':
             GL.Rotate( -90.0f, 0.0f, 0.0f, 1.0f );
             break;
-          case '[': //Save current state to stack
+
+          case '[':               // Save current state to stack
             GL.PushMatrix();
             parameterStack.Push( currentParameters.Clone() );
             break;
-          case ']': //Restore state from stack
+
+          case ']':               // Restore state from stack
             GL.PopMatrix();
             currentParameters = parameterStack.Pop();
             break;
