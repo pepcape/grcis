@@ -38,11 +38,14 @@ namespace _041lsystems
 
     private void generateButton_Click ( object sender, EventArgs e )
     {
-      List<string> iterations;
+      Cursor.Current = Cursors.WaitCursor;
+
       mLSystemGenerator.Generate( mLSystem, (int)iterationCount.Value, out iterations );
       resultList.Items.Clear();
       foreach ( string i in iterations )
         resultList.Items.Add( (i.Length < 7600) ? i : i.Substring( 0, 7580 ) + " <truncated>" );
+
+      Cursor.Current = Cursors.Default;
     }
 
     private void addNewRuleButton_Click ( object sender, EventArgs e )
@@ -69,6 +72,7 @@ namespace _041lsystems
 
     protected List<char> mAlphabet;
     protected Dictionary<char, LSystemRule> mRules;
+    protected List<string> iterations;
     protected LSystemGenerator mLSystemGenerator;
     protected LSystem mLSystem;
     protected LSystemRenderer mLSystemRenderer;
@@ -78,11 +82,6 @@ namespace _041lsystems
       mLSystem.start = startSymbol.Text[ 0 ];
     }
 
-    private void button3_Click ( object sender, EventArgs e )
-    {
-      mLSystemRenderer.ResetCamera();
-    }
-
     private void glControl1_Paint ( object sender, PaintEventArgs e )
     {
       VisualisationParameters param = new VisualisationParameters();
@@ -90,9 +89,11 @@ namespace _041lsystems
       param.length = length.Value * 0.1;
       param.shortage = shortage.Value * 0.01;
       param.shrinkage = shrinkage.Value * 0.01;
-      param.radius = System.Math.Max( 0.03, resultList.SelectedIndex * generationStep.Value * 0.01 );
+      int index = resultList.SelectedIndex;
+      param.radius = System.Math.Max( 0.03, index * generationStep.Value * 0.01 );
 
-      mLSystemRenderer.Render( (string)resultList.SelectedItem, resultList.SelectedIndex, param );
+      string toInterpret = (iterations != null && index < iterations.Count) ? iterations[ index ] : "";
+      mLSystemRenderer.Render( toInterpret, index, param );
 
       glCanvas.SwapBuffers();
     }
