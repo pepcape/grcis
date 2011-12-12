@@ -52,8 +52,11 @@ namespace _041lsystems
     {
       if ( ruleLeftSideCombo.Text == null || ruleLeftSideCombo.Text.Length == 0 )
         MessageBox.Show( "Left side of the rule must not be empty!" );
-      mLSystem.AddRule( ruleLeftSideCombo.Text[ 0 ], (float)ruleWeight.Value, ruleRightSide.Text );
-      FillRules();
+      else
+      {
+        mLSystem.AddRule( ruleLeftSideCombo.Text[ 0 ], (float)ruleWeight.Value, ruleRightSide.Text );
+        FillRules();
+      }
     }
 
     private void FillRules ()
@@ -192,7 +195,10 @@ namespace _041lsystems
         return;
 
       if ( !mLSystem.LoadFromFile( openDialog.FileName ) )
+      {
         MessageBox.Show( this, "Loading failed" );
+        return;
+      }
       FillRules();
       textBox3.Text = mLSystem.GetVariables();
       startSymbol.SelectedItem = mLSystem.start;

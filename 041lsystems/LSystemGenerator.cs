@@ -78,11 +78,13 @@ namespace _041lsystems
       provider.NumberDecimalSeparator = ".";
       foreach ( RuleRightSide rside in mRightSides )
       {
+        aWriter.WriteWhitespace( "  " );
         aWriter.WriteStartElement( "rule" );
         aWriter.WriteAttributeString( "leftSide", mLeft.ToString() );
         aWriter.WriteAttributeString( "weight", rside.weight.ToString( provider ) );
         aWriter.WriteAttributeString( "rightSide", rside.rule );
         aWriter.WriteEndElement();
+        aWriter.WriteWhitespace( Environment.NewLine );
       }
     }
 
@@ -230,11 +232,7 @@ namespace _041lsystems
         writer.WriteWhitespace( Environment.NewLine );
 
         foreach ( KeyValuePair<char, LSystemRule> ruleRec in mRules )
-        {
-          writer.WriteWhitespace( "  " );
           ruleRec.Value.WriteRuleToXml( writer );
-          writer.WriteWhitespace( Environment.NewLine );
-        }
 
         writer.WriteEndElement();
         writer.WriteWhitespace( Environment.NewLine );
