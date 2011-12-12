@@ -51,11 +51,43 @@ namespace _041lsystems
     private void addNewRuleButton_Click ( object sender, EventArgs e )
     {
       if ( ruleLeftSideCombo.Text == null || ruleLeftSideCombo.Text.Length == 0 )
-        MessageBox.Show( "Left side of the rule must not be empty!" );
-      else
       {
-        mLSystem.AddRule( ruleLeftSideCombo.Text[ 0 ], (float)ruleWeight.Value, ruleRightSide.Text );
+        MessageBox.Show( "Left side of the rule must not be empty!" );
+        return;
+      }
+
+      mLSystem.AddRule( ruleLeftSideCombo.Text[ 0 ], (float)ruleWeight.Value, ruleRightSide.Text );
+      FillRules();
+    }
+
+    private void ruleList_SelectedIndexChanged ( object sender, EventArgs e )
+    {
+      LSystemRule.RuleRightSide rule = (LSystemRule.RuleRightSide)ruleList.SelectedItem;
+      if ( rule != null )
+      {
+        ruleLeftSideCombo.Text = rule.left.ToString();
+        ruleWeight.Value = (decimal)rule.weight;
+        ruleRightSide.Text = rule.rule;
+      }
+    }
+
+    private void changeRuleButton_Click ( object sender, EventArgs e )
+    {
+      LSystemRule.RuleRightSide rule = (LSystemRule.RuleRightSide)ruleList.SelectedItem;
+      if ( rule != null && ruleLeftSideCombo.Text != null && ruleLeftSideCombo.Text.Length > 0 )
+      {
+        mLSystem.ChangeRule( rule, ruleLeftSideCombo.Text[ 0 ], (float)ruleWeight.Value, ruleRightSide.Text );
         FillRules();
+      }
+    }
+
+    private void removeRuleButton_Click ( object sender, EventArgs e )
+    {
+      LSystemRule.RuleRightSide rule = (LSystemRule.RuleRightSide)ruleList.SelectedItem;
+      if ( rule != null )
+      {
+        ruleList.Items.Remove( rule );
+        mLSystem.RemoveRule( rule );
       }
     }
 
@@ -171,16 +203,6 @@ namespace _041lsystems
 
       mLSystemRenderer.OrbitCamera( p.X * factor, p.Y * factor );
       glCanvas.Invalidate();
-    }
-
-    private void removeRuleButton_Click ( object sender, EventArgs e )
-    {
-      LSystemRule.RuleRightSide rule = (LSystemRule.RuleRightSide)ruleList.SelectedItem;
-      if ( rule != null )
-      {
-        ruleList.Items.Remove( rule );
-        mLSystem.RemoveRule( rule );
-      }
     }
 
     private void loadButton_Click ( object sender, EventArgs e )

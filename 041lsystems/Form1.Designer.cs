@@ -59,6 +59,7 @@
       this.ruleRightSide = new System.Windows.Forms.TextBox();
       this.ruleWeight = new System.Windows.Forms.NumericUpDown();
       this.ruleList = new System.Windows.Forms.ListBox();
+      this.changeRuleButton = new System.Windows.Forms.Button();
       this.splitContainer1.Panel1.SuspendLayout();
       this.splitContainer1.Panel2.SuspendLayout();
       this.splitContainer1.SuspendLayout();
@@ -379,6 +380,7 @@
       // 
       this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                   | System.Windows.Forms.AnchorStyles.Right)));
+      this.panel1.Controls.Add( this.changeRuleButton );
       this.panel1.Controls.Add( this.removeRuleButton );
       this.panel1.Controls.Add( this.label5 );
       this.panel1.Controls.Add( this.label4 );
@@ -394,11 +396,10 @@
       // 
       // removeRuleButton
       // 
-      this.removeRuleButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                  | System.Windows.Forms.AnchorStyles.Right)));
-      this.removeRuleButton.Location = new System.Drawing.Point( 5, 76 );
+      this.removeRuleButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.removeRuleButton.Location = new System.Drawing.Point( 152, 76 );
       this.removeRuleButton.Name = "removeRuleButton";
-      this.removeRuleButton.Size = new System.Drawing.Size( 262, 23 );
+      this.removeRuleButton.Size = new System.Drawing.Size( 115, 23 );
       this.removeRuleButton.TabIndex = 9;
       this.removeRuleButton.Text = "Remove Rule";
       this.removeRuleButton.UseVisualStyleBackColor = true;
@@ -493,6 +494,19 @@
       this.ruleList.Name = "ruleList";
       this.ruleList.Size = new System.Drawing.Size( 270, 147 );
       this.ruleList.TabIndex = 0;
+      this.ruleList.SelectedIndexChanged += new System.EventHandler( this.ruleList_SelectedIndexChanged );
+      // 
+      // changeRuleButton
+      // 
+      this.changeRuleButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                  | System.Windows.Forms.AnchorStyles.Right)));
+      this.changeRuleButton.Location = new System.Drawing.Point( 7, 76 );
+      this.changeRuleButton.Name = "changeRuleButton";
+      this.changeRuleButton.Size = new System.Drawing.Size( 131, 23 );
+      this.changeRuleButton.TabIndex = 10;
+      this.changeRuleButton.Text = "Change Rule";
+      this.changeRuleButton.UseVisualStyleBackColor = true;
+      this.changeRuleButton.Click += new System.EventHandler( this.changeRuleButton_Click );
       // 
       // LSystemMainWin
       // 
@@ -555,5 +569,6 @@
     private System.Windows.Forms.Button saveButton;
     private System.Windows.Forms.Button loadButton;
     private System.Windows.Forms.Button resetButton;
+    private System.Windows.Forms.Button changeRuleButton;
   }
 }

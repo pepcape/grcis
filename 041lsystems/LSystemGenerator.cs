@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Windows.Forms;
 using System.Xml;
 
 namespace _041lsystems
@@ -40,16 +41,21 @@ namespace _041lsystems
       rightSide.weight = aWeight;
       rightSide.rule = aRuleRightSide;
       rightSide.left = mLeft;
+      foreach ( RuleRightSide r in mRightSides )
+        if ( r.rule.Equals( aRuleRightSide ) )
+        {
+          MessageBox.Show( "Rule duplication!" );
+          return;
+        }
       mWeightSum += aWeight;
       mRightSides.Add( rightSide );
+      mRightSides.Sort( delegate( RuleRightSide r1, RuleRightSide r2 ) { return r1.rule.CompareTo( r2.rule ); } );
     }
 
     public bool RemoveRightSide ( LSystemRule.RuleRightSide aRightSide )
     {
       if ( aRightSide == null )
-      {
         return false;
-      }
       float weight = aRightSide.weight;
       if ( mRightSides.Remove( aRightSide ) )
       {
@@ -155,6 +161,16 @@ namespace _041lsystems
       if ( rule == null )
         return false;
       return rule.RemoveRightSide( aRightSide );
+    }
+
+    public bool ChangeRule ( LSystemRule.RuleRightSide aRightSide, char aVariable, float aWeight, string aRuleRightSide )
+    {
+      if ( RemoveRule( aRightSide ) )
+      {
+        AddRule( aVariable, aWeight, aRuleRightSide );
+        return true;
+      }
+      return false;
     }
 
     public bool LoadFromFile ( string aFileName )
