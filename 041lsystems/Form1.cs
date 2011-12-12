@@ -56,8 +56,10 @@ namespace _041lsystems
         return;
       }
 
-      mLSystem.AddRule( ruleLeftSideCombo.Text[ 0 ], (float)ruleWeight.Value, ruleRightSide.Text );
-      FillRules();
+      if ( !mLSystem.AddRule( ruleLeftSideCombo.Text[ 0 ], (float)ruleWeight.Value, ruleRightSide.Text ) )
+        MessageBox.Show( "Duplicate rule, ignored." );
+      else
+        FillRules();
     }
 
     private void ruleList_SelectedIndexChanged ( object sender, EventArgs e )
