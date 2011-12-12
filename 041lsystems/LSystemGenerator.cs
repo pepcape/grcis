@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Windows.Forms;
 using System.Xml;
 
 namespace _041lsystems
@@ -35,7 +34,7 @@ namespace _041lsystems
       mRightSides.Add( rightSide );
     }
 
-    public void AddRightSide ( float aWeight, string aRuleRightSide )
+    public bool AddRightSide ( float aWeight, string aRuleRightSide )
     {
       RuleRightSide rightSide = new RuleRightSide();
       rightSide.weight = aWeight;
@@ -43,13 +42,11 @@ namespace _041lsystems
       rightSide.left = mLeft;
       foreach ( RuleRightSide r in mRightSides )
         if ( r.rule.Equals( aRuleRightSide ) )
-        {
-          MessageBox.Show( "Rule duplication!" );
-          return;
-        }
+          return false;
       mWeightSum += aWeight;
       mRightSides.Add( rightSide );
       mRightSides.Sort( delegate( RuleRightSide r1, RuleRightSide r2 ) { return r1.rule.CompareTo( r2.rule ); } );
+      return true;
     }
 
     public bool RemoveRightSide ( LSystemRule.RuleRightSide aRightSide )
@@ -140,17 +137,17 @@ namespace _041lsystems
       return mRules[ aVariable ].ApplyRule( mRandom.NextDouble() );
     }
 
-    public void AddRule ( char aVariable, float aWeight, string aRuleRightSide )
+    public bool AddRule ( char aVariable, float aWeight, string aRuleRightSide )
     {
       LSystemRule rule;
       if ( !mRules.ContainsKey( aVariable ) )
       {
         rule = new LSystemRule( aVariable, aWeight, aRuleRightSide );
         mRules.Add( aVariable, rule );
-        return;
+        return true;
       }
       rule = mRules[ aVariable ];
-      rule.AddRightSide( aWeight, aRuleRightSide );
+      return rule.AddRightSide( aWeight, aRuleRightSide );
     }
 
     public bool RemoveRule ( LSystemRule.RuleRightSide aRightSide )
@@ -165,12 +162,7 @@ namespace _041lsystems
 
     public bool ChangeRule ( LSystemRule.RuleRightSide aRightSide, char aVariable, float aWeight, string aRuleRightSide )
     {
-      if ( RemoveRule( aRightSide ) )
-      {
-        AddRule( aVariable, aWeight, aRuleRightSide );
-        return true;
-      }
-      return false;
+      return RemoveRule( aRightSide ) && AddRule( aVariable, aWeight, aRuleRightSide );
     }
 
     public bool LoadFromFile ( string aFileName )
@@ -217,9 +209,7 @@ namespace _041lsystems
               }
             }
             if ( lside != '\0' && rside != null && weight > 0 )
-            {
               AddRule( lside, (float)weight, rside );
-            }
           }
         }
         reader.Close();
