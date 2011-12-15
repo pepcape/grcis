@@ -117,6 +117,7 @@
       this.upDownIterations.Name = "upDownIterations";
       this.upDownIterations.Size = new System.Drawing.Size( 66, 20 );
       this.upDownIterations.TabIndex = 19;
+      this.upDownIterations.ValueChanged += new System.EventHandler( this.upDownIterations_ValueChanged );
       // 
       // upDownAzimuth
       // 

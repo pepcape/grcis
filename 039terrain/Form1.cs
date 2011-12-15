@@ -53,5 +53,12 @@ namespace _039terrain
     {
       Render();
     }
+
+    private void upDownIterations_ValueChanged ( object sender, EventArgs e )
+    {
+      int iterations = (int)upDownIterations.Value;
+      float roughness = (float)upDownRoughness.Value;
+      Regenerate( iterations, roughness );
+    }
   }
 }
