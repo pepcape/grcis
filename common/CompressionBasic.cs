@@ -19,7 +19,7 @@ namespace Compression
     {
       buffer = new byte[ bufferSize ];
       bPtr = 0;
-      bitStream = null;
+      binaryStream = null;
       dflStream = null;
       position = 0L;
       openedDecode =
@@ -31,23 +31,23 @@ namespace Compression
     {
     }
 
-    protected Stream bitStream;
+    protected Stream binaryStream;
     protected DeflateStream dflStream;
 
     /// <summary>
     /// Current stream used for binary (encoded) I/O.
     /// </summary>
-    public Stream BitStream
+    public Stream BinaryStream
     {
       set
       {
-        if ( bitStream != null ) Close();
-        bitStream = value;
+        if ( binaryStream != null ) Close();
+        binaryStream = value;
         dflStream = null;
       }
       get
       {
-        return bitStream;
+        return binaryStream;
       }
     }
 
@@ -58,13 +58,13 @@ namespace Compression
     /// <returns>True if OK</returns>
     public bool Open ( bool output )
     {
-      if ( bitStream == null ) return false;
+      if ( binaryStream == null ) return false;
 
       if ( openedEncode || openedDecode )
         Close();
 
-      if ( output && !bitStream.CanWrite ||
-           !output && !bitStream.CanRead )
+      if ( output && !binaryStream.CanWrite ||
+           !output && !binaryStream.CanRead )
         return false;
 
       openedEncode = output;
@@ -72,9 +72,9 @@ namespace Compression
       bPtr = 0;
       position = 0;
       if ( output )
-        dflStream = new DeflateStream( bitStream, CompressionMode.Compress, true );
+        dflStream = new DeflateStream( binaryStream, CompressionMode.Compress, true );
       else
-        dflStream = new DeflateStream( bitStream, CompressionMode.Decompress, true );
+        dflStream = new DeflateStream( binaryStream, CompressionMode.Decompress, true );
       return true;
     }
 
