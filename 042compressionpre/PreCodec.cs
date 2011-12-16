@@ -40,7 +40,7 @@ namespace _042compressionpre
       if ( c.MaxSymbol < 255 )
         throw new Exception( "Unappropriate codec used (alphabet too small)!" );
 
-      c.BitStream = outs;
+      c.BinaryStream = outs;
       c.Open( true );
 
       // file header: [ MAGIC, width, height ]
@@ -70,7 +70,7 @@ namespace _042compressionpre
       // !!!{{ TODO: add the decoding code here
 
       IEntropyCodec c = new DeflateCodec();
-      c.BitStream = inps;
+      c.BinaryStream = inps;
       c.Open( false );
 
       uint magic = (uint)c.GetBits( 32 );
@@ -86,14 +86,12 @@ namespace _042compressionpre
       Bitmap result = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       for ( int y = 0; y < height; y++ )
-      {
         for ( int x = 0; x < width; x++ )
         {
           int gr = c.Get();
           if ( gr < 0 ) goto fin;
           result.SetPixel( x, y, Color.FromArgb( gr, gr, gr ) );
         }
-      }
 
       fin:
       c.Close();

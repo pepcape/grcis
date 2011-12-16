@@ -40,7 +40,7 @@ namespace _014compressiontr
       if ( c.MaxSymbol < 255 )
         throw new Exception( "Unappropriate codec used (alphabet too small)!" );
 
-      c.BitStream = outs;
+      c.BinaryStream = outs;
       c.Open( true );
 
       // file header: [ MAGIC, width, height ]
@@ -70,7 +70,7 @@ namespace _014compressiontr
       // !!!{{ TODO: add the decoding code here
 
       IEntropyCodec c = new DeflateCodec();
-      c.BitStream = inps;
+      c.BinaryStream = inps;
       c.Open( false );
 
       uint magic = (uint)c.GetBits( 32 );

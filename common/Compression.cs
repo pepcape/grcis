@@ -13,7 +13,7 @@ namespace Compression
     /// <summary>
     /// Current stream used for binary (encoded) I/O.
     /// </summary>
-    Stream BitStream
+    Stream BinaryStream
     {
       set;
       get;
