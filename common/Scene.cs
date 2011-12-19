@@ -14,7 +14,7 @@ namespace Scene3D
   /// <summary>
   /// B-rep 3D scene with associated corner-table (Jarek Rossignac).
   /// </summary>
-  public partial class SceneBrep
+  public partial class SceneBrep : ICloneable
   {
     #region Constants
 
@@ -71,6 +71,23 @@ namespace Scene3D
     }
 
     #endregion
+
+    object ICloneable.Clone ()
+    {
+      return this.Clone();
+    }
+    public SceneBrep Clone ()
+    {
+      SceneBrep tmp = new SceneBrep();
+      tmp.geometry = new List<Vector3>( geometry );
+      if ( normals != null ) tmp.normals = new List<Vector3>( normals );
+      if ( colors != null ) tmp.colors = new List<Vector3>( colors );
+      if ( txtCoords != null ) tmp.txtCoords = new List<Vector2>( txtCoords );
+      if ( vertexPtr != null ) tmp.vertexPtr = new List<int>( vertexPtr );
+      if ( oppositePtr != null ) tmp.oppositePtr = new List<int>( oppositePtr );
+      tmp.BuildCornerTable();
+      return tmp;
+    }
 
     #region B-rep API
 
@@ -228,6 +245,13 @@ namespace Scene3D
       Debug.Assert( geometry != null, "Invalid G[]" );
       Debug.Assert( 0 <= v && v < geometry.Count, "Invalid vertex handle" );
       return geometry[ v ];
+    }
+
+    public void SetVertex ( int v, Vector3 pos )
+    {
+      Debug.Assert( geometry != null, "Invalid G[]" );
+      Debug.Assert( 0 <= v && v < geometry.Count, "Invalid vertex handle" );
+      geometry[ v ] = pos;
     }
 
     /// <summary>
