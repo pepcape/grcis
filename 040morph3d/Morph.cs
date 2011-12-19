@@ -8,6 +8,7 @@ namespace _040morph3d
   public class Camera
   {
     #region Camera interface
+
     public Camera ()
     {
       Reset();
@@ -37,7 +38,7 @@ namespace _040morph3d
 
     public void Orbit ( double aYaw, double aPitch )
     {
-      Matrix4d m1 = Matrix4d.CreateFromAxisAngle(/*new Vector3d(0.0, 0.0, 1.0)*/ mUp, aYaw );
+      Matrix4d m1 = Matrix4d.CreateFromAxisAngle( mUp, aYaw );
       Matrix4d m2 = Matrix4d.CreateFromAxisAngle( mRight, aPitch );
       Matrix4d m = m1 * m2;
       Matrix4d mI = Matrix4d.Transpose( m );
@@ -65,6 +66,7 @@ namespace _040morph3d
     Vector3d mEye;
     Vector3d mUp;
     Vector3d mRight;
+
     #endregion
   }
 
@@ -76,7 +78,7 @@ namespace _040morph3d
 
     public void AssignObjects ( SceneBrep aFirst, SceneBrep aSecond )
     {
-      mFirstObject = aFirst;
+      mFirstObject  = aFirst;
       mSecondObject = aSecond;
       if ( aFirst == null || aSecond == null || aFirst.Vertices != aSecond.Vertices )
       {
@@ -84,17 +86,22 @@ namespace _040morph3d
         return;
       }
       mInterpolatedObject = mFirstObject.Clone();
+
+      // !!!{{ TODO: put your initialization code here
+
+      // !!!}}
     }
 
     public void Interpolate ( double alpha )
     {
       if ( mFirstObject == null || mSecondObject == null )
-      {
         mInterpolatedObject = null;
-        return;
-      }
 
-      Debug.Assert( mInterpolatedObject != null );
+      if ( mInterpolatedObject == null )
+        return;
+
+      // !!!{{ TODO: put your interpolation code here
+
       for ( int i = 0; i < mInterpolatedObject.Vertices; ++i )
       {
         Vector3 v1 = mFirstObject.GetVertex( i );
@@ -109,6 +116,8 @@ namespace _040morph3d
           Vector3 n2 = mSecondObject.GetNormal( i );
           mInterpolatedObject.SetNormal( i, Vector3.Normalize( (float)(1.0 - alpha) * n1 + (float)alpha * n2 ) );
         }
+
+      // !!!}}
     }
 
     public SceneBrep InterpolatedObject
