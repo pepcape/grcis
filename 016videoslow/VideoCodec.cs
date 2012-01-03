@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Drawing;
-using System.Text;
 using System.IO;
-using System.IO.Compression;
-using Support;
+using Compression;
 
 namespace _016videoslow
 {
@@ -35,7 +31,7 @@ namespace _016videoslow
 
     #region Codec API
 
-    public Stream EncodeHeader ( int width, int height, float fps, Stream outs )
+    public IEntropyCodec EncodeHeader ( int width, int height, float fps, Stream outs )
     {
       frameWidth      = width;
       frameHeight     = height;
@@ -43,35 +39,33 @@ namespace _016videoslow
 
       if ( outs == null ) return null;
 
-      DeflateStream ds = new BufferedDeflateStream( 16384, outs, CompressionMode.Compress, true );
+      IEntropyCodec c = new DeflateCodec();
+      c.MaxSymbol = 255;
+      if ( c.MaxSymbol < 255 )
+        throw new Exception( "Unappropriate codec used (alphabet too small)!" );
+
+      c.BinaryStream = outs;
+      c.Open( true );
 
       // !!!{{ TODO: add the header construction/encoding here
 
       // video header: [ MAGIC, width, height, fps ]
-      ds.WriteByte( (byte)((MAGIC >> 24) & 0xff) );
-      ds.WriteByte( (byte)((MAGIC >> 16) & 0xff) );
-      ds.WriteByte( (byte)((MAGIC >>  8) & 0xff) );
-      ds.WriteByte( (byte)(MAGIC         & 0xff) );
-
-      ds.WriteByte( (byte)((width >> 8) & 0xff) );
-      ds.WriteByte( (byte)(width        & 0xff) );
-
-      ds.WriteByte( (byte)((height >> 8) & 0xff) );
-      ds.WriteByte( (byte)(height        & 0xff) );
+      c.PutBits( MAGIC, 32 );
+      c.PutBits( width, 16 );
+      c.PutBits( height, 16 );
 
       int fpsInt = (int)(100.0f * fps);
-      ds.WriteByte( (byte)((fpsInt >> 8) & 0xff) );
-      ds.WriteByte( (byte)(fpsInt        & 0xff) );
+      c.PutBits( fpsInt, 16 );
 
       // !!!}}
 
-      return ds;
+      return c;
     }
 
-    public void EncodeFrame ( int frameNo, Bitmap inp, Stream outs )
+    public void EncodeFrame ( int frameNo, Bitmap inp, IEntropyCodec c )
     {
       if ( inp  == null ||
-           outs == null ) return;
+           c == null ) return;
 
       int width  = inp.Width;
       int height = inp.Height;
@@ -81,94 +75,65 @@ namespace _016videoslow
       // !!!{{ TODO: add the encoding code here
 
       // frame header: [ MAGIC_FRAME, frameNo ]
-      outs.WriteByte( (byte)((MAGIC_FRAME >> 24) & 0xff) );
-      outs.WriteByte( (byte)((MAGIC_FRAME >> 16) & 0xff) );
-      outs.WriteByte( (byte)((MAGIC_FRAME >>  8) & 0xff) );
-      outs.WriteByte( (byte)(MAGIC_FRAME         & 0xff) );
-
-      outs.WriteByte( (byte)((frameNo >> 8) & 0xff) );
-      outs.WriteByte( (byte)(frameNo        & 0xff) );
+      c.PutBits( MAGIC_FRAME, 32 );
+      c.PutBits( frameNo, 16 );
 
       for ( int y = 0; y < frameHeight; y++ )
         for ( int x = 0; x < frameWidth; x++ )
         {
           byte gr = (byte)(inp.GetPixel( x, y ).GetBrightness() * 255.0f);
-          outs.WriteByte( gr );
+          c.Put( gr );
         }
 
       // !!!}}
     }
 
-    public Stream DecodeHeader ( Stream inps )
+    public IEntropyCodec DecodeHeader ( Stream inps )
     {
       if ( inps == null ) return null;
 
-      DeflateStream ds = new DeflateStream( inps, CompressionMode.Decompress, true );
+      IEntropyCodec c = new DeflateCodec();
+      c.BinaryStream = inps;
+      c.Open( false );
 
       // !!!{{ TODO: add the header decoding here
 
       // Check the global header:
-      int buffer;
-      buffer = ds.ReadByte();
-      if ( buffer < 0 || buffer != ((MAGIC >> 24) & 0xff) ) return null;
-      buffer = ds.ReadByte();
-      if ( buffer < 0 || buffer != ((MAGIC >> 16) & 0xff) ) return null;
-      buffer = ds.ReadByte();
-      if ( buffer < 0 || buffer != ((MAGIC >>  8) & 0xff) ) return null;
-      buffer = ds.ReadByte();
-      if ( buffer < 0 || buffer != (MAGIC         & 0xff) ) return null;
+      uint magic = (uint)c.GetBits( 32 );
+      if ( magic != MAGIC ) return null;
 
-      frameWidth = ds.ReadByte();
-      if ( frameWidth < 0 ) return null;
-      buffer = ds.ReadByte();
-      if ( buffer < 0 ) return null;
-      frameWidth = (frameWidth << 8) + buffer;
-      frameHeight = ds.ReadByte();
-      if ( frameHeight < 0 ) return null;
-      buffer = ds.ReadByte();
-      if ( buffer < 0 ) return null;
-      frameHeight = (frameHeight << 8) + buffer;
+      frameWidth  = (int)c.GetBits( 16 );
+      frameHeight = (int)c.GetBits( 16 );
 
-      int fpsInt = ds.ReadByte();
-      if ( fpsInt < 0 ) return null;
-      buffer = ds.ReadByte();
-      if ( buffer < 0 ) return null;
-      framesPerSecond = ((fpsInt << 8) + buffer) * 0.01f;
+      if ( frameWidth < 1 || frameHeight < 1 )
+        return null;
+
+      framesPerSecond = (int)c.GetBits( 16 );
 
       // !!!}}
 
-      return ds;
+      return c;
     }
 
-    public Bitmap DecodeFrame ( int frameNo, Stream inps )
+    public Bitmap DecodeFrame ( int frameNo, IEntropyCodec c )
     {
-      if ( inps == null ) return null;
+      if ( c == null ) return null;
 
       // !!!{{ TODO: add the decoding code here
 
       // Check the frame header:
-      int buffer;
-      buffer = inps.ReadByte();
-      if ( buffer < 0 || buffer != ((MAGIC_FRAME >> 24) & 0xff) ) return null;
-      buffer = inps.ReadByte();
-      if ( buffer < 0 || buffer != ((MAGIC_FRAME >> 16) & 0xff) ) return null;
-      buffer = inps.ReadByte();
-      if ( buffer < 0 || buffer != ((MAGIC_FRAME >>  8) & 0xff) ) return null;
-      buffer = inps.ReadByte();
-      if ( buffer < 0 || buffer != (MAGIC_FRAME         & 0xff) ) return null;
+      uint magic = (uint)c.GetBits( 32 );
+      if ( magic != MAGIC_FRAME ) return null;
 
-      int frNo = inps.ReadByte();
-      if ( frNo < 0 ) return null;
-      buffer = inps.ReadByte();
-      if ( buffer < 0 ) return null;
-      if ( ((frNo << 8) + buffer) != frameNo ) return null;
+      int frNo = (int)c.GetBits( 16 );
+      if ( frNo != frameNo ) return null;
 
       Bitmap result = new Bitmap( frameWidth, frameHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       for ( int y = 0; y < frameHeight; y++ )
         for ( int x = 0; x < frameWidth; x++ )
         {
-          int gr = inps.ReadByte();
+          int gr = c.Get();
           result.SetPixel( x, y, Color.FromArgb( gr, gr, gr ) );
         }
 

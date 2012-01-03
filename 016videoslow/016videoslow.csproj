@@ -49,8 +49,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\common\BufferedDeflateStream.cs">
-      <Link>BufferedDeflateStream.cs</Link>
+    <Compile Include="..\common\Compression.cs">
+      <Link>Compression.cs</Link>
+    </Compile>
+    <Compile Include="..\common\CompressionBasic.cs">
+      <Link>CompressionBasic.cs</Link>
     </Compile>
     <Compile Include="..\common\ScreenCapture.cs">
       <Link>ScreenCapture.cs</Link>
