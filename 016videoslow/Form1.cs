@@ -15,7 +15,7 @@ namespace _016videoslow
     protected Bitmap frameImage = null;
 
     protected string videoFileName = "video.bin";
-
+    
     public Form1 ()
     {
       InitializeComponent();
@@ -66,6 +66,14 @@ namespace _016videoslow
 
     private void buttonEncode_Click ( object sender, EventArgs e )
     {
+      string fn = String.Format( textInputMask.Text, 0 );
+      if ( !File.Exists( fn ) )
+      {
+        MessageBox.Show( "Invalid input files!" );
+        return;
+      }
+
+      string cd = Directory.GetCurrentDirectory();
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save Video File";
       sfd.Filter = "BIN Files|*.bin";
@@ -74,31 +82,34 @@ namespace _016videoslow
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      FileStream fs = new FileStream( videoFileName = sfd.FileName, FileMode.Create );
-      IEntropyCodec s;
+      videoFileName = Path.GetFullPath( sfd.FileName );
+      FileStream fs = new FileStream( videoFileName, FileMode.Create );
+      VideoCodec vc = new VideoCodec();
+      Directory.SetCurrentDirectory( cd );
 
-      string fn = String.Format( textInputMask.Text, 0 );
-      if ( File.Exists( fn ) )
+      labelSpeed.Text = "Encoding..";
+      Stopwatch sw = new Stopwatch();
+      sw.Start();
+
+      Image inp = Image.FromFile( fn );
+      frameImage = new Bitmap( inp );
+      inp.Dispose();
+      IEntropyCodec s = vc.EncodeHeader( frameImage.Width, frameImage.Height, (float)numericFps.Value, fs );
+      int i = 0;
+      do
       {
-        VideoCodec vc = new VideoCodec();
-
-        Image inp = Image.FromFile( fn );
+        vc.EncodeFrame( i, frameImage, s );
+        fn = String.Format( textInputMask.Text, ++i );
+        if ( !File.Exists( fn ) ) break;
+        inp = Image.FromFile( fn );
         frameImage = new Bitmap( inp );
         inp.Dispose();
-        s = vc.EncodeHeader( frameImage.Width, frameImage.Height, (float)numericFps.Value, fs );
-        int i = 0;
-        do
-        {
-          vc.EncodeFrame( i, frameImage, s );
-          fn = String.Format( textInputMask.Text, ++i );
-          if ( !File.Exists( fn ) ) break;
-          inp = Image.FromFile( fn );
-          frameImage = new Bitmap( inp );
-          inp.Dispose();
-        } while ( true );
+      } while ( true );
 
-        s.Close();
-      }
+      s.Close();
+      labelSpeed.Text = String.Format( "Encoded {0} frames in {1:f} s!", i, (float)(sw.ElapsedMilliseconds * 0.001) );
+      sw.Stop();
+      fs.Close();
     }
 
     private void buttonDecode_Click ( object sender, EventArgs e )
@@ -110,22 +121,30 @@ namespace _016videoslow
       FileStream fs = new FileStream( videoFileName, FileMode.Open );
       IEntropyCodec s;
 
-      if ( fs != null )
-      {
-        VideoCodec vc = new VideoCodec();
-        s = vc.DecodeHeader( fs );
-        int i = 0;
-        do
-        {
-          frameImage = vc.DecodeFrame( i, s );
-          if ( frameImage == null ) return;
-          fn = String.Format( textOutputMask.Text, i++ );
-          frameImage.Save( fn, ImageFormat.Png );
-        }
-        while ( true );
+      if ( fs == null ) return;
 
-        s.Close();
+      labelSpeed.Text = "Decoding..";
+      Stopwatch sw = new Stopwatch();
+      sw.Start();
+
+      VideoCodec vc = new VideoCodec();
+      s = vc.DecodeHeader( fs );
+      int i = 0;
+      do
+      {
+        frameImage = vc.DecodeFrame( i, s );
+        if ( frameImage == null )
+        {
+          s.Close();
+          fs.Close();
+          labelSpeed.Text = String.Format( "Decoded {0} frames in {1:f} s!", i, (float)(sw.ElapsedMilliseconds * 0.001) );
+          sw.Stop();
+          return;
+        }
+        fn = String.Format( textOutputMask.Text, i++ );
+        frameImage.Save( fn, ImageFormat.Png );
       }
+      while ( true );
     }
   }
 }
