@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.Diagnostics;
-using System.Threading;
 using System.IO;
+using System.Threading;
+using System.Windows.Forms;
+using Compression;
 using ScreenShot;
 
 namespace _016videoslow
@@ -80,7 +75,7 @@ namespace _016videoslow
         return;
 
       FileStream fs = new FileStream( videoFileName = sfd.FileName, FileMode.Create );
-      Stream s;
+      IEntropyCodec s;
 
       string fn = String.Format( textInputMask.Text, 0 );
       if ( File.Exists( fn ) )
@@ -113,7 +108,7 @@ namespace _016videoslow
       Directory.CreateDirectory( dir );
 
       FileStream fs = new FileStream( videoFileName, FileMode.Open );
-      Stream s;
+      IEntropyCodec s;
 
       if ( fs != null )
       {
