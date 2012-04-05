@@ -310,6 +310,39 @@ namespace Rendering
     }
   }
 
+  /// <summary>
+  /// Abstract time-dependency of an object.
+  /// </summary>
+  public interface ITimeDependent
+  {
+    /// <summary>
+    /// Starting (minimal) time in seconds.
+    /// </summary>
+    double Start
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Ending (maximal) time in seconds.
+    /// </summary>
+    double End
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Current time in seconds.
+    /// </summary>
+    double Time
+    {
+      get;
+      set;
+    }
+  }
+
   #endregion
 
   #region Basic objects
