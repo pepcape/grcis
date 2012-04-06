@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{7A6A64E4-FC89-45A6-8E34-2D2106B02B8E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -66,6 +66,9 @@
     </Compile>
     <Compile Include="..\common\RayCastingScene.cs">
       <Link>RayCastingScene.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RayCastingScenes.cs">
+      <Link>RayCastingScenes.cs</Link>
     </Compile>
     <Compile Include="..\common\RayTracingRender.cs">
       <Link>RayTracingRender.cs</Link>

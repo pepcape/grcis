@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using OpenTK;
 
 // Interfaces and objects for ray-based rendering.
@@ -215,6 +216,20 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Inserts one new child node to this parent node.
+    /// </summary>
+    /// <param name="ch">Child node to add.</param>
+    /// <param name="toParent">Transform from local space of the child to the parent's space.</param>
+    public virtual void InsertChild ( ISceneNode ch, Matrix4d toParent )
+    {
+      children.AddLast( ch );
+      ch.ToParent = toParent;
+      toParent.Invert();
+      ch.FromParent = toParent;
+      ch.Parent = this;
+    }
+
+    /// <summary>
     /// Returns transform from the Local space (Solid) to the World space.
     /// </summary>
     /// <returns>Transform matrix.</returns>
@@ -265,14 +280,22 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Computes the complete intersection of the given ray with the object. 
+    /// Computes the complete intersection of the given ray with the object.
     /// </summary>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
     public virtual LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
     {
-      return null;
+      if ( children == null || children.Count == 0 )
+        return null;
+
+      ISceneNode child = children.First.Value;
+      Vector3d origin = Vector3d.TransformPosition( p0, child.FromParent );
+      Vector3d dir    = Vector3d.TransformVector(   p1, child.FromParent );
+      // ray in local child's coords: [ origin, dir ]
+
+      return child.Intersect( origin, dir );
     }
 
     /// <summary>
@@ -291,70 +314,171 @@ namespace Rendering
   }
 
   /// <summary>
-  /// Inner CSG node (associated with a set operation).
+  /// CSG set operations in a inner scene node..
   /// </summary>
-  public class InnerNode : DefaultSceneNode
+  public class CSGInnerNode : DefaultSceneNode
   {
-    public SetOperation setOp;
+    /// <summary>
+    /// Delegate function for boolean operations
+    /// </summary>
+    delegate bool BooleanOperation ( bool x, bool y );
 
     /// <summary>
-    /// Creates an empty inner scene node.
+    /// Current boolean operation.
     /// </summary>
-    /// <param name="op">Set operation to use.</param>
-    public InnerNode ( SetOperation op )
+    BooleanOperation bop;
+
+    public CSGInnerNode ( SetOperation op )
     {
-      setOp = op;
+      switch ( op )
+      {
+        case SetOperation.Intersection:
+          bop = ( x, y ) => x && y;
+          break;
+        case SetOperation.Difference:
+          bop = ( x, y ) => x && !y;
+          break;
+        case SetOperation.Xor:
+          bop = ( x, y ) => x ^ y;
+          break;
+        case SetOperation.Union:
+        default:
+          bop = ( x, y ) => x || y;
+          break;
+      }
     }
 
     /// <summary>
-    /// Inserts one new child node to this parent node.
-    /// </summary>
-    /// <param name="ch">Child node to add.</param>
-    /// <param name="toParent">Transform from local space of the child to the parent's space.</param>
-    public void InsertChild ( ISceneNode ch, Matrix4d toParent )
-    {
-      children.AddLast( ch );
-      ch.ToParent   = toParent;
-      toParent.Invert();
-      ch.FromParent = toParent;
-      ch.Parent     = this;
-    }
-
-    /// <summary>
-    /// Computes the complete intersection of the given ray with the object. 
+    /// Computes the complete intersection of the given ray with the object.
     /// </summary>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
     public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
     {
-      LinkedList<Intersection> result = new LinkedList<Intersection>();
-      foreach ( ISceneNode n in children )
+      if ( children == null || children.Count == 0 )
+        return null;
+
+      LinkedList<Intersection> result = null;
+
+      bool leftOp = true;  // the 1st pass => left operand
+      foreach ( ISceneNode child in children )
       {
-        Vector3d origin = Vector3d.TransformPosition( p0, n.FromParent );
-        Vector3d dir    = Vector3d.TransformVector(   p1, n.FromParent );
+        Vector3d origin = Vector3d.TransformPosition( p0, child.FromParent );
+        Vector3d dir    = Vector3d.TransformVector(   p1, child.FromParent );
         // ray in local child's coords: [ origin, dir ]
 
-        LinkedList<Intersection> partial = n.Intersect( origin, dir );
-        if ( partial == null || partial.Count == 0 ) continue;
+        LinkedList<Intersection> partial = child.Intersect( origin, dir );
+        if ( partial == null )
+          partial = new LinkedList<Intersection>();
 
-        Intersection i = null;
-        foreach ( Intersection inter in partial )
-          if ( inter.T > 0.0 )
+        if ( leftOp )
+        {
+          leftOp = false;
+          result = partial;
+          continue;
+        }
+
+        // resolve one binary operation (result := left # partial):
+        bool insideLeft  = false;
+        bool insideRight = false;
+        bool insideResult = bop( false, false );
+
+        LinkedList<Intersection> left = result;
+        // result .. empty so far
+        result = new LinkedList<Intersection>();
+
+        double lowestT = Double.NegativeInfinity;
+        Intersection leftFirst  = (left.First    == null) ? null : left.First.Value;
+        Intersection rightFirst = (partial.First == null) ? null : partial.First.Value;
+        bool minLeft  = (leftFirst  != null && leftFirst.T  == lowestT);
+        bool minRight = (rightFirst != null && rightFirst.T == lowestT);
+
+        if ( insideResult && !minLeft && !minRight )    // we need to insert negative infinity..
+        {
+          Intersection n = new Intersection( null );
+          n.T = Double.NegativeInfinity;
+          n.Enter = true;
+          result.AddLast( n );
+          insideResult = true;
+        }
+
+        while ( leftFirst != null || rightFirst != null )
+        {
+          double leftVal =  (leftFirst  != null) ? leftFirst.T  : double.PositiveInfinity;
+          double rightVal = (rightFirst != null) ? rightFirst.T : double.PositiveInfinity;
+          lowestT = Math.Min( leftVal, rightVal );
+          minLeft  = leftVal  == lowestT;
+          minRight = rightVal == lowestT;
+
+          Intersection first = null;
+          if ( minRight )
           {
-            i = inter;
-            break;
+            first = rightFirst;
+            partial.RemoveFirst();
+            rightFirst = (partial.First == null) ? null : partial.First.Value;
+            insideRight = !insideRight;
           }
+          if ( minLeft )
+          {
+            first = leftFirst;
+            left.RemoveFirst();
+            leftFirst = (left.First == null) ? null : left.First.Value;
+            insideLeft = !insideLeft;
+          }
+          bool newResult = bop( insideLeft, insideRight );
 
-        if ( i != null )
-          if ( result.First == null )
-            result.AddFirst( i );
-          else
-            if ( i.T < result.First.Value.T )
-              result.AddFirst( i );
+          if ( newResult != insideResult )
+          {
+            first.Enter = insideResult = newResult;
+            result.AddLast( first );
+          }
+        }
       }
+
       return result;
     }
+  }
 
+  /// <summary>
+  /// Default scene class for ray-based rendering.
+  /// </summary>
+  public abstract class DefaultRayScene : IRayScene
+  {
+    /// <summary>
+    /// Scene model (whatever is able to compute ray intersections).
+    /// </summary>
+    public IIntersectable Intersectable
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Background color.
+    /// </summary>
+    public double[] BackgroundColor
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Camera = primary ray generator.
+    /// </summary>
+    public ICamera Camera
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Set of light sources.
+    /// </summary>
+    public ICollection<ILightSource> Sources
+    {
+      get;
+      set;
+    }
   }
 }
