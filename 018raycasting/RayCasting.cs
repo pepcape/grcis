@@ -19,9 +19,8 @@ namespace _018raycasting
 
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
-    /// The 'imf' member has been already initialized..
     /// </summary>
-    private IRenderer getRenderer ()
+    private IRenderer getRenderer ( IImageFunction imf )
     {
       SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
       sis.ImageFunction = imf;
@@ -43,6 +42,8 @@ namespace Rendering
     public RayScene ()
     {
       Scenes.FiveBalls( this );
+      //Scenes.HedgehogInTheCage( this );
+      //Scenes.Flags( this );
     }
   }
 }

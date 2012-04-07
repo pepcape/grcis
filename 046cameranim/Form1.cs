@@ -30,6 +30,16 @@ namespace _046cameranim
     protected IRenderer rend = null;
 
     /// <summary>
+    /// Rendering thread.
+    /// </summary>
+    protected Thread aThread = null;
+
+    /// <summary>
+    /// Progress info / user break handling.
+    /// </summary>
+    protected Progress progress = new Progress();
+
+    /// <summary>
     /// Redraws the whole image.
     /// </summary>
     private void redraw ()
@@ -46,9 +56,12 @@ namespace _046cameranim
       imf.Height = height;
 
       if ( rend == null )
-        rend = getRenderer();
+        rend = getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
+      rend.Adaptive = 0;
+      rend.ProgressData = progress;
+      progress.Continue = true;
 
       // animation:
       ((ITimeDependent)scene).Time = (double)numTime.Value;
@@ -65,13 +78,6 @@ namespace _046cameranim
 
       Cursor.Current = Cursors.Default;
     }
-
-    /// <summary>
-    /// Rendering thread.
-    /// </summary>
-    protected Thread aThread = null;
-
-    volatile protected bool cont = true;
 
     delegate void SetImageCallback ( Bitmap newImage );
 
@@ -116,7 +122,10 @@ namespace _046cameranim
       else
       {
         // actually stop the animation:
-        cont = false;
+        lock ( progress )
+        {
+          progress.Continue = false;
+        }
         aThread.Join();
         aThread = null;
 
@@ -144,7 +153,10 @@ namespace _046cameranim
 
       buttonRenderAnim.Enabled = false;
       buttonStop.Enabled = true;
-      cont = true;
+      lock ( progress )
+      {
+        progress.Continue = true;
+      }
 
       aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
       aThread.Start();
@@ -165,10 +177,11 @@ namespace _046cameranim
       imf.Height = height;
 
       if ( rend == null )
-        rend = getRenderer();
+        rend = getRenderer( imf );
       rend.Width = width;
       rend.Height = height;
       rend.Adaptive = 0;        // turn off adaptive bitmap synthesis completely (interactive preview not needed)
+      rend.ProgressData = progress;
 
       // animation:
       ((ITimeDependent)scene).Time = time;
@@ -194,8 +207,10 @@ namespace _046cameranim
 
       for ( int fr = 0; time < end; fr++, time += dt )
       {
-        if ( !cont ) return;
-
+        lock ( progress )
+        {
+          if ( !progress.Continue ) break;
+        }
         sw.Start();
         Bitmap newImage = RenderFrame( width, height, time );
         SetImage( (Bitmap)newImage.Clone() );

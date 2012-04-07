@@ -19,9 +19,8 @@ namespace _019raytracing
 
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
-    /// The 'imf' member has been already initialized..
     /// </summary>
-    private IRenderer getRenderer ()
+    private IRenderer getRenderer ( IImageFunction imf )
     {
       SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
       sis.ImageFunction = imf;
@@ -42,9 +41,9 @@ namespace Rendering
     /// </summary>
     public RayScene ()
     {
-      Scenes.FiveBalls( this );
+      //Scenes.FiveBalls( this );
       //Scenes.HedgehogInTheCage( this );
-      //Scenes.Flags( this );
+      Scenes.Flags( this );
     }
   }
 }

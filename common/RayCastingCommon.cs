@@ -396,6 +396,25 @@ namespace Rendering
       get;
       set;
     }
+
+    /// <summary>
+    /// Continue in an associated computation.
+    /// </summary>
+    public bool Continue
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Set all the harmless values.
+    /// </summary>
+    public Progress ()
+    {
+      Finished = 0.0f;
+      Message = "";
+      Continue = true;
+    }
   }
 
   /// <summary>
