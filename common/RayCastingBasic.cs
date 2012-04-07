@@ -30,10 +30,38 @@ namespace Rendering
       set;
     }
 
+    /// <summary>
+    /// Gamma pre-compensation (gamma encoding, compression). Values 0.0 or 1.0 mean "no compensation".
+    /// </summary>
+    public double Gamma
+    {
+      get;
+      set;
+    }
+
     public IImageFunction ImageFunction
     {
       get;
       set;
+    }
+
+    /// <summary>
+    /// Cell-size for adaptive rendering, 1 to turn off adaptivitiy.
+    /// </summary>
+    public int InitCellSize
+    {
+      get;
+      set;
+    }
+
+    public SimpleImageSynthesizer () : this( 1 )
+    {
+    }
+
+    public SimpleImageSynthesizer ( int cellSize )
+    {
+      InitCellSize = cellSize;
+      Gamma = 2.2;              // the right value "by the book" */
     }
 
     /// <summary>
@@ -45,6 +73,14 @@ namespace Rendering
     public virtual void RenderPixel ( int x, int y, double[] color )
     {
       ImageFunction.GetSample( x, y, color );
+
+      // gamma-encoding:
+      if ( Gamma > 0.001 )
+      {
+        double g = 1.0 / Gamma;
+        for ( int b = 0; b < color.Length; b++ )
+          color[ b ] = Arith.Clamp( Math.Pow( color[ b ], g ), 0.0, 1.0 );
+      }
     }
 
     /// <summary>
@@ -58,16 +94,27 @@ namespace Rendering
     public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 )
     {
       double[] color = new double[ 3 ];
+      double g = (Gamma > 0.001) ? 1.0 / Gamma : 0.0;
+
       for ( int y = y1; y < y2; y++ )
-        for ( int x = x1; x < x2; x++ )
+        lock ( image )
         {
-          ImageFunction.GetSample( x, y, color );
-          for ( int b = 0; b < 3; b++ )
-            if ( color[ b ] > 1.0 )
-              color[ b ] = 1.0;
-          image.SetPixel( x, y, Color.FromArgb( (int)(color[ 0 ] * 255.0),
-                                                (int)(color[ 1 ] * 255.0),
-                                                (int)(color[ 2 ] * 255.0) ) );
+          for ( int x = x1; x < x2; x++ )
+          {
+            ImageFunction.GetSample( x, y, color );
+
+            // gamma-encoding:
+            if ( g > 0.0 )
+            {
+              color[ 0 ] = Arith.Clamp( Math.Pow( color[ 0 ], g ), 0.0, 1.0 );
+              color[ 1 ] = Arith.Clamp( Math.Pow( color[ 1 ], g ), 0.0, 1.0 );
+              color[ 2 ] = Arith.Clamp( Math.Pow( color[ 2 ], g ), 0.0, 1.0 );
+            }
+
+            image.SetPixel( x, y, Color.FromArgb( (int)(color[ 0 ] * 255.0),
+                                                  (int)(color[ 1 ] * 255.0),
+                                                  (int)(color[ 2 ] * 255.0) ) );
+          }
         }
     }
   }
