@@ -111,6 +111,8 @@ namespace Rendering
         {
           ProgressData.Finished = 0.0f;
           ProgressData.Message  = "";
+          if ( !ProgressData.Continue )
+            return;
         }
 
       for ( int y = y1; y < y2; y++ )
@@ -134,10 +136,13 @@ namespace Rendering
                                                   (int)(color[ 2 ] * 255.0) ) );
           }
         }
+
         if ( ProgressData != null )
           lock ( ProgressData )
           {
             ProgressData.Finished = (y + 1.0f - y1) / (y2 - y1);
+            if ( !ProgressData.Continue )
+              break;
           }
       }
     }

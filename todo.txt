@@ -4,7 +4,7 @@
   ($Rev$ $Date$)
 ------------------------
 - asi se spatne transformuji stinovaci paprsky v RT (viz scena Flags)
-- RT vypocet umistit do separatniho vlakna, zastavovaci tlacitko
+- asi je neco spatne s normalami u Cube (nebo po mnozinovych operacich viz Flags)
 - napsat veriantu SimpleImageSynthesizer, ktery pocita adaptivne (viz JaGrLib)
 - pridat nejlepsi studentske sceny z ulohy 018
 - pridat par dalsich teles: Plane (test: nahodny konvexni polyedr nebo
@@ -29,3 +29,4 @@
 - gamma pre-compensation (gamma encoding) do SimpleImageSynthesizer
 - Progress objekt: prijemce informaci o prubehu renderingu
 - SVN revision number into Window title
+- RT vypocet umistit do separatniho vlakna, abort mechanismus

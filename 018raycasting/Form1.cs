@@ -45,9 +45,10 @@ namespace _018raycasting
       imf.Height = height;
 
       if ( rend == null )
-        rend = getRenderer();
+        rend = getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
+      rend.Adaptive = 0;
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
@@ -83,6 +84,8 @@ namespace _018raycasting
     public Form1 ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( new char[] { ' ' } );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )

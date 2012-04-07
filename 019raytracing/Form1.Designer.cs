@@ -34,6 +34,7 @@
       this.buttonRedraw = new System.Windows.Forms.Button();
       this.labelElapsed = new System.Windows.Forms.Label();
       this.labelSample = new System.Windows.Forms.Label();
+      this.buttonStop = new System.Windows.Forms.Button();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.SuspendLayout();
@@ -65,9 +66,9 @@
       // buttonSave
       // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonSave.Location = new System.Drawing.Point( 586, 412 );
+      this.buttonSave.Location = new System.Drawing.Point( 602, 381 );
       this.buttonSave.Name = "buttonSave";
-      this.buttonSave.Size = new System.Drawing.Size( 107, 23 );
+      this.buttonSave.Size = new System.Drawing.Size( 91, 23 );
       this.buttonSave.TabIndex = 2;
       this.buttonSave.Text = "Save image";
       this.buttonSave.UseVisualStyleBackColor = true;
@@ -78,9 +79,9 @@
       this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonRedraw.Location = new System.Drawing.Point( 13, 411 );
       this.buttonRedraw.Name = "buttonRedraw";
-      this.buttonRedraw.Size = new System.Drawing.Size( 125, 23 );
+      this.buttonRedraw.Size = new System.Drawing.Size( 90, 23 );
       this.buttonRedraw.TabIndex = 5;
-      this.buttonRedraw.Text = "Redraw";
+      this.buttonRedraw.Text = "Render";
       this.buttonRedraw.UseVisualStyleBackColor = true;
       this.buttonRedraw.Click += new System.EventHandler( this.buttonRedraw_Click );
       // 
@@ -88,7 +89,7 @@
       // 
       this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelElapsed.AutoSize = true;
-      this.labelElapsed.Location = new System.Drawing.Point( 161, 417 );
+      this.labelElapsed.Location = new System.Drawing.Point( 197, 417 );
       this.labelElapsed.Name = "labelElapsed";
       this.labelElapsed.Size = new System.Drawing.Size( 48, 13 );
       this.labelElapsed.TabIndex = 21;
@@ -98,17 +99,30 @@
       // 
       this.labelSample.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelSample.AutoSize = true;
-      this.labelSample.Location = new System.Drawing.Point( 282, 417 );
+      this.labelSample.Location = new System.Drawing.Point( 307, 417 );
       this.labelSample.Name = "labelSample";
       this.labelSample.Size = new System.Drawing.Size( 45, 13 );
       this.labelSample.TabIndex = 22;
       this.labelSample.Text = "Sample:";
+      // 
+      // buttonStop
+      // 
+      this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonStop.Enabled = false;
+      this.buttonStop.Location = new System.Drawing.Point( 120, 411 );
+      this.buttonStop.Name = "buttonStop";
+      this.buttonStop.Size = new System.Drawing.Size( 57, 23 );
+      this.buttonStop.TabIndex = 32;
+      this.buttonStop.Text = "Stop";
+      this.buttonStop.UseVisualStyleBackColor = true;
+      this.buttonStop.Click += new System.EventHandler( this.buttonStop_Click );
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.buttonStop );
       this.Controls.Add( this.labelSample );
       this.Controls.Add( this.labelElapsed );
       this.Controls.Add( this.buttonRedraw );
@@ -117,6 +131,7 @@
       this.MinimumSize = new System.Drawing.Size( 660, 200 );
       this.Name = "Form1";
       this.Text = "019 ray-tracing";
+      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler( this.Form1_FormClosing );
       this.panel1.ResumeLayout( false );
       this.panel1.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
@@ -133,6 +148,7 @@
     private System.Windows.Forms.Button buttonRedraw;
     private System.Windows.Forms.Label labelElapsed;
     private System.Windows.Forms.Label labelSample;
+    private System.Windows.Forms.Button buttonStop;
   }
 }
 
