@@ -104,47 +104,82 @@ namespace Rendering
     /// <param name="y2"></param>
     public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 )
     {
-      double[] color = new double[ 3 ];
-      double g = (Gamma > 0.001) ? 1.0 / Gamma : 0.0;
       if ( ProgressData != null )
         lock ( ProgressData )
         {
           ProgressData.Finished = 0.0f;
-          ProgressData.Message  = "";
+          ProgressData.Message = "";
           if ( !ProgressData.Continue )
             return;
         }
+      double[] color = new double[ 3 ];     // pixel color
+      double g = (Gamma > 0.001) ? 1.0 / Gamma : 0.0;
 
-      for ( int y = y1; y < y2; y++ )
+      // run several phases of image rendering:
+      int cell = 32;                        // cell size
+      while ( cell > 1 && cell > Adaptive )
+        cell >>= 1;
+      int initCell = cell;
+
+      int x, y;
+      bool xParity, yParity;
+      float total = (x2 - x1) * (y2 - y1);
+      long counter = 0L;
+
+      do                                    // do one phase
       {
-        lock ( image )
-        {
-          for ( int x = x1; x < x2; x++ )
-          {
-            ImageFunction.GetSample( x, y, color );
+        for ( y = y1, yParity = false;
+              y < y2;                       // one image row
+              y += cell, yParity = !yParity )
 
-            // gamma-encoding:
-            if ( g > 0.0 )
+          for ( x = x1, xParity = false;
+                x < x2;                     // one image cell
+                x += cell, xParity = !xParity )
+
+            if ( cell == initCell ||
+                 xParity || yParity )       // process the cell
             {
-              color[ 0 ] = Arith.Clamp( Math.Pow( color[ 0 ], g ), 0.0, 1.0 );
-              color[ 1 ] = Arith.Clamp( Math.Pow( color[ 1 ], g ), 0.0, 1.0 );
-              color[ 2 ] = Arith.Clamp( Math.Pow( color[ 2 ], g ), 0.0, 1.0 );
+              // determine sample color ..
+              ImageFunction.GetSample( x + 0.5, y + 0.5, color );
+
+              for ( int b = 0; b < color.Length; b++ )
+                color[ b ] = Arith.Clamp( (g > 0.0) ? Math.Pow( color[ b ], g ) : color[ b ], 0.0, 1.0 );
+
+              // .. and render it:
+              Color c = Color.FromArgb( (int)(color[ 0 ] * 255.0),
+                                        (int)(color[ 1 ] * 255.0),
+                                        (int)(color[ 2 ] * 255.0) );
+              lock ( image )
+              {
+                if ( cell == 1 )
+                  image.SetPixel( x, y, c );
+                else
+                {
+                  int xMax = x + cell;
+                  if ( xMax > x2 )
+                    xMax = x2;
+                  int yMax = y + cell;
+                  if ( yMax > y2 )
+                    yMax = y2;
+                  for ( int iy = y; iy < yMax; iy++ )
+                    for ( int ix = x; ix < xMax; ix++ )
+                      image.SetPixel( ix, iy, c );
+                }
+              }
+
+              counter++;
+              if ( ProgressData != null )
+                lock ( ProgressData )
+                {
+                  if ( !ProgressData.Continue )
+                    return;
+                  ProgressData.Finished = counter / total;
+                  if ( (counter & 0xFFFL) == 0 )
+                    ProgressData.Sync( image );
+                }
             }
-
-            image.SetPixel( x, y, Color.FromArgb( (int)(color[ 0 ] * 255.0),
-                                                  (int)(color[ 1 ] * 255.0),
-                                                  (int)(color[ 2 ] * 255.0) ) );
-          }
-        }
-
-        if ( ProgressData != null )
-          lock ( ProgressData )
-          {
-            ProgressData.Finished = (y + 1.0f - y1) / (y2 - y1);
-            if ( !ProgressData.Continue )
-              break;
-          }
       }
+      while ( (cell >>= 1) > 0 );         // do one phase
     }
   }
 

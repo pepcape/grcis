@@ -42,8 +42,8 @@ namespace Rendering
     public RayScene ()
     {
       //Scenes.FiveBalls( this );
-      //Scenes.HedgehogInTheCage( this );
-      Scenes.Flags( this );
+      Scenes.HedgehogInTheCage( this );
+      //Scenes.Flags( this );
     }
   }
 }

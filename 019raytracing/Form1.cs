@@ -10,7 +10,7 @@ namespace _019raytracing
   public partial class Form1 : Form
   {
     /// <summary>
-    /// Output raster image.
+    /// Current output raster image. Locked access.
     /// </summary>
     protected Bitmap outputImage = null;
 
@@ -30,7 +30,7 @@ namespace _019raytracing
     protected IRenderer rend = null;
 
     /// <summary>
-    /// Global stopwatch for rendering thread. Lock the access.
+    /// Global stopwatch for rendering thread. Locked access.
     /// </summary>
     protected Stopwatch sw = new Stopwatch();
 
@@ -39,10 +39,37 @@ namespace _019raytracing
     /// </summary>
     protected Thread aThread = null;
 
+    protected class RenderingProgress : Progress
+    {
+      protected Form1 f;
+
+      protected long lastSync = 0L;
+
+      public RenderingProgress ( Form1 _f )
+      {
+        f = _f;
+      }
+
+      public override void Sync ( Object msg )
+      {
+        long now = f.sw.ElapsedMilliseconds;
+        if ( now - lastSync < 6000L )
+          return;
+
+        lastSync = now;
+        f.SetText( String.Format( "{0:f1}%:  {1:f1}s", 100.0f * Finished, 1.0e-3 * now ) );
+        if ( (msg is Bitmap) )
+        {
+          Bitmap b = (Bitmap)msg;
+          f.SetImage( (Bitmap)b.Clone() );
+        }
+      }
+    }
+
     /// <summary>
     /// Progress info / user break handling.
     /// </summary>
-    protected Progress progress = new Progress();
+    protected Progress progress = null;
 
     /// <summary>
     /// [Re]-renders the whole image (in separate thread).
@@ -53,7 +80,7 @@ namespace _019raytracing
 
       int width   = panel1.Width;
       int height  = panel1.Height;
-      Bitmap newImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       if ( imf == null )
         imf = getImageFunction();
@@ -64,7 +91,7 @@ namespace _019raytracing
         rend = getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
-      rend.Adaptive = 1;
+      rend.Adaptive = 16;
       rend.ProgressData = progress;
 
       lock ( sw )
@@ -73,7 +100,7 @@ namespace _019raytracing
         sw.Start();
       }
 
-      rend.RenderRectangle( newImage, 0, 0, width, height );
+      rend.RenderRectangle( outputImage, 0, 0, width, height );
 
       long elapsed;
       lock ( sw )
@@ -82,8 +109,8 @@ namespace _019raytracing
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      SetText( String.Format( "Elapsed: {0:f}s", 1.0e-3 * elapsed ) );
-      SetImage( (Bitmap)newImage.Clone() );
+      SetText( String.Format( "Elapsed: {0:f1}s", 1.0e-3 * elapsed ) );
+      SetImage( (Bitmap)outputImage.Clone() );
 
       Cursor.Current = Cursors.Default;
 
@@ -101,7 +128,7 @@ namespace _019raytracing
       }
       else
       {
-        pictureBox1.Image = outputImage = newImage;
+        pictureBox1.Image = newImage;
         pictureBox1.Invalidate();
       }
     }
@@ -169,6 +196,7 @@ namespace _019raytracing
     public Form1 ()
     {
       InitializeComponent();
+      progress = new RenderingProgress( this );
       String []tok = "$Rev$".Split( new char[] { ' ' } );
       Text += " (rev: " + tok[1] + ')';
     }

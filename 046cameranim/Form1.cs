@@ -72,7 +72,7 @@ namespace _046cameranim
       rend.RenderRectangle( outputImage, 0, 0, width, height );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
       pictureBox1.Image = outputImage;
 
@@ -216,7 +216,7 @@ namespace _046cameranim
         SetImage( (Bitmap)newImage.Clone() );
         sw.Stop();
 
-        SetText( String.Format( "Frame: {0}, elapsed: {1:f}s", fr, 1.0e-3 * sw.ElapsedMilliseconds ) );
+        SetText( String.Format( "Frame: {0}, elapsed: {1:f1}s", fr, 1.0e-3 * sw.ElapsedMilliseconds ) );
         string fileName = String.Format( "out{0:0000}.png", fr );
         newImage.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
       }
