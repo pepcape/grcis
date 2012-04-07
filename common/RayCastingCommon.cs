@@ -78,6 +78,15 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Gamma pre-compensation (gamma encoding, compression). Values 0.0 or 1.0 mean "no compensation".
+    /// </summary>
+    double Gamma
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
     /// Renders the single pixel of an image.
     /// </summary>
     /// <param name="x">Horizontal coordinate.</param>

@@ -21,11 +21,11 @@ namespace Rendering
       // CSG scene:
       CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
       root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
-      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.5, 0.4, 12 ) );
+      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.5, 0.5, 0.5 }, 0.1, 0.6, 0.3, 16 ) );
       sc.Intersectable = root;
 
       // Background color:
-      sc.BackgroundColor = new double[] { 0.0, 0.15, 0.2 };
+      sc.BackgroundColor = new double[] { 0.0, 0.07, 0.1 };
 
       // Camera:
       sc.Camera = new StaticCamera( new Vector3d( 0.0, 0.0, -10.0 ),
@@ -76,11 +76,11 @@ namespace Rendering
       // CSG scene:
       CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
       root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
-      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.5, 0.5, 0.5 }, 0.4, 0.4, 0.3, 12 ) );
+      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.5, 0.3, 16 ) );
       sc.Intersectable = root;
 
       // Background color:
-      sc.BackgroundColor = new double[] { 0.0, 0.15, 0.2 };
+      sc.BackgroundColor = new double[] { 0.0, 0.07, 0.1 };
 
       // Camera:
       sc.Camera = new StaticCamera( new Vector3d( 0.0, 2.0, -7.0 ),
@@ -215,13 +215,13 @@ namespace Rendering
       // CSG scene:
       CSGInnerNode flags = new CSGInnerNode( SetOperation.Union );
       flags.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
-      flags.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.5, 0.5, 0.5 }, 0.3, 0.6, 0.2, 16 ) );
+      flags.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.7, 0.1, 16 ) );
       sc.Intersectable = flags;
       Sphere s;
       Cube c;
 
       // Background color:
-      sc.BackgroundColor = new double[] { 0.0, 0.15, 0.2 };
+      sc.BackgroundColor = new double[] { 0.0, 0.07, 0.1 };
 
       // Camera:
       sc.Camera = new StaticCamera( new Vector3d( 0.0, 0.0, -10.0 ),
