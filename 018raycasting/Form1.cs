@@ -56,7 +56,7 @@ namespace _018raycasting
       rend.RenderRectangle( outputImage, 0, 0, width, height );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
       pictureBox1.Image = outputImage;
 

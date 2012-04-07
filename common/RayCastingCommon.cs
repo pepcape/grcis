@@ -407,6 +407,13 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Any message from computing unit to the GUI main.
+    /// </summary>
+    public virtual void Sync ( Object msg )
+    {
+    }
+
+    /// <summary>
     /// Set all the harmless values.
     /// </summary>
     public Progress ()

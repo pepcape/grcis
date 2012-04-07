@@ -1,19 +1,18 @@
-------------------------
+================================================================================
   TODO - urgent, bugs:
-------------------------
+================================================================================
   ($Rev$ $Date$)
-------------------------
+================================================================================
 - asi se spatne transformuji stinovaci paprsky v RT (viz scena Flags)
 - asi je neco spatne s normalami u Cube (nebo po mnozinovych operacich viz Flags)
-- napsat veriantu SimpleImageSynthesizer, ktery pocita adaptivne (viz JaGrLib)
 - pridat nejlepsi studentske sceny z ulohy 018
 - pridat par dalsich teles: Plane (test: nahodny konvexni polyedr nebo
   Platonska telesa), Cylinder, Cone, Torus (Jan Navratil)
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 
-------------------------
+================================================================================
   Long term:
-------------------------
+================================================================================
 - animace kamerou v RT (uloha 046)
 - zapinat jednotlive komponenty ray-tracingu (check-boxes)
 - pridat lom svetla do RT
@@ -21,12 +20,13 @@
 - vyzkouset GLSL shadery (upgrade OpenTK?)
 - jazyk na definici RT sceny (XML?), nacitani RT scen az za behu
 
-------------------------
+================================================================================
   DONE:
-------------------------
+================================================================================
 - pridat par dalsich teles: Cube
 - pridat nejlepsi studentske sceny z ulohy 018: Hedgehog, Flags
 - gamma pre-compensation (gamma encoding) do SimpleImageSynthesizer
 - Progress objekt: prijemce informaci o prubehu renderingu
 - SVN revision number into Window title
 - RT vypocet umistit do separatniho vlakna, abort mechanismus
+- vylepsit SimpleImageSynthesizer, aby pocital adaptivne (viz JaGrLib)
