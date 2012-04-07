@@ -4,7 +4,7 @@
   ($Rev$ $Date$)
 ------------------------
 - asi se spatne transformuji stinovaci paprsky v RT (viz scena Flags)
-- RT vypocet umistit do separatniho vlakna
+- RT vypocet umistit do separatniho vlakna, zastavovaci tlacitko
 - napsat veriantu SimpleImageSynthesizer, ktery pocita adaptivne (viz JaGrLib)
 - pridat nejlepsi studentske sceny z ulohy 018
 - pridat par dalsich teles: Plane (test: nahodny konvexni polyedr nebo
@@ -15,6 +15,7 @@
   Long term:
 ------------------------
 - animace kamerou v RT (uloha 046)
+- zapinat jednotlive komponenty ray-tracingu (check-boxes)
 - pridat lom svetla do RT
 - licence: Apache licence? Nebo BSD?
 - vyzkouset GLSL shadery (upgrade OpenTK?)
@@ -24,4 +25,7 @@
   DONE:
 ------------------------
 - pridat par dalsich teles: Cube
+- pridat nejlepsi studentske sceny z ulohy 018: Hedgehog, Flags
 - gamma pre-compensation (gamma encoding) do SimpleImageSynthesizer
+- Progress objekt: prijemce informaci o prubehu renderingu
+- SVN revision number into Window title

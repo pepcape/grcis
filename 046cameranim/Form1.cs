@@ -129,6 +129,8 @@ namespace _046cameranim
     public Form1 ()
     {
       InitializeComponent();
+      String []tok = "$Rev$".Split( new char[] { ' ' } );
+      Text += " (rev: " + tok[1] + ')';
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
@@ -166,6 +168,7 @@ namespace _046cameranim
         rend = getRenderer();
       rend.Width = width;
       rend.Height = height;
+      rend.Adaptive = 0;        // turn off adaptive bitmap synthesis completely (interactive preview not needed)
 
       // animation:
       ((ITimeDependent)scene).Time = time;

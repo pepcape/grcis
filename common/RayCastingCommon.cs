@@ -87,6 +87,24 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Cell-size for adaptive rendering, 0 or 1 to turn off adaptivitiy.
+    /// </summary>
+    int Adaptive
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Current progress object (can be null).
+    /// </summary>
+    Progress ProgressData
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
     /// Renders the single pixel of an image.
     /// </summary>
     /// <param name="x">Horizontal coordinate.</param>
@@ -355,6 +373,30 @@ namespace Rendering
   #endregion
 
   #region Basic objects
+
+  /// <summary>
+  /// Data class keeping info about current progress of a computation.
+  /// </summary>
+  public class Progress
+  {
+    /// <summary>
+    /// Relative amount of work finished so far (0.0f to 1.0f).
+    /// </summary>
+    public float Finished
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Optional message. Any string.
+    /// </summary>
+    public string Message
+    {
+      get;
+      set;
+    }
+  }
 
   /// <summary>
   /// Intersection of a ray with a solid surface.
