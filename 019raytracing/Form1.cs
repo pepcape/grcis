@@ -83,6 +83,8 @@ namespace _019raytracing
     public Form1 ()
     {
       InitializeComponent();
+      String []tok = "$Rev$".Split( new char[] { ' ' } );
+      Text += " (rev: " + tok[1] + ')';
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )

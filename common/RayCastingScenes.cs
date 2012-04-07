@@ -25,7 +25,7 @@ namespace Rendering
       sc.Intersectable = root;
 
       // Background color:
-      sc.BackgroundColor = new double[] { 0.0, 0.07, 0.1 };
+      sc.BackgroundColor = new double[] { 0.0, 0.05, 0.05 };
 
       // Camera:
       sc.Camera = new StaticCamera( new Vector3d( 0.0, 0.0, -10.0 ),
@@ -76,11 +76,11 @@ namespace Rendering
       // CSG scene:
       CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
       root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
-      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.5, 0.3, 16 ) );
+      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.6, 0.2, 16 ) );
       sc.Intersectable = root;
 
       // Background color:
-      sc.BackgroundColor = new double[] { 0.0, 0.07, 0.1 };
+      sc.BackgroundColor = new double[] { 0.0, 0.05, 0.05 };
 
       // Camera:
       sc.Camera = new StaticCamera( new Vector3d( 0.0, 2.0, -7.0 ),
@@ -144,7 +144,7 @@ namespace Rendering
 
       // hedgehog
       CSGInnerNode hedgehog = new CSGInnerNode( SetOperation.Union );
-      hedgehog.SetAttribute( PropertyName.COLOR, new double[] { 0.62, 0.1, 0.1 } );
+      hedgehog.SetAttribute( PropertyName.COLOR, new double[] { 0.4, 0.05, 0.05 } );
 
       s = new Sphere();
       hedgehog.InsertChild( s, Matrix4d.Scale( 0.48 ) );
@@ -221,7 +221,7 @@ namespace Rendering
       Cube c;
 
       // Background color:
-      sc.BackgroundColor = new double[] { 0.0, 0.07, 0.1 };
+      sc.BackgroundColor = new double[] { 0.0, 0.05, 0.05 };
 
       // Camera:
       sc.Camera = new StaticCamera( new Vector3d( 0.0, 0.0, -10.0 ),

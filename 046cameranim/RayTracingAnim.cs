@@ -70,6 +70,7 @@ namespace Rendering
     {
       //Scenes.FiveBalls( this );
       Scenes.HedgehogInTheCage( this );
+      //Scenes.Flags( this );
 
       // !!!{{ TODO: put your camera setup code here
 

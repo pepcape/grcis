@@ -46,22 +46,33 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Cell-size for adaptive rendering, 1 to turn off adaptivitiy.
+    /// Cell-size for adaptive rendering, 0 or 1 to turn off adaptivitiy.
     /// </summary>
-    public int InitCellSize
+    public int Adaptive
     {
       get;
       set;
     }
 
-    public SimpleImageSynthesizer () : this( 1 )
+    /// <summary>
+    /// Current progress object (can be null).
+    /// </summary>
+    public Progress ProgressData
+    {
+      get;
+      set;
+    }
+
+    public SimpleImageSynthesizer ()
+      : this( 1 )
     {
     }
 
-    public SimpleImageSynthesizer ( int cellSize )
+    public SimpleImageSynthesizer ( int adaptive )
     {
-      InitCellSize = cellSize;
+      Adaptive = adaptive;
       Gamma = 2.2;              // the right value "by the book" */
+      ProgressData = null;
     }
 
     /// <summary>
@@ -95,8 +106,15 @@ namespace Rendering
     {
       double[] color = new double[ 3 ];
       double g = (Gamma > 0.001) ? 1.0 / Gamma : 0.0;
+      if ( ProgressData != null )
+        lock ( ProgressData )
+        {
+          ProgressData.Finished = 0.0f;
+          ProgressData.Message  = "";
+        }
 
       for ( int y = y1; y < y2; y++ )
+      {
         lock ( image )
         {
           for ( int x = x1; x < x2; x++ )
@@ -116,6 +134,12 @@ namespace Rendering
                                                   (int)(color[ 2 ] * 255.0) ) );
           }
         }
+        if ( ProgressData != null )
+          lock ( ProgressData )
+          {
+            ProgressData.Finished = (y + 1.0f - y1) / (y2 - y1);
+          }
+      }
     }
   }
 
