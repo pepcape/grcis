@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Windows.Forms;
-using Rendering;
 using System.Diagnostics;
+using System.Windows.Forms;
 using OpenTK;
+using Rendering;
 
 namespace _019raytracing
 {
@@ -43,7 +43,7 @@ namespace _019raytracing
       sceneInitFunctions.Add( new InitSceneDelegate( CustomScene.MyScene ) );
       comboScene.Items.Add( "Sphere" );
 
-      // .. and put your favorite scene here:
+      // .. and set your favorite scene here:
       comboScene.SelectedIndex = 0;
     }
   }

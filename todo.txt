@@ -3,9 +3,9 @@
 ================================================================================
   ($Rev$ $Date$)
 ================================================================================
+- telesa presunout do RayCastingBasic -> RayCastingSolids
 - asi se spatne transformuji stinovaci paprsky v RT (viz scena Flags)
 - asi je neco spatne s normalami u Cube (nebo po mnozinovych operacich viz Flags)
-- zkracene vyhodnocovani CSG
 - pridat nejlepsi studentske sceny z ulohy 018
 - pridat par dalsich teles: Plane (test: nahodny konvexni polyedr nebo
   Platonska telesa), Cylinder, Cone, Torus (Jan Navratil)
@@ -34,3 +34,4 @@
 - vylepsit SimpleImageSynthesizer, aby pocital adaptivne (viz JaGrLib)
 - statistiky poctu zpracovavanych pruseciku v CSG
 - vyber sceny pomoci combo-boxu
+- zkracene vyhodnocovani CSG

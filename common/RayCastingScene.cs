@@ -379,8 +379,9 @@ namespace Rendering
         return null;
 
       LinkedList<Intersection> result = null;
-
       bool leftOp = true;  // the 1st pass => left operand
+      bool shortCurcuit = !(bop( false, false ) || bop( false, true ));
+
       foreach ( ISceneNode child in children )
       {
         Vector3d origin = Vector3d.TransformPosition( p0, child.FromParent );
@@ -398,64 +399,67 @@ namespace Rendering
         {
           leftOp = false;
           result = partial;
-          continue;
         }
-
-        // resolve one binary operation (result := left # partial):
-        bool insideLeft  = false;
-        bool insideRight = false;
-        bool insideResult = bop( false, false );
-
-        LinkedList<Intersection> left = result;
-        // result .. empty so far
-        result = new LinkedList<Intersection>();
-
-        double lowestT = Double.NegativeInfinity;
-        Intersection leftFirst  = (left.First    == null) ? null : left.First.Value;
-        Intersection rightFirst = (partial.First == null) ? null : partial.First.Value;
-        bool minLeft  = (leftFirst  != null && leftFirst.T  == lowestT);
-        bool minRight = (rightFirst != null && rightFirst.T == lowestT);
-
-        if ( insideResult && !minLeft && !minRight )    // we need to insert negative infinity..
+        else
         {
-          Intersection n = new Intersection( null );
-          n.T = Double.NegativeInfinity;
-          n.Enter = true;
-          result.AddLast( n );
-          insideResult = true;
+          // resolve one binary operation (result := left # partial):
+          bool insideLeft = false;
+          bool insideRight = false;
+          bool insideResult = bop( false, false );
+
+          LinkedList<Intersection> left = result;
+          // result .. empty so far
+          result = new LinkedList<Intersection>();
+
+          double lowestT = Double.NegativeInfinity;
+          Intersection leftFirst = (left.First == null) ? null : left.First.Value;
+          Intersection rightFirst = (partial.First == null) ? null : partial.First.Value;
+          bool minLeft = (leftFirst != null && leftFirst.T == lowestT);
+          bool minRight = (rightFirst != null && rightFirst.T == lowestT);
+
+          if ( insideResult && !minLeft && !minRight )    // we need to insert negative infinity..
+          {
+            Intersection n = new Intersection( null );
+            n.T = Double.NegativeInfinity;
+            n.Enter = true;
+            result.AddLast( n );
+            insideResult = true;
+          }
+
+          while ( leftFirst != null || rightFirst != null )
+          {
+            double leftVal = (leftFirst != null) ? leftFirst.T : double.PositiveInfinity;
+            double rightVal = (rightFirst != null) ? rightFirst.T : double.PositiveInfinity;
+            lowestT = Math.Min( leftVal, rightVal );
+            minLeft = leftVal == lowestT;
+            minRight = rightVal == lowestT;
+
+            Intersection first = null;
+            if ( minRight )
+            {
+              first = rightFirst;
+              partial.RemoveFirst();
+              rightFirst = (partial.First == null) ? null : partial.First.Value;
+              insideRight = !insideRight;
+            }
+            if ( minLeft )
+            {
+              first = leftFirst;
+              left.RemoveFirst();
+              leftFirst = (left.First == null) ? null : left.First.Value;
+              insideLeft = !insideLeft;
+            }
+            bool newResult = bop( insideLeft, insideRight );
+
+            if ( newResult != insideResult )
+            {
+              first.Enter = insideResult = newResult;
+              result.AddLast( first );
+            }
+          }
         }
-
-        while ( leftFirst != null || rightFirst != null )
-        {
-          double leftVal =  (leftFirst  != null) ? leftFirst.T  : double.PositiveInfinity;
-          double rightVal = (rightFirst != null) ? rightFirst.T : double.PositiveInfinity;
-          lowestT = Math.Min( leftVal, rightVal );
-          minLeft  = leftVal  == lowestT;
-          minRight = rightVal == lowestT;
-
-          Intersection first = null;
-          if ( minRight )
-          {
-            first = rightFirst;
-            partial.RemoveFirst();
-            rightFirst = (partial.First == null) ? null : partial.First.Value;
-            insideRight = !insideRight;
-          }
-          if ( minLeft )
-          {
-            first = leftFirst;
-            left.RemoveFirst();
-            leftFirst = (left.First == null) ? null : left.First.Value;
-            insideLeft = !insideLeft;
-          }
-          bool newResult = bop( insideLeft, insideRight );
-
-          if ( newResult != insideResult )
-          {
-            first.Enter = insideResult = newResult;
-            result.AddLast( first );
-          }
-        }
+        if ( shortCurcuit && result.Count == 0 )
+          break;
       }
 
       return result;
