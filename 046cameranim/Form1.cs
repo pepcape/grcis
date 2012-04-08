@@ -42,9 +42,11 @@ namespace _046cameranim
     /// <summary>
     /// Redraws the whole image.
     /// </summary>
-    private void redraw ()
+    private void RenderImage ()
     {
       Cursor.Current = Cursors.WaitCursor;
+      buttonRender.Enabled = false;
+      buttonRenderAnim.Enabled = false;
 
       int width   = panel1.Width;
       int height  = panel1.Height;
@@ -76,6 +78,8 @@ namespace _046cameranim
 
       pictureBox1.Image = outputImage;
 
+      buttonRender.Enabled = true;
+      buttonRenderAnim.Enabled = true;
       Cursor.Current = Cursors.Default;
     }
 
@@ -131,6 +135,7 @@ namespace _046cameranim
 
         // GUI stuff:
         buttonRenderAnim.Enabled = true;
+        buttonRender.Enabled = true;
         buttonStop.Enabled = false;
       }
     }
@@ -142,9 +147,9 @@ namespace _046cameranim
       Text += " (rev: " + tok[1] + ')';
     }
 
-    private void buttonRedraw_Click ( object sender, EventArgs e )
+    private void buttonRender_Click ( object sender, EventArgs e )
     {
-      redraw();
+      RenderImage();
     }
 
     private void buttonRenderAnim_Click ( object sender, EventArgs e )
@@ -152,6 +157,7 @@ namespace _046cameranim
       if ( aThread != null ) return;
 
       buttonRenderAnim.Enabled = false;
+      buttonRender.Enabled = false;
       buttonStop.Enabled = true;
       lock ( progress )
       {

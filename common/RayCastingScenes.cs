@@ -6,11 +6,36 @@ using OpenTK;
 namespace Rendering
 {
   /// <summary>
+  /// Delegate used for RT-scene initialization.
+  /// </summary>
+  public delegate void InitSceneDelegate ( IRayScene sc );
+
+  /// <summary>
   /// Some interesting scenes created mostly by MFF UK students.
   /// http://cgg.mff.cuni.cz/~pepca/lectures/npgr004.current.html
   /// </summary>
   public class Scenes
   {
+    /// <summary>
+    /// Scene names how to appear in a combo-box.
+    /// </summary>
+    public static string[] Names =
+    {
+      "Five balls",
+      "Hedgehog in the cage",
+      "Flags",
+    };
+
+    /// <summary>
+    /// The init functions themselves..
+    /// </summary>
+    public static InitSceneDelegate[] InitFunctions =
+    {
+      new InitSceneDelegate( FiveBalls ),
+      new InitSceneDelegate( HedgehogInTheCage ),
+      new InitSceneDelegate( Flags ),
+    };
+
     /// <summary>
     /// Simple scene containing five colored spheres.
     /// </summary>

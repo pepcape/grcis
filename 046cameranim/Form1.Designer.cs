@@ -31,7 +31,7 @@
       this.panel1 = new System.Windows.Forms.Panel();
       this.pictureBox1 = new System.Windows.Forms.PictureBox();
       this.buttonRenderAnim = new System.Windows.Forms.Button();
-      this.buttonRedraw = new System.Windows.Forms.Button();
+      this.buttonRender = new System.Windows.Forms.Button();
       this.labelElapsed = new System.Windows.Forms.Label();
       this.numTime = new System.Windows.Forms.NumericUpDown();
       this.label1 = new System.Windows.Forms.Label();
@@ -83,16 +83,16 @@
       this.buttonRenderAnim.UseVisualStyleBackColor = true;
       this.buttonRenderAnim.Click += new System.EventHandler( this.buttonRenderAnim_Click );
       // 
-      // buttonRedraw
+      // buttonRender
       // 
-      this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonRedraw.Location = new System.Drawing.Point( 13, 411 );
-      this.buttonRedraw.Name = "buttonRedraw";
-      this.buttonRedraw.Size = new System.Drawing.Size( 125, 23 );
-      this.buttonRedraw.TabIndex = 5;
-      this.buttonRedraw.Text = "Single image";
-      this.buttonRedraw.UseVisualStyleBackColor = true;
-      this.buttonRedraw.Click += new System.EventHandler( this.buttonRedraw_Click );
+      this.buttonRender.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonRender.Location = new System.Drawing.Point( 13, 411 );
+      this.buttonRender.Name = "buttonRender";
+      this.buttonRender.Size = new System.Drawing.Size( 125, 23 );
+      this.buttonRender.TabIndex = 5;
+      this.buttonRender.Text = "Single image";
+      this.buttonRender.UseVisualStyleBackColor = true;
+      this.buttonRender.Click += new System.EventHandler( this.buttonRender_Click );
       // 
       // labelElapsed
       // 
@@ -252,7 +252,7 @@
       this.Controls.Add( this.label1 );
       this.Controls.Add( this.numTime );
       this.Controls.Add( this.labelElapsed );
-      this.Controls.Add( this.buttonRedraw );
+      this.Controls.Add( this.buttonRender );
       this.Controls.Add( this.buttonRenderAnim );
       this.Controls.Add( this.panel1 );
       this.MinimumSize = new System.Drawing.Size( 680, 200 );
@@ -276,7 +276,7 @@
     private System.Windows.Forms.Panel panel1;
     private System.Windows.Forms.PictureBox pictureBox1;
     private System.Windows.Forms.Button buttonRenderAnim;
-    private System.Windows.Forms.Button buttonRedraw;
+    private System.Windows.Forms.Button buttonRender;
     private System.Windows.Forms.Label labelElapsed;
     private System.Windows.Forms.NumericUpDown numTime;
     private System.Windows.Forms.Label label1;

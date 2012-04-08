@@ -328,6 +328,16 @@ namespace Rendering
     /// </summary>
     BooleanOperation bop;
 
+    /// <summary>
+    /// Number of Intersect() calls in child nodes.
+    /// </summary>
+    public static long countCalls = 0L;
+
+    /// <summary>
+    /// Number of individual ray x solid intersections.
+    /// </summary>
+    public static long countIntersections = 0L;
+
     public CSGInnerNode ( SetOperation op )
     {
       switch ( op )
@@ -346,6 +356,15 @@ namespace Rendering
           bop = ( x, y ) => x || y;
           break;
       }
+    }
+
+    /// <summary>
+    /// Reset all the counters.
+    /// </summary>
+    public static void ResetStatistics ()
+    {
+      countCalls =
+      countIntersections = 0L;
     }
 
     /// <summary>
@@ -368,9 +387,12 @@ namespace Rendering
         Vector3d dir    = Vector3d.TransformVector(   p1, child.FromParent );
         // ray in local child's coords: [ origin, dir ]
 
+        countCalls++;
         LinkedList<Intersection> partial = child.Intersect( origin, dir );
         if ( partial == null )
           partial = new LinkedList<Intersection>();
+        else
+          countIntersections += partial.Count;
 
         if ( leftOp )
         {
@@ -443,7 +465,7 @@ namespace Rendering
   /// <summary>
   /// Default scene class for ray-based rendering.
   /// </summary>
-  public abstract class DefaultRayScene : IRayScene
+  public class DefaultRayScene : IRayScene
   {
     /// <summary>
     /// Scene model (whatever is able to compute ray intersections).
