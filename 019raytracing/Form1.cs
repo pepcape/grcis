@@ -50,6 +50,11 @@ namespace _019raytracing
         f = _f;
       }
 
+      public void Reset ()
+      {
+        lastSync = 0L;
+      }
+
       public override void Sync ( Object msg )
       {
         long now = f.sw.ElapsedMilliseconds;
@@ -58,18 +63,16 @@ namespace _019raytracing
 
         lastSync = now;
         f.SetText( String.Format( "{0:f1}%:  {1:f1}s", 100.0f * Finished, 1.0e-3 * now ) );
-        if ( (msg is Bitmap) )
-        {
-          Bitmap b = (Bitmap)msg;
+        Bitmap b = (msg as Bitmap);
+        if ( b != null )
           f.SetImage( (Bitmap)b.Clone() );
-        }
       }
     }
 
     /// <summary>
     /// Progress info / user break handling.
     /// </summary>
-    protected Progress progress = null;
+    protected RenderingProgress progress = null;
 
     /// <summary>
     /// [Re]-renders the whole image (in separate thread).
@@ -93,6 +96,7 @@ namespace _019raytracing
       rend.Height = height;
       rend.Adaptive = 16;
       rend.ProgressData = progress;
+      progress.Reset();
 
       lock ( sw )
       {
