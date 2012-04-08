@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
+using System.Threading;
 using System.Windows.Forms;
 using Rendering;
-using System.Threading;
 
 namespace _019raytracing
 {
@@ -18,6 +20,11 @@ namespace _019raytracing
     /// Scene to be rendered.
     /// </summary>
     protected IRayScene scene = null;
+
+    /// <summary>
+    /// The same order as items in the comboScenes.
+    /// </summary>
+    protected List<InitSceneDelegate> sceneInitFunctions = null;
 
     /// <summary>
     /// Ray-based renderer in form of image function.
@@ -75,6 +82,16 @@ namespace _019raytracing
     protected RenderingProgress progress = null;
 
     /// <summary>
+    /// Default behavior - create scene selected in the combo-box.
+    /// </summary>
+    protected IRayScene SceneByComboBox ()
+    {
+      DefaultRayScene sc = new DefaultRayScene();
+      sceneInitFunctions[ comboScene.SelectedIndex ]( sc );
+      return sc;
+    }
+
+    /// <summary>
     /// [Re]-renders the whole image (in separate thread).
     /// </summary>
     private void RenderImage ()
@@ -86,7 +103,10 @@ namespace _019raytracing
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       if ( imf == null )
+      {
         imf = getImageFunction();
+        rend = null;
+      }
       imf.Width  = width;
       imf.Height = height;
 
@@ -97,6 +117,7 @@ namespace _019raytracing
       rend.Adaptive = 16;
       rend.ProgressData = progress;
       progress.Reset();
+      CSGInnerNode.ResetStatistics();
 
       lock ( sw )
       {
@@ -113,7 +134,8 @@ namespace _019raytracing
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      SetText( String.Format( "Elapsed: {0:f1}s", 1.0e-3 * elapsed ) );
+      SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, c{3:#,#}, i{4:#,#} ]",
+                              1.0e-3 * elapsed, width, height, CSGInnerNode.countCalls, CSGInnerNode.countIntersections ) );
       SetImage( (Bitmap)outputImage.Clone() );
 
       Cursor.Current = Cursors.Default;
@@ -157,7 +179,7 @@ namespace _019raytracing
       if ( aThread == null )
         return;
 
-      if ( buttonRedraw.InvokeRequired )
+      if ( buttonRender.InvokeRequired )
       {
         StopRenderingCallback ea = new StopRenderingCallback( StopRendering );
         BeginInvoke( ea );
@@ -173,7 +195,8 @@ namespace _019raytracing
         aThread = null;
 
         // GUI stuff:
-        buttonRedraw.Enabled = true;
+        buttonRender.Enabled = true;
+        comboScene.Enabled = true;
         buttonSave.Enabled = true;
         buttonStop.Enabled = false;
       }
@@ -187,12 +210,15 @@ namespace _019raytracing
     private void singleSample ( int x, int y )
     {
       if ( imf == null )
+      {
         imf = getImageFunction();
+        rend = null;
+      }
 
       imf.Width  = panel1.Width;
       imf.Height = panel1.Height;
       double[] color = new double[ 3 ];
-      long hash = imf.GetSample( x, y, color );
+      long hash = imf.GetSample( x + 0.5, y + 0.5, color );
       labelSample.Text = String.Format( "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
@@ -203,14 +229,17 @@ namespace _019raytracing
       progress = new RenderingProgress( this );
       String []tok = "$Rev$".Split( new char[] { ' ' } );
       Text += " (rev: " + tok[1] + ')';
+      // Scenes combo-box
+      InitializeScenes();
     }
 
-    private void buttonRedraw_Click ( object sender, EventArgs e )
+    private void buttonRender_Click ( object sender, EventArgs e )
     {
       if ( aThread != null )
         return;
 
-      buttonRedraw.Enabled = false;
+      buttonRender.Enabled = false;
+      comboScene.Enabled = false;
       buttonSave.Enabled = false;
       buttonStop.Enabled = true;
       lock ( progress )
@@ -241,6 +270,11 @@ namespace _019raytracing
     private void buttonStop_Click ( object sender, EventArgs e )
     {
       StopRendering();
+    }
+
+    private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
+    {
+      imf = null;
     }
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )

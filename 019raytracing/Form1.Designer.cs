@@ -31,10 +31,12 @@
       this.panel1 = new System.Windows.Forms.Panel();
       this.pictureBox1 = new System.Windows.Forms.PictureBox();
       this.buttonSave = new System.Windows.Forms.Button();
-      this.buttonRedraw = new System.Windows.Forms.Button();
+      this.buttonRender = new System.Windows.Forms.Button();
       this.labelElapsed = new System.Windows.Forms.Label();
       this.labelSample = new System.Windows.Forms.Label();
       this.buttonStop = new System.Windows.Forms.Button();
+      this.label1 = new System.Windows.Forms.Label();
+      this.comboScene = new System.Windows.Forms.ComboBox();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.SuspendLayout();
@@ -74,22 +76,22 @@
       this.buttonSave.UseVisualStyleBackColor = true;
       this.buttonSave.Click += new System.EventHandler( this.buttonSave_Click );
       // 
-      // buttonRedraw
+      // buttonRender
       // 
-      this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonRedraw.Location = new System.Drawing.Point( 13, 411 );
-      this.buttonRedraw.Name = "buttonRedraw";
-      this.buttonRedraw.Size = new System.Drawing.Size( 90, 23 );
-      this.buttonRedraw.TabIndex = 5;
-      this.buttonRedraw.Text = "Render";
-      this.buttonRedraw.UseVisualStyleBackColor = true;
-      this.buttonRedraw.Click += new System.EventHandler( this.buttonRedraw_Click );
+      this.buttonRender.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonRender.Location = new System.Drawing.Point( 13, 411 );
+      this.buttonRender.Name = "buttonRender";
+      this.buttonRender.Size = new System.Drawing.Size( 114, 23 );
+      this.buttonRender.TabIndex = 5;
+      this.buttonRender.Text = "Render";
+      this.buttonRender.UseVisualStyleBackColor = true;
+      this.buttonRender.Click += new System.EventHandler( this.buttonRender_Click );
       // 
       // labelElapsed
       // 
       this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelElapsed.AutoSize = true;
-      this.labelElapsed.Location = new System.Drawing.Point( 197, 417 );
+      this.labelElapsed.Location = new System.Drawing.Point( 236, 417 );
       this.labelElapsed.Name = "labelElapsed";
       this.labelElapsed.Size = new System.Drawing.Size( 48, 13 );
       this.labelElapsed.TabIndex = 21;
@@ -99,7 +101,7 @@
       // 
       this.labelSample.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelSample.AutoSize = true;
-      this.labelSample.Location = new System.Drawing.Point( 307, 417 );
+      this.labelSample.Location = new System.Drawing.Point( 237, 383 );
       this.labelSample.Name = "labelSample";
       this.labelSample.Size = new System.Drawing.Size( 45, 13 );
       this.labelSample.TabIndex = 22;
@@ -109,23 +111,46 @@
       // 
       this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonStop.Enabled = false;
-      this.buttonStop.Location = new System.Drawing.Point( 120, 411 );
+      this.buttonStop.Location = new System.Drawing.Point( 148, 411 );
       this.buttonStop.Name = "buttonStop";
-      this.buttonStop.Size = new System.Drawing.Size( 57, 23 );
+      this.buttonStop.Size = new System.Drawing.Size( 66, 23 );
       this.buttonStop.TabIndex = 32;
       this.buttonStop.Text = "Stop";
       this.buttonStop.UseVisualStyleBackColor = true;
       this.buttonStop.Click += new System.EventHandler( this.buttonStop_Click );
+      // 
+      // label1
+      // 
+      this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.label1.AutoSize = true;
+      this.label1.Location = new System.Drawing.Point( 12, 382 );
+      this.label1.Name = "label1";
+      this.label1.Size = new System.Drawing.Size( 41, 13 );
+      this.label1.TabIndex = 33;
+      this.label1.Text = "Scene:";
+      // 
+      // comboScene
+      // 
+      this.comboScene.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.comboScene.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.comboScene.FormattingEnabled = true;
+      this.comboScene.Location = new System.Drawing.Point( 59, 378 );
+      this.comboScene.Name = "comboScene";
+      this.comboScene.Size = new System.Drawing.Size( 155, 21 );
+      this.comboScene.TabIndex = 34;
+      this.comboScene.SelectedIndexChanged += new System.EventHandler( this.comboScene_SelectedIndexChanged );
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.comboScene );
+      this.Controls.Add( this.label1 );
       this.Controls.Add( this.buttonStop );
       this.Controls.Add( this.labelSample );
       this.Controls.Add( this.labelElapsed );
-      this.Controls.Add( this.buttonRedraw );
+      this.Controls.Add( this.buttonRender );
       this.Controls.Add( this.buttonSave );
       this.Controls.Add( this.panel1 );
       this.MinimumSize = new System.Drawing.Size( 660, 200 );
@@ -145,10 +170,12 @@
     private System.Windows.Forms.Panel panel1;
     private System.Windows.Forms.PictureBox pictureBox1;
     private System.Windows.Forms.Button buttonSave;
-    private System.Windows.Forms.Button buttonRedraw;
+    private System.Windows.Forms.Button buttonRender;
     private System.Windows.Forms.Label labelElapsed;
     private System.Windows.Forms.Label labelSample;
     private System.Windows.Forms.Button buttonStop;
+    private System.Windows.Forms.Label label1;
+    private System.Windows.Forms.ComboBox comboScene;
   }
 }
 
