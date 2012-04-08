@@ -27,6 +27,11 @@ namespace _019raytracing
     protected List<InitSceneDelegate> sceneInitFunctions = null;
 
     /// <summary>
+    /// Index of the current (selected) scene.
+    /// </summary>
+    protected volatile int selectedScene = 0;
+
+    /// <summary>
     /// Ray-based renderer in form of image function.
     /// </summary>
     protected IImageFunction imf = null;
@@ -87,7 +92,7 @@ namespace _019raytracing
     protected IRayScene SceneByComboBox ()
     {
       DefaultRayScene sc = new DefaultRayScene();
-      sceneInitFunctions[ comboScene.SelectedIndex ]( sc );
+      sceneInitFunctions[ selectedScene ]( sc );
       return sc;
     }
 
@@ -274,6 +279,7 @@ namespace _019raytracing
 
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
+      selectedScene = comboScene.SelectedIndex;
       imf = null;
     }
 
