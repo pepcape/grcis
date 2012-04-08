@@ -72,6 +72,9 @@
     <Compile Include="..\common\RayCastingScenes.cs">
       <Link>RayCastingScenes.cs</Link>
     </Compile>
+    <Compile Include="..\common\RayCastingSolids.cs">
+      <Link>RayCastingSolids.cs</Link>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
