@@ -70,6 +70,9 @@
     <Compile Include="..\common\RayCastingScenes.cs">
       <Link>RayCastingScenes.cs</Link>
     </Compile>
+    <Compile Include="..\common\RayCastingSolids.cs">
+      <Link>RayCastingSolids.cs</Link>
+    </Compile>
     <Compile Include="..\common\RayTracingRender.cs">
       <Link>RayTracingRender.cs</Link>
     </Compile>
