@@ -403,10 +403,6 @@ namespace Rendering
         else
         {
           // resolve one binary operation (result := left # partial):
-          bool insideLeft = false;
-          bool insideRight = false;
-          bool insideResult = bop( false, false );
-
           LinkedList<Intersection> left = result;
           // result .. empty so far
           result = new LinkedList<Intersection>();
@@ -414,17 +410,13 @@ namespace Rendering
           double lowestT = Double.NegativeInfinity;
           Intersection leftFirst = (left.First == null) ? null : left.First.Value;
           Intersection rightFirst = (partial.First == null) ? null : partial.First.Value;
+          // initial inside status values:
+          bool insideLeft = (leftFirst != null && !leftFirst.Enter);
+          bool insideRight = (rightFirst != null && !rightFirst.Enter);
+          bool insideResult = bop( insideLeft, insideRight );
+          // merge behavior:
           bool minLeft = (leftFirst != null && leftFirst.T == lowestT);
           bool minRight = (rightFirst != null && rightFirst.T == lowestT);
-
-          if ( insideResult && !minLeft && !minRight )    // we need to insert negative infinity..
-          {
-            Intersection n = new Intersection( null );
-            n.T = Double.NegativeInfinity;
-            n.Enter = true;
-            result.AddLast( n );
-            insideResult = true;
-          }
 
           while ( leftFirst != null || rightFirst != null )
           {
@@ -440,14 +432,14 @@ namespace Rendering
               first = rightFirst;
               partial.RemoveFirst();
               rightFirst = (partial.First == null) ? null : partial.First.Value;
-              insideRight = !insideRight;
+              insideRight = first.Enter;
             }
             if ( minLeft )
             {
               first = leftFirst;
               left.RemoveFirst();
               leftFirst = (left.First == null) ? null : left.First.Value;
-              insideLeft = !insideLeft;
+              insideLeft = first.Enter;
             }
             bool newResult = bop( insideLeft, insideRight );
 
