@@ -300,4 +300,210 @@ namespace Rendering
       }
     }
   }
+
+  /// <summary>
+  /// Plane objects (infinite plane, rectangle, triangle) as elementary 3D solids.
+  /// </summary>
+  public class Plane : DefaultSceneNode, ISolid
+  {
+    /// <summary>
+    /// Lower bound for x coordinate.
+    /// </summary>
+    public double XMin
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Upper bound for x coordinate (or triangle).
+    /// </summary>
+    public double XMax
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Lower bound for y coordinate.
+    /// </summary>
+    public double YMin
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Upper bound for y coordinate (or triangle).
+    /// </summary>
+    public double YMax
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Use three restrictions instead of four (the 3rd one is: xMax * x + yMax * y &le; 1.0).
+    /// </summary>
+    public bool Triangle
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Use canonic u coordinate (=x)?
+    /// </summary>
+    public bool CanonicU
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Use canonic v coordinate (=y)?
+    /// </summary>
+    public bool CanonicV
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Scale coefficient for u coordinate.
+    /// </summary>
+    public double ScaleU
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Scale coefficient for v coordinate.
+    /// </summary>
+    public double ScaleV
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Default constructor - infinite plane.
+    /// </summary>
+    public Plane ()
+      : this( Double.NegativeInfinity, Double.PositiveInfinity,
+              Double.NegativeInfinity, Double.PositiveInfinity )
+    {
+    }
+
+    /// <summary>
+    /// Rectangle (four restrictions).
+    /// </summary>
+    public Plane ( double xMi, double xMa, double yMi, double yMa )
+    {
+      XMin = xMi;
+      XMax = xMa;
+      YMin = yMi;
+      YMax = yMa;
+      Triangle = false;
+      CanonicU =
+      CanonicV = true;
+      ScaleU =
+      ScaleV = 1.0;
+
+      // texture coordinates:
+      if ( !Double.IsInfinity( XMin ) &&
+           !Double.IsInfinity( XMax ) )
+      {
+        CanonicU = false;
+        ScaleU   = 1.0 / (XMax - XMin);
+      }
+      if ( !Double.IsInfinity( YMin ) &&
+           !Double.IsInfinity( YMax ) )
+      {
+        CanonicV = false;
+        ScaleV   = 1.0 / (YMax - YMin);
+      }
+    }
+
+    /// <summary>
+    /// Triangle (three restrictions).
+    /// xMax * x + yMax * y &le; 1.0
+    /// </summary>
+    public Plane ( double xMa, double yMa )
+    {
+      YMin     = XMin = 0.0;
+      XMax     = (xMa < Double.Epsilon) ? 1.0 : 1.0 / xMa;
+      YMax     = (yMa < Double.Epsilon) ? 1.0 : 1.0 / yMa;
+      Triangle =
+      CanonicU =
+      CanonicV = true;
+      ScaleU   =
+      ScaleV   = 1.0;
+    }
+
+    /// <summary>
+    /// Computes the complete intersection of the given ray with the object.
+    /// </summary>
+    /// <param name="p0">Ray origin.</param>
+    /// <param name="p1">Ray direction vector.</param>
+    /// <returns>Sorted list of intersection records.</returns>
+    public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
+    {
+      if ( Geometry.IsZero( p1.Z ) )
+        return null;
+
+      double t = -p0.Z / p1.Z;
+      double x = p0.X + t * p1.X;
+      if ( x < XMin ) return null;
+      double y = p0.Y + t * p1.Y;
+      if ( y < YMin ) return null;
+      double u, v;
+
+      if ( Triangle )
+      {
+        u = x * XMax;
+        v = y * YMax;
+        if ( u + v > 1.0 ) return null;
+      }
+      else
+        if ( x > XMax ||
+             y > YMax ) return null;
+        else
+        {
+          u = CanonicU ? x : (x - XMin) * ScaleU;
+          v = CanonicV ? y : (y - YMin) * ScaleV;
+        }
+
+      // there will be one intersection..
+      LinkedList<Intersection> result = new LinkedList<Intersection>();
+      Intersection i = new Intersection( this );
+      i.T = t;
+      i.Enter =
+      i.Front = p1.Z < 0.0;
+      i.CoordLocal.X = x;
+      i.CoordLocal.Y = y;
+      i.CoordLocal.Z = 0.0;
+      i.TextureCoord.X = u;
+      i.TextureCoord.Y = v;
+      result.AddLast( i );
+
+      return result;
+    }
+
+    /// <summary>
+    /// Complete all relevant items in the given Intersection object.
+    /// </summary>
+    /// <param name="inter">Intersection instance to complete.</param>
+    public override void CompleteIntersection ( Intersection inter )
+    {
+      // normal vector:
+      Vector3d tu = Vector3d.TransformVector( Vector3d.UnitX, inter.LocalToWorld );
+      Vector3d tv = Vector3d.TransformVector( Vector3d.UnitY, inter.LocalToWorld );
+      Vector3d.Cross( ref tu, ref tv, out inter.Normal );
+
+      // 2D texture coordinates:
+      // done
+    }
+  }
 }

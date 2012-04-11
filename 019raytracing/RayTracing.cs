@@ -84,6 +84,12 @@ namespace Rendering
       // Sole sphere:
       Sphere s = new Sphere();
       root.InsertChild( s, Matrix4d.Identity );
+
+      // Plane for testing
+      Plane pl = new Plane();
+      pl.SetAttribute( PropertyName.COLOR, new double[] { 0.5, 0.0, 0.0 } );
+      pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 2.0, 2.0, new double[] { 1.0, 1.0, 1.0 } ) );
+      root.InsertChild( pl, Matrix4d.RotateX( 1.2 ) );
     }
   }
 }
