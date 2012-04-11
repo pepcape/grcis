@@ -24,7 +24,7 @@
 ================================================================================
   DONE:
 ================================================================================
-- pridat par dalsich teles: Cube
+- pridat par dalsich teles: Cube, Plane (still buggy)
 - pridat nejlepsi studentske sceny z ulohy 018: Hedgehog, Flags
 - gamma pre-compensation (gamma encoding) do SimpleImageSynthesizer
 - Progress objekt: prijemce informaci o prubehu renderingu
