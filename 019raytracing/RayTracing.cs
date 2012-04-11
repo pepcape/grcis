@@ -40,8 +40,8 @@ namespace _019raytracing
         comboScene.Items.Add( name );
 
       // 2. eventually add custom scenes
-      sceneInitFunctions.Add( new InitSceneDelegate( CustomScene.MyScene ) );
-      comboScene.Items.Add( "Sphere" );
+      sceneInitFunctions.Add( new InitSceneDelegate( CustomScene.TestScene ) );
+      comboScene.Items.Add( "Test scene" );
 
       // .. and set your favorite scene here:
       comboScene.SelectedIndex = 0;
@@ -56,7 +56,7 @@ namespace Rendering
   /// </summary>
   public class CustomScene
   {
-    public static void MyScene ( IRayScene sc )
+    public static void TestScene ( IRayScene sc )
     {
       Debug.Assert( sc != null );
 
@@ -70,8 +70,8 @@ namespace Rendering
       sc.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
 
       // Camera:
-      sc.Camera = new StaticCamera( new Vector3d( 0.0, 0.0, -4.0 ),
-                                    new Vector3d( 0.0, 0.0, 1.0 ),
+      sc.Camera = new StaticCamera( new Vector3d( 0.7, 0.5, -5.0 ),
+                                    new Vector3d( 0.0, -0.18, 1.0 ),
                                     50.0 );
 
       // Light sources:
@@ -81,15 +81,15 @@ namespace Rendering
 
       // --- NODE DEFINITIONS ----------------------------------------------------
 
-      // Sole sphere:
+      // Sphere
       Sphere s = new Sphere();
       root.InsertChild( s, Matrix4d.Identity );
 
-      // Plane for testing
-      Plane pl = new Plane();
+      // Plane
+      Plane pl = new Plane( 3.0, 2.0 ); // right but not isosceles triangle
       pl.SetAttribute( PropertyName.COLOR, new double[] { 0.5, 0.0, 0.0 } );
-      pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 2.0, 2.0, new double[] { 1.0, 1.0, 1.0 } ) );
-      root.InsertChild( pl, Matrix4d.RotateX( 1.2 ) );
+      pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 6.0, 4.0, new double[] { 1.0, 1.0, 1.0 } ) );
+      root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
     }
   }
 }
