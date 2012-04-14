@@ -145,12 +145,12 @@ namespace Rendering
           if ( t2 > tMin )
           {
             tMin = t2;
-            fMin = CubeFaces.NegativeX;
+            fMin = CubeFaces.PositiveX;
           }
           if ( t1 < tMax )
           {
             tMax = t1;
-            fMax = CubeFaces.PositiveX;
+            fMax = CubeFaces.NegativeX;
           }
         }
 
@@ -188,12 +188,12 @@ namespace Rendering
           if ( t2 > tMin )
           {
             tMin = t2;
-            fMin = CubeFaces.NegativeY;
+            fMin = CubeFaces.PositiveY;
           }
           if ( t1 < tMax )
           {
             tMax = t1;
-            fMax = CubeFaces.PositiveY;
+            fMax = CubeFaces.NegativeY;
           }
         }
 
@@ -231,12 +231,12 @@ namespace Rendering
           if ( t2 > tMin )
           {
             tMin = t2;
-            fMin = CubeFaces.NegativeZ;
+            fMin = CubeFaces.PositiveZ;
           }
           if ( t1 < tMax )
           {
             tMax = t1;
-            fMax = CubeFaces.PositiveZ;
+            fMax = CubeFaces.NegativeZ;
           }
         }
 

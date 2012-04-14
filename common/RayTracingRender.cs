@@ -159,7 +159,7 @@ namespace Rendering
             {
               intersections = scene.Intersectable.Intersect( i.CoordWorld, dir );
               Intersection si = Intersection.FirstIntersection( intersections, ref dir );
-              // !!! TODO: better shadow testing !!!
+              // !!! TODO: better shadow testing (intersection vs. source position?) !!!
               if ( si != null ) continue;
             }
 
