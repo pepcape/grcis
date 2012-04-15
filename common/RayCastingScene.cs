@@ -329,6 +329,16 @@ namespace Rendering
     BooleanOperation bop;
 
     /// <summary>
+    /// Does empty left operand kill the result?
+    /// </summary>
+    protected bool shortCurcuit;
+
+    /// <summary>
+    /// Empty right operand doesn't change anything..
+    /// </summary>
+    protected bool trivial;
+
+    /// <summary>
     /// Number of Intersect() calls in child nodes.
     /// </summary>
     public static long countCalls = 0L;
@@ -356,6 +366,10 @@ namespace Rendering
           bop = ( x, y ) => x || y;
           break;
       }
+
+      // set accelerator flags:
+      shortCurcuit = !(bop( false, false ) || bop( false, true ));   // does empty left operand kill the result?
+      trivial = bop( true, false ) && !bop( false, false );          // empty right operand doesn't change anything..
     }
 
     /// <summary>
@@ -366,6 +380,11 @@ namespace Rendering
       countCalls =
       countIntersections = 0L;
     }
+
+    /// <summary>
+    /// Not to be modified!
+    /// </summary>
+    protected static LinkedList<Intersection> emptyResult = new LinkedList<Intersection>();
 
     /// <summary>
     /// Computes the complete intersection of the given ray with the object.
@@ -379,8 +398,9 @@ namespace Rendering
         return null;
 
       LinkedList<Intersection> result = null;
+      LinkedList<Intersection> left   = null;          // I'm going to reuse these two..
+
       bool leftOp = true;  // the 1st pass => left operand
-      bool shortCurcuit = !(bop( false, false ) || bop( false, true ));
 
       foreach ( ISceneNode child in children )
       {
@@ -391,7 +411,7 @@ namespace Rendering
         countCalls++;
         LinkedList<Intersection> partial = child.Intersect( origin, dir );
         if ( partial == null )
-          partial = new LinkedList<Intersection>();
+          partial = leftOp ? new LinkedList<Intersection>() : emptyResult;
         else
           countIntersections += partial.Count;
 
@@ -399,13 +419,21 @@ namespace Rendering
         {
           leftOp = false;
           result = partial;
+          left = new LinkedList<Intersection>();
         }
         else
         {
+          if ( trivial && partial.Count == 0 )
+            continue;
+
           // resolve one binary operation (result := left # partial):
-          LinkedList<Intersection> left = result;
+          {
+            LinkedList<Intersection> tmp = left;
+            left = result;
+            result = tmp;
+          }
           // result .. empty so far
-          result = new LinkedList<Intersection>();
+          result.Clear();
 
           double lowestT = Double.NegativeInfinity;
           Intersection leftFirst = (left.First == null) ? null : left.First.Value;
