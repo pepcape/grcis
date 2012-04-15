@@ -8,8 +8,6 @@
   Platonska telesa), Cylinder, Cone, Torus (Jan Navratil)
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
-- csg op: nevytvaret zbytecne prazdny "partial", ukazat si na predem pripraveny
-  (+ vymenovat left a result)
 
 ================================================================================
   Long term:
@@ -36,3 +34,4 @@
 - zkracene vyhodnocovani CSG
 - telesa presunout RayCastingBasic -> RayCastingSolids
 - asi je neco spatne s normalami u Cube
+- dalsi optimalizace CSG operaci (reuse seznamu, odstraneni zbytecneho new)
