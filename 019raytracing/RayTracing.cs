@@ -44,7 +44,7 @@ namespace _019raytracing
       comboScene.Items.Add( "Test scene" );
 
       // .. and set your favorite scene here:
-      comboScene.SelectedIndex = 0;
+      comboScene.SelectedIndex = comboScene.Items.IndexOf( "Cubes" );
     }
   }
 }
@@ -63,7 +63,7 @@ namespace Rendering
       // CSG scene:
       CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
       root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
-      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 1.0, 0.6, 0.1 }, 0.1, 0.6, 0.4, 16 ) );
+      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.7, 0.1, 0.0 }, 0.1, 0.8, 0.2, 16 ) );
       sc.Intersectable = root;
 
       // Background color:
@@ -83,7 +83,7 @@ namespace Rendering
 
       // Base plane
       Plane pl = new Plane();
-      pl.SetAttribute( PropertyName.COLOR, new double[] { 0.6, 0.0, 0.0 } );
+      pl.SetAttribute( PropertyName.COLOR, new double[] { 0.1, 0.4, 0.0 } );
       pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 0.5, 0.5, new double[] { 1.0, 1.0, 1.0 } ) );
       root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
 
