@@ -42,6 +42,7 @@
       this.checkShadows = new System.Windows.Forms.CheckBox();
       this.checkReflections = new System.Windows.Forms.CheckBox();
       this.checkRefractions = new System.Windows.Forms.CheckBox();
+      this.checkJitter = new System.Windows.Forms.CheckBox();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericSupersampling)).BeginInit();
@@ -186,7 +187,7 @@
       this.checkShadows.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.checkShadows.Checked = true;
       this.checkShadows.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkShadows.Location = new System.Drawing.Point( 177, 419 );
+      this.checkShadows.Location = new System.Drawing.Point( 246, 418 );
       this.checkShadows.Name = "checkShadows";
       this.checkShadows.Size = new System.Drawing.Size( 68, 17 );
       this.checkShadows.TabIndex = 37;
@@ -200,7 +201,7 @@
       this.checkReflections.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.checkReflections.Checked = true;
       this.checkReflections.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkReflections.Location = new System.Drawing.Point( 262, 418 );
+      this.checkReflections.Location = new System.Drawing.Point( 328, 417 );
       this.checkReflections.Name = "checkReflections";
       this.checkReflections.Size = new System.Drawing.Size( 74, 17 );
       this.checkReflections.TabIndex = 38;
@@ -214,18 +215,33 @@
       this.checkRefractions.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.checkRefractions.Checked = true;
       this.checkRefractions.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkRefractions.Location = new System.Drawing.Point( 352, 418 );
+      this.checkRefractions.Location = new System.Drawing.Point( 415, 417 );
       this.checkRefractions.Name = "checkRefractions";
       this.checkRefractions.Size = new System.Drawing.Size( 75, 17 );
       this.checkRefractions.TabIndex = 39;
       this.checkRefractions.Text = "refractions";
       this.checkRefractions.UseVisualStyleBackColor = true;
       // 
+      // checkJitter
+      // 
+      this.checkJitter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkJitter.AutoSize = true;
+      this.checkJitter.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.checkJitter.Checked = true;
+      this.checkJitter.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkJitter.Location = new System.Drawing.Point( 171, 418 );
+      this.checkJitter.Name = "checkJitter";
+      this.checkJitter.Size = new System.Drawing.Size( 59, 17 );
+      this.checkJitter.TabIndex = 40;
+      this.checkJitter.Text = "jittering";
+      this.checkJitter.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 482 );
+      this.Controls.Add( this.checkJitter );
       this.Controls.Add( this.checkRefractions );
       this.Controls.Add( this.checkReflections );
       this.Controls.Add( this.checkShadows );
@@ -268,6 +284,7 @@
     private System.Windows.Forms.CheckBox checkShadows;
     private System.Windows.Forms.CheckBox checkReflections;
     private System.Windows.Forms.CheckBox checkRefractions;
+    private System.Windows.Forms.CheckBox checkJitter;
   }
 }
 
