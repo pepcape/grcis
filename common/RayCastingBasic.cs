@@ -335,7 +335,7 @@ namespace Rendering
     /// Simple variant, w/o an integration support.
     /// </summary>
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
-    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source).</param>
+    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
     public double[] GetIntensity ( Intersection intersection, out Vector3d dir )
     {
@@ -343,7 +343,6 @@ namespace Rendering
       if ( Vector3d.Dot( dir, intersection.Normal ) <= 0.0 )
         return null;
 
-      dir.Normalize();
       return intensity;
     }
 
@@ -354,7 +353,7 @@ namespace Rendering
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source).</param>
+    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
     public double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir )
     {
@@ -530,6 +529,7 @@ namespace Rendering
       }
 
       // directional light source:
+      input.Normalize();
       double cosAlpha = Vector3d.Dot( input, normal );
       bool   lightOut = cosAlpha > 0.0;
       double ks = mat.Ks;

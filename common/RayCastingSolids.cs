@@ -506,4 +506,177 @@ namespace Rendering
       // done
     }
   }
+
+  /// <summary>
+  /// Unit cylinder (optionally restrictead by one or two bases) able to compute ray-intersection, normal vector
+  /// and 2D texture coordinates.
+  /// </summary>
+  public class Cylinder : DefaultSceneNode, ISolid
+  {
+    /// <summary>
+    /// Lower bound for z coordinate (optional)
+    /// </summary>
+    public double ZMin
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Upper bound for z coordinate (optional).
+    /// </summary>
+    public double ZMax
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Default constructor - infinite cylindric surface.
+    /// </summary>
+    public Cylinder ()
+      : this( Double.NegativeInfinity, Double.PositiveInfinity )
+    {
+    }
+
+    /// <summary>
+    /// Restricted cylinder.
+    /// </summary>
+    public Cylinder ( double zMi, double zMa )
+    {
+      ZMin = zMi;
+      ZMax = zMa;
+    }
+
+    /// <summary>
+    /// Computes the complete intersection of the given ray with the object.
+    /// </summary>
+    /// <param name="p0">Ray origin.</param>
+    /// <param name="p1">Ray direction vector.</param>
+    /// <returns>Sorted list of intersection records.</returns>
+    public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
+    {
+      double A = p1.X * p1.X + p1.Y * p1.Y;
+      double DA = A + A;
+      double B = p0.X * p1.X + p0.Y * p1.Y;
+      B += B;
+      double C = p0.X * p0.X + p0.Y * p0.Y - 1.0;
+
+      double d = B * B - (DA + DA) * C;    // discriminant
+      if ( d <= 0.0 ) return null;         // no intersection
+
+      d = Math.Sqrt( d );
+      // there will be two intersections: (-B +- d) / DA
+      double t1 = (-B - d) / DA;
+      double t2 = (-B + d) / DA;           // t1 < t2
+      Vector3d loc1 = p0 + t1 * p1;
+      Vector3d loc2 = p0 + t2 * p1;
+
+      double lzmin = Math.Min( loc1.Z, loc2.Z );
+      if ( lzmin >= ZMax )
+        return null;
+      double lzmax = Math.Max( loc1.Z, loc2.Z );
+      if ( lzmax <= ZMin )
+        return null;
+
+      // there indeed will be two intersections
+      LinkedList<Intersection> result = new LinkedList<Intersection>();
+      Intersection i;
+
+      // test the two bases:
+      double tb1 = 0.0, tb2 = 0.0;
+      bool base1 = ZMin > lzmin && ZMin < lzmax;
+      if ( base1 )
+        tb1 = (ZMin - p0.Z) / p1.Z;
+      bool base2 = ZMax > lzmin && ZMax < lzmax;
+      if ( base2 )
+        tb2 = (ZMax - p0.Z) / p1.Z;
+
+      // Enter the solid:
+      i = new Intersection( this );
+      i.Enter =
+      i.Front = true;
+      if ( base1 && p1.Z > 0.0 )
+      {
+        // enter through the 1st base:
+        i.T = tb1;
+        i.CoordLocal = p0 + tb1 * p1;
+        i.SolidData = -1;
+      }
+      else if ( base2 && p1.Z < 0.0 )
+      {
+        // enter through the 2nd base:
+        i.T = tb2;
+        i.CoordLocal = p0 + tb2 * p1;
+        i.SolidData = 1;
+      }
+      else
+      {
+        // cylinder surface:
+        i.T = t1;
+        i.CoordLocal = loc1;
+        i.SolidData = 0;
+      }
+      result.AddLast( i );
+
+      // Leave the solid:
+      i = new Intersection( this );
+      i.Enter =
+      i.Front = false;
+      if ( base1 && p1.Z < 0.0 )
+      {
+        // enter through the 1st base:
+        i.T = tb1;
+        i.CoordLocal = p0 + tb1 * p1;
+        i.SolidData = -1;
+      }
+      else if ( base2 && p1.Z > 0.0 )
+      {
+        // enter through the 2nd base:
+        i.T = tb2;
+        i.CoordLocal = p0 + tb2 * p1;
+        i.SolidData = 1;
+      }
+      else
+      {
+        // cylinder surface:
+        i.T = t2;
+        i.CoordLocal = loc2;
+        i.SolidData = 0;
+      }
+      result.AddLast( i );
+
+      return result;
+    }
+
+    /// <summary>
+    /// Complete all relevant items in the given Intersection object.
+    /// </summary>
+    /// <param name="inter">Intersection instance to complete.</param>
+    public override void CompleteIntersection ( Intersection inter )
+    {
+      // normal vector:
+      Vector3d tu, tv;
+      Vector3d ln;
+      ln.Z = (int)inter.SolidData;
+      if ( (int)inter.SolidData == 0 )
+      {
+        ln.X = inter.CoordLocal.X;
+        ln.Y = inter.CoordLocal.Y;
+        inter.TextureCoord.X = Math.Atan2( inter.CoordLocal.Y, inter.CoordLocal.X ) / (2.0 * Math.PI) + 0.5;
+      }
+      else
+      {
+        ln.X = ln.Y = 0.0;
+        inter.TextureCoord.X = 0.0;
+      }
+      Geometry.GetAxes( ref ln, out tu, out tv );
+      tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
+      tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
+      Vector3d.Cross( ref tu, ref tv, out inter.Normal );
+
+      // 2D texture coordinates:
+      inter.TextureCoord.Y = inter.CoordLocal.Z;
+    }
+  }
 }

@@ -188,7 +188,7 @@ namespace Rendering
     /// Simple variant, w/o an integration support.
     /// </summary>
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
-    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source).</param>
+    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
     double[] GetIntensity ( Intersection intersection, out Vector3d dir );
 
@@ -199,7 +199,7 @@ namespace Rendering
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source).</param>
+    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
     double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir );
   }
@@ -585,6 +585,20 @@ namespace Rendering
           return i;
 
       return null;
+    }
+
+    /// <summary>
+    /// Compares the given t against the stored intersection.
+    /// Uses local-space epsilon tolerance and provided direction vector.
+    /// </summary>
+    /// <returns>True if this intersection is far than t.</returns>
+    public bool Far ( double t, ref Vector3d p1 )
+    {
+      if ( T <= t ) return false;
+
+      double p1Squared = p1.X * p1.X + p1.Y * p1.Y + p1.Z * p1.Z;
+      t = T - t;
+      return( t * t * p1Squared > 1.0e-8 );
     }
 
     /// <summary>

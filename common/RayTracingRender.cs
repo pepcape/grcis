@@ -159,8 +159,8 @@ namespace Rendering
             {
               intersections = scene.Intersectable.Intersect( i.CoordWorld, dir );
               Intersection si = Intersection.FirstIntersection( intersections, ref dir );
-              // !!! TODO: better shadow testing (intersection vs. source position?) !!!
-              if ( si != null ) continue;
+              // Better shadow testing: intersection between 0.0 and 1.0 kills the lighting
+              if ( si != null && !si.Far( 1.0, ref dir ) ) continue;
             }
 
             double[] reflection = i.ReflectanceModel.ColorReflection( i, dir, p1, ReflectionComponent.ALL );
