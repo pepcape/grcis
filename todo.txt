@@ -22,7 +22,7 @@
 ================================================================================
   DONE:
 ================================================================================
-- pridat par dalsich teles: Cube, Plane
+- pridat par dalsich teles: Cube, Plane, Cylinder
 - pridat nejlepsi studentske sceny z ulohy 018: Hedgehog, Flags
 - gamma pre-compensation (gamma encoding) do SimpleImageSynthesizer
 - Progress objekt: prijemce informaci o prubehu renderingu
@@ -35,3 +35,4 @@
 - telesa presunout RayCastingBasic -> RayCastingSolids
 - asi je neco spatne s normalami u Cube
 - dalsi optimalizace CSG operaci (reuse seznamu, odstraneni zbytecneho new)
+- korektni vrzene stiny
