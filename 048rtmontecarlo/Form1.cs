@@ -128,6 +128,12 @@ namespace _048rtmontecarlo
       rend.Height = height;
       rend.Adaptive = 16;
       rend.ProgressData = progress;
+      SupersamplingImageSynthesizer ss = rend as SupersamplingImageSynthesizer;
+      if ( ss != null )
+      {
+        ss.Supersampling = (int)numericSupersampling.Value;
+        ss.Jittering = checkJitter.Checked ? 1.0 : 0.0;
+      }
       progress.Reset();
       CSGInnerNode.ResetStatistics();
 

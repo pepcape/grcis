@@ -29,8 +29,9 @@ namespace _048rtmontecarlo
     /// </summary>
     private IRenderer getRenderer ( IImageFunction imf )
     {
-      SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
+      SupersamplingImageSynthesizer sis = new SupersamplingImageSynthesizer();
       sis.ImageFunction = imf;
+      sis.Rnd = rnd;
       return sis;
     }
 

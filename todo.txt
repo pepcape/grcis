@@ -36,3 +36,4 @@
 - asi je neco spatne s normalami u Cube
 - dalsi optimalizace CSG operaci (reuse seznamu, odstraneni zbytecneho new)
 - korektni vrzene stiny
+- super-sampling do RT (pravidelny i jittering)
