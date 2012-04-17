@@ -507,8 +507,8 @@ namespace Rendering
 
       // Light sources:
       sc.Sources = new LinkedList<ILightSource>();
-      sc.Sources.Add( new AmbientLightSource( 0.8 ) );
-      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 3.0, -3.0 ), 1.0 ) );
+      sc.Sources.Add( new AmbientLightSource( 1.0 ) );
+      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 3.0, -3.0 ), 1.6 ) );
 
       // --- NODE DEFINITIONS ----------------------------------------------------
 
