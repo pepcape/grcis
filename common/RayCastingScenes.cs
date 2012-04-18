@@ -27,6 +27,7 @@ namespace Rendering
       "Sphere on the plane",
       "Cubes",
       "Cylinders",
+      "Circus",
     };
 
     /// <summary>
@@ -40,6 +41,7 @@ namespace Rendering
       new InitSceneDelegate( SpherePlane ),
       new InitSceneDelegate( Cubes ),
       new InitSceneDelegate( Cylinders ),
+      new InitSceneDelegate( Circus ),
     };
 
     /// <summary>
@@ -531,6 +533,237 @@ namespace Rendering
       c = new Cylinder( -0.5, 0.5 );
       c.SetAttribute( PropertyName.COLOR, new double[] { 0.8, 0.6, 0.0 } );
       root.InsertChild( c, Matrix4d.Scale( 2.0 ) * Matrix4d.RotateX( 1.2 ) * Matrix4d.CreateTranslation( 2.0, 1.8, 16.0 ) );
+    }
+
+    /// <summary>
+    /// Test scene by Adam Hanka (c) 2012
+    /// </summary>
+    public static void Circus ( IRayScene sc )
+    {
+      Debug.Assert( sc != null );
+
+      // CSG scene:
+      CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
+      root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
+      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.8, 0.1, 16 ) );
+      sc.Intersectable = root;
+
+      // Background color:
+      sc.BackgroundColor = new double[] { 0.5, 0.7, 0.6 };
+
+      // Camera:
+      sc.Camera = new StaticCamera( new Vector3d( 0.0, 0.0, -11.0 ),
+                                    new Vector3d( 0.0, 0.0, 1.0 ),
+                                    60.0 );
+
+      // Light sources:
+      sc.Sources = new LinkedList<ILightSource>();
+      sc.Sources.Add( new AmbientLightSource( 1.0 ) );
+      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 3.0, -3.0 ), 1.2 ) );
+
+      // --- NODE DEFINITIONS ----------------------------------------------------
+
+      // Vlevo nahore: hlava panacka - vyuziva implementace Xor na rty, vnitrek ust je tvoren pomoci Intersection, jinak je zalozena na Union a Difference
+      root.InsertChild( head(), Matrix4d.CreateTranslation( -6, 1.5, 0 ) * Matrix4d.RotateY( Math.PI / 10 ) * Matrix4d.Scale( 0.7 ) );
+
+      // Uprostred nahode: testovani funkcnosti difference pro sest kouli
+      root.InsertChild( test6Spheres( SetOperation.Difference ), Matrix4d.CreateTranslation( 0, 1.5, 0 ) * Matrix4d.Scale( 0.7 ) );
+
+      // Vpravo nahore: testovani operace Xor tak, ze se funkce test6Spheres vola jednou s Union, jednou s Xor a vysledky se odectou
+      root.InsertChild( testXor2(), Matrix4d.CreateTranslation( 6, 1.5, 0 ) * Matrix4d.RotateX( Math.PI / 3 ) * Matrix4d.RotateY( Math.PI / 4 ) * Matrix4d.Scale( 0.6 ) );
+
+      // Vlevo dole: test xoru s Cylindry - opet jako Union - Xor = vysledek
+      root.InsertChild( testWithCylindersXor(), Matrix4d.CreateTranslation( -5, -2.5, 0 ) * Matrix4d.Scale( 0.7 ) );
+
+      // Uprostred dole: prosty Xor valcu
+      root.InsertChild( testWithCylinders( SetOperation.Xor ), Matrix4d.CreateTranslation( 0, -2.5, 0 ) * Matrix4d.Scale( 0.7 ) );
+
+      // Vpravo dole: testovani Intersection - prosty prusecik dvou kouli
+      root.InsertChild( test2Spheres( SetOperation.Intersection ), Matrix4d.CreateTranslation( 4, -1.5, 0 ) );
+    }
+
+    protected static CSGInnerNode head ()
+    {
+      CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
+
+      double[] skinColor = new double[] { 1, .8, .65 };
+      double[] whiteColor = new double[] { 1, 1, 1 };
+      double[] blackColor = new double[] { 0, 0, 0 };
+      double[] blueColor = new double[] { 0, 0, 1 };
+      double[] redColor = new double[] { 1, 0, 0 };
+
+      CSGInnerNode hlava = new CSGInnerNode( SetOperation.Difference );
+      root.InsertChild( hlava, Matrix4d.Identity );
+
+      Sphere s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, skinColor );
+      hlava.InsertChild( s, Matrix4d.Scale( 2.3 ) );
+
+      // klobouk
+      CSGInnerNode klobouk = new CSGInnerNode( SetOperation.Union );
+
+      Cylinder klb = new Cylinder( -0.5, 0.5 );
+      klb.SetAttribute( PropertyName.COLOR, blackColor );
+      klobouk.InsertChild( klb, Matrix4d.Scale( 2, 2, 1.4 ) * Matrix4d.RotateX( Math.PI / 2 ) * Matrix4d.CreateTranslation( 0, 0.5, 0 ) );
+
+      Cylinder ksilt = new Cylinder( -0.5, 0.5 );
+      ksilt.SetAttribute( PropertyName.COLOR, blackColor );
+      klobouk.InsertChild( ksilt, Matrix4d.Scale( 3, 3, .1 ) * Matrix4d.RotateX( Math.PI / 2 ) );
+
+      root.InsertChild( klobouk, Matrix4d.CreateTranslation( 0, 1.25, 0 ) );
+
+      // levy ocni dulek
+      s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, skinColor );
+      hlava.InsertChild( s, Matrix4d.Scale( 0.7 ) * Matrix4d.CreateTranslation( -0.7, .3, -1.8 ) );
+
+      // pravy ocni dulek
+      s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, skinColor );
+      hlava.InsertChild( s, Matrix4d.Scale( 0.7 ) * Matrix4d.CreateTranslation( 0.7, .3, -1.8 ) );
+
+      // prave oko
+      CSGInnerNode oko = new CSGInnerNode( SetOperation.Union );
+      root.InsertChild( oko, Matrix4d.CreateTranslation( 0.70, 0.3, -0.5 ) );
+
+      Sphere bulva = new Sphere();
+      bulva.SetAttribute( PropertyName.COLOR, whiteColor );
+      oko.InsertChild( bulva, Matrix4d.Scale( 1.3 ) );
+
+      Sphere cocka = new Sphere();
+      cocka.SetAttribute( PropertyName.COLOR, blueColor );
+      oko.InsertChild( cocka, Matrix4d.Scale( 0.3 ) * Matrix4d.CreateTranslation( 0, 0, -1.2 ) );
+
+      // leve oko
+      oko = new CSGInnerNode( SetOperation.Union );
+      root.InsertChild( oko, Matrix4d.CreateTranslation( -0.70, 0.3, -0.5 ) );
+
+      bulva = new Sphere();
+      bulva.SetAttribute( PropertyName.COLOR, whiteColor );
+      oko.InsertChild( bulva, Matrix4d.Scale( 1.3 ) );
+
+      cocka = new Sphere();
+      cocka.SetAttribute( PropertyName.COLOR, blueColor );
+      oko.InsertChild( cocka, Matrix4d.Scale( 0.3 ) * Matrix4d.CreateTranslation( 0, 0, -1.2 ) );
+
+      // nos
+      Cylinder nos = new Cylinder( -0.5, 0.5 );
+      nos.SetAttribute( PropertyName.COLOR, skinColor );
+      root.InsertChild( nos, Matrix4d.Scale( 0.2, 0.2, 0.6 ) * Matrix4d.CreateTranslation( 0, 0, -2.65 ) );
+
+      // usta
+      CSGInnerNode usta = new CSGInnerNode( SetOperation.Xor );
+
+      Cylinder horniRet = new Cylinder( -0.5, 0.5 );
+      horniRet.SetAttribute( PropertyName.COLOR, redColor );
+      usta.InsertChild( horniRet, Matrix4d.CreateTranslation( 0, -0.3, 0 ) );
+
+      Cylinder dolniRet = new Cylinder( -0.5, 0.5 );
+      dolniRet.SetAttribute( PropertyName.COLOR, redColor );
+      usta.InsertChild( dolniRet, Matrix4d.CreateTranslation( 0, 0.3, 0 ) );
+
+      root.InsertChild( usta, Matrix4d.Scale( 0.7, 0.3, 1 ) * Matrix4d.CreateTranslation( 0, -0.7, -1.85 ) );
+
+      // vnitrek ust
+      CSGInnerNode vnitrekUst = new CSGInnerNode( SetOperation.Intersection );
+      horniRet = new Cylinder( -0.5, 0.5 );
+      horniRet.SetAttribute( PropertyName.COLOR, blackColor );
+      vnitrekUst.InsertChild( horniRet, Matrix4d.CreateTranslation( 0, -0.3, 0 ) );
+
+      dolniRet = new Cylinder( -0.5, 0.5 );
+      dolniRet.SetAttribute( PropertyName.COLOR, blackColor );
+      vnitrekUst.InsertChild( dolniRet, Matrix4d.CreateTranslation( 0, 0.3, 0 ) );
+
+      usta.InsertChild( vnitrekUst, Matrix4d.CreateTranslation( 0, 0, 0.1 ) );
+
+      return root;
+    }
+
+    protected static CSGInnerNode testWithCylindersXor ()
+    {
+      CSGInnerNode root = new CSGInnerNode( SetOperation.Difference );
+      root.InsertChild( testWithCylinders( SetOperation.Union ), Matrix4d.Identity );
+      root.InsertChild( testWithCylinders( SetOperation.Xor ), Matrix4d.Identity );
+
+      return root;
+    }
+
+    protected static CSGInnerNode testWithCylinders ( SetOperation op )
+    {
+      // scene:
+      CSGInnerNode root = new CSGInnerNode( op );
+      int num = 5;
+
+      for ( int i = 0; i < num; ++i )
+      {
+        double j = i;
+        Cylinder c = new Cylinder( -0.5, 0.5 );
+        c.SetAttribute( PropertyName.COLOR, new double[] { j / num, 1.0 - j / num, 0 } );
+        root.InsertChild( c, Matrix4d.RotateX( Math.PI / 4 ) * Matrix4d.CreateTranslation( -1 + 0.6 * i, 0, 0 ) );
+      }
+
+      return root;
+    }
+
+    protected static CSGInnerNode test2Spheres ( SetOperation op )
+    {
+      // scene:
+      CSGInnerNode root = new CSGInnerNode( op );
+
+      Sphere s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, new double[] { 1, 0.3, 1 } );
+      root.InsertChild( s, Matrix4d.CreateTranslation( -0.3, 0.0, 0 ) );
+
+      s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, new double[] { 1, 0.3, 0 } );
+      root.InsertChild( s, Matrix4d.CreateTranslation( 0.2, 0, -0.2 ) );
+
+      return root;
+    }
+
+    protected static CSGInnerNode test6Spheres ( SetOperation op )
+    {
+      // scene:
+      CSGInnerNode root = new CSGInnerNode( op );
+
+      Sphere s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, new double[] { 1, 0.3, 1 } );
+      root.InsertChild( s, Matrix4d.Scale( 2 ) );
+
+      s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, new double[] { 0.5, 0.8, 0.2 } );
+      root.InsertChild( s, Matrix4d.CreateTranslation( 0, 0, -2 ) );
+
+      s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, new double[] { 1, 0.3, 0 } );
+      root.InsertChild( s, Matrix4d.CreateTranslation( 0, 1, -0.5 ) );
+
+      s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, new double[] { 1, 0.3, 0 } );
+      root.InsertChild( s, Matrix4d.CreateTranslation( 1, 0, -0.5 ) );
+
+      s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, new double[] { 1, 0.3, 0 } );
+      root.InsertChild( s, Matrix4d.CreateTranslation( 0, -1, -0.5 ) );
+
+      s = new Sphere();
+      s.SetAttribute( PropertyName.COLOR, new double[] { 1, 0.3, 0 } );
+      root.InsertChild( s, Matrix4d.CreateTranslation( -1, 0, -0.5 ) );
+
+      return root;
+    }
+
+    protected static CSGInnerNode testXor2 ()
+    {
+      // testovani probiha podle vzoru (a union b) - (a xor b) = (a and b)
+      // takze udelame levou stranu rovnice a to nam da intersection
+
+      CSGInnerNode root = new CSGInnerNode( SetOperation.Difference );
+
+      root.InsertChild( test6Spheres( SetOperation.Union ), Matrix4d.Identity );
+      root.InsertChild( test6Spheres( SetOperation.Xor ), Matrix4d.Identity );
+
+      return root;
     }
   }
 }
