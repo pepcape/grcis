@@ -5,7 +5,7 @@
 ================================================================================
 - pridat nejlepsi studentske sceny z ulohy 018
 - pridat par dalsich teles: Plane (test: nahodny konvexni polyedr nebo
-  Platonska telesa), Cylinder, Cone, Torus (Jan Navratil)
+  Platonska telesa), Cone, Torus (Jan Navratil)
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
 
