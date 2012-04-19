@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using OpenTK;
 
 // Interfaces and objects for ray-based rendering.
@@ -451,6 +452,8 @@ namespace Rendering
             double leftVal = (leftFirst != null) ? leftFirst.T : double.PositiveInfinity;
             double rightVal = (rightFirst != null) ? rightFirst.T : double.PositiveInfinity;
             lowestT = Math.Min( leftVal, rightVal );
+            Debug.Assert( !Double.IsInfinity( lowestT ) );
+
             minLeft = leftVal == lowestT;
             minRight = rightVal == lowestT;
 

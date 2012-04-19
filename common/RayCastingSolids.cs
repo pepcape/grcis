@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using MathSupport;
 using OpenTK;
+using System.Diagnostics;
 
 namespace Rendering
 {
@@ -677,6 +678,144 @@ namespace Rendering
 
       // 2D texture coordinates:
       inter.TextureCoord.Y = inter.CoordLocal.Z;
+    }
+  }
+
+  /// <summary>
+  /// Torus (original author: Jan Navratil, (c) 2012).
+  /// </summary>
+  public class Torus : DefaultSceneNode, ISolid
+  {
+    public double bigRadius = 1.0;
+
+    public double smallRadius = 0.5;
+
+    protected CSGInnerNode wrapper = new CSGInnerNode( SetOperation.Union );
+
+    public Torus ( double big, double small )
+    {
+      bigRadius = big;
+      smallRadius = small;
+      wrapper.InsertChild( new Sphere(), Matrix4d.Scale( bigRadius + smallRadius ) );
+    }
+
+    /// <summary>
+    /// Computes the complete intersection of the given ray with the object. 
+    /// </summary>
+    /// <param name="p0">Ray origin.</param>
+    /// <param name="p1">Ray direction vector.</param>
+    /// <returns>Sorted list of intersection records.</returns>
+    public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
+    {
+      if ( wrapper.Intersect( p0, p1 ) == null )
+        return null;
+
+      // vlastni implementace podle http://www.emeyex.com/site/projects/raytorus.pdf
+      double OD, DD, OO;
+      Vector3d.Dot( ref p0, ref p1, out OD );
+      Vector3d.Dot( ref p1, ref p1, out DD );
+      Vector3d.Dot( ref p0, ref p0, out OO );
+
+      double bRbR = bigRadius * bigRadius;
+      double sRsR = smallRadius * smallRadius;
+      double OObRbRsRsR = OO - bRbR - sRsR;
+
+      double a = DD * DD;
+      double b = 4 * DD * OD;
+      double c = 4 * OD * OD + 2 * DD * OObRbRsRsR + 4 * bRbR * p1.Z * p1.Z;
+      double d = 4 * OD * OObRbRsRsR + 8 * bRbR * p1.Z * p0.Z;
+      double e = OObRbRsRsR * OObRbRsRsR + 4 * bRbR * ( p0.Z * p0.Z - sRsR);
+
+      Polynomial poly = new Polynomial( a, b, c, d, e );
+      double[] roots = new double[ 4 ];
+      int nRoots = poly.SolveQuartic( roots );
+      if ( nRoots == 0 )
+        return null;
+
+      for ( int i = 0; i < nRoots; i++ )
+        if ( !Geometry.IsZero( roots[ i ] ) )
+          roots[ i ] = 1.0 / roots[ i ];
+
+      if ( nRoots >= 2 )
+        Array.Sort( roots, 0, nRoots );
+
+      Debug.Assert( (nRoots % 2 == 0), "Roots(" + nRoots + "): " + roots[ 0 ] + " " + roots[ 1 ] + " " + roots[ 2 ] + " " + roots[ 3 ] );
+
+      LinkedList<Intersection> result = new LinkedList<Intersection>();
+      Intersection ix;
+      for ( int j = 0; j < nRoots; j++ )
+      {
+        double t = roots[ j ];
+        ix = new Intersection( this );
+        ix.T = t;
+        ix.Enter =
+        ix.Front = (j % 2 == 0);
+        ix.CoordLocal = p0 + t * p1;
+
+        result.AddLast( ix );
+      }
+
+      return result;
+    }
+
+    /// <summary>
+    /// Complete all relevant items in the given Intersection object.
+    /// </summary>
+    /// <param name="inter">Intersection instance to complete.</param>
+    public override void CompleteIntersection ( Intersection inter )
+    {
+      // normal vector:
+      Vector3d tu, tv;
+
+      // normal vector of an intersection with a torus in the z plain is the same as the intersection coordinates
+      // minus the coordinates of the center of the circle it lays on.
+      Vector3d circleCenter = getSmallCircleCenter( inter );
+      if ( Geometry.IsZero( inter.CoordLocal.X ) &&
+           Geometry.IsZero( inter.CoordLocal.Y ) )
+        inter.Normal = new Vector3d( 0.0, 0.0, Math.Sign( inter.CoordLocal.Z ) );
+      else
+      {
+        Vector3d smallCircleRadius = inter.CoordLocal - circleCenter;
+
+        //Debug.Assert( Geometry.IsZero( smallCircleRadius.Length - smallRadius ) );
+        //Debug.Assert( Geometry.IsZero( circleCenter.Length - bigRadius ) );
+
+        Geometry.GetAxes( ref smallCircleRadius, out tu, out tv );
+        tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
+        tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
+        Vector3d.Cross( ref tu, ref tv, out inter.Normal );
+      }
+
+      // 2D texture coordinates:
+      double r = Math.Sqrt( inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y );
+      inter.TextureCoord.X = Geometry.IsZero( r ) ? 0.0 : (Math.Atan2( inter.CoordLocal.Y, inter.CoordLocal.X ) / (2.0 * Math.PI) + 0.5);
+
+      Vector3d circleCenterToIntersection = inter.CoordLocal - circleCenter;
+      double r2 = Math.Sqrt( circleCenterToIntersection.X * circleCenterToIntersection.X + circleCenterToIntersection.Y * circleCenterToIntersection.Y );
+      if ( r < bigRadius )
+        r2 = -r2;
+      inter.TextureCoord.Y = Math.Atan2( r2, inter.CoordLocal.Z ) / (2.0 * Math.PI) + 0.5;
+    }
+
+    private Vector3d getSmallCircleCenter ( Intersection inter )
+    {
+      Vector3d circleCenter = new Vector3d();
+      double torusCenter_intersectionDistanceInPlane = Math.Sqrt( inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y );
+      double centerCalculationRatio = bigRadius / torusCenter_intersectionDistanceInPlane;
+      circleCenter.X = inter.CoordLocal.X * centerCalculationRatio;
+      circleCenter.Y = inter.CoordLocal.Y * centerCalculationRatio;
+      circleCenter.Z = 0.0;
+
+      double assHoleZSquared = smallRadius * smallRadius - bigRadius * bigRadius;
+      if ( bigRadius < smallRadius &&                                   // mame prdelni torus
+           centerCalculationRatio > 1.0 &&                              // prusecik je bliz centru nez obvodu
+           assHoleZSquared >= inter.CoordLocal.Z * inter.CoordLocal.Z ) // Z pruseciku je niz nez asshole
+      {
+        circleCenter.X = -circleCenter.X;
+        circleCenter.Y = -circleCenter.Y;
+        inter.Front = false;
+      }
+      return circleCenter;
     }
   }
 }
