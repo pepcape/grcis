@@ -3,9 +3,8 @@
 ================================================================================
   ($Rev$ $Date$)
 ================================================================================
-- pridat nejlepsi studentske sceny z ulohy 018
 - pridat par dalsich teles: Plane (test: nahodny konvexni polyedr nebo
-  Platonska telesa), Cone, Torus (Jan Navratil)
+  Platonska telesa), Cone
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
 
@@ -22,7 +21,7 @@
 ================================================================================
   DONE:
 ================================================================================
-- pridat par dalsich teles: Cube, Plane, Cylinder
+- pridat par dalsich teles: Cube, Plane, Cylinder, Torus
 - pridat nejlepsi studentske sceny z ulohy 018: Hedgehog, Flags
 - gamma pre-compensation (gamma encoding) do SimpleImageSynthesizer
 - Progress objekt: prijemce informaci o prubehu renderingu
