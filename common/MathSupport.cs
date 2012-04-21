@@ -1,5 +1,6 @@
 ﻿using System;
 using OpenTK;
+using System.Collections.Generic;
 
 // Support math code.
 namespace MathSupport
@@ -33,21 +34,28 @@ namespace MathSupport
     /// <summary>
     /// Degree of the polynomial.
     /// </summary>
-    protected int n = 0;
+    protected int n;
 
-    protected double[] coef;
+    protected double A;
+    protected double B;
+    protected double C;
+    protected double D;
+    protected double E;
 
     public Polynomial ()
     {
       n = 0;
-      coef = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0 };
+      A = B = C = D = E = 0.0;
     }
 
     public Polynomial ( Polynomial p )
     {
       n = p.n;
-      if ( p.coef != null )
-        coef = (double[])p.coef.Clone();
+      A = p.A;
+      B = p.B;
+      C = p.C;
+      D = p.D;
+      E = p.E;
     }
 
     public Polynomial ( double a, double b, double c, double d, double e )
@@ -73,32 +81,28 @@ namespace MathSupport
     public void Set ( double a, double b, double c, double d, double e )
     {
       n = 4;
-      coef = new double[] { a, b, c, d, e };
+      A = a;
+      B = b;
+      C = c;
+      D = d;
+      E = e;
     }
 
     public void Set ( double a, double b, double c, double d )
     {
       n = 3;
-      coef = new double[] { a, b, c, d };
+      A = a;
+      B = b;
+      C = c;
+      D = d;
     }
 
     public void Set ( double a, double b, double c )
     {
       n = 2;
-      coef = new double[] { a, b, c };
-    }
-
-    /// <summary>
-    /// Check the polynomial degree, decrease its degree if higher coeffs are zero.
-    /// </summary>
-    public void Check ()
-    {
-      while ( n > 0 )
-      {
-        if ( coef[ n ] != 0.0 )
-          break;
-        n--;
-      }
+      A = a;
+      B = b;
+      C = c;
     }
 
     public static Polynomial operator * ( Polynomial u, double e )
@@ -111,37 +115,11 @@ namespace MathSupport
         return NullPolynomial();
 
       Polynomial r = new Polynomial( u );
-      for ( int i = 0; i < r.coef.Length; )
-        r.coef[ i++ ] *= e;
-      return r;
-    }
-
-    public static Polynomial operator + ( Polynomial u, Polynomial v )
-    {
-      Polynomial r = new Polynomial( u );
-      // !!! TODO: add
-
-      return r;
-    }
-
-    public static Polynomial operator - ( Polynomial u, Polynomial v )
-    {
-      Polynomial r = new Polynomial( u );
-      // !!! TODO: subtract
-
-      return r;
-    }
-
-    public static Polynomial operator * ( Polynomial u, Polynomial v )
-    {
-      Polynomial r = new Polynomial();
-
-      r.n = u.n + v.n;
-
-      for ( int i = 0; i <= u.n; i++ )
-        for ( int j = 0; j <= v.n; j++ )
-          r.coef[ i + j ] += u.coef[ i ] * v.coef[ j ];
-
+      r.A *= e;
+      r.B *= e;
+      r.C *= e;
+      r.D *= e;
+      r.E *= e;
       return r;
     }
 
@@ -162,36 +140,33 @@ namespace MathSupport
     /// <returns>Number of real roots.</returns>
     public int SolveQuadratic ( double[] y )
     {
-      double d, t, a, b, c;
-      a = coef[ 2 ];
-      b = -coef[ 1 ];
-      c = coef[ 0 ];
-      if ( a == 0.0 )
+      double d, t;
+      if ( C == 0.0 )
       {
-        if ( b == 0.0 )
+        if ( B == 0.0 )
           return 0;
-        y[ 0 ] = y[ 1 ] = c / b;
+        y[ 0 ] = y[ 1 ] = -A / B;
         return 1;
       }
-      d = b * b - 4.0 * a * c;
+      d = B * B - 4.0 * C * A;
       if ( d < 0.0 )
         return 0;
       if ( Math.Abs( d ) < COEFF_LIMIT )
       {
-        y[ 0 ] = y[ 1 ] = 0.5 * b / a;
+        y[ 0 ] = y[ 1 ] = -0.5 * B / C;
         return 1;
       }
       d = Math.Sqrt( d );
-      t = 0.5 / a;
+      t = 0.5 / C;
       if ( t > 0.0 )
       {
-        y[ 0 ] = (b - d) * t;
-        y[ 1 ] = (b + d) * t;
+        y[ 0 ] = (-B - d) * t;
+        y[ 1 ] = (-B + d) * t;
       }
       else
       {
-        y[ 0 ] = (b + d) * t;
-        y[ 1 ] = (b - d) * t;
+        y[ 0 ] = (-B + d) * t;
+        y[ 1 ] = (-B - d) * t;
       }
       return 2;
     }
@@ -206,22 +181,20 @@ namespace MathSupport
       double Q, R, Q3, R2, sQ, d, an, theta;
       double A2, a1, a2, a3;
 
-      double a0 = coef[ 3 ];
-
-      if ( Math.Abs( a0 ) < EPSILON )
+      if ( Math.Abs( D ) < EPSILON )
         return SolveQuadratic( y );
 
-      if ( a0 != 1.0 )
+      if ( D != 1.0 )
       {
-        a1 = coef[ 2 ] / a0;
-        a2 = coef[ 1 ] / a0;
-        a3 = coef[ 0 ] / a0;
+        a1 = C / D;
+        a2 = B / D;
+        a3 = A / D;
       }
       else
       {
-        a1 = coef[ 2 ];
-        a2 = coef[ 1 ];
-        a3 = coef[ 0 ];
+        a1 = C;
+        a2 = B;
+        a3 = A;
       }
 
       A2 = a1 * a1;
@@ -275,36 +248,35 @@ namespace MathSupport
     {
       double[] roots = new double[ 3 ];
       double c12, z, p, q, q1, q2, r, d1, d2;
-      double c0, c1, c2, c3, c4;
+      double c1, c2, c3, c4;
       int i;
 
-      // See if the higher order term has vanished 
-      c0 = coef[ 4 ];
-      if ( Math.Abs( c0 ) < COEFF_LIMIT )
+      // See if the higher order term has vanished
+      if ( Math.Abs( E ) < COEFF_LIMIT )
         return SolveCubic( results );
 
       // See if the constant term has vanished 
-      if ( Math.Abs( coef[ 0 ] ) < COEFF_LIMIT )
+      if ( Math.Abs( A ) < COEFF_LIMIT )
       {
-        Polynomial y = new Polynomial( coef[ 4 ], coef[ 3 ], coef[ 2 ], coef[ 1 ] );
+        Polynomial y = new Polynomial( E, D, C, B );
         return y.SolveCubic( results );
         // !!! and what happened to a zero root?
       }
 
       // Make sure the quartic has a leading coefficient of 1.0 
-      if ( c0 != 1.0 )
+      if ( E != 1.0 )
       {
-        c1 = coef[ 3 ] / c0;
-        c2 = coef[ 2 ] / c0;
-        c3 = coef[ 1 ] / c0;
-        c4 = coef[ 0 ] / c0;
+        c1 = D / E;
+        c2 = C / E;
+        c3 = B / E;
+        c4 = A / E;
       }
       else
       {
-        c1 = coef[ 3 ];
-        c2 = coef[ 2 ];
-        c3 = coef[ 1 ];
-        c4 = coef[ 0 ];
+        c1 = D;
+        c2 = C;
+        c3 = B;
+        c4 = A;
       }
 
       // Compute the cubic resolvant 
@@ -352,7 +324,10 @@ namespace MathSupport
       // Solve the first quadratic
       p = q1 - 4.0 * (z - d2);
       if ( p == 0 )
+      {
         results[ i++ ] = -0.5 * d1 - q2;
+        results[ i++ ] = -0.5 * d1 - q2;
+      }
       else if ( p > 0 )
       {
         p = Math.Sqrt( p );
@@ -363,7 +338,10 @@ namespace MathSupport
       // Solve the second quadratic 
       p = q1 - 4.0 * (z + d2);
       if ( p == 0 )
+      {
         results[ i++ ] = 0.5 * d1 - q2;
+        results[ i++ ] = 0.5 * d1 - q2;
+      }
       else if ( p > 0 )
       {
         p = Math.Sqrt( p );
@@ -662,6 +640,87 @@ namespace MathSupport
     public static long mapleMax ()
     {
       return 999999999989L;
+    }
+  }
+
+  /// <summary>
+  /// Generic Heap data structure with fast GetMin(), RemoveMin() and Add() operations.
+  /// </summary>
+  /// <typeparam name="T"></typeparam>
+  public class HeapMin<T> where T : IComparable<T>
+  {
+    protected List<T> arr;
+
+    public HeapMin ()
+    {
+      arr = new List<T>();
+    }
+
+    public HeapMin ( ICollection<T> c )
+      : this()
+    {
+      foreach ( T i in c )
+        Add( i );
+    }
+
+    public void Add ( T i )
+    {
+      arr.Add( i );
+      if ( arr.Count > 1 )
+        CheckUp( arr.Count - 1 );
+    }
+
+    public T GetMin ()
+    {
+      if ( arr.Count > 0 )
+        return arr[ 0 ];
+      else
+        return default( T );
+    }
+
+    public T RemoveMin ()
+    {
+      if ( arr.Count == 0 )
+        return default( T );
+      T min = arr[ 0 ];
+      arr[ 0 ] = arr[ arr.Count - 1 ];
+      arr.RemoveAt( arr.Count - 1 );
+      if ( arr.Count > 1 )
+        CheckDown( 0 );
+      return min;
+    }
+
+    protected void Swap ( int i, int j )
+    {
+      T ti = arr[ i ];
+      arr[ i ] = arr[ j ];
+      arr[ j ] = ti;
+    }
+
+    protected void CheckDown ( int i )
+    {
+      int s = i + i + 1;
+      if ( s >= arr.Count )
+        return;
+      if ( s + 1 < arr.Count &&
+           arr[ s ].CompareTo( arr[ s + 1 ] ) > 0 )
+        s++;
+      if ( arr[ i ].CompareTo( arr[ s ] ) > 0 )
+      {
+        Swap( i, s );
+        CheckDown( s );
+      }
+    }
+
+    protected void CheckUp ( int i )
+    {
+      int p = (i - 1) / 2;
+      if ( arr[ p ].CompareTo( arr[ i ] ) > 0 )
+      {
+        Swap( p, i );
+        if ( p > 0 )
+          CheckUp( p );
+      }
     }
   }
 }

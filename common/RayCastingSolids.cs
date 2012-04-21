@@ -732,18 +732,20 @@ namespace Rendering
       if ( nRoots == 0 )
         return null;
 
+      int j = 0;
       for ( int i = 0; i < nRoots; i++ )
         if ( !Geometry.IsZero( roots[ i ] ) )
-          roots[ i ] = 1.0 / roots[ i ];
+          roots[ j++ ] = 1.0 / roots[ i ];
+      nRoots = j;
 
       if ( nRoots >= 2 )
         Array.Sort( roots, 0, nRoots );
 
-      Debug.Assert( (nRoots % 2 == 0), "Roots(" + nRoots + "): " + roots[ 0 ] + " " + roots[ 1 ] + " " + roots[ 2 ] + " " + roots[ 3 ] );
+      //Debug.Assert( (nRoots % 2 == 0), "Roots(" + nRoots + "): " + roots[ 0 ] + " " + roots[ 1 ] + " " + roots[ 2 ] + " " + roots[ 3 ] );
 
       LinkedList<Intersection> result = new LinkedList<Intersection>();
       Intersection ix;
-      for ( int j = 0; j < nRoots; j++ )
+      for ( j = 0; j < nRoots; j++ )
       {
         double t = roots[ j ];
         ix = new Intersection( this );

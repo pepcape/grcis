@@ -12,7 +12,6 @@
   Long term:
 ================================================================================
 - animace kamerou v RT (uloha 046)
-- zapinat jednotlive komponenty ray-tracingu (check-boxes)
 - pridat lom svetla do RT
 - licence: Apache licence? Nebo BSD?
 - vyzkouset GLSL shadery (upgrade OpenTK?)
@@ -36,3 +35,4 @@
 - dalsi optimalizace CSG operaci (reuse seznamu, odstraneni zbytecneho new)
 - korektni vrzene stiny
 - super-sampling do RT (pravidelny i jittering)
+- zapinat jednotlive komponenty ray-tracingu (check-boxes)
