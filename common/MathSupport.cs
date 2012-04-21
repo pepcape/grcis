@@ -651,6 +651,14 @@ namespace MathSupport
   {
     protected List<T> arr;
 
+    public int Count
+    {
+      get
+      {
+        return arr.Count;
+      }
+    }
+
     public HeapMin ()
     {
       arr = new List<T>();
