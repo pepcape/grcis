@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
+using MathSupport;
 using Rendering;
 
 namespace _048rtmontecarlo
@@ -77,7 +78,12 @@ namespace _048rtmontecarlo
         f.SetText( String.Format( "{0:f1}%:  {1:f1}s", 100.0f * Finished, 1.0e-3 * now ) );
         Bitmap b = (msg as Bitmap);
         if ( b != null )
-          f.SetImage( (Bitmap)b.Clone() );
+        {
+          Bitmap nb;
+          lock ( b )
+            nb = (Bitmap)b.Clone();
+          f.SetImage( nb );
+        }
       }
     }
 
@@ -94,6 +100,46 @@ namespace _048rtmontecarlo
       DefaultRayScene sc = new DefaultRayScene();
       sceneInitFunctions[ selectedScene ]( sc );
       return sc;
+    }
+
+    /// <summary>
+    /// Worker-thread-specific data.
+    /// </summary>
+    protected class WorkerThreadInit
+    {
+      /// <summary>
+      /// Worker id (for debugging purposes only).
+      /// </summary>
+      public int id;
+
+      /// <summary>
+      /// Worker-selector predicate.
+      /// </summary>
+      public ThreadSelector sel;
+
+      public int width;
+      public int height;
+
+      public WorkerThreadInit ( int wid, int hei, int rank, int total )
+      {
+        id     = rank;
+        width  = wid;
+        height = hei;
+        sel = ( n ) => (n % total) == rank;
+      }
+    }
+
+    /// <summary>
+    /// Routine of one worker-thread.
+    /// Result image and rendering progress are the only two shared objects.
+    /// </summary>
+    /// <param name="spec">Thread-specific data (worker-thread-selector).</param>
+    private void RenderWorker ( Object spec )
+    {
+      WorkerThreadInit init = spec as WorkerThreadInit;
+      if ( init != null )
+        rend.RenderRectangle( outputImage, 0, 0, init.width, init.height,
+                              init.sel, new RandomJames( Thread.CurrentThread.GetHashCode() ) );
     }
 
     /// <summary>
@@ -126,7 +172,7 @@ namespace _048rtmontecarlo
         rend = getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
-      rend.Adaptive = 16;
+      rend.Adaptive = 8;
       rend.ProgressData = progress;
       SupersamplingImageSynthesizer ss = rend as SupersamplingImageSynthesizer;
       if ( ss != null )
@@ -143,7 +189,23 @@ namespace _048rtmontecarlo
         sw.Start();
       }
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height );
+      if ( checkMultithreading.Checked && Environment.ProcessorCount > 1 )
+      {
+        Thread[] pool = new Thread[ Environment.ProcessorCount ];
+        int t;
+        for ( t = 0; t < pool.Length; t++ )
+          pool[ t ] = new Thread( new ParameterizedThreadStart( this.RenderWorker ) );
+        for ( t = pool.Length; --t >= 0; )
+          pool[ t ].Start( new WorkerThreadInit( width, height, t, pool.Length ) );
+
+        for ( t = 0; t < pool.Length; t++ )
+        {
+          pool[ t ].Join();
+          pool[ t ] = null;
+        }
+      }
+      else
+        rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
 
       long elapsed;
       lock ( sw )
@@ -152,8 +214,9 @@ namespace _048rtmontecarlo
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, c{3:#,#}, i{4:#,#} ]",
-                              1.0e-3 * elapsed, width, height, CSGInnerNode.countCalls, CSGInnerNode.countIntersections ) );
+      SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, t{3}, c{4:#,#}, i{5:#,#} ]",
+                              1.0e-3 * elapsed, width, height, checkMultithreading.Checked ? Environment.ProcessorCount : 1,
+                              CSGInnerNode.countCalls, CSGInnerNode.countIntersections ) );
       SetImage( (Bitmap)outputImage.Clone() );
 
       Cursor.Current = Cursors.Default;

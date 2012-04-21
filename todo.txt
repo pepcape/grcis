@@ -7,6 +7,7 @@
   Platonska telesa), Cone
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
+- numericke chyby v Torusu (stinovaci paprsky?)
 
 ================================================================================
   Long term:
@@ -36,3 +37,5 @@
 - korektni vrzene stiny
 - super-sampling do RT (pravidelny i jittering)
 - zapinat jednotlive komponenty ray-tracingu (check-boxes)
+- vicevlaknovy vypocet RT (kazde vlakno svuj Rnd generator, sdileni zamykane bitmapy
+  s vysledkem, rozdeleni prace pres modulo)

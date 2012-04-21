@@ -43,6 +43,7 @@
       this.checkReflections = new System.Windows.Forms.CheckBox();
       this.checkRefractions = new System.Windows.Forms.CheckBox();
       this.checkJitter = new System.Windows.Forms.CheckBox();
+      this.checkMultithreading = new System.Windows.Forms.CheckBox();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericSupersampling)).BeginInit();
@@ -236,11 +237,24 @@
       this.checkJitter.Text = "jittering";
       this.checkJitter.UseVisualStyleBackColor = true;
       // 
+      // checkMultithreading
+      // 
+      this.checkMultithreading.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkMultithreading.AutoSize = true;
+      this.checkMultithreading.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.checkMultithreading.Location = new System.Drawing.Point( 503, 417 );
+      this.checkMultithreading.Name = "checkMultithreading";
+      this.checkMultithreading.Size = new System.Drawing.Size( 94, 17 );
+      this.checkMultithreading.TabIndex = 41;
+      this.checkMultithreading.Text = "multi-threading";
+      this.checkMultithreading.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 482 );
+      this.Controls.Add( this.checkMultithreading );
       this.Controls.Add( this.checkJitter );
       this.Controls.Add( this.checkRefractions );
       this.Controls.Add( this.checkReflections );
@@ -285,6 +299,7 @@
     private System.Windows.Forms.CheckBox checkReflections;
     private System.Windows.Forms.CheckBox checkRefractions;
     private System.Windows.Forms.CheckBox checkJitter;
+    private System.Windows.Forms.CheckBox checkMultithreading;
   }
 }
 

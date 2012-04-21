@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
+using MathSupport;
 using Rendering;
 
 namespace _018raycasting
@@ -53,7 +54,7 @@ namespace _018raycasting
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height );
+      rend.RenderRectangle( outputImage, 0, 0, width, height, new RandomJames() );
 
       sw.Stop();
       labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );

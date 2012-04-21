@@ -145,7 +145,7 @@ namespace Rendering
       else
       {
         // apply the reflectance model for each source
-        double[] colorBak = i.Material.Color;
+        i.Material = (IMaterial)i.Material.Clone();
         i.Material.Color = i.SurfaceColor;
         Array.Clear( color, 0, bands );
 
@@ -172,8 +172,6 @@ namespace Rendering
             }
           }
         }
-
-        i.Material.Color = colorBak;
       }
 
       // check the recursion depth:

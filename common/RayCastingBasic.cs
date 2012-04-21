@@ -82,39 +82,50 @@ namespace Rendering
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="color">Computed pixel color.</param>
-    public virtual void RenderPixel ( int x, int y, double[] color )
+    /// <param name="rnd">Shared random generator.</param>
+    public virtual void RenderPixel ( int x, int y, double[] color, RandomJames rnd )
     {
-      ImageFunction.GetSample( x, y, color );
+      ImageFunction.GetSample( x + 0.5, y + 0.5, color );
 
       // gamma-encoding:
       if ( Gamma > 0.001 )
-      {
+      {                                     // gamma-encoding and clamping
         double g = 1.0 / Gamma;
         for ( int b = 0; b < color.Length; b++ )
           color[ b ] = Arith.Clamp( Math.Pow( color[ b ], g ), 0.0, 1.0 );
       }
+                                           // else: no gamma, no clamping (for HDRI)
     }
 
     /// <summary>
     /// Renders the given rectangle into the given raster image.
     /// </summary>
     /// <param name="image">Pre-initialized raster image.</param>
-    /// <param name="x1"></param>
-    /// <param name="y1"></param>
-    /// <param name="x2"></param>
-    /// <param name="y2"></param>
-    public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 )
+    /// <param name="rnd">Shared random generator.</param>
+    public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, RandomJames rnd )
     {
-      if ( ProgressData != null )
+      RenderRectangle( image, x1, y1, x2, y2, ( n ) => true, rnd );
+    }
+
+    /// <summary>
+    /// Renders the given rectangle into the given raster image.
+    /// Has to be re-entrant since this code is started in multiple parallel threads.
+    /// </summary>
+    /// <param name="image">Pre-initialized raster image.</param>
+    /// <param name="sel">Selector for this working thread.</param>
+    /// <param name="rnd">Thread-specific random generator.</param>
+    public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel, RandomJames rnd )
+    {
+      bool lead = sel( 0L );
+      if ( lead &&
+           ProgressData != null )
         lock ( ProgressData )
         {
           ProgressData.Finished = 0.0f;
           ProgressData.Message = "";
-          if ( !ProgressData.Continue )
-            return;
         }
+
       double[] color = new double[ 3 ];     // pixel color
-      double g = (Gamma > 0.001) ? 1.0 / Gamma : 0.0;
 
       // run several phases of image rendering:
       int cell = 32;                        // cell size
@@ -126,6 +137,7 @@ namespace Rendering
       bool xParity, yParity;
       float total = (x2 - x1) * (y2 - y1);
       long counter = 0L;
+      int units = 0;
 
       do                                    // do one phase
       {
@@ -140,11 +152,15 @@ namespace Rendering
             if ( cell == initCell ||
                  xParity || yParity )       // process the cell
             {
-              // determine sample color ..
-              ImageFunction.GetSample( x + 0.5, y + 0.5, color );
+              if ( !sel( counter++ ) )
+                continue;
 
-              for ( int b = 0; b < color.Length; b++ )
-                color[ b ] = Arith.Clamp( (g > 0.0) ? Math.Pow( color[ b ], g ) : color[ b ], 0.0, 1.0 );
+              // determine sample color ..
+              RenderPixel( x, y, color, rnd );
+
+              if ( Gamma <= 0.001 )
+                for ( int b = 0; b < color.Length; b++ )
+                  color[ b ] = Arith.Clamp( color[ b ], 0.0, 1.0 );
 
               // .. and render it:
               Color c = Color.FromArgb( (int)(color[ 0 ] * 255.0),
@@ -168,15 +184,18 @@ namespace Rendering
                 }
               }
 
-              counter++;
-              if ( ProgressData != null )
+              if ( (++units & 7) == 0 &&
+                   ProgressData != null )
                 lock ( ProgressData )
                 {
                   if ( !ProgressData.Continue )
                     return;
-                  ProgressData.Finished = counter / total;
-                  if ( (counter & 0xFFFL) == 0 )
-                    ProgressData.Sync( image );
+                  if ( lead )
+                  {
+                    ProgressData.Finished = counter / total;
+                    if ( (units & 0x1FFF) == 0 )
+                      ProgressData.Sync( image );
+                  }
                 }
             }
       }
@@ -220,15 +239,6 @@ namespace Rendering
       set;
     }
 
-    /// <summary>
-    /// Potentially shareable random generator.
-    /// </summary>
-    public RandomJames Rnd
-    {
-      get;
-      set;
-    }
-
     public SupersamplingImageSynthesizer ()
       : this( 1 )
     {
@@ -241,35 +251,32 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Compute one pixel using the required super-sampling.
-    /// Rnd has to be assigned.
+    /// Renders the single pixel of an image.
     /// </summary>
-    /// <param name="x">X-coordinate of the pixel.</param>
-    /// <param name="y">Y-coordinate of the pixel.</param>
-    /// <param name="color">Pre-allocated result array.</param>
-    /// <param name="tmp">Pre-allocated support array or null.</param>
-    protected virtual void ComputePixel ( int x, int y, double[] color, double[] tmp )
+    /// <param name="x">Horizontal coordinate.</param>
+    /// <param name="y">Vertical coordinate.</param>
+    /// <param name="color">Computed pixel color.</param>
+    /// <param name="rnd">Shared random generator.</param>
+    public override void RenderPixel ( int x, int y, double[] color, RandomJames rnd )
     {
       Debug.Assert( color != null );
-      Debug.Assert( Rnd != null );
+      Debug.Assert( rnd != null );
 
       int bands = color.Length;
       int b;
-      for ( b = 0; b < bands; )
-        color[ b++ ] = 0.0;
-      if ( tmp == null || tmp.Length < bands )
-        tmp = new double[ bands ];
+      Array.Clear( color, 0, bands );
+      double[] tmp = new double[ bands ];
 
       int i, j, ord;
-      double step      = 1.0 / superXY;
+      double step = 1.0 / superXY;
       double amplitude = Jittering * step;
-      double origin    = 0.5 * (step - amplitude);
+      double origin = 0.5 * (step - amplitude);
       double x0, y0;
       for ( j = ord = 0, y0 = y + origin; j++ < superXY; y0 += step )
         for ( i = 0, x0 = x + origin; i++ < superXY; x0 += step )
         {
-          ImageFunction.GetSample( x0 + amplitude * Rnd.UniformNumber(),
-                                   y0 + amplitude * Rnd.UniformNumber(),
+          ImageFunction.GetSample( x0 + amplitude * rnd.UniformNumber(),
+                                   y0 + amplitude * rnd.UniformNumber(),
                                    ord++, Supersampling, tmp );
           for ( b = 0; b < bands; b++ )
             color[ b ] += tmp[ b ];
@@ -285,109 +292,6 @@ namespace Rendering
       else                                  // no gamma, no clamping (for HDRI)
         for ( b = 0; b < bands; b++ )
           color[ b ] *= mul;
-    }
-
-    /// <summary>
-    /// Renders the single pixel of an image.
-    /// </summary>
-    /// <param name="x">Horizontal coordinate.</param>
-    /// <param name="y">Vertical coordinate.</param>
-    /// <param name="color">Computed pixel color.</param>
-    public override void RenderPixel ( int x, int y, double[] color )
-    {
-      Debug.Assert( color != null );
-
-      if ( Rnd == null )
-        Rnd = new RandomJames();
-
-      ComputePixel( x, y, color, null );
-    }
-
-    /// <summary>
-    /// Renders the given rectangle into the given raster image.
-    /// </summary>
-    /// <param name="image">Pre-initialized raster image.</param>
-    public override void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 )
-    {
-      if ( ProgressData != null )
-        lock ( ProgressData )
-        {
-          ProgressData.Finished = 0.0f;
-          ProgressData.Message = "";
-          if ( !ProgressData.Continue )
-            return;
-        }
-      double[] color = new double[ 3 ];     // pixel color
-      double[] tmp   = new double[ 3 ];
-      if ( Rnd == null )
-        Rnd = new RandomJames();
-
-      // run several phases of image rendering:
-      int cell = 32;                        // cell size
-      while ( cell > 1 && cell > Adaptive )
-        cell >>= 1;
-      int initCell = cell;
-
-      int x, y;
-      bool xParity, yParity;
-      float total = (x2 - x1) * (y2 - y1);
-      long counter = 0L;
-
-      do                                    // do one phase
-      {
-        for ( y = y1, yParity = false;
-              y < y2;                       // one image row
-              y += cell, yParity = !yParity )
-
-          for ( x = x1, xParity = false;
-                x < x2;                     // one image cell
-                x += cell, xParity = !xParity )
-
-            if ( cell == initCell ||
-                 xParity || yParity )       // process the cell
-            {
-              // determine sample color ..
-              ComputePixel( x, y, color, tmp );
-
-              if ( Gamma <= 0.001 )
-                for ( int b = 0; b < color.Length; b++ )
-                  color[ b ] = Arith.Clamp( color[ b ], 0.0, 1.0 );
-
-              // .. and render it:
-              Color c = Color.FromArgb( (int)(color[ 0 ] * 255.0),
-                                        (int)(color[ 1 ] * 255.0),
-                                        (int)(color[ 2 ] * 255.0) );
-              lock ( image )
-              {
-                if ( cell == 1 )
-                  image.SetPixel( x, y, c );
-                else
-                {
-                  int xMax = x + cell;
-                  if ( xMax > x2 )
-                    xMax = x2;
-                  int yMax = y + cell;
-                  if ( yMax > y2 )
-                    yMax = y2;
-                  for ( int iy = y; iy < yMax; iy++ )
-                    for ( int ix = x; ix < xMax; ix++ )
-                      image.SetPixel( ix, iy, c );
-                }
-              }
-
-              counter++;
-              if ( ProgressData != null )
-                lock ( ProgressData )
-                {
-                  if ( !ProgressData.Continue )
-                    return;
-                  ProgressData.Finished = counter / total;
-                  if ( (counter & 0xFFFL) == 0 )
-                    ProgressData.Sync( image );
-                }
-            }
-      }
-      while ( (cell >>= 1) > 0 );         // do one phase
     }
   }
 
@@ -683,7 +587,21 @@ namespace Rendering
       }
     }
 
+    /// <summary>
+    /// Cosine of total reflection angle.
+    /// </summary>
     public double cosTotal = 0.0;
+
+    public PhongMaterial ( PhongMaterial m )
+    {
+      Color = (double[])m.Color.Clone();
+      Ka = m.Ka;
+      Kd = m.Kd;
+      Ks = m.Ks;
+      H = m.H;
+      Kt = m.Kt;
+      n = m.n;
+    }
 
     public PhongMaterial ( double[] color, double ka, double kd, double ks, int h )
     {
@@ -696,8 +614,13 @@ namespace Rendering
       n  = 1.5;
     }
 
-    public PhongMaterial () : this( new double[] { 1.0, 0.9, 0.4 }, 0.2, 0.5, 0.3, 16 )
+    public PhongMaterial () : this( new double[] { 1.0, 0.9, 0.4 }, 0.2, 0.7, 0.2, 16 )
     {
+    }
+
+    public object Clone ()
+    {
+      return new PhongMaterial( this );
     }
   }
 

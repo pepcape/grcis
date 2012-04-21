@@ -119,7 +119,7 @@ namespace _019raytracing
         rend = getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
-      rend.Adaptive = 16;
+      rend.Adaptive = 8;
       rend.ProgressData = progress;
       progress.Reset();
       CSGInnerNode.ResetStatistics();

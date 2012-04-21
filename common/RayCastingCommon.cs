@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using MathSupport;
 using OpenTK;
 
 // Common code for ray-based rendering.
@@ -52,6 +53,12 @@ namespace Rendering
     /// <returns>Hash-value used for adaptive subsampling.</returns>
     long GetSample ( double x, double y, int rank, int total, double[] color );
   }
+
+  /// <summary>
+  /// Delegate function for thread-selection.
+  /// </summary>
+  /// <param name="unit">Number of working unit (thread selected for unit==0 is leader).</param>
+  public delegate bool ThreadSelector ( long unit );
 
   /// <summary>
   /// Algorithm capable of synthesizing raster image from virtual 3D scene.
@@ -110,17 +117,24 @@ namespace Rendering
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="color">Computed pixel color.</param>
-    void RenderPixel ( int x, int y, double[] color );
+    /// <param name="rnd">Shared random generator.</param>
+    void RenderPixel ( int x, int y, double[] color, RandomJames rnd );
 
     /// <summary>
     /// Renders the given rectangle into the given raster image.
     /// </summary>
     /// <param name="image">Pre-initialized raster image.</param>
-    /// <param name="x1"></param>
-    /// <param name="y1"></param>
-    /// <param name="x2"></param>
-    /// <param name="y2"></param>
-    void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 );
+    /// <param name="rnd">Shared random generator.</param>
+    void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, RandomJames rnd );
+
+    /// <summary>
+    /// Renders the given rectangle into the given raster image.
+    /// Has to be re-entrant since this code is started in multiple parallel threads.
+    /// </summary>
+    /// <param name="image">Pre-initialized raster image.</param>
+    /// <param name="sel">Selector for this working thread.</param>
+    /// <param name="rnd">Thread-specific random generator.</param>
+    void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel, RandomJames rnd );
   }
 
   /// <summary>
@@ -230,7 +244,7 @@ namespace Rendering
   /// Abstract material description.
   /// Each IReflectionModel should define its own derivation with specific properties.
   /// </summary>
-  public interface IMaterial
+  public interface IMaterial : ICloneable
   {
     /// <summary>
     /// Base surface color.
