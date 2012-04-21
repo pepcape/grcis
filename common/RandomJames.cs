@@ -52,6 +52,15 @@ namespace MathSupport
     /// <summary>
     /// Initializing constructor.
     /// </summary>
+    public RandomJames ( long ijkl )
+    {
+      u = new double[ 97 ];
+      Reset( ijkl );
+    }
+
+    /// <summary>
+    /// Initializing constructor.
+    /// </summary>
     public RandomJames ( int ij, int kl )
     {
       u = new double[ 97 ];
@@ -65,6 +74,16 @@ namespace MathSupport
     {
       u = new double[ 97 ];
       Reset( 1802, 9373 );
+    }
+
+    /// <summary>
+    /// Deterministic restart of a sequence.
+    /// </summary>
+    /// <param name="ijkl">Random seed modulo-converted to ij, kl.</param>
+    public void Reset ( long ijkl )
+    {
+      int s = (int)( ijkl % (31329L * 30082L) );
+      Reset( s / 30082, s % 30082 );
     }
 
     /// <summary>

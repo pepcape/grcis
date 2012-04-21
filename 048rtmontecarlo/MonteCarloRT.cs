@@ -32,7 +32,6 @@ namespace _048rtmontecarlo
     {
       AdaptiveSupersamplingImageSynthesizer sis = new AdaptiveSupersamplingImageSynthesizer();
       sis.ImageFunction = imf;
-      sis.Rnd = rnd;
       return sis;
     }
 
@@ -70,26 +69,23 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Compute one pixel using the required super-sampling.
-    /// Rnd has to be assigned.
+    /// Renders the single pixel of an image (using required super-sampling).
     /// </summary>
-    /// <param name="x">X-coordinate of the pixel.</param>
-    /// <param name="y">Y-coordinate of the pixel.</param>
-    /// <param name="color">Pre-allocated result array.</param>
-    /// <param name="tmp">Pre-allocated support array or null.</param>
-    protected override void ComputePixel ( int x, int y, double[] color, double[] tmp )
+    /// <param name="x">Horizontal coordinate.</param>
+    /// <param name="y">Vertical coordinate.</param>
+    /// <param name="color">Computed pixel color.</param>
+    /// <param name="rnd">Shared random generator.</param>
+    public override void RenderPixel ( int x, int y, double[] color, RandomJames rnd )
     {
       Debug.Assert( color != null );
-      Debug.Assert( Rnd != null );
+      Debug.Assert( rnd != null );
 
       // !!!{{ TODO: this is exactly the code inherited from static sampling - make it adaptive!
 
       int bands = color.Length;
       int b;
-      for ( b = 0; b < bands; )
-        color[ b++ ] = 0.0;
-      if ( tmp == null || tmp.Length < bands )
-        tmp = new double[ bands ];
+      Array.Clear( color, 0, bands );
+      double[] tmp = new double[ bands ];
 
       int i, j, ord;
       double step = 1.0 / superXY;
@@ -99,8 +95,8 @@ namespace Rendering
       for ( j = ord = 0, y0 = y + origin; j++ < superXY; y0 += step )
         for ( i = 0, x0 = x + origin; i++ < superXY; x0 += step )
         {
-          ImageFunction.GetSample( x0 + amplitude * Rnd.UniformNumber(),
-                                   y0 + amplitude * Rnd.UniformNumber(),
+          ImageFunction.GetSample( x0 + amplitude * rnd.UniformNumber(),
+                                   y0 + amplitude * rnd.UniformNumber(),
                                    ord++, Supersampling, tmp );
           for ( b = 0; b < bands; b++ )
             color[ b ] += tmp[ b ];

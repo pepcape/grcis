@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
+using MathSupport;
 using Rendering;
 
 namespace _046cameranim
@@ -65,13 +66,16 @@ namespace _046cameranim
       rend.ProgressData = progress;
       progress.Continue = true;
 
+      if ( rnd == null )
+        rnd = new RandomJames();
+
       // animation:
       ((ITimeDependent)scene).Time = (double)numTime.Value;
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height );
+      rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
 
       sw.Stop();
       labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
@@ -173,6 +177,8 @@ namespace _046cameranim
       StopAnimation();
     }
 
+    private static RandomJames rnd = null;
+
     private Bitmap RenderFrame ( int width, int height, double time )
     {
       Bitmap result = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
@@ -189,10 +195,13 @@ namespace _046cameranim
       rend.Adaptive = 0;        // turn off adaptive bitmap synthesis completely (interactive preview not needed)
       rend.ProgressData = progress;
 
+      if ( rnd == null )
+        rnd = new RandomJames();
+
       // animation:
       ((ITimeDependent)scene).Time = time;
 
-      rend.RenderRectangle( result, 0, 0, width, height );
+      rend.RenderRectangle( result, 0, 0, width, height, rnd );
 
       return result;
     }
