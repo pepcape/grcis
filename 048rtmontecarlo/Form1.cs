@@ -48,7 +48,7 @@ namespace _048rtmontecarlo
     protected Stopwatch sw = new Stopwatch();
 
     /// <summary>
-    /// Rendering thread.
+    /// Rendering master thread.
     /// </summary>
     protected Thread aThread = null;
 

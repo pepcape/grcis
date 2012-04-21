@@ -39,3 +39,4 @@
 - zapinat jednotlive komponenty ray-tracingu (check-boxes)
 - vicevlaknovy vypocet RT (kazde vlakno svuj Rnd generator, sdileni zamykane bitmapy
   s vysledkem, rozdeleni prace pres modulo)
+- testovaci scena pro Bezierovy plochy
