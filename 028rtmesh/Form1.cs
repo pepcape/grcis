@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
+using MathSupport;
 using Rendering;
 using Scene3D;
-using System.IO;
 
 namespace _028rtmesh
 {
@@ -29,6 +30,11 @@ namespace _028rtmesh
     /// Image synthesizer used to compute raster images.
     /// </summary>
     protected IRenderer rend = null;
+
+    /// <summary>
+    /// Global instance of a random generator.
+    /// </summary>
+    private static RandomJames rnd = new RandomJames();
 
     /// <summary>
     /// B-rep scene read from the .OBJ file.
@@ -59,7 +65,7 @@ namespace _028rtmesh
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height );
+      rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
 
       sw.Stop();
       labelElapsed.Text = String.Format( "Elapsed: {0:f}s", 1.0e-3 * sw.ElapsedMilliseconds );
@@ -90,6 +96,8 @@ namespace _028rtmesh
     public Form1 ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( new char[] { ' ' } );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
