@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
+using MathSupport;
 using Rendering;
 
 namespace _019raytracing
@@ -40,6 +41,11 @@ namespace _019raytracing
     /// Image synthesizer used to compute raster images.
     /// </summary>
     protected IRenderer rend = null;
+
+    /// <summary>
+    /// Global instance of a random generator.
+    /// </summary>
+    private static RandomJames rnd = new RandomJames();
 
     /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
@@ -130,7 +136,7 @@ namespace _019raytracing
         sw.Start();
       }
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height );
+      rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
 
       long elapsed;
       lock ( sw )
