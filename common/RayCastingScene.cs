@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTK;
+using MathSupport;
 
 // Interfaces and objects for ray-based rendering.
 namespace Rendering
@@ -528,6 +529,120 @@ namespace Rendering
     {
       get;
       set;
+    }
+  }
+
+  /// <summary>
+  /// Base implementation of time-dependent Ray-scene.
+  /// </summary>
+  public class AnimatedRayScene : DefaultRayScene, ITimeDependent
+  {
+    /// <summary>
+    /// Starting (minimal) time in seconds.
+    /// </summary>
+    public double Start
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Ending (maximal) time in seconds.
+    /// </summary>
+    public double End
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Internal variable for the current time.
+    /// </summary>
+    protected double time;
+
+    /// <summary>
+    /// Changes the current time - internal routine.
+    /// Override it if you need time-dependent background color..
+    /// </summary>
+    protected virtual void setTime ( double newTime )
+    {
+      time = Arith.Clamp( newTime, Start, End );
+
+      // Time-dependent scene?
+      ITimeDependent intersectable = Intersectable as ITimeDependent;
+      if ( intersectable != null )
+        intersectable.Time = time;
+
+      // Time-dependent camera?
+      ITimeDependent camera = Camera as ITimeDependent;
+      if ( camera != null )
+        camera.Time = time;
+
+      // Time-dependent light sources?
+      foreach ( ILightSource light in Sources )
+      {
+        ITimeDependent li = light as ITimeDependent;
+        if ( li != null )
+          li.Time = time;
+      }
+    }
+
+    /// <summary>
+    /// Current time in seconds.
+    /// </summary>
+    public double Time
+    {
+      get
+      {
+        return time;
+      }
+      set
+      {
+        setTime( value );
+      }
+    }
+
+    /// <summary>
+    /// Clone all the time-dependent components, share the others.
+    /// </summary>
+    /// <returns></returns>
+    public virtual object Clone ()
+    {
+      AnimatedRayScene sc = new AnimatedRayScene();
+
+      ITimeDependent intersectable = Intersectable as ITimeDependent;
+      sc.Intersectable = (intersectable == null) ? Intersectable : (IIntersectable)intersectable.Clone();
+
+      sc.BackgroundColor = (double[])BackgroundColor.Clone();
+
+      ITimeDependent camera = Camera as ITimeDependent;
+      sc.Camera = (camera == null) ? Camera : (ICamera)camera.Clone();
+
+      ILightSource[] tmp = new ILightSource[ Sources.Count ];
+      Sources.CopyTo( tmp, 0 );
+      for ( int i = 0; i < tmp.Length; i++ )
+      {
+        ITimeDependent source = tmp[ i ] as ITimeDependent;
+        if ( source != null )
+          tmp[ i ] = (ILightSource)source.Clone();
+      }
+      sc.Sources = new LinkedList<ILightSource>( tmp );
+
+      sc.Start = Start;
+      sc.End   = End;
+      sc.setTime( Time );                   // propagates the current time to all time-dependent components..
+
+      return sc;
+    }
+
+    /// <summary>
+    /// Creates default ray-rendering scene.
+    /// </summary>
+    public AnimatedRayScene ()
+    {
+      Start = 0.0;
+      End   = 10.0;
+      time  = 0.0;
     }
   }
 }
