@@ -353,8 +353,9 @@ namespace Rendering
 
   /// <summary>
   /// Abstract time-dependency of an object.
+  /// Each instance has to be able to clone itself (multi-thread implementations).
   /// </summary>
-  public interface ITimeDependent
+  public interface ITimeDependent : ICloneable
   {
     /// <summary>
     /// Starting (minimal) time in seconds.

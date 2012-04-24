@@ -70,7 +70,9 @@ namespace _046cameranim
         rnd = new RandomJames();
 
       // animation:
-      ((ITimeDependent)scene).Time = (double)numTime.Value;
+      ITimeDependent sc = scene as ITimeDependent;
+      if ( sc != null )
+        sc.Time = (double)numTime.Value;
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
@@ -199,7 +201,9 @@ namespace _046cameranim
         rnd = new RandomJames();
 
       // animation:
-      ((ITimeDependent)scene).Time = time;
+      ITimeDependent sc = scene as ITimeDependent;
+      if ( sc != null )
+        sc.Time = time;
 
       rend.RenderRectangle( result, 0, 0, width, height, rnd );
 
