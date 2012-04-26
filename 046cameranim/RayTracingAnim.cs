@@ -4,18 +4,26 @@ using MathSupport;
 using OpenTK;
 using Rendering;
 using System;
+using System.Collections.Generic;
 
 namespace _046cameranim
 {
   public partial class Form1 : Form
   {
     /// <summary>
+    /// Initialize the ray-scene.
+    /// </summary>
+    /// <returns></returns>
+    private IRayScene getScene ()
+    {
+      return new RayScene();
+    }
+
+    /// <summary>
     /// Initialize ray-scene and image function (good enough for single samples).
     /// </summary>
-    private IImageFunction getImageFunction ()
+    private IImageFunction getImageFunction ( IRayScene scene )
     {
-      // default constructor of the RayScene .. custom scene
-      scene = new RayScene();
       return new RayTracing( scene );
     }
 
@@ -24,11 +32,17 @@ namespace _046cameranim
     /// </summary>
     private IRenderer getRenderer ( IImageFunction imf )
     {
-      SupersamplingImageSynthesizer sis = new SupersamplingImageSynthesizer();
-      sis.ImageFunction = imf;
-      sis.Supersampling = 9;                // TODO: GUI s-s?
-      sis.Jittering     = 1.0;
-      return sis;
+      if ( superSampling > 1 )
+      {
+        SupersamplingImageSynthesizer sis = new SupersamplingImageSynthesizer();
+        sis.ImageFunction = imf;
+        sis.Supersampling = superSampling;
+        sis.Jittering = 1.0;
+        return sis;
+      }
+      SimpleImageSynthesizer s = new SimpleImageSynthesizer();
+      s.ImageFunction = imf;
+      return s;
     }
   }
 }
@@ -67,17 +81,18 @@ namespace Rendering
     protected virtual void setTime ( double newTime )
     {
       Debug.Assert( !Double.Equals( Start, End ) );
-      //time = Arith.Clamp( newTime, Start, End );
-      time = newTime;
 
       // !!!{{ TODO: put your camera time-dependency code here
+
+      //time = Arith.Clamp( newTime, Start, End );
+      time = newTime;    // Here Start & End define a periodicity, not bounds!
 
       // change the camera position:
       double angle = MathHelper.TwoPi * (time - Start) / (End - Start);
       Vector3d radial = Vector3d.TransformVector( center0 - lookAt, Matrix4d.CreateRotationY( -angle ) );
       center = lookAt + radial;
-      radial.Normalize();
       direction = -radial;
+      direction.Normalize();
       prepare();
 
       // !!!}}
@@ -142,15 +157,18 @@ namespace Rendering
     /// </summary>
     public RayScene ()
     {
+      // !!!{{ TODO: put your scene and camera setup code here
+
       Scenes.FiveBalls( this );
-      //Scenes.HedgehogInTheCage( this );
-      //Scenes.Flags( this );
-
-      // !!!{{ TODO: put your camera setup code here
-
       AnimatedCamera cam = new AnimatedCamera( new Vector3d( 0.0, 0.0, 1.0 ),
                                                new Vector3d( 0.0, 0.0, -9.0 ),
                                                60.0 );
+
+      //Scenes.Bezier( this );
+      //AnimatedCamera cam = new AnimatedCamera( new Vector3d( 0.7, -1.0, 3.0 ),
+      //                                         new Vector3d( 0.7, 0.5, -5.0 ),
+      //                                         55.0 );
+
       Camera = cam;
       cam.End = 5.0;   // one complete turn takes 5.0 seconds
 

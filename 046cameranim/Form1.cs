@@ -5,6 +5,7 @@ using System.Threading;
 using System.Windows.Forms;
 using MathSupport;
 using Rendering;
+using System.Collections.Generic;
 
 namespace _046cameranim
 {
@@ -16,29 +17,21 @@ namespace _046cameranim
     protected Bitmap outputImage = null;
 
     /// <summary>
-    /// Scene to be rendered.
-    /// </summary>
-    protected IRayScene scene = null;
-
-    /// <summary>
-    /// Ray-based renderer in form of image function.
-    /// </summary>
-    protected IImageFunction imf = null;
-
-    /// <summary>
-    /// Image synthesizer used to compute raster images.
-    /// </summary>
-    protected IRenderer rend = null;
-
-    /// <summary>
-    /// Rendering thread.
+    /// Main animation-rendering thread.
     /// </summary>
     protected Thread aThread = null;
 
     /// <summary>
     /// Progress info / user break handling.
+    /// Used also as input lock for MT animation computation.
     /// </summary>
     protected Progress progress = new Progress();
+
+    /// <summary>
+    /// Global prototype of a scene.
+    /// Working threads should clone it before setting specific times to it.
+    /// </summary>
+    protected IRayScene scene = null;
 
     /// <summary>
     /// Redraws the whole image.
@@ -46,28 +39,28 @@ namespace _046cameranim
     private void RenderImage ()
     {
       Cursor.Current = Cursors.WaitCursor;
+
       buttonRender.Enabled = false;
       buttonRenderAnim.Enabled = false;
 
-      int width   = panel1.Width;
-      int height  = panel1.Height;
+      width = panel1.Width;
+      height = panel1.Height;
+      superSampling = (int)numericSupersampling.Value;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
-      if ( imf == null )
-        imf = getImageFunction();
+      if ( scene == null )
+        scene = getScene();                 // scene prototype
+
+      IImageFunction imf = getImageFunction( scene );
       imf.Width  = width;
       imf.Height = height;
 
-      if ( rend == null )
-        rend = getRenderer( imf );
+      IRenderer rend = getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 0;
       rend.ProgressData = progress;
       progress.Continue = true;
-
-      if ( rnd == null )
-        rnd = new RandomJames();
 
       // animation:
       ITimeDependent sc = scene as ITimeDependent;
@@ -77,7 +70,7 @@ namespace _046cameranim
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
+      rend.RenderRectangle( outputImage, 0, 0, width, height, new RandomJames() );
 
       sw.Stop();
       labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
@@ -86,6 +79,7 @@ namespace _046cameranim
 
       buttonRender.Enabled = true;
       buttonRenderAnim.Enabled = true;
+
       Cursor.Current = Cursors.Default;
     }
 
@@ -158,9 +152,87 @@ namespace _046cameranim
       RenderImage();
     }
 
+    private void buttonStop_Click ( object sender, EventArgs e )
+    {
+      StopAnimation();
+    }
+
+    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    {
+      StopAnimation();
+    }
+
+    //============================================================
+    //===      Animation rendering using multiple threads      ===
+    //============================================================
+
+    //============================================================
+    //   Constant data:
+
+    /// <summary>
+    /// Frame width in pixels.
+    /// </summary>
+    protected int width;
+
+    /// <summary>
+    /// Frame height in pixels.
+    /// </summary>
+    protected int height;
+
+    /// <summary>
+    /// Time of the last frame.
+    /// </summary>
+    protected double end;
+
+    /// <summary>
+    /// Time delta.
+    /// </summary>
+    protected double dt;
+
+    /// <summary>
+    /// Supersampling factor.
+    /// </summary>
+    protected int superSampling;
+
+    //============================================================
+    //   Variable data ("progress" is used as "input data lock"):
+
+    /// <summary>
+    /// Frame number to compute.
+    /// </summary>
+    protected volatile int frameNumber;
+
+    /// <summary>
+    /// Frame time to compute.
+    /// </summary>
+    protected double time;
+
+    /// <summary>
+    /// One computed animation frame.
+    /// </summary>
+    public class Result
+    {
+      public Bitmap image;
+      public int frameNumber;
+    }
+
+    /// <summary>
+    /// Semaphore guarding the output queue.
+    /// </summary>
+    protected Semaphore sem = null;
+
+    /// <summary>
+    /// Output queue.
+    /// </summary>
+    protected Queue<Result> queue = null;
+
+    /// <summary>
+    /// Animation rendering prolog: prepare all the global (uniform) values, start the main thread.
+    /// </summary>
     private void buttonRenderAnim_Click ( object sender, EventArgs e )
     {
-      if ( aThread != null ) return;
+      if ( aThread != null )
+        return;
 
       buttonRenderAnim.Enabled = false;
       buttonRender.Enabled = false;
@@ -170,74 +242,96 @@ namespace _046cameranim
         progress.Continue = true;
       }
 
+      // Global animation properties (it's safe to access GUI components here):
+      time = (double)numFrom.Value;
+      end = (double)numTo.Value;
+      if ( end <= time )
+        end = time + 1.0;
+      double fps = (double)numFps.Value;
+      dt = (fps > 0.0) ? 1.0 / fps : 25.0;
+      frameNumber = 0;
+
+      width = panel1.Width;
+      height = panel1.Height;
+      superSampling = (int)numericSupersampling.Value;
+
+      if ( scene == null )
+        scene = getScene();                 // scene prototype
+
+      // Start main rendering thread:
       aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
       aThread.Start();
     }
 
-    private void buttonStop_Click ( object sender, EventArgs e )
+    /// <summary>
+    /// Main animation rendering thread.
+    /// Initializes worker threads and collects the results.
+    /// </summary>
+    protected void RenderAnimation ()
     {
-      StopAnimation();
-    }
-
-    private static RandomJames rnd = null;
-
-    private Bitmap RenderFrame ( int width, int height, double time )
-    {
-      Bitmap result = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
-
-      if ( imf == null )
-        imf = getImageFunction();
-      imf.Width = width;
-      imf.Height = height;
-
-      if ( rend == null )
-        rend = getRenderer( imf );
-      rend.Width = width;
-      rend.Height = height;
-      rend.Adaptive = 0;        // turn off adaptive bitmap synthesis completely (interactive preview not needed)
-      rend.ProgressData = progress;
-
-      if ( rnd == null )
-        rnd = new RandomJames();
-
-      // animation:
-      ITimeDependent sc = scene as ITimeDependent;
-      if ( sc != null )
-        sc.Time = time;
-
-      rend.RenderRectangle( result, 0, 0, width, height, rnd );
-
-      return result;
-    }
-
-    public void RenderAnimation ()
-    {
-      double time = (double)numFrom.Value;
-      double end  = (double)numTo.Value;
-      if ( end <= time ) end = time + 1.0;
-      double fps = (double)numFps.Value;
-      double dt = (fps > 0.0) ? 1.0 / fps : 25.0;
-      int width = panel1.Width;
-      int height = panel1.Height;
-
       Cursor.Current = Cursors.WaitCursor;
 
-      Stopwatch sw = new Stopwatch();
+      int threads = Environment.ProcessorCount;
+      queue = new Queue<Result>();
+      sem = new Semaphore( 0, 2 * threads );
 
-      for ( int fr = 0; time < end; fr++, time += dt )
+      // pool of working threads:
+      Thread[] pool = new Thread[ threads ];
+      int t;
+      for ( t = 0; t < threads; t++ )
       {
-        lock ( progress )
-        {
-          if ( !progress.Continue ) break;
-        }
-        sw.Start();
-        Bitmap newImage = RenderFrame( width, height, time );
-        SetImage( (Bitmap)newImage.Clone() );
-        sw.Stop();
+        pool[ t ] = new Thread( new ThreadStart( this.RenderWorker ) );
+        pool[ t ].Start();
+      }
 
-        SetText( String.Format( "Frame: {0}, elapsed: {1:f1}s", fr, 1.0e-3 * sw.ElapsedMilliseconds ) );
-        string fileName = String.Format( "out{0:0000}.png", fr );
-        newImage.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+      // loop for collection of computed frames:
+      int frames = 0;
+      int lastDisplayedFrame = -1;
+      const long DISPLAY_GAP = 10000L;
+      long lastDisplayedTime = -DISPLAY_GAP;
+      Stopwatch sw = new Stopwatch();
+      sw.Start();
+
+      while ( true )
+      {
+        sem.WaitOne();                      // wait until a frame is finished
+
+        lock ( progress )                   // regular finish, escape, user break?
+        {
+          if ( !progress.Continue ||
+               time >= end &&
+               frames >= frameNumber )
+            break;
+        }
+
+        // there could be a frame to process:
+        Result r;
+        lock ( queue )
+        {
+          if ( queue.Count == 0 )
+            continue;
+          r = queue.Dequeue();
+        }
+
+        // GUI progress indication:
+        SetText( String.Format( "Frames: {0}  ({1:f1}s)", ++frames, 1.0e-3 * sw.ElapsedMilliseconds ) );
+        if ( r.frameNumber > lastDisplayedFrame &&
+             sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
+        {
+          lastDisplayedFrame = r.frameNumber;
+          lastDisplayedTime = sw.ElapsedMilliseconds;
+          SetImage( (Bitmap)r.image.Clone() );
+        }
+
+        // save the image file:
+        string fileName = String.Format( "out{0:0000}.png", r.frameNumber );
+        r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+      }
+
+      for ( t = 0; t < threads; t++ )
+      {
+        pool[ t ].Join();
+        pool[ t ] = null;
       }
 
       Cursor.Current = Cursors.Default;
@@ -245,9 +339,67 @@ namespace _046cameranim
       StopAnimation();
     }
 
-    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    /// <summary>
+    /// Worker thread (picks up individual frames and renders them one by one).
+    /// </summary>
+    protected void RenderWorker ()
     {
-      StopAnimation();
+      // thread-specific data:
+      ITimeDependent mySceneTD = scene as ITimeDependent;
+      IRayScene myScene = (mySceneTD == null) ? scene : (IRayScene)mySceneTD.Clone();
+      mySceneTD = myScene as ITimeDependent;
+      RandomJames rnd = new RandomJames();
+
+      IImageFunction imf = getImageFunction( myScene );
+      imf.Width = width;
+      imf.Height = height;
+
+      IRenderer rend = getRenderer( imf );
+      rend.Width = width;
+      rend.Height = height;
+      rend.Adaptive = 0;                    // turn off adaptive bitmap synthesis completely (interactive preview not needed)
+      rend.ProgressData = progress;
+
+      // worker loop:
+      while ( true )
+      {
+        double myTime;
+        int myFrameNumber;
+
+        lock ( progress )
+        {
+          if ( !progress.Continue ||
+               time >= end )
+          {
+            sem.Release();                  // chance for the main animation thread to give up as well..
+            return;
+          }
+
+          // got a frame to compute:
+          myTime = time;
+          time += dt;
+          myFrameNumber = frameNumber++;
+        }
+
+        // set up the new result record:
+        Result r = new Result();
+        r.image = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+        r.frameNumber = myFrameNumber;
+
+        // set specific time to my scene:
+        if ( mySceneTD != null )
+          mySceneTD.Time = myTime;
+
+        // render the whole frame:
+        rend.RenderRectangle( r.image, 0, 0, width, height, rnd );
+
+        // ... and put the result into the output queue:
+        lock ( queue )
+        {
+          queue.Enqueue( r );
+        }
+        sem.Release();                      // notify the main animation thread
+      }
     }
   }
 }
