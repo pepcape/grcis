@@ -12,7 +12,6 @@
 ================================================================================
   Long term:
 ================================================================================
-- animace kamerou v RT (uloha 046)
 - pridat lom svetla do RT
 - licence: Apache licence? Nebo BSD?
 - vyzkouset GLSL shadery (upgrade OpenTK?)
@@ -40,3 +39,5 @@
 - vicevlaknovy vypocet RT (kazde vlakno svuj Rnd generator, sdileni zamykane bitmapy
   s vysledkem, rozdeleni prace pres modulo)
 - testovaci scena pro Bezierovy plochy
+- animace kamerou v RT (uloha 046 - pilotni animovana kamera krouzici kolem
+  jednoho bodu)

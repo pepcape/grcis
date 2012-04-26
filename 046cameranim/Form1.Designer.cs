@@ -42,12 +42,15 @@
       this.label4 = new System.Windows.Forms.Label();
       this.numFps = new System.Windows.Forms.NumericUpDown();
       this.buttonStop = new System.Windows.Forms.Button();
+      this.label5 = new System.Windows.Forms.Label();
+      this.numericSupersampling = new System.Windows.Forms.NumericUpDown();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numTime)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numFrom)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numTo)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numFps)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.numericSupersampling)).BeginInit();
       this.SuspendLayout();
       // 
       // panel1
@@ -75,9 +78,9 @@
       // buttonRenderAnim
       // 
       this.buttonRenderAnim.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonRenderAnim.Location = new System.Drawing.Point( 533, 412 );
+      this.buttonRenderAnim.Location = new System.Drawing.Point( 553, 412 );
       this.buttonRenderAnim.Name = "buttonRenderAnim";
-      this.buttonRenderAnim.Size = new System.Drawing.Size( 160, 23 );
+      this.buttonRenderAnim.Size = new System.Drawing.Size( 140, 23 );
       this.buttonRenderAnim.TabIndex = 2;
       this.buttonRenderAnim.Text = "Render animation";
       this.buttonRenderAnim.UseVisualStyleBackColor = true;
@@ -88,7 +91,7 @@
       this.buttonRender.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonRender.Location = new System.Drawing.Point( 13, 411 );
       this.buttonRender.Name = "buttonRender";
-      this.buttonRender.Size = new System.Drawing.Size( 125, 23 );
+      this.buttonRender.Size = new System.Drawing.Size( 97, 23 );
       this.buttonRender.TabIndex = 5;
       this.buttonRender.Text = "Single image";
       this.buttonRender.UseVisualStyleBackColor = true;
@@ -98,7 +101,7 @@
       // 
       this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelElapsed.AutoSize = true;
-      this.labelElapsed.Location = new System.Drawing.Point( 161, 417 );
+      this.labelElapsed.Location = new System.Drawing.Point( 128, 417 );
       this.labelElapsed.Name = "labelElapsed";
       this.labelElapsed.Size = new System.Drawing.Size( 48, 13 );
       this.labelElapsed.TabIndex = 21;
@@ -229,19 +232,54 @@
       // 
       this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.buttonStop.Enabled = false;
-      this.buttonStop.Location = new System.Drawing.Point( 421, 412 );
+      this.buttonStop.Location = new System.Drawing.Point( 453, 412 );
       this.buttonStop.Name = "buttonStop";
-      this.buttonStop.Size = new System.Drawing.Size( 93, 23 );
+      this.buttonStop.Size = new System.Drawing.Size( 81, 23 );
       this.buttonStop.TabIndex = 31;
       this.buttonStop.Text = "Stop";
       this.buttonStop.UseVisualStyleBackColor = true;
       this.buttonStop.Click += new System.EventHandler( this.buttonStop_Click );
+      // 
+      // label5
+      // 
+      this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.label5.AutoSize = true;
+      this.label5.Location = new System.Drawing.Point( 297, 416 );
+      this.label5.Name = "label5";
+      this.label5.Size = new System.Drawing.Size( 69, 13 );
+      this.label5.TabIndex = 32;
+      this.label5.Text = "Super-samp.:";
+      // 
+      // numericSupersampling
+      // 
+      this.numericSupersampling.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.numericSupersampling.Location = new System.Drawing.Point( 372, 414 );
+      this.numericSupersampling.Maximum = new decimal( new int[] {
+            10000,
+            0,
+            0,
+            0} );
+      this.numericSupersampling.Minimum = new decimal( new int[] {
+            1,
+            0,
+            0,
+            0} );
+      this.numericSupersampling.Name = "numericSupersampling";
+      this.numericSupersampling.Size = new System.Drawing.Size( 59, 20 );
+      this.numericSupersampling.TabIndex = 33;
+      this.numericSupersampling.Value = new decimal( new int[] {
+            1,
+            0,
+            0,
+            0} );
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.numericSupersampling );
+      this.Controls.Add( this.label5 );
       this.Controls.Add( this.buttonStop );
       this.Controls.Add( this.label4 );
       this.Controls.Add( this.numFps );
@@ -255,7 +293,7 @@
       this.Controls.Add( this.buttonRender );
       this.Controls.Add( this.buttonRenderAnim );
       this.Controls.Add( this.panel1 );
-      this.MinimumSize = new System.Drawing.Size( 680, 200 );
+      this.MinimumSize = new System.Drawing.Size( 700, 300 );
       this.Name = "Form1";
       this.Text = "046 ray-tracing animation";
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler( this.Form1_FormClosing );
@@ -266,6 +304,7 @@
       ((System.ComponentModel.ISupportInitialize)(this.numFrom)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.numTo)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.numFps)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.numericSupersampling)).EndInit();
       this.ResumeLayout( false );
       this.PerformLayout();
 
@@ -287,6 +326,8 @@
     private System.Windows.Forms.Label label4;
     private System.Windows.Forms.NumericUpDown numFps;
     private System.Windows.Forms.Button buttonStop;
+    private System.Windows.Forms.Label label5;
+    private System.Windows.Forms.NumericUpDown numericSupersampling;
   }
 }
 
