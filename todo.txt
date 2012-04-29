@@ -41,3 +41,5 @@
 - testovaci scena pro Bezierovy plochy
 - animace kamerou v RT (uloha 046 - pilotni animovana kamera krouzici kolem
   jednoho bodu)
+- Bezierova plocha: implementace s mikropolygony na konci subdivision
+  (neoptimalizovano na rychlost /R-tree/, to jeste prijde)
