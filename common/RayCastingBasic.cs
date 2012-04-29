@@ -40,6 +40,10 @@ namespace Rendering
       set;
     }
 
+    /// <summary>
+    /// Sample-based rendering specifics: rendered image is defined by
+    /// a continuous-argument image function.
+    /// </summary>
     public IImageFunction ImageFunction
     {
       get;

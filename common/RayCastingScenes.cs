@@ -856,7 +856,6 @@ namespace Rendering
       // --- NODE DEFINITIONS ----------------------------------------------------
 
       // Bezier patch (not yet):
-      /*
       BezierSurface b = new BezierSurface( 1, 2, new double[] {
         0.0, 0.0, 3.0,  // row 0
         1.0, 0.0, 3.0,
@@ -889,7 +888,6 @@ namespace Rendering
         } );
       b.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 10.5, 12.0, new double[] { 0.0, 0.0, 0.1 } ) );
       root.InsertChild( b, Matrix4d.RotateY( -0.4 ) * Matrix4d.CreateTranslation( -1.1, -0.9, 0.0 ) );
-      */
 
       // Cylinders for reflections..
       Cylinder c = new Cylinder();
