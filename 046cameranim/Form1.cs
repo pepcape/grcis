@@ -249,6 +249,7 @@ namespace _046cameranim
         end = time + 1.0;
       double fps = (double)numFps.Value;
       dt = (fps > 0.0) ? 1.0 / fps : 25.0;
+      end += 0.5 * dt;
       frameNumber = 0;
 
       width = panel1.Width;
@@ -369,7 +370,7 @@ namespace _046cameranim
         lock ( progress )
         {
           if ( !progress.Continue ||
-               time >= end )
+               time > end )
           {
             sem.Release();                  // chance for the main animation thread to give up as well..
             return;
