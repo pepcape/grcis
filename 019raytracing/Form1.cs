@@ -145,8 +145,11 @@ namespace _019raytracing
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, c{3:#,#}, i{4:#,#} ]",
-                              1.0e-3 * elapsed, width, height, CSGInnerNode.countCalls, CSGInnerNode.countIntersections ) );
+      SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, i{3:#,#}k, bb{4:#,#}k, t{5:#,#}k ]",
+                              1.0e-3 * elapsed, width, height,
+                              (CSGInnerNode.countIntersections + 500L) / 1000L,
+                              (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
+                              (CSGInnerNode.countTriangles + 500L) / 1000L ) );
       SetImage( (Bitmap)outputImage.Clone() );
 
       Cursor.Current = Cursors.Default;

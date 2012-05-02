@@ -43,3 +43,4 @@
   jednoho bodu)
 - Bezierova plocha: implementace s mikropolygony na konci subdivision
   (neoptimalizovano na rychlost /R-tree/, to jeste prijde)
+- R-tree pro Bezierovy platy, pridany relevantni citace (statistika)

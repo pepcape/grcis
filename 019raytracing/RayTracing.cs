@@ -9,7 +9,7 @@ namespace _019raytracing
   public partial class Form1 : Form
   {
     /// <summary>
-    /// Initialize ray-scene and image function (good enough for single samples).
+    /// Initialize ray-scene and image function (good enough for simple samples).
     /// </summary>
     private IImageFunction getImageFunction ()
     {

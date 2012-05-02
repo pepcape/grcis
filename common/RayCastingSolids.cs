@@ -822,10 +822,15 @@ namespace Rendering
   }
 
   /// <summary>
-  /// Support data container, holds info about one (subdivided) Bezier patch and its AABB.
+  /// Support class for R-tree traversal.
   /// </summary>
-  class BezierPatch : IComparable<BezierPatch>, ICloneable
+  class BezierIntersection : IComparable<BezierIntersection>
   {
+    /// <summary>
+    /// Associated Bezier patch.
+    /// </summary>
+    public BezierPatch patch;
+
     /// <summary>
     /// Intersection of the ray and the bounding box / patch.
     /// </summary>
@@ -850,6 +855,36 @@ namespace Rendering
     /// Tangent vectors.
     /// </summary>
     public Vector3d tu, tv;
+
+    public BezierIntersection ( BezierPatch p, double _t )
+    {
+      patch = p;
+      t = _t;
+    }
+
+    public int CompareTo ( BezierIntersection bi )
+    {
+      if ( t < bi.t ) return -1;
+      if ( t > bi.t ) return 1;
+      return 0;
+    }
+  }
+
+  /// <summary>
+  /// Support data container, holds info about one (subdivided) Bezier patch and its AABB.
+  /// Static shareable data, multi-thread safe.
+  /// </summary>
+  class BezierPatch : ICloneable
+  {
+    /// <summary>
+    /// Global subdivision threshold.
+    /// </summary>
+    public static double Epsilon = 1.0e-3;
+
+    /// <summary>
+    /// R-tree of the patches.
+    /// </summary>
+    public BezierPatch left, right;
 
     /// <summary>
     /// Control points .. p[0] = P_00, p[3] = P_03, p[4] = P_10, .. p[15] = P_33.
@@ -881,6 +916,9 @@ namespace Rendering
       p = new Vector3d[ 16 ];
     }
 
+    /// <summary>
+    /// Creates its own copy of control point array.
+    /// </summary>
     public BezierPatch ( BezierPatch b )
     {
       p = (Vector3d[])b.p.Clone();
@@ -895,29 +933,28 @@ namespace Rendering
       return new BezierPatch( this );
     }
 
-    public int CompareTo ( BezierPatch b )
-    {
-      if ( t < b.t ) return -1;
-      if ( t > b.t ) return 1;
-      return 0;
-    }
-
+    /// <summary>
+    /// [Re-]builds a bounding box for this patch.
+    /// </summary>
     public void UpdateBB ()
     {
       bbMin = bbSize = p[ 0 ];
       for ( int i = 1; i < 16; i++ )
       {
-        if ( p[ i ].X < bbMin.X )  bbMin.X  = p[ i ].X;
-        if ( p[ i ].X > bbSize.X ) bbSize.X = p[ i ].X;
-        if ( p[ i ].Y < bbMin.Y )  bbMin.Y  = p[ i ].Y;
-        if ( p[ i ].Y > bbSize.Y ) bbSize.Y = p[ i ].Y;
-        if ( p[ i ].Z < bbMin.Z )  bbMin.Z  = p[ i ].Z;
-        if ( p[ i ].Z > bbSize.Z ) bbSize.Z = p[ i ].Z;
+        double pa = p[ i ].X;
+        if ( pa < bbMin.X )  bbMin.X  = pa;
+        if ( pa > bbSize.X ) bbSize.X = pa;
+        pa = p[ i ].Y;
+        if ( pa < bbMin.Y )  bbMin.Y  = pa;
+        if ( pa > bbSize.Y ) bbSize.Y = pa;
+        pa = p[ i ].Z;
+        if ( pa < bbMin.Z )  bbMin.Z  = pa;
+        if ( pa > bbSize.Z ) bbSize.Z = pa;
       }
       bbSize -= bbMin;
     }
 
-    public void DivideHorizontal ( bool left )
+    protected void DivideHorizontal ( bool left )
     {
       for ( int off = 0; off < 16; off += 4 )    // one horizontal row
       {
@@ -948,7 +985,7 @@ namespace Rendering
       UpdateBB();
     }
 
-    public void DivideVertical ( bool up )
+    protected void DivideVertical ( bool up )
     {
       for ( int off = 0; off < 4; off++ )    // one vertical column
       {
@@ -980,15 +1017,53 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Re-entrant intersection function. Doesn't modify the instance at all.
+    /// Re-entrant intersection function. Doesn't modify the patch instance at all.
     /// </summary>
-    /// <param name="p0"></param>
-    /// <param name="p1"></param>
-    /// <returns></returns>
+    /// <returns>Double.NegativeInfinity if negative.</returns>
     public double Intersect ( Vector3d p0, Vector3d p1 )
     {
+      CSGInnerNode.countBoundingBoxes++;
       Vector2d result;
       return( Geometry.RayBoxIntersection( p0, p1, bbMin, bbSize, out result ) ? result.X : Double.NegativeInfinity );
+    }
+
+    /// <summary>
+    /// Builds a R-tree for this patch.
+    /// Uses this patch as R-tree root.
+    /// </summary>
+    public BezierPatch BuildTree ()
+    {
+      if ( bbSize.LengthSquared < Epsilon )
+      {
+        left = right = null;
+        return this;
+      }
+
+      // subdivide the patch:
+      BezierPatch b1 = (BezierPatch)Clone();  // left child
+      BezierPatch b2 = (BezierPatch)Clone();  // right child
+
+      double hor = (p[ 3 ] - p[ 0 ]).LengthFast + (p[ 15 ] - p[ 12 ]).LengthFast;
+      double ver = (p[ 12 ] - p[ 0 ]).LengthFast + (p[ 15 ] - p[ 3 ]).LengthFast;
+      if ( hor > ver )
+      {
+        // first child:
+        b1.DivideHorizontal( true );
+        // second child:
+        b2.DivideHorizontal( false );
+      }
+      else
+      {
+        // first child:
+        b1.DivideVertical( true );
+        // second child:
+        b2.DivideVertical( false );
+      }
+
+      left  = b1.BuildTree();
+      right = b2.BuildTree();
+
+      return this;
     }
   }
 
@@ -999,7 +1074,8 @@ namespace Rendering
   public class BezierSurface : DefaultSceneNode, ISolid
   {
     /// <summary>
-    /// Root Bezier patches. Must not be destroyed during computation.
+    /// Root Bezier patches R-trees.
+    /// Shared, must not be modified during computation!
     /// </summary>
     private List<BezierPatch> patches;
 
@@ -1015,16 +1091,24 @@ namespace Rendering
     /// <summary>
     /// Subdivision threshold.
     /// </summary>
-    public double Epsilon
+    public static double Epsilon
     {
-      get;
-      set;
+      get
+      {
+        return BezierPatch.Epsilon;
+      }
+      set
+      {
+        BezierPatch.Epsilon = value;
+      }
     }
 
     public BezierSurface ( int K, int L, double[] v )
     {
       Debug.Assert( K > 0 && L > 0 );
       Debug.Assert( v != null && v.Length >= 3 * (3 * K + 1) * (3 * L + 1) );
+
+      PreciseNormals = true;
 
       patches = new List<BezierPatch>( K * L );
       int stride = 3 * (3 * L + 1);
@@ -1048,11 +1132,9 @@ namespace Rendering
           p.tex33.X = l + 1.0;
           p.tex33.Y = k + 1.0;
           p.UpdateBB();
-          patches.Add( p );
+          patches.Add( p.BuildTree() );
         }
       }
-      PreciseNormals = true;
-      Epsilon = 1.0e-3;
     }
 
     /// <summary>
@@ -1063,15 +1145,14 @@ namespace Rendering
     /// <returns>Sorted list of intersection records.</returns>
     public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
     {
-      HeapMin<BezierPatch> h = new HeapMin<BezierPatch>();
+      HeapMin<BezierIntersection> h = new HeapMin<BezierIntersection>();
       foreach ( BezierPatch b in patches )
       {
         double t = b.Intersect( p0, p1 );
         if ( !Double.IsInfinity( t ) )
         {
-          BezierPatch bb = (BezierPatch)b.Clone();
-          bb.t = t;
-          h.Add( bb );
+          BezierIntersection bi = new BezierIntersection( b, t );
+          h.Add( bi );
         }
       }
 
@@ -1080,93 +1161,80 @@ namespace Rendering
 
       while ( h.Count > 0 )
       {
-        BezierPatch b = h.RemoveMin();
-        if ( b.final > 0 )
+        BezierIntersection bi = h.RemoveMin();
+        if ( bi.final > 0 )
         {                                   // intersection
           if ( result == null )
             result = new LinkedList<Intersection>();
           i = new Intersection( this );
-          i.T = b.t;
+          i.T = bi.t;
           i.Enter =
-          i.Front = b.enter;
-          i.CoordLocal = p0 + b.t * p1;
-          i.SolidData = b;
+          i.Front = bi.enter;
+          i.CoordLocal = p0 + bi.t * p1;
+          i.SolidData = bi;
           result.AddLast( i );
         }
         else
         {                                   // patch (to subdivide?)
-          if ( b.bbSize.LengthSquared > Epsilon )
-          {                                 // subdivide
-            BezierPatch b2 = (BezierPatch)b.Clone();
-            double hor = (b.p[ 3 ] - b.p[ 0 ]).LengthFast + (b.p[ 15 ] - b.p[ 12 ]).LengthFast;
-            double ver = (b.p[ 12 ] - b.p[ 0 ]).LengthFast + (b.p[ 15 ] - b.p[ 3 ]).LengthFast;
-            if ( hor > ver )
+          if ( bi.patch.left != null )      // subdivision
+          {
+            BezierPatch right = bi.patch.right;
+
+            // left child
+            double t = bi.patch.left.Intersect( p0, p1 );
+            if ( !Double.IsInfinity( t ) )
             {
-              // first child:
-              b.DivideHorizontal( true );
-              double t = b.Intersect( p0, p1 );
-              if ( !Double.IsInfinity( t ) )
-              {
-                b.t = t;
-                h.Add( b );
-              }
-              // second child:
-              b2.DivideHorizontal( false );
-              t = b2.Intersect( p0, p1 );
-              if ( !Double.IsInfinity( t ) )
-              {
-                b2.t = t;
-                h.Add( b2 );
-              }
+              bi.patch = bi.patch.left;
+              bi.t = t;
+              h.Add( bi );
+              bi = null;
             }
-            else
+
+            // right child:
+            t = right.Intersect( p0, p1 );
+            if ( !Double.IsInfinity( t ) )
             {
-              // first child:
-              b.DivideVertical( true );
-              double t = b.Intersect( p0, p1 );
-              if ( !Double.IsInfinity( t ) )
+              if ( bi == null )
+                bi = new BezierIntersection( right, t );
+              else
               {
-                b.t = t;
-                h.Add( b );
+                bi.patch = right;
+                bi.t = t;
               }
-              // second child:
-              b2.DivideVertical( false );
-              t = b2.Intersect( p0, p1 );
-              if ( !Double.IsInfinity( t ) )
-              {
-                b2.t = t;
-                h.Add( b2 );
-              }
+              h.Add( bi );
             }
           }
           else                              // patch is too small => intersect the two triangles..
           {
-            b.final = 0;
-            b.t = Geometry.RayTriangleIntersection( p0, p1, ref b.p[ 12 ], ref b.p[ 3 ], ref b.p[ 0 ], out b.uv );
-            if ( !Double.IsInfinity( b.t ) )
+            bi.final = 0;
+            Vector3d[] cp = bi.patch.p;
+            CSGInnerNode.countTriangles++;
+            bi.t = Geometry.RayTriangleIntersection( p0, p1, ref cp[ 12 ], ref cp[ 3 ], ref cp[ 0 ], out bi.uv );
+            if ( !Double.IsInfinity( bi.t ) )
             {
-              b.final = 1;
-              b.tu = b.p[ 0 ] - b.p[ 12 ];
-              b.tv = b.p[ 3 ] - b.p[ 12 ];
+              bi.final = 1;
+              bi.tu = cp[ 0 ] - cp[ 12 ];
+              bi.tv = cp[ 3 ] - cp[ 12 ];
             }
             else
             {
-              b.t = Geometry.RayTriangleIntersection( p0, p1, ref b.p[ 12 ], ref b.p[ 15 ], ref b.p[ 3 ], out b.uv );
-              if ( !Double.IsInfinity( b.t ) )
+              CSGInnerNode.countTriangles++;
+              bi.t = Geometry.RayTriangleIntersection( p0, p1, ref cp[ 12 ], ref cp[ 15 ], ref cp[ 3 ], out bi.uv );
+              if ( !Double.IsInfinity( bi.t ) )
               {
-                b.final = 2;
-                b.tu = b.p[ 3 ] - b.p[ 12 ];
-                b.tv = b.p[ 15 ] - b.p[ 12 ];
+                bi.final = 2;
+                bi.tu = cp[ 3 ] - cp[ 12 ];
+                bi.tv = cp[ 15 ] - cp[ 12 ];
               }
             }
-            if ( b.final > 0 )
+            if ( bi.final > 0 )
             {
               Vector3d n;
-              Vector3d.Cross( ref b.tu, ref b.tv, out n );
+              Vector3d.Cross( ref bi.tu, ref bi.tv, out n );
               double dot;
               Vector3d.Dot( ref n, ref p1, out dot );
-              b.enter = dot < 0.0;
-              h.Add( b );
+              bi.enter = dot < 0.0;
+              h.Add( bi );
             }
           }
         }
@@ -1181,60 +1249,65 @@ namespace Rendering
     /// <param name="inter">Intersection instance to complete.</param>
     public override void CompleteIntersection ( Intersection inter )
     {
-      BezierPatch b = inter.SolidData as BezierPatch;
-      if ( b != null )
+      BezierIntersection bi = inter.SolidData as BezierIntersection;
+      if ( bi != null )
       {
         // normal vector:
         Vector3d tu, tv;
         if ( PreciseNormals )               // Gouraud interpolation of exact normal vectors at the corners..
         {
           Vector3d na, nb, nc;
-          if ( b.final == 1 )
+          Vector3d[] cp = bi.patch.p;
+          if ( bi.final == 1 )
           {                                 // upper left triangle
-            tu = Vector3d.TransformVector( b.p[ 8 ] - b.p[ 12 ], inter.LocalToWorld );
-            tv = Vector3d.TransformVector( b.p[ 13 ] - b.p[ 12 ], inter.LocalToWorld );
+            tu = Vector3d.TransformVector( cp[ 8 ] - cp[ 12 ], inter.LocalToWorld );
+            tv = Vector3d.TransformVector( cp[ 13 ] - cp[ 12 ], inter.LocalToWorld );
             Vector3d.Cross( ref tu, ref tv, out na );
-            tu = Vector3d.TransformVector( b.p[ 7 ] - b.p[ 3 ], inter.LocalToWorld );
-            tv = Vector3d.TransformVector( b.p[ 2 ] - b.p[ 3 ], inter.LocalToWorld );
+            tu = Vector3d.TransformVector( cp[ 7 ] - cp[ 3 ], inter.LocalToWorld );
+            tv = Vector3d.TransformVector( cp[ 2 ] - cp[ 3 ], inter.LocalToWorld );
             Vector3d.Cross( ref tu, ref tv, out nb );
-            tu = Vector3d.TransformVector( b.p[ 1 ] - b.p[ 0 ], inter.LocalToWorld );
-            tv = Vector3d.TransformVector( b.p[ 4 ] - b.p[ 0 ], inter.LocalToWorld );
+            tu = Vector3d.TransformVector( cp[ 1 ] - cp[ 0 ], inter.LocalToWorld );
+            tv = Vector3d.TransformVector( cp[ 4 ] - cp[ 0 ], inter.LocalToWorld );
             Vector3d.Cross( ref tu, ref tv, out nc );
           }
           else
           {                                 // lower right triangle
-            tu = Vector3d.TransformVector( b.p[ 8 ] - b.p[ 12 ], inter.LocalToWorld );
-            tv = Vector3d.TransformVector( b.p[ 13 ] - b.p[ 12 ], inter.LocalToWorld );
+            tu = Vector3d.TransformVector( cp[ 8 ] - cp[ 12 ], inter.LocalToWorld );
+            tv = Vector3d.TransformVector( cp[ 13 ] - cp[ 12 ], inter.LocalToWorld );
             Vector3d.Cross( ref tu, ref tv, out na );
-            tu = Vector3d.TransformVector( b.p[ 14 ] - b.p[ 15 ], inter.LocalToWorld );
-            tv = Vector3d.TransformVector( b.p[ 11 ] - b.p[ 15 ], inter.LocalToWorld );
+            tu = Vector3d.TransformVector( cp[ 14 ] - cp[ 15 ], inter.LocalToWorld );
+            tv = Vector3d.TransformVector( cp[ 11 ] - cp[ 15 ], inter.LocalToWorld );
             Vector3d.Cross( ref tu, ref tv, out nb );
-            tu = Vector3d.TransformVector( b.p[ 7 ] - b.p[ 3 ], inter.LocalToWorld );
-            tv = Vector3d.TransformVector( b.p[ 2 ] - b.p[ 3 ], inter.LocalToWorld );
+            tu = Vector3d.TransformVector( cp[ 7 ] - cp[ 3 ], inter.LocalToWorld );
+            tv = Vector3d.TransformVector( cp[ 2 ] - cp[ 3 ], inter.LocalToWorld );
             Vector3d.Cross( ref tu, ref tv, out nc );
           }
           na.Normalize();
           nb.Normalize();
           nc.Normalize();
-          inter.Normal = (1.0 - b.uv.X - b.uv.Y) * na + b.uv.X * nb + b.uv.Y * nc;
+          inter.Normal = (1.0 - bi.uv.X - bi.uv.Y) * na + bi.uv.X * nb + bi.uv.Y * nc;
         }
         else                                // flat normal
         {
-          b.tu = Vector3d.TransformVector( b.tu, inter.LocalToWorld );
-          b.tv = Vector3d.TransformVector( b.tv, inter.LocalToWorld );
-          Vector3d.Cross( ref b.tu, ref b.tv, out inter.Normal );
+          bi.tu = Vector3d.TransformVector( bi.tu, inter.LocalToWorld );
+          bi.tv = Vector3d.TransformVector( bi.tv, inter.LocalToWorld );
+          Vector3d.Cross( ref bi.tu, ref bi.tv, out inter.Normal );
         }
 
         // 2D texture coordinates:
-        if ( b.final == 1 )
+        double x00 = bi.patch.tex00.X;
+        double y00 = bi.patch.tex00.Y;
+        double x33 = bi.patch.tex33.X;
+        double y33 = bi.patch.tex33.Y;
+        if ( bi.final == 1 )
         {                                   // upper left triangle
-          inter.TextureCoord.X = b.tex00.X + b.uv.X * (b.tex33.X - b.tex00.X);
-          inter.TextureCoord.Y = b.tex33.Y + (b.uv.X + b.uv.Y) * (b.tex00.Y - b.tex33.Y);
+          inter.TextureCoord.X = x00 + bi.uv.X * (x33 - x00);
+          inter.TextureCoord.Y = y33 + (bi.uv.X + bi.uv.Y) * (y00 - y33);
         }
         else
         {                                   // lower right triangle
-          inter.TextureCoord.X = b.tex00.X + (b.uv.X + b.uv.Y) * (b.tex33.X - b.tex00.X);
-          inter.TextureCoord.Y = b.tex33.Y + b.uv.Y * (b.tex00.Y - b.tex33.Y);
+          inter.TextureCoord.X = x00 + (bi.uv.X + bi.uv.Y) * (x33 - x00);
+          inter.TextureCoord.Y = y33 + bi.uv.Y * (y00 - y33);
         }
       }
     }
