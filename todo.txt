@@ -8,6 +8,7 @@
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
 - numericke chyby v Torusu (stinovaci paprsky?)
+- plosny svetelny zdroj + test Distr-RT rizeneho anti-aliasingem
 
 ================================================================================
   Long term:

@@ -247,17 +247,17 @@ namespace MathSupport
     /// <param name="size">Permutation size.</param>
     /// <param name="perm">Temporary object assigned to this permutation generation.</param>
     /// <returns>The 1st item ("0" to "size-1").</returns>
-    public int PermutationFirst ( int size, out Permutation perm )
+    public int PermutationFirst ( int size, ref Permutation perm )
     {
       if ( size < 1 )
-      {
-        perm = null;
-        return 0;
-      }
+        return -1;
 
-      perm = new Permutation();
+      if ( perm == null )
+        perm = new Permutation();
       perm.permSize = size;
-      perm.perm = new int[ size ];
+      if ( perm.perm == null ||
+           perm.perm.Length < size )
+        perm.perm = new int[ size ];
 
       int i;
       for ( i = 0; i < size - 1; i++ )
