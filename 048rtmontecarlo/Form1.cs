@@ -214,9 +214,10 @@ namespace _048rtmontecarlo
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, i{4:#,#}k, bb{5:#,#}k, t{6:#,#}k ]",
+      SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
                               1.0e-3 * elapsed, width, height, checkMultithreading.Checked ? Environment.ProcessorCount : 1,
-                              (CSGInnerNode.countIntersections + 500L) / 1000L,
+                              (Intersection.countRays + 500L) / 1000L,
+                              (Intersection.countIntersections + 500L) / 1000L,
                               (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
                               (CSGInnerNode.countTriangles + 500L) / 1000L ) );
       SetImage( (Bitmap)outputImage.Clone() );

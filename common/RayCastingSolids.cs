@@ -707,6 +707,7 @@ namespace Rendering
     /// <returns>Sorted list of intersection records.</returns>
     public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
     {
+      CSGInnerNode.countBoundingBoxes++;
       if ( wrapper.Intersect( p0, p1 ) == null )
         return null;
 

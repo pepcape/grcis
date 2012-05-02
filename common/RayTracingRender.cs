@@ -117,6 +117,7 @@ namespace Rendering
     {
       int bands = color.Length;
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect( p0, p1 );
+      Intersection.countRays++;
       Intersection i = Intersection.FirstIntersection( intersections, ref p1 );
 
       if ( i == null )          // no intersection -> background color
@@ -158,6 +159,7 @@ namespace Rendering
             if ( DoShadows && !dir.Equals( Vector3d.Zero ) )
             {
               intersections = scene.Intersectable.Intersect( i.CoordWorld, dir );
+              Intersection.countRays++;
               Intersection si = Intersection.FirstIntersection( intersections, ref dir );
               // Better shadow testing: intersection between 0.0 and 1.0 kills the lighting
               if ( si != null && !si.Far( 1.0, ref dir ) ) continue;
