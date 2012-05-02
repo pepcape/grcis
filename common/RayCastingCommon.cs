@@ -545,6 +545,17 @@ namespace Rendering
     /// </summary>
     public object SolidData;
 
+    /// <summary>
+    /// Number of rays casted into the scene.
+    /// </summary>
+    public static long countRays = 0L;
+
+    /// <summary>
+    /// Number of individual ray x solid intersections computed
+    /// (each surface has its intersection).
+    /// </summary>
+    public static long countIntersections = 0L;
+
     public Intersection ( ISolid s )
     {
       Solid = s;

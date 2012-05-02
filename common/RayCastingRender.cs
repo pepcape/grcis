@@ -76,6 +76,7 @@ namespace Rendering
       }
 
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect( p0, p1 );
+      Intersection.countRays++;
       Intersection i = Intersection.FirstIntersection( intersections, ref p1 );
       if ( i == null )            // no intersection -> background color
       {

@@ -341,11 +341,6 @@ namespace Rendering
     protected bool trivial;
 
     /// <summary>
-    /// Number of individual ray x solid intersections.
-    /// </summary>
-    public static long countIntersections = 0L;
-
-    /// <summary>
     /// Number of ray x bounding-box intersections.
     /// </summary>
     public static long countBoundingBoxes = 0L;
@@ -384,7 +379,8 @@ namespace Rendering
     /// </summary>
     public static void ResetStatistics ()
     {
-      countIntersections =
+      Intersection.countRays =
+      Intersection.countIntersections =
       countBoundingBoxes = 
       countTriangles = 0L;
     }
@@ -421,7 +417,7 @@ namespace Rendering
           partial = leftOp ? new LinkedList<Intersection>() : emptyResult;
         else
           if ( child is ISolid )
-            countIntersections += partial.Count;
+            Intersection.countIntersections += partial.Count;
 
         if ( leftOp )
         {
