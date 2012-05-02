@@ -18,11 +18,6 @@ namespace _019raytracing
     protected Bitmap outputImage = null;
 
     /// <summary>
-    /// Scene to be rendered.
-    /// </summary>
-    protected IRayScene scene = null;
-
-    /// <summary>
     /// The same order as items in the comboScenes.
     /// </summary>
     protected List<InitSceneDelegate> sceneInitFunctions = null;
@@ -115,7 +110,7 @@ namespace _019raytracing
 
       if ( imf == null )
       {
-        imf = getImageFunction();
+        imf = getImageFunction( getScene() );
         rend = null;
       }
       imf.Width  = width;
@@ -226,7 +221,7 @@ namespace _019raytracing
     {
       if ( imf == null )
       {
-        imf = getImageFunction();
+        imf = getImageFunction( getScene() );
         rend = null;
       }
 
