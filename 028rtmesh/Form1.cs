@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
+using GuiSupport;
 using MathSupport;
 using Rendering;
 using Scene3D;
@@ -32,6 +34,16 @@ namespace _028rtmesh
     protected IRenderer rend = null;
 
     /// <summary>
+    /// Image width in pixels, 0 for default value (according to panel size).
+    /// </summary>
+    protected int ImageWidth = 0;
+
+    /// <summary>
+    /// Image height in pixels, 0 for default value (according to panel size).
+    /// </summary>
+    protected int ImageHeight = 0;
+
+    /// <summary>
     /// Global instance of a random generator.
     /// </summary>
     private static RandomJames rnd = new RandomJames();
@@ -48,8 +60,11 @@ namespace _028rtmesh
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      int width   = panel1.Width;
-      int height  = panel1.Height;
+      // determine output image size:
+      int width = ImageWidth;
+      if ( width <= 0 ) width = panel1.Width;
+      int height = ImageHeight;
+      if ( height <= 0 ) height = panel1.Height;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       if ( imf == null )
@@ -61,6 +76,7 @@ namespace _028rtmesh
         rend = getRenderer();
       rend.Width  = width;
       rend.Height = height;
+      CSGInnerNode.ResetStatistics();
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
@@ -68,8 +84,12 @@ namespace _028rtmesh
       rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f}s", 1.0e-3 * sw.ElapsedMilliseconds );
-
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, r{3:#,#}k, i{4:#,#}k, bb{5:#,#}k, t{6:#,#}k ]",
+                                         1.0e-3 * sw.ElapsedMilliseconds, width, height,
+                                         (Intersection.countRays + 500L) / 1000L,
+                                         (Intersection.countIntersections + 500L) / 1000L,
+                                         (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
+                                         (CSGInnerNode.countTriangles + 500L) / 1000L );
       pictureBox1.Image = outputImage;
 
       Cursor.Current = Cursors.Default;
@@ -85,8 +105,13 @@ namespace _028rtmesh
       if ( imf == null )
         imf = getImageFunction();
 
-      imf.Width  = panel1.Width;
-      imf.Height = panel1.Height;
+      // determine output image size:
+      int width = ImageWidth;
+      if ( width <= 0 ) width = panel1.Width;
+      int height = ImageHeight;
+      if ( height <= 0 ) height = panel1.Height;
+      imf.Width = width;
+      imf.Height = height;
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x, y, color );
       labelSample.Text = String.Format( "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
@@ -98,6 +123,17 @@ namespace _028rtmesh
       InitializeComponent();
       String[] tok = "$Rev$".Split( new char[] { ' ' } );
       Text += " (rev: " + tok[ 1 ] + ')';
+    }
+
+    private void buttonRes_Click ( object sender, EventArgs e )
+    {
+      FormResolution form = new FormResolution( ImageWidth, ImageHeight );
+      if ( form.ShowDialog() == DialogResult.OK )
+      {
+        ImageWidth = form.ImageWidth;
+        ImageHeight = form.ImageHeight;
+        buttonRes.Text = String.Format( "{0} x {1}", ImageWidth, ImageHeight );
+      }
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )

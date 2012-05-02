@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
+using GuiSupport;
 using MathSupport;
 using Rendering;
-using System.Collections.Generic;
 
 namespace _046cameranim
 {
@@ -34,6 +35,16 @@ namespace _046cameranim
     protected IRayScene scene = null;
 
     /// <summary>
+    /// Image width in pixels, 0 for default value (according to panel size).
+    /// </summary>
+    protected int ImageWidth = 0;
+
+    /// <summary>
+    /// Image height in pixels, 0 for default value (according to panel size).
+    /// </summary>
+    protected int ImageHeight = 0;
+
+    /// <summary>
     /// Redraws the whole image.
     /// </summary>
     private void RenderImage ()
@@ -42,9 +53,12 @@ namespace _046cameranim
 
       buttonRender.Enabled = false;
       buttonRenderAnim.Enabled = false;
+      buttonRes.Enabled = false;
 
-      width = panel1.Width;
-      height = panel1.Height;
+      width = ImageWidth;
+      if ( width <= 0 ) width = panel1.Width;
+      height = ImageHeight;
+      if ( height <= 0 ) height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
@@ -79,6 +93,7 @@ namespace _046cameranim
 
       buttonRender.Enabled = true;
       buttonRenderAnim.Enabled = true;
+      buttonRes.Enabled = true;
 
       Cursor.Current = Cursors.Default;
     }
@@ -136,6 +151,7 @@ namespace _046cameranim
         // GUI stuff:
         buttonRenderAnim.Enabled = true;
         buttonRender.Enabled = true;
+        buttonRes.Enabled = true;
         buttonStop.Enabled = false;
       }
     }
@@ -145,6 +161,17 @@ namespace _046cameranim
       InitializeComponent();
       String []tok = "$Rev$".Split( new char[] { ' ' } );
       Text += " (rev: " + tok[1] + ')';
+    }
+
+    private void buttonRes_Click ( object sender, EventArgs e )
+    {
+      FormResolution form = new FormResolution( ImageWidth, ImageHeight );
+      if ( form.ShowDialog() == DialogResult.OK )
+      {
+        ImageWidth = form.ImageWidth;
+        ImageHeight = form.ImageHeight;
+        buttonRes.Text = String.Format( "{0} x {1}", ImageWidth, ImageHeight );
+      }
     }
 
     private void buttonRender_Click ( object sender, EventArgs e )
@@ -236,6 +263,7 @@ namespace _046cameranim
 
       buttonRenderAnim.Enabled = false;
       buttonRender.Enabled = false;
+      buttonRes.Enabled = false;
       buttonStop.Enabled = true;
       lock ( progress )
       {
@@ -252,8 +280,10 @@ namespace _046cameranim
       end += 0.5 * dt;
       frameNumber = 0;
 
-      width = panel1.Width;
-      height = panel1.Height;
+      width = ImageWidth;
+      if ( width <= 0 ) width = panel1.Width;
+      height = ImageHeight;
+      if ( height <= 0 ) height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
 
       if ( scene == null )

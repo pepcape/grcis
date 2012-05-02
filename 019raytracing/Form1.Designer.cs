@@ -37,6 +37,7 @@
       this.buttonStop = new System.Windows.Forms.Button();
       this.label1 = new System.Windows.Forms.Label();
       this.comboScene = new System.Windows.Forms.ComboBox();
+      this.buttonRes = new System.Windows.Forms.Button();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.SuspendLayout();
@@ -68,7 +69,7 @@
       // buttonSave
       // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonSave.Location = new System.Drawing.Point( 602, 381 );
+      this.buttonSave.Location = new System.Drawing.Point( 602, 411 );
       this.buttonSave.Name = "buttonSave";
       this.buttonSave.Size = new System.Drawing.Size( 91, 23 );
       this.buttonSave.TabIndex = 2;
@@ -81,7 +82,7 @@
       this.buttonRender.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonRender.Location = new System.Drawing.Point( 13, 411 );
       this.buttonRender.Name = "buttonRender";
-      this.buttonRender.Size = new System.Drawing.Size( 114, 23 );
+      this.buttonRender.Size = new System.Drawing.Size( 119, 23 );
       this.buttonRender.TabIndex = 5;
       this.buttonRender.Text = "Render";
       this.buttonRender.UseVisualStyleBackColor = true;
@@ -91,7 +92,7 @@
       // 
       this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelElapsed.AutoSize = true;
-      this.labelElapsed.Location = new System.Drawing.Point( 236, 417 );
+      this.labelElapsed.Location = new System.Drawing.Point( 220, 416 );
       this.labelElapsed.Name = "labelElapsed";
       this.labelElapsed.Size = new System.Drawing.Size( 48, 13 );
       this.labelElapsed.TabIndex = 21;
@@ -101,7 +102,7 @@
       // 
       this.labelSample.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelSample.AutoSize = true;
-      this.labelSample.Location = new System.Drawing.Point( 237, 383 );
+      this.labelSample.Location = new System.Drawing.Point( 336, 384 );
       this.labelSample.Name = "labelSample";
       this.labelSample.Size = new System.Drawing.Size( 45, 13 );
       this.labelSample.TabIndex = 22;
@@ -111,9 +112,9 @@
       // 
       this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonStop.Enabled = false;
-      this.buttonStop.Location = new System.Drawing.Point( 148, 411 );
+      this.buttonStop.Location = new System.Drawing.Point( 150, 411 );
       this.buttonStop.Name = "buttonStop";
-      this.buttonStop.Size = new System.Drawing.Size( 66, 23 );
+      this.buttonStop.Size = new System.Drawing.Size( 51, 23 );
       this.buttonStop.TabIndex = 32;
       this.buttonStop.Text = "Stop";
       this.buttonStop.UseVisualStyleBackColor = true;
@@ -136,15 +137,27 @@
       this.comboScene.FormattingEnabled = true;
       this.comboScene.Location = new System.Drawing.Point( 59, 378 );
       this.comboScene.Name = "comboScene";
-      this.comboScene.Size = new System.Drawing.Size( 155, 21 );
+      this.comboScene.Size = new System.Drawing.Size( 142, 21 );
       this.comboScene.TabIndex = 34;
       this.comboScene.SelectedIndexChanged += new System.EventHandler( this.comboScene_SelectedIndexChanged );
+      // 
+      // buttonRes
+      // 
+      this.buttonRes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonRes.Location = new System.Drawing.Point( 221, 378 );
+      this.buttonRes.Name = "buttonRes";
+      this.buttonRes.Size = new System.Drawing.Size( 101, 23 );
+      this.buttonRes.TabIndex = 35;
+      this.buttonRes.Text = "Resolution";
+      this.buttonRes.UseVisualStyleBackColor = true;
+      this.buttonRes.Click += new System.EventHandler( this.buttonRes_Click );
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.buttonRes );
       this.Controls.Add( this.comboScene );
       this.Controls.Add( this.label1 );
       this.Controls.Add( this.buttonStop );
@@ -153,7 +166,7 @@
       this.Controls.Add( this.buttonRender );
       this.Controls.Add( this.buttonSave );
       this.Controls.Add( this.panel1 );
-      this.MinimumSize = new System.Drawing.Size( 660, 200 );
+      this.MinimumSize = new System.Drawing.Size( 680, 300 );
       this.Name = "Form1";
       this.Text = "019 ray-tracing";
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler( this.Form1_FormClosing );
@@ -176,6 +189,7 @@
     private System.Windows.Forms.Button buttonStop;
     private System.Windows.Forms.Label label1;
     private System.Windows.Forms.ComboBox comboScene;
+    private System.Windows.Forms.Button buttonRes;
   }
 }
 
