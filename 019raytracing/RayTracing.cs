@@ -9,12 +9,18 @@ namespace _019raytracing
   public partial class Form1 : Form
   {
     /// <summary>
+    /// Initialize the ray-scene.
+    /// </summary>
+    private IRayScene getScene ()
+    {
+      return SceneByComboBox();
+    }
+
+    /// <summary>
     /// Initialize ray-scene and image function (good enough for simple samples).
     /// </summary>
-    private IImageFunction getImageFunction ()
+    private IImageFunction getImageFunction ( IRayScene scene )
     {
-      // feel free to replace it..
-      scene = SceneByComboBox();
       return new RayTracing( scene );
     }
 

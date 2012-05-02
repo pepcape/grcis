@@ -1,22 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
 using Rendering;
-using System;
 
 namespace _048rtmontecarlo
 {
   public partial class Form1 : Form
   {
     /// <summary>
-    /// Initialize ray-scene and image function (good enough for single samples).
+    /// Initialize the ray-scene.
     /// </summary>
-    private IImageFunction getImageFunction ()
+    private IRayScene getScene ()
     {
-      // feel free to replace it..
-      scene = SceneByComboBox();
+      return SceneByComboBox();
+    }
+
+    /// <summary>
+    /// Initialize ray-scene and image function (good enough for simple samples).
+    /// </summary>
+    private IImageFunction getImageFunction ( IRayScene scene )
+    {
       return new RayTracing( scene );
     }
 

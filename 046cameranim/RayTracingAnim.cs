@@ -13,14 +13,13 @@ namespace _046cameranim
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    /// <returns></returns>
     private IRayScene getScene ()
     {
       return new RayScene();
     }
 
     /// <summary>
-    /// Initialize ray-scene and image function (good enough for single samples).
+    /// Initialize ray-scene and image function (good enough for simple samples).
     /// </summary>
     private IImageFunction getImageFunction ( IRayScene scene )
     {
