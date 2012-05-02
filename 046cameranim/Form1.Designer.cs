@@ -44,6 +44,7 @@
       this.buttonStop = new System.Windows.Forms.Button();
       this.label5 = new System.Windows.Forms.Label();
       this.numericSupersampling = new System.Windows.Forms.NumericUpDown();
+      this.buttonRes = new System.Windows.Forms.Button();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numTime)).BeginInit();
@@ -116,21 +117,21 @@
             0,
             0,
             65536} );
-      this.numTime.Location = new System.Drawing.Point( 82, 379 );
+      this.numTime.Location = new System.Drawing.Point( 80, 379 );
       this.numTime.Maximum = new decimal( new int[] {
             10000,
             0,
             0,
             0} );
       this.numTime.Name = "numTime";
-      this.numTime.Size = new System.Drawing.Size( 80, 20 );
+      this.numTime.Size = new System.Drawing.Size( 75, 20 );
       this.numTime.TabIndex = 23;
       // 
       // label1
       // 
       this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point( 15, 382 );
+      this.label1.Location = new System.Drawing.Point( 13, 382 );
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size( 55, 13 );
       this.label1.TabIndex = 24;
@@ -140,7 +141,7 @@
       // 
       this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.label2.AutoSize = true;
-      this.label2.Location = new System.Drawing.Point( 251, 382 );
+      this.label2.Location = new System.Drawing.Point( 289, 382 );
       this.label2.Name = "label2";
       this.label2.Size = new System.Drawing.Size( 59, 13 );
       this.label2.TabIndex = 26;
@@ -155,21 +156,21 @@
             0,
             0,
             65536} );
-      this.numFrom.Location = new System.Drawing.Point( 319, 379 );
+      this.numFrom.Location = new System.Drawing.Point( 358, 379 );
       this.numFrom.Maximum = new decimal( new int[] {
             10000,
             0,
             0,
             0} );
       this.numFrom.Name = "numFrom";
-      this.numFrom.Size = new System.Drawing.Size( 91, 20 );
+      this.numFrom.Size = new System.Drawing.Size( 73, 20 );
       this.numFrom.TabIndex = 25;
       // 
       // label3
       // 
       this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.label3.AutoSize = true;
-      this.label3.Location = new System.Drawing.Point( 430, 382 );
+      this.label3.Location = new System.Drawing.Point( 447, 382 );
       this.label3.Name = "label3";
       this.label3.Size = new System.Drawing.Size( 49, 13 );
       this.label3.TabIndex = 28;
@@ -184,14 +185,14 @@
             0,
             0,
             65536} );
-      this.numTo.Location = new System.Drawing.Point( 490, 379 );
+      this.numTo.Location = new System.Drawing.Point( 505, 379 );
       this.numTo.Maximum = new decimal( new int[] {
             10000,
             0,
             0,
             0} );
       this.numTo.Name = "numTo";
-      this.numTo.Size = new System.Drawing.Size( 87, 20 );
+      this.numTo.Size = new System.Drawing.Size( 79, 20 );
       this.numTo.TabIndex = 27;
       this.numTo.Value = new decimal( new int[] {
             10,
@@ -203,7 +204,7 @@
       // 
       this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.label4.AutoSize = true;
-      this.label4.Location = new System.Drawing.Point( 597, 383 );
+      this.label4.Location = new System.Drawing.Point( 599, 383 );
       this.label4.Name = "label4";
       this.label4.Size = new System.Drawing.Size( 27, 13 );
       this.label4.TabIndex = 30;
@@ -273,11 +274,23 @@
             0,
             0} );
       // 
+      // buttonRes
+      // 
+      this.buttonRes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonRes.Location = new System.Drawing.Point( 175, 377 );
+      this.buttonRes.Name = "buttonRes";
+      this.buttonRes.Size = new System.Drawing.Size( 101, 23 );
+      this.buttonRes.TabIndex = 43;
+      this.buttonRes.Text = "Resolution";
+      this.buttonRes.UseVisualStyleBackColor = true;
+      this.buttonRes.Click += new System.EventHandler( this.buttonRes_Click );
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.buttonRes );
       this.Controls.Add( this.numericSupersampling );
       this.Controls.Add( this.label5 );
       this.Controls.Add( this.buttonStop );
@@ -293,7 +306,7 @@
       this.Controls.Add( this.buttonRender );
       this.Controls.Add( this.buttonRenderAnim );
       this.Controls.Add( this.panel1 );
-      this.MinimumSize = new System.Drawing.Size( 700, 300 );
+      this.MinimumSize = new System.Drawing.Size( 720, 300 );
       this.Name = "Form1";
       this.Text = "046 ray-tracing animation";
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler( this.Form1_FormClosing );
@@ -328,6 +341,7 @@
     private System.Windows.Forms.Button buttonStop;
     private System.Windows.Forms.Label label5;
     private System.Windows.Forms.NumericUpDown numericSupersampling;
+    private System.Windows.Forms.Button buttonRes;
   }
 }
 

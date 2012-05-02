@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
+using GuiSupport;
 using MathSupport;
 using Rendering;
 
@@ -36,6 +37,16 @@ namespace _019raytracing
     /// Image synthesizer used to compute raster images.
     /// </summary>
     protected IRenderer rend = null;
+
+    /// <summary>
+    /// Image width in pixels, 0 for default value (according to panel size).
+    /// </summary>
+    protected int ImageWidth = 0;
+
+    /// <summary>
+    /// Image height in pixels, 0 for default value (according to panel size).
+    /// </summary>
+    protected int ImageHeight = 0;
 
     /// <summary>
     /// Global instance of a random generator.
@@ -104,8 +115,11 @@ namespace _019raytracing
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      int width   = panel1.Width;
-      int height  = panel1.Height;
+      // determine output image size:
+      int width = ImageWidth;
+      if ( width <= 0 ) width = panel1.Width;
+      int height = ImageHeight;
+      if ( height <= 0 ) height = panel1.Height;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       if ( imf == null )
@@ -207,6 +221,7 @@ namespace _019raytracing
         // GUI stuff:
         buttonRender.Enabled = true;
         comboScene.Enabled = true;
+        buttonRes.Enabled = true;
         buttonSave.Enabled = true;
         buttonStop.Enabled = false;
       }
@@ -225,8 +240,13 @@ namespace _019raytracing
         rend = null;
       }
 
-      imf.Width  = panel1.Width;
-      imf.Height = panel1.Height;
+      // determine output image size:
+      int width = ImageWidth;
+      if ( width <= 0 ) width = panel1.Width;
+      int height = ImageHeight;
+      if ( height <= 0 ) height = panel1.Height;
+      imf.Width = width;
+      imf.Height = height;
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x + 0.5, y + 0.5, color );
       labelSample.Text = String.Format( "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
@@ -243,6 +263,17 @@ namespace _019raytracing
       InitializeScenes();
     }
 
+    private void buttonRes_Click ( object sender, EventArgs e )
+    {
+      FormResolution form = new FormResolution( ImageWidth, ImageHeight );
+      if ( form.ShowDialog() == DialogResult.OK )
+      {
+        ImageWidth  = form.ImageWidth;
+        ImageHeight = form.ImageHeight;
+        buttonRes.Text = String.Format( "{0} x {1}", ImageWidth, ImageHeight );
+      }
+    }
+
     private void buttonRender_Click ( object sender, EventArgs e )
     {
       if ( aThread != null )
@@ -250,6 +281,7 @@ namespace _019raytracing
 
       buttonRender.Enabled = false;
       comboScene.Enabled = false;
+      buttonRes.Enabled = false;
       buttonSave.Enabled = false;
       buttonStop.Enabled = true;
       lock ( progress )

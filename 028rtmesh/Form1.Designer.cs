@@ -35,6 +35,7 @@
       this.labelElapsed = new System.Windows.Forms.Label();
       this.labelSample = new System.Windows.Forms.Label();
       this.buttonLoad = new System.Windows.Forms.Button();
+      this.buttonRes = new System.Windows.Forms.Button();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.SuspendLayout();
@@ -99,7 +100,7 @@
       // 
       this.labelSample.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelSample.AutoSize = true;
-      this.labelSample.Location = new System.Drawing.Point( 282, 417 );
+      this.labelSample.Location = new System.Drawing.Point( 287, 385 );
       this.labelSample.Name = "labelSample";
       this.labelSample.Size = new System.Drawing.Size( 45, 13 );
       this.labelSample.TabIndex = 22;
@@ -116,18 +117,30 @@
       this.buttonLoad.UseVisualStyleBackColor = true;
       this.buttonLoad.Click += new System.EventHandler( this.buttonLoad_Click );
       // 
+      // buttonRes
+      // 
+      this.buttonRes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonRes.Location = new System.Drawing.Point( 164, 378 );
+      this.buttonRes.Name = "buttonRes";
+      this.buttonRes.Size = new System.Drawing.Size( 101, 23 );
+      this.buttonRes.TabIndex = 43;
+      this.buttonRes.Text = "Resolution";
+      this.buttonRes.UseVisualStyleBackColor = true;
+      this.buttonRes.Click += new System.EventHandler( this.buttonRes_Click );
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.buttonRes );
       this.Controls.Add( this.buttonLoad );
       this.Controls.Add( this.labelSample );
       this.Controls.Add( this.labelElapsed );
       this.Controls.Add( this.buttonRedraw );
       this.Controls.Add( this.buttonSave );
       this.Controls.Add( this.panel1 );
-      this.MinimumSize = new System.Drawing.Size( 660, 200 );
+      this.MinimumSize = new System.Drawing.Size( 700, 300 );
       this.Name = "Form1";
       this.Text = "028 ray-tracing of the mesh";
       this.panel1.ResumeLayout( false );
@@ -147,6 +160,7 @@
     private System.Windows.Forms.Label labelElapsed;
     private System.Windows.Forms.Label labelSample;
     private System.Windows.Forms.Button buttonLoad;
+    private System.Windows.Forms.Button buttonRes;
   }
 }
 

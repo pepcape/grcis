@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{69242D1F-586F-4D76-ABB0-343F95FBC2BD}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -54,6 +54,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\FormResolution.cs">
+      <Link>FormResolution.cs</Link>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="..\common\MathSupport.cs">
       <Link>MathSupport.cs</Link>
     </Compile>
