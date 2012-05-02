@@ -60,7 +60,7 @@ namespace GuiSupport
 
       // numericWid
       numericWid.Location = new Point( 70, 14 );
-      numericWid.Maximum = new decimal( new int[] { 20000, 0, 0, 0 } );
+      numericWid.Maximum = new decimal( new int[] { 40000, 0, 0, 0 } );
       numericWid.Name = "numericWid";
       numericWid.Size = new Size( 100, 20 );
       numericWid.TabIndex = 2;
@@ -76,7 +76,7 @@ namespace GuiSupport
 
       // numericHei
       numericHei.Location = new Point( 70, 45 );
-      numericHei.Maximum = new decimal( new int[] { 20000, 0, 0, 0 } );
+      numericHei.Maximum = new decimal( new int[] { 30000, 0, 0, 0 } );
       numericHei.Name = "numericWid";
       numericHei.Size = new Size( 100, 20 );
       numericHei.TabIndex = 4;
