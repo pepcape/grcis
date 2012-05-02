@@ -99,7 +99,7 @@
       // 
       this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelElapsed.AutoSize = true;
-      this.labelElapsed.Location = new System.Drawing.Point( 236, 453 );
+      this.labelElapsed.Location = new System.Drawing.Point( 231, 453 );
       this.labelElapsed.Name = "labelElapsed";
       this.labelElapsed.Size = new System.Drawing.Size( 48, 13 );
       this.labelElapsed.TabIndex = 21;
@@ -119,7 +119,7 @@
       // 
       this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonStop.Enabled = false;
-      this.buttonStop.Location = new System.Drawing.Point( 148, 447 );
+      this.buttonStop.Location = new System.Drawing.Point( 146, 447 );
       this.buttonStop.Name = "buttonStop";
       this.buttonStop.Size = new System.Drawing.Size( 66, 23 );
       this.buttonStop.TabIndex = 32;

@@ -341,14 +341,19 @@ namespace Rendering
     protected bool trivial;
 
     /// <summary>
-    /// Number of Intersect() calls in child nodes.
-    /// </summary>
-    public static long countCalls = 0L;
-
-    /// <summary>
     /// Number of individual ray x solid intersections.
     /// </summary>
     public static long countIntersections = 0L;
+
+    /// <summary>
+    /// Number of ray x bounding-box intersections.
+    /// </summary>
+    public static long countBoundingBoxes = 0L;
+
+    /// <summary>
+    /// Number of ray x triangle intersections.
+    /// </summary>
+    public static long countTriangles = 0L;
 
     public CSGInnerNode ( SetOperation op )
     {
@@ -379,8 +384,9 @@ namespace Rendering
     /// </summary>
     public static void ResetStatistics ()
     {
-      countCalls =
-      countIntersections = 0L;
+      countIntersections =
+      countBoundingBoxes = 
+      countTriangles = 0L;
     }
 
     /// <summary>
@@ -410,12 +416,12 @@ namespace Rendering
         Vector3d dir    = Vector3d.TransformVector(   p1, child.FromParent );
         // ray in local child's coords: [ origin, dir ]
 
-        countCalls++;
         LinkedList<Intersection> partial = child.Intersect( origin, dir );
         if ( partial == null )
           partial = leftOp ? new LinkedList<Intersection>() : emptyResult;
         else
-          countIntersections += partial.Count;
+          if ( child is ISolid )
+            countIntersections += partial.Count;
 
         if ( leftOp )
         {
