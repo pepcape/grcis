@@ -174,7 +174,7 @@ namespace Rendering
         aa.X = a.X; aa.Y = a.Y; aa.Z = a.Z;
         bb.X = b.X; bb.Y = b.Y; bb.Z = b.Z;
         cc.X = c.X; cc.Y = c.Y; cc.Z = c.Z;
-        double t = Geometry.RayTriangleIntersection( p0, p1, ref aa, ref bb, ref cc, out uv );
+        double t = Geometry.RayTriangleIntersection( ref p0, ref p1, ref aa, ref bb, ref cc, out uv );
         if ( Double.IsInfinity( t ) ) continue;
 
         if ( result == null )

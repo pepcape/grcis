@@ -1021,11 +1021,11 @@ namespace Rendering
     /// Re-entrant intersection function. Doesn't modify the patch instance at all.
     /// </summary>
     /// <returns>Double.NegativeInfinity if negative.</returns>
-    public double Intersect ( Vector3d p0, Vector3d p1 )
+    public double IntersectInv ( ref Vector3d p0, ref Vector3d p1 )
     {
       CSGInnerNode.countBoundingBoxes++;
       Vector2d result;
-      return( Geometry.RayBoxIntersection( p0, p1, bbMin, bbSize, out result ) ? result.X : Double.NegativeInfinity );
+      return( Geometry.RayBoxIntersectionInv( ref p0, ref p1, ref bbMin, ref bbSize, out result ) ? result.X : Double.NegativeInfinity );
     }
 
     /// <summary>
@@ -1147,9 +1147,14 @@ namespace Rendering
     public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
     {
       HeapMin<BezierIntersection> h = new HeapMin<BezierIntersection>();
+      Vector3d p1inv;
+      p1inv.X = Geometry.IsZero( p1.X ) ? Double.PositiveInfinity : 1.0 / p1.X;
+      p1inv.Y = Geometry.IsZero( p1.Y ) ? Double.PositiveInfinity : 1.0 / p1.Y;
+      p1inv.Z = Geometry.IsZero( p1.Z ) ? Double.PositiveInfinity : 1.0 / p1.Z;
+
       foreach ( BezierPatch b in patches )
       {
-        double t = b.Intersect( p0, p1 );
+        double t = b.IntersectInv( ref p0, ref p1inv );
         if ( !Double.IsInfinity( t ) )
         {
           BezierIntersection bi = new BezierIntersection( b, t );
@@ -1182,7 +1187,7 @@ namespace Rendering
             BezierPatch right = bi.patch.right;
 
             // left child
-            double t = bi.patch.left.Intersect( p0, p1 );
+            double t = bi.patch.left.IntersectInv( ref p0, ref p1inv );
             if ( !Double.IsInfinity( t ) )
             {
               bi.patch = bi.patch.left;
@@ -1192,7 +1197,7 @@ namespace Rendering
             }
 
             // right child:
-            t = right.Intersect( p0, p1 );
+            t = right.IntersectInv( ref p0, ref p1inv );
             if ( !Double.IsInfinity( t ) )
             {
               if ( bi == null )
@@ -1210,7 +1215,7 @@ namespace Rendering
             bi.final = 0;
             Vector3d[] cp = bi.patch.p;
             CSGInnerNode.countTriangles++;
-            bi.t = Geometry.RayTriangleIntersection( p0, p1, ref cp[ 12 ], ref cp[ 3 ], ref cp[ 0 ], out bi.uv );
+            bi.t = Geometry.RayTriangleIntersection( ref p0, ref p1, ref cp[ 12 ], ref cp[ 3 ], ref cp[ 0 ], out bi.uv );
             if ( !Double.IsInfinity( bi.t ) )
             {
               bi.final = 1;
@@ -1220,7 +1225,7 @@ namespace Rendering
             else
             {
               CSGInnerNode.countTriangles++;
-              bi.t = Geometry.RayTriangleIntersection( p0, p1, ref cp[ 12 ], ref cp[ 15 ], ref cp[ 3 ], out bi.uv );
+              bi.t = Geometry.RayTriangleIntersection( ref p0, ref p1, ref cp[ 12 ], ref cp[ 15 ], ref cp[ 3 ], out bi.uv );
               if ( !Double.IsInfinity( bi.t ) )
               {
                 bi.final = 2;
