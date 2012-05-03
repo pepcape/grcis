@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using MathSupport;
 using OpenTK;
+using System.Collections.Generic;
 
 namespace Rendering
 {
@@ -426,24 +427,36 @@ namespace Rendering
   }
 
   /// <summary>
-  /// White point light source w/o intensity attenuation.
+  /// Point light source w/o intensity attenuation.
   /// </summary>
   public class PointLightSource : ILightSource
   {
     /// <summary>
     /// 3D coordinate of the source.
     /// </summary>
-    protected Vector3d coordinate;
+    protected Vector3d position;
 
     /// <summary>
     /// Intensity of the source expressed as color tuple.
     /// </summary>
     protected double[] intensity;
 
-    public PointLightSource ( Vector3d coord, double intens )
+    /// <summary>
+    /// Monochromatic light source.
+    /// </summary>
+    public PointLightSource ( Vector3d pos, double intens )
     {
-      coordinate = coord;
+      position = pos;
       intensity = new double[] { intens, intens, intens };
+    }
+
+    /// <summary>
+    /// Color light source.
+    /// </summary>
+    public PointLightSource ( Vector3d pos, double[] intens )
+    {
+      position = pos;
+      intensity = intens;
     }
 
     /// <summary>
@@ -453,9 +466,9 @@ namespace Rendering
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    public double[] GetIntensity ( Intersection intersection, out Vector3d dir )
+    public virtual double[] GetIntensity ( Intersection intersection, out Vector3d dir )
     {
-      dir = coordinate - intersection.CoordWorld;
+      dir = position - intersection.CoordWorld;
       if ( Vector3d.Dot( dir, intersection.Normal ) <= 0.0 )
         return null;
 
@@ -472,7 +485,7 @@ namespace Rendering
     /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    public double[] GetIntensity ( Intersection intersection, int rank, int total, RandomJames rnd, out Vector3d dir )
+    public virtual double[] GetIntensity ( Intersection intersection, int rank, int total, RandomJames rnd, out Vector3d dir )
     {
       return GetIntensity( intersection, out dir );
     }
@@ -516,6 +529,139 @@ namespace Rendering
     public double[] GetIntensity ( Intersection intersection, int rank, int total, RandomJames rnd, out Vector3d dir )
     {
       return GetIntensity( intersection, out dir );
+    }
+  }
+
+  /// <summary>
+  /// Rectangle light source with intensity attenuation.
+  /// </summary>
+  public class RectangleLightSource : PointLightSource
+  {
+    /// <summary>
+    ///  "Horizontal" edge of the rectangle.
+    /// </summary>
+    protected Vector3d width = new Vector3d( 1.0, 0.0, 0.0 );
+
+    /// <summary>
+    /// "Vertical" edge of the rectangle.
+    /// </summary>
+    protected Vector3d height = new Vector3d( 0.0, 1.0, 0.0 );
+
+    /// <summary>
+    /// Dimming polynom coefficients: light is dimmed by the factor of
+    /// Dim[0] + Dim[1] * D + Dim[2] * D^2.
+    /// Can be "null" for no dimming..
+    /// </summary>
+    public double[] Dim
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Support data container for sampling states.
+    /// </summary>
+    public class SamplingState
+    {
+      protected int rank;
+      protected int total;
+      protected RandomJames rnd;
+      protected RandomJames.Permutation permU;
+      protected RandomJames.Permutation permV;
+
+      public double u, v;
+      public Vector3d sample;
+
+      public SamplingState ( RandomJames _rnd )
+      {
+        rnd = _rnd;
+        permU = new RandomJames.Permutation();
+        permV = new RandomJames.Permutation();
+        rank = total = 0;
+      }
+
+      public void generateSample ( int r, int t )
+      {
+        if ( t == total &&
+             r == rank )
+          return;
+
+        int uCell, vCell;
+        if ( t != total || r < rank )       // [re-]initialization
+        {
+          total = t;
+          uCell = rnd.PermutationFirst( total, ref permU );
+          vCell = rnd.PermutationFirst( total, ref permV );
+        }
+        else
+        {
+          uCell = Math.Min( rnd.PermutationNext( ref permU ), 0 );
+          vCell = Math.Min( rnd.PermutationNext( ref permV ), 0 );
+        }
+
+        rank = r;
+
+        // point sample will be placed into [ uCell, vCell ] cell:
+        u = (uCell + rnd.UniformNumber()) / total;
+        v = (vCell + rnd.UniformNumber()) / total;
+
+        // TODO: do something like:
+        // sample = position + u * width + v * height;
+      }
+    }
+
+    /// <summary>
+    /// Set of sampling states (one per random-generator instance or thread).
+    /// </summary>
+    protected Dictionary<int, SamplingState> states = new Dictionary<int, SamplingState>();
+
+    /// <summary>
+    /// Monochromatic light source.
+    /// </summary>
+    public RectangleLightSource ( Vector3d pos, Vector3d wid, Vector3d hei, double intens )
+      : base( pos, intens )
+    {
+      width = wid;
+      height = hei;
+      Dim = new double[] { 0.5, 1.0, 0.1 };
+    }
+
+    /// <summary>
+    /// Color light source.
+    /// </summary>
+    public RectangleLightSource ( Vector3d pos, Vector3d wid, Vector3d hei, double[] intens )
+      : base( pos, intens )
+    {
+      width = wid;
+      height = hei;
+      Dim = new double[] { 0.5, 1.0, 0.1 };
+    }
+
+    /// <summary>
+    /// Returns intensity (incl. color) of the source contribution to the given scene point.
+    /// Internal integration support.
+    /// </summary>
+    /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
+    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
+    /// <param name="total">Total number of samples (for integration).</param>
+    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
+    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
+    /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
+    public override double[] GetIntensity ( Intersection intersection, int rank, int total, RandomJames rnd, out Vector3d dir )
+    {
+      if ( rnd == null )
+        return GetIntensity( intersection, out dir );
+
+      SamplingState ss = states[ rnd.GetHashCode() ];
+      if ( ss == null )
+      {
+        ss = new SamplingState( rnd );
+        states[ rnd.GetHashCode() ] = ss;
+      }
+
+      /// TODO: not yet
+      dir = Vector3d.UnitX;
+      return null;
     }
   }
 
