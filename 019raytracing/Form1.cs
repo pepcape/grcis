@@ -82,7 +82,7 @@ namespace _019raytracing
       public override void Sync ( Object msg )
       {
         long now = f.sw.ElapsedMilliseconds;
-        if ( now - lastSync < 6000L )
+        if ( now - lastSync < SyncInterval )
           return;
 
         lastSync = now;
@@ -135,7 +135,9 @@ namespace _019raytracing
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 8;
+
       rend.ProgressData = progress;
+      progress.SyncInterval = 10000L;
       progress.Reset();
       CSGInnerNode.ResetStatistics();
 

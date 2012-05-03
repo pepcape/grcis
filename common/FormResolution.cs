@@ -40,6 +40,8 @@ namespace GuiSupport
     {
       ImageWidth  = (int)numericWid.Value;
       ImageHeight = (int)numericHei.Value;
+      if ( ImageWidth * (long)ImageHeight > 500000000L )
+        ImageHeight = 500000000 / ImageWidth;
       if ( ImageWidth == 0 && ImageHeight == 0 )
         Label = "Resolution";
       else
@@ -71,7 +73,7 @@ namespace GuiSupport
 
       // numericWid
       numericWid.Location = new Point( 70, 14 );
-      numericWid.Maximum = new decimal( new int[] { 40000, 0, 0, 0 } );
+      numericWid.Maximum = new decimal( new int[] { 60000, 0, 0, 0 } );
       numericWid.Name = "numericWid";
       numericWid.Size = new Size( 100, 20 );
       numericWid.TabIndex = 2;
@@ -87,7 +89,7 @@ namespace GuiSupport
 
       // numericHei
       numericHei.Location = new Point( 70, 45 );
-      numericHei.Maximum = new decimal( new int[] { 30000, 0, 0, 0 } );
+      numericHei.Maximum = new decimal( new int[] { 60000, 0, 0, 0 } );
       numericHei.Name = "numericWid";
       numericHei.Size = new Size( 100, 20 );
       numericHei.TabIndex = 4;
