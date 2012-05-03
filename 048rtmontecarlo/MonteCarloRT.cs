@@ -103,7 +103,7 @@ namespace Rendering
         {
           ImageFunction.GetSample( x0 + amplitude * rnd.UniformNumber(),
                                    y0 + amplitude * rnd.UniformNumber(),
-                                   ord++, Supersampling, tmp );
+                                   ord++, Supersampling, rnd, tmp );
           for ( b = 0; b < bands; b++ )
             color[ b ] += tmp[ b ];
         }
