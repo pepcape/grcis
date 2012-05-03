@@ -150,6 +150,14 @@ namespace Rendering
       sc.Sources = new LinkedList<ILightSource>();
       sc.Sources.Add( new AmbientLightSource( 0.8 ) );
       sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 3.0, -3.0 ), 1.0 ) );
+      /*
+      RectangleLightSource rls = new RectangleLightSource( new Vector3d( -5.0, 3.0, -4.0 ),
+                                                           new Vector3d( 0.0, 0.0, 2.0 ),
+                                                           new Vector3d( 0.0, 1.0, 0.0 ), 1.5 );
+      rls.Dim = new double[] { 1.0, 0.01, 0.0 };
+      sc.Sources.Add( rls );
+      */
+
 
       // --- NODE DEFINITIONS ----------------------------------------------------
 
