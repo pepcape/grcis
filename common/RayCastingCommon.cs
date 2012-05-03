@@ -426,6 +426,15 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Sync interval in milliseconds.
+    /// </summary>
+    public long SyncInterval
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
     /// Any message from computing unit to the GUI main.
     /// </summary>
     public virtual void Sync ( Object msg )
@@ -440,6 +449,7 @@ namespace Rendering
       Finished = 0.0f;
       Message = "";
       Continue = true;
+      SyncInterval = 8000L;
     }
   }
 

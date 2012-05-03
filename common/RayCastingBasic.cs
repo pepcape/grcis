@@ -141,7 +141,7 @@ namespace Rendering
       bool xParity, yParity;
       float total = (x2 - x1) * (y2 - y1);
       long counter = 0L;
-      int units = 0;
+      long units = 0;
 
       do                                    // do one phase
       {
@@ -188,7 +188,7 @@ namespace Rendering
                 }
               }
 
-              if ( (++units & 7) == 0 &&
+              if ( (++units & 31L) == 0L &&
                    ProgressData != null )
                 lock ( ProgressData )
                 {
@@ -197,8 +197,7 @@ namespace Rendering
                   if ( lead )
                   {
                     ProgressData.Finished = counter / total;
-                    if ( (units & 0x1FFF) == 0 )
-                      ProgressData.Sync( image );
+                    ProgressData.Sync( image );
                   }
                 }
             }

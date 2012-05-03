@@ -77,7 +77,7 @@ namespace _048rtmontecarlo
       public override void Sync ( Object msg )
       {
         long now = f.sw.ElapsedMilliseconds;
-        if ( now - lastSync < 6000L )
+        if ( now - lastSync < SyncInterval )
           return;
 
         lastSync = now;
@@ -189,6 +189,7 @@ namespace _048rtmontecarlo
         ss.Supersampling = (int)numericSupersampling.Value;
         ss.Jittering = checkJitter.Checked ? 1.0 : 0.0;
       }
+      progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 30000L : 10000L;
       progress.Reset();
       CSGInnerNode.ResetStatistics();
 
