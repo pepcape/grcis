@@ -30,6 +30,11 @@ namespace _018raycasting
     protected IRenderer rend = null;
 
     /// <summary>
+    /// Global instance of a random generator.
+    /// </summary>
+    private static RandomJames rnd = new RandomJames();
+
+    /// <summary>
     /// Redraws the whole image.
     /// </summary>
     private void redraw ()
@@ -54,7 +59,7 @@ namespace _018raycasting
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height, new RandomJames() );
+      rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
 
       sw.Stop();
       labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );

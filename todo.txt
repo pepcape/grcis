@@ -48,3 +48,4 @@
 - pridan citac paprsku (vsechny paprsky vrzene do sceny)
 - zadavani libovolneho rozliseni RT obrazku pomoci tlacitka a custom dialogu
   (otestovano na max. rozliseni 20k x 20k pix)
+- vsude k "rank, total" pridat jeste "rnd"

@@ -49,9 +49,10 @@ namespace Rendering
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
+    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="color">Computed sample color.</param>
     /// <returns>Hash-value used for adaptive subsampling.</returns>
-    long GetSample ( double x, double y, int rank, int total, double[] color );
+    long GetSample ( double x, double y, int rank, int total, RandomJames rnd, double[] color );
   }
 
   /// <summary>
@@ -186,10 +187,11 @@ namespace Rendering
     /// <param name="y">Origin position within a viewport (vertical coordinate).</param>
     /// <param name="rank">Rank of this ray, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of rays (for integration).</param>
+    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>True if the ray (viewport position) is valid.</returns>
-    bool GetRay ( double x, double y, int rank, int total, out Vector3d p0, out Vector3d p1 );
+    bool GetRay ( double x, double y, int rank, int total, RandomJames rnd, out Vector3d p0, out Vector3d p1 );
   }
 
   /// <summary>
@@ -213,9 +215,10 @@ namespace Rendering
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
+    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir );
+    double[] GetIntensity ( Intersection intersection, int rank, int total, RandomJames rnd, out Vector3d dir );
   }
 
   public enum ReflectionComponent
@@ -305,8 +308,9 @@ namespace Rendering
     /// <param name="inter">Data object to modify.</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
+    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <returns>Hash value (texture signature) for adaptive subsampling.</returns>
-    long Apply ( Intersection inter, int rank, int total );
+    long Apply ( Intersection inter, int rank, int total, RandomJames rnd );
   }
 
   /// <summary>
@@ -631,7 +635,7 @@ namespace Rendering
     /// Canonic sort order: by a T value.
     /// </summary>
     /// <param name="obj">Instance to be compared to..</param>
-    /// <returns></returns>
+    /// <returns>-1, 0 or 1.</returns>
     public int CompareTo ( object obj )
     {
       Intersection i = (Intersection)obj;
