@@ -24,6 +24,11 @@ namespace GuiSupport
       set;
     }
 
+    /// <summary>
+    /// Output value: label for a "Resolution" button.
+    /// </summary>
+    public string Label;
+
     public FormResolution ( int initWid, int initHei )
     {
       ImageWidth  = initWid;
@@ -35,6 +40,12 @@ namespace GuiSupport
     {
       ImageWidth  = (int)numericWid.Value;
       ImageHeight = (int)numericHei.Value;
+      if ( ImageWidth == 0 && ImageHeight == 0 )
+        Label = "Resolution";
+      else
+        Label = String.Format( "{0} x {1}",
+                              (ImageWidth == 0)  ? "res" : ImageWidth.ToString(),
+                              (ImageHeight == 0) ? "res" : ImageHeight.ToString() );
     }
 
     private void InitializeComponent ()

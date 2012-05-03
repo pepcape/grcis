@@ -170,7 +170,7 @@ namespace _046cameranim
       {
         ImageWidth = form.ImageWidth;
         ImageHeight = form.ImageHeight;
-        buttonRes.Text = String.Format( "{0} x {1}", ImageWidth, ImageHeight );
+        buttonRes.Text = form.Label;
       }
     }
 
