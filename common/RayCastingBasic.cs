@@ -188,7 +188,7 @@ namespace Rendering
                 }
               }
 
-              if ( (++units & 31L) == 0L &&
+              if ( (++units & 63L) == 0L &&
                    ProgressData != null )
                 lock ( ProgressData )
                 {
@@ -562,17 +562,21 @@ namespace Rendering
     /// </summary>
     public class SamplingState
     {
+      protected RectangleLightSource source;
+
       protected int rank;
       protected int total;
+
       protected RandomJames rnd;
       protected RandomJames.Permutation permU;
       protected RandomJames.Permutation permV;
 
-      public double u, v;
+      protected double u, v;
       public Vector3d sample;
 
-      public SamplingState ( RandomJames _rnd )
+      public SamplingState ( RectangleLightSource src, RandomJames _rnd )
       {
+        source = src;
         rnd = _rnd;
         permU = new RandomJames.Permutation();
         permV = new RandomJames.Permutation();
@@ -605,12 +609,12 @@ namespace Rendering
         v = (vCell + rnd.UniformNumber()) / total;
 
         // TODO: do something like:
-        // sample = position + u * width + v * height;
+        sample = source.position + u * source.width + v * source.height;
       }
     }
 
     /// <summary>
-    /// Set of sampling states (one per random-generator instance or thread).
+    /// Set of sampling states (one per random-generator instance / thread).
     /// </summary>
     protected Dictionary<int, SamplingState> states = new Dictionary<int, SamplingState>();
 
@@ -651,16 +655,32 @@ namespace Rendering
       if ( rnd == null )
         return GetIntensity( intersection, out dir );
 
-      SamplingState ss = states[ rnd.GetHashCode() ];
-      if ( ss == null )
+      SamplingState ss;
+      lock ( states )
       {
-        ss = new SamplingState( rnd );
-        states[ rnd.GetHashCode() ] = ss;
+        if ( !states.TryGetValue( rnd.GetHashCode(), out ss ) )
+        {
+          ss = new SamplingState( this, rnd );
+          states.Add( rnd.GetHashCode(), ss );
+        }
       }
 
-      /// TODO: not yet
-      dir = Vector3d.UnitX;
-      return null;
+      // generate a [new] sample:
+      ss.generateSample( rank, total );
+      dir = ss.sample - intersection.CoordWorld;
+      if ( Vector3d.Dot( dir, intersection.Normal ) <= 0.0 )
+        return null;
+
+      if ( Dim == null || Dim.Length < 3 ) return intensity;
+
+      double dist = dir.Length;
+      double dimCoef = 1.0 / (Dim[0] + dist * (Dim[1] + dist * Dim[2]));
+      int bands = intensity.Length;
+      double[] result = new double[ bands ];
+      for ( int i = 0; i < bands; i++ )
+        result[ i ] = intensity[ i ] * dimCoef;
+
+      return result;
     }
   }
 
