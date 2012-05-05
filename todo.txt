@@ -8,7 +8,6 @@
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
 - numericke chyby v Torusu (stinovaci paprsky?)
-- plosny svetelny zdroj + test Distr-RT rizeneho anti-aliasingem
 
 ================================================================================
   Long term:
@@ -51,3 +50,4 @@
 - vsude k "rank, total" pridat jeste "rnd", sdileni bude zalozeno na
   "one-instance-per-thread"
 - prezentace zadaneho rozliseni na tlacitku "Resolution"
+- plosny svetelny zdroj + test Distr-RT rizeneho anti-aliasingem
