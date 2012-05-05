@@ -58,6 +58,12 @@ namespace _048rtmontecarlo
 
       // .. and set your favorite scene here:
       comboScene.SelectedIndex = comboScene.Items.IndexOf( "Test scene" );
+
+      // default image parameters?
+      ImageWidth  = 800;
+      ImageHeight = 540;
+      numericSupersampling.Value = 4;
+      checkMultithreading.Checked = true;
     }
   }
 }
@@ -135,7 +141,7 @@ namespace Rendering
       // CSG scene:
       CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
       root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
-      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 1.0, 0.8, 0.1 }, 0.1, 0.6, 0.4, 16 ) );
+      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 1.0, 0.8, 0.1 }, 0.1, 0.6, 0.4, 128 ) );
       sc.Intersectable = root;
 
       // Background color:
@@ -149,12 +155,22 @@ namespace Rendering
       // Light sources:
       sc.Sources = new LinkedList<ILightSource>();
       sc.Sources.Add( new AmbientLightSource( 0.8 ) );
-      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 3.0, -3.0 ), 1.0 ) );
-      /*
-      RectangleLightSource rls = new RectangleLightSource( new Vector3d( -5.0, 3.0, -4.0 ),
-                                                           new Vector3d( 0.0, 0.0, 2.0 ),
-                                                           new Vector3d( 0.0, 1.0, 0.0 ), 1.5 );
-      rls.Dim = new double[] { 1.0, 0.01, 0.0 };
+      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 4.0, -3.0 ), 1.0 ) );
+
+      /* 
+      // horizontal stick source:
+      //RectangleLightSource rls = new RectangleLightSource( new Vector3d( -5.0, 4.0, -6.0 ),
+      //                                                     new Vector3d( 0.0, 0.0, 6.0 ),
+      //                                                     new Vector3d( 0.0, 0.1, 0.0 ), 2.2 );
+      // vertical stick source:
+      RectangleLightSource rls = new RectangleLightSource( new Vector3d( -5.0, 1.0, -3.0 ),
+                                                           new Vector3d( 0.0, 0.0, 0.1 ),
+                                                           new Vector3d( 0.0, 6.0, 0.0 ), 2.2 );
+      // rectangle source:
+      //RectangleLightSource rls = new RectangleLightSource( new Vector3d( -5.0, 1.0, -6.0 ),
+      //                                                     new Vector3d( 0.0, 0.0, 6.0 ),
+      //                                                     new Vector3d( 0.0, 6.0, 0.0 ), 2.2 );
+      rls.Dim = new double[] { 1.0, 0.04, 0.0 };
       sc.Sources.Add( rls );
       */
 

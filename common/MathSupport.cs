@@ -16,6 +16,23 @@ namespace MathSupport
       if ( val.CompareTo( max ) > 0 ) return max;
       return val;
     }
+
+    public static double Pow ( double a, int e )
+    {
+      if ( e < 0 )
+      {
+        e = -e;
+        a = 1.0 / a;
+      }
+      double acc = ((e & 1) != 0) ? a : 1.0;
+      while ( (e >>= 1) != 0 )
+      {
+        a *= a;
+        if ( (e & 1) != 0 )
+          acc *= a;
+      }
+      return acc;
+    }
   }
 
   /// <summary>

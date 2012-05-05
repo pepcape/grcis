@@ -598,8 +598,8 @@ namespace Rendering
         }
         else
         {
-          uCell = Math.Min( rnd.PermutationNext( ref permU ), 0 );
-          vCell = Math.Min( rnd.PermutationNext( ref permV ), 0 );
+          uCell = Math.Max( rnd.PermutationNext( ref permU ), 0 );
+          vCell = Math.Max( rnd.PermutationNext( ref permV ), 0 );
         }
 
         rank = r;
@@ -867,7 +867,7 @@ namespace Rendering
       {
         double cosBeta = Vector3d.Dot( r, output );
         if ( cosBeta > 0.0 )
-          specular = coef * ks * Math.Pow( cosBeta, mat.H );
+          specular = coef * ks * Arith.Pow( cosBeta, mat.H );
       }
 
       for ( int i = 0; i < bands; i++ )
