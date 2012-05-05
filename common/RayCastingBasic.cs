@@ -585,28 +585,36 @@ namespace Rendering
 
       public void generateSample ( int r, int t )
       {
-        if ( t == total &&
-             r == rank )
-          return;
-
-        int uCell, vCell;
-        if ( t != total || r < rank )       // [re-]initialization
+        if ( t > 1 )
         {
-          total = t;
-          uCell = rnd.PermutationFirst( total, ref permU );
-          vCell = rnd.PermutationFirst( total, ref permV );
+          if ( r == rank &&
+               t == total )
+            return;
+
+          int uCell, vCell;
+          if ( t != total || r < rank )       // [re-]initialization
+          {
+            total = t;
+            uCell = rnd.PermutationFirst( total, ref permU );
+            vCell = rnd.PermutationFirst( total, ref permV );
+          }
+          else
+          {
+            uCell = Math.Max( rnd.PermutationNext( ref permU ), 0 );
+            vCell = Math.Max( rnd.PermutationNext( ref permV ), 0 );
+          }
+
+          rank = r;
+
+          // point sample will be placed into [ uCell, vCell ] cell:
+          u = (uCell + rnd.UniformNumber()) / total;
+          v = (vCell + rnd.UniformNumber()) / total;
         }
         else
         {
-          uCell = Math.Max( rnd.PermutationNext( ref permU ), 0 );
-          vCell = Math.Max( rnd.PermutationNext( ref permV ), 0 );
+          u = rnd.UniformNumber();
+          v = rnd.UniformNumber();
         }
-
-        rank = r;
-
-        // point sample will be placed into [ uCell, vCell ] cell:
-        u = (uCell + rnd.UniformNumber()) / total;
-        v = (vCell + rnd.UniformNumber()) / total;
 
         // TODO: do something like:
         sample = source.position + u * source.width + v * source.height;
