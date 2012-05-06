@@ -24,6 +24,21 @@ namespace _035plasma
     volatile protected bool cont = true;
 
     /// <summary>
+    /// Simulation's horizontal size.
+    /// </summary>
+    protected int width;
+
+    /// <summary>
+    /// Simulation's vertical size.
+    /// </summary>
+    protected int height;
+
+    /// <summary>
+    /// Save individual frames?
+    /// </summary>
+    protected bool saveFrames;
+
+    /// <summary>
     /// Just for fun..
     /// </summary>
     protected FpsMeter fps = new FpsMeter();
@@ -86,14 +101,15 @@ namespace _035plasma
     public Form1 ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( new char[] { ' ' } );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     public void Simulation ()
     {
-      int width  = (int)numericXres.Value;
-      int height = (int)numericYres.Value;
-
-      if ( sim == null || sim.Width != width || sim.Height != height )
+      if ( sim == null ||
+           sim.Width != width ||
+           sim.Height != height )
         sim = new Simulation( width, height );
 
       fps.Start();
@@ -102,14 +118,18 @@ namespace _035plasma
       while ( cont )
       {
         sim.Simulate();
-        SetImage( sim.Visualize() );
+        Bitmap frame = sim.Visualize();
+        SetImage( frame );
 
         float newFp = fps.Frame();
         if ( sim.Frame % 32 == 0 ) fp = newFp;
         SetText( String.Format( "Frame: {0} (FPS = {1:0.0})", sim.Frame, fp ) );
 
-        //string fileName = String.Format( "out{0:0000}.png", i );
-        //image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+        if ( saveFrames )
+        {
+          string fileName = String.Format( "out{0:0000}.png", sim.Frame );
+          ((Bitmap)frame.Clone()).Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+        }
       }
 
       fps.Stop();
@@ -123,6 +143,11 @@ namespace _035plasma
       buttonReset.Enabled = false;
       buttonStop.Enabled  = true;
       cont = true;
+
+      // simulation properties:
+      width = (int)numericXres.Value;
+      height = (int)numericYres.Value;
+      saveFrames = checkAnim.Checked;
 
       aThread = new Thread( new ThreadStart( this.Simulation ) );
       aThread.Start();
