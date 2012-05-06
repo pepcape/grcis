@@ -38,6 +38,7 @@
       this.buttonStop = new System.Windows.Forms.Button();
       this.buttonStart = new System.Windows.Forms.Button();
       this.buttonReset = new System.Windows.Forms.Button();
+      this.checkAnim = new System.Windows.Forms.CheckBox();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericXres)).BeginInit();
@@ -150,7 +151,7 @@
       // buttonStart
       // 
       this.buttonStart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonStart.Location = new System.Drawing.Point( 263, 405 );
+      this.buttonStart.Location = new System.Drawing.Point( 263, 404 );
       this.buttonStart.Name = "buttonStart";
       this.buttonStart.Size = new System.Drawing.Size( 110, 23 );
       this.buttonStart.TabIndex = 13;
@@ -161,19 +162,31 @@
       // buttonReset
       // 
       this.buttonReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonReset.Location = new System.Drawing.Point( 154, 404 );
+      this.buttonReset.Location = new System.Drawing.Point( 147, 404 );
       this.buttonReset.Name = "buttonReset";
-      this.buttonReset.Size = new System.Drawing.Size( 84, 23 );
+      this.buttonReset.Size = new System.Drawing.Size( 91, 23 );
       this.buttonReset.TabIndex = 14;
       this.buttonReset.Text = "Reset";
       this.buttonReset.UseVisualStyleBackColor = true;
       this.buttonReset.Click += new System.EventHandler( this.buttonReset_Click );
+      // 
+      // checkAnim
+      // 
+      this.checkAnim.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkAnim.AutoSize = true;
+      this.checkAnim.Location = new System.Drawing.Point( 151, 440 );
+      this.checkAnim.Name = "checkAnim";
+      this.checkAnim.Size = new System.Drawing.Size( 89, 17 );
+      this.checkAnim.TabIndex = 15;
+      this.checkAnim.Text = "save frames?";
+      this.checkAnim.UseVisualStyleBackColor = true;
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 474 );
+      this.Controls.Add( this.checkAnim );
       this.Controls.Add( this.buttonReset );
       this.Controls.Add( this.buttonStart );
       this.Controls.Add( this.buttonStop );
@@ -209,6 +222,7 @@
     private System.Windows.Forms.Button buttonStop;
     private System.Windows.Forms.Button buttonStart;
     private System.Windows.Forms.Button buttonReset;
+    private System.Windows.Forms.CheckBox checkAnim;
   }
 }
 
