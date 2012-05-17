@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTK;
+using System.IO;
+using Scene3D;
 
 namespace Rendering
 {
@@ -9,6 +11,11 @@ namespace Rendering
   /// Delegate used for RT-scene initialization.
   /// </summary>
   public delegate void InitSceneDelegate ( IRayScene sc );
+
+  /// <summary>
+  /// Delegate used for RT-scene initialization (variant with list of strings .. e.g. mesh names).
+  /// </summary>
+  public delegate long InitSceneStrDelegate ( IRayScene sc, string[] names );
 
   /// <summary>
   /// Some interesting scenes created mostly by MFF UK students.
@@ -46,6 +53,22 @@ namespace Rendering
       new InitSceneDelegate( Circus ),
       new InitSceneDelegate( Toroids ),
       new InitSceneDelegate( Bezier ),
+    };
+
+    /// <summary>
+    /// Scene names (Str variant) how to appear in a combo-box.
+    /// </summary>
+    public static string[] NamesStr =
+    {
+      "Teapot",
+    };
+
+    /// <summary>
+    /// The init functions themselves (Str variant)..
+    /// </summary>
+    public static InitSceneStrDelegate[] InitFunctionsStr =
+    {
+      new InitSceneStrDelegate( TeapotObj ),
     };
 
     /// <summary>
@@ -902,6 +925,137 @@ namespace Rendering
       pl.SetAttribute( PropertyName.COLOR, new double[] { 0.3, 0.0, 0.0 } );
       pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 0.6, 0.6, new double[] { 1.0, 1.0, 1.0 } ) );
       root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
+    }
+
+    /// <summary>
+    /// Find files in the current directory and three more levels up the file-system tree.
+    /// Suitable for data/* files accessible from xxx/bin/Release/xxx.exe
+    /// </summary>
+    /// <param name="names"></param>
+    /// <returns></returns>
+    public static string[] SmartFindFiles ( string[] names )
+    {
+      if ( names == null || names.Length == 0 )
+        return null;
+
+      int len = names.Length;
+      string[] result = new string[ len ];
+      for ( int i = 0; i < len; i++ )
+        if ( names[ i ] == null || names[ i ].Length == 0 )
+          result[ i ] = "";
+        else
+          if ( names[ i ].Contains( "\\" ) )
+            result[ i ] = names[ i ];
+          else
+            try
+            {
+              string[] search = Directory.GetFiles( ".", names[ i ], SearchOption.AllDirectories );
+              if ( search.Length > 0 )
+              {
+                result[ i ] = search[ 0 ];
+                continue;
+              }
+              search = Directory.GetFiles( "..", names[ i ], SearchOption.AllDirectories );
+              if ( search.Length > 0 )
+              {
+                result[ i ] = search[ 0 ];
+                continue;
+              }
+              search = Directory.GetFiles( "..\\..", names[ i ], SearchOption.AllDirectories );
+              if ( search.Length > 0 )
+              {
+                result[ i ] = search[ 0 ];
+                continue;
+              }
+              search = Directory.GetFiles( "..\\..\\..", names[ i ], SearchOption.AllDirectories );
+              if ( search.Length > 0 )
+              {
+                result[ i ] = search[ 0 ];
+                continue;
+              }
+            }
+            catch ( IOException )
+            {
+            }
+            catch ( UnauthorizedAccessException )
+            {
+            }
+
+      return result;
+    }
+
+    /// <summary>
+    /// Generic OBJ-loading scene definition routine.
+    /// </summary>
+    /// <param name="dir">Viewing direction of a camera.</param>
+    /// <param name="name">OBJ file-name.</param>
+    /// <param name="names">Substitute file-name[s].</param>
+    /// <returns>Number of triangles.</returns>
+    protected static long SceneObj ( IRayScene sc, Vector3d dir, string name, string[] names, double[] surfaceColor )
+    {
+      Debug.Assert( sc != null );
+
+      Vector3 center = Vector3.Zero;   // center of the mesh
+      dir.Normalize();                 // normalized viewing vector of the camera
+      float diameter = 2.0f;           // default scene diameter
+      double FoVy = 60.0;              // Field of View in degrees
+      int faces = 0;
+
+      // CSG scene:
+      CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
+
+      // OBJ file to read:
+      if ( names.Length == 0 ||
+           names[ 0 ].Length == 0 )
+        names = new string[] { name };
+
+      string[] paths = Scenes.SmartFindFiles( names );
+      if ( paths[ 0 ].Length == 0 )
+        root.InsertChild( new Sphere(), Matrix4d.Identity );
+      else
+      {
+        // B-rep scene construction:
+        WavefrontObj objReader = new WavefrontObj();
+        objReader.MirrorConversion = false;
+        StreamReader reader = new StreamReader( new FileStream( paths[ 0 ], FileMode.Open ) );
+        SceneBrep brep = new SceneBrep();
+        faces = objReader.ReadBrep( reader, brep );
+        reader.Close();
+        brep.BuildCornerTable();
+        diameter = brep.GetDiameter( out center );
+        TriangleMesh m = new TriangleMesh( brep );
+        root.InsertChild( m, Matrix4d.Identity );
+      }
+
+      root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
+      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( surfaceColor, 0.2, 0.5, 0.4, 32 ) );
+      root.SetAttribute( PropertyName.COLOR, surfaceColor );
+      sc.Intersectable = root;
+
+      // Background color:
+      sc.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
+
+      // Camera:
+      double dist = (0.6 * diameter) / Math.Tan( MathHelper.DegreesToRadians( (float)(0.5 * FoVy) ) );
+      Vector3d cam = (Vector3d)center - dist * dir;
+      sc.Camera = new StaticCamera( cam, dir, FoVy );
+
+      // Light sources:
+      sc.Sources = new LinkedList<ILightSource>();
+      sc.Sources.Add( new AmbientLightSource( 0.8 ) );
+      Vector3d lightDir = Vector3d.TransformVector( dir, Matrix4d.CreateRotationY( -2.0 ) );
+      lightDir = Vector3d.TransformVector( lightDir, Matrix4d.CreateRotationZ( -0.8 ) );
+      sc.Sources.Add( new PointLightSource( (Vector3d)center + diameter * lightDir, 1.0 ) );
+
+      return faces;
+    }
+
+    /// <summary>
+    /// Scene containing one instance of Utah Teapot read from the OBJ file.
+    /// </summary>
+    public static long TeapotObj ( IRayScene sc, string[] names )
+    {
+      return SceneObj( sc, new Vector3d( 0.1, -0.3, 0.9 ), "teapot.obj", names, new double[] { 1.0, 0.6, 0.0 } );
     }
   }
 }

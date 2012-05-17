@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Diagnostics;
 using MathSupport;
 using OpenTK;
-using System.Diagnostics;
+using Scene3D;
 
 namespace Rendering
 {
@@ -1316,6 +1316,184 @@ namespace Rendering
           inter.TextureCoord.Y = y33 + bi.uv.Y * (y00 - y33);
         }
       }
+    }
+  }
+
+  /// <summary>
+  /// Triangle mesh able to compute ray-intersection and normal vector.
+  /// </summary>
+  public class TriangleMesh : DefaultSceneNode, ISolid
+  {
+    protected class TmpData
+    {
+      /// <summary>
+      /// Face id (id of the intersected triangle).
+      /// </summary>
+      public int face;
+
+      /// <summary>
+      /// Barycentric coordinates in the intersected triangle.
+      /// </summary>
+      public Vector2d uv;
+
+      // Vertex ids.
+      //int va, vb, vc;
+
+      /// <summary>
+      /// Normal vector in B-rep coordinates.
+      /// </summary>
+      public Vector3 normal;
+    }
+
+    /// <summary>
+    /// Original mesh object (triangles in a "Corner table").
+    /// </summary>
+    protected SceneBrep mesh;
+
+    /// <summary>
+    /// Shell mode: surface is considered as a thin shell (double-sided).
+    /// </summary>
+    public bool ShellMode
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Smooth mode: smooth interpolation of surface normals (a la Phong shading).
+    /// </summary>
+    public bool Smooth
+    {
+      get;
+      set;
+    }
+
+    public TriangleMesh ( SceneBrep m )
+    {
+      mesh = m;
+      ShellMode = false;
+      Smooth = true;
+    }
+
+    /// <summary>
+    /// Computes the complete intersection of the given ray with the object.
+    /// This is unefficient template used as a base class for FastTriangleMesh.
+    /// </summary>
+    /// <param name="p0">Ray origin.</param>
+    /// <param name="p1">Ray direction vector.</param>
+    /// <returns>Sorted list of intersection records.</returns>
+    public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
+    {
+      if ( mesh == null || mesh.Triangles < 1 )
+        return null;
+
+      List<Intersection> result = null;
+      Intersection i;
+
+      for ( int id = 0; id < mesh.Triangles; id++ )
+      {
+        Vector3 a, b, c;
+        mesh.GetTriangleVertices( id, out a, out b, out c );
+        Vector2d uv;
+        Vector3d aa, bb, cc;
+        aa.X = a.X; aa.Y = a.Y; aa.Z = a.Z;
+        bb.X = b.X; bb.Y = b.Y; bb.Z = b.Z;
+        cc.X = c.X; cc.Y = c.Y; cc.Z = c.Z;
+        CSGInnerNode.countTriangles++;
+        double t = Geometry.RayTriangleIntersection( ref p0, ref p1, ref aa, ref bb, ref cc, out uv );
+        if ( Double.IsInfinity( t ) )
+          continue;
+
+        if ( result == null )
+          result = new List<Intersection>();
+
+        // Compile the 1st Intersection instance:
+        i = new Intersection( this );
+        i.T = t;
+        i.Enter =
+        i.Front = true;
+        i.CoordLocal.X = p0.X + i.T * p1.X;
+        i.CoordLocal.Y = p0.Y + i.T * p1.Y;
+        i.CoordLocal.Z = p0.Z + i.T * p1.Z;
+
+        // Tmp data object
+        TmpData tmp = new TmpData();
+        tmp.face = id;
+        tmp.uv = uv;
+        Vector3 ba = b - a;    // temporary value for flat shading
+        Vector3 ca = c - a;
+        Vector3.Cross( ref ba, ref ca, out tmp.normal );
+        i.SolidData = tmp;
+
+        result.Add( i );
+
+        if ( !ShellMode )
+          continue;
+
+        // Compile the 2nd Intersection instance:
+        i = new Intersection( this );
+        i.T = t + 1.0e-4;
+        i.Enter =
+        i.Front = false;
+        i.CoordLocal.X = p0.X + i.T * p1.X;
+        i.CoordLocal.Y = p0.Y + i.T * p1.Y;
+        i.CoordLocal.Z = p0.Z + i.T * p1.Z;
+
+        // Tmp data object
+        TmpData tmp2 = new TmpData();
+        tmp2.face = id;
+        tmp2.uv = uv;
+        tmp2.normal = -tmp.normal;
+        i.SolidData = tmp2;
+
+        result.Add( i );
+      }
+
+      if ( result == null )
+        return null;
+
+      // Finalizing the result: sort the result list
+      result.Sort();
+      return new LinkedList<Intersection>( result );
+    }
+
+    /// <summary>
+    /// Complete all relevant items in the given Intersection object.
+    /// </summary>
+    /// <param name="inter">Intersection instance to complete.</param>
+    public override void CompleteIntersection ( Intersection inter )
+    {
+      // !!!{{ TODO: add your actual completion code here
+
+      // normal vector:
+      TmpData tmp = inter.SolidData as TmpData;
+      if ( tmp != null )
+      {
+        if ( Smooth && mesh.Normals > 0 )   // smooth interpolation of normal vectors
+        {
+          int v1, v2, v3;
+          mesh.GetTriangleVertices( tmp.face, out v1, out v2, out v3 );
+          tmp.normal  = mesh.GetNormal( v1 ) * (float)(1.0 - tmp.uv.X - tmp.uv.Y);
+          tmp.normal += mesh.GetNormal( v2 ) * (float)tmp.uv.X;
+          tmp.normal += mesh.GetNormal( v3 ) * (float)tmp.uv.Y;
+        }
+
+        Vector3d tu, tv;
+        Vector3d normal;
+        normal.X = tmp.normal.X;
+        normal.Y = tmp.normal.Y;
+        normal.Z = tmp.normal.Z;
+        Geometry.GetAxes( ref normal, out tu, out tv );
+        tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
+        tv = Vector3d.TransformVector( tv, inter.LocalToWorld );
+        Vector3d.Cross( ref tu, ref tv, out inter.Normal );
+      }
+
+      // 2D texture coordinates (not yet):
+      inter.TextureCoord.X =
+      inter.TextureCoord.Y = 0.0;
+
+      // !!!}}
     }
   }
 }
