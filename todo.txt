@@ -3,6 +3,8 @@
 ================================================================================
   ($Rev$ $Date$)
 ================================================================================
+- OBJ musi umet cist polygony vetsi nez trojuhelniky
+- OBJ musi umet cist relativni indexy (zaporna cisla)
 - pridat par dalsich teles: Plane (test: nahodny konvexni polyedr nebo
   Platonska telesa), Cone
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
