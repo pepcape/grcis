@@ -165,12 +165,8 @@ namespace Rendering
         Vector3 a, b, c;
         mesh.GetTriangleVertices( id, out a, out b, out c );
         Vector2d uv;
-        Vector3d aa, bb, cc;
-        aa.X = a.X; aa.Y = a.Y; aa.Z = a.Z;
-        bb.X = b.X; bb.Y = b.Y; bb.Z = b.Z;
-        cc.X = c.X; cc.Y = c.Y; cc.Z = c.Z;
         CSGInnerNode.countTriangles++;
-        double t = Geometry.RayTriangleIntersection( ref p0, ref p1, ref aa, ref bb, ref cc, out uv );
+        double t = Geometry.RayTriangleIntersection( ref p0, ref p1, ref a, ref b, ref c, out uv );
         if ( Double.IsInfinity( t ) ) continue;
 
         if ( result == null )
@@ -181,9 +177,7 @@ namespace Rendering
         i.T = t;
         i.Enter =
         i.Front = true;
-        i.CoordLocal.X = p0.X + i.T * p1.X;
-        i.CoordLocal.Y = p0.Y + i.T * p1.Y;
-        i.CoordLocal.Z = p0.Z + i.T * p1.Z;
+        i.CoordLocal = p0 + i.T * p1;
 
         // Tmp data object
         TmpData tmp = new TmpData();
@@ -203,9 +197,7 @@ namespace Rendering
         i.T = t + 1.0e-4;
         i.Enter =
         i.Front = false;
-        i.CoordLocal.X = p0.X + i.T * p1.X;
-        i.CoordLocal.Y = p0.Y + i.T * p1.Y;
-        i.CoordLocal.Z = p0.Z + i.T * p1.Z;
+        i.CoordLocal = p0 + i.T * p1;
 
         // Tmp data object
         TmpData tmp2 = new TmpData();
@@ -249,10 +241,7 @@ namespace Rendering
         }
 
         Vector3d tu, tv;
-        Vector3d normal;
-        normal.X = tmp.normal.X;
-        normal.Y = tmp.normal.Y;
-        normal.Z = tmp.normal.Z;
+        Vector3d normal = (Vector3d)tmp.normal;
         Geometry.GetAxes( ref normal, out tu, out tv );
         tu = Vector3d.TransformVector( tu, inter.LocalToWorld );
         tv = Vector3d.TransformVector( tv, inter.LocalToWorld );

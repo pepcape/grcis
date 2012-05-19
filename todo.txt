@@ -8,6 +8,9 @@
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
 - numericke chyby v Torusu (stinovaci paprsky?)
+- dopocitavat chybejici normaly u tri-mesh (po propojeni corner table)
+- vyzkouse SAH heuristiku pri stavbe R-tree
+  (bez urychleni: pitcher - 400x300, mt4, r179k, i303k, t2,743,804k)
 
 ================================================================================
   Long term:
