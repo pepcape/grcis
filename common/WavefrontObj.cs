@@ -76,9 +76,11 @@ namespace Scene3D
 
       Debug.Assert( scene != null );
       int v0 = scene.Vertices;
+      int lastVertex = v0 - 1;
 
       int faces = 0;
       List<Vector3> normals = new List<Vector3>( 256 );
+      int lastNormal = -1;
       int[] f = new int[ 3 ];
 
       do
@@ -105,7 +107,7 @@ namespace Scene3D
 
             if ( MirrorConversion )
               coord.Z = -coord.Z;
-            scene.AddVertex( Vector3.Transform( coord, m ) );
+            lastVertex = scene.AddVertex( Vector3.Transform( coord, m ) );
             break;
 
           case VERTEX_NORMAL:
@@ -120,39 +122,59 @@ namespace Scene3D
             if ( MirrorConversion )
               norm.Z = -norm.Z;
             normals.Add( Vector3.TransformNormal( norm, m ) );
+            lastNormal++;
             break;
 
           case FACE:
             if ( tokens.Length < 4 ) continue;
+            int N = tokens.Length - 1;
+            if ( f.Length < N )
+              f = new int[ N ];
             int i;
 
-            for ( i = 0; i < 3; i++ )
+            for ( i = 0; i < N; i++ )       // read indices for one vertex
             {
               string[] vt = tokens[ i + 1 ].Split( '/' );
               int ti, ni;
-              ti = ni = SceneBrep.NULL;
+              ti = ni = 0;                  // 0 => value not present
+
               // 0 .. vertex coord index
-              if ( !int.TryParse( vt[ 0 ], out f[ i ] ) ) break;
-              f[ i ] = v0 + f[ i ] - 1;
-              if ( vt.Length >= 2 )
+              if ( !int.TryParse( vt[ 0 ], out f[ i ] ) ||
+                   f[ i ] == 0 )
+                break;
+
+              if ( f[ i ] > 0 )
+                f[ i ] = v0 + f[ i ] - 1;
+              else
+                f[ i ] = lastVertex + 1 - f[ i ];
+
+              if ( vt.Length > 1 )
               {
                 // 1 .. texture coord index (not yet)
-                int.TryParse( vt[ 1 ], out ti );
-                ti--;
-                if ( vt.Length >= 3 )
+                if ( !int.TryParse( vt[ 1 ], out ti ) ) ti = 0;
+
+                if ( vt.Length > 2 )
                 {
                   // 2 .. normal vector index
-                  int.TryParse( vt[ 2 ], out ni );
-                  ni--;
+                  if ( !int.TryParse( vt[ 2 ], out ni ) ) ni = 0;
                 }
               }
-              if ( ni >= 0 && ni < normals.Count )
-                scene.SetNormal( f[ i ], normals[ ni ] );
+              // there was a normal..
+              if ( ni != 0 )
+              {
+                if ( ni > 0 )
+                  ni--;
+                else
+                  ni = lastNormal + 1 - ni;
+                if ( ni >= 0 && ni < normals.Count )
+                  scene.SetNormal( f[ i ], normals[ ni ] );
+              }
             }
 
-            if ( i >= 3 )
+            N = i;
+            for ( i = 1; i < N - 1; i++ )
             {
-              scene.AddTriangle( f[ 0 ], f[ 1 ], f[ 2 ] );
+              scene.AddTriangle( f[ 0 ], f[ i ], f[ i + 1 ] );
               faces++;
             }
 
