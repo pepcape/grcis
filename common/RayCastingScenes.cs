@@ -61,6 +61,7 @@ namespace Rendering
     public static string[] NamesStr =
     {
       "Teapot",
+      "Pitcher",
     };
 
     /// <summary>
@@ -69,6 +70,7 @@ namespace Rendering
     public static InitSceneStrDelegate[] InitFunctionsStr =
     {
       new InitSceneStrDelegate( TeapotObj ),
+      new InitSceneStrDelegate( PitcherObj ),
     };
 
     /// <summary>
@@ -1056,6 +1058,14 @@ namespace Rendering
     public static long TeapotObj ( IRayScene sc, string[] names )
     {
       return SceneObj( sc, new Vector3d( 0.1, -0.3, 0.9 ), "teapot.obj", names, new double[] { 1.0, 0.6, 0.0 } );
+    }
+
+    /// <summary>
+    /// Scene containing one instance of a pitcher read from the OBJ file.
+    /// </summary>
+    public static long PitcherObj ( IRayScene sc, string[] names )
+    {
+      return SceneObj( sc, new Vector3d( 0.6, -0.3, 0.5 ), "pitcher.obj", names, new double[] { 0.3, 0.6, 0.0 } );
     }
   }
 }
