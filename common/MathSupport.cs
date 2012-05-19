@@ -647,6 +647,106 @@ namespace MathSupport
     }
 
     /// <summary>
+    /// Ray vs. AABB intersection, direction vector in inverted form,
+    /// box defined by lower-left corner and size.
+    /// </summary>
+    /// <param name="result">Parameter (t) bounds: [min, max].</param>
+    /// <returns>True if intersections exist.</returns>
+    public static bool RayBoxIntersectionInv ( ref Vector3d p0, ref Vector3d p1inv, ref Vector3 ul, ref Vector3 size, out Vector2d result )
+    {
+      result.X =
+      result.Y = -1.0;
+      double tMin = Double.NegativeInfinity;
+      double tMax = Double.PositiveInfinity;
+      double t1, t2;
+
+      // X axis:
+      if ( Double.IsInfinity( p1inv.X ) )
+      {
+        if ( p0.X <= ul.X ||
+             p0.X >= ul.X + size.X )
+          return false;
+      }
+      else
+      {
+        t1 = (ul.X - p0.X) * p1inv.X;
+        t2 = t1 + size.X * p1inv.X;
+
+        if ( p1inv.X > 0.0 )
+        {
+          if ( t1 > tMin ) tMin = t1;
+          if ( t2 < tMax ) tMax = t2;
+        }
+        else
+        {
+          if ( t2 > tMin ) tMin = t2;
+          if ( t1 < tMax ) tMax = t1;
+        }
+
+        if ( tMin > tMax )
+          return false;
+      }
+
+      // Y axis:
+      if ( Double.IsInfinity( p1inv.Y ) )
+      {
+        if ( p0.Y <= ul.Y ||
+             p0.Y >= ul.Y + size.Y )
+          return false;
+      }
+      else
+      {
+        t1 = (ul.Y - p0.Y) * p1inv.Y;
+        t2 = t1 + size.Y * p1inv.Y;
+
+        if ( p1inv.Y > 0.0 )
+        {
+          if ( t1 > tMin ) tMin = t1;
+          if ( t2 < tMax ) tMax = t2;
+        }
+        else
+        {
+          if ( t2 > tMin ) tMin = t2;
+          if ( t1 < tMax ) tMax = t1;
+        }
+
+        if ( tMin > tMax )
+          return false;
+      }
+
+      // Z axis:
+      if ( Double.IsInfinity( p1inv.Z ) )
+      {
+        if ( p0.Z <= ul.Z ||
+             p0.Z >= ul.Z + size.Z )
+          return false;
+      }
+      else
+      {
+        t1 = (ul.Z - p0.Z) * p1inv.Z;
+        t2 = t1 + size.Z * p1inv.Z;
+
+        if ( p1inv.Z > 0.0 )
+        {
+          if ( t1 > tMin ) tMin = t1;
+          if ( t2 < tMax ) tMax = t2;
+        }
+        else
+        {
+          if ( t2 > tMin ) tMin = t2;
+          if ( t1 < tMax ) tMax = t1;
+        }
+
+        if ( tMin > tMax )
+          return false;
+      }
+
+      result.X = tMin;
+      result.Y = tMax;
+      return true;
+    }
+
+    /// <summary>
     /// Ray-triangle intersection test in 3D.
     /// According to Tomas Moller, <a href="http://www.acm.org/jgt/">JGT</a>.
     /// (origin + t * direction = (1 - u - v) * a + u * b + v * c)
@@ -673,6 +773,47 @@ namespace MathSupport
 
       double detInv = 1.0 / det;
       Vector3d tvec = p0 - a;
+      Vector3d.Dot( ref tvec, ref pvec, out uv.X );
+      uv.X *= detInv;
+      if ( uv.X < 0.0 || uv.X > 1.0 ) return Double.NegativeInfinity;
+
+      Vector3d qvec;
+      Vector3d.Cross( ref tvec, ref e1, out qvec );
+      Vector3d.Dot( ref p1, ref qvec, out uv.Y );
+      uv.Y *= detInv;
+      if ( uv.Y < 0.0 || uv.X + uv.Y > 1.0 ) return Double.NegativeInfinity;
+
+      Vector3d.Dot( ref e2, ref qvec, out det );
+      return( detInv * det );
+    }
+
+    /// <summary>
+    /// Ray-triangle intersection test in 3D.
+    /// According to Tomas Moller, <a href="http://www.acm.org/jgt/">JGT</a>.
+    /// (origin + t * direction = (1 - u - v) * a + u * b + v * c)
+    /// </summary>
+    /// <param name="p0">Ray origin.</param>
+    /// <param name="p1">Ray direction vector.</param>
+    /// <param name="a">Vertex A of the triangle.</param>
+    /// <param name="b">Vertex B of the triangle.</param>
+    /// <param name="c">Vertex C of the triangle.</param>
+    /// <param name="uv">Barycentric coordinates of the intersection.</param>
+    /// <returns>Parametric coordinate on the ray if succeeded, Double.NegativeInfinity otherwise.</returns>
+    public static double RayTriangleIntersection ( ref Vector3d p0, ref Vector3d p1,
+                                                   ref Vector3 a, ref Vector3 b, ref Vector3 c,
+                                                   out Vector2d uv )
+    {
+      Vector3d e1 = (Vector3d)b - (Vector3d)a;
+      Vector3d e2 = (Vector3d)c - (Vector3d)a;
+      Vector3d pvec;
+      Vector3d.Cross( ref p1, ref e2, out pvec );
+      double det;
+      Vector3d.Dot( ref e1, ref pvec, out det );
+      uv.X = uv.Y = 0.0;
+      if ( IsZero( det ) ) return Double.NegativeInfinity;
+
+      double detInv = 1.0 / det;
+      Vector3d tvec = p0 - (Vector3d)a;
       Vector3d.Dot( ref tvec, ref pvec, out uv.X );
       uv.X *= detInv;
       if ( uv.X < 0.0 || uv.X > 1.0 ) return Double.NegativeInfinity;
