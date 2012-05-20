@@ -350,6 +350,11 @@ namespace Rendering
     /// </summary>
     public static long countTriangles = 0L;
 
+    /// <summary>
+    /// Number of faces in the scene.
+    /// </summary>
+    public static long countFaces = 0L;
+
     public CSGInnerNode ( SetOperation op )
     {
       switch ( op )

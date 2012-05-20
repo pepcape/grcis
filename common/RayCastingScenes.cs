@@ -62,6 +62,8 @@ namespace Rendering
     {
       "Teapot",
       "Pitcher",
+      "Buddha",
+      "Toy-plane",
     };
 
     /// <summary>
@@ -71,6 +73,8 @@ namespace Rendering
     {
       new InitSceneStrDelegate( TeapotObj ),
       new InitSceneStrDelegate( PitcherObj ),
+      new InitSceneStrDelegate( BuddhaObj ),
+      new InitSceneStrDelegate( PlaneObj ),
     };
 
     /// <summary>
@@ -990,17 +994,18 @@ namespace Rendering
     /// Generic OBJ-loading scene definition routine.
     /// </summary>
     /// <param name="dir">Viewing direction of a camera.</param>
+    /// <param name="FoVy">Field of View in degrees.</param>
+    /// <param name="correction">Value less than 1.0 brings camera nearer.</param>
     /// <param name="name">OBJ file-name.</param>
     /// <param name="names">Substitute file-name[s].</param>
     /// <returns>Number of triangles.</returns>
-    protected static long SceneObj ( IRayScene sc, Vector3d dir, string name, string[] names, double[] surfaceColor )
+    protected static long SceneObj ( IRayScene sc, Vector3d dir, double FoVy, double correction, string name, string[] names, double[] surfaceColor )
     {
       Debug.Assert( sc != null );
 
       Vector3 center = Vector3.Zero;   // center of the mesh
       dir.Normalize();                 // normalized viewing vector of the camera
       float diameter = 2.0f;           // default scene diameter
-      double FoVy = 60.0;              // Field of View in degrees
       int faces = 0;
 
       // CSG scene:
@@ -1038,7 +1043,7 @@ namespace Rendering
       sc.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
 
       // Camera:
-      double dist = (0.6 * diameter) / Math.Tan( MathHelper.DegreesToRadians( (float)(0.5 * FoVy) ) );
+      double dist = (0.5 * diameter * correction) / Math.Tan( MathHelper.DegreesToRadians( (float)(0.5 * FoVy) ) );
       Vector3d cam = (Vector3d)center - dist * dir;
       sc.Camera = new StaticCamera( cam, dir, FoVy );
 
@@ -1057,7 +1062,7 @@ namespace Rendering
     /// </summary>
     public static long TeapotObj ( IRayScene sc, string[] names )
     {
-      return SceneObj( sc, new Vector3d( 0.1, -0.3, 0.9 ), "teapot.obj", names, new double[] { 1.0, 0.6, 0.0 } );
+      return SceneObj( sc, new Vector3d( 0.1, -0.3, 0.9 ), 50.0, 0.9, "teapot.obj", names, new double[] { 1.0, 0.6, 0.0 } );
     }
 
     /// <summary>
@@ -1065,7 +1070,24 @@ namespace Rendering
     /// </summary>
     public static long PitcherObj ( IRayScene sc, string[] names )
     {
-      return SceneObj( sc, new Vector3d( 0.6, -0.3, 0.5 ), "pitcher.obj", names, new double[] { 0.3, 0.6, 0.0 } );
+      return SceneObj( sc, new Vector3d( 0.6, -0.3, 0.5 ), 60.0, 1.1, "pitcher.obj", names, new double[] { 0.3, 0.6, 0.0 } );
     }
+
+    /// <summary>
+    /// Scene containing one instance of the Buddha read from the OBJ file.
+    /// </summary>
+    public static long BuddhaObj ( IRayScene sc, string[] names )
+    {
+      return SceneObj( sc, new Vector3d( 0.4, -0.3, -0.9 ), 70.0, 1.1, "buddha.obj", names, new double[] { 1.0, 0.4, 0.0 } );
+    }
+
+    /// <summary>
+    /// Scene containing one instance of toy-plane read from the OBJ file.
+    /// </summary>
+    public static long PlaneObj ( IRayScene sc, string[] names )
+    {
+      return SceneObj( sc, new Vector3d( -0.7, -0.25, 0.7 ), 70.0, 0.9, "toyplane.obj", names, new double[] { 0.2, 0.8, 0.0 } );
+    }
+
   }
 }

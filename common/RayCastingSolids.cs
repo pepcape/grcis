@@ -843,7 +843,7 @@ namespace Rendering
     public int final;
 
     /// <summary>
-    /// The ray came from the front side of a triengle.
+    /// The ray came from the front side of a triangle.
     /// </summary>
     public bool enter;
 
