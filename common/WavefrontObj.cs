@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.IO.Compression;
 using OpenTK;
 
 namespace Scene3D
@@ -49,6 +48,30 @@ namespace Scene3D
     #endregion
 
     #region File-format API
+
+    /// <summary>
+    /// Reads one 3D scene from a given file (containing text variant of Wavefront OBJ format).
+    /// Can read GZipped files.
+    /// </summary>
+    /// <param name="fileName">File-name (ending by .gz for gzipped file)</param>
+    /// <param name="scene">Scene to be modified</param>
+    /// <returns>Number of faces read</returns>
+    public int ReadBrep ( String fileName, SceneBrep scene )
+    {
+      if ( fileName == null ||
+           fileName.Length == 0 )
+        return SceneBrep.NULL;
+
+      StreamReader reader;
+      if ( fileName.EndsWith( ".gz" ) )
+        reader = new StreamReader( new GZipStream( new FileStream( fileName, FileMode.Open ), CompressionMode.Decompress ) );
+      else
+        reader = new StreamReader( new FileStream( fileName, FileMode.Open ) );
+      int faces = ReadBrep( reader, scene );
+      reader.Close();
+
+      return faces;
+    }
 
     /// <summary>
     /// Reads one 3D scene from a given stream (containing text variant of Wavefront OBJ format).

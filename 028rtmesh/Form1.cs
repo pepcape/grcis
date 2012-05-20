@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.IO;
 using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
@@ -173,7 +172,7 @@ namespace _028rtmesh
       OpenFileDialog ofd = new OpenFileDialog();
 
       ofd.Title = "Open Scene File";
-      ofd.Filter = "Wavefront OBJ Files|*.obj" +
+      ofd.Filter = "Wavefront OBJ Files|*.obj;*.obj.gz" +
           "|All scene types|*.obj";
 
       ofd.FilterIndex = 1;
@@ -183,9 +182,7 @@ namespace _028rtmesh
 
       WavefrontObj objReader = new WavefrontObj();
       objReader.MirrorConversion = false;
-      StreamReader reader = new StreamReader( new FileStream( ofd.FileName, FileMode.Open ) );
-      int faces = objReader.ReadBrep( reader, brepScene );
-      reader.Close();
+      int faces = objReader.ReadBrep( ofd.FileName, brepScene );
       brepScene.BuildCornerTable();
       labelSample.Text = String.Format( "{0} faces", faces );
 

@@ -56,3 +56,4 @@
 - OBJ musi umet cist relativni indexy (zaporna cisla) a prokladane definice
   vrcholu a sten
 - vyzkouse SAH heuristiku pri stavbe R-tree (optimal bucket size = 3)
+- OBJ umi cist .gz soubory
