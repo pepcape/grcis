@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.IO;
+using System.Windows.Forms;
 using OpenTK;
 using Scene3D;
 
@@ -21,6 +16,8 @@ namespace _013scene
     public Form1 ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( new char[] { ' ' } );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -28,7 +25,7 @@ namespace _013scene
       OpenFileDialog ofd = new OpenFileDialog();
 
       ofd.Title = "Open Scene File";
-      ofd.Filter = "Wavefront OBJ Files|*.obj" +
+      ofd.Filter = "Wavefront OBJ Files|*.obj;*.obj.gz" +
           "|All scene types|*.obj";
 
       ofd.FilterIndex = 1;
@@ -38,9 +35,7 @@ namespace _013scene
 
       WavefrontObj objReader = new WavefrontObj();
       objReader.MirrorConversion = false;
-      StreamReader reader = new StreamReader( new FileStream( ofd.FileName, FileMode.Open ) );
-      int faces = objReader.ReadBrep( reader, scene );
-      reader.Close();
+      int faces = objReader.ReadBrep( ofd.FileName, scene );
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
 

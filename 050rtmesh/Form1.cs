@@ -413,7 +413,7 @@ namespace _050rtmesh
       OpenFileDialog ofd = new OpenFileDialog();
 
       ofd.Title = "Open Scene File";
-      ofd.Filter = "Wavefront OBJ Files|*.obj" +
+      ofd.Filter = "Wavefront OBJ Files|*.obj;*.obj.gz" +
                    "|All scene types|*.obj";
 
       ofd.FilterIndex = 1;

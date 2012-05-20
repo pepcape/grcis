@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTK;
 using System.IO;
+using System.IO.Compression;
+using OpenTK;
 using Scene3D;
 
 namespace Rendering
@@ -1017,17 +1018,22 @@ namespace Rendering
         names = new string[] { name };
 
       string[] paths = Scenes.SmartFindFiles( names );
-      if ( paths[ 0 ].Length == 0 )
+      if ( paths[ 0 ] == null || paths[ 0 ].Length == 0 )
+      {
+        for ( int i = 0; i < names.Length; i++ )
+          if ( names[ i ].Length > 0 )
+            names[ i ] += ".gz";
+        paths = Scenes.SmartFindFiles( names );
+      }
+      if ( paths[ 0 ] == null || paths[ 0 ].Length == 0 )
         root.InsertChild( new Sphere(), Matrix4d.Identity );
       else
       {
         // B-rep scene construction:
         WavefrontObj objReader = new WavefrontObj();
         objReader.MirrorConversion = false;
-        StreamReader reader = new StreamReader( new FileStream( paths[ 0 ], FileMode.Open ) );
         SceneBrep brep = new SceneBrep();
-        faces = objReader.ReadBrep( reader, brep );
-        reader.Close();
+        faces = objReader.ReadBrep( paths[ 0 ], brep );
         brep.BuildCornerTable();
         diameter = brep.GetDiameter( out center );
         TriangleMesh m = new TriangleMesh( brep );

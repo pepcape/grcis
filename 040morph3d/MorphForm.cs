@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-using System.IO;
-using Scene3D;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using Scene3D;
 
 namespace _040morph3d
 {
@@ -19,6 +13,8 @@ namespace _040morph3d
     public MorphForm ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( new char[] { ' ' } );
+      Text += " (rev: " + tok[ 1 ] + ')';
 
       mMorph = new Morph();
       mWavefrontObj = new WavefrontObj();
@@ -128,22 +124,22 @@ namespace _040morph3d
       SceneBrep brep = new SceneBrep();
       if ( sender == buttonLoadFirst )
         mFirstObject = brep;
-      else if ( sender == buttonLoadSecond )
+      else
+      if ( sender == buttonLoadSecond )
         mSecondObject = brep;
       else
         return;
 
       OpenFileDialog ofd = new OpenFileDialog();
       ofd.Title = "Open Scene File";
-      ofd.Filter = "Wavefront OBJ Files|*.obj" +
+      ofd.Filter = "Wavefront OBJ Files|*.obj;*.obj.gz" +
           "|All scene types|*.obj";
       ofd.FilterIndex = 1;
       ofd.FileName = "";
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      StreamReader reader = new StreamReader( ofd.FileName );
-      if ( mWavefrontObj.ReadBrep( reader, brep ) == -1 )
+      if ( mWavefrontObj.ReadBrep( ofd.FileName, brep ) < 0 )
         MessageBox.Show( this, "Loading failed" );
 
       mMorph.AssignObjects( mFirstObject, mSecondObject );

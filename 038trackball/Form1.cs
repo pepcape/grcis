@@ -1,6 +1,5 @@
 using System;
 using System.Drawing;
-using System.IO;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -53,8 +52,10 @@ namespace _038trackball
     public Form1 ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( new char[] { ' ' } );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
-    
+
     private void glControl1_Load ( object sender, EventArgs e )
     {
       loaded = true;
@@ -71,7 +72,7 @@ namespace _038trackball
 
       SetupViewport();
 
-      Application.Idle += new EventHandler( Application_Idle );      
+      Application.Idle += new EventHandler( Application_Idle );
       comboTrackballType.SelectedIndex = 0;
     }
 
@@ -93,7 +94,7 @@ namespace _038trackball
       OpenFileDialog ofd = new OpenFileDialog();
 
       ofd.Title = "Open Scene File";
-      ofd.Filter = "Wavefront OBJ Files|*.obj" +
+      ofd.Filter = "Wavefront OBJ Files|*.obj;*.obj.gz" +
           "|All scene types|*.obj";
 
       ofd.FilterIndex = 1;
@@ -103,9 +104,7 @@ namespace _038trackball
 
       WavefrontObj objReader = new WavefrontObj();
       objReader.MirrorConversion = false;
-      StreamReader reader = new StreamReader( new FileStream( ofd.FileName, FileMode.Open ) );
-      int faces = objReader.ReadBrep( reader, scene );
-      reader.Close();
+      int faces = objReader.ReadBrep( ofd.FileName, scene );
       scene.BuildCornerTable();
       diameter = scene.GetDiameter( out center );
       scene.GenerateColors( 12 );
