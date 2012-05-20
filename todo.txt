@@ -9,8 +9,6 @@
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
 - numericke chyby v Torusu (stinovaci paprsky?)
 - dopocitavat chybejici normaly u tri-mesh (po propojeni corner table)
-- vyzkouse SAH heuristiku pri stavbe R-tree
-  (bez urychleni: pitcher - 400x300, mt4, r179k, i303k, t2,743,804k)
 
 ================================================================================
   Long term:
@@ -57,3 +55,4 @@
 - OBJ musi umet cist polygony vetsi nez trojuhelniky
 - OBJ musi umet cist relativni indexy (zaporna cisla) a prokladane definice
   vrcholu a sten
+- vyzkouse SAH heuristiku pri stavbe R-tree (optimal bucket size = 3)

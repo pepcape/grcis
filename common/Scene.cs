@@ -446,6 +446,39 @@ namespace Scene3D
     }
 
     /// <summary>
+    /// Updates bounding box coordinates (AABB) for the given triangle.
+    /// </summary>
+    /// <param name="tr">Triangle handle</param>
+    /// <param name="min">Minimum-vertex of the AABB</param>
+    /// <param name="max">Maximum-vertex of the AABB</param>
+    public void TriangleBoundingBox ( int tr, ref Vector3 min, ref Vector3 max )
+    {
+      Vector3 a, b, c;
+      GetTriangleVertices( tr, out a, out b, out c );
+
+      if ( a.X < min.X ) min.X = a.X;
+      if ( a.X > max.X ) max.X = a.X;
+      if ( a.Y < min.Y ) min.Y = a.Y;
+      if ( a.Y > max.Y ) max.Y = a.Y;
+      if ( a.Z < min.Z ) min.Z = a.Z;
+      if ( a.Z > max.Z ) max.Z = a.Z;
+
+      if ( b.X < min.X ) min.X = b.X;
+      if ( b.X > max.X ) max.X = b.X;
+      if ( b.Y < min.Y ) min.Y = b.Y;
+      if ( b.Y > max.Y ) max.Y = b.Y;
+      if ( b.Z < min.Z ) min.Z = b.Z;
+      if ( b.Z > max.Z ) max.Z = b.Z;
+
+      if ( c.X < min.X ) min.X = c.X;
+      if ( c.X > max.X ) max.X = c.X;
+      if ( c.Y < min.Y ) min.Y = c.Y;
+      if ( c.Y > max.Y ) max.Y = c.Y;
+      if ( c.Z < min.Z ) min.Z = c.Z;
+      if ( c.Z > max.Z ) max.Z = c.Z;
+    }
+
+    /// <summary>
     /// Computes vertex array size (VBO) in bytes.
     /// </summary>
     /// <param name="vertices">Use vertex coordinates?</param>

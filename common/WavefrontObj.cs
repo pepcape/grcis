@@ -29,6 +29,8 @@ namespace Scene3D
 
     const string FACE = "f";
 
+    static char[] DELIMITERS = { ' ', '\t' };
+
     #endregion
 
     #region Instance data
@@ -92,7 +94,8 @@ namespace Scene3D
         if ( commentPos >= 0 )
           line = line.Substring( 0, commentPos );
 
-        string[] tokens = line.Split( ' ' );
+        string[] tokens = line.Split( DELIMITERS , StringSplitOptions.RemoveEmptyEntries );
+        if ( tokens.Length < 1 ) continue;
 
         switch ( tokens[ 0 ] )
         {
