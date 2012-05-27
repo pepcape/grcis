@@ -121,6 +121,7 @@ namespace Rendering
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect( p0, p1 );
       Intersection.countRays++;
       Intersection i = Intersection.FirstIntersection( intersections, ref p1 );
+      int b;
 
       if ( i == null )          // no intersection -> background color
       {
@@ -170,7 +171,7 @@ namespace Rendering
             double[] reflection = i.ReflectanceModel.ColorReflection( i, dir, p1, ReflectionComponent.ALL );
             if ( reflection != null )
             {
-              for ( int b = 0; b < bands; b++ )
+              for ( b = 0; b < bands; b++ )
                 color[ b ] += intensity[ b ] * reflection[ b ];
               hash = hash * HASH_LIGHT + source.GetHashCode();
             }
@@ -188,14 +189,14 @@ namespace Rendering
       double[] comp = new double[ bands ];
       double newImportance;
 
-      if ( DoReflections )
+      if ( DoReflections )                  // trying to shoot a reflected ray..
       {
         Geometry.SpecularReflection( ref i.Normal, ref p1, out r );
         double[] ks = i.ReflectanceModel.ColorReflection( i, p1, r, ReflectionComponent.SPECULAR_REFLECTION );
         if ( ks != null )
         {
           maxK = ks[ 0 ];
-          for ( int b = 1; b < bands; b++ )
+          for ( b = 1; b < bands; b++ )
             if ( ks[ b ] > maxK )
               maxK = ks[ b ];
 
@@ -203,10 +204,26 @@ namespace Rendering
           if ( newImportance >= MinImportance ) // do compute the reflected ray
           {
             hash += HASH_REFLECT * shade( level, newImportance, ref i.CoordWorld, ref r, rank, total, rnd, comp );
-            for ( int b = 0; b < bands; b++ )
+            for ( b = 0; b < bands; b++ )
               color[ b ] += ks[ b ] * comp[ b ];
           }
         }
+      }
+
+      if ( DoRefractions )                  // trying to shoot a refracted ray..
+      {
+        maxK = i.Material.Kt;               // simple solution, no influence of reflectance model yet
+        newImportance = importance * maxK;
+        if ( newImportance < MinImportance )
+          return hash;
+
+        // refracted ray:
+        if ( (r = Geometry.SpecularRefraction( i.Normal, i.Material.n, p1 )) == null )
+          return hash;
+
+        hash += HASH_REFRACT * shade( level, newImportance, ref i.CoordWorld, ref r, rank, total, rnd, comp );
+        for ( b = 0; b < bands; b++ )
+          color[ b ] += maxK * comp[ b ];
       }
 
       return hash;

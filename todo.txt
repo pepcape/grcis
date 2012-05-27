@@ -13,7 +13,6 @@
 ================================================================================
   Long term:
 ================================================================================
-- pridat lom svetla do RT
 - licence: Apache licence? Nebo BSD?
 - vyzkouset GLSL shadery (upgrade OpenTK?)
 - jazyk na definici RT sceny (XML?), nacitani RT scen az za behu
@@ -57,3 +56,4 @@
   vrcholu a sten
 - vyzkouse SAH heuristiku pri stavbe R-tree (optimal bucket size = 3)
 - OBJ umi cist .gz soubory
+- pridat lom svetla do RT (zatim bez ucasti osvetlovaciho modelu)

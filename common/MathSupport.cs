@@ -396,7 +396,7 @@ namespace MathSupport
       if ( d < 0.0 )                        // (N*L) should be > 0.0 (N and L in the same half-space)
       {
         d  = -d;
-        normal = normal * -1.0;
+        normal = -normal;
       }
       else
         n  = 1.0 / n;
