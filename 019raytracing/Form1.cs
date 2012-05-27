@@ -261,8 +261,10 @@ namespace _019raytracing
       progress = new RenderingProgress( this );
       String []tok = "$Rev$".Split( new char[] { ' ' } );
       Text += " (rev: " + tok[1] + ')';
-      // Scenes combo-box
+
+      // Init scenes etc.
       InitializeScenes();
+      buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
     private void buttonRes_Click ( object sender, EventArgs e )
@@ -272,7 +274,7 @@ namespace _019raytracing
       {
         ImageWidth  = form.ImageWidth;
         ImageHeight = form.ImageHeight;
-        buttonRes.Text = form.Label;
+        buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
       }
     }
 

@@ -122,6 +122,7 @@ namespace _028rtmesh
       InitializeComponent();
       String[] tok = "$Rev$".Split( new char[] { ' ' } );
       Text += " (rev: " + tok[ 1 ] + ')';
+      buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
     private void buttonRes_Click ( object sender, EventArgs e )
@@ -131,7 +132,7 @@ namespace _028rtmesh
       {
         ImageWidth = form.ImageWidth;
         ImageHeight = form.ImageHeight;
-        buttonRes.Text = form.Label;
+        buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
       }
     }
 
