@@ -259,6 +259,15 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Coefficient of transparency.
+    /// </summary>
+    double Kt
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
     /// Absolute index of refraction.
     /// </summary>
     double n
