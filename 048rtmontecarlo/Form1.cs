@@ -224,12 +224,15 @@ namespace _048rtmontecarlo
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
-                              1.0e-3 * elapsed, width, height, checkMultithreading.Checked ? Environment.ProcessorCount : 1,
-                              (Intersection.countRays + 500L) / 1000L,
-                              (Intersection.countIntersections + 500L) / 1000L,
-                              (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
-                              (CSGInnerNode.countTriangles + 500L) / 1000L ) );
+      String msg = String.Format( CultureInfo.InvariantCulture,
+                                  "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
+                                  1.0e-3 * elapsed, width, height, checkMultithreading.Checked ? Environment.ProcessorCount : 1,
+                                  (Intersection.countRays + 500L) / 1000L,
+                                  (Intersection.countIntersections + 500L) / 1000L,
+                                  (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
+                                  (CSGInnerNode.countTriangles + 500L) / 1000L );
+      SetText( msg );
+      Console.WriteLine( "Rendering finished: " + msg );
       SetImage( (Bitmap)outputImage.Clone() );
 
       Cursor.Current = Cursors.Default;
