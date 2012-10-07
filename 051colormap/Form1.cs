@@ -66,6 +66,7 @@ namespace _051colormap
       inputImage = new Bitmap( inp );
       inp.Dispose();
 
+      pictureInput.Image = inputImage;
       Colormap.Generate( inputImage, numCol, out colors );
       pictureBox1.Invalidate();
     }
