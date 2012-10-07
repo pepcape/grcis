@@ -31,9 +31,11 @@
       this.buttonClose = new System.Windows.Forms.Button();
       this.numColors = new System.Windows.Forms.NumericUpDown();
       this.label3 = new System.Windows.Forms.Label();
-      this.pictureBox1 = new _051colormap.MyBox();
       this.buttonLoad = new System.Windows.Forms.Button();
+      this.pictureInput = new System.Windows.Forms.PictureBox();
+      this.pictureBox1 = new _051colormap.MyBox();
       ((System.ComponentModel.ISupportInitialize)(this.numColors)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureInput)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.SuspendLayout();
       // 
@@ -79,14 +81,6 @@
       this.label3.TabIndex = 9;
       this.label3.Text = "Palette size:";
       // 
-      // pictureBox1
-      // 
-      this.pictureBox1.Location = new System.Drawing.Point(12, 12);
-      this.pictureBox1.Name = "pictureBox1";
-      this.pictureBox1.Size = new System.Drawing.Size(400, 348);
-      this.pictureBox1.TabIndex = 0;
-      this.pictureBox1.TabStop = false;
-      // 
       // buttonLoad
       // 
       this.buttonLoad.Location = new System.Drawing.Point(564, 338);
@@ -97,11 +91,28 @@
       this.buttonLoad.UseVisualStyleBackColor = true;
       this.buttonLoad.Click += new System.EventHandler(this.buttonLoad_Click);
       // 
+      // pictureInput
+      // 
+      this.pictureInput.Location = new System.Drawing.Point(433, 13);
+      this.pictureInput.Name = "pictureInput";
+      this.pictureInput.Size = new System.Drawing.Size(349, 310);
+      this.pictureInput.TabIndex = 11;
+      this.pictureInput.TabStop = false;
+      // 
+      // pictureBox1
+      // 
+      this.pictureBox1.Location = new System.Drawing.Point(12, 12);
+      this.pictureBox1.Name = "pictureBox1";
+      this.pictureBox1.Size = new System.Drawing.Size(400, 348);
+      this.pictureBox1.TabIndex = 0;
+      this.pictureBox1.TabStop = false;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(794, 372);
+      this.Controls.Add(this.pictureInput);
       this.Controls.Add(this.buttonLoad);
       this.Controls.Add(this.label3);
       this.Controls.Add(this.numColors);
@@ -111,6 +122,7 @@
       this.Name = "Form1";
       this.Text = "051 Paleta";
       ((System.ComponentModel.ISupportInitialize)(this.numColors)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureInput)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
@@ -124,5 +136,6 @@
     public System.Windows.Forms.NumericUpDown numColors;
     private System.Windows.Forms.Label label3;
     private System.Windows.Forms.Button buttonLoad;
+    private System.Windows.Forms.PictureBox pictureInput;
   }
 }
