@@ -43,7 +43,7 @@ namespace _052colortransform
 
       Bitmap ibmp = (Bitmap)inputImage;
       Bitmap bmp;
-      Transform.TransformImage( ibmp, out bmp, (double)numericParam.Value );
+      Transform.TransformImage( ibmp, out bmp, textParam.Text );
       pictureBox1.Image = bmp;
     }
 
