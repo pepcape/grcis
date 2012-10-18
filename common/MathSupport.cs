@@ -46,7 +46,8 @@ namespace MathSupport
 
     public static Color HSVToColor ( double hue, double saturation, double value )
     {
-      int hi = Convert.ToInt32( Math.Floor( hue / 60.0 ) ) % 6;
+      int hi = Convert.ToInt32( Math.Floor( hue / 60.0 ) );
+      hi = (hi < 0) ? (hi % 6 + 6) % 6 : hi % 6;
       double f = hue / 60.0 - Math.Floor( hue / 60.0 );
 
       value *= 255.0;
