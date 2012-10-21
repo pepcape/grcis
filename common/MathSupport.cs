@@ -34,6 +34,16 @@ namespace MathSupport
       return acc;
     }
 
+    public static double DegreeToRadian ( double deg )
+    {
+      return( deg * Math.PI / 180.0 );
+    }
+
+    public static double RadianToDegree ( double rad )
+    {
+      return( rad * 180.0 / Math.PI );
+    }
+
     public static void ColorToHSV ( Color color, out double hue, out double saturation, out double value )
     {
       int max = Math.Max( color.R, Math.Max( color.G, color.B ) );
