@@ -178,6 +178,42 @@ namespace Raster
       return Color.FromArgb( R, G, B );
     }
 
+    /// <summary>
+    /// Creates a static 3-3-2 colormap.
+    /// </summary>
+    /// <param name="pal">Instance of palette to modify.</param>
+    /// <param name="errDistr">Will be the palette used for error-distribution?</param>
+    public static void Palette332 ( ColorPalette pal, bool errDistr =false )
+    {
+      // create the palette:
+      double R, G, B;
+      double R0, G0, B0;
+      double dRG, dB;
+      int r, g, b, i;
+
+      if ( errDistr )                     // convex closure of the colormap should be equal
+      {                                   // to the whole RGB space
+        R0  =
+        G0  =
+        B0  = 0.0;
+        dRG = 255.0 /  7;
+        dB  = 255.0 /  3;
+      }
+      else
+      {                                   // the colormap will be optimal for rounding
+        R0  =
+        G0  = 255.0 / 16;
+        B0  = 255.0 /  8;
+        dRG = 255.0 /  8;
+        dB  = 255.0 /  4;
+      }
+
+      for ( r = i = 0, R = R0; r < 8; r++, R += dRG )
+        for ( g = 0, G = G0; g < 8; g++, G += dRG )
+          for ( b = 0, B = B0; b < 4; b++, B += dB )
+            pal.Entries[ i++ ] = Color.FromArgb( (int)( R + 0.5 ), (int)( G + 0.5 ), (int)( B + 0.5 ) );
+    }
+
     public static long Hash ( Bitmap img )
     {
       int width  = img.Width;
