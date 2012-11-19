@@ -219,11 +219,11 @@ namespace MathSupport
         return 0;
       if ( Math.Abs( d ) < COEFF_LIMIT )
       {
-        y[ 0 ] = y[ 1 ] = -0.5 * B / C;
+        y[ 0 ] = y[ 1 ] = -0.5 * B / A;
         return 1;
       }
       d = Math.Sqrt( d );
-      t = 0.5 / C;
+      t = 0.5 / A;
       if ( t > 0.0 )
       {
         y[ 0 ] = (-B - d) * t;
@@ -321,7 +321,7 @@ namespace MathSupport
       if ( Math.Abs( E ) < COEFF_LIMIT )
         return SolveCubic( results );
 
-      // See if the constant term has vanished 
+      // See if the constant term has vanished
       if ( Math.Abs( A ) < COEFF_LIMIT )
       {
         Polynomial y = new Polynomial( E, D, C, B );
@@ -329,7 +329,7 @@ namespace MathSupport
         // !!! and what happened to a zero root?
       }
 
-      // Make sure the quartic has a leading coefficient of 1.0 
+      // Make sure the quartic has a leading coefficient of 1.0
       if ( E != 1.0 )
       {
         c1 = D / E;
@@ -345,7 +345,7 @@ namespace MathSupport
         c4 = A;
       }
 
-      // Compute the cubic resolvant 
+      // Compute the cubic resolvant
       c12 = c1 * c1;
       p = -0.375 * c12 + c2;
       q = 0.125 * c12 * c1 - 0.5 * c1 * c2 + c3;
@@ -382,7 +382,7 @@ namespace MathSupport
         d2 = 0.5 * q / d1;
       }
 
-      // Set up useful values for the quadratic factors 
+      // Set up useful values for the quadratic factors
       q1 = d1 * d1;
       q2 = -0.25 * c1;
       i = 0;
@@ -401,7 +401,7 @@ namespace MathSupport
         results[ i++ ] = -0.5 * (d1 - p) + q2;
       }
 
-      // Solve the second quadratic 
+      // Solve the second quadratic
       p = q1 - 4.0 * (z + d2);
       if ( p == 0 )
       {
