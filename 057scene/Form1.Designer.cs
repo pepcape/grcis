@@ -277,7 +277,7 @@ namespace _057scene
       this.Controls.Add(this.buttonSave);
       this.Controls.Add(this.buttonOpen);
       this.Controls.Add(this.panel1);
-      this.MinimumSize = new System.Drawing.Size(700, 200);
+      this.MinimumSize = new System.Drawing.Size(710, 200);
       this.Name = "Form1";
       this.Text = "057 scene";
       this.panel1.ResumeLayout(false);
