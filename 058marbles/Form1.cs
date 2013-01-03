@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
-using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace _058marbles
@@ -15,7 +14,7 @@ namespace _058marbles
 
     #region OpenGL globals
 
-    public static uint[] VBOid = new uint[ 2 ];       // vertex array (colors, normals, coords), index array
+    public static uint[] VBOid = new uint[ 2 ];       // vertex array (colors, coords), index array
 
     #endregion
 
@@ -25,8 +24,6 @@ namespace _058marbles
     int frameCounter = 0;
     static public long triangleCounter = 0L;
 
-    double lastFrameTime = DateTime.Now.Ticks * 1.0e-7;
-    
     #endregion
 
     public Form1 ()
@@ -41,14 +38,14 @@ namespace _058marbles
       Cursor.Current = Cursors.WaitCursor;
       string param = textParam.Text;
 
-      // TODO: stop the simulatino thread
+      // TODO: stop the simulation thread?
 
       if ( world == null )
         world = new MarblesWorld();
       world.Init( param );
       data = null;
 
-      // TODO: start the simulation thread
+      // TODO: start the simulation thread?
 
       Cursor.Current = Cursors.Default;
 
@@ -64,16 +61,24 @@ namespace _058marbles
       GL.Enable( EnableCap.DepthTest );
       GL.ShadeModel( ShadingModel.Flat );
 
+      // VBO init:
+      GL.GenBuffers( 2, VBOid );
+      if ( GL.GetError() != ErrorCode.NoError )
+      {
+        MessageBox.Show( "VBO extension not present!", "VBO Error" );
+        Program.form.Close();
+      }
+
       // Simulation scene and related stuff:
       world = new MarblesWorld();
       renderer = new MarblesRenderer();
-      world.Init( "" );
+      world.Init( textParam.Text );
 
       SetupViewport();
 
       Application.Idle += new EventHandler( Application_Idle );
 
-      // TODO: start the simulation thread
+      // TODO: start the simulation thread?
     }
 
     private void glControl1_Resize ( object sender, EventArgs e )
@@ -88,6 +93,5 @@ namespace _058marbles
     {
       Render();
     }
-
   }
 }

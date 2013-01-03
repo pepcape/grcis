@@ -35,6 +35,7 @@ namespace _058marbles
       this.checkSmooth = new System.Windows.Forms.CheckBox();
       this.checkWireframe = new System.Windows.Forms.CheckBox();
       this.textParam = new System.Windows.Forms.TextBox();
+      this.checkCamera = new System.Windows.Forms.CheckBox();
       this.SuspendLayout();
       // 
       // buttonInit
@@ -84,7 +85,7 @@ namespace _058marbles
       // 
       this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelFps.AutoSize = true;
-      this.labelFps.Location = new System.Drawing.Point( 574, 375 );
+      this.labelFps.Location = new System.Drawing.Point( 574, 376 );
       this.labelFps.Name = "labelFps";
       this.labelFps.Size = new System.Drawing.Size( 27, 13 );
       this.labelFps.TabIndex = 18;
@@ -94,7 +95,7 @@ namespace _058marbles
       // 
       this.checkSmooth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkSmooth.AutoSize = true;
-      this.checkSmooth.Location = new System.Drawing.Point( 322, 374 );
+      this.checkSmooth.Location = new System.Drawing.Point( 322, 376 );
       this.checkSmooth.Name = "checkSmooth";
       this.checkSmooth.Size = new System.Drawing.Size( 102, 17 );
       this.checkSmooth.TabIndex = 21;
@@ -106,7 +107,7 @@ namespace _058marbles
       // 
       this.checkWireframe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkWireframe.AutoSize = true;
-      this.checkWireframe.Location = new System.Drawing.Point( 433, 374 );
+      this.checkWireframe.Location = new System.Drawing.Point( 433, 376 );
       this.checkWireframe.Name = "checkWireframe";
       this.checkWireframe.Size = new System.Drawing.Size( 74, 17 );
       this.checkWireframe.TabIndex = 22;
@@ -118,14 +119,30 @@ namespace _058marbles
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.textParam.Location = new System.Drawing.Point( 146, 374 );
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size( 142, 20 );
+      this.textParam.Size = new System.Drawing.Size( 148, 20 );
       this.textParam.TabIndex = 23;
+      this.textParam.Text = "200";
+      // 
+      // checkCamera
+      // 
+      this.checkCamera.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkCamera.AutoSize = true;
+      this.checkCamera.Checked = true;
+      this.checkCamera.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkCamera.Location = new System.Drawing.Point( 322, 401 );
+      this.checkCamera.Name = "checkCamera";
+      this.checkCamera.Size = new System.Drawing.Size( 114, 17 );
+      this.checkCamera.TabIndex = 24;
+      this.checkCamera.Text = "Camera movement";
+      this.checkCamera.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.checkCamera.UseVisualStyleBackColor = true;
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 439 );
+      this.Controls.Add( this.checkCamera );
       this.Controls.Add( this.textParam );
       this.Controls.Add( this.checkWireframe );
       this.Controls.Add( this.checkSmooth );
@@ -150,6 +167,7 @@ namespace _058marbles
     private System.Windows.Forms.CheckBox checkSmooth;
     private System.Windows.Forms.CheckBox checkWireframe;
     private System.Windows.Forms.TextBox textParam;
+    private System.Windows.Forms.CheckBox checkCamera;
   }
 }
 
