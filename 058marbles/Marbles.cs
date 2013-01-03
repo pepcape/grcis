@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Threading;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using System.Collections.Generic;
-using System.Drawing;
 
 namespace _058marbles
 {
@@ -29,12 +29,17 @@ namespace _058marbles
   /// </summary>
   public class MarblesRenderer
   {
+    /// <summary>
+    /// Number of marbles (triangles) VBOs are allocated for..
+    /// </summary>
     int lastMarbles = -1;
 
     public void Render ( MarblesRenderData data )
     {
+      // !!!{{ TODO: modify the rendering code!
+
       int marbles = data.radii.Count;
-      int stride = sizeof( float ) * 6;
+      int stride = sizeof( float ) * 6;   // float[3] color, position
       int triangles = marbles;
       IntPtr videoMemoryPtr;
 
@@ -44,24 +49,26 @@ namespace _058marbles
         GL.EnableClientState( ArrayCap.VertexArray );
         GL.EnableClientState( ArrayCap.ColorArray );
 
-        // Vertex array: color coord
+        // vertex array: [ color coord ]
         GL.BindBuffer( BufferTarget.ArrayBuffer, Form1.VBOid[ 0 ] );
-        int vertexBufferSize = (marbles * 3) * sizeof( float ) * 6;  // TODO: marble should be drawn as a SPHERE, not a triangle..
+        int vertexBufferSize = (marbles * 3) * stride;  // TODO: marble should be drawn as a SPHERE, not a triangle..
         GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.DynamicDraw );
         GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
 
         // index array:
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, Form1.VBOid[ 1 ] );
-        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)((marbles * 3) * sizeof( uint )), IntPtr.Zero, BufferUsageHint.StaticDraw );
+        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)((triangles * 3) * sizeof( uint )), IntPtr.Zero, BufferUsageHint.StaticDraw );
         videoMemoryPtr = GL.MapBuffer( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
         unsafe
         {
           uint* ptr = (uint*)videoMemoryPtr.ToPointer();
-          for ( int i = 0; i < triangles * 3; i++ )
-            *ptr++ = (uint)i;
+          for ( uint i = 0; i < triangles * 3; i++ )
+            *ptr++ = i;
         }
         GL.UnmapBuffer( BufferTarget.ElementArrayBuffer );
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
+
+        lastMarbles = marbles;
       }
 
       // refill vertex buffer:
@@ -72,23 +79,27 @@ namespace _058marbles
         float* ptr = (float*)videoMemoryPtr.ToPointer();
         for ( int i = 0; i < marbles; i++ )
         {
-          *ptr++ = data.colors[ i ].R / 255.0f;
-          *ptr++ = data.colors[ i ].G / 255.0f;
-          *ptr++ = data.colors[ i ].B / 255.0f;
+          float rad = data.radii[ i ];
+          float r = data.colors[ i ].R / 255.0f;
+          float g = data.colors[ i ].G / 255.0f;
+          float b = data.colors[ i ].B / 255.0f;
+          *ptr++ = r;
+          *ptr++ = g;
+          *ptr++ = b;
           *ptr++ = data.centers[ i ].X;
           *ptr++ = data.centers[ i ].Y;
           *ptr++ = data.centers[ i ].Z;
-          *ptr++ = data.colors[ i ].R / 255.0f;
-          *ptr++ = data.colors[ i ].G / 255.0f;
-          *ptr++ = data.colors[ i ].B / 255.0f;
-          *ptr++ = data.centers[ i ].X + data.radii[ i ];
+          *ptr++ = r;
+          *ptr++ = g;
+          *ptr++ = b;
+          *ptr++ = data.centers[ i ].X + rad;
           *ptr++ = data.centers[ i ].Y;
           *ptr++ = data.centers[ i ].Z;
-          *ptr++ = data.colors[ i ].R / 255.0f;
-          *ptr++ = data.colors[ i ].G / 255.0f;
-          *ptr++ = data.colors[ i ].B / 255.0f;
-          *ptr++ = data.centers[ i ].X + data.radii[ i ];
-          *ptr++ = data.centers[ i ].Y + data.radii[ i ];
+          *ptr++ = r;
+          *ptr++ = g;
+          *ptr++ = b;
+          *ptr++ = data.centers[ i ].X;
+          *ptr++ = data.centers[ i ].Y + rad;
           *ptr++ = data.centers[ i ].Z;
         }
         GL.UnmapBuffer( BufferTarget.ArrayBuffer );
@@ -99,10 +110,12 @@ namespace _058marbles
 
       // render the scene:
       GL.ColorPointer( 3, ColorPointerType.Float, stride, IntPtr.Zero );
-      GL.VertexPointer( 3, VertexPointerType.Float, stride, (IntPtr)(Vector3.SizeInBytes * 3) );
+      GL.VertexPointer( 3, VertexPointerType.Float, stride, (IntPtr)(Vector3.SizeInBytes) );
 
       Form1.triangleCounter += triangles;
       GL.DrawElements( BeginMode.Triangles, triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+
+      // !!!}}
     }
   }
 
@@ -118,6 +131,8 @@ namespace _058marbles
 
     List<float> radii;
 
+    List<Vector3> velocities;
+
     List<Color> colors;
 
     // !!!}}
@@ -128,24 +143,31 @@ namespace _058marbles
     /// <param name="param">String parameter from user, e.g.: number of marbles.</param>
     public void Init ( string param )
     {
-      int marbles = 10;
+      int marbles = 0;
       int.TryParse( param, out marbles );
-      if ( marbles < 1 ) marbles = 1;
-      Random rnd = new Random( 12 );
+      if ( marbles < 12 ) marbles = 12;
+      Random rnd = new Random( 144 );
 
       centers = new List<Vector3>( marbles );
       radii = new List<float>( marbles );
+      velocities = new List<Vector3>( marbles );
       colors = new List<Color>( marbles );
 
       for ( int i = 0; i < marbles; i++ )
       {
-        centers.Add( new Vector3( 10.0f * (float)rnd.NextDouble(),
-                                  10.0f * (float)rnd.NextDouble(),
-                                  10.0f * (float)rnd.NextDouble() ) );
-        radii.Add( 0.5f + 0.4f * (float)rnd.NextDouble() );
+        centers.Add( new Vector3( -10.0f + 20.0f * (float)rnd.NextDouble(),
+                                  -10.0f + 20.0f * (float)rnd.NextDouble(),
+                                  -10.0f + 20.0f * (float)rnd.NextDouble() ) );
+
+        radii.Add( 0.4f + 0.6f * (float)rnd.NextDouble() );
+
+        velocities.Add( new Vector3( -2.0f + 4.0f * (float)rnd.NextDouble(),
+                                     -2.0f + 4.0f * (float)rnd.NextDouble(),
+                                     -2.0f + 4.0f * (float)rnd.NextDouble() ) );
+
         colors.Add( Color.FromArgb( rnd.Next( 255 ), rnd.Next( 255 ), rnd.Next( 255 ) ) );
 
-        // !!!{{ TODO: more initialization - velocities, etc.
+        // !!!{{ TODO: more initialization?
         // !!!}}
       }
     }
@@ -157,10 +179,26 @@ namespace _058marbles
       // Simulate (update) the world:
       for ( int i = 0; i < centers.Count; i++ )
       {
-        Vector3 vel = centers[ i ];
-        vel.Normalize();
-        vel *= dTime;
-        centers[ i ] += vel;
+        centers[ i ] += velocities[ i ] * dTime;
+        Vector3 vel;
+        if ( Math.Abs( centers[ i ].X ) >= 10.0f )
+        {
+          vel = velocities[ i ];
+          vel.X = -vel.X;
+          velocities[ i ] = vel;
+        }
+        if ( Math.Abs( centers[ i ].Y ) >= 10.0f )
+        {
+          vel = velocities[ i ];
+          vel.Y = -vel.Y;
+          velocities[ i ] = vel;
+        }
+        if ( Math.Abs( centers[ i ].Z ) >= 10.0f )
+        {
+          vel = velocities[ i ];
+          vel.Z = -vel.Z;
+          velocities[ i ] = vel;
+        }
       }
 
       // Copy the new data into a new MarblesRenderData instance:
@@ -172,7 +210,6 @@ namespace _058marbles
 
       // !!!}}
     }
-
   }
 
   public partial class Form1
@@ -190,6 +227,16 @@ namespace _058marbles
     static public MarblesRenderer renderer = null;
 
     /// <summary>
+    /// Time of the last frame in seconds (for camera movement).
+    /// </summary>
+    double lastFrameTime = DateTime.Now.Ticks * 1.0e-7;
+
+    /// <summary>
+    /// Time of the last simulation in seconds.
+    /// </summary>
+    double lastSimTime = DateTime.Now.Ticks * 1.0e-7;
+
+    /// <summary>
     /// Function called whenever the main application is idle..
     /// </summary>
     /// <param name="sender"></param>
@@ -198,6 +245,14 @@ namespace _058marbles
     {
       while ( glControl1.IsIdle )
       {
+        // World simulation:
+        double timeInSeconds = DateTime.Now.Ticks * 1.0e-7;
+        float dTime = (float)(timeInSeconds - lastSimTime);
+        lastSimTime = timeInSeconds;
+        if ( world != null )
+          data = world.Simulate( dTime );
+
+        // Force redraw:
         glControl1.Invalidate();
         Thread.Sleep( 5 );
 
@@ -218,7 +273,32 @@ namespace _058marbles
     }
 
     /// <summary>
-    /// Rendering code itself (separated for clarity).
+    /// Rendering of one frame, all the stuff.
+    /// </summary>
+    private void Render ()
+    {
+      if ( !loaded ) return;
+
+      frameCounter++;
+      GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
+      GL.ShadeModel( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
+      GL.PolygonMode( MaterialFace.FrontAndBack, checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
+
+      double timeInSeconds = DateTime.Now.Ticks * 1.0e-7;
+      float dTime = (float)(timeInSeconds - lastFrameTime);
+      lastFrameTime = timeInSeconds;
+
+      // Camera animation:
+      SetCamera( checkCamera.Checked ? dTime : 0.0f );
+
+      // Scene rendering:
+      RenderScene();
+
+      glControl1.SwapBuffers();
+    }
+
+    /// <summary>
+    /// OpenGL rendering code itself (separated for clarity).
     /// </summary>
     private void RenderScene ()
     {

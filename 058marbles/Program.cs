@@ -7,6 +7,8 @@ namespace _058marbles
 {
   static class Program
   {
+    static public Form form = null;
+
     /// <summary>
     /// The main entry point for the application.
     /// </summary>
@@ -15,7 +17,7 @@ namespace _058marbles
     {
       Application.EnableVisualStyles();
       Application.SetCompatibleTextRenderingDefault( false );
-      Application.Run( new Form1() );
+      Application.Run( form = new Form1() );
     }
   }
 }

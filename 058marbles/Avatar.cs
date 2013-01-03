@@ -1,6 +1,4 @@
-﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -8,9 +6,6 @@ namespace _058marbles
 {
   public partial class Form1
   {
-    // Realtime based animation:
-    private double timeInSeconds = 0.0;
-
     #region Camera attributes
 
     /// <summary>
@@ -79,6 +74,7 @@ namespace _058marbles
     /// <summary>
     /// Setup of a camera called for every frame prior to any rendering.
     /// </summary>
+    /// <param name="dTime">Time-delta (seconds passed from the last camera update) or 0.0f.</param>
     private void SetCamera ( float dTime )
     {
       // !!!{{ TODO: add camera setup here
@@ -93,30 +89,6 @@ namespace _058marbles
       GL.LoadMatrix( ref lookAt );
 
       // !!!}}
-    }
-
-    /// <summary>
-    /// Rendering of one frame.
-    /// </summary>
-    private void Render ()
-    {
-      if ( !loaded ) return;
-
-      frameCounter++;
-      GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
-      GL.ShadeModel( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
-      GL.PolygonMode( MaterialFace.FrontAndBack, checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
-
-      timeInSeconds = DateTime.Now.Ticks * 1.0e-7;
-      float dTime = (float)(timeInSeconds - lastFrameTime);
-      lastFrameTime = timeInSeconds;
-
-      SetCamera( dTime );
-      
-      // Scene rendering:
-      RenderScene();
-
-      glControl1.SwapBuffers();
     }
 
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
@@ -168,7 +140,5 @@ namespace _058marbles
 
       // !!!}}
     }
-
   }
-
 }
