@@ -45,16 +45,20 @@ namespace _038trackball
            scene != null &&
            scene.Triangles > 0 )        // scene is nonempty => render it
       {
-        // colors [normals] vertices
+        // [colors] [normals] vertices
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-        GL.ColorPointer( 3, ColorPointerType.Float, stride, IntPtr.Zero );
-        if ( scene.Normals > 0 )
+        int p = 0;
+        if ( scene.HasColors() )
         {
-          GL.NormalPointer( NormalPointerType.Float, stride, (IntPtr)Vector3.SizeInBytes );
-          GL.VertexPointer( 3, VertexPointerType.Float, stride, (IntPtr)(Vector3.SizeInBytes * 2) );
+          GL.ColorPointer( 3, ColorPointerType.Float, stride, p );
+          p += Vector3.SizeInBytes;
         }
-        else
-          GL.VertexPointer( 3, VertexPointerType.Float, stride, (IntPtr)Vector3.SizeInBytes );
+        if ( scene.HasNormals() )
+        {
+          GL.NormalPointer( NormalPointerType.Float, stride, p );
+          p += Vector3.SizeInBytes;
+        }
+        GL.VertexPointer( 3, VertexPointerType.Float, stride, p );
 
         // index buffer
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
