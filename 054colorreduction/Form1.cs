@@ -96,17 +96,31 @@ namespace _054colorreduction
         ColorReduction.Reduce( ibmp, out bmp, textParam.Text );
         SetImage( bmp );
 
-        // Image difference:
+        // Image differences:
         FloatImage ar, ag, ab, br, bg, bb;
         FloatImage.BitmapBands( ibmp, 1, out ar, out ag, out ab );
         FloatImage.BitmapBands( bmp, 1, out br, out bg, out bb );
-        // TODO: Gaussian blur
+
+        // Simple differences:
         float dr = ar.MAD( br );
         float dg = ag.MAD( bg );
         float db = ab.MAD( bb );
         float diff = (dr + dg + db) / 3.0f;
         float diffw = (dr * Draw.RED_WEIGHT + dg * Draw.GREEN_WEIGHT + db * Draw.BLUE_WEIGHT) / Draw.WEIGHT_TOTAL;
-        MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Plain MAD: {0:f5}, weighted MAD: {1:f5}", diff, diffw ),
+
+        // Conical blur differences:
+        ar.Blur(); ar.Blur();
+        ag.Blur(); ag.Blur();
+        ab.Blur(); ab.Blur();
+        br.Blur(); br.Blur();
+        bg.Blur(); bg.Blur();
+        bb.Blur(); bb.Blur();
+        dr = ar.MAD( br );
+        dg = ag.MAD( bg );
+        db = ab.MAD( bb );
+        float diffg = (dr * Draw.RED_WEIGHT + dg * Draw.GREEN_WEIGHT + db * Draw.BLUE_WEIGHT) / Draw.WEIGHT_TOTAL;
+
+        MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Plain MAD: {0:f5}, weighted MAD: {1:f5}, Cone weighted MAD: {2:f5}", diff, diffw, diffg ),
                          "MAE Difference" );
       }
 

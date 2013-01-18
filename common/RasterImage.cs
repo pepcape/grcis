@@ -74,9 +74,9 @@ namespace Raster
           int b, i;
           for ( b = 0; b < border; b++ )
           {
+            inside += stride;
             for ( i = 0, pi = inside, po = outside; i < width; i++ )
               *po++ = *pi++;
-            inside += stride;
             outside -= stride;
           }
 
@@ -85,9 +85,9 @@ namespace Raster
           outside = inside + stride;
           for ( b = 0; b < border; b++ )
           {
+            inside -= stride;
             for ( i = 0, pi = inside, po = outside; i < width; i++ )
               *po++ = *pi++;
-            inside -= stride;
             outside += stride;
           }
 
@@ -96,13 +96,13 @@ namespace Raster
           outside = inside - 1;
           for ( b = 0; b < border; b++ )
           {
+            inside++;
             for ( i = height + 2 * border, pi = inside, po = outside; i-- > 0; )
             {
               *po = *pi;
               po += stride;
               pi += stride;
             }
-            inside++;
             outside--;
           }
 
@@ -111,13 +111,13 @@ namespace Raster
           inside = outside - 1;
           for ( b = 0; b < border; b++ )
           {
+            inside--;
             for ( i = height + 2 * border, pi = inside, po = outside; i-- > 0; )
             {
               *po = *pi;
               po += stride;
               pi += stride;
             }
-            inside--;
             outside++;
           }
         }
@@ -154,6 +154,42 @@ namespace Raster
         }
       }
       return( (float)(sum / (width * height)) );
+    }
+
+    /// <summary>
+    /// Uniform image blur.
+    /// </summary>
+    public void Blur ()
+    {
+      if ( border < 1 )
+        return;
+
+      float[] ndata = new float[ data.Length ];
+      unsafe
+      {
+        fixed ( float* ad = data )
+        fixed ( float* nd = ndata )
+        {
+          float* la = ad + origin;
+          float* ln = nd + origin;
+          int i, j;
+          for ( j = 0; j++ < height; la += stride, ln += stride )
+          {
+            float* pa = la;
+            float* pn = ln;
+            for ( i = 0; i++ < width; pa++ )
+            {
+              float sum  = pa[ -stride - 1 ] + pa[ -stride ] + pa[ -stride + 1 ] +
+                           pa[ -1 ]          + pa[ 0 ]       + pa[ 1 ] +
+                           pa[ stride - 1 ]  + pa[ stride ]  + pa[ stride + 1 ];
+              *pn++ = sum / 9.0f;
+            }
+          }
+        }
+      }
+
+      data = ndata;
+      ComputeBorder();
     }
 
     /// <summary>
