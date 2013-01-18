@@ -54,6 +54,9 @@
     <Compile Include="..\common\RasterDrawing.cs">
       <Link>RasterDrawing.cs</Link>
     </Compile>
+    <Compile Include="..\common\RasterImage.cs">
+      <Link>RasterImage.cs</Link>
+    </Compile>
     <Compile Include="ColorReduction.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
