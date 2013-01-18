@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Threading;
+using Raster;
+using System.Globalization;
 
 namespace _054colorreduction
 {
@@ -93,6 +95,19 @@ namespace _054colorreduction
         Bitmap bmp;
         ColorReduction.Reduce( ibmp, out bmp, textParam.Text );
         SetImage( bmp );
+
+        // Image difference:
+        FloatImage ar, ag, ab, br, bg, bb;
+        FloatImage.BitmapBands( ibmp, 1, out ar, out ag, out ab );
+        FloatImage.BitmapBands( bmp, 1, out br, out bg, out bb );
+        // TODO: Gaussian blur
+        float dr = ar.MAD( br );
+        float dg = ag.MAD( bg );
+        float db = ab.MAD( bb );
+        float diff = (dr + dg + db) / 3.0f;
+        float diffw = (dr * Draw.RED_WEIGHT + dg * Draw.GREEN_WEIGHT + db * Draw.BLUE_WEIGHT) / Draw.WEIGHT_TOTAL;
+        MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Plain MAD: {0:f5}, weighted MAD: {1:f5}", diff, diffw ),
+                         "MAE Difference" );
       }
 
       StopComputation();

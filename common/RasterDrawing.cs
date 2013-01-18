@@ -29,7 +29,6 @@ namespace Raster
     /// </summary>
     public const int WEIGHT_SHIFT = 14;
 
-    /**  */
     /// <summary>
     /// Color importance sum.
     /// </summary>
