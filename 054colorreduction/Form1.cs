@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.Threading;
 using Raster;
 using System.Globalization;
+using System.Diagnostics;
 
 namespace _054colorreduction
 {
@@ -93,7 +94,13 @@ namespace _054colorreduction
       {
         Bitmap ibmp = (Bitmap)inputImage;
         Bitmap bmp;
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+
         ColorReduction.Reduce( ibmp, out bmp, textParam.Text );
+
+        sw.Stop();
+        float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
         SetImage( bmp );
 
         // Image differences:
@@ -120,8 +127,8 @@ namespace _054colorreduction
         db = ab.MAD( bb );
         float diffg = (dr * Draw.RED_WEIGHT + dg * Draw.GREEN_WEIGHT + db * Draw.BLUE_WEIGHT) / Draw.WEIGHT_TOTAL;
 
-        MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Plain MAD: {0:f5}, weighted MAD: {1:f5}, Cone weighted MAD: {2:f5}", diff, diffw, diffg ),
-                         "MAE Difference" );
+        MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Time: {0:f3}s{4}plain MAD: {1:f5}{4}weighted MAD: {2:f5}{4}filtered weighted MAD: {3:f5}",
+                                        elapsed, diff, diffw, diffg, Environment.NewLine ), "MAE Difference" );
       }
 
       StopComputation();
