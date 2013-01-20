@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
 using Raster;
+using Support;
 
 namespace _055quadtree
 {
@@ -19,6 +18,10 @@ namespace _055quadtree
     protected Bitmap outputImage = null;
 
     protected Bitmap diffImage = null;
+
+    const string CONFIG_FILE = "config.txt";
+
+    const string LOG_FILE = "log.txt";
 
     public Form1 ()
     {
@@ -81,6 +84,12 @@ namespace _055quadtree
     {
       if ( inputImage == null )
       {
+        if ( File.Exists( CONFIG_FILE ) )
+        {
+          BatchRecode();
+          return;
+        }
+
         Image inp = Image.FromFile( "toucan.png" );
         inputImage = new Bitmap( inp );
         inp.Dispose();
@@ -153,6 +162,88 @@ namespace _055quadtree
     private void checkDiff_CheckedChanged ( object sender, EventArgs e )
     {
       pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
+    }
+
+    private void BatchRecode ()
+    {
+      StreamReader inp = new StreamReader( CONFIG_FILE );
+      string line;
+
+      line = inp.ReadLine();
+      if ( line == null )
+      {
+        inp.Close();
+        return;
+      }
+
+      // 1st line: author's name
+      string fullName = line.Trim();
+      string strippedName = Regex.Replace( TextUtils.RemoveDiacritics( fullName ), @"\s", "" );
+
+      // following lines: test images
+      List<string> fn = new List<string>();
+      while ( (line = inp.ReadLine()) != null )
+        if ( (line = line.Trim()).Length > 0 &&
+             File.Exists( line ) )
+          fn.Add( line );
+      int fnWidth = 0;
+      foreach ( string name in fn )
+        if ( name.Length > fnWidth )
+          fnWidth = name.Length;
+      inp.Close();
+
+      // input images one by one:
+      Stopwatch sw = new Stopwatch();
+      StreamWriter log = new StreamWriter( LOG_FILE, true );
+      // <input-file> <txt-size> <enc-elapsed> <dec-elapsed> <author-name>
+      string fmt = "{0,-" + fnWidth + "}{1,9}{2,8}{3,8}  {4}";
+      long diffHash = 1L;
+
+      foreach ( string name in fn )
+      {
+        Image input = Image.FromFile( name );
+        Bitmap inputImage = new Bitmap( input );
+        input.Dispose();
+
+        sw.Restart();
+
+        // 1. quad-tree encoding
+        QuadTree qt = new QuadTree();
+        qt.EncodeTree( inputImage );
+
+        // 2. quad-tree write (disk file)
+        FileStream fs = new FileStream( string.Format( "{0}.{1}.txt", name, strippedName ), FileMode.Create );
+        qt.WriteTree( fs );
+        fs.Flush();
+        long fileSize = fs.Position;
+
+        sw.Stop();
+        long encElapsed = sw.ElapsedMilliseconds;
+
+        // 3. quad-tree re-read (disk file)
+        fs.Seek( 0L, SeekOrigin.Begin );
+        sw.Restart();
+        qt = new QuadTree();
+        bool result = qt.ReadTree( fs );
+        fs.Close();
+        long decElapsed = 0L;
+        if ( result )
+        {
+          // 4. quad-tree rendering
+          outputImage = qt.DecodeTree();
+          sw.Stop();
+          decElapsed = sw.ElapsedMilliseconds;
+
+          // 5. comparison
+          diffHash = Draw.ImageCompare( inputImage, outputImage, null );
+        }
+
+        // 6. output log
+        log.WriteLine( string.Format( CultureInfo.InvariantCulture, fmt, name, fileSize, encElapsed, decElapsed, fullName ) );
+      }
+
+      labelResult.Text = String.Format( "Errs: {0}", diffHash );
+      log.Close();
     }
   }
 }
