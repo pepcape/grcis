@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Raster;
@@ -164,6 +165,7 @@ namespace _055quadtree
       pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
     }
 
+    [HandleProcessCorruptedStateExceptions]
     private void BatchRecode ()
     {
       StreamReader inp = new StreamReader( CONFIG_FILE );
@@ -196,54 +198,75 @@ namespace _055quadtree
       Stopwatch sw = new Stopwatch();
       StreamWriter log = new StreamWriter( LOG_FILE, true );
       // <input-file> <txt-size> <enc-elapsed> <dec-elapsed> <author-name>
-      string fmt = "{0,-" + fnWidth + "}{1,9}{2,8}{3,8}  {4}";
+      string fmt = "{0,-" + fnWidth + "}{1,10}{2,9}{3,9} {4} {5}";
       long diffHash = 1L;
 
       foreach ( string name in fn )
       {
         Image input = Image.FromFile( name );
         Bitmap inputImage = new Bitmap( input );
+        FileStream fs;
+        long fileSize = 0L;
+        long encElapsed = 0L;
+        long decElapsed = 0L;
+        string err = "";
         input.Dispose();
 
-        sw.Restart();
-
-        // 1. quad-tree encoding
-        QuadTree qt = new QuadTree();
-        qt.EncodeTree( inputImage );
-
-        // 2. quad-tree write (disk file)
-        FileStream fs = new FileStream( string.Format( "{0}.{1}.txt", name, strippedName ), FileMode.Create );
-        qt.WriteTree( fs );
-        fs.Flush();
-        long fileSize = fs.Position;
-
-        sw.Stop();
-        long encElapsed = sw.ElapsedMilliseconds;
-
-        // 3. quad-tree re-read (disk file)
-        fs.Seek( 0L, SeekOrigin.Begin );
-        sw.Restart();
-        qt = new QuadTree();
-        bool result = qt.ReadTree( fs );
-        fs.Close();
-        long decElapsed = 0L;
-        if ( result )
+        try
         {
-          // 4. quad-tree rendering
-          outputImage = qt.DecodeTree();
-          sw.Stop();
-          decElapsed = sw.ElapsedMilliseconds;
+          sw.Restart();
 
-          // 5. comparison
-          diffHash = Draw.ImageCompare( inputImage, outputImage, null );
+          // 1. quad-tree encoding
+          QuadTree qt = new QuadTree();
+          qt.EncodeTree( inputImage );
+
+          // 2. quad-tree write (disk file)
+          fs = new FileStream( string.Format( "{0}.{1}.txt", name, strippedName ), FileMode.Create );
+          qt.WriteTree( fs );
+          fs.Flush();
+          fileSize = fs.Position;
+
+          sw.Stop();
+          encElapsed = sw.ElapsedMilliseconds;
+
+          // 3. quad-tree re-read (disk file)
+          fs.Seek( 0L, SeekOrigin.Begin );
+          sw.Restart();
+          qt = new QuadTree();
+          bool result = qt.ReadTree( fs );
+          fs.Close();
+          decElapsed = 0L;
+          if ( result )
+          {
+            // 4. quad-tree rendering
+            outputImage = qt.DecodeTree();
+            sw.Stop();
+            decElapsed = sw.ElapsedMilliseconds;
+
+            // 5. comparison
+            diffHash = Draw.ImageCompare( inputImage, outputImage, null );
+            if ( diffHash != 0L )
+              err = diffHash.ToString();
+          }
+          else
+          {
+            err = "ENCODING-ERROR";
+            outputImage = null;
+          }
+        }
+        catch ( Exception )
+        {
+          err = "EXCEPTION";
+          outputImage = null;
         }
 
         // 6. output log
-        log.WriteLine( string.Format( CultureInfo.InvariantCulture, fmt, name, fileSize, encElapsed, decElapsed, fullName ) );
+        log.WriteLine( string.Format( CultureInfo.InvariantCulture, fmt, name, fileSize, encElapsed, decElapsed, err, fullName ) );
       }
 
-      labelResult.Text = String.Format( "Errs: {0}", diffHash );
       log.Close();
+      labelResult.Text = String.Format( "Errs: {0}", diffHash );
+      pictureBox1.Image = outputImage;
     }
   }
 }
