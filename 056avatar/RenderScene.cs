@@ -10,28 +10,23 @@ namespace _056avatar
     /// <summary>
     /// Function called whenever the main application is idle..
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
     private void Application_Idle ( object sender, EventArgs e )
     {
-      while ( glControl1.IsIdle )
-      {
-        glControl1.Invalidate();
-        Thread.Sleep( 5 );
+      glControl1.Invalidate();
+      Thread.Sleep( 5 );
 
-        long now = DateTime.Now.Ticks;
-        if ( now - lastFpsTime > 10000000 )      // more than 1 sec
-        {
-          double fps = frameCounter * 1.0e7 / (now - lastFpsTime);
-          double tps = triangleCounter * 1.0e7 / (now - lastFpsTime);
-          lastFpsTime = now;
-          frameCounter = 0;
-          triangleCounter = 0L;
-          if ( tps < 5.0e5 )
-            labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0}k", fps, (tps * 1.0e-3) );
-          else
-            labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0.0}m", fps, (tps * 1.0e-6) );
-        }
+      long now = DateTime.Now.Ticks;
+      if ( now - lastFpsTime > 10000000 )      // more than 1 sec
+      {
+        double fps = frameCounter * 1.0e7 / (now - lastFpsTime);
+        double tps = triangleCounter * 1.0e7 / (now - lastFpsTime);
+        lastFpsTime = now;
+        frameCounter = 0;
+        triangleCounter = 0L;
+        if ( tps < 5.0e5 )
+          labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0}k", fps, (tps * 1.0e-3) );
+        else
+          labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0.0}m", fps, (tps * 1.0e-6) );
       }
     }
 
