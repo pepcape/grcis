@@ -6,6 +6,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using MathSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -53,6 +54,16 @@ namespace _056avatar
     /// Vertical field-of-view angle in radians.
     /// </summary>
     private float fov = 1.0f;
+
+    /// <summary>
+    /// FoV increment (coefficient).
+    /// </summary>
+    private double fovInc = 1.04;
+
+    /// <summary>
+    /// Should the Viewport be recalculated? (for FoV change..)
+    /// </summary>
+    private bool setupViewport = false;
 
     /// <summary>
     /// Camera's far point.
@@ -124,7 +135,7 @@ namespace _056avatar
     /// <summary>
     /// Must be called after window geometry change.
     /// </summary>
-    private void SetupViewport ()
+    private void SetupViewport ( bool setDefault )
     {
       int wid = glControl1.Width;
       int hei = glControl1.Height;
@@ -137,7 +148,8 @@ namespace _056avatar
       Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView( fov, wid / (float)hei, 0.1f, far );
       GL.LoadMatrix( ref proj );
 
-      SetDefault();
+      if ( setDefault )
+        SetDefault();
     }
 
     /// <summary>
@@ -149,6 +161,9 @@ namespace _056avatar
 
       float dTime = (float)(timeInSeconds - lastFrameTime);
       lastFrameTime = timeInSeconds;
+
+      if ( setupViewport )
+        SetupViewport( false );
 
       GL.MatrixMode( MatrixMode.Modelview );
       // look from "eye", in direction of "dir"
@@ -226,8 +241,8 @@ namespace _056avatar
       if ( keys[ (int)Keys.LButton ] )
       {
         // rotate camera
-        ax = (mouse.X - e.Location.X) * sens;
-        ay = (mouse.Y - e.Location.Y) * sens;
+        ax = (mouse.X - e.Location.X) * sens * fov;
+        ay = (mouse.Y - e.Location.Y) * sens * fov;
         Elevator( ref dir, ref up, ay );
         Rudder( ref dir, up, -ax );
         mouse = e.Location;
@@ -241,8 +256,13 @@ namespace _056avatar
     {
       if ( e.Delta != 0 )
       {
-        float notches = e.Delta / 300.0f;
-        Rotation( dir, ref up, notches );
+        double notches = e.Delta / 120.0f;
+        fov *= (float)Math.Pow( fovInc, notches );
+        fov = Arith.Clamp( fov, 0.05f, 1.6f );
+        setupViewport = true;
+        // old code: rotation around view vector.. (should be moved elsewhere)
+        //float notches = e.Delta / 300.0f;
+        //Rotation( dir, ref up, notches );
       }
     }
 
