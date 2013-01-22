@@ -115,7 +115,7 @@ namespace _056avatar
       if ( GL.GetError() != ErrorCode.NoError )
         useVBO = false;
 
-      SetupViewport();
+      SetupViewport( true );
 
       Application.Idle += new EventHandler( Application_Idle );
     }
@@ -124,7 +124,7 @@ namespace _056avatar
     {
       if ( !loaded ) return;
 
-      SetupViewport();
+      SetupViewport( false );
       glControl1.Invalidate();
     }
 
