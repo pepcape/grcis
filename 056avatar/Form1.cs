@@ -39,7 +39,7 @@ namespace _056avatar
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( new char[] { ' ' } );
+      String[] tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[ 1 ] + ')';
     }
 
@@ -143,7 +143,7 @@ namespace _056avatar
            scene.Triangles > 0 )
       {
         GL.EnableClientState( ArrayCap.VertexArray );
-        if ( scene.Normals > 0 )
+        if ( scene.HasNormals() )
           GL.EnableClientState( ArrayCap.NormalArray );
         GL.EnableClientState( ArrayCap.ColorArray );
 
