@@ -71,6 +71,11 @@ namespace _056avatar
     private double fovInc = 1.04;
 
     /// <summary>
+    /// Sensitivity of the +/- keys.
+    /// </summary>
+    private float plusInc = 1.1f;
+
+    /// <summary>
     /// Should the Viewport be recalculated? (for FoV change..)
     /// </summary>
     private bool setupViewport = false;
@@ -209,6 +214,22 @@ namespace _056avatar
       GL.LoadMatrix( ref lookAt );
 
       Vector3 left = Vector3.Cross( up, dir );
+
+      // global velocity adjustments:
+      if ( keys[ (int)Keys.Add ] )
+      {
+        acc *= plusInc;
+        accRot *= plusInc;
+        sensPan *= plusInc;
+        sensAcc *= plusInc;
+      }
+      if ( keys[ (int)Keys.Subtract ] )
+      {
+        acc /= plusInc;
+        accRot /= plusInc;
+        sensPan /= plusInc;
+        sensAcc /= plusInc;
+      }
 
       // change camera velocity
       if ( keys[ (int)Keys.W ] || keys[ (int)Keys.Up ] )
