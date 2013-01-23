@@ -78,9 +78,13 @@ namespace _056avatar
       int faces = cn.AddMesh( scene, Matrix4.Identity, param );
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
+      if ( !scene.HasColors() )
+        scene.GenerateColors( 12 );
 
       Cursor.Current = Cursors.Default;
 
+      if ( faces == 0 )
+        faces = scene.Triangles;
       labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
       PrepareDataBuffers();
       glControl1.Invalidate();
@@ -151,9 +155,10 @@ namespace _056avatar
         GL.EnableClientState( ArrayCap.VertexArray );
         if ( scene.HasNormals() )
           GL.EnableClientState( ArrayCap.NormalArray );
-        GL.EnableClientState( ArrayCap.ColorArray );
+        if ( scene.HasColors() )
+          GL.EnableClientState( ArrayCap.ColorArray );
 
-        // Vertex array: color [normal] coord
+        // Vertex array: [color] [normal] coord
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
         int vertexBufferSize = scene.VertexBufferSize( true, false, true, true );
         GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
