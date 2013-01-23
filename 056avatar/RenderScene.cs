@@ -75,7 +75,7 @@ namespace _056avatar
               GL.Translate( delta, 0.0f, 0.0f );
             }
             GL.PopMatrix();
-            GL.Translate( 0.0f, 0.0f, delta );
+            GL.Translate( 0.0f, 0.0f, -delta );
           }
           GL.PopMatrix();
           GL.Translate( 0.0f, delta, 0.0f );

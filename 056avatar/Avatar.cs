@@ -85,6 +85,11 @@ namespace _056avatar
     /// </summary>
     private float far = 1000.0f;
 
+    /// <summary>
+    /// Center of the scene.
+    /// </summary>
+    public Vector3 center = Vector3.Zero;
+
     #endregion
 
     /// <summary>
@@ -137,7 +142,8 @@ namespace _056avatar
     /// </summary>
     private void SetDefault ()
     {
-      eye = new Vector3( 0.0f, 0.0f, 30.0f );
+      eye = center;
+      eye.Z += 12.0f;
       dir = -Vector3.UnitZ;
       up = Vector3.UnitY;
       dEye = Vector3.Zero;

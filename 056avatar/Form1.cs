@@ -62,6 +62,7 @@ namespace _056avatar
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
       scene.GenerateColors( 12 );
+      scene.GetDiameter( out center );
 
       labelFaces.Text = String.Format( "{0}: {1} faces, {2} errors", ofd.SafeFileName, faces, errors );
       PrepareDataBuffers();
@@ -80,6 +81,7 @@ namespace _056avatar
       int errors = scene.CheckCornerTable( null );
       if ( !scene.HasColors() )
         scene.GenerateColors( 12 );
+      scene.GetDiameter( out center );
 
       Cursor.Current = Cursors.Default;
 
