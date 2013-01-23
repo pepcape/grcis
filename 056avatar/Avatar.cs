@@ -41,9 +41,19 @@ namespace _056avatar
     private Vector3 dEye;
 
     /// <summary>
-    /// Acceleration.
+    /// Acceleration (for translation).
     /// </summary>
-    private float acc = 100;
+    private float acc = 100.0f;
+
+    /// <summary>
+    /// Angular velocity around viewing vector (v-rotation).
+    /// </summary>
+    private float dAng = 0.0f;
+
+    /// <summary>
+    /// Acceleration (for rotation).
+    /// </summary>
+    private float accRot = 5.0f;
 
     /// <summary>
     /// Deceleration (inertia).
@@ -78,14 +88,39 @@ namespace _056avatar
     private Point mouse;
 
     /// <summary>
-    /// Rotation coefficients;
+    /// Time of the last mouse-pointer move.
     /// </summary>
-    private float ax = 0, ay = 0;
+    private double lastMouseMove = DateTime.Now.Ticks * 1.0e-7;
+
+    /// <summary>
+    /// Last dTime for mouse dragging.
+    /// </summary>
+    private double lastDelta = 0.0f;
+
+    /// <summary>
+    /// Rotation coefficients.
+    /// </summary>
+    private float ax = 0.0f, ay = 0.0f;
+
+    /// <summary>
+    /// Panning coefficients.
+    /// </summary>
+    private float panx = 0.0f, pany = 0.0f;
 
     /// <summary>
     /// Mouse sensitivity.
     /// </summary>
-    private float sens = 0.004f;
+    private float sens = 0.002f;
+
+    /// <summary>
+    /// Mouse sensitivity for panning.
+    /// </summary>
+    private float sensPan = 0.05f;
+
+    /// <summary>
+    /// Mouse sensitivity for acceleration.
+    /// </summary>
+    private float sensAcc = 0.1f;
 
     /// <summary>
     /// Key is pressed? (no modifier keys).
@@ -163,7 +198,10 @@ namespace _056avatar
       lastFrameTime = timeInSeconds;
 
       if ( setupViewport )
+      {
+        setupViewport = false;
         SetupViewport( false );
+      }
 
       GL.MatrixMode( MatrixMode.Modelview );
       // look from "eye", in direction of "dir"
@@ -172,27 +210,51 @@ namespace _056avatar
 
       Vector3 left = Vector3.Cross( up, dir );
 
-      // set camera velocity
-      if ( keys[ (int)Keys.W ] ) dEye += dir * acc * dTime;
-      if ( keys[ (int)Keys.S ] ) dEye -= dir * acc * dTime;
-      if ( keys[ (int)Keys.A ] ) dEye += left * acc * dTime;
-      if ( keys[ (int)Keys.D ] ) dEye -= left * acc * dTime;
-      if ( keys[ (int)Keys.Prior ] ) dEye += up * acc * dTime;
-      if ( keys[ (int)Keys.Next ] ) dEye -= up * acc * dTime;
+      // change camera velocity
+      if ( keys[ (int)Keys.W ] || keys[ (int)Keys.Up ] )
+        dEye += dir * acc * dTime;
+      if ( keys[ (int)Keys.S ] || keys[ (int)Keys.Down ] )
+        dEye -= dir * acc * dTime;
+      if ( keys[ (int)Keys.A ] || keys[ (int)Keys.Left ] )
+        dEye += left * acc * dTime;
+      if ( keys[ (int)Keys.D ] || keys[ (int)Keys.Right ] )
+        dEye -= left * acc * dTime;
+      if ( keys[ (int)Keys.R ] || keys[ (int)Keys.PageUp ] )
+        dEye += up * acc * dTime;
+      if ( keys[ (int)Keys.F ] || keys[ (int)Keys.PageDown ] )
+        dEye -= up * acc * dTime;
 
       // move camera
       eye += dEye * dTime;
 
       // deceleration (translation)
-      dEye *= dec;
+      if ( !keys[ (int)Keys.LButton ] )
+        dEye *= dec;
+
+      // v-rotation:
+      if ( keys[ (int)Keys.Q ] || keys[ (int)Keys.Home ] )
+        dAng += accRot * dTime;
+      if ( keys[ (int)Keys.E ] || keys[ (int)Keys.End ] )
+        dAng -= accRot * dTime;
+
+      Rotation( dir, ref up, dAng * dTime );
+      dAng *= dec;
 
       // deceleration (rotation)
-      if ( !keys[ (int)Keys.LButton ] )
+      if ( !keys[ (int)Keys.RButton ] )
       {
-        Elevator( ref dir, ref up, ay );
-        Rudder( ref dir, up, -ax );
+        Elevator( ref dir, ref up, ay * dTime );
+        Rudder( ref dir, up, -ax * dTime );
         ax *= dec;
         ay *= dec;
+      }
+
+      // deceleration (panning)
+      if ( !keys[ (int)Keys.MButton ] )
+      {
+        eye -= (left * panx + up * pany) * dTime;
+        panx *= dec;
+        pany *= dec;
       }
     }
 
@@ -221,8 +283,30 @@ namespace _056avatar
     /// </summary>
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
-      keys[ (int)Keys.LButton ] = true;
+      int but;
+      switch ( e.Button )
+      {
+        case MouseButtons.Middle:
+          but = (int)Keys.MButton;
+          break;
+
+        case MouseButtons.Right:
+          but = (int)Keys.RButton;
+          break;
+
+        default:
+          but = (int)Keys.LButton;
+          break;
+      }
+      keys[ but ] = true;
       mouse = e.Location;
+      lastMouseMove = DateTime.Now.Ticks * 1.0e-7;
+
+      if ( e.Button == MouseButtons.Right )
+        ax = ay = 0.0f;
+
+      if ( e.Button == MouseButtons.Middle )
+        panx = pany = 0.0f;
     }
 
     /// <summary>
@@ -230,7 +314,47 @@ namespace _056avatar
     /// </summary>
     private void glControl1_MouseUp ( object sender, MouseEventArgs e )
     {
-      keys[ (int)Keys.LButton ] = false;
+      int but;
+      switch ( e.Button )
+      {
+        case MouseButtons.Middle:
+          but = (int)Keys.MButton;
+          break;
+
+        case MouseButtons.Right:
+          but = (int)Keys.RButton;
+          break;
+
+        default:
+          but = (int)Keys.LButton;
+          break;
+      }
+      keys[ but ] = false;
+
+      double now = DateTime.Now.Ticks * 1.0e-7;
+      bool pause = now - lastMouseMove > 0.1;
+
+      if ( e.Button == MouseButtons.Right )
+        if ( pause )
+          ax = ay = 0.0f;
+        else
+          if ( lastDelta > 0.0 )
+          {
+            ax /= (float)lastDelta;
+            ay /= (float)lastDelta;
+          }
+
+      if ( e.Button == MouseButtons.Middle )
+        if ( pause )
+          panx = pany = 0.0f;
+        else
+          if ( lastDelta > 0.0 )
+          {
+            panx /= (float)lastDelta;
+            pany /= (float)lastDelta;
+          }
+
+      mouse = e.Location;
     }
 
     /// <summary>
@@ -238,15 +362,33 @@ namespace _056avatar
     /// </summary>
     private void glControl1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( keys[ (int)Keys.LButton ] )
+      double now = DateTime.Now.Ticks * 1.0e-7;
+      lastDelta = now - lastMouseMove;
+      lastMouseMove = now;
+
+      if ( keys[ (int)Keys.RButton ] )
       {
         // rotate camera
         ax = (mouse.X - e.Location.X) * sens * fov;
         ay = (mouse.Y - e.Location.Y) * sens * fov;
         Elevator( ref dir, ref up, ay );
         Rudder( ref dir, up, -ax );
-        mouse = e.Location;
       }
+
+      if ( keys[ (int)Keys.MButton ] )
+      {
+        // mouse panning
+        panx = (mouse.X - e.Location.X) * sensPan;
+        pany = (mouse.Y - e.Location.Y) * sensPan;
+        eye -= Vector3.Cross( up, dir ) * panx + up * pany;
+      }
+
+      if ( keys[ (int)Keys.LButton ] )
+      {
+        dEye += ((mouse.Y - e.Location.Y) * sensAcc * acc * (float)lastDelta) * dir;
+      }
+
+      mouse = e.Location;
     }
 
     /// <summary>
@@ -260,9 +402,6 @@ namespace _056avatar
         fov *= (float)Math.Pow( fovInc, notches );
         fov = Arith.Clamp( fov, 0.05f, 1.6f );
         setupViewport = true;
-        // old code: rotation around view vector.. (should be moved elsewhere)
-        //float notches = e.Delta / 300.0f;
-        //Rotation( dir, ref up, notches );
       }
     }
 
