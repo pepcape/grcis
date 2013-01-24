@@ -95,6 +95,11 @@ namespace _056avatar
     /// </summary>
     public Vector3 center = Vector3.Zero;
 
+    /// <summary>
+    /// Scene diameter (for default view only).
+    /// </summary>
+    public float diameter = 10.0f;
+
     #endregion
 
     /// <summary>
@@ -163,7 +168,7 @@ namespace _056avatar
     private void SetDefault ()
     {
       eye = center;
-      eye.Z += 12.0f;
+      eye.Z += (float)((0.5 * diameter) / Math.Tan( fov * 0.5 ));
       dir = -Vector3.UnitZ;
       up = Vector3.UnitY;
       dEye = Vector3.Zero;
