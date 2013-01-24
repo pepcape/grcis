@@ -29,7 +29,6 @@ namespace _056avatar
     private void InitializeComponent ()
     {
       this.buttonOpen = new System.Windows.Forms.Button();
-      this.buttonSave = new System.Windows.Forms.Button();
       this.labelFaces = new System.Windows.Forms.Label();
       this.buttonGenerate = new System.Windows.Forms.Button();
       this.label3 = new System.Windows.Forms.Label();
@@ -54,23 +53,11 @@ namespace _056avatar
       this.buttonOpen.UseVisualStyleBackColor = true;
       this.buttonOpen.Click += new System.EventHandler(this.buttonOpen_Click);
       // 
-      // buttonSave
-      // 
-      this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonSave.Enabled = false;
-      this.buttonSave.Location = new System.Drawing.Point(586, 412);
-      this.buttonSave.Name = "buttonSave";
-      this.buttonSave.Size = new System.Drawing.Size(107, 23);
-      this.buttonSave.TabIndex = 2;
-      this.buttonSave.Text = "Save image";
-      this.buttonSave.UseVisualStyleBackColor = true;
-      this.buttonSave.Click += new System.EventHandler(this.buttonSave_Click);
-      // 
       // labelFaces
       // 
       this.labelFaces.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelFaces.AutoSize = true;
-      this.labelFaces.Location = new System.Drawing.Point(133, 383);
+      this.labelFaces.Location = new System.Drawing.Point(334, 383);
       this.labelFaces.Name = "labelFaces";
       this.labelFaces.Size = new System.Drawing.Size(33, 13);
       this.labelFaces.TabIndex = 6;
@@ -117,14 +104,14 @@ namespace _056avatar
       this.glControl1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseMove);
       this.glControl1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseUp);
       this.glControl1.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseWheel);
-      this.glControl1.Resize += new System.EventHandler(this.glControl1_Resize);
       this.glControl1.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.control_PreviewKeyDown);
+      this.glControl1.Resize += new System.EventHandler(this.glControl1_Resize);
       // 
       // labelFps
       // 
-      this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelFps.AutoSize = true;
-      this.labelFps.Location = new System.Drawing.Point(574, 382);
+      this.labelFps.Location = new System.Drawing.Point(529, 417);
       this.labelFps.Name = "labelFps";
       this.labelFps.Size = new System.Drawing.Size(27, 13);
       this.labelFps.TabIndex = 18;
@@ -134,7 +121,7 @@ namespace _056avatar
       // 
       this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point(283, 417);
+      this.label1.Location = new System.Drawing.Point(390, 417);
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size(56, 13);
       this.label1.TabIndex = 19;
@@ -143,7 +130,7 @@ namespace _056avatar
       // numericInstances
       // 
       this.numericInstances.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.numericInstances.Location = new System.Drawing.Point(349, 414);
+      this.numericInstances.Location = new System.Drawing.Point(452, 414);
       this.numericInstances.Maximum = new decimal(new int[] {
             25,
             0,
@@ -167,7 +154,7 @@ namespace _056avatar
       // 
       this.checkSmooth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkSmooth.AutoSize = true;
-      this.checkSmooth.Location = new System.Drawing.Point(322, 381);
+      this.checkSmooth.Location = new System.Drawing.Point(137, 382);
       this.checkSmooth.Name = "checkSmooth";
       this.checkSmooth.Size = new System.Drawing.Size(102, 17);
       this.checkSmooth.TabIndex = 21;
@@ -179,7 +166,7 @@ namespace _056avatar
       // 
       this.checkWireframe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkWireframe.AutoSize = true;
-      this.checkWireframe.Location = new System.Drawing.Point(433, 381);
+      this.checkWireframe.Location = new System.Drawing.Point(248, 382);
       this.checkWireframe.Name = "checkWireframe";
       this.checkWireframe.Size = new System.Drawing.Size(74, 17);
       this.checkWireframe.TabIndex = 22;
@@ -191,7 +178,7 @@ namespace _056avatar
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.textParam.Location = new System.Drawing.Point(179, 412);
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(98, 20);
+      this.textParam.Size = new System.Drawing.Size(205, 20);
       this.textParam.TabIndex = 23;
       // 
       // Form1
@@ -209,9 +196,8 @@ namespace _056avatar
       this.Controls.Add(this.label3);
       this.Controls.Add(this.buttonGenerate);
       this.Controls.Add(this.labelFaces);
-      this.Controls.Add(this.buttonSave);
       this.Controls.Add(this.buttonOpen);
-      this.MinimumSize = new System.Drawing.Size(660, 200);
+      this.MinimumSize = new System.Drawing.Size(680, 200);
       this.Name = "Form1";
       this.Text = "056 avatar";
       ((System.ComponentModel.ISupportInitialize)(this.numericInstances)).EndInit();
@@ -223,7 +209,6 @@ namespace _056avatar
     #endregion
 
     private System.Windows.Forms.Button buttonOpen;
-    private System.Windows.Forms.Button buttonSave;
     private System.Windows.Forms.Label labelFaces;
     private System.Windows.Forms.Button buttonGenerate;
     private System.Windows.Forms.Label label3;

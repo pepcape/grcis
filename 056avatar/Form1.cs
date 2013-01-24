@@ -76,7 +76,17 @@ namespace _056avatar
 
       scene.Reset();
       Construction cn = new Construction();
+
+      // 1st instance:
       int faces = cn.AddMesh( scene, Matrix4.Identity, param );
+      float diameter = scene.GetDiameter( out center );
+      int faces1 = scene.Triangles;
+      int vertices1 = scene.Vertices;
+
+      // 2nd instance:
+      faces += cn.AddMesh( scene, Matrix4.CreateTranslation( diameter, 0.0f, 0.0f ), param );
+
+      // finishing:
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
       if ( !scene.HasColors() )
@@ -85,26 +95,10 @@ namespace _056avatar
 
       Cursor.Current = Cursors.Default;
 
-      if ( faces == 0 )
-        faces = scene.Triangles;
-      labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      labelFaces.Text = String.Format( "{0}f (reported {1}), {2}v, 1st instance: {3}f, {4}v, {5} errors",
+                                       scene.Triangles, faces, scene.Vertices, faces1, vertices1, errors );
       PrepareDataBuffers();
       glControl1.Invalidate();
-    }
-
-    private void buttonSave_Click ( object sender, EventArgs e )
-    {
-      //if ( outputImage == null ) return;
-
-      SaveFileDialog sfd = new SaveFileDialog();
-      sfd.Title = "Save PNG file";
-      sfd.Filter = "PNG Files|*.png";
-      sfd.AddExtension = true;
-      sfd.FileName = "";
-      if ( sfd.ShowDialog() != DialogResult.OK )
-        return;
-
-      //outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
     private void glControl1_Load ( object sender, EventArgs e )
