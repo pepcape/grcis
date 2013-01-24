@@ -81,6 +81,11 @@ namespace _056avatar
     private bool setupViewport = false;
 
     /// <summary>
+    /// Camera's near point.
+    /// </summary>
+    private float near = 0.01f;
+
+    /// <summary>
     /// Camera's far point.
     /// </summary>
     private float far = 1000.0f;
@@ -120,7 +125,7 @@ namespace _056avatar
     /// <summary>
     /// Mouse sensitivity.
     /// </summary>
-    private float sens = 0.002f;
+    private float sens = 0.005f;
 
     /// <summary>
     /// Mouse sensitivity for panning.
@@ -131,6 +136,21 @@ namespace _056avatar
     /// Mouse sensitivity for acceleration.
     /// </summary>
     private float sensAcc = 0.1f;
+
+    /// <summary>
+    /// Current canvas width in pixels (affects mouse movement sensitivity).
+    /// </summary>
+    private int width;
+
+    /// <summary>
+    /// Current canvas height in pixels (affects mouse movement sensitivity).
+    /// </summary>
+    private int height;
+
+    /// <summary>
+    /// Standard size of shortest rectangle side.
+    /// </summary>
+    private int standardSize = 350;
 
     /// <summary>
     /// Key is pressed? (no modifier keys).
@@ -183,15 +203,15 @@ namespace _056avatar
     /// </summary>
     private void SetupViewport ( bool setDefault )
     {
-      int wid = glControl1.Width;
-      int hei = glControl1.Height;
+      width = glControl1.Width;
+      height = glControl1.Height;
 
       // 1. set ViewPort transform:
-      GL.Viewport( 0, 0, wid, hei );
+      GL.Viewport( 0, 0, width, height );
 
       // 2. set projection matrix
       GL.MatrixMode( MatrixMode.Projection );
-      Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView( fov, wid / (float)hei, 0.1f, far );
+      Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView( fov, width / (float)height, near, far );
       GL.LoadMatrix( ref proj );
 
       if ( setDefault )
@@ -392,12 +412,13 @@ namespace _056avatar
       double now = DateTime.Now.Ticks * 1.0e-7;
       lastDelta = now - lastMouseMove;
       lastMouseMove = now;
+      float coef = standardSize / (float)Math.Min( width, height );
 
       if ( keys[ (int)Keys.RButton ] )
       {
         // rotate camera
-        ax = (mouse.X - e.Location.X) * sens * fov;
-        ay = (mouse.Y - e.Location.Y) * sens * fov;
+        ax = (mouse.X - e.Location.X) * sens * fov * coef;
+        ay = (mouse.Y - e.Location.Y) * sens * fov * coef;
         Elevator( ref dir, ref up, ay );
         Rudder( ref dir, up, -ax );
       }
@@ -405,8 +426,8 @@ namespace _056avatar
       if ( keys[ (int)Keys.MButton ] )
       {
         // mouse panning
-        panx = (mouse.X - e.Location.X) * sensPan;
-        pany = (mouse.Y - e.Location.Y) * sensPan;
+        panx = (mouse.X - e.Location.X) * sensPan * coef;
+        pany = (mouse.Y - e.Location.Y) * sensPan * coef;
         eye -= Vector3.Cross( up, dir ) * panx + up * pany;
       }
 
