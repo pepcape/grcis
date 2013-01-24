@@ -62,7 +62,7 @@ namespace _056avatar
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
       scene.GenerateColors( 12 );
-      scene.GetDiameter( out center );
+      diameter = scene.GetDiameter( out center );
 
       labelFaces.Text = String.Format( "{0}: {1} faces, {2} errors", ofd.SafeFileName, faces, errors );
       PrepareDataBuffers();
@@ -79,7 +79,7 @@ namespace _056avatar
 
       // 1st instance:
       int faces = cn.AddMesh( scene, Matrix4.Identity, param );
-      float diameter = scene.GetDiameter( out center );
+      diameter = scene.GetDiameter( out center );
       int faces1 = scene.Triangles;
       int vertices1 = scene.Vertices;
 
@@ -91,7 +91,7 @@ namespace _056avatar
       int errors = scene.CheckCornerTable( null );
       if ( !scene.HasColors() )
         scene.GenerateColors( 12 );
-      scene.GetDiameter( out center );
+      diameter = scene.GetDiameter( out center );
 
       Cursor.Current = Cursors.Default;
 
