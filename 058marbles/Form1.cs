@@ -74,7 +74,7 @@ namespace _058marbles
       renderer = new MarblesRenderer();
       world.Init( textParam.Text );
 
-      SetupViewport();
+      SetupViewport( true );
 
       Application.Idle += new EventHandler( Application_Idle );
 
@@ -92,6 +92,12 @@ namespace _058marbles
     private void glControl1_Paint ( object sender, PaintEventArgs e )
     {
       Render();
+    }
+
+    private void control_PreviewKeyDown ( object sender, PreviewKeyDownEventArgs e )
+    {
+      if ( e.KeyCode == Keys.Up || e.KeyCode == Keys.Down || e.KeyCode == Keys.Left || e.KeyCode == Keys.Right )
+        e.IsInputKey = true;
     }
   }
 }

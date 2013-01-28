@@ -15,7 +15,6 @@ namespace _056avatar
   public partial class Form1
   {
     // Realtime based animation:
-    private double timeInSeconds = 0.0;
     private double lastFrameTime = DateTime.Now.Ticks * 1.0e-7;
 
     #region Camera attributes
@@ -228,7 +227,7 @@ namespace _056avatar
     /// </summary>
     private void SetCamera ()
     {
-      timeInSeconds = DateTime.Now.Ticks * 1.0e-7;
+      double timeInSeconds = DateTime.Now.Ticks * 1.0e-7;
 
       float dTime = (float)(timeInSeconds - lastFrameTime);
       lastFrameTime = timeInSeconds;

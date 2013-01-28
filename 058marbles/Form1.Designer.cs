@@ -80,6 +80,7 @@ namespace _058marbles
       this.glControl1.MouseUp += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseUp );
       this.glControl1.MouseWheel += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseWheel );
       this.glControl1.Resize += new System.EventHandler( this.glControl1_Resize );
+      this.glControl1.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler( this.control_PreviewKeyDown );
       // 
       // labelFps
       // 
