@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "046cameranim", "046cameranim.csproj", "{7A6A64E4-FC89-45A6-8E34-2D2106B02B8E}"
 EndProject
 Global

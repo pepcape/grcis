@@ -37,12 +37,12 @@ namespace _046cameranim
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageWidth = 0;
+    protected int ImageWidth = 640;
 
     /// <summary>
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageHeight = 0;
+    protected int ImageHeight = 480;
 
     /// <summary>
     /// Redraws the whole image.
