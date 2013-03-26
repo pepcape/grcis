@@ -1,10 +1,9 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
-using MathSupport;
 using OpenTK;
 using Rendering;
-using System;
-using System.Collections.Generic;
 
 namespace _062animation
 {
@@ -42,6 +41,22 @@ namespace _062animation
       SimpleImageSynthesizer s = new SimpleImageSynthesizer();
       s.ImageFunction = imf;
       return s;
+    }
+
+    /// <summary>
+    /// Initialize rendering parameters.
+    /// </summary>
+    private void InitializeParams ()
+    {
+      // single frame:
+      ImageWidth  = 320;
+      ImageHeight = 180;
+      numericSupersampling.Value = 1;
+
+      // animation:
+      numFrom.Value = (decimal)0.0;
+      numTo.Value   = (decimal)20.0;
+      numFps.Value  = (decimal)25.0;
     }
   }
 }
@@ -171,9 +186,10 @@ namespace Rendering
 
       // Camera:
       AnimatedCamera cam = new AnimatedCamera( new Vector3d( 0.7, -0.4,  0.0 ),
-                                               new Vector3d( 0.7,  0.5, -6.0 ),
+                                               new Vector3d( 0.7,  0.8, -6.0 ),
                                                50.0 );
-      cam.End = 20.0;   // one complete turn takes 20.0 seconds
+      cam.End =             // one complete turn takes 20.0 seconds
+          End = 20.0;
       Camera  = cam;
 
       //Camera = new StaticCamera( new Vector3d( 0.7,  0.5, -5.0 ),
