@@ -161,6 +161,9 @@ namespace _062animation
       InitializeComponent();
       String []tok = "$Rev$".Split( new char[] { ' ' } );
       Text += " (rev: " + tok[1] + ')';
+
+      // Init rendering params:
+      InitializeParams();
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
@@ -169,7 +172,7 @@ namespace _062animation
       FormResolution form = new FormResolution( ImageWidth, ImageHeight );
       if ( form.ShowDialog() == DialogResult.OK )
       {
-        ImageWidth = form.ImageWidth;
+        ImageWidth  = form.ImageWidth;
         ImageHeight = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
       }
