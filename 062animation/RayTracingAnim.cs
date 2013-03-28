@@ -206,8 +206,8 @@ namespace Rendering
       // Transparent sphere:
       Sphere s;
       s = new Sphere();
-      PhongMaterial pm = new PhongMaterial( new double[] { 0.0, 0.2, 0.1 }, 0.05, 0.05, 0.1, 128 );
-      pm.n = 1.6;
+      PhongMaterial pm = new PhongMaterial( new double[] { 0.0, 0.2, 0.1 }, 0.03, 0.03, 0.08, 128 );
+      pm.n  = 1.6;
       pm.Kt = 0.9;
       s.SetAttribute( PropertyName.MATERIAL, pm );
       root.InsertChild( s, Matrix4d.Identity );
