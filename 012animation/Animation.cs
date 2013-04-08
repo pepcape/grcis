@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
@@ -11,6 +10,17 @@ namespace _012animation
   {
     public Animation ()
     {
+    }
+
+    public static void InitializeParams ( out int defaultWidth, out int defaultHeight, out int defaultFrames )
+    {
+      // !!!{{ TODO: default animation parameters
+
+      defaultWidth  = 640;
+      defaultHeight = 480;
+      defaultFrames = 50;
+
+      // !!!}}
     }
 
     public Bitmap RenderFrame ( int width, int height, int currentFrame, int totalFrames )
@@ -38,6 +48,5 @@ namespace _012animation
 
       // !!!}}
     }
-
   }
 }

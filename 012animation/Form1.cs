@@ -14,6 +14,20 @@ namespace _012animation
 {
   public partial class Form1 : Form
   {
+    public Form1 ()
+    {
+      InitializeComponent();
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
+
+      // Init animation params:
+      int width, height, maxFrame;
+      Animation.InitializeParams( out width, out height, out maxFrame );
+      numericXres.Value   = width;
+      numericYres.Value   = height;
+      numericFrames.Value = maxFrame;
+    }
+
     protected Thread aThread = null;
 
     volatile protected bool cont = true;
@@ -70,11 +84,6 @@ namespace _012animation
         buttonStart.Enabled = true;
         buttonStop.Enabled = false;
       }
-    }
-
-    public Form1 ()
-    {
-      InitializeComponent();
     }
 
     public void RenderAnimation ()
