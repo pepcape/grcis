@@ -251,6 +251,17 @@ namespace _012animation
       return (float)(y * kxy + dy);
     }
 
+    public static void InitializeParams ( out int defaultWidth, out int defaultHeight, out int defaultFrames )
+    {
+      // !!!{{ TODO: default animation parameters
+
+      defaultWidth  = 640;
+      defaultHeight = 480;
+      defaultFrames = 50;
+
+      // !!!}}
+    }
+
     public Bitmap RenderFrame ( int width, int height, int currentFrame, int totalFrames )
     {
       // !!!{{ TODO: put your frame-rendering code here
