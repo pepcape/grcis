@@ -120,7 +120,7 @@ namespace _028rtmesh
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( new char[] { ' ' } );
+      String[] tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[ 1 ] + ')';
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }

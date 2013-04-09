@@ -13,7 +13,7 @@ namespace _040morph3d
     public MorphForm ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( new char[] { ' ' } );
+      String[] tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[ 1 ] + ')';
 
       mMorph = new Morph();

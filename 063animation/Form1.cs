@@ -4,12 +4,13 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
-using GuiSupport;
+//using GuiSupport;
 using MathSupport;
 using Rendering;
 using System.Globalization;
+using GuiSupport;
 
-namespace _062animation
+namespace _063animation
 {
   public partial class Form1 : Form
   {
@@ -30,10 +31,10 @@ namespace _062animation
     protected Progress progress = new Progress();
 
     /// <summary>
-    /// Global prototype of a scene.
+    /// Global animation data (ITimeDependent or constant).
     /// Working threads should clone it before setting specific times to it.
     /// </summary>
-    protected IRayScene scene = null;
+    protected object data = null;
 
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
@@ -63,10 +64,10 @@ namespace _062animation
       superSampling = (int)numericSupersampling.Value;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
-      if ( scene == null )
-        scene = getScene();                 // scene prototype
+      if ( data == null )
+        data = getData();                 // animation data
 
-      IImageFunction imf = getImageFunction( scene );
+      IImageFunction imf = getImageFunction( data );
       imf.Width  = width;
       imf.Height = height;
 
@@ -78,9 +79,9 @@ namespace _062animation
       progress.Continue = true;
 
       // animation:
-      ITimeDependent sc = scene as ITimeDependent;
-      if ( sc != null )
-        sc.Time = (double)numTime.Value;
+      ITimeDependent imftd = imf as ITimeDependent;
+      if ( imftd != null )
+        imftd.Time = (double)numTime.Value;
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
@@ -88,7 +89,7 @@ namespace _062animation
       rend.RenderRectangle( outputImage, 0, 0, width, height, new RandomJames() );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
       pictureBox1.Image = outputImage;
 
@@ -291,8 +292,8 @@ namespace _062animation
       if ( height <= 0 ) height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
 
-      if ( scene == null )
-        scene = getScene();                 // scene prototype
+      if ( data == null )
+        data = getData();               // animation data
 
       // Start main rendering thread:
       aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
@@ -381,17 +382,17 @@ namespace _062animation
     protected void RenderWorker ()
     {
       // thread-specific data:
-      ITimeDependent mySceneTD = scene as ITimeDependent;
-      IRayScene myScene = (mySceneTD == null) ? scene : (IRayScene)mySceneTD.Clone();
-      mySceneTD = myScene as ITimeDependent;
+      ITimeDependent datatd = data as ITimeDependent;
+      object myData = (datatd == null) ? data : datatd.Clone();
       RandomJames rnd = new RandomJames();
 
-      IImageFunction imf = getImageFunction( myScene );
-      imf.Width = width;
+      IImageFunction imf = getImageFunction( myData );
+      imf.Width  = width;
       imf.Height = height;
+      ITimeDependent imftd = imf as ITimeDependent;
 
       IRenderer rend = getRenderer( imf );
-      rend.Width = width;
+      rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 0;                    // turn off adaptive bitmap synthesis completely (interactive preview not needed)
       rend.ProgressData = progress;
@@ -422,9 +423,9 @@ namespace _062animation
         r.image = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
         r.frameNumber = myFrameNumber;
 
-        // set specific time to my scene:
-        if ( mySceneTD != null )
-          mySceneTD.Time = myTime;
+        // set specific time to my image function:
+        if ( imftd != null )
+          imftd.Time = myTime;
 
         // render the whole frame:
         rend.RenderRectangle( r.image, 0, 0, width, height, rnd );
