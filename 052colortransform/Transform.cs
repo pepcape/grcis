@@ -8,7 +8,7 @@ namespace _052colortransform
     /// <summary>
     /// Separator for string parameter.
     /// </summary>
-    static readonly char[] COMMA = new char[] { ',' };
+    static readonly char COMMA = ',';
 
     public static void TransformImage ( Bitmap input, out Bitmap output, string param )
     {

@@ -101,7 +101,7 @@ namespace _035plasma
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( new char[] { ' ' } );
+      String[] tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[ 1 ] + ')';
     }
 
