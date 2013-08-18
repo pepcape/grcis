@@ -2,7 +2,6 @@
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using System.Drawing;
 
 namespace _038trackball
 {
@@ -102,7 +101,7 @@ namespace _038trackball
 
     #endregion
 
-    float zoom = 0;
+    float zoom = 1.0f;
     Matrix4 prevRotation = Matrix4.Identity;
     Matrix4 rotation = Matrix4.Identity;
     Ellipse ellipse;
@@ -112,26 +111,28 @@ namespace _038trackball
     Matrix4 perspectiveProjection;
     Matrix4 ortographicProjection;
     bool perspective = true;
-    bool inovativ = true;
+    bool inovative = true;
 
     /// <summary>
     /// Sets up a projective viewport
     /// </summary>
     private void SetupViewport ()
     {
-      int width = glControl1.Width;
+      int width  = glControl1.Width;
       int height = glControl1.Height;
 
       // 1. set ViewPort transform:
       GL.Viewport( 0, 0, width, height );
 
       // 2. set projection matrix
-      GL.MatrixMode( MatrixMode.Projection );
       perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, (float)width / (float)height, 0.1f, far );
-      ortographicProjection = Matrix4.CreateOrthographic( width / 170, height / 170, 0.1f, far );
-      GL.LoadMatrix( ref perspectiveProjection );
+      float minSize = 2.0f * Math.Min( width, height );
+      ortographicProjection = Matrix4.CreateOrthographic( diameter * width / minSize,
+                                                          diameter * height / minSize,
+                                                          0.1f, far );
+      setProjection();
 
-      ellipse = new Ellipse( Math.Min( width / 2, height / 2 ), new Vector3( width / 2, height / 2, 0 ) );
+      setEllipse();
     }
 
     /// <summary>
@@ -140,9 +141,10 @@ namespace _038trackball
     private void SetCamera ()
     {
       // !!!{{ TODO: add camera setup here
+
       GL.MatrixMode( MatrixMode.Modelview );
       Matrix4 modelview = Matrix4.CreateTranslation( -center ) *
-                          Matrix4.Scale( 1.0f / (diameter + zoom) ) *
+                          Matrix4.Scale( zoom / diameter ) *
                           prevRotation *
                           rotation *
                           Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
@@ -154,6 +156,12 @@ namespace _038trackball
     private void ResetCamera ()
     {
       // !!!{{ TODO: add camera reset code here
+
+      zoom = 1.0f;
+      rotation = Matrix4.Identity;
+      prevRotation = Matrix4.Identity;
+      inovative = true;
+
       // !!!}}
     }
 
@@ -164,28 +172,38 @@ namespace _038trackball
     {
       if ( !loaded )
         return;
+
       if ( itemIndex != comboTrackballType.SelectedIndex )
-      {
-        if ( comboTrackballType.SelectedIndex == 1 )
-          ellipse = new Ellipse( glControl1.Width / 2, glControl1.Height / 2, Math.Min( glControl1.Width / 2, glControl1.Height / 2 ), new Vector3( glControl1.Width / 2, glControl1.Height / 2, 0 ) );
-        else
-          ellipse = new Ellipse( Math.Min( glControl1.Width / 2, glControl1.Height / 2 ), new Vector3( glControl1.Width / 2, glControl1.Height / 2, 0 ) );
-        itemIndex = comboTrackballType.SelectedIndex;
-      }
+        setEllipse();
 
       frameCounter++;
       GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
       GL.ShadeModel( ShadingModel.Flat );
       GL.PolygonMode( MaterialFace.Front, PolygonMode.Fill );
       GL.Enable( EnableCap.CullFace );
+
       SetCamera();
       RenderScene();
+
       glControl1.SwapBuffers();
+    }
+
+    private void setEllipse ()
+    {
+      int width  = glControl1.Width / 2;
+      int height = glControl1.Height / 2;
+
+      if ( comboTrackballType.SelectedIndex == 1 )
+        ellipse = new Ellipse( width, height, Math.Min( width, height ), new Vector3( width, height, 0 ) );
+      else
+        ellipse = new Ellipse( Math.Min( width, height ), new Vector3( width, height, 0 ) );
+
+      itemIndex = comboTrackballType.SelectedIndex;
     }
 
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( inovativ )
+      if ( inovative )
         a = ellipse.IntersectionI( e.X, e.Y );
       else
         a = ellipse.Intersection( e.X, e.Y, checkRestrict.Checked );
@@ -203,7 +221,7 @@ namespace _038trackball
     {
       if ( e.Button != System.Windows.Forms.MouseButtons.Left )
         return;
-      if ( inovativ )
+      if ( inovative )
         b = ellipse.IntersectionI( e.X, e.Y );
       else
         b = ellipse.Intersection( e.X, e.Y, checkRestrict.Checked );
@@ -212,7 +230,7 @@ namespace _038trackball
 
     Matrix4 calculateRotation ( Vector3? a, Vector3? b )
     {
-      if ( (!a.HasValue) || (!b.HasValue) )
+      if ( !a.HasValue || !b.HasValue )
         return rotation;
 
       Vector3 axis = Vector3.Cross( a.Value, b.Value );
@@ -222,12 +240,14 @@ namespace _038trackball
 
     private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
     {
-      const float zoomSens = 8;
-      zoom += (float)numericSensitivity.Value * e.Delta / 120 / zoomSens;
-      if ( zoom < -2.1f )
-        zoom = -2.1f;
-      else if ( zoom > 16 )
-        zoom = 16;
+      float dZoom = -e.Delta / 120.0f;
+      zoom *= (float)Math.Pow( 1.04, dZoom );
+
+      // zoom bounds:
+      if ( zoom < 0.25f )
+        zoom = 0.25f;
+      if ( zoom > 3.0f )
+        zoom = 3.0f;
     }
 
     private void glControl1_KeyDown ( object sender, KeyEventArgs e )
@@ -239,26 +259,29 @@ namespace _038trackball
     private void glControl1_KeyUp ( object sender, KeyEventArgs e )
     {
       if ( e.KeyCode == Keys.O )
-      {
-        perspective = !perspective;
-        GL.MatrixMode( MatrixMode.Projection );
-        if ( perspective )
-          GL.LoadMatrix( ref perspectiveProjection );
-        else
-          GL.LoadMatrix( ref ortographicProjection );
-      }
-      else if ( e.KeyCode == Keys.I )
-        inovativ = !inovativ;
+        togglePerspective();
+
+      if ( e.KeyCode == Keys.I )
+        inovative = !inovative;
+    }
+
+    private void togglePerspective ()
+    {
+      perspective = !perspective;
+      setProjection();
+    }
+
+    private void setProjection ()
+    {
+      GL.MatrixMode( MatrixMode.Projection );
+      if ( perspective )
+        GL.LoadMatrix( ref perspectiveProjection );
+      else
+        GL.LoadMatrix( ref ortographicProjection );
     }
 
     private void buttonReset_Click ( object sender, EventArgs e )
     {
-      zoom = 0;
-      rotation = Matrix4.Identity;
-      prevRotation = Matrix4.Identity;
-      inovativ = true;
-      if ( !perspective )
-        glControl1_KeyUp( null, new KeyEventArgs( Keys.O ) );
       ResetCamera();
     }
   }
