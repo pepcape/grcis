@@ -8,6 +8,8 @@ namespace _066histogram
   {
     protected Image inputImage = null;
 
+    public HistogramForm histogramForm = null;
+
     public Form1 ()
     {
       InitializeComponent();
@@ -42,6 +44,14 @@ namespace _066histogram
       if ( inputImage == null ) return;
 
       pictureBox1.Image = (Bitmap)inputImage;
+
+      if ( histogramForm == null )
+      {
+        histogramForm = new HistogramForm( this );
+        histogramForm.Show();
+      }
+
+      // TODO: redraw histogram
     }
 
     private void buttonHistogram_Click ( object sender, EventArgs e )
