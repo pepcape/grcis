@@ -128,7 +128,7 @@
     private System.Windows.Forms.Button buttonOpen;
     private System.Windows.Forms.Label label1;
     private System.Windows.Forms.Button buttonHistogram;
-    private System.Windows.Forms.TextBox textParam;
+    public System.Windows.Forms.TextBox textParam;
   }
 }
 

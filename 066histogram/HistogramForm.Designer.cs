@@ -42,6 +42,8 @@
       this.ShowIcon = false;
       this.Text = "Histogram";
       this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.HistogramForm_FormClosed);
+      this.Paint += new System.Windows.Forms.PaintEventHandler(this.HistogramForm_Paint);
+      this.Resize += new System.EventHandler(this.HistogramForm_Resize);
       this.ResumeLayout(false);
 
     }
