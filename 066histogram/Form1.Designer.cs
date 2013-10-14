@@ -102,6 +102,7 @@
       // 
       // Form1
       // 
+      this.AllowDrop = true;
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(710, 443);
@@ -113,6 +114,8 @@
       this.MinimumSize = new System.Drawing.Size(710, 200);
       this.Name = "Form1";
       this.Text = "066 image histogram";
+      this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Form1_DragDrop);
+      this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Form1_DragEnter);
       this.panel1.ResumeLayout(false);
       this.panel1.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
