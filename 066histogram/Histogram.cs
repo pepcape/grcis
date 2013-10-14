@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Windows.Forms;
 using MathSupport;
+using Raster;
 using System;
 
 namespace _066histogram
@@ -53,6 +54,8 @@ namespace _066histogram
           for ( x = 0; x < width; x++ )
           {
             Color col = input.GetPixel( x, y );
+
+            //int Y = Draw.RgbToGray( col.R, col.G, col.B );
 
             //double H, S, V;
             //Arith.ColorToHSV( col, out H, out S, out V );
