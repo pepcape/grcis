@@ -33,7 +33,7 @@ namespace _066histogram
         if ( backBuffer == null )
           backBuffer = new Bitmap( ClientSize.Width, ClientSize.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
-        parent.ComputeHistogram( (Bitmap)parent.inputImage, backBuffer, parent.textParam.Text );
+        parent.ComputeHistogram( (Bitmap)parent.inputImage, backBuffer, parent.param );
       }
 
       e.Graphics.DrawImageUnscaled( backBuffer, 0, 0 );

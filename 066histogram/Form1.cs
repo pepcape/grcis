@@ -17,6 +17,11 @@ namespace _066histogram
     public string fileName = null;
 
     /// <summary>
+    /// Parameter read from Form1.
+    /// </summary>
+    public string param = "";
+
+    /// <summary>
     /// Modeless histogram window.
     /// </summary>
     public HistogramForm histogramForm = null;
@@ -61,6 +66,7 @@ namespace _066histogram
 
       dirty = true;
       pictureBox1.Image = (Bitmap)inputImage;
+      param = textParam.Text;
 
       if ( histogramForm == null )
       {
