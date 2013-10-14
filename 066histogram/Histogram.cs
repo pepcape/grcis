@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Windows.Forms;
 using MathSupport;
+using System;
 
 namespace _066histogram
 {
@@ -26,12 +27,15 @@ namespace _066histogram
     {
       // !!!{{ TODO: write your own histogram computation and drawing code here
 
-      // Text parameter = histogram mode (0 .. red, 1 .. green, 2 .. blue, 3 .. gray)
+      // Text parameters:
+      param = param.ToLower().Trim();
+      // Histogram mode (0 .. red, 1 .. green, 2 .. blue, 3 .. gray)
       int mode = 0;
-      if ( param.ToLower().IndexOf( "gray" ) >= 0 )
-      {
+      if ( param.IndexOf( "gray" ) >= 0 )
         mode = 3;
-      }
+
+      // Graph appearance:
+      bool alt = param.IndexOf( "alt" ) >= 0;
 
       int x, y;
 
@@ -78,7 +82,11 @@ namespace _066histogram
 
       // Histogram:
       for ( x = 0; x < histArray.Length; x++ )
-        gfx.FillRectangle( graphBrush, x0 + x * kx, y0 + histArray[ x ] * ky, kx, -histArray[ x ] * ky );
+      {
+        float yHeight = -histArray[ x ] * ky;
+        if ( alt && yHeight > 3.0 ) yHeight = 3.0f;
+        gfx.FillRectangle( graphBrush, x0 + x * kx, y0 + histArray[ x ] * ky, kx, yHeight );
+      }
 
       // Axes:
       gfx.DrawLine( axisPen, x0, y0, x0 + histArray.Length * kx, y0 );
