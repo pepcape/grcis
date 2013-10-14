@@ -83,5 +83,21 @@ namespace _066histogram
     {
       recompute();
     }
+
+    private void Form1_DragDrop ( object sender, DragEventArgs e )
+    {
+      string[] strFiles = (string[])e.Data.GetData( DataFormats.FileDrop );
+      Image inp = Image.FromFile( fileName = strFiles[ 0 ] );
+      inputImage = new Bitmap( inp );
+      inp.Dispose();
+
+      recompute();
+    }
+
+    private void Form1_DragEnter ( object sender, DragEventArgs e )
+    {
+      if ( e.Data.GetDataPresent( DataFormats.FileDrop ) )
+        e.Effect = DragDropEffects.Copy;
+    }
   }
 }
