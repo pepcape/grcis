@@ -50,11 +50,29 @@ namespace _066histogram
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( fileName = ofd.FileName );
+      newImage( ofd.FileName );
+    }
+
+    /// <summary>
+    /// Sets the new image defined by its file-name. Does all the checks.
+    /// </summary>
+    private bool newImage ( string fn )
+    {
+      Image inp = null;
+      try
+      {
+        inp = Image.FromFile( fn );
+      }
+      catch ( Exception )
+      {
+        return false;
+      }
+      fileName = fn;
       inputImage = new Bitmap( inp );
       inp.Dispose();
 
       recompute();
+      return true;
     }
 
     /// <summary>
@@ -87,11 +105,7 @@ namespace _066histogram
     private void Form1_DragDrop ( object sender, DragEventArgs e )
     {
       string[] strFiles = (string[])e.Data.GetData( DataFormats.FileDrop );
-      Image inp = Image.FromFile( fileName = strFiles[ 0 ] );
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
-
-      recompute();
+      newImage( strFiles[ 0 ] );
     }
 
     private void Form1_DragEnter ( object sender, DragEventArgs e )
