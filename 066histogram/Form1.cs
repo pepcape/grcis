@@ -113,5 +113,14 @@ namespace _066histogram
       if ( e.Data.GetDataPresent( DataFormats.FileDrop ) )
         e.Effect = DragDropEffects.Copy;
     }
+
+    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        recompute();
+      }
+    }
   }
 }
