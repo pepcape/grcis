@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using Raster;
 
 namespace _034ascii
 {
@@ -16,20 +17,28 @@ namespace _034ascii
       // !!!}}
     }
 
-    public static string Process ( Bitmap src, int width, int height )
+    /// <summary>
+    /// Converts the given input bitmap into an ASCCI art string.
+    /// </summary>
+    /// <param name="src">Source image.</param>
+    /// <param name="width">Required output width in characters.</param>
+    /// <param name="height">Required output height in characters.</param>
+    /// <param name="param">Textual parameter.</param>
+    /// <returns>String (height x width ASCII table)</returns>
+    public static string Process ( Bitmap src, int width, int height, string param )
     {
       // !!!{{ TODO: replace this with your own bitmap -> ASCII conversion code
 
       if ( src == null || width <= 0 || height <= 0 )
         return "";
 
-      float widthBmp = src.Width;
+      float widthBmp  = src.Width;
       float heightBmp = src.Height;
 
       const char MAX_LEVEL = '#';
       const char MIN_LEVEL = ' ';
 
-      string dest = "";
+      StringBuilder sb = new StringBuilder();
 
       for ( int y = 0; y < height; y++ )
       {
@@ -41,19 +50,20 @@ namespace _034ascii
 
           Color c = src.GetPixel( (int)fXBmp, (int)fYBmp );
 
-          // luma = Y = 0.2126*R + 0.7152*G + 0.0722*B
-          // using only integer multiplications and bit shift
-          int luma = (54 * (int)c.R + 183 * (int)c.G + 19 * (int)c.B) >> 8;
+          int luma = Draw.RgbToGray( c.R, c.G, c.B );
 
-          dest += (luma < 128) ? MAX_LEVEL : MIN_LEVEL;
+          // Alternative (luma): Y = 0.2126 * R + 0.7152 * G + 0.0722 * B
+          //int luma = (54 * (int)c.R + 183 * (int)c.G + 19 * (int)c.B) >> 8;
+
+          sb.Append( (luma < 128) ? MAX_LEVEL : MIN_LEVEL );
         }
 
-        dest += "\r\n";
+        sb.Append( "\r\n" );
       }
 
       // !!!}}
 
-      return dest;
+      return sb.ToString();
     }
   }
 }
