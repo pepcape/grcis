@@ -14,17 +14,18 @@ namespace _034ascii
     /// <summary>
     /// The bitmap to be used as source data
     /// </summary>
-    protected Bitmap m_bmpOriginal = null;
+    protected Bitmap inputImage = null;
+
+    /// <summary>
+    /// Default output size in characters.
+    /// </summary>
     protected const int BiggerSize = 100;
 
     public Form1 ()
     {
       InitializeComponent();
-    }
-
-    private void Form1_Load ( object sender, EventArgs e )
-    {
-
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     private void btnOpen_Click ( object sender, EventArgs e )
@@ -45,18 +46,18 @@ namespace _034ascii
       {
         try
         {
-          m_bmpOriginal = new Bitmap( Bitmap.FromFile( dlg.FileName ) );
+          inputImage = new Bitmap( Bitmap.FromFile( dlg.FileName ) );
         }
         catch ( Exception exc )
         {
           MessageBox.Show( exc.Message );
         }
 
-        pictureBox1.Image = m_bmpOriginal;
+        pictureBox1.Image = inputImage;
       }
 
-      int w = m_bmpOriginal.Width;
-      int h = m_bmpOriginal.Height;
+      int w = inputImage.Width;
+      int h = inputImage.Height;
       double factor = 1.0;
 
       if ( w > h )
@@ -64,17 +65,18 @@ namespace _034ascii
       else
         factor = (double)BiggerSize / (double)h;
 
-      txtHeight.Text = Math.Floor( (double)h * factor ).ToString();
-      txtWidth.Text  = Math.Floor( (double)w * factor ).ToString();
+      txtHeight.Text = Math.Round( (double)h * factor ).ToString();
+      txtWidth.Text  = Math.Round( (double)w * factor ).ToString();
 
     }
 
     private void btnConvert_Click ( object sender, EventArgs e )
     {
-      int w = int.Parse( txtWidth.Text );
-      int h = int.Parse( txtHeight.Text );
+      int w = 100, h = 100;
+      int.TryParse( txtWidth.Text, out w );
+      int.TryParse( txtHeight.Text, out h );
 
-      string text = AsciiArt.Process( m_bmpOriginal, w, h );
+      string text = AsciiArt.Process( inputImage, w, h, textParam.Text );
       Font fnt = AsciiArt.GetFont();
 
       Output dlgOut = new Output();
