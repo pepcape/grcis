@@ -57,7 +57,8 @@ namespace _034ascii
       }
 
       int w = inputImage.Width;
-      int h = inputImage.Height;
+      int h = (inputImage.Height * 7) / 11;
+      // Lucida Console size: 7 x 11 px
       double factor = 1.0;
 
       if ( w > h )
