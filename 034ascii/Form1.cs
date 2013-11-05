@@ -42,19 +42,21 @@ namespace _034ascii
 
       dlg.FilterIndex = 6;
 
-      if ( dlg.ShowDialog() == DialogResult.OK )
-      {
-        try
-        {
-          inputImage = new Bitmap( Bitmap.FromFile( dlg.FileName ) );
-        }
-        catch ( Exception exc )
-        {
-          MessageBox.Show( exc.Message );
-        }
+      if ( dlg.ShowDialog() != DialogResult.OK )
+        return;
 
+      try
+      {
+        inputImage = new Bitmap( Bitmap.FromFile( dlg.FileName ) );
         pictureBox1.Image = inputImage;
       }
+      catch ( Exception exc )
+      {
+        inputImage = null;
+        MessageBox.Show( exc.Message );
+      }
+
+      if ( inputImage == null ) return;
 
       int w = inputImage.Width;
       int h = (inputImage.Height * 7) / 11;
@@ -73,6 +75,8 @@ namespace _034ascii
 
     private void btnConvert_Click ( object sender, EventArgs e )
     {
+      if ( inputImage == null ) return;
+
       int w = 100, h = 100;
       int.TryParse( txtWidth.Text, out w );
       int.TryParse( txtHeight.Text, out h );
