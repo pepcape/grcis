@@ -69,11 +69,29 @@ namespace _067mosaic
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
+      newImage( ofd.FileName );
+    }
+
+    /// <summary>
+    /// Sets the new image defined by its file-name. Does all the checks.
+    /// </summary>
+    private bool newImage ( string fn )
+    {
+      Image inp = null;
+      try
+      {
+        inp = Image.FromFile( fn );
+      }
+      catch ( Exception )
+      {
+        return false;
+      }
+
       inputImage = new Bitmap( inp );
       inp.Dispose();
-
       recompute();
+
+      return true;
     }
 
     delegate void StopComputationCallback ();
@@ -103,7 +121,7 @@ namespace _067mosaic
       }
     }
 
-    private void reduce ()
+    private void transform ()
     {
       if ( inputImage != null )
       {
@@ -135,7 +153,7 @@ namespace _067mosaic
       buttonStop.Enabled = true;
       cont = true;
 
-      aThread = new Thread( new ThreadStart( this.reduce ) );
+      aThread = new Thread( new ThreadStart( this.transform ) );
       aThread.Start();
     }
 
@@ -164,6 +182,18 @@ namespace _067mosaic
     private void buttonStop_Click ( object sender, EventArgs e )
     {
       StopComputation();
+    }
+
+    private void Form1_DragDrop ( object sender, DragEventArgs e )
+    {
+      string[] strFiles = (string[])e.Data.GetData( DataFormats.FileDrop );
+      newImage( strFiles[ 0 ] );
+    }
+
+    private void Form1_DragEnter ( object sender, DragEventArgs e )
+    {
+      if ( e.Data.GetDataPresent( DataFormats.FileDrop ) )
+        e.Effect = DragDropEffects.Copy;
     }
   }
 }
