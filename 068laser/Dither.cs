@@ -22,7 +22,7 @@ namespace _068laser
     /// <param name="dataIn">Memory-mapped input image.</param>
     /// <param name="bpp">Bytes per pixel of the input image.</param>
     /// <returns>Gray value ranging from 0.0 to 1.0.</returns>
-    public unsafe static float GetGray ( float x, float y, BitmapData dataIn, int bpp )
+    protected unsafe static float GetGray ( float x, float y, BitmapData dataIn, int bpp )
     {
       x = Arith.Clamp( x, 0.0f, dataIn.Width - 1.0f );
       y = Arith.Clamp( y, 0.0f, dataIn.Height - 1.0f );
@@ -66,9 +66,11 @@ namespace _068laser
         string[] par = param.Split( COMMA );
         if ( par.Length > 0 )
         {
-          float.TryParse( par[ 0 ], NumberStyles.Number, CultureInfo.InvariantCulture, out scale );
-          oWidth = (int)(iWidth * scale);
-          oHeight = (int)(iHeight * scale);
+          if ( float.TryParse( par[ 0 ], NumberStyles.Number, CultureInfo.InvariantCulture, out scale ) )
+          {
+            oWidth  = (int)(iWidth * scale);
+            oHeight = (int)(iHeight * scale);
+          }
           if ( par.Length > 1 )
           {
             float.TryParse( par[ 1 ], NumberStyles.Number, CultureInfo.InvariantCulture, out randomness );
@@ -121,6 +123,7 @@ namespace _068laser
             }
           }
 
+          // finish the last byte of the scanline:
           if ( (x & 7) != 0 )
           {
             while ( (x++ & 7) != 0 )

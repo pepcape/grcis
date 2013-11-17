@@ -405,5 +405,62 @@ namespace Raster
 
       return (float)Math.Sqrt( sum / (width * height) );
     }
+
+    /// <summary>
+    /// Generates a test image in grayscale which can be used for print tests.
+    /// </summary>
+    public static Bitmap TestImageGray ( int width, int height, int seed )
+    {
+      Random rnd = new Random( seed );
+      Bitmap bmp = new Bitmap( width, height, PixelFormat.Format24bppRgb );
+      Graphics gr = Graphics.FromImage( bmp );
+
+      // pens:
+      Pen[] pens = new Pen[ 256 ];
+      int i;
+      for ( i = 0; i < 256; i++ )
+        pens[ i ] = new Pen( Color.FromArgb( i, i, i ) );
+
+      // brushes:
+      Brush[] brushes = new Brush[ 256 ];
+      for ( i = 0; i < 256; i++ )
+        brushes[ i ] = new SolidBrush( Color.FromArgb( i, i, i ) );
+
+      gr.Clear( Color.White );
+
+      int fifth = (2 * height) / 9;
+      int square = 16;
+      int cx = width / 2;
+      int cy = height / 2;
+      int lines = (width * height) / 800;
+      int color, x, y;
+
+      // random lines:
+      for ( i = 0; i < lines; i++ )
+      {
+        color = rnd.Next( 255 );
+        x = rnd.Next( width );
+        y = rnd.Next( height );
+        gr.DrawLine( pens[ color ], x, y, cx, cy );
+      }
+
+      // vignettes:
+      for ( x = 0; x < width; x++ )
+      {
+        gr.DrawLine( pens[ 255 - (x * 256) / width ], x, 0, x, fifth );
+        gr.DrawLine( pens[ (x * 256) / width ], x, height - fifth, x, height - 1 );
+      }
+
+      // squares:
+      for ( y = cy; y + square <= cy + fifth; y += square )
+        for ( x = 0; x + square <= width; x += square )
+        {
+          color = rnd.Next( 256 );
+          gr.FillRectangle( brushes[ color ], x, y, square, square );
+        }
+
+      gr.Dispose();
+      return bmp;
+    }
   }
 }
