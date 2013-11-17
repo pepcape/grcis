@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
-using System.Threading;
-using Raster;
-using System.Globalization;
 using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
+using System.Threading;
+using System.Windows.Forms;
+using Raster;
 
 namespace _068laser
 {
@@ -17,6 +17,8 @@ namespace _068laser
       InitializeComponent();
       String[] tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[ 1 ] + ')';
+
+      newImage( (Image)null );
     }
 
     protected Thread aThread = null;
@@ -66,10 +68,11 @@ namespace _068laser
 
       ofd.FilterIndex = 6;
       ofd.FileName = "";
-      if ( ofd.ShowDialog() != DialogResult.OK )
-        return;
 
-      newImage( ofd.FileName );
+      if ( ofd.ShowDialog() == DialogResult.OK )
+        newImage( ofd.FileName );
+      else
+        newImage( (Image)null );
     }
 
     /// <summary>
@@ -84,8 +87,15 @@ namespace _068laser
       }
       catch ( Exception )
       {
-        return false;
       }
+
+      return newImage( inp );
+    }
+
+    private bool newImage ( Image inp )
+    {
+      if ( inp == null )
+        inp = Draw.TestImageGray( 1200, 900, 12 );
 
       inputImage = new Bitmap( inp );
       inp.Dispose();
@@ -134,6 +144,8 @@ namespace _068laser
 
         sw.Stop();
         float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
+
+        bmp.SetResolution( 1200, 1200 );
         SetImage( bmp );
 
         SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s", elapsed ) );
