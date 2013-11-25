@@ -178,9 +178,7 @@ namespace _068laser
       sfd.Filter = "PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName = "";
-      sfd.ShowDialog();
-
-      if ( sfd.FileName == "" )
+      if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
       pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
