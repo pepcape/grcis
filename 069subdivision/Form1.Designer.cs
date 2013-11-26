@@ -71,7 +71,7 @@
       // 
       this.numericXres.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.numericXres.Increment = new decimal(new int[] {
-            50,
+            40,
             0,
             0,
             0});
@@ -124,7 +124,7 @@
       // 
       this.numericYres.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.numericYres.Increment = new decimal(new int[] {
-            50,
+            30,
             0,
             0,
             0});
@@ -176,6 +176,7 @@
       // 
       // labelElapsed
       // 
+      this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelElapsed.AutoSize = true;
       this.labelElapsed.Location = new System.Drawing.Point(263, 443);
       this.labelElapsed.Name = "labelElapsed";

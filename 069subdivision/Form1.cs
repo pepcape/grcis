@@ -19,8 +19,8 @@ namespace _069subdivision
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
     {
-      int width    = (int)numericXres.Value;
-      int height   = (int)numericYres.Value;
+      int width  = (int)numericXres.Value;
+      int height = (int)numericYres.Value;
 
       Bitmap output = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
