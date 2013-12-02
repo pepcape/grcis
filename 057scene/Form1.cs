@@ -49,8 +49,15 @@ namespace _057scene
 
       scene.Reset();
       Construction cn = new Construction();
-      int faces = cn.AddMesh( scene, Matrix4.Identity, textParam.Text );
+
+      Matrix4 translation;
+      Matrix4.CreateTranslation( 1.0f, 0.0f, 0.0f, out translation );
+      Matrix4 rotation;
+      Matrix4.CreateRotationX( 90.0f, out rotation );
+
+      int faces = cn.AddMesh( scene, translation * rotation, textParam.Text );
       scene.BuildCornerTable();
+
       int errors = scene.CheckCornerTable( null );
 
       Cursor.Current = Cursors.Default;
