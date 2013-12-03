@@ -101,17 +101,24 @@ namespace _038trackball
 
     #endregion
 
+    /// <summary>
+    /// Zoom factor (multiplication).
+    /// </summary>
     float zoom = 1.0f;
+
     Matrix4 prevRotation = Matrix4.Identity;
     Matrix4 rotation = Matrix4.Identity;
+
     Ellipse ellipse;
     Vector3? a, b;
-    int itemIndex = 0;
 
     Matrix4 perspectiveProjection;
     Matrix4 ortographicProjection;
+
+    /// <summary>
+    /// Perspective / orthographic projection?
+    /// </summary>
     bool perspective = true;
-    bool inovative = true;
 
     /// <summary>
     /// Sets up a projective viewport
@@ -160,7 +167,6 @@ namespace _038trackball
       zoom = 1.0f;
       rotation = Matrix4.Identity;
       prevRotation = Matrix4.Identity;
-      inovative = true;
 
       // !!!}}
     }
@@ -172,9 +178,6 @@ namespace _038trackball
     {
       if ( !loaded )
         return;
-
-      if ( itemIndex != comboTrackballType.SelectedIndex )
-        setEllipse();
 
       frameCounter++;
       GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
@@ -193,20 +196,12 @@ namespace _038trackball
       int width  = glControl1.Width / 2;
       int height = glControl1.Height / 2;
 
-      if ( comboTrackballType.SelectedIndex == 1 )
-        ellipse = new Ellipse( width, height, Math.Min( width, height ), new Vector3( width, height, 0 ) );
-      else
-        ellipse = new Ellipse( Math.Min( width, height ), new Vector3( width, height, 0 ) );
-
-      itemIndex = comboTrackballType.SelectedIndex;
+      ellipse = new Ellipse( Math.Min( width, height ), new Vector3( width, height, 0 ) );
     }
 
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( inovative )
-        a = ellipse.IntersectionI( e.X, e.Y );
-      else
-        a = ellipse.Intersection( e.X, e.Y, checkRestrict.Checked );
+      a = ellipse.IntersectionI( e.X, e.Y );
     }
 
     private void glControl1_MouseUp ( object sender, MouseEventArgs e )
@@ -221,10 +216,8 @@ namespace _038trackball
     {
       if ( e.Button != System.Windows.Forms.MouseButtons.Left )
         return;
-      if ( inovative )
-        b = ellipse.IntersectionI( e.X, e.Y );
-      else
-        b = ellipse.Intersection( e.X, e.Y, checkRestrict.Checked );
+
+      b = ellipse.IntersectionI( e.X, e.Y );
       rotation = calculateRotation( a, b );
     }
 
@@ -260,9 +253,6 @@ namespace _038trackball
     {
       if ( e.KeyCode == Keys.O )
         togglePerspective();
-
-      if ( e.KeyCode == Keys.I )
-        inovative = !inovative;
     }
 
     private void togglePerspective ()

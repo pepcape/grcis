@@ -22,7 +22,7 @@ namespace _038trackball
     /// <summary>
     /// Scene diameter.
     /// </summary>
-    protected float diameter = 3.5f;
+    protected float diameter = 4.0f;
 
     /// <summary>
     /// GLControl guard flag.
@@ -73,7 +73,6 @@ namespace _038trackball
       SetupViewport();
 
       Application.Idle += new EventHandler( Application_Idle );
-      comboTrackballType.SelectedIndex = 0;
     }
 
     private void glControl1_Resize ( object sender, EventArgs e )
@@ -104,7 +103,9 @@ namespace _038trackball
 
       WavefrontObj objReader = new WavefrontObj();
       objReader.MirrorConversion = false;
+
       int faces = objReader.ReadBrep( ofd.FileName, scene );
+
       scene.BuildCornerTable();
       diameter = scene.GetDiameter( out center );
       scene.GenerateColors( 12 );
@@ -168,6 +169,34 @@ namespace _038trackball
           GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
         }
       }
+    }
+
+    private void buttonGenerate_Click ( object sender, EventArgs e )
+    {
+      Cursor.Current = Cursors.WaitCursor;
+
+      scene.Reset();
+      Construction cn = new Construction();
+
+      Matrix4 translation;
+      Matrix4.CreateTranslation( 1.0f, 0.0f, 0.0f, out translation );
+      Matrix4 rotation;
+      Matrix4.CreateRotationX( 90.0f, out rotation );
+
+      int faces = cn.AddMesh( scene, translation * rotation, textParam.Text );
+      scene.BuildCornerTable();
+
+      int errors = scene.CheckCornerTable( null );
+
+      diameter = scene.GetDiameter( out center );
+      scene.GenerateColors( 12 );
+      ResetCamera();
+
+      labelFile.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      PrepareDataBuffers();
+      glControl1.Invalidate();
+      
+      Cursor.Current = Cursors.Default;
     }
   }
 }
