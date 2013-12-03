@@ -116,6 +116,58 @@ namespace _038trackball
       glControl1.Invalidate();
     }
 
+    private void buttonGenerate_Click ( object sender, EventArgs e )
+    {
+      Cursor.Current = Cursors.WaitCursor;
+
+      scene.Reset();
+      Construction cn = new Construction();
+
+      int faces = cn.AddMesh( scene, Matrix4.Identity, textParam.Text );
+      diameter = scene.GetDiameter( out center );
+
+      if ( checkMulti.Checked )
+      {
+        Matrix4 translation, rotation;
+
+        Matrix4.CreateTranslation( diameter, 0.0f, 0.0f, out translation );
+        Matrix4.CreateRotationX( 90.0f, out rotation );
+        faces += cn.AddMesh( scene, translation * rotation, textParam.Text );
+
+        Matrix4.CreateTranslation( 0.0f, diameter, 0.0f, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        Matrix4.CreateTranslation( diameter, diameter, 0.0f, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        Matrix4.CreateTranslation( 0.0f, 0.0f, diameter, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        Matrix4.CreateTranslation( diameter, 0.0f, diameter, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        Matrix4.CreateTranslation( 0.0f, diameter, diameter, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        Matrix4.CreateTranslation( diameter, diameter, diameter, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        diameter = scene.GetDiameter( out center );
+      }
+
+      scene.BuildCornerTable();
+      int errors = scene.CheckCornerTable( null );
+
+      scene.GenerateColors( 12 );
+      ResetCamera();
+
+      labelFile.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      PrepareDataBuffers();
+      glControl1.Invalidate();
+
+      Cursor.Current = Cursors.Default;
+    }
+
     /// <summary>
     /// Prepare VBO content and upload it to the GPU.
     /// </summary>
@@ -169,34 +221,6 @@ namespace _038trackball
           GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
         }
       }
-    }
-
-    private void buttonGenerate_Click ( object sender, EventArgs e )
-    {
-      Cursor.Current = Cursors.WaitCursor;
-
-      scene.Reset();
-      Construction cn = new Construction();
-
-      Matrix4 translation;
-      Matrix4.CreateTranslation( 1.0f, 0.0f, 0.0f, out translation );
-      Matrix4 rotation;
-      Matrix4.CreateRotationX( 90.0f, out rotation );
-
-      int faces = cn.AddMesh( scene, translation * rotation, textParam.Text );
-      scene.BuildCornerTable();
-
-      int errors = scene.CheckCornerTable( null );
-
-      diameter = scene.GetDiameter( out center );
-      scene.GenerateColors( 12 );
-      ResetCamera();
-
-      labelFile.Text = String.Format( "{0} faces, {1} errors", faces, errors );
-      PrepareDataBuffers();
-      glControl1.Invalidate();
-      
-      Cursor.Current = Cursors.Default;
     }
   }
 }
