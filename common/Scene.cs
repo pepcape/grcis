@@ -577,6 +577,12 @@ namespace Scene3D
     /// <returns>Diameter</returns>
     public float GetDiameter ( out Vector3 center )
     {
+      if ( Vertices < 2 )
+      {
+        center = (Vertices == 1) ? GetVertex( 0 ) : Vector3.Zero;
+        return 4.0f;
+      }
+
       // center of the object = point to look at:
       double cx = 0.0;
       double cy = 0.0;
