@@ -38,6 +38,7 @@
       this.textParam = new System.Windows.Forms.TextBox();
       this.label3 = new System.Windows.Forms.Label();
       this.buttonGenerate = new System.Windows.Forms.Button();
+      this.checkMulti = new System.Windows.Forms.CheckBox();
       ((System.ComponentModel.ISupportInitialize)(this.numericSensitivity)).BeginInit();
       this.SuspendLayout();
       // 
@@ -55,12 +56,12 @@
       this.glControl1.VSync = false;
       this.glControl1.Load += new System.EventHandler( this.glControl1_Load );
       this.glControl1.Paint += new System.Windows.Forms.PaintEventHandler( this.glControl1_Paint );
-      this.glControl1.MouseMove += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseMove );
+      this.glControl1.KeyDown += new System.Windows.Forms.KeyEventHandler( this.glControl1_KeyDown );
       this.glControl1.KeyUp += new System.Windows.Forms.KeyEventHandler( this.glControl1_KeyUp );
       this.glControl1.MouseDown += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseDown );
-      this.glControl1.Resize += new System.EventHandler( this.glControl1_Resize );
+      this.glControl1.MouseMove += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseMove );
       this.glControl1.MouseUp += new System.Windows.Forms.MouseEventHandler( this.glControl1_MouseUp );
-      this.glControl1.KeyDown += new System.Windows.Forms.KeyEventHandler( this.glControl1_KeyDown );
+      this.glControl1.Resize += new System.EventHandler( this.glControl1_Resize );
       // 
       // labelFps
       // 
@@ -97,7 +98,7 @@
       // 
       this.numericSensitivity.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.numericSensitivity.DecimalPlaces = 2;
-      this.numericSensitivity.Location = new System.Drawing.Point( 392, 377 );
+      this.numericSensitivity.Location = new System.Drawing.Point( 383, 377 );
       this.numericSensitivity.Maximum = new decimal( new int[] {
             10,
             0,
@@ -109,7 +110,7 @@
             0,
             65536} );
       this.numericSensitivity.Name = "numericSensitivity";
-      this.numericSensitivity.Size = new System.Drawing.Size( 71, 20 );
+      this.numericSensitivity.Size = new System.Drawing.Size( 75, 20 );
       this.numericSensitivity.TabIndex = 24;
       this.numericSensitivity.Value = new decimal( new int[] {
             10,
@@ -141,7 +142,7 @@
       // textParam
       // 
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.textParam.Location = new System.Drawing.Point( 182, 413 );
+      this.textParam.Location = new System.Drawing.Point( 180, 414 );
       this.textParam.Name = "textParam";
       this.textParam.Size = new System.Drawing.Size( 121, 20 );
       this.textParam.TabIndex = 29;
@@ -167,11 +168,23 @@
       this.buttonGenerate.UseVisualStyleBackColor = true;
       this.buttonGenerate.Click += new System.EventHandler( this.buttonGenerate_Click );
       // 
+      // checkMulti
+      // 
+      this.checkMulti.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkMulti.AutoSize = true;
+      this.checkMulti.Location = new System.Drawing.Point( 328, 416 );
+      this.checkMulti.Name = "checkMulti";
+      this.checkMulti.Size = new System.Drawing.Size( 86, 17 );
+      this.checkMulti.TabIndex = 30;
+      this.checkMulti.Text = "8 instances?";
+      this.checkMulti.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.Controls.Add( this.checkMulti );
       this.Controls.Add( this.textParam );
       this.Controls.Add( this.label3 );
       this.Controls.Add( this.buttonGenerate );
@@ -204,6 +217,7 @@
     private System.Windows.Forms.TextBox textParam;
     private System.Windows.Forms.Label label3;
     private System.Windows.Forms.Button buttonGenerate;
+    private System.Windows.Forms.CheckBox checkMulti;
   }
 }
 
