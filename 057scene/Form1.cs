@@ -50,12 +50,40 @@ namespace _057scene
       scene.Reset();
       Construction cn = new Construction();
 
-      Matrix4 translation;
-      Matrix4.CreateTranslation( 1.0f, 0.0f, 0.0f, out translation );
-      Matrix4 rotation;
-      Matrix4.CreateRotationX( 90.0f, out rotation );
+      int faces = cn.AddMesh( scene, Matrix4.Identity, textParam.Text );
 
-      int faces = cn.AddMesh( scene, translation * rotation, textParam.Text );
+      Vector3 center;
+      float diameter = scene.GetDiameter( out center );
+
+      if ( checkMulti.Checked )
+      {
+        Matrix4 translation, rotation;
+
+        Matrix4.CreateTranslation( diameter, 0.0f, 0.0f, out translation );
+        Matrix4.CreateRotationX( 90.0f, out rotation );
+        faces += cn.AddMesh( scene, translation * rotation, textParam.Text );
+
+        Matrix4.CreateTranslation( 0.0f, diameter, 0.0f, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        Matrix4.CreateTranslation( diameter, diameter, 0.0f, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        Matrix4.CreateTranslation( 0.0f, 0.0f, diameter, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        Matrix4.CreateTranslation( diameter, 0.0f, diameter, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        Matrix4.CreateTranslation( 0.0f, diameter, diameter, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        Matrix4.CreateTranslation( diameter, diameter, diameter, out translation );
+        faces += cn.AddMesh( scene, translation, textParam.Text );
+
+        diameter = scene.GetDiameter( out center );
+      }
+
       scene.BuildCornerTable();
 
       int errors = scene.CheckCornerTable( null );

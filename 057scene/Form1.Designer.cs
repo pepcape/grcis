@@ -44,6 +44,7 @@ namespace _057scene
       this.label3 = new System.Windows.Forms.Label();
       this.checkPerspective = new System.Windows.Forms.CheckBox();
       this.textParam = new System.Windows.Forms.TextBox();
+      this.checkMulti = new System.Windows.Forms.CheckBox();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numericAzimuth)).BeginInit();
@@ -257,11 +258,22 @@ namespace _057scene
       this.textParam.Size = new System.Drawing.Size(100, 20);
       this.textParam.TabIndex = 15;
       // 
+      // checkMulti
+      // 
+      this.checkMulti.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkMulti.AutoSize = true;
+      this.checkMulti.Location = new System.Drawing.Point(265, 383);
+      this.checkMulti.Name = "checkMulti";
+      this.checkMulti.Size = new System.Drawing.Size(15, 14);
+      this.checkMulti.TabIndex = 16;
+      this.checkMulti.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(712, 446);
+      this.Controls.Add(this.checkMulti);
       this.Controls.Add(this.textParam);
       this.Controls.Add(this.checkPerspective);
       this.Controls.Add(this.label3);
@@ -308,6 +320,7 @@ namespace _057scene
     private System.Windows.Forms.Label label3;
     private System.Windows.Forms.CheckBox checkPerspective;
     private System.Windows.Forms.TextBox textParam;
+    private System.Windows.Forms.CheckBox checkMulti;
   }
 }
 
