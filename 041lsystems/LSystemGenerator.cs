@@ -215,7 +215,7 @@ namespace _041lsystems
         reader.Close();
         return true;
       }
-      catch ( Exception e )
+      catch ( Exception )
       {
         return false;
       }
@@ -247,7 +247,7 @@ namespace _041lsystems
         writer.Close();
         return true;
       }
-      catch ( Exception e )
+      catch ( Exception )
       {
         return false;
       }

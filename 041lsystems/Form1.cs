@@ -13,6 +13,9 @@ namespace _041lsystems
     public LSystemMainWin ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
+
       mLSystem = new LSystem();
       mLSystemGenerator = new LSystemGenerator();
       mLSystemRenderer = new LSystemRenderer();
@@ -129,7 +132,7 @@ namespace _041lsystems
       int index = resultList.SelectedIndex;
       param.radius = System.Math.Max( 0.03, index * generationStep.Value * 0.01 );
 
-      string toInterpret = (iterations != null && index < iterations.Count) ? iterations[ index ] : "";
+      string toInterpret = (iterations != null && index >= 0 && index < iterations.Count) ? iterations[ index ] : "";
       mLSystemRenderer.Render( toInterpret, index, param );
 
       glCanvas.SwapBuffers();
