@@ -34,7 +34,7 @@ namespace _069subdivision
 
       labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s", elapsed );
 
-      pictureBox1.Image = output;
+      pictureBox1.Image = outputImage = output;
       buttonSave.Enabled = true;
     }
 
