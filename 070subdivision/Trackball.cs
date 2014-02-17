@@ -171,26 +171,6 @@ namespace _070subdivision
       // !!!}}
     }
 
-    /// <summary>
-    /// Rendering of one frame.
-    /// </summary>
-    private void Render ()
-    {
-      if ( !loaded )
-        return;
-
-      frameCounter++;
-      GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
-      GL.ShadeModel( ShadingModel.Flat );
-      GL.PolygonMode( MaterialFace.Front, PolygonMode.Fill );
-      GL.Enable( EnableCap.CullFace );
-
-      SetCamera();
-      RenderScene();
-
-      glControl1.SwapBuffers();
-    }
-
     private void setEllipse ()
     {
       int width  = glControl1.Width / 2;
@@ -227,7 +207,7 @@ namespace _070subdivision
         return rotation;
 
       Vector3 axis = Vector3.Cross( a.Value, b.Value );
-      float angle = Vector3.CalculateAngle( a.Value, b.Value ) * (float)numericSensitivity.Value;
+      float angle = Vector3.CalculateAngle( a.Value, b.Value ); // * (float)numericSensitivity.Value;
       return Matrix4.CreateFromAxisAngle( axis, angle );
     }
 
