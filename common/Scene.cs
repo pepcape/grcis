@@ -402,6 +402,28 @@ namespace Scene3D
     }
 
     /// <summary>
+    /// Changes vertices of an existing triangle.
+    /// </summary>
+    /// <param name="v1">New handle of the 1st vertex</param>
+    /// <param name="v2">New handle of the 2nd vertex</param>
+    /// <param name="v3">New handle of the 3rd vertex</param>
+    /// <returns>Triangle handle</returns>
+    public void SetTriangleVertices ( int tr, int v1, int v2, int v3 )
+    {
+      Debug.Assert( geometry != null, "Invalid G[] size" );
+      tr *= 3;
+      Debug.Assert( vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
+                    "Invalid triangle handle" );
+      Debug.Assert( geometry.Count > v1 &&
+                    geometry.Count > v2 &&
+                    geometry.Count > v3, "Invalid vertex handle" );
+
+      vertexPtr[ tr ]     = v1;
+      vertexPtr[ tr + 1 ] = v2;
+      vertexPtr[ tr + 2 ] = v3;
+    }
+
+    /// <summary>
     /// Returns vertex coordinates of the given triangle.
     /// </summary>
     /// <param name="tr">Triangle handle</param>

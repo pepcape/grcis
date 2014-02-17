@@ -10,8 +10,6 @@ namespace _070subdivision
     /// <summary>
     /// Function called whenever the main application is idle..
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
     private void Application_Idle ( object sender, EventArgs e )
     {
       while ( glControl1.IsIdle )
@@ -23,16 +21,36 @@ namespace _070subdivision
         if ( now - lastFpsTime > 10000000 )      // more than 1 sec
         {
           double fps = frameCounter * 1.0e7 / (now - lastFpsTime);
-          double tps = triangleCounter * 1.0e7 / (now - lastFpsTime);
+          double pps = pointCounter * 1.0e7 / (now - lastFpsTime);
           lastFpsTime = now;
           frameCounter = 0;
-          triangleCounter = 0L;
-          if ( tps < 5.0e5 )
-            labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0}k", fps, (tps * 1.0e-3) );
+          pointCounter = 0L;
+          if ( pps < 5.0e5 )
+            labelFps.Text = String.Format( "Fps: {0:0.0}, Pps: {1:0}k", fps, (pps * 1.0e-3) );
           else
-            labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0.0}m", fps, (tps * 1.0e-6) );
+            labelFps.Text = String.Format( "Fps: {0:0.0}, Pps: {1:0.0}m", fps, (pps * 1.0e-6) );
         }
       }
+    }
+
+    /// <summary>
+    /// Rendering of one frame.
+    /// </summary>
+    private void Render ()
+    {
+      if ( !loaded )
+        return;
+
+      frameCounter++;
+      GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
+      GL.ShadeModel( ShadingModel.Flat );
+      GL.PolygonMode( MaterialFace.Front, PolygonMode.Fill );
+      GL.Enable( EnableCap.CullFace );
+
+      SetCamera();
+      RenderScene();
+
+      glControl1.SwapBuffers();
     }
 
     /// <summary>
@@ -43,29 +61,27 @@ namespace _070subdivision
       // Scene rendering:
       if ( useVBO &&
            scene != null &&
-           scene.Triangles > 0 )        // scene is nonempty => render it
+           points > 0 )
       {
         // [colors] [normals] vertices
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
         int p = 0;
-        if ( scene.HasColors() )
+        if ( checkColors.Checked )
         {
           GL.ColorPointer( 3, ColorPointerType.Float, stride, p );
           p += Vector3.SizeInBytes;
         }
-        if ( scene.HasNormals() )
+        if ( checkNormals.Checked )
         {
           GL.NormalPointer( NormalPointerType.Float, stride, p );
           p += Vector3.SizeInBytes;
         }
         GL.VertexPointer( 3, VertexPointerType.Float, stride, p );
 
-        // index buffer
-        GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-
         // engage!
-        triangleCounter += scene.Triangles;
-        GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+        GL.PointSize( 1.0f );
+        GL.DrawArrays( BeginMode.Points, 0, points );
+        pointCounter += points;
       }
       else                              // color cube (JB)
       {
@@ -109,7 +125,7 @@ namespace _070subdivision
 
         GL.End();
 
-        triangleCounter += 12;
+        pointCounter += 8;
       }
     }
   }
