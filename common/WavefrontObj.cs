@@ -104,7 +104,10 @@ namespace Scene3D
       int lastVertex = v0 - 1;
 
       int faces = 0;
+
+      List<Vector2> txtCoords = new List<Vector2>( 256 );
       List<Vector3> normals = new List<Vector3>( 256 );
+      int lastTxtCoord = -1;
       int lastNormal = -1;
       int[] f = new int[ 3 ];
 
@@ -134,6 +137,18 @@ namespace Scene3D
             if ( MirrorConversion )
               coord.Z = -coord.Z;
             lastVertex = scene.AddVertex( Vector3.Transform( coord, m ) );
+            break;
+
+          case VERTEX_TEXTURE:
+            if ( tokens.Length < 3 ) continue;
+
+            Vector2 txtCoord;
+            if ( !float.TryParse( tokens[1], NumberStyles.Float, CultureInfo.InvariantCulture, out txtCoord.X ) ||
+                 !float.TryParse( tokens[2], NumberStyles.Float, CultureInfo.InvariantCulture, out txtCoord.Y ) )
+              continue;
+
+            txtCoords.Add( txtCoord );
+            lastTxtCoord++;
             break;
 
           case VERTEX_NORMAL:
@@ -185,6 +200,18 @@ namespace Scene3D
                   if ( !int.TryParse( vt[ 2 ], out ni ) ) ni = 0;
                 }
               }
+
+              // there was a texture coord..
+              if ( ti != 0 )
+              {
+                if( ti > 0 )
+                  ti--;
+                else
+                  ti = lastTxtCoord + 1 - ti;
+                if ( ti >= 0 && ti < txtCoords.Count )
+                  scene.SetTxtCoord( f[i], txtCoords[ti] );
+              }
+
               // there was a normal..
               if ( ni != 0 )
               {
