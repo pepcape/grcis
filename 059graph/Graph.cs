@@ -92,15 +92,15 @@ namespace _059graph
       string[] limits = interv.Split( ' ' );
       if ( limits.Length > 0 )
       {
-        double.TryParse( limits[ 0 ], NumberStyles.Number, CultureInfo.InvariantCulture, out xMin );
+        double.TryParse( limits[ 0 ], NumberStyles.Float, CultureInfo.InvariantCulture, out xMin );
         if ( limits.Length > 1 )
         {
-          double.TryParse( limits[ 1 ], NumberStyles.Number, CultureInfo.InvariantCulture, out xMax );
+          double.TryParse( limits[ 1 ], NumberStyles.Float, CultureInfo.InvariantCulture, out xMax );
           if ( limits.Length > 2 )
           {
-            double.TryParse( limits[ 2 ], NumberStyles.Number, CultureInfo.InvariantCulture, out yMin );
+            double.TryParse( limits[ 2 ], NumberStyles.Float, CultureInfo.InvariantCulture, out yMin );
             if ( limits.Length > 3 )
-              double.TryParse( limits[ 3 ], NumberStyles.Number, CultureInfo.InvariantCulture, out yMax );
+              double.TryParse( limits[ 3 ], NumberStyles.Float, CultureInfo.InvariantCulture, out yMax );
           }
         }
       }

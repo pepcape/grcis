@@ -21,7 +21,7 @@ namespace _053rectangles
 
       // example of passing numerical value through string param:
       double w = 1.0;
-      if ( Double.TryParse( param, NumberStyles.Number, CultureInfo.InvariantCulture, out w ) )
+      if ( Double.TryParse( param, NumberStyles.Float, CultureInfo.InvariantCulture, out w ) )
         c.SetPenWidth( (float)w );
 
       // 1st quadrant - anti-aliased filled squares..

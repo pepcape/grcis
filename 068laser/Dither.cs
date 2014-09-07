@@ -66,14 +66,14 @@ namespace _068laser
         string[] par = param.Split( COMMA );
         if ( par.Length > 0 )
         {
-          if ( float.TryParse( par[ 0 ], NumberStyles.Number, CultureInfo.InvariantCulture, out scale ) )
+          if ( float.TryParse( par[ 0 ], NumberStyles.Float, CultureInfo.InvariantCulture, out scale ) )
           {
             oWidth  = (int)(iWidth * scale);
             oHeight = (int)(iHeight * scale);
           }
           if ( par.Length > 1 )
           {
-            float.TryParse( par[ 1 ], NumberStyles.Number, CultureInfo.InvariantCulture, out randomness );
+            float.TryParse( par[ 1 ], NumberStyles.Float, CultureInfo.InvariantCulture, out randomness );
             randomness = Arith.Clamp( randomness, 0.0f, 1.0f );
           }
         }
