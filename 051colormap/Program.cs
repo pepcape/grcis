@@ -35,9 +35,7 @@ namespace _051colormap
       {
         gfx.FillRectangle( brushes[ i ], 0, y, width, stripHeight );
         for ( int j = 0; j < stripes; j++ )
-        {
-          gfx.DrawString( "Sample", myFont, brushes[ j ], 4 + j * columnWidth, y + 4 );
-        }
+          gfx.DrawString( "test", myFont, brushes[ j ], 4 + j * columnWidth, y + 4 );
         gfx.DrawString( Form1.color2string( Form1.colors[ i ] ),
                         myFont, Form1.colors[ i ].GetBrightness() < 0.5f ? brWhite : brBlack,
                         12, y + stripHeight - 20 );
