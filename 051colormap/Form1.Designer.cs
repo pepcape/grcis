@@ -41,9 +41,9 @@
       // 
       // buttonClose
       // 
-      this.buttonClose.Location = new System.Drawing.Point(692, 338);
+      this.buttonClose.Location = new System.Drawing.Point(671, 338);
       this.buttonClose.Name = "buttonClose";
-      this.buttonClose.Size = new System.Drawing.Size(90, 24);
+      this.buttonClose.Size = new System.Drawing.Size(111, 24);
       this.buttonClose.TabIndex = 7;
       this.buttonClose.Text = "Done";
       this.buttonClose.UseVisualStyleBackColor = true;
@@ -51,7 +51,7 @@
       // 
       // numColors
       // 
-      this.numColors.Location = new System.Drawing.Point(500, 340);
+      this.numColors.Location = new System.Drawing.Point(439, 340);
       this.numColors.Maximum = new decimal(new int[] {
             8,
             0,
@@ -63,7 +63,7 @@
             0,
             0});
       this.numColors.Name = "numColors";
-      this.numColors.Size = new System.Drawing.Size(43, 20);
+      this.numColors.Size = new System.Drawing.Size(46, 20);
       this.numColors.TabIndex = 8;
       this.numColors.Value = new decimal(new int[] {
             3,
@@ -75,7 +75,7 @@
       // label3
       // 
       this.label3.AutoSize = true;
-      this.label3.Location = new System.Drawing.Point(430, 342);
+      this.label3.Location = new System.Drawing.Point(369, 342);
       this.label3.Name = "label3";
       this.label3.Size = new System.Drawing.Size(64, 13);
       this.label3.TabIndex = 9;
@@ -83,7 +83,7 @@
       // 
       // buttonLoad
       // 
-      this.buttonLoad.Location = new System.Drawing.Point(564, 338);
+      this.buttonLoad.Location = new System.Drawing.Point(533, 338);
       this.buttonLoad.Name = "buttonLoad";
       this.buttonLoad.Size = new System.Drawing.Size(113, 23);
       this.buttonLoad.TabIndex = 10;
@@ -93,9 +93,10 @@
       // 
       // pictureInput
       // 
-      this.pictureInput.Location = new System.Drawing.Point(433, 13);
+      this.pictureInput.Location = new System.Drawing.Point(372, 13);
       this.pictureInput.Name = "pictureInput";
-      this.pictureInput.Size = new System.Drawing.Size(349, 310);
+      this.pictureInput.Size = new System.Drawing.Size(410, 310);
+      this.pictureInput.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
       this.pictureInput.TabIndex = 11;
       this.pictureInput.TabStop = false;
       // 
@@ -103,7 +104,7 @@
       // 
       this.pictureBox1.Location = new System.Drawing.Point(12, 12);
       this.pictureBox1.Name = "pictureBox1";
-      this.pictureBox1.Size = new System.Drawing.Size(400, 348);
+      this.pictureBox1.Size = new System.Drawing.Size(341, 348);
       this.pictureBox1.TabIndex = 0;
       this.pictureBox1.TabStop = false;
       // 
@@ -120,7 +121,7 @@
       this.Controls.Add(this.pictureBox1);
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
       this.Name = "Form1";
-      this.Text = "051 Paleta";
+      this.Text = "051 Colormap";
       ((System.ComponentModel.ISupportInitialize)(this.numColors)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureInput)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
