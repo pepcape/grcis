@@ -1,9 +1,17 @@
-﻿using System.Drawing;
+﻿// Author: Josef Pelikan
+
+using System.Drawing;
 
 namespace _051colormap
 {
   class Colormap
   {
+    /// <summary>
+    /// Generate a colormap based on input image.
+    /// </summary>
+    /// <param name="input">Input raster image.</param>
+    /// <param name="numCol">Required colormap size (ignore it if you must)</param>
+    /// <param name="colors">Output palette (array of colors).</param>
     public static void Generate ( Bitmap input, int numCol, out Color[] colors )
     {
       // !!!{{ TODO - generate custom palette based on the given image
