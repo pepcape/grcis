@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Text;
 
 namespace _002warping
 {
@@ -20,7 +17,15 @@ namespace _002warping
       functions.Add( new WarpMagniGlass() );
       comboFunction.Items.Add( "MagniGlass" );
 
-      // 1:
+      // 1
+      functions.Add( new SpiralWarp() );
+      comboFunction.Items.Add( "Spiral" );
+
+      // 2:
+      functions.Add( new InvSpiralWarp() );
+      comboFunction.Items.Add( "InvSpiral" );
+
+      // 3:
       // !!!{{ TODO: insert your own warping function here
       // !!!}}
 
