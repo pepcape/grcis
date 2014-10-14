@@ -57,7 +57,7 @@ namespace _002warping
   /// Rotation angle is proportional to radius..
   /// (c) Petr Vevoda
   /// </summary>
-  public class SpiralWarp : DefaultWarp
+  public class WarpSpiral : DefaultWarp
   {
     protected double factor = 1.0;
 
@@ -129,7 +129,7 @@ namespace _002warping
   /// Rotation angle is reciprocal to radius..
   /// (c) Petr Vevoda
   /// </summary>
-  public class InvSpiralWarp : DefaultWarp
+  public class WarpInvSpiral : DefaultWarp
   {
     protected double factor = 1.0;
 

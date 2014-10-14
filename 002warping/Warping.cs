@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Author: Josef Pelikan
+
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -18,11 +20,11 @@ namespace _002warping
       comboFunction.Items.Add( "MagniGlass" );
 
       // 1
-      functions.Add( new SpiralWarp() );
+      functions.Add( new WarpSpiral() );
       comboFunction.Items.Add( "Spiral" );
 
       // 2:
-      functions.Add( new InvSpiralWarp() );
+      functions.Add( new WarpInvSpiral() );
       comboFunction.Items.Add( "InvSpiral" );
 
       // 3:
