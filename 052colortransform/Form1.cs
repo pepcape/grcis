@@ -6,7 +6,9 @@ namespace _052colortransform
 {
   public partial class Form1 : Form
   {
-    protected Image inputImage = null;
+    protected Bitmap inputImage = null;
+
+    protected Bitmap outputImage = null;
 
     public Form1 ()
     {
@@ -32,6 +34,7 @@ namespace _052colortransform
 
       Image inp = Image.FromFile( ofd.FileName );
       inputImage = new Bitmap( inp );
+      outputImage = null;
       inp.Dispose();
 
       recompute();
@@ -41,27 +44,26 @@ namespace _052colortransform
     {
       if ( inputImage == null ) return;
 
-      Bitmap ibmp = (Bitmap)inputImage;
-      Bitmap bmp;
-      Transform.TransformImage( ibmp, out bmp, textParam.Text );
-      pictureBox1.Image = bmp;
+      Transform.TransformImage( inputImage, out outputImage, textParam.Text );
+      pictureBox1.Image = outputImage;
+      checkOriginal.Checked = false;
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
-      if ( inputImage == null ) return;
+      if ( inputImage == null ||
+           outputImage == null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";
       sfd.Filter = "PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName = "";
-      sfd.ShowDialog();
-
-      if ( sfd.FileName == "" )
+      if ( sfd.ShowDialog() != DialogResult.OK ||
+           sfd.FileName == "" )
         return;
 
-      pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
@@ -82,11 +84,22 @@ namespace _052colortransform
       }
 
       if ( inputImage == null ) return;
-      Bitmap bitmap = inputImage as Bitmap;
-      if ( bitmap == null ) return;
 
-      Color pix = bitmap.GetPixel( x, y );
+      Color pix = inputImage.GetPixel( x, y );
       textParam.Text = oldParam + '[' + pix.R + ',' + pix.G + ',' + pix.B + ']';
+    }
+
+    private void checkOriginal_CheckedChanged ( object sender, EventArgs e )
+    {
+      if ( inputImage == null ) return;
+
+      if ( checkOriginal.Checked )
+        pictureBox1.Image = inputImage;
+      else
+        if ( outputImage == null )
+          recompute();
+        else
+          pictureBox1.Image = outputImage;
     }
   }
 }
