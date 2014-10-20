@@ -68,5 +68,25 @@ namespace _052colortransform
     {
       recompute();
     }
+
+    private void pictureBox1_MouseDoubleClick ( object sender, MouseEventArgs e )
+    {
+      int x = e.Location.X;
+      int y = e.Location.Y;
+      string oldParam = textParam.Text;
+      if ( e.Button == MouseButtons.Left )
+      {
+        int pos = oldParam.IndexOf( '[' );
+        if ( pos >= 0 )
+          oldParam = oldParam.Substring( 0, pos );
+      }
+
+      if ( inputImage == null ) return;
+      Bitmap bitmap = inputImage as Bitmap;
+      if ( bitmap == null ) return;
+
+      Color pix = bitmap.GetPixel( x, y );
+      textParam.Text = oldParam + '[' + pix.R + ',' + pix.G + ',' + pix.B + ']';
+    }
   }
 }
