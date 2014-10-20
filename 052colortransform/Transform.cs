@@ -1,4 +1,7 @@
-﻿using System.Drawing;
+﻿// Author: Josef Pelikan
+
+using System.Drawing;
+using System.Globalization;
 using MathSupport;
 
 namespace _052colortransform
@@ -14,7 +17,7 @@ namespace _052colortransform
     {
       // !!!{{ TODO: write your own color transformation code here
 
-      // Text parameter = color shift
+      // Text parameter = color shift R,G,B
       int dR = 0;
       int dG = 0;
       int dB = 0;
@@ -26,6 +29,8 @@ namespace _052colortransform
           int.TryParse( delta[ 0 ], out dR );
           int.TryParse( delta[ 1 ], out dG );
           int.TryParse( delta[ 2 ], out dB );
+          //double doubleValue;
+          //double.TryParse( delta[ 0 ], NumberStyles.Float, CultureInfo.InvariantCulture, out doubleValue );
         }
       }
 
