@@ -67,7 +67,7 @@ namespace _075animation
 
       Canvas c = new Canvas( width, height );
 
-      Animation.DrawFrame( c, (double)numTime.Value );
+      Animation.DrawFrame( c, (double)numTime.Value, (double)numFrom.Value, (double)numTo.Value );
 
       pictureBox1.Image = outputImage = c.Finish();
 
@@ -196,6 +196,11 @@ namespace _075animation
     protected int height;
 
     /// <summary>
+    /// Time of the first frame.
+    /// </summary>
+    protected double start;
+
+    /// <summary>
     /// Time of the last frame.
     /// </summary>
     protected double end;
@@ -260,7 +265,7 @@ namespace _075animation
       }
 
       // Global animation properties (it's safe to access GUI components here):
-      time = (double)numFrom.Value;
+      start = time = (double)numFrom.Value;
       end = (double)numTo.Value;
       if ( end <= time )
         end = time + 1.0;
@@ -389,7 +394,7 @@ namespace _075animation
         Result r = new Result();
         r.frameNumber = myFrameNumber;
 
-        Animation.DrawFrame( c, myTime );
+        Animation.DrawFrame( c, myTime, start, end );
         r.image = c.Finish();
 
         // ... and put the result into the output queue:

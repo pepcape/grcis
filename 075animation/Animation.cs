@@ -28,7 +28,14 @@ namespace _075animation
 
   public class Animation
   {
-    public static void DrawFrame ( Canvas c, double time )
+    /// <summary>
+    /// Draw single animation frame.
+    /// </summary>
+    /// <param name="c">Canvas to draw to.</param>
+    /// <param name="time">Current time in seconds.</param>
+    /// <param name="start">Start time (t0)</param>
+    /// <param name="end">End time (for animation length normalization).</param>
+    public static void DrawFrame ( Canvas c, double time, double start, double end )
     {
       // !!!{{ TODO: put your drawing code here
 
@@ -38,7 +45,7 @@ namespace _075animation
       double t;
       int i, j;
 
-      float dx = Math.Min( (float)(wq * time), 3.0f * wq );
+      float dx = wq * 4.0f * Arith.Clamp( (float)( (time - start)/(end - start) ), 0.0f, 1.0f );
 
       c.Clear( Color.Black );
 
@@ -56,7 +63,26 @@ namespace _075animation
                          (float)Arith.RadianToDegree( t ) );
       }
 
+      // 2nd quadrant - star-shaped polygon
+      const int MAX_CORNERS = 32;
+      float[] v = new float[ MAX_CORNERS * 4 ];
+      double dt = Math.PI / MAX_CORNERS;
+      double r1 = minq * 0.9;
+      double r2 = minq * 0.4;
+      for ( i = 0, t = 0.0; i < MAX_CORNERS; i++ )
+      {
+        v[ 4 * i     ] = dx + (float)(wq * 3 + r1 * Math.Sin( t ));
+        v[ 4 * i + 1 ] =      (float)(hq     + r1 * Math.Cos( t ));
+        t += dt;
+        v[ 4 * i + 2 ] = dx + (float)(wq * 3 + r2 * Math.Sin( t ));
+        v[ 4 * i + 3 ] =      (float)(hq     + r2 * Math.Cos( t ));
+        t += dt;
+      }
+      c.SetColor( Color.LightSalmon );
+      c.FillPolygon( v );
+
       // 3rd quadrant - jaggy filled squares..
+      c.SetAntiAlias( false );
       const int MAX_MATRIX = 12;
       for ( j = 0; j < MAX_MATRIX; j++ )
         for ( i = 0; i < MAX_MATRIX; i++ )
