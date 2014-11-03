@@ -61,6 +61,7 @@ namespace _075animation
       if ( width <= 0 ) width = panel1.Width;
       height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
+      Animation.Init( width, height );
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
@@ -279,6 +280,7 @@ namespace _075animation
       if ( width <= 0 ) width = panel1.Width;
       height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
+      Animation.Init( width, height );
 
       // Start main rendering thread:
       aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
