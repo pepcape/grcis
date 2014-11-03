@@ -29,6 +29,19 @@ namespace _075animation
   public class Animation
   {
     /// <summary>
+    /// Global initialization. Called before each animation batch
+    /// or single-frame computation.
+    /// </summary>
+    /// <param name="width">Width of the future canvas in pixels.</param>
+    /// <param name="height">Height of the future canvas in pixels.</param>
+    public static void Init ( int width, int height )
+    {
+      // !!!{{ TODO: put your init code here
+
+      // !!!}}
+    }
+
+    /// <summary>
     /// Draw single animation frame.
     /// </summary>
     /// <param name="c">Canvas to draw to.</param>
