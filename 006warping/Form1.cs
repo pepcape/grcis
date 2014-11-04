@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 namespace _006warping
@@ -16,6 +11,8 @@ namespace _006warping
     public Form1 ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )

@@ -1,9 +1,10 @@
-﻿using System;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Data;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -22,7 +23,7 @@ namespace _006warping
     #endregion
 
     #region warping feature settings
-    
+
     /// <summary>
     ///  Color to paint the features.
     /// </summary>
