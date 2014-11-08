@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿// Author: Josef Pelikan
+
+using System.Drawing;
 using MathSupport;
 using System.Drawing.Imaging;
 using System;
