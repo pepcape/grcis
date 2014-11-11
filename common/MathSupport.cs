@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Diagnostics;
 
 // Support math code.
 namespace MathSupport
@@ -32,6 +33,11 @@ namespace MathSupport
           acc *= a;
       }
       return acc;
+    }
+
+    public static int Mod ( int a, int b )
+    {
+      return ((a < 0) ? ((a + 1) % b + b - 1) : (a % b));
     }
 
     public static double DegreeToRadian ( double deg )
@@ -81,6 +87,49 @@ namespace MathSupport
         default:
           return Color.FromArgb( v, p, q );
       }
+    }
+
+    /// <summary>
+    /// Ray vs. line segment intersection in 2D.
+    /// </summary>
+    /// <param name="ox">Ray origin - x-coordinate.</param>
+    /// <param name="oy">Ray origin - y-coordinate.</param>
+    /// <param name="dx">Ray direction - x-coordinate.</param>
+    /// <param name="dy">Ray direction - y-coordinate.</param>
+    /// <param name="ax">A endpoint - x-coordinate.</param>
+    /// <param name="ay">A endpoint - y-coordinate.</param>
+    /// <param name="bx">B endpoint - x-coordinate.</param>
+    /// <param name="by">B endpoint - y-coordinate.</param>
+    /// <returns>Parameter coordinate of the intersection or Double.NegativeInfinity if none exists.</returns>
+    public static double RaySegment2D ( double ox, double oy, double dx, double dy,
+                                        double ax, double ay, double bx, double by )
+    {
+      double nx = ay - by;
+      double ny = bx - ax;
+      double den = nx * dx + ny * dy;
+      if ( den > -2.0 * Double.Epsilon &&
+           den < 2.0 * Double.Epsilon )
+        return Double.NegativeInfinity;
+
+      double t = (nx * (ax - ox) + ny * (ay - oy)) / den;
+      double resol;
+
+      if ( Math.Abs( ny ) > Math.Abs( nx ) )
+      {                                     // use X coordinate
+        resol = ox + t * dx;
+        if ( resol < Math.Min( ax, bx ) ||
+             resol > Math.Max( ax, bx ) )
+          return Double.NegativeInfinity;
+      }
+      else
+      {                                     // use Y coordinate
+        resol = oy + t * dy;
+        if ( resol < Math.Min( ay, by ) ||
+             resol > Math.Max( ay, by ) )
+          return Double.NegativeInfinity;
+      }
+
+      return t;
     }
   }
 
@@ -580,6 +629,116 @@ namespace MathSupport
         if ( p > 0 )
           CheckUp( p );
       }
+    }
+  }
+
+  /// <summary>
+  /// Integer implementation of the Summed-area table (a.k.a. Integral Image)
+  /// http://en.wikipedia.org/wiki/Summed_area_table
+  /// </summary>
+  public class SummedAreaTableLong
+  {
+    public long[ , ] table = null;
+
+    public SummedAreaTableLong ()
+    {
+    }
+
+    public SummedAreaTableLong ( int xres, int yres )
+    {
+      table = new long[ xres, yres ];
+    }
+
+    public void ComputeTable ()
+    {
+      Debug.Assert( table != null );
+
+      int xres = table.GetLength( 0 );
+      int yres = table.GetLength( 1 );
+      int x, y;
+
+      // 1st row:
+      for ( y = 1; y < yres; y++ )
+        table[ 0, y ] += table[ 0, y - 1 ];
+
+      // rest of the rows:
+      for ( x = 1; x < xres; x++ )
+      {
+        table[ x, 0 ] += table[ x - 1, 0 ];
+        for ( y = 1; y < yres; y++ )
+          table[ x, y ] += table[ x - 1, y ] + table[ x, y - 1 ] - table[ x - 1, y - 1 ];
+      }
+    }
+
+    public long Sum ( int x1, int x2, int y1, int y2 )
+    {
+      Debug.Assert( x1 >= 0  && x1 < table.GetLength( 0 ) );
+      Debug.Assert( x2 >= x1 && x2 < table.GetLength( 0 ) );
+      Debug.Assert( y1 >= 0  && y1 < table.GetLength( 1 ) );
+      Debug.Assert( y2 >= y1 && y2 < table.GetLength( 1 ) );
+
+      x1--;
+      y1--;
+      long A = (x1 < 0 || y1 < 0) ? 0L : table[ x1, y1 ];
+      long B = (y1 < 0)           ? 0L : table[ x2, y1 ];
+      long C = (x1 < 0)           ? 0L : table[ x1, y2 ];
+      long D =                           table[ x2, y2 ];
+      return D - B - C + A;
+    }
+  }
+
+  /// <summary>
+  /// Integer implementation of the Summed-area table (a.k.a. Integral Image)
+  /// http://en.wikipedia.org/wiki/Summed_area_table
+  /// </summary>
+  public class SummedAreaTableInt
+  {
+    public int[ , ] table = null;
+
+    public SummedAreaTableInt ()
+    {
+    }
+
+    public SummedAreaTableInt ( int xres, int yres )
+    {
+      table = new int[ xres, yres ];
+    }
+
+    public void ComputeTable ()
+    {
+      Debug.Assert( table != null );
+
+      int xres = table.GetLength( 0 );
+      int yres = table.GetLength( 1 );
+      int x, y;
+
+      // 1st row:
+      for ( y = 1; y < yres; y++ )
+        table[ 0, y ] += table[ 0, y - 1 ];
+
+      // rest of the rows:
+      for ( x = 1; x < xres; x++ )
+      {
+        table[ x, 0 ] += table[ x - 1, 0 ];
+        for ( y = 1; y < yres; y++ )
+          table[ x, y ] += table[ x - 1, y ] + table[ x, y - 1 ] - table[ x - 1, y - 1 ];
+      }
+    }
+
+    public int Sum ( int x1, int x2, int y1, int y2 )
+    {
+      Debug.Assert( x1 >= 0 && x1 < table.GetLength( 0 ) );
+      Debug.Assert( x2 >= x1 && x2 < table.GetLength( 0 ) );
+      Debug.Assert( y1 >= 0 && y1 < table.GetLength( 1 ) );
+      Debug.Assert( y2 >= y1 && y2 < table.GetLength( 1 ) );
+
+      x1--;
+      y1--;
+      int A = (x1 < 0 || y1 < 0) ? 0 : table[ x1, y1 ];
+      int B = (y1 < 0)           ? 0 : table[ x2, y1 ];
+      int C = (x1 < 0)           ? 0 : table[ x1, y2 ];
+      int D =                          table[ x2, y2 ];
+      return D - B - C + A;
     }
   }
 }

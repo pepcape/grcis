@@ -4,6 +4,7 @@ using System.Linq;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
+using MathSupport;
 
 namespace Raster
 {
@@ -35,6 +36,11 @@ namespace Raster
     public const int WEIGHT_TOTAL = 16384;
 
     /// <summary>
+    /// Inverted value for converting 8-bit RGB images into gray-scale [0.0,1.0]
+    /// </summary>
+    public const float WEIGHT_INV = 1.0f / (WEIGHT_TOTAL * 255.0f);
+
+    /// <summary>
     /// RGB -> gray value convertor. Keeps original data amplitude..
     /// </summary>
     /// <param name="r">Red component</param>
@@ -46,6 +52,16 @@ namespace Raster
       return( ( r * RED_WEIGHT +
                 g * GREEN_WEIGHT +
                 b * BLUE_WEIGHT ) >> WEIGHT_SHIFT );
+    }
+
+    /// <summary>
+    /// Converts a Color to float gray value from [0.0f, 1.0f]
+    /// </summary>
+    public static float ColorToGray ( Color c )
+    {
+      return( (c.R * RED_WEIGHT +
+               c.G * GREEN_WEIGHT +
+               c.B * BLUE_WEIGHT) * WEIGHT_INV );
     }
 
     /// <summary>
@@ -125,6 +141,58 @@ namespace Raster
       }
                                               // the very last pixel
       img.SetPixel( x1, y1, color );
+    }
+
+    public static void Dot ( Bitmap img, int x, int y, double penSize, Color color )
+    {
+      int wid = img.Width;
+      int hei = img.Height;
+      if ( x < 0 || x >= wid ||
+           y < 0 || y >= hei ) return;
+
+      img.SetPixel( x, y, color );
+      if ( penSize > 1.0 )
+        for ( int peni = 1; peni < squares.Length && squares[ peni ] <= penSize; peni++ )
+        {
+          int pix = x + penPixels[ peni, 0 ];
+          int piy = y + penPixels[ peni, 1 ];
+          if ( pix < 0 || pix >= wid ||
+               piy < 0 || piy >= hei )
+            continue;
+
+          img.SetPixel( pix, piy, color );
+        }
+    }
+
+    /// <summary>
+    /// Random colormap for debugging purposes.
+    /// </summary>
+    public static List<Color> debugColors = null;
+
+    /// <summary>
+    /// Allocate large enough colormap..
+    /// </summary>
+    public static void AssertColors ( int num )
+    {
+      int i;
+      if ( debugColors == null ||
+           debugColors.Count < num )
+      {
+        debugColors = new List<Color>( num );
+        RandomJames rnd = new RandomJames();
+        for ( i = 0; i < num; i++ )
+        {
+          int R = rnd.RandomInteger( 0, 255 );
+          int G = rnd.RandomInteger( 0, 255 );
+          int B = rnd.RandomInteger( 0, 255 );
+          if ( R >= 128 && G >= 128 && B >= 128 )
+            if ( rnd.UniformNumber() > 0.5 )
+              R -= 128;
+            else
+              G -= 128;
+          debugColors.Add( Color.FromArgb( R, G, B ) );
+        }
+      }
     }
 
     public static Color ColorRamp ( double x )
@@ -461,6 +529,51 @@ namespace Raster
 
       gr.Dispose();
       return bmp;
+    }
+
+    /// <summary>
+    /// Support for fractional pen sizes.
+    /// </summary>
+    public static double[] squares;
+
+    /// <summary>
+    /// Support for fractional pen sizes.
+    /// </summary>
+    public static int[ , ] penPixels;
+
+    static Draw ()
+    {
+      squares = new double[ 25 ];
+      for ( int i = 0; i < 25; i++ )
+        squares[ i ] = Math.Sqrt( i + 1.0 );
+      penPixels = new int[ , ]
+      {
+        {  0,  0 },
+        { -1,  0 },
+        {  0, -1 },
+        {  1,  0 },
+        {  0,  1 },
+        { -1, -1 },
+        {  1,  1 },
+        {  1, -1 },
+        { -1,  1 },
+        {  0, -2 },
+        { -2,  0 },
+        {  0,  2 },
+        {  2,  0 },
+        { -1, -2 },
+        {  1,  2 },
+        {  2,  1 },
+        { -2,  1 },
+        {  1, -2 },
+        { -1,  2 },
+        {  2, -1 },
+        { -2, -1 },
+        {  2,  2 },
+        { -2, -2 },
+        { -2,  2 },
+        {  2, -2 }
+      };
     }
   }
 }

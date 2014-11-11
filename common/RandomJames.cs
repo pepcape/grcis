@@ -134,15 +134,13 @@ namespace MathSupport
     /// <summary>
     /// Undeterministic restart of a sequence (uses system time).
     /// </summary>
-    public void Randomize ()
+    public long Randomize ()
     {
-      /* !!! TODO: .NET port
-      Calendar c = Calendar.getInstance();
-      c.setTime( new Date() );
-      int s = c.get( Calendar.SECOND );
-      int m = c.get( Calendar.MINUTE );
-      int h = c.get( Calendar.HOUR );
-      int d = c.get( Calendar.DAY_OF_YEAR ) - 1;
+      DateTime now = DateTime.UtcNow;
+      int s = now.Second;
+      int m = now.Minute;
+      int h = now.Hour;
+      int d = now.DayOfYear;
 
       double maxs_sig   = 60.0 + 60.0/60.0 + 24.0/60.0/60.0 + 366.0/24.0/60.0/60.0;
       double maxs_insig = 60.0 + 60.0*60.0 + 24.0*60.0*60.0 + 366.0*24.0*60.0*60.0;
@@ -154,7 +152,8 @@ namespace MathSupport
       int s2 = (int)(s_insig / maxs_insig * 30081.0);
 
       Reset( s1, s2 );
-      */
+
+      return s1 * 30082L + s2;
     }
 
     /// <summary>
@@ -299,7 +298,7 @@ namespace MathSupport
     {
       if ( min >= max ) return min;
 
-      return( min + (int)((max + 1 - min) * UniformNumber()) );
+      return( min + (int)((max + 1.0 - min) * UniformNumber()) );
     }
 
     /// <summary>
