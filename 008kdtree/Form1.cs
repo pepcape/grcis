@@ -16,6 +16,8 @@ namespace _008kdtree
     public Form1 ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     private List<Segment2D> segments = null;
@@ -210,6 +212,5 @@ namespace _008kdtree
 
       pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
-
   }
 }

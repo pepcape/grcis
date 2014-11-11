@@ -1,6 +1,7 @@
-﻿using System;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Drawing;
 using System.Text;
 
@@ -104,7 +105,7 @@ namespace _008kdtree
 
       int n = Math.Min( k, res.Count );
       for ( int i = 0; i < n; i++ )
-        result[ i ] = res.ElementAt( i ).Value;
+        result[ i ] = res.Values[ i ];
 
       return n;
 
