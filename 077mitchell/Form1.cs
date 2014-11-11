@@ -25,11 +25,20 @@ namespace _077mitchell
     public Form1 ()
     {
       InitializeComponent();
-      Text = "Mitchell rev" + rev;
+      Text = "Mitchell (rev: " + rev + ')';
 
       // Init dynamic form content.
       InitializeComboBoxes();
       InitializeParams();
+
+      // boss settings:
+      //comboSampling.SelectedIndex = comboSampling.Items.IndexOf( "Random" );
+      //comboDensity.SelectedIndex = comboDensity.Items.IndexOf( DefaultPdf.PDF_UNIFORM );
+      //densityFile = "";
+      //numericSamples.Value = 1024;
+      //numericSeed.Value = 12;
+      //numericResolution.Value = 512;
+      //textParams.Text = "k=6";
 
       // WPF hosted Canvas:
       drawingCanvas = new Canvas();
@@ -256,8 +265,8 @@ namespace _077mitchell
       SetSampleSet( newSet );
 
       String msg = string.Format( CultureInfo.InvariantCulture,
-                                  "{0} samples generated in {1:f2}s, seed={2}",
-                                  number, 1.0e-3 * elapsed, seed );
+                                  "{0} samples generated in {1:f2}s, seed={2}, hash={3:X}",
+                                  number, 1.0e-3 * elapsed, seed, sampler.Hash );
       SetText( msg );
       Util.Log( string.Format( CultureInfo.InvariantCulture, "Generating samples finished in {0:f2}s: {1}, samples={2}, param='{3}', seed={4}",
                                1.0e-3 * elapsed, newSet.samplingSource, number, newSet.samplingParams, seed ) );

@@ -102,6 +102,12 @@ namespace _077mitchell
     { get; set; }
 
     /// <summary>
+    /// Hash value for result checking.
+    /// </summary>
+    long Hash
+    { get; set; }
+
+    /// <summary>
     /// Initial random seed (0L for Randomize).
     /// </summary>
     /// <returns>Actual used random seed (returns result of Randomize()).</returns>
@@ -166,6 +172,20 @@ namespace _077mitchell
     /// Dedicated instance of random generator.
     /// </summary>
     protected RandomJames rnd = new RandomJames();
+
+    /// <summary>
+    /// Hash value for result checking.
+    /// </summary>
+    protected long hash = 0L;
+
+    /// <summary>
+    /// Hash value for result checking.
+    /// </summary>
+    public long Hash
+    {
+      get { return hash; }
+      set { hash = value; }
+    }
 
     /// <summary>
     /// Random generator init.
