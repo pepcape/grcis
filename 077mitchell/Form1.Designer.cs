@@ -373,7 +373,7 @@
       this.Controls.Add(this.elementHostCanvas);
       this.MinimumSize = new System.Drawing.Size(790, 400);
       this.Name = "Form1";
-      this.Text = "Sampling";
+      this.Text = "Mitchell";
       this.Load += new System.EventHandler(this.Form1_Load);
       this.Resize += new System.EventHandler(this.Form1_Resize);
       ((System.ComponentModel.ISupportInitialize)(this.numericSeed)).EndInit();

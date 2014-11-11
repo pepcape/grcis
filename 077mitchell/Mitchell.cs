@@ -67,6 +67,8 @@ namespace _077mitchell
         }
       }
 
+      hash = 0L;
+
       set.samples.Clear();
       for ( int i = 0; i < count; i++ )
       {
@@ -74,8 +76,10 @@ namespace _077mitchell
         double bestX = 0.0;
         double bestY = 0.0;   // best candidate so far
         double bestDD = 0.0;  // square distance of the best candidate
+        int bestCandidate = 0;
 
         int candidates = i * K;
+        int candidate = 0;
         do
         {
           // one candidate:
@@ -156,14 +160,16 @@ namespace _077mitchell
             bestDD = DD;
             bestX = x;
             bestY = y;
+            bestCandidate = candidate;
           }
         }
-        while ( --candidates > 0 );
+        while ( candidate++ < candidates );
 
+        hash = hash * 348937L + bestCandidate * 8999L + 4831L;
         set.samples.Add( new Vector2d( bestX, bestY ) );
 
         // User break check:
-        if ( (i & 0xf) == 0 && userBreak ) break;
+        if ( userBreak ) break;
       }
 
       return set.samples.Count;
@@ -228,8 +234,10 @@ namespace _077mitchell
         double bestX = 0.0;
         double bestY = 0.0;    // best candidate so far
         double bestDD = -1.0;  // square distance of the best candidate
+        int bestCandidate = 0;
 
         int candidates = i * K;
+        int candidate = 0;
         do
         {
           // one candidate:
@@ -286,14 +294,16 @@ namespace _077mitchell
             bestDD = DD * density;
             bestX = x;
             bestY = y;
+            bestCandidate = candidate;
           }
         }
-        while ( --candidates > 0 );
+        while ( candidate++ < candidates );
 
+        hash = hash * 348937L + bestCandidate * 8999L + 4831L;
         set.samples.Add( new Vector2d( bestX, bestY ) );
 
         // User break check:
-        if ( (i & 0xf) == 0 && userBreak ) break;
+        if ( userBreak ) break;
       }
 
       return set.samples.Count;
