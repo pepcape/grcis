@@ -108,6 +108,14 @@ namespace _077mitchell
     { get; set; }
 
     /// <summary>
+    /// Statistics: point vs. point distance,
+    /// point vs. box distance,
+    /// heap operations.
+    /// </summary>
+    long[] Stat
+    { get; }
+
+    /// <summary>
     /// Initial random seed (0L for Randomize).
     /// </summary>
     /// <returns>Actual used random seed (returns result of Randomize()).</returns>
@@ -185,6 +193,25 @@ namespace _077mitchell
     {
       get { return hash; }
       set { hash = value; }
+    }
+
+    protected long pointPointCounter = 0L;
+
+    protected long pointBoxCounter = 0L;
+
+    protected long heapCounter = 0L;
+
+    /// <summary>
+    /// Statistics: point vs. point distance,
+    /// point vs. box distance,
+    /// heap operations.
+    /// </summary>
+    public long[] Stat
+    {
+      get
+      {
+        return new long[] { pointPointCounter, pointBoxCounter, heapCounter };
+      }
     }
 
     /// <summary>

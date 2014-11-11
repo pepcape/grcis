@@ -7,20 +7,6 @@ using Utilities;
 namespace _077mitchell
 {
   /// <summary>
-  /// Sampling method registry.
-  /// </summary>
-  public abstract partial class DefaultSampling
-  {
-    static DefaultSampling ()
-    {
-      Register( new RandomSampling() );
-      Register( new RandomDensitySampling() );
-      Register( new MitchellSampling() );
-      Register( new MitchellDensitySampling() );
-    }
-  }
-
-  /// <summary>
   /// Random (independent) sampling.
   /// </summary>
   public class RandomSampling : DefaultSampling, ISampling

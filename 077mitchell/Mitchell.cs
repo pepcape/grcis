@@ -27,6 +27,20 @@ namespace _077mitchell
   }
 
   /// <summary>
+  /// Sampling method registry.
+  /// </summary>
+  public abstract partial class DefaultSampling
+  {
+    static DefaultSampling ()
+    {
+      Register( new RandomSampling() );
+      Register( new RandomDensitySampling() );
+      Register( new MitchellSampling() );
+      Register( new MitchellDensitySampling() );
+    }
+  }
+
+  /// <summary>
   /// Mitchell sampling by dart throwing.
   /// Number of candidates is defined by the parameter 'k'
   /// </summary>
@@ -68,6 +82,7 @@ namespace _077mitchell
       }
 
       hash = 0L;
+      pointPointCounter = pointBoxCounter = heapCounter = 0L;
 
       set.samples.Clear();
       for ( int i = 0; i < count; i++ )
@@ -98,6 +113,7 @@ namespace _077mitchell
           {
             bool dirty = false;    // need recompute D, checkX, checkY
 
+            pointPointCounter++;
             double DDx = (x - s.X) * (x - s.X);
             double DDy = (y - s.Y) * (y - s.Y);
 
@@ -112,29 +128,37 @@ namespace _077mitchell
             if ( checkX )
             {
               double save = DDx;
+
+              pointPointCounter++;
               DDx = (x - 1.0 - s.X) * (x - 1.0 - s.X);
               if ( DDx + DDy < DD )
               {
                 DD = DDx + DDy;
                 dirty = true;
               }
+
+              pointPointCounter++;
               DDx = (x + 1.0 - s.X) * (x + 1.0 - s.X);
               if ( DDx + DDy < DD )
               {
                 DD = DDx + DDy;
                 dirty = true;
               }
+
               DDx = save;
             }
 
             if ( checkY )
             {
+              pointPointCounter++;
               DDy = (y - 1.0 - s.Y) * (y - 1.0 - s.Y);
               if ( DDx + DDy < DD )
               {
                 DD = DDx + DDy;
                 dirty = true;
               }
+
+              pointPointCounter++;
               DDy = (y + 1.0 - s.Y) * (y + 1.0 - s.Y);
               if ( DDx + DDy < DD )
               {
@@ -225,6 +249,9 @@ namespace _077mitchell
         }
       }
 
+      hash = 0L;
+      pointPointCounter = pointBoxCounter = heapCounter = 0L;
+
       set.samples.Clear();
       if ( Density == null ) return 0;
 
@@ -257,7 +284,8 @@ namespace _077mitchell
 
           foreach ( var s in set.samples )
           {
-            double DDx = (x - s.X ) * (x - s.X);
+            pointPointCounter++;
+            double DDx = (x - s.X) * (x - s.X);
             double DDy = (y - s.Y ) * (y - s.Y);
 
             // plain distance:
@@ -268,17 +296,25 @@ namespace _077mitchell
             if ( toroid )
             {
               double save = DDx;
+
+              pointPointCounter++;
               DDx = (x - 1.0 - s.X) * (x - 1.0 - s.X);
               if ( DDx + DDy < DD )
                 DD = DDx + DDy;
+
+              pointPointCounter++;
               DDx = (x + 1.0 - s.X) * (x + 1.0 - s.X);
               if ( DDx + DDy < DD )
                 DD = DDx + DDy;
+
               DDx = save;
 
+              pointPointCounter++;
               DDy = (y - 1.0 - s.Y) * (y - 1.0 - s.Y);
               if ( DDx + DDy < DD )
                 DD = DDx + DDy;
+
+              pointPointCounter++;
               DDy = (y + 1.0 - s.Y) * (y + 1.0 - s.Y);
               if ( DDx + DDy < DD )
                 DD = DDx + DDy;
