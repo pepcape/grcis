@@ -39,6 +39,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenTK">
+      <HintPath>..\lib\OpenTK.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -56,6 +59,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\MathSupport.cs">
+      <Link>MathSupport.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RandomJames.cs">
+      <Link>RandomJames.cs</Link>
+    </Compile>
     <Compile Include="..\common\RasterDrawing.cs">
       <Link>RasterDrawing.cs</Link>
     </Compile>
