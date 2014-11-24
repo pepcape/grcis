@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "014compressiontr", "014compressiontr.csproj", "{BBB1488B-6F38-4C1F-827F-C44D5F787582}"
 EndProject
 Global
