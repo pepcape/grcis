@@ -15,7 +15,7 @@ namespace Scene3D
     public static Matrix4 SetViewport ( int x0, int y0, int width, int height )
     {
       Matrix4 tr = Matrix4.CreateTranslation( 1.0f, 1.0f, 1.0f );
-      tr = Matrix4.Mult( tr, Matrix4.Scale( 0.5f * width, -0.5f * height, 0.5f ) );
+      tr = Matrix4.Mult( tr, Matrix4.CreateScale( 0.5f * width, -0.5f * height, 0.5f ) );
       return Matrix4.Mult( tr, Matrix4.CreateTranslation( x0, y0 + height, 0.0f ) );
     }
   }

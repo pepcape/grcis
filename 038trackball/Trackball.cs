@@ -151,7 +151,7 @@ namespace _038trackball
 
       GL.MatrixMode( MatrixMode.Modelview );
       Matrix4 modelview = Matrix4.CreateTranslation( -center ) *
-                          Matrix4.Scale( zoom / diameter ) *
+                          Matrix4.CreateScale( zoom / diameter ) *
                           prevRotation *
                           rotation *
                           Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
