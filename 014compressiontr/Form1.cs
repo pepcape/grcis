@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
 using System.IO;
+using System.Windows.Forms;
 using Raster;
 
 namespace _014compressiontr
@@ -20,9 +16,12 @@ namespace _014compressiontr
 
     protected Bitmap diffImage = null;
 
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonLoad_Click ( object sender, EventArgs e )
@@ -68,7 +67,7 @@ namespace _014compressiontr
       long fileSize = fs.Position;
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Enc: {0:f}s, {1}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f3}s, {1:f1}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
 
       // 3. image decoding
       fs.Seek( 0L, SeekOrigin.Begin );
@@ -80,7 +79,7 @@ namespace _014compressiontr
       {
         diffImage = new Bitmap( inputImage.Width, inputImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
         float RMSE = Draw.ImageRMSE( inputImage, outputImage, diffImage );
-        labelResult.Text = String.Format( "RMSE: {0}", RMSE );
+        labelResult.Text = String.Format( CultureInfo.InvariantCulture, "RMSE: {0}", RMSE );
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
       }
       else
