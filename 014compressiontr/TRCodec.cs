@@ -1,8 +1,10 @@
-﻿using System.Drawing;
+﻿// Author: Josef Pelikan
+
+using System;
+using System.Drawing;
 using System.IO;
 using Compression;
 using Raster;
-using System;
 
 namespace _014compressiontr
 {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 using Raster;
@@ -66,7 +67,7 @@ namespace _042compressionpre
       long fileSize = fs.Position;
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Enc: {0:f}s, {1:0.0}kb", 1.0e-3 * sw.ElapsedMilliseconds, fileSize / 1024.0 );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f3}s, {1:f1}kb", 1.0e-3 * sw.ElapsedMilliseconds, fileSize / 1024.0 );
 
       // 3. image decoding
       fs.Seek( 0L, SeekOrigin.Begin );
@@ -78,7 +79,7 @@ namespace _042compressionpre
       {
         diffImage = new Bitmap( inputImage.Width, inputImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
         long diffHash = Draw.ImageCompare( inputImage, outputImage, diffImage );
-        labelResult.Text = String.Format( "Errs: {0}", diffHash );
+        labelResult.Text = String.Format( CultureInfo.InvariantCulture, "Errs: {0}", diffHash );
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
       }
       else
