@@ -280,7 +280,12 @@ namespace _077mitchell
           // compute its distance to the current sample-set:
           double DD = double.MaxValue;   // current maximal distance squared (will decrease)
 
-          if ( i == 0 ) break;
+          if ( i == 0 )
+          {
+            bestX = x;
+            bestY = y;
+            break;
+          }
 
           foreach ( var s in set.samples )
           {
