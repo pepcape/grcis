@@ -335,46 +335,41 @@ namespace _077mitchell
       else
         sampler = new RandomSampling();
 
-      if ( sampler is MitchellDensitySampling ||
-           sampler is RandomDensitySampling )
+      string dname = comboDensity.Text;
+      switch ( dname )
       {
-        string dname = comboDensity.Text;
-        switch ( dname )
-        {
-          case DefaultPdf.PDF_IMAGE:
-            if ( densityFile == null ||
-                 !File.Exists( densityFile ) )
-            {
-              Util.Log( "Invalid density file: " + densityFile ?? "null" );
-              density = new DensityFunction( -1 );
-              break;
-            }
-            density = new RasterPdf( densityFile, checkNegative.Checked );
-            break;
-
-          case DefaultPdf.PDF_UNIFORM:
+        case DefaultPdf.PDF_IMAGE:
+          if ( densityFile == null ||
+                !File.Exists( densityFile ) )
+          {
+            Util.Log( "Invalid density file: " + densityFile ?? "null" );
             density = new DensityFunction( -1 );
             break;
+          }
+          density = new RasterPdf( densityFile, checkNegative.Checked );
+          break;
 
-          case DefaultPdf.PDF_RAMP:
-            density = new DensityFunction( 0 );
-            break;
+        case DefaultPdf.PDF_UNIFORM:
+          density = new DensityFunction( -1 );
+          break;
 
-          case DefaultPdf.PDF_COSRR:
-            density = new DensityFunction( 1 );
-            break;
+        case DefaultPdf.PDF_RAMP:
+          density = new DensityFunction( 0 );
+          break;
 
-          case DefaultPdf.PDF_SINCR:
-            density = new DensityFunction( 2 );
-            break;
+        case DefaultPdf.PDF_COSRR:
+          density = new DensityFunction( 1 );
+          break;
 
-          case DefaultPdf.PDF_SINCOS:
-            density = new DensityFunction( 3 );
-            break;
-        }
+        case DefaultPdf.PDF_SINCR:
+          density = new DensityFunction( 2 );
+          break;
 
-        sampler.Density = density;
+        case DefaultPdf.PDF_SINCOS:
+          density = new DensityFunction( 3 );
+          break;
       }
+      sampler.Density = density;
 
       sampler.Break = false;
     }
