@@ -26,7 +26,7 @@ namespace _014compressiontr
 
     #region Codec API
 
-    public void EncodeImage ( Bitmap inp, Stream outs )
+    public void EncodeImage ( Bitmap inp, Stream outs, float quality =100.0f )
     {
       if ( inp  == null ||
            outs == null ) return;

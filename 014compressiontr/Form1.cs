@@ -60,7 +60,8 @@ namespace _014compressiontr
       // 1. image encoding
       TRCodec codec = new TRCodec();
       FileStream fs = new FileStream( "code.bin", FileMode.Create );
-      codec.EncodeImage( inputImage, fs );
+      float quality = (float)numericQuality.Value;
+      codec.EncodeImage( inputImage, fs, quality );
 
       // 2. code size
       fs.Flush();
@@ -79,7 +80,7 @@ namespace _014compressiontr
       {
         diffImage = new Bitmap( inputImage.Width, inputImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
         float RMSE = Draw.ImageRMSE( inputImage, outputImage, diffImage );
-        labelResult.Text = String.Format( CultureInfo.InvariantCulture, "RMSE: {0}", RMSE );
+        labelResult.Text = String.Format( CultureInfo.InvariantCulture, "RMSE: {0:f2}", RMSE );
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
       }
       else
