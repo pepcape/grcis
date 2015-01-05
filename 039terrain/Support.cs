@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Author: Jan Benes, Josef Pelikan
+
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
@@ -27,7 +29,7 @@ namespace _039terrain
     private float far = 200.0f;
 
     #endregion
-      
+
     #region OpenGL globals
 
     private uint[] VBOid = new uint[ 2 ];
@@ -218,7 +220,7 @@ namespace _039terrain
         delta = e.X - dragFromX;
         dragFromX = e.X;
         azimuthAngle -= delta * 4.0f / glControl1.Width;
-       
+
         upDownAzimuth.Value = (decimal)azimuthAngle;
       }
 
