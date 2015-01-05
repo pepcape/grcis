@@ -24,6 +24,8 @@ namespace _039terrain
     public Form1 ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )

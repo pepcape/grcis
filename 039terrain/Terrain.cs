@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Author: Jan Benes, Josef Pelikan
+
+using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
@@ -116,20 +118,20 @@ namespace _039terrain
       GL.PushMatrix();
       GL.LoadIdentity();
       GL.Light( LightName.Light1, LightParameter.Position, new Vector4( 5.0f, 2.0f, 0.0f, 1.0f ) );
-      //GL.Light( LightName.Light1, LightParameter.SpotDirection, new Vector4( 0.0f, 0.0f, -1.0f, 0.0f ) ); 
+      //GL.Light( LightName.Light1, LightParameter.SpotDirection, new Vector4( 0.0f, 0.0f, -1.0f, 0.0f ) );
       GL.PopMatrix();
 
       SetCamera();
 
       /* IF YOU'RE NOT GOING TO USE TEXTURE(S), YOU CAN USE THIS TO COLOR
        * THE GEOMETRY IN THE BUFFERS
-       
+
       float[] materialAmbient = { 0.1f, 0.3f, 0.1f };
       float[] materialDiffuse = { 1.0f, 1.0f, 1.0f };
 
       GL.Material( MaterialFace.Front, MaterialParameter.Ambient, materialAmbient );
       GL.Material( MaterialFace.Front, MaterialParameter.Diffuse, materialDiffuse );
-      
+
       GL.ColorMaterial( MaterialFace.Front, ColorMaterialParameter.Diffuse );
       GL.Enable( EnableCap.ColorMaterial );
       GL.ColorMaterial( MaterialFace.Front, ColorMaterialParameter.Diffuse );
