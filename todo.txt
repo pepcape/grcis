@@ -3,6 +3,9 @@
 ================================================================================
   ($Rev$ $Date$)
 ================================================================================
+- stinovani do 070subdivision
+- 016videoslow: zkontrolovat Bitmap.Dispose()
+
 - pridat par dalsich teles: Plane (test: nahodny konvexni polyedr nebo
   Platonska telesa), Cone
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
@@ -13,6 +16,7 @@
 ================================================================================
   Long term:
 ================================================================================
+- IEntropyCodec .. mozna upravit API, PutBits/GetBits
 - licence: Apache licence? Nebo BSD?
 - vyzkouset GLSL shadery (upgrade OpenTK?)
 - jazyk na definici RT sceny (XML?), nacitani RT scen az za behu
