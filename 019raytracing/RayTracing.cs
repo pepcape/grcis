@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Author: Josef Pelikan
+
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 using OpenTK;
