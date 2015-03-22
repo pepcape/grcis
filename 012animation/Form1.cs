@@ -100,9 +100,11 @@ namespace _012animation
 
         Bitmap newImage = anim.RenderFrame( width, height, i, maxFrame );
         SetImage( (Bitmap)newImage.Clone() );
+
         SetText( String.Format( "Frame: {0}", i ) );
         string fileName = String.Format( "out{0:0000}.png", i );
         newImage.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+        newImage.Dispose();
       }
 
       StopAnimation();

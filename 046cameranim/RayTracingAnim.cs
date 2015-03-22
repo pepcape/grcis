@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿// Author: Josef Pelikan
+
+using System.Diagnostics;
 using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
@@ -170,6 +172,7 @@ namespace Rendering
 
       Camera = cam;
       cam.End = 5.0;   // one complete turn takes 5.0 seconds
+          End = 5.0;
 
       // !!!}}
     }

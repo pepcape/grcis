@@ -259,6 +259,20 @@ namespace _063animation
     /// </summary>
     protected Queue<Result> queue = null;
 
+    protected void initQueue ()
+    {
+      if ( queue == null )
+        queue = new Queue<Result>();
+      else
+      {
+        while ( queue.Count > 0 )
+        {
+          Result r = queue.Dequeue();
+          r.image.Dispose();
+        }
+      }
+    }
+
     /// <summary>
     /// Animation rendering prolog: prepare all the global (uniform) values, start the main thread.
     /// </summary>
@@ -309,8 +323,8 @@ namespace _063animation
       Cursor.Current = Cursors.WaitCursor;
 
       int threads = Environment.ProcessorCount;
-      queue = new Queue<Result>();
-      sem = new Semaphore( 0, 2 * threads );
+      initQueue();
+      sem = new Semaphore( 0, 10 * threads );
 
       // pool of working threads:
       Thread[] pool = new Thread[ threads ];
@@ -351,7 +365,8 @@ namespace _063animation
         }
 
         // GUI progress indication:
-        SetText( String.Format( CultureInfo.InvariantCulture, "Frames: {0}  ({1:f1}s)", ++frames, 1.0e-3 * sw.ElapsedMilliseconds ) );
+        SetText( String.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
+                                threads, ++frames, 1.0e-3 * sw.ElapsedMilliseconds ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
         {
@@ -363,6 +378,7 @@ namespace _063animation
         // save the image file:
         string fileName = String.Format( "out{0:0000}.png", r.frameNumber );
         r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+        r.image.Dispose();
       }
 
       for ( t = 0; t < threads; t++ )

@@ -534,6 +534,7 @@ namespace _077mitchell
       try
       {
         image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+        image.Dispose();
       }
       catch ( Exception ex )
       {

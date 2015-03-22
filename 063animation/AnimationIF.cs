@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;

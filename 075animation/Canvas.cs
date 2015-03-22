@@ -70,9 +70,12 @@ namespace _075animation
     /// <param name="bg">Background color.</param>
     public void Clear ( Color bg )
     {
-      if ( bmp.Width  != Width ||
+      if ( bmp.Width != Width ||
            bmp.Height != Height )
+      {
+        bmp.Dispose();
         InitializeBitmap();
+      }
 
       gr.Clear( bg );
     }
