@@ -128,7 +128,10 @@ namespace _035plasma
         if ( saveFrames )
         {
           string fileName = String.Format( "out{0:0000}.png", sim.Frame );
-          ((Bitmap)frame.Clone()).Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+          using ( Bitmap bmp = (Bitmap)frame.Clone() )
+          {
+            bmp.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+          }
         }
       }
 
