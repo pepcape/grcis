@@ -160,6 +160,9 @@ namespace _048rtmontecarlo
       if ( width <= 0 ) width = panel1.Width;
       int height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
+
+      if ( outputImage != null )
+        outputImage.Dispose();
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       if ( imf == null )
