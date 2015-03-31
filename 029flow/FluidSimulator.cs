@@ -6,6 +6,11 @@ using System;
 
 namespace _029flow
 {
+  /// <summary>
+  /// Delegate used for simulation-world initialization.
+  /// </summary>
+  public delegate void InitWorldDelegate ( FluidSimulator sim );
+
   public class FluidSimulator
   {
     const double ParticleMass = 0.02;
@@ -55,6 +60,14 @@ namespace _029flow
       public bool active = false;
     }
 
+    List<Particle> particles = null;
+
+    int activeParticles;
+
+    long totalSpawned;
+
+    double ppt;
+
     public class Wall
     {
       /// <summary>
@@ -68,15 +81,17 @@ namespace _029flow
       public double a, b, c;
     }
 
-    List<Particle> particles = null;
-
-    int activeParticles;
-
-    long totalSpawned;
-
-    double ppt;
-
     List<Wall> walls = null;
+
+    double xMin, xMax, yMin, yMax;
+
+    public void SetBounds ( double xMi, double xMa, double yMi, double yMa )
+    {
+      xMin = xMi;
+      xMax = xMa;
+      yMin = yMi;
+      yMax = yMa;
+    }
 
     public RandomJames rnd = null;
 
@@ -352,24 +367,36 @@ namespace _029flow
       p.vy = vy * v * BounceEfficiency;
     }
 
-    void InitWalls ( int nMaxWalls )
+    void InitWalls ()
     {
-      walls = new List<Wall>( nMaxWalls );
+      if ( walls == null )
+        walls = new List<Wall>();
+      else
+        walls.Clear();
     }
 
     void DeInitWalls ()
     {
-      walls = null;
+      walls.Clear();
     }
 
     //--- Public methods ---
 
     public FluidSimulator ( RandomJames _rnd =null )
     {
+      // particles:
       particles = null;
       activeParticles = 0;
-      walls = null;
       totalSpawned = 0L;
+
+      // boundaries:
+      walls = null;
+      xMin = 0.0;
+      xMax = 3.0;
+      yMin = 0.0;
+      yMax = 1.0;
+
+      // random generator:
       rnd = _rnd;
       if ( rnd == null )
       {
@@ -378,11 +405,11 @@ namespace _029flow
       }
     }
 
-    public void Init ( int nParticles, double fPPT, int nMaxWalls =16 )
+    public void Init ( int nParticles, double fPPT )
     {
       ppt = fPPT;
       InitParticles( nParticles );
-      InitWalls( nMaxWalls );
+      InitWalls();
     }
 
     public void DeInit ()
@@ -520,6 +547,40 @@ namespace _029flow
           pBuffer[ iy + 1 ][ ix ] += 1.0f;
           pBuffer[ iy + 1 ][ ix + 1 ] += 1.0f;
         }
+    }
+  }
+
+  public class Worlds
+  {
+    /// <summary>
+    /// Worlds names how to appear in a combo-box.
+    /// </summary>
+    public static string[] Names =
+    {
+      "Roof",
+    };
+
+    /// <summary>
+    /// The init functions themselves..
+    /// </summary>
+    public static InitWorldDelegate[] InitFunctions =
+    {
+      new InitWorldDelegate( Roof ),
+    };
+
+    /// <summary>
+    /// Simple scene containing five colored spheres.
+    /// </summary>
+    public static void Roof ( FluidSimulator sim )
+    {
+      sim.SetBounds( 0.0, 3.0, 0.0, 1.0 );
+
+      sim.RemoveAllWalls();
+      sim.AddWall( -0.01, 0.0, 3.0, 0.0 );
+      sim.AddWall( -0.01, 1.0, 3.0, 1.0 );
+      sim.AddWall(  0.0,  0.0, 0.0, 1.0 );
+      sim.AddWall(  0.5,  0.5, 0.9, 0.15 );
+      sim.AddWall(  0.5,  0.5, 0.9, 0.85 );
     }
   }
 }

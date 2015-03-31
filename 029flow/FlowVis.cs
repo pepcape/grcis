@@ -21,14 +21,6 @@ namespace _029flow
     }
 
     /// <summary>
-    /// Initialize ray-scene and image function (good enough for simple samples).
-    /// </summary>
-    private IImageFunction getImageFunction ( IRayScene scene )
-    {
-      return new RayTracing( scene );
-    }
-
-    /// <summary>
     /// Global instance of a random generator.
     /// </summary>
     private static RandomJames rnd = new RandomJames();
@@ -48,14 +40,14 @@ namespace _029flow
     /// </summary>
     private void InitializeScenes ()
     {
-      sceneInitFunctions = new List<InitSceneDelegate>( Scenes.InitFunctions );
+      worldInitFunctions = new List<InitWorldDelegate>( Worlds.InitFunctions );
 
       // 1. default scenes from RayCastingScenes
       foreach ( string name in Scenes.Names )
         comboScene.Items.Add( name );
 
       // 2. eventually add custom scenes
-      sceneInitFunctions.Add( new InitSceneDelegate( CustomScene.TestScene ) );
+      worldInitFunctions.Add( new InitWorldDelegate( CustomScene.TestScene ) );
       comboScene.Items.Add( "Test scene" );
 
       // .. and set your favorite scene here:
@@ -72,11 +64,6 @@ namespace _029flow
 
 namespace Rendering
 {
-  /// <summary>
-  /// Delegate used for simulation-scene initialization.
-  /// </summary>
-  public delegate void InitSceneDelegate ( FluidSimulator sim );
-
   /// <summary>
   /// Super-samples only pixels which actually need it!
   /// </summary>

@@ -21,22 +21,12 @@ namespace _029flow
     /// <summary>
     /// The same order as items in the comboScenes.
     /// </summary>
-    protected List<InitSceneDelegate> sceneInitFunctions = null;
+    protected List<InitWorldDelegate> worldInitFunctions = null;
 
     /// <summary>
     /// Index of the current (selected) scene.
     /// </summary>
-    protected volatile int selectedScene = 0;
-
-    /// <summary>
-    /// Ray-based renderer in form of image function.
-    /// </summary>
-    protected IImageFunction imf = null;
-
-    /// <summary>
-    /// Image synthesizer used to compute raster images.
-    /// </summary>
-    protected IRenderer rend = null;
+    protected volatile int selectedWorld = 0;
 
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
@@ -104,7 +94,7 @@ namespace _029flow
     protected IRayScene SceneByComboBox ()
     {
       DefaultRayScene sc = new DefaultRayScene();
-      sceneInitFunctions[ selectedScene ]( sc );
+      worldInitFunctions[ selectedWorld ]( sc );
       return sc;
     }
 
@@ -368,7 +358,7 @@ namespace _029flow
 
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
-      selectedScene = comboScene.SelectedIndex;
+      selectedWorld = comboScene.SelectedIndex;
       imf = null;
     }
 
