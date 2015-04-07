@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
-//using OpenTK;
 using Rendering;
 using MathSupport;
 
@@ -240,7 +239,7 @@ namespace _063animation
   }
 
   /// <summary>
-  /// Animation data (non-mandatory).
+  /// Animation data (optional).
   /// </summary>
   public class AnimationData    // : ITimeDependent
   {
