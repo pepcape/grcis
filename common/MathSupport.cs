@@ -134,6 +134,66 @@ namespace MathSupport
   }
 
   /// <summary>
+  /// Data class keeping info about current progress of a computation.
+  /// </summary>
+  public class Progress
+  {
+    /// <summary>
+    /// Relative amount of work finished so far (0.0f to 1.0f).
+    /// </summary>
+    public float Finished
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Optional message. Any string.
+    /// </summary>
+    public string Message
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Continue in an associated computation.
+    /// </summary>
+    public bool Continue
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Sync interval in milliseconds.
+    /// </summary>
+    public long SyncInterval
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Any message from computing unit to the GUI main.
+    /// </summary>
+    public virtual void Sync ( Object msg )
+    {
+    }
+
+    /// <summary>
+    /// Set all the harmless values.
+    /// </summary>
+    public Progress ()
+    {
+      Finished     = 0.0f;
+      Message      = "";
+      Continue     = true;
+      SyncInterval = 8000L;
+    }
+  }
+
+  /// <summary>
   /// Real polynomial up to the 4th degree.
   /// </summary>
   public class Polynomial

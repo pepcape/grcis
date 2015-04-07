@@ -83,6 +83,9 @@ namespace _029flow
 
     List<Wall> walls = null;
 
+    /// <summary>
+    /// Simulation field bounds.
+    /// </summary>
     double xMin, xMax, yMin, yMax;
 
     public void SetBounds ( double xMi, double xMa, double yMi, double yMa )
@@ -93,7 +96,63 @@ namespace _029flow
       yMax = yMa;
     }
 
+    /// <summary>
+    /// Presentation bitmap width in pixels.
+    /// </summary>
+    public int width = 0;
+
+    /// <summary>
+    /// Presentation bitmap height in pixels.
+    /// </summary>
+    public int height = 0;
+
+    protected double scalexy = 1.0;
+
+    /// <summary>
+    /// Set presentation bitmap size, recalculates aspect ratio acording to simulation field bounds.
+    /// </summary>
+    public void SetPresentationSize ( ref int wid, ref int hei )
+    {
+      double scalex = wid / (xMax - xMin);
+      double scaley = hei / (yMax - yMin);
+      if ( scalex < scaley )
+      {
+        scalexy = scalex;
+        hei = (int)((yMax - yMin) * scalexy);
+      }
+      else
+      {
+        scalexy = scaley;
+        wid = (int)((xMax - xMin) * scalexy);
+      }
+      width = wid;
+      height = hei;
+    }
+
+    /// <summary>
+    /// Total simulation time in seconds.
+    /// </summary>
+    public double SimTime = 0.0;
+
+    /// <summary>
+    /// Buffer for particle density. Used for buffer locking too!
+    /// </summary>
+    public int[,] cell;
+
+    /// <summary>
+    /// Buffers for velocity components / sum of total square velocity.
+    /// </summary>
+    public float[,] vx, vy, power;
+
+    /// <summary>
+    /// Dedicated random generator (each simulation thread should have its own instance).
+    /// </summary>
     public RandomJames rnd = null;
+
+    /// <summary>
+    /// Progress object for user break.
+    /// </summary>
+    public Progress progress = null;
 
     /*
     static float pDot[5][5] = { {0.0625f, 0.125f, 0.25f, 0.125f, 0.0625f} ,
@@ -185,8 +244,8 @@ namespace _029flow
           if ( !par.active )
           {
             par.active = true;
-            par.x = 0.0001;
-            par.y = 0.1 * rnd.UniformNumber() + 0.45;
+            par.x = xMin + 0.0001;
+            par.y = yMin + 0.1 * rnd.UniformNumber() + 0.45;
             //par.y = fJitterRange * rnd.UniformNumber() + ( nCountToDo - 1.0 ) * fJitterRange;
             par.fx = 0.0;
             par.fy = 0.0;
@@ -226,8 +285,8 @@ namespace _029flow
               double x2 = particles[j].x;
               double y2 = particles[j].y;
 
-              if( (x2 + RepulsiveRange > x1) && (x2 - RepulsiveRange < x1) &&
-                ( (y2 + RepulsiveRange > y1) && (y2 - RepulsiveRange < y1) )
+              if ( (x2 + RepulsiveRange > x1) && (x2 - RepulsiveRange < x1) &&
+                   (y2 + RepulsiveRange > y1) && (y2 - RepulsiveRange < y1) )
               {           
                 double dx = x2 - x1;
                 double dy = y2 - y1;
@@ -375,14 +434,9 @@ namespace _029flow
         walls.Clear();
     }
 
-    void DeInitWalls ()
-    {
-      walls.Clear();
-    }
-
     //--- Public methods ---
 
-    public FluidSimulator ( RandomJames _rnd =null )
+    public FluidSimulator ( Progress prog, RandomJames _rnd =null )
     {
       // particles:
       particles = null;
@@ -395,6 +449,9 @@ namespace _029flow
       xMax = 3.0;
       yMin = 0.0;
       yMax = 1.0;
+      InitWalls();
+
+      progress = prog;
 
       // random generator:
       rnd = _rnd;
@@ -405,11 +462,18 @@ namespace _029flow
       }
     }
 
+    public void InitBuffers ()
+    {
+      cell  = new int[ height, width ];
+      vx    = new float[ height, width ];
+      vy    = new float[ height, width ];
+      power = new float[ height, width ];
+    }
+
     public void Init ( int nParticles, double fPPT )
     {
       ppt = fPPT;
       InitParticles( nParticles );
-      InitWalls();
     }
 
     public void DeInit ()
@@ -493,60 +557,21 @@ namespace _029flow
       return totalSpawned;
     }
 
-    public void GatherPressure ( float[][] pBuffer )
+    public void GatherBuffers ()
     {
-      int hei = pBuffer.Length;
-      int wid = pBuffer[0].Length;
+      lock ( cell )
+        foreach ( var par in particles )
+          if ( par.active )
+          {
+            int ix = Arith.Clamp( (int)(par.x * scalexy), 0, width - 1 );
+            int iy = Arith.Clamp( (int)(par.y * scalexy), 0, height - 1 );
 
-      foreach ( var par in particles )
-        if ( par.active )
-        {
-          int ix = Arith.Clamp( (int)(par.x * wid), 0, wid - 1 );
-          int iy = Arith.Clamp( (int)(par.y * hei), 0, hei - 1 );
-          pBuffer[ iy ][ ix ] += 1.0f;
-        }
-    }
-
-    public void GatherVelocity ( float[][] pX, float[][] pY, int[][] pSamps )
-    {
-      int hei = pX.Length;
-      int wid = pY[ 0 ].Length;
-      if ( pY.Length < hei ||
-           pY[ 0 ].Length < wid ||
-           pSamps.Length < hei ||
-           pSamps[ 0 ].Length < wid )
-        return;
-
-      foreach ( var par in particles )
-        if ( par.active )
-        {
-          int ix = Arith.Clamp( (int)(par.x * wid), 0, wid - 1 );
-          int iy = Arith.Clamp( (int)(par.y * hei), 0, hei - 1 );
-          pX[ iy ][ ix ] += (float)par.vx;
-          pX[ iy ][ ix ] += (float)par.vy;
-          pSamps[ iy ][ ix ]++;
-        }
-    }
-
-    public void GatherDensity ( float[][] pBuffer )
-    {
-      int hei = pBuffer.Length;
-      int wid = pBuffer[ 0 ].Length;
-      int hei2 = hei / 2;
-      int wid2 = wid / 2;
-
-      foreach ( var par in particles )
-        if ( par.active )
-        {
-          int ix = Arith.Clamp( (int)(par.x * wid2), 0, wid2 - 1 );
-          int iy = Arith.Clamp( (int)(par.y * hei2), 0, hei2 - 1 );
-          ix += ix;
-          iy += iy;
-          pBuffer[ iy ][ ix ] += 1.0f;
-          pBuffer[ iy ][ ix + 1 ] += 1.0f;
-          pBuffer[ iy + 1 ][ ix ] += 1.0f;
-          pBuffer[ iy + 1 ][ ix + 1 ] += 1.0f;
-        }
+            cell[ iy, ix ]++;
+            vx[ iy, ix ] += (float)par.vx;
+            vy[ iy, ix ] += (float)par.vy;
+            double pow = par.vx * par.vx + par.vy * par.vy;
+            power[ iy, ix ] += (float)pow;
+          }
     }
   }
 
@@ -558,6 +583,8 @@ namespace _029flow
     public static string[] Names =
     {
       "Roof",
+      "Rectangle",
+      "Maze",
     };
 
     /// <summary>
@@ -566,10 +593,12 @@ namespace _029flow
     public static InitWorldDelegate[] InitFunctions =
     {
       new InitWorldDelegate( Roof ),
+      new InitWorldDelegate( Rectangle ),
+      new InitWorldDelegate( Maze ),
     };
 
     /// <summary>
-    /// Simple scene containing five colored spheres.
+    /// Simple world containing two segments.
     /// </summary>
     public static void Roof ( FluidSimulator sim )
     {
@@ -579,8 +608,47 @@ namespace _029flow
       sim.AddWall( -0.01, 0.0, 3.0, 0.0 );
       sim.AddWall( -0.01, 1.0, 3.0, 1.0 );
       sim.AddWall(  0.0,  0.0, 0.0, 1.0 );
+
       sim.AddWall(  0.5,  0.5, 0.9, 0.15 );
       sim.AddWall(  0.5,  0.5, 0.9, 0.85 );
+    }
+
+    /// <summary>
+    /// Simple world containing one rectangle.
+    /// </summary>
+    public static void Rectangle ( FluidSimulator sim )
+    {
+      sim.SetBounds( 0.0, 3.0, 0.0, 1.0 );
+
+      sim.RemoveAllWalls();
+      sim.AddWall( -0.01, 0.0, 3.0, 0.0 );
+      sim.AddWall( -0.01, 1.0, 3.0, 1.0 );
+      sim.AddWall( 0.0, 0.0, 0.0, 1.0 );
+
+      sim.AddWall( 0.5, 0.2, 0.5, 0.8 );
+      sim.AddWall( 0.5, 0.2, 1.1, 0.2 );
+      sim.AddWall( 0.5, 0.8, 1.1, 0.8 );
+      sim.AddWall( 1.1, 0.2, 1.1, 0.8 );
+    }
+
+    /// <summary>
+    /// Simple world with a maze.
+    /// </summary>
+    public static void Maze ( FluidSimulator sim )
+    {
+      sim.SetBounds( 0.0, 3.0, 0.0, 1.0 );
+
+      sim.RemoveAllWalls();
+      sim.AddWall( -0.01, 0.0, 3.0, 0.0 );
+      sim.AddWall( -0.01, 1.0, 3.0, 1.0 );
+      sim.AddWall( 0.0, 0.0, 0.0, 1.0 );
+
+      sim.AddWall( 0.4, 0.0, 0.4, 0.8 );
+      sim.AddWall( 0.6, 0.2, 0.6, 1.0 );
+      sim.AddWall( 0.8, 0.0, 0.8, 0.8 );
+      sim.AddWall( 1.0, 0.2, 1.0, 1.0 );
+      sim.AddWall( 1.2, 0.0, 1.2, 0.8 );
+      sim.AddWall( 1.4, 0.2, 1.4, 1.0 );
     }
   }
 }

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
-using Rendering;
 
 namespace _029flow
 {
@@ -39,22 +38,38 @@ namespace _029flow
     protected int ImageHeight = 0;
 
     /// <summary>
+    /// Current working array of simulators (one for each working thread).
+    /// </summary>
+    protected List<FluidSimulator> sims = null;
+
+    /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
     /// </summary>
     protected Stopwatch sw = new Stopwatch();
 
     /// <summary>
-    /// Rendering master thread.
+    /// Master thread - rendering, data collection.
     /// </summary>
     protected Thread aThread = null;
 
-    protected class RenderingProgress : Progress
+    class SyncObject
+    {
+      public Bitmap bmp;
+
+      public long totalSpawned;
+
+      public double simTime;
+    }
+
+    protected class SimulationProgress : Progress
     {
       protected Form1 f;
 
+      public bool pressure = false;
+
       protected long lastSync = 0L;
 
-      public RenderingProgress ( Form1 _f )
+      public SimulationProgress ( Form1 _f )
       {
         f = _f;
       }
@@ -64,39 +79,37 @@ namespace _029flow
         lastSync = 0L;
       }
 
+      public bool NeedsSync ()
+      {
+        if ( f.sw.ElapsedMilliseconds - lastSync < SyncInterval )
+          return false;
+
+        return true;
+      }
+      
       public override void Sync ( Object msg )
       {
-        long now = f.sw.ElapsedMilliseconds;
-        if ( now - lastSync < SyncInterval )
+        if ( !NeedsSync() )
           return;
 
-        lastSync = now;
-        f.SetText( String.Format( "{0:f1}%:  {1:f1}s", 100.0f * Finished, 1.0e-3 * now ) );
-        Bitmap b = (msg as Bitmap);
-        if ( b != null )
-        {
-          Bitmap nb;
-          lock ( b )
-            nb = (Bitmap)b.Clone();
-          f.SetImage( nb );
-        }
+        lastSync = f.sw.ElapsedMilliseconds;
+        SyncObject so = msg as SyncObject;
+        if ( so == null )
+          return;
+
+        f.SetText( String.Format( CultureInfo.InvariantCulture, "Sync {0:f1}s: sim {1:f1}s, spawned {2}K",
+                   1.0e-3 * lastSync, so.simTime, (so.totalSpawned >> 10) ) );
+        Bitmap nb;
+        lock ( so.bmp )
+          nb = (Bitmap)so.bmp.Clone();
+        f.SetImage( nb );
       }
     }
 
     /// <summary>
     /// Progress info / user break handling.
     /// </summary>
-    protected RenderingProgress progress = null;
-
-    /// <summary>
-    /// Default behavior - create scene selected in the combo-box.
-    /// </summary>
-    protected IRayScene SceneByComboBox ()
-    {
-      DefaultRayScene sc = new DefaultRayScene();
-      worldInitFunctions[ selectedWorld ]( sc );
-      return sc;
-    }
+    protected SimulationProgress progress = null;
 
     /// <summary>
     /// Worker-thread-specific data.
@@ -104,44 +117,74 @@ namespace _029flow
     protected class WorkerThreadInit
     {
       /// <summary>
-      /// Worker id (for debugging purposes only).
+      /// Fluid simulator instance.
       /// </summary>
-      public int id;
+      public FluidSimulator sim;
 
-      /// <summary>
-      /// Worker-selector predicate.
-      /// </summary>
-      public ThreadSelector sel;
+      public int nPart;
 
-      public int width;
-      public int height;
+      public float ppt;
 
-      public WorkerThreadInit ( int wid, int hei, int rank, int total )
+      public double dt;
+
+      public WorkerThreadInit ( FluidSimulator s, int n, float pptake, double t )
       {
-        id     = rank;
-        width  = wid;
-        height = hei;
-        sel = ( n ) => (n % total) == rank;
+        sim = s;
+        nPart = n;
+        ppt = pptake;
+        dt = t;
       }
     }
 
     /// <summary>
     /// Routine of one worker-thread.
-    /// Result image and rendering progress are the only two shared objects.
+    /// Collect arrays and rendering progress are the only two shared objects.
     /// </summary>
     /// <param name="spec">Thread-specific data (worker-thread-selector).</param>
-    private void RenderWorker ( Object spec )
+    private void SimulationWorker ( Object spec )
     {
       WorkerThreadInit init = spec as WorkerThreadInit;
       if ( init != null )
-        rend.RenderRectangle( outputImage, 0, 0, init.width, init.height,
-                              init.sel, new RandomJames( Thread.CurrentThread.GetHashCode() ) );
+      {
+        init.sim.Init( init.nPart, init.ppt );
+
+        // infinite simulation loop:
+        do
+        {
+          init.sim.Tick( init.dt );
+          init.sim.SimTime += init.dt;
+          lock ( progress )
+            if ( !progress.Continue ) break;
+          init.sim.GatherBuffers();
+        }
+        while ( true );
+      }
     }
 
     /// <summary>
-    /// [Re]-renders the whole image (in separate thread).
+    /// Total simulation time in seconds.
     /// </summary>
-    private void RenderImage ()
+    double SimTime = 0.0;
+
+    /// <summary>
+    /// Total Spawned particles in all workers.
+    /// </summary>
+    long TotalSpawned = 0L;
+
+    /// <summary>
+    /// Buffer for particle density.
+    /// </summary>
+    int[ , ] cell;
+
+    /// <summary>
+    /// Buffers for velocity components / sum of total square velocity.
+    /// </summary>
+    float[ , ] vx, vy, power;
+
+    /// <summary>
+    /// Runs the simulation (in separate thread[s]).
+    /// </summary>
+    private void RunSimulation ()
     {
       Cursor.Current = Cursors.WaitCursor;
 
@@ -151,64 +194,126 @@ namespace _029flow
       int height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
 
+      // allocate & init simulator array:
+      int threads = Environment.ProcessorCount;
+      if ( !checkMultithreading.Checked ) threads = 1;
+      sims = new List<FluidSimulator>( threads );
+      int t;
+      for ( t = 0; t < threads; t++ )
+        sims.Add( getSimulator( t ) );
+      foreach ( var sim in sims )
+      {
+        sim.SetPresentationSize( ref width, ref height );
+        sim.InitBuffers();
+      }
+
+      // output presentation image:
       if ( outputImage != null )
         outputImage.Dispose();
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      SyncObject so = new SyncObject();
+      so.bmp = outputImage;
 
-      if ( imf == null )
-      {
-        imf = getImageFunction( getScene() );
-        rend = null;
-      }
-      imf.Width  = width;
-      imf.Height = height;
-      RayTracing rt = imf as RayTracing;
-      if ( rt != null )
-      {
-        rt.DoShadows = checkShadows.Checked;
-        rt.DoReflections = checkReflections.Checked;
-        rt.DoRefractions = checkRefractions.Checked;
-      }
+      TotalSpawned = 0L;
+      SimTime = 0.0;
+      cell  = new int[ height, width ];
+      vx    = new float[ height, width ];
+      vy    = new float[ height, width ];
+      power = new float[ height, width ];
 
-      if ( rend == null )
-        rend = getRenderer( imf );
-      rend.Width  = width;
-      rend.Height = height;
-      rend.Adaptive = 8;
-      rend.ProgressData = progress;
-      SupersamplingImageSynthesizer ss = rend as SupersamplingImageSynthesizer;
-      if ( ss != null )
-      {
-        ss.Supersampling = (int)numericSupersampling.Value;
-        ss.Jittering = checkJitter.Checked ? 1.0 : 0.0;
-      }
+      // progress & timer:
       progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 30000L : 10000L;
       progress.Reset();
-      CSGInnerNode.ResetStatistics();
-
       lock ( sw )
       {
         sw.Reset();
         sw.Start();
       }
 
-      if ( checkMultithreading.Checked && Environment.ProcessorCount > 1 )
-      {
-        Thread[] pool = new Thread[ Environment.ProcessorCount ];
-        int t;
-        for ( t = 0; t < pool.Length; t++ )
-          pool[ t ] = new Thread( new ParameterizedThreadStart( this.RenderWorker ) );
-        for ( t = pool.Length; --t >= 0; )
-          pool[ t ].Start( new WorkerThreadInit( width, height, t, pool.Length ) );
+      // run the simulators:
+      Thread[] pool = new Thread[ threads ];
+      for ( t = 0; t < threads; t++ )
+        pool[ t ] = new Thread( new ParameterizedThreadStart( this.SimulationWorker ) );
+      for ( t = threads; --t >= 0; )
+        pool[ t ].Start( new WorkerThreadInit( sims[ t ], 8000, 4500.0f, 0.005 ) );
 
-        for ( t = 0; t < pool.Length; t++ )
+      do
+      {
+        Thread.Sleep( 2000 );
+        bool pressure = false;
+        lock ( progress )
         {
-          pool[ t ].Join();
-          pool[ t ] = null;
+          if ( !progress.Continue ) break;
+          if ( !progress.NeedsSync() ) continue;
+          pressure = progress.pressure;
         }
+
+        // 1. collect data from all workers:
+        lock ( sims[ 0 ].cell )
+        {
+          TotalSpawned = sims[ 0 ].GetTotalSpawned();
+          SimTime      = sims[ 0 ].SimTime;
+          System.Array.Copy( sims[ 0 ].cell,  cell,  width * height );
+          System.Array.Copy( sims[ 0 ].vx,    vx,    width * height );
+          System.Array.Copy( sims[ 0 ].vy,    vy,    width * height );
+          System.Array.Copy( sims[ 0 ].power, power, width * height );
+        }
+        int x, y;
+        for ( t = 1; t < threads; t++ )
+          lock ( sims[ t ].cell )
+          {
+            TotalSpawned += sims[ t ].GetTotalSpawned();
+            SimTime      += sims[ t ].SimTime;
+            for ( y = 0; y < height; y++ )
+              for ( x = 0; x < width; x++ )
+              {
+                cell[ y, x ]  += sims[ t ].cell[ y, x ];
+                vx[ y, x ]    += sims[ t ].vx[ y, x ];
+                vy[ y, x ]    += sims[ t ].vy[ y, x ];
+                power[ y, x ] += sims[ t ].power[ y, x ];
+              }
+          }
+
+        // 2. default visualization of the velocity??
+        int r, g, b, num;
+        Color col;
+
+        for ( y = 0; y < height; y++ )
+          for ( x = 0; x < width; x++ )
+          {
+            if ( (num = cell[ y, x ]) < 1 )
+            {
+              col = Color.FromArgb( 0, 0, 128 );
+            }
+            else
+              if ( pressure )
+              {
+                col = Arith.HSVToColor( 240.0 + 50.0 * Math.Sqrt( power[ y, x ] / num ), 1.0, 255.0 );
+              }
+              else
+              {
+                r = (int)(128 + 25 * vx[ y, x ] / num);
+                g = (int)(128 + 25 * vy[ y, x ] / num);
+                b = 0;
+                col = Color.FromArgb( Arith.Clamp( r, 0, 255 ),
+                                      Arith.Clamp( g, 0, 255 ),
+                                      Arith.Clamp( b, 0, 255 ) );
+              }
+            so.bmp.SetPixel( x, y, col );
+          }
+        so.simTime = SimTime;
+        so.totalSpawned = TotalSpawned;
+
+        progress.Sync( so );
       }
-      else
-        rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
+      while ( true );
+
+      // wait for the simulator threads:
+      for ( t = 0; t < threads; t++ )
+      {
+        pool[ t ].Join();
+        pool[ t ] = null;
+      }
 
       long elapsed;
       lock ( sw )
@@ -218,19 +323,16 @@ namespace _029flow
       }
 
       String msg = String.Format( CultureInfo.InvariantCulture,
-                                  "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
-                                  1.0e-3 * elapsed, width, height, checkMultithreading.Checked ? Environment.ProcessorCount : 1,
-                                  (Intersection.countRays + 500L) / 1000L,
-                                  (Intersection.countIntersections + 500L) / 1000L,
-                                  (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
-                                  (CSGInnerNode.countTriangles + 500L) / 1000L );
+                                  "{0:f1}s  [ {1}x{2}, mt{3}, sim{4:f1}s, spawned{5}K ]",
+                                  1.0e-3 * elapsed, width, height, threads,
+                                  SimTime, (TotalSpawned >> 10) );
       SetText( msg );
-      Console.WriteLine( "Rendering finished: " + msg );
+      Console.WriteLine( "Simulation finished: " + msg );
       SetImage( (Bitmap)outputImage.Clone() );
 
       Cursor.Current = Cursors.Default;
 
-      StopRendering();
+      StopSimulation();
     }
 
     delegate void SetImageCallback ( Bitmap newImage );
@@ -262,16 +364,16 @@ namespace _029flow
         labelElapsed.Text = text;
     }
 
-    delegate void StopRenderingCallback ();
+    delegate void StopSimulationCallback ();
 
-    protected void StopRendering ()
+    protected void StopSimulation ()
     {
       if ( aThread == null )
         return;
 
-      if ( buttonRender.InvokeRequired )
+      if ( buttonSimulation.InvokeRequired )
       {
-        StopRenderingCallback ea = new StopRenderingCallback( StopRendering );
+        StopSimulationCallback ea = new StopSimulationCallback( StopSimulation );
         BeginInvoke( ea );
       }
       else
@@ -285,24 +387,29 @@ namespace _029flow
         aThread = null;
 
         // GUI stuff:
-        buttonRender.Enabled = true;
-        comboScene.Enabled = true;
-        buttonRes.Enabled = true;
-        buttonSave.Enabled = true;
-        buttonStop.Enabled = false;
+        SimModeGUI( false );
       }
     }
 
     public Form1 ()
     {
       InitializeComponent();
-      progress = new RenderingProgress( this );
+      progress = new SimulationProgress( this );
       String []tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[1] + ')';
 
       // Init scenes etc.
       InitializeScenes();
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+    }
+
+    protected void SimModeGUI ( bool sim )
+    {
+      buttonSimulation.Enabled =
+      comboScene.Enabled   =
+      buttonRes.Enabled    =
+      buttonSave.Enabled   = !sim;
+      buttonStop.Enabled   = sim;
     }
 
     private void buttonRes_Click ( object sender, EventArgs e )
@@ -316,22 +423,18 @@ namespace _029flow
       }
     }
 
-    private void buttonRender_Click ( object sender, EventArgs e )
+    private void buttonSimulation_Click ( object sender, EventArgs e )
     {
       if ( aThread != null )
         return;
 
-      buttonRender.Enabled = false;
-      comboScene.Enabled = false;
-      buttonRes.Enabled = false;
-      buttonSave.Enabled = false;
-      buttonStop.Enabled = true;
+      SimModeGUI( true );
       lock ( progress )
       {
         progress.Continue = true;
       }
 
-      aThread = new Thread( new ThreadStart( this.RenderImage ) );
+      aThread = new Thread( new ThreadStart( this.RunSimulation ) );
       aThread.Start();
     }
 
@@ -353,30 +456,36 @@ namespace _029flow
 
     private void buttonStop_Click ( object sender, EventArgs e )
     {
-      StopRendering();
+      StopSimulation();
     }
 
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
+      StopSimulation();
       selectedWorld = comboScene.SelectedIndex;
-      imf = null;
+    }
+
+    private void checkPressure_CheckedChanged ( object sender, EventArgs e )
+    {
+      lock ( progress )
+        progress.pressure = checkPressure.Checked;
     }
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( aThread == null && e.Button == MouseButtons.Left )
-        singleSample( e.X, e.Y );
+      //if ( aThread == null && e.Button == MouseButtons.Left )
+      //  ;
     }
 
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( aThread == null && e.Button == MouseButtons.Left )
-        singleSample( e.X, e.Y );
+      //if ( aThread == null && e.Button == MouseButtons.Left )
+      //  ;
     }
 
     private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
     {
-      StopRendering();
+      StopSimulation();
     }
   }
 }
