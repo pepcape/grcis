@@ -23,6 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -32,6 +33,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="OpenTK">
@@ -58,6 +60,12 @@
     </Compile>
     <Compile Include="..\common\RandomJames.cs">
       <Link>RandomJames.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RasterDrawing.cs">
+      <Link>RasterDrawing.cs</Link>
+    </Compile>
+    <Compile Include="..\common\Util.cs">
+      <Link>Util.cs</Link>
     </Compile>
     <Compile Include="FlowVis.cs">
       <SubType>Form</SubType>

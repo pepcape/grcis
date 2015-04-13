@@ -333,7 +333,7 @@ namespace _048rtmontecarlo
 
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x + 0.5, y + 0.5, color );
-      labelSample.Text = String.Format( "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
+      labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 

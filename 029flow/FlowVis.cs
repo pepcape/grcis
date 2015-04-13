@@ -15,7 +15,8 @@ namespace _029flow
     /// </summary>
     private FluidSimulator getSimulator ( int ord )
     {
-      FluidSimulator s = new FluidSimulator( progress, new RandomJames( ord * 13 ) );
+      DateTime now = DateTime.UtcNow;
+      FluidSimulator s = new FluidSimulator( progress, new RandomJames( now.Ticks * (ord + 1) ) );
       worldInitFunctions[ selectedWorld ]( s );
       return s;
     }
