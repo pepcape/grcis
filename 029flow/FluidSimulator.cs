@@ -64,7 +64,7 @@ namespace _029flow
 
     int activeParticles;
 
-    long totalSpawned;
+    public long TotalSpawned;
 
     double ppt;
 
@@ -232,7 +232,7 @@ namespace _029flow
       if ( nCount < 1 )
         return 0;
 
-      totalSpawned += nCount;
+      TotalSpawned += nCount;
 
       int nCountToDo = nCount;
 
@@ -445,7 +445,7 @@ namespace _029flow
       // particles:
       particles = null;
       activeParticles = 0;
-      totalSpawned = 0L;
+      TotalSpawned = 0L;
 
       // boundaries:
       walls = null;
@@ -554,11 +554,6 @@ namespace _029flow
     public int GetActive ()
     {
       return activeParticles;
-    }
-
-    public long GetTotalSpawned ()
-    {
-      return totalSpawned;
     }
 
     public void GatherBuffers ()
