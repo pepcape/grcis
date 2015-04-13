@@ -45,6 +45,7 @@
       this.checkCustom = new System.Windows.Forms.CheckBox();
       this.label2 = new System.Windows.Forms.Label();
       this.textParam = new System.Windows.Forms.TextBox();
+      this.buttonLoad = new System.Windows.Forms.Button();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.SuspendLayout();
@@ -89,7 +90,7 @@
       this.buttonSimulation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonSimulation.Location = new System.Drawing.Point( 13, 447 );
       this.buttonSimulation.Name = "buttonSimulation";
-      this.buttonSimulation.Size = new System.Drawing.Size( 114, 23 );
+      this.buttonSimulation.Size = new System.Drawing.Size( 104, 23 );
       this.buttonSimulation.TabIndex = 5;
       this.buttonSimulation.Text = "Simulation";
       this.buttonSimulation.UseVisualStyleBackColor = true;
@@ -99,7 +100,7 @@
       // 
       this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelElapsed.AutoSize = true;
-      this.labelElapsed.Location = new System.Drawing.Point( 231, 453 );
+      this.labelElapsed.Location = new System.Drawing.Point( 199, 453 );
       this.labelElapsed.Name = "labelElapsed";
       this.labelElapsed.Size = new System.Drawing.Size( 48, 13 );
       this.labelElapsed.TabIndex = 21;
@@ -119,9 +120,9 @@
       // 
       this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonStop.Enabled = false;
-      this.buttonStop.Location = new System.Drawing.Point( 146, 447 );
+      this.buttonStop.Location = new System.Drawing.Point( 124, 447 );
       this.buttonStop.Name = "buttonStop";
-      this.buttonStop.Size = new System.Drawing.Size( 66, 23 );
+      this.buttonStop.Size = new System.Drawing.Size( 59, 23 );
       this.buttonStop.TabIndex = 32;
       this.buttonStop.Text = "Stop";
       this.buttonStop.UseVisualStyleBackColor = true;
@@ -238,15 +239,27 @@
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.textParam.Location = new System.Drawing.Point( 412, 418 );
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size( 168, 20 );
+      this.textParam.Size = new System.Drawing.Size( 175, 20 );
       this.textParam.TabIndex = 48;
       this.textParam.TextChanged += new System.EventHandler( this.textParam_TextChanged );
+      // 
+      // buttonLoad
+      // 
+      this.buttonLoad.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonLoad.Location = new System.Drawing.Point( 505, 448 );
+      this.buttonLoad.Name = "buttonLoad";
+      this.buttonLoad.Size = new System.Drawing.Size( 91, 23 );
+      this.buttonLoad.TabIndex = 49;
+      this.buttonLoad.Text = "Load results";
+      this.buttonLoad.UseVisualStyleBackColor = true;
+      this.buttonLoad.Click += new System.EventHandler( this.buttonLoad_Click );
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 712, 482 );
+      this.Controls.Add( this.buttonLoad );
       this.Controls.Add( this.textParam );
       this.Controls.Add( this.label2 );
       this.Controls.Add( this.checkCustom );
@@ -294,6 +307,7 @@
     private System.Windows.Forms.CheckBox checkCustom;
     private System.Windows.Forms.Label label2;
     private System.Windows.Forms.TextBox textParam;
+    private System.Windows.Forms.Button buttonLoad;
   }
 }
 

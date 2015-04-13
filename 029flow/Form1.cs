@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Utilities;
+using System.IO.Compression;
 
 namespace _029flow
 {
@@ -23,6 +24,11 @@ namespace _029flow
     /// The same order as items in the comboScenes.
     /// </summary>
     protected List<InitWorldDelegate> worldInitFunctions = null;
+
+    /// <summary>
+    /// If true the simulation must be initialized first..
+    /// </summary>
+    protected volatile bool dirty = true;
 
     /// <summary>
     /// Index of the current (selected) scene.
@@ -250,8 +256,8 @@ namespace _029flow
     /// </summary>
     private void RunSimulation ()
     {
-      Cursor.Current = Cursors.WaitCursor;
-      cell = null;
+      int oldWidth = width;
+      int oldHeight = height;
 
       // determine output image size:
       width = ImageWidth;
@@ -280,12 +286,23 @@ namespace _029flow
       SyncObject so = new SyncObject();
       so.bmp = outputImage;
 
-      TotalSpawned = 0L;
-      SimTime = 0.0;
-      cell  = new int[ height, width ];
-      vx    = new float[ height, width ];
-      vy    = new float[ height, width ];
-      power = new float[ height, width ];
+      if ( dirty ||
+           oldWidth != width ||
+           oldHeight != height )
+      {
+        TotalSpawned = 0L;
+        SimTime = 0.0;
+        cell  = new int[ height, width ];
+        vx    = new float[ height, width ];
+        vy    = new float[ height, width ];
+        power = new float[ height, width ];
+        dirty = false;
+      }
+      else
+      {
+        sims[ 0 ].SimTime = SimTime;
+        sims[ 0 ].TotalSpawned = TotalSpawned;
+      }
 
       // progress & timer:
       progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 30000L : 10000L;
@@ -324,7 +341,7 @@ namespace _029flow
         {
           lock ( sims[ 0 ].cell )
           {
-            TotalSpawned = sims[ 0 ].GetTotalSpawned();
+            TotalSpawned = sims[ 0 ].TotalSpawned;
             SimTime = sims[ 0 ].SimTime;
             System.Array.Copy( sims[ 0 ].cell,   cell, width * height );
             System.Array.Copy( sims[ 0 ].vx,       vx, width * height );
@@ -334,7 +351,7 @@ namespace _029flow
           for ( t = 1; t < threads; t++ )
             lock ( sims[ t ].cell )
             {
-              TotalSpawned += sims[ t ].GetTotalSpawned();
+              TotalSpawned += sims[ t ].TotalSpawned;
               SimTime += sims[ t ].SimTime;
               for ( y = 0; y < height; y++ )
                 for ( x = 0; x < width; x++ )
@@ -434,8 +451,6 @@ namespace _029flow
       Console.WriteLine( "Simulation finished: " + msg );
       SetImage( (Bitmap)outputImage.Clone() );
 
-      Cursor.Current = Cursors.Default;
-
       StopSimulation();
     }
 
@@ -512,18 +527,23 @@ namespace _029flow
       buttonSimulation.Enabled =
       comboScene.Enabled    =
       buttonRes.Enabled     =
+      buttonLoad.Enabled    =
       buttonSave.Enabled    = !sim;
       buttonStop.Enabled    = sim;
     }
 
     private void buttonRes_Click ( object sender, EventArgs e )
     {
+      if ( aThread != null )
+        return;
+
       FormResolution form = new FormResolution( ImageWidth, ImageHeight );
       if ( form.ShowDialog() == DialogResult.OK )
       {
         ImageWidth = form.ImageWidth;
         ImageHeight = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+        dirty = true;
       }
     }
 
@@ -596,10 +616,99 @@ namespace _029flow
           }
     }
 
+    private void buttonLoad_Click ( object sender, EventArgs e )
+    {
+      if ( aThread != null ) return;
+
+      OpenFileDialog ofd = new OpenFileDialog();
+      ofd.Title = "Open CSV File";
+      ofd.Filter = "CSV Files|*.csv;*.csv.gz" +
+          "|Text Files|*.txt;*.txt.gz" +
+          "|All file types|*.csv;*.csv.gz;*.txt;*.txt.gz";
+      ofd.FilterIndex = 0;
+      ofd.FileName = "";
+      if ( ofd.ShowDialog() != DialogResult.OK )
+        return;
+
+      using ( StreamReader rea = ofd.FileName.EndsWith( ".gz" ) ?
+              new StreamReader( new GZipStream( new FileStream( ofd.FileName, FileMode.Open ), CompressionMode.Decompress ) ) :
+              new StreamReader( new FileStream( ofd.FileName, FileMode.Open ) ) )
+      {
+        string line;
+        do
+          line = rea.ReadLine();
+        while ( line != null &&
+                line != "\"world\";\"sim-time\";\"spawned\";\"width\";\"height\"" );
+        if ( line == null ) return;
+        line = rea.ReadLine();
+        if ( line == null ) return;
+        string[] token = line.Split( ';' );
+        if ( token == null ||
+             token.Length < 5 )
+          return;
+        if ( token[ 0 ].Length < 3 ) return;
+        if ( rea.ReadLine() == null )
+          return;
+        string worldName = token[ 0 ].Trim( '\"' );
+
+        double newSimTime;
+        long newTotalSpawned;
+        int newWidth;
+        int newHeight;
+        if ( !double.TryParse( token[ 1 ], out newSimTime ) ||
+             !long.TryParse( token[ 2 ], out newTotalSpawned ) ||
+             !int.TryParse( token[ 3 ], out newWidth ) ||
+             !int.TryParse( token[ 4 ], out newHeight ) )
+          return;
+
+        SimTime = newSimTime;
+        TotalSpawned = newTotalSpawned;
+        width = newWidth;
+        height = newHeight;
+        comboScene.SelectedText = worldName;
+
+        cell  = new int[ height, width ];
+        vx    = new float[ height, width ];
+        vy    = new float[ height, width ];
+        power = new float[ height, width ];
+
+        int x, y;
+        for ( y = 0; y < height; y++ )
+          for ( x = 0; x < width; x++ )
+          {
+            line = rea.ReadLine();
+            if ( line == null ||
+                 (token = line.Split( ';' )) == null ||
+                 token.Length < 6 )
+            {
+              y = height + 1;
+              break;
+            }
+            int newCell;
+            double newVx, newVy, newPower;
+            if ( !int.TryParse( token[ 2 ], out newCell ) ||
+                 !double.TryParse( token[ 3 ], out newVx ) ||
+                 !double.TryParse( token[ 4 ], out newVy ) ||
+                 !double.TryParse( token[ 5 ], out newPower ) )
+            {
+              y = height + 1;
+              break;
+            }
+            cell[ y, x ]  = newCell;
+            vx[ y, x ]    = (float)( newVx * newCell );
+            vy[ y, x ]    = (float)( newVy * newCell );
+            power[ y, x ] = (float)( newPower * newPower * newCell );
+          }
+
+        dirty = (y >= height + 1);
+      }
+    }
+
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
       StopSimulation();
       selectedWorld = comboScene.SelectedIndex;
+      dirty = true;
     }
 
     private void checkVelocity_CheckedChanged ( object sender, EventArgs e )
