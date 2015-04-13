@@ -40,6 +40,7 @@
       this.checkMultithreading = new System.Windows.Forms.CheckBox();
       this.buttonRes = new System.Windows.Forms.Button();
       this.checkPressure = new System.Windows.Forms.CheckBox();
+      this.buttonResults = new System.Windows.Forms.Button();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.SuspendLayout();
@@ -106,9 +107,9 @@
       this.labelSample.AutoSize = true;
       this.labelSample.Location = new System.Drawing.Point(344, 389);
       this.labelSample.Name = "labelSample";
-      this.labelSample.Size = new System.Drawing.Size(45, 13);
+      this.labelSample.Size = new System.Drawing.Size(35, 13);
       this.labelSample.TabIndex = 22;
-      this.labelSample.Text = "Sample:";
+      this.labelSample.Text = "State:";
       // 
       // buttonStop
       // 
@@ -179,11 +180,23 @@
       this.checkPressure.UseVisualStyleBackColor = true;
       this.checkPressure.CheckedChanged += new System.EventHandler(this.checkPressure_CheckedChanged);
       // 
+      // buttonResults
+      // 
+      this.buttonResults.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonResults.Location = new System.Drawing.Point(602, 418);
+      this.buttonResults.Name = "buttonResults";
+      this.buttonResults.Size = new System.Drawing.Size(91, 23);
+      this.buttonResults.TabIndex = 44;
+      this.buttonResults.Text = "Save results";
+      this.buttonResults.UseVisualStyleBackColor = true;
+      this.buttonResults.Click += new System.EventHandler(this.buttonResults_Click);
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(712, 482);
+      this.Controls.Add(this.buttonResults);
       this.Controls.Add(this.checkPressure);
       this.Controls.Add(this.buttonRes);
       this.Controls.Add(this.checkMultithreading);
@@ -221,6 +234,7 @@
     private System.Windows.Forms.CheckBox checkMultithreading;
     private System.Windows.Forms.Button buttonRes;
     private System.Windows.Forms.CheckBox checkPressure;
+    private System.Windows.Forms.Button buttonResults;
   }
 }
 

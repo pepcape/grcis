@@ -86,7 +86,7 @@ namespace _029flow
     /// <summary>
     /// Simulation field bounds.
     /// </summary>
-    double xMin, xMax, yMin, yMax;
+    public double xMin, xMax, yMin, yMax;
 
     public void SetBounds ( double xMi, double xMa, double yMi, double yMa )
     {
@@ -106,7 +106,7 @@ namespace _029flow
     /// </summary>
     public int height = 0;
 
-    protected double scalexy = 1.0;
+    public double scalexy = 1.0;
 
     /// <summary>
     /// Set presentation bitmap size, recalculates aspect ratio acording to simulation field bounds.
@@ -125,7 +125,7 @@ namespace _029flow
         scalexy = scaley;
         wid = (int)((xMax - xMin) * scalexy);
       }
-      width = wid;
+      width  = wid;
       height = hei;
     }
 
@@ -177,7 +177,7 @@ namespace _029flow
         fAttractive = AttractiveMax * fR / AttractiveMaxRadius;
       else
         if ( fR < AttractiveRange )
-          fAttractive = AttractiveMax * ( 1.0 - (fR-AttractiveMaxRadius) / (AttractiveRange-AttractiveMaxRadius) );
+          fAttractive = AttractiveMax * ( 1.0 - (fR - AttractiveMaxRadius) / (AttractiveRange - AttractiveMaxRadius) );
 #endif
 
       return fAttractive - fRepulsive;
@@ -236,7 +236,7 @@ namespace _029flow
 
       int nCountToDo = nCount;
 
-      double fJitterRange = 1.0 / nCountToDo;
+      double fJitterRange = 0.1 / nCountToDo;
 
       foreach ( var par in particles )
         if ( nCountToDo <= 0 ) break;
@@ -245,8 +245,8 @@ namespace _029flow
           {
             par.active = true;
             par.x = xMin + 0.0001;
-            par.y = yMin + 0.1 * rnd.UniformNumber() + 0.45;
-            //par.y = fJitterRange * rnd.UniformNumber() + ( nCountToDo - 1.0 ) * fJitterRange;
+            //par.y = yMin + 0.1 * rnd.UniformNumber() + 0.45;
+            par.y = 0.45 + fJitterRange * (rnd.UniformNumber() + nCountToDo - 1.0 );
             par.fx = 0.0;
             par.fy = 0.0;
             par.m = ParticleMass;
@@ -273,11 +273,16 @@ namespace _029flow
 
     void CalcParticleAccel ()
     {
+      double msq = ParticleMass * ParticleMass;
       for ( int i = 0; i < particles.Count - 1; i++ )
         if ( particles[i].active )
         {
           double x1 = particles[i].x;
           double y1 = particles[i].y;
+          double x1pl = x1 + RepulsiveRange;
+          double x1mi = x1 - RepulsiveRange;
+          double y1pl = y1 + RepulsiveRange;
+          double y1mi = y1 - RepulsiveRange;
 
           for ( int j = i+1; j < particles.Count; j++ )
             if ( particles[j].active )
@@ -285,8 +290,8 @@ namespace _029flow
               double x2 = particles[j].x;
               double y2 = particles[j].y;
 
-              if ( (x2 + RepulsiveRange > x1) && (x2 - RepulsiveRange < x1) &&
-                   (y2 + RepulsiveRange > y1) && (y2 - RepulsiveRange < y1) )
+              if ( x2 > x1mi && x2 < x1pl &&
+                   y2 > y1mi && y2 < y1pl )
               {           
                 double dx = x2 - x1;
                 double dy = y2 - y1;
@@ -295,14 +300,13 @@ namespace _029flow
 
                 Normalize2DR( ref dx, ref dy, r );
 
-                double f = CalcInteraction( r );
-                double msq = ParticleMass * ParticleMass;
+                double f = CalcInteraction( r ) * msq;
 
-                particles[i].fx += msq * dx * f;
-                particles[i].fy += msq * dy * f;
+                particles[i].fx += dx * f;
+                particles[i].fy += dy * f;
 
-                particles[j].fx -= msq * dx * f;
-                particles[j].fy -= msq * dy * f;
+                particles[j].fx -= dx * f;
+                particles[j].fy -= dy * f;
               }
             }
         }
@@ -330,8 +334,8 @@ namespace _029flow
           //particles[i].x += fTick * particles[i].vx;
           //particles[i].y += fTick * particles[i].vy;
 
-          if ( (particles[ i ].x < 0.0) || (particles[ i ].x > 3.0) ||
-               (particles[ i ].y <= 0.0) || (particles[ i ].y >= 1.0) )
+          if ( particles[ i ].x < xMin || particles[ i ].x > xMax ||
+               particles[ i ].y < yMin || particles[ i ].y > yMax )
           {
             activeParticles--;
             particles[ i ].active = false;
@@ -346,7 +350,7 @@ namespace _029flow
 
       // collide the closest wall (if applicable)
       double t = 100.0; // assume no collision yet
-      int nWall = -1; // collided wall
+      int nWall = -1;   // collided wall
       Wall w;
 
       for ( int i = 0; i < walls.Count; i++ )
@@ -363,20 +367,20 @@ namespace _029flow
         double tt = -(w.a * p.x + w.b * p.y + w.c) / num;
 
         // if this wall is closer, remember
-        if ( (tt >= 0.0) && (tt < t) && (tt < 1.0) )
+        if ( tt >= 0.0 && tt < t && tt < 1.0 )
         {
           // pt in rect
           double xx = p.x + tt * dx;
           double yy = p.y + tt * dy;
 
-          if ( (xx < w.x0) && (xx < w.x1) ) continue;
-          if ( (xx > w.x0) && (xx > w.x1) ) continue;
+          if ( xx < w.x0 && xx < w.x1 ) continue;
+          if ( xx > w.x0 && xx > w.x1 ) continue;
 
-          if ( (yy < w.y0) && (yy < w.y1) ) continue;
-          if ( (yy > w.y0) && (yy > w.y1) ) continue;
+          if ( yy < w.y0 && yy < w.y1 ) continue;
+          if ( yy > w.y0 && yy > w.y1 ) continue;
 
           // valid
-          t = tt;
+          t     = tt;
           nWall = i;
         }
       }
@@ -563,8 +567,8 @@ namespace _029flow
         foreach ( var par in particles )
           if ( par.active )
           {
-            int ix = Arith.Clamp( (int)(par.x * scalexy), 0, width - 1 );
-            int iy = Arith.Clamp( (int)(par.y * scalexy), 0, height - 1 );
+            int ix = Arith.Clamp( (int)Math.Floor( (par.x - xMin) * scalexy ), 0, width - 1 );
+            int iy = Arith.Clamp( (int)Math.Floor( (par.y - yMin) * scalexy ), 0, height - 1 );
 
             cell[ iy, ix ]++;
             vx[ iy, ix ] += (float)par.vx;
