@@ -2,9 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Drawing;
 using System.Windows.Forms;
 using MathSupport;
+using Raster;
 
 namespace _029flow
 {
@@ -43,6 +44,81 @@ namespace _029flow
       ImageWidth  = 600;
       ImageHeight = 200;
       checkMultithreading.Checked = true;
+    }
+
+    /// <summary>
+    /// Specimen - velocity visualization.
+    /// </summary>
+    /// <param name="so">so.bmp is the target Bitmap.</param>
+    /// <param name="x0">Visualization origin - x.</param>
+    /// <param name="y0">Visualization origin - y.</param>
+    private void VisualizeVelocity ( SyncObject so, int x0, int y0 )
+    {
+      int r, g, b, num;
+      int x, y;
+      Color col;
+      double vMul = 128.0 / maxV;
+
+      for ( y = 0; y < height; y++ )
+        for ( x = 0; x < width; x++ )
+        {
+          if ( (num = cell[ y, x ]) < 1 )
+            col = Color.FromArgb( 0, 0, 128 );
+          else
+          {
+            r = (int)(128 + vMul * vx[ y, x ] / num);
+            g = (int)(128 + vMul * vy[ y, x ] / num);
+            b = 0;
+            col = Color.FromArgb( Arith.Clamp( r, 0, 255 ),
+                                  Arith.Clamp( g, 0, 255 ),
+                                  Arith.Clamp( b, 0, 255 ) );
+          }
+          so.bmp.SetPixel( x0 + x, y0 + y, col );
+        }
+    }
+
+    /// <summary>
+    /// Specimen - pressure visualization.
+    /// </summary>
+    /// <param name="so">so.bmp is the target Bitmap.</param>
+    /// <param name="x0">Visualization origin - x.</param>
+    /// <param name="y0">Visualization origin - y.</param>
+    private void VisualizePressure ( SyncObject so, int x0, int y0 )
+    {
+      int num, x, y;
+      Color col;
+      double pressMul = 2.0 / Math.Sqrt( maxV2N );
+
+      for ( y = 0; y < height; y++ )
+        for ( x = 0; x < width; x++ )
+        {
+          if ( (num = cell[ y, x ]) < 1 )
+            col = Color.FromArgb( 0, 0, 128 );
+          else
+            col = Draw.ColorRamp( pressMul * Math.Sqrt( num * power[ y, x ] ) );
+          so.bmp.SetPixel( x0 + x, y0 + y, col );
+        }
+    }
+
+    /// <summary>
+    /// Custom visualization.
+    /// </summary>
+    /// <param name="so">so.bmp is the target Bitmap.</param>
+    /// <param name="x0">Visualization origin - x.</param>
+    /// <param name="y0">Visualization origin - y.</param>
+    /// <param name="param">Optional text parameter[s].</param>
+    private void VisualizeCustom ( SyncObject so, int x0, int y0, string param )
+    {
+      // !!!{{ TODO: put your visualization code here
+
+      int x, y;
+      for ( y = 0; y < height; y++ )
+        for ( x = 0; x < width; x++ )
+        {
+          so.bmp.SetPixel( x0 + x, y0 + y, Draw.ColorRamp( (double)x / width ) );
+        }
+
+      // !!!}}
     }
   }
 }

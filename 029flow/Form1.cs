@@ -8,7 +8,6 @@ using System.Threading;
 using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
-using Raster;
 using Utilities;
 
 namespace _029flow
@@ -70,11 +69,21 @@ namespace _029flow
 
       public bool pressure = false;
 
+      public bool velocity = false;
+
+      public bool custom = false;
+
+      public string param;
+
       protected long lastSync = 0L;
 
       public SimulationProgress ( Form1 _f )
       {
         f = _f;
+        pressure = f.checkPressure.Checked;
+        velocity = f.checkVelocity.Checked;
+        custom   = f.checkCustom.Checked;
+        param    = f.textParam.Text;
       }
 
       public void Reset ()
@@ -196,12 +205,18 @@ namespace _029flow
     float[ , ] vx, vy, power;
 
     /// <summary>
+    /// Extremal values for visualizations.
+    /// </summary>
+    double maxV2N, maxV;
+
+    /// <summary>
     /// Mouse probe.
     /// </summary>
     private void probe ( int x, int y )
     {
       int cellLoc = 0;
       double vxLoc = 0.0, vyLoc = 0.0, powerLoc = 0.0;
+      y = y % height;
 
       if ( cell == null ) return;
       lock ( cell )
@@ -291,11 +306,15 @@ namespace _029flow
       do
       {
         Thread.Sleep( 2000 );
+
+        bool velocity = false;
         bool pressure = false;
         lock ( progress )
         {
           if ( !progress.Continue ) break;
           if ( !progress.NeedsSync() ) continue;
+
+          velocity = progress.velocity;
           pressure = progress.pressure;
         }
 
@@ -327,55 +346,69 @@ namespace _029flow
                 }
             }
         }
-
-        // 2. default visualization of the pressure / velocity
-        int r, g, b, num;
-        Color col;
-
-        double maxV2N = 0.001;
-        double V2N;
-        double maxV = 0.0;
-        int n;
-        for ( y = 2; y < height - 2; y++ )    // avoid borders..
-          for ( x = 2; x < width - 2; x++ )
-            if ( (n = cell[ y, x ]) > 0 )
-            {
-              if ( (V2N = n * power[ y, x ]) > maxV2N )
-                maxV2N = V2N;
-              double mvx = Math.Abs( vx[ y, x ] / n );
-              double mvy = Math.Abs( vy[ y, x ] / n );
-              if ( mvx > maxV )
-                maxV = mvx;
-              if ( mvy > maxV )
-                maxV = mvy;
-            }
-
-        double pressMul = 2.0 / Math.Sqrt( maxV2N );
-        double vMul = 128.0 / maxV;
-
-        for ( y = 0; y < height; y++ )
-          for ( x = 0; x < width; x++ )
-          {
-            if ( (num = cell[ y, x ]) < 1 )
-              col = Color.FromArgb( 0, 0, 128 );
-            else
-              if ( pressure )
-                col = Draw.ColorRamp( pressMul * Math.Sqrt( num * power[ y, x ] ) );
-              else
-              {
-                r = (int)(128 + vMul * vx[ y, x ] / num);
-                g = (int)(128 + vMul * vy[ y, x ] / num);
-                b = 0;
-                col = Color.FromArgb( Arith.Clamp( r, 0, 255 ),
-                                      Arith.Clamp( g, 0, 255 ),
-                                      Arith.Clamp( b, 0, 255 ) );
-              }
-            so.bmp.SetPixel( x, y, col );
-          }
         so.simTime = SimTime;
         so.totalSpawned = TotalSpawned;
 
-        progress.Sync( so );
+        // 2. visualizations - default (pressure/velocity) and/or custom
+        if ( progress.velocity ||
+             progress.pressure ||
+             progress.custom )
+        {
+          maxV2N = 0.001;
+          double V2N;
+          maxV = 0.0;
+
+          int n;
+          for ( y = 2; y < height - 2; y++ )    // avoid borders..
+            for ( x = 2; x < width - 2; x++ )
+              if ( (n = cell[ y, x ]) > 0 )
+              {
+                if ( (V2N = n * power[ y, x ]) > maxV2N )
+                  maxV2N = V2N;
+                double mvx = Math.Abs( vx[ y, x ] / n );
+                double mvy = Math.Abs( vy[ y, x ] / n );
+                if ( mvx > maxV )
+                  maxV = mvx;
+                if ( mvy > maxV )
+                  maxV = mvy;
+              }
+
+          int origin = 0;
+          if ( progress.velocity ) origin += height;
+          if ( progress.pressure ) origin += height;
+          if ( progress.custom   ) origin += height;
+
+          if ( origin > 0 && origin != outputImage.Height )
+          {
+            if ( outputImage != null )
+              outputImage.Dispose();
+            so.bmp = outputImage = new Bitmap( width, origin, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+          }
+
+          origin = 0;
+          // individual visualizations - velocity
+          if ( progress.velocity )
+          {
+            VisualizeVelocity( so, 0, origin );
+            origin += height;
+          }
+
+          // individual visualizations - pressure
+          if ( progress.pressure )
+          {
+            VisualizePressure( so, 0, origin );
+            origin += height;
+          }
+
+          // individual visualizations - custom routine
+          if ( progress.custom )
+          {
+            VisualizeCustom( so, 0, origin, progress.param );
+            origin += height;
+          }
+
+          progress.Sync( so );
+        }
       }
       while ( true );
 
@@ -569,10 +602,28 @@ namespace _029flow
       selectedWorld = comboScene.SelectedIndex;
     }
 
+    private void checkVelocity_CheckedChanged ( object sender, EventArgs e )
+    {
+      lock ( progress )
+        progress.velocity = checkVelocity.Checked;
+    }
+
     private void checkPressure_CheckedChanged ( object sender, EventArgs e )
     {
       lock ( progress )
         progress.pressure = checkPressure.Checked;
+    }
+
+    private void checkCustom_CheckedChanged ( object sender, EventArgs e )
+    {
+      lock ( progress )
+        progress.custom = checkCustom.Checked;
+    }
+
+    private void textParam_TextChanged ( object sender, EventArgs e )
+    {
+      lock ( progress )
+        progress.param = textParam.Text;
     }
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
