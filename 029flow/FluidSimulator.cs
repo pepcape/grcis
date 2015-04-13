@@ -142,7 +142,7 @@ namespace _029flow
     /// <summary>
     /// Buffers for velocity components / sum of total square velocity.
     /// </summary>
-    public float[,] vx, vy, power;
+    public double[,] vx, vy, power;
 
     /// <summary>
     /// Dedicated random generator (each simulation thread should have its own instance).
@@ -153,14 +153,6 @@ namespace _029flow
     /// Progress object for user break.
     /// </summary>
     public Progress progress = null;
-
-    /*
-    static float pDot[5][5] = { {0.0625f, 0.125f, 0.25f, 0.125f, 0.0625f} ,
-                              {0.125f, 0.25f, 0.5f, 0.25f, 0.125f} ,
-                              {0.25f, 0.5f, 1.0f, 0.5f, 0.25f} ,
-                              {0.125f, 0.25f, 0.5f, 0.25f, 0.125f} ,
-                              {0.0625f, 0.125f, 0.25f, 0.125f, 0.0625f} };
-    */
 
     //--- Inlines ---
 
@@ -469,9 +461,9 @@ namespace _029flow
     public void InitBuffers ()
     {
       cell  = new int[ height, width ];
-      vx    = new float[ height, width ];
-      vy    = new float[ height, width ];
-      power = new float[ height, width ];
+      vx    = new double[ height, width ];
+      vy    = new double[ height, width ];
+      power = new double[ height, width ];
     }
 
     public void Init ( int nParticles, double fPPT )
@@ -566,10 +558,10 @@ namespace _029flow
             int iy = Arith.Clamp( (int)Math.Floor( (par.y - yMin) * scalexy ), 0, height - 1 );
 
             cell[ iy, ix ]++;
-            vx[ iy, ix ] += (float)par.vx;
-            vy[ iy, ix ] += (float)par.vy;
+            vx[ iy, ix ] += par.vx;
+            vy[ iy, ix ] += par.vy;
             double pow = par.vx * par.vx + par.vy * par.vy;
-            power[ iy, ix ] += (float)pow;
+            power[ iy, ix ] += pow;
           }
     }
   }

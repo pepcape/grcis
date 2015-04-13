@@ -90,9 +90,9 @@
       this.buttonSimulation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonSimulation.Location = new System.Drawing.Point( 13, 447 );
       this.buttonSimulation.Name = "buttonSimulation";
-      this.buttonSimulation.Size = new System.Drawing.Size( 104, 23 );
+      this.buttonSimulation.Size = new System.Drawing.Size( 125, 23 );
       this.buttonSimulation.TabIndex = 5;
-      this.buttonSimulation.Text = "Simulation";
+      this.buttonSimulation.Text = "[Re]start simulation";
       this.buttonSimulation.UseVisualStyleBackColor = true;
       this.buttonSimulation.Click += new System.EventHandler( this.buttonSimulation_Click );
       // 
@@ -120,9 +120,9 @@
       // 
       this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonStop.Enabled = false;
-      this.buttonStop.Location = new System.Drawing.Point( 124, 447 );
+      this.buttonStop.Location = new System.Drawing.Point( 144, 447 );
       this.buttonStop.Name = "buttonStop";
-      this.buttonStop.Size = new System.Drawing.Size( 59, 23 );
+      this.buttonStop.Size = new System.Drawing.Size( 43, 23 );
       this.buttonStop.TabIndex = 32;
       this.buttonStop.Text = "Stop";
       this.buttonStop.UseVisualStyleBackColor = true;

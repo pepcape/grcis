@@ -141,19 +141,19 @@ namespace _029flow
 
       public int nPart;
 
-      public float ppt;
+      public double ppt;
 
       public double dt;
 
       public double vart;
 
-      public WorkerThreadInit ( FluidSimulator s, int n, float pptake, double deltat, double variancet )
+      public WorkerThreadInit ( FluidSimulator s, int n, double pptake, double deltat, double variancet )
       {
-        sim = s;
+        sim   = s;
         nPart = n;
-        ppt = pptake;
-        dt = deltat;
-        vart = variancet;
+        ppt   = pptake;
+        dt    = deltat;
+        vart  = variancet;
       }
     }
 
@@ -208,7 +208,7 @@ namespace _029flow
     /// <summary>
     /// Buffers for velocity components / sum of total square velocity.
     /// </summary>
-    float[ , ] vx, vy, power;
+    double[ , ] vx, vy, power;
 
     /// <summary>
     /// Extremal values for visualizations.
@@ -256,7 +256,7 @@ namespace _029flow
     /// </summary>
     private void RunSimulation ()
     {
-      int oldWidth = width;
+      int oldWidth  = width;
       int oldHeight = height;
 
       // determine output image size:
@@ -272,8 +272,12 @@ namespace _029flow
       int t;
       for ( t = 0; t < threads; t++ )
         sims.Add( getSimulator( t ) );
+      int origW = width;
+      int origH = height;
       foreach ( var sim in sims )
       {
+        width  = origW;
+        height = origH;
         sim.SetPresentationSize( ref width, ref height );
         sim.InitBuffers();
       }
@@ -290,18 +294,22 @@ namespace _029flow
            oldWidth != width ||
            oldHeight != height )
       {
+        SimTime      = 0.0;
         TotalSpawned = 0L;
-        SimTime = 0.0;
         cell  = new int[ height, width ];
-        vx    = new float[ height, width ];
-        vy    = new float[ height, width ];
-        power = new float[ height, width ];
+        vx    = new double[ height, width ];
+        vy    = new double[ height, width ];
+        power = new double[ height, width ];
         dirty = false;
       }
       else
       {
-        sims[ 0 ].SimTime = SimTime;
+        sims[ 0 ].SimTime      = SimTime;
         sims[ 0 ].TotalSpawned = TotalSpawned;
+        System.Array.Copy( cell,  sims[ 0 ].cell,  width * height );
+        System.Array.Copy( vx,    sims[ 0 ].vx,    width * height );
+        System.Array.Copy( vy,    sims[ 0 ].vy,    width * height );
+        System.Array.Copy( power, sims[ 0 ].power, width * height );
       }
 
       // progress & timer:
@@ -609,7 +617,7 @@ namespace _029flow
               {
                 int n = cell[ y, x ];
                 int denom = Math.Max( n, 1 );
-                wri.WriteLine( string.Format( CultureInfo.InvariantCulture, "{0:f5};{1:f5};{2};{3:f5};{4:f5};{5:f5}",
+                wri.WriteLine( string.Format( CultureInfo.InvariantCulture, "{0:f5};{1:f5};{2};{3:f6};{4:f6};{5:f6}",
                                               x * scale, y * scale, n, vx[ y, x ] / denom, vy[ y, x ] / denom,
                                               Math.Sqrt( power[ y, x ] / denom ) ) );
               }
@@ -655,22 +663,23 @@ namespace _029flow
         long newTotalSpawned;
         int newWidth;
         int newHeight;
-        if ( !double.TryParse( token[ 1 ], out newSimTime ) ||
+        if ( !double.TryParse( token[ 1 ], NumberStyles.Float, CultureInfo.InvariantCulture, out newSimTime ) ||
              !long.TryParse( token[ 2 ], out newTotalSpawned ) ||
              !int.TryParse( token[ 3 ], out newWidth ) ||
              !int.TryParse( token[ 4 ], out newHeight ) )
           return;
 
-        SimTime = newSimTime;
+        SimTime      = newSimTime;
         TotalSpawned = newTotalSpawned;
-        width = newWidth;
-        height = newHeight;
-        comboScene.SelectedText = worldName;
+        width        = ImageWidth = newWidth;
+        height       = ImageHeight = newHeight;
+        buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+        comboScene.SelectedIndex = comboScene.Items.IndexOf( worldName );
 
         cell  = new int[ height, width ];
-        vx    = new float[ height, width ];
-        vy    = new float[ height, width ];
-        power = new float[ height, width ];
+        vx    = new double[ height, width ];
+        vy    = new double[ height, width ];
+        power = new double[ height, width ];
 
         int x, y;
         for ( y = 0; y < height; y++ )
@@ -687,17 +696,17 @@ namespace _029flow
             int newCell;
             double newVx, newVy, newPower;
             if ( !int.TryParse( token[ 2 ], out newCell ) ||
-                 !double.TryParse( token[ 3 ], out newVx ) ||
-                 !double.TryParse( token[ 4 ], out newVy ) ||
-                 !double.TryParse( token[ 5 ], out newPower ) )
+                 !double.TryParse( token[ 3 ], NumberStyles.Float, CultureInfo.InvariantCulture, out newVx ) ||
+                 !double.TryParse( token[ 4 ], NumberStyles.Float, CultureInfo.InvariantCulture, out newVy ) ||
+                 !double.TryParse( token[ 5 ], NumberStyles.Float, CultureInfo.InvariantCulture, out newPower ) )
             {
               y = height + 1;
               break;
             }
             cell[ y, x ]  = newCell;
-            vx[ y, x ]    = (float)( newVx * newCell );
-            vy[ y, x ]    = (float)( newVy * newCell );
-            power[ y, x ] = (float)( newPower * newPower * newCell );
+            vx[ y, x ]    = newVx * newCell;
+            vy[ y, x ]    = newVy * newCell;
+            power[ y, x ] = newPower * newPower * newCell;
           }
 
         dirty = (y >= height + 1);
