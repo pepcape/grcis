@@ -36,17 +36,19 @@
       this.label2 = new System.Windows.Forms.Label();
       this.numColors = new System.Windows.Forms.NumericUpDown();
       this.label3 = new System.Windows.Forms.Label();
+      this.label4 = new System.Windows.Forms.Label();
       this.baseBox2 = new _033colormap.BaseBox();
       this.baseBox1 = new _033colormap.BaseBox();
       this.pictureBox1 = new _033colormap.MyBox();
+      this.textParam = new System.Windows.Forms.TextBox();
       ((System.ComponentModel.ISupportInitialize)(this.numColors)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.baseBox2)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.baseBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.SuspendLayout();
-      //
+      // 
       // button1
-      //
+      // 
       this.button1.Location = new System.Drawing.Point( 433, 329 );
       this.button1.Name = "button1";
       this.button1.Size = new System.Drawing.Size( 249, 31 );
@@ -54,9 +56,9 @@
       this.button1.Text = "Done";
       this.button1.UseVisualStyleBackColor = true;
       this.button1.Click += new System.EventHandler( this.button1_Click );
-      //
+      // 
       // buttonColor1
-      //
+      // 
       this.buttonColor1.Location = new System.Drawing.Point( 433, 13 );
       this.buttonColor1.Name = "buttonColor1";
       this.buttonColor1.Size = new System.Drawing.Size( 249, 23 );
@@ -64,9 +66,9 @@
       this.buttonColor1.Text = "Select base color 1";
       this.buttonColor1.UseVisualStyleBackColor = true;
       this.buttonColor1.Click += new System.EventHandler( this.buttonColor1_Click );
-      //
+      // 
       // buttonColor2
-      //
+      // 
       this.buttonColor2.Location = new System.Drawing.Point( 433, 137 );
       this.buttonColor2.Name = "buttonColor2";
       this.buttonColor2.Size = new System.Drawing.Size( 249, 23 );
@@ -74,26 +76,26 @@
       this.buttonColor2.Text = "Select base color 2";
       this.buttonColor2.UseVisualStyleBackColor = true;
       this.buttonColor2.Click += new System.EventHandler( this.buttonColor2_Click );
-      //
+      // 
       // label1
-      //
+      // 
       this.label1.Location = new System.Drawing.Point( 581, 73 );
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size( 80, 13 );
       this.label1.TabIndex = 3;
       this.label1.Text = "--";
-      //
+      // 
       // label2
-      //
+      // 
       this.label2.Location = new System.Drawing.Point( 581, 196 );
       this.label2.Name = "label2";
       this.label2.Size = new System.Drawing.Size( 80, 13 );
       this.label2.TabIndex = 6;
       this.label2.Text = "--";
-      //
+      // 
       // numColors
-      //
-      this.numColors.Location = new System.Drawing.Point( 516, 265 );
+      // 
+      this.numColors.Location = new System.Drawing.Point( 516, 260 );
       this.numColors.Maximum = new decimal( new int[] {
             9,
             0,
@@ -113,47 +115,66 @@
             0,
             0} );
       this.numColors.ValueChanged += new System.EventHandler( this.numColors_ValueChanged );
-      //
+      // 
       // label3
-      //
+      // 
       this.label3.AutoSize = true;
-      this.label3.Location = new System.Drawing.Point( 433, 266 );
+      this.label3.Location = new System.Drawing.Point( 433, 261 );
       this.label3.Name = "label3";
       this.label3.Size = new System.Drawing.Size( 64, 13 );
       this.label3.TabIndex = 9;
       this.label3.Text = "Palette size:";
-      //
+      // 
+      // label4
+      // 
+      this.label4.AutoSize = true;
+      this.label4.Location = new System.Drawing.Point( 433, 296 );
+      this.label4.Name = "label4";
+      this.label4.Size = new System.Drawing.Size( 40, 13 );
+      this.label4.TabIndex = 10;
+      this.label4.Text = "Param:";
+      // 
       // baseBox2
-      //
+      // 
       this.baseBox2.color = System.Drawing.Color.Empty;
       this.baseBox2.Location = new System.Drawing.Point( 464, 179 );
       this.baseBox2.Name = "baseBox2";
       this.baseBox2.Size = new System.Drawing.Size( 100, 50 );
       this.baseBox2.TabIndex = 5;
       this.baseBox2.TabStop = false;
-      //
+      // 
       // baseBox1
-      //
+      // 
       this.baseBox1.color = System.Drawing.Color.Empty;
       this.baseBox1.Location = new System.Drawing.Point( 464, 54 );
       this.baseBox1.Name = "baseBox1";
       this.baseBox1.Size = new System.Drawing.Size( 100, 50 );
       this.baseBox1.TabIndex = 2;
       this.baseBox1.TabStop = false;
-      //
+      // 
       // pictureBox1
-      //
+      // 
       this.pictureBox1.Location = new System.Drawing.Point( 12, 12 );
       this.pictureBox1.Name = "pictureBox1";
       this.pictureBox1.Size = new System.Drawing.Size( 400, 348 );
       this.pictureBox1.TabIndex = 0;
       this.pictureBox1.TabStop = false;
-      //
+      // 
+      // textParam
+      // 
+      this.textParam.Location = new System.Drawing.Point( 479, 293 );
+      this.textParam.Name = "textParam";
+      this.textParam.Size = new System.Drawing.Size( 203, 20 );
+      this.textParam.TabIndex = 11;
+      this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler( this.textParam_KeyPress );
+      // 
       // Form1
-      //
+      // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size( 694, 372 );
+      this.Controls.Add( this.textParam );
+      this.Controls.Add( this.label4 );
       this.Controls.Add( this.label3 );
       this.Controls.Add( this.numColors );
       this.Controls.Add( this.label2 );
@@ -166,7 +187,7 @@
       this.Controls.Add( this.pictureBox1 );
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
       this.Name = "Form1";
-      this.Text = "033 Paleta";
+      this.Text = "033 Palette";
       ((System.ComponentModel.ISupportInitialize)(this.numColors)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.baseBox2)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.baseBox1)).EndInit();
@@ -189,5 +210,7 @@
     public System.Windows.Forms.Label label2;
     public System.Windows.Forms.NumericUpDown numColors;
     private System.Windows.Forms.Label label3;
+    private System.Windows.Forms.Label label4;
+    private System.Windows.Forms.TextBox textParam;
   }
 }

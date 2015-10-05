@@ -1,30 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 namespace _033colormap
 {
   public partial class Form1 : Form
   {
+    /// <summary>
+    /// Output color array = color palette.
+    /// </summary>
     public static Color[] colors;
 
-    public static Color baseColor1 = Color.FromArgb( 180,  60,   0 );
-    public static Color baseColor2 = Color.FromArgb( 255, 240, 220 );
+    //--------------------------------------------------
+    // Input parameters for palette generation:
+    public static Color baseColor1 = Color.Black;
+    public static Color baseColor2 = Color.White;
     public static int numCol = 4;
+    public static string param = "";
 
     public Form1 ()
     {
       InitializeComponent();
+      InitPaletteData();
+
       baseBox1.color = baseColor1;
       label1.Text = color2string( baseColor1 );
       baseBox2.color = baseColor2;
       label2.Text = color2string( baseColor2 );
-      Colormap.generate( baseColor1, baseColor2, numCol, out colors );
+      textParam.Text = param;
+
+      Colormap.Generate( baseColor1, baseColor2, numCol, param, out colors );
       pictureBox1.Invalidate();
     }
 
@@ -37,12 +42,15 @@ namespace _033colormap
     {
       DialogResult res = colorDialog1.ShowDialog();
       if ( res == DialogResult.Cancel ) return;
+
       baseColor1 = colorDialog1.Color;
       baseBox1.color = baseColor1;
       label1.Text = color2string( baseColor1 );
       baseBox1.Invalidate();
       label1.Invalidate();
-      Colormap.generate( baseColor1, baseColor2, numCol, out colors );
+      param = textParam.Text;
+
+      Colormap.Generate( baseColor1, baseColor2, numCol, param, out colors );
       pictureBox1.Invalidate();
     }
 
@@ -50,12 +58,15 @@ namespace _033colormap
     {
       DialogResult res = colorDialog1.ShowDialog();
       if ( res == DialogResult.Cancel ) return;
+
       baseColor2 = colorDialog1.Color;
       baseBox2.color = baseColor2;
       label2.Text = color2string( baseColor2 );
       baseBox2.Invalidate();
       label2.Invalidate();
-      Colormap.generate( baseColor1, baseColor2, numCol, out colors );
+      param = textParam.Text;
+
+      Colormap.Generate( baseColor1, baseColor2, numCol, param, out colors );
       pictureBox1.Invalidate();
     }
 
@@ -64,7 +75,9 @@ namespace _033colormap
       numCol = (int)numColors.Value;
       if ( numCol > 9 ) numCol = 9;
       if ( numCol < 3 ) numCol = 3;
-      Colormap.generate( baseColor1, baseColor2, numCol, out colors );
+      param = textParam.Text;
+
+      Colormap.Generate( baseColor1, baseColor2, numCol, param, out colors );
       pictureBox1.Invalidate();
     }
 
@@ -73,5 +86,15 @@ namespace _033colormap
       return "[" + col.R + ',' + col.G + ',' + col.B + ']';
     }
 
+    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        param = textParam.Text;
+        Colormap.Generate( baseColor1, baseColor2, numCol, param, out colors );
+        pictureBox1.Invalidate();
+      }
+    }
   }
 }
