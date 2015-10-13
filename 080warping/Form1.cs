@@ -6,13 +6,12 @@ namespace _080warping
 {
   public partial class Form1 : Form
   {
-    protected Image inputImage = null;
+    protected Image inputImage  = null;
     protected Image outputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
-      // !!! TODO: custom form resize
       // !!! TODO: 
       String[] tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[ 1 ] + ')';
@@ -40,16 +39,23 @@ namespace _080warping
       outputImage = new Bitmap( inp );
       inp.Dispose();
 
-      recompute();
+      Reset();
     }
 
-    private void recompute ()
+    /// <summary>
+    /// Reset source/target images with the new regular grid.
+    /// </summary>
+    private void Reset ()
     {
       if ( inputImage == null ||
            outputImage == null ) return;
 
-      pictureSource.SetPicture( (Bitmap)inputImage );
-      pictureTarget.SetPicture( (Bitmap)outputImage );
+      int columns = (int)numericParam.Value;
+      if ( columns < 4 ) columns = 4;
+      int rows = (columns * inputImage.Height) / inputImage.Width;
+
+      pictureSource.SetPicture( (Bitmap)inputImage, columns, rows );
+      pictureTarget.SetPicture( (Bitmap)outputImage, columns, rows );
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
@@ -70,7 +76,7 @@ namespace _080warping
 
     private void numericParam_ValueChanged ( object sender, EventArgs e )
     {
-      recompute();
+      Reset();
     }
   }
 }
