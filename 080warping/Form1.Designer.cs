@@ -66,18 +66,17 @@
       // numericParam
       // 
       this.numericParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.numericParam.DecimalPlaces = 2;
-      this.numericParam.Increment = new decimal( new int[] {
-            1,
-            0,
-            0,
-            65536} );
       this.numericParam.Location = new System.Drawing.Point( 241, 453 );
+      this.numericParam.Minimum = new decimal( new int[] {
+            4,
+            0,
+            0,
+            0} );
       this.numericParam.Name = "numericParam";
       this.numericParam.Size = new System.Drawing.Size( 79, 20 );
       this.numericParam.TabIndex = 3;
       this.numericParam.Value = new decimal( new int[] {
-            1,
+            6,
             0,
             0,
             0} );
@@ -115,7 +114,6 @@
       this.pictureSource.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                   | System.Windows.Forms.AnchorStyles.Left)
                   | System.Windows.Forms.AnchorStyles.Right)));
-      this.pictureSource.GridColor = System.Drawing.Color.LightGreen;
       this.pictureSource.Location = new System.Drawing.Point( 3, 3 );
       this.pictureSource.Name = "pictureSource";
       this.pictureSource.Size = new System.Drawing.Size( 391, 420 );
@@ -127,7 +125,6 @@
       this.pictureTarget.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                   | System.Windows.Forms.AnchorStyles.Left)
                   | System.Windows.Forms.AnchorStyles.Right)));
-      this.pictureTarget.GridColor = System.Drawing.Color.LightGreen;
       this.pictureTarget.Location = new System.Drawing.Point( 400, 3 );
       this.pictureTarget.Name = "pictureTarget";
       this.pictureTarget.Size = new System.Drawing.Size( 392, 420 );

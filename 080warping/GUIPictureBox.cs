@@ -13,53 +13,44 @@ namespace _080warping
   [Designer( "System.Windows.Forms.Design.PictureBoxDesigner, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f12d50a3a" )]
   public partial class GUIPictureBox : PictureBox
   {
-    #region data
+    #region Data
 
     /// <summary>
-    /// Input image.
+    /// Original image.
+    /// Result image is stored in the 'Image' member.
     /// </summary>
-    private Bitmap input;
+    private Bitmap original;
 
-    // !!! TODO: add triangle grid here !!!
+    /// <summary>
+    /// Associated warping object (triangle mesh).
+    /// </summary>
+    public Warping warp;
+
+    protected float width;
+
+    protected float height;
 
     #endregion
 
-    #region warping feature settings
+    #region Picture getters/setters
 
     /// <summary>
-    /// Color to paint the grid.
+    /// Sets a new original picture.
     /// </summary>
-    protected Color gridColor = Color.LightGreen;
-
-    /// <summary>
-    /// Gets or sets the grid's color.
-    /// </summary>
-    public Color GridColor
+    /// <param name="newOriginal">New original picture</param>
+    public void SetPicture ( Bitmap newOriginal, int columns, int rows )
     {
-      get { return gridColor; }
-      set
-      {
-        gridColor = value;
-        // !!! TODO: redraw the current grid?
-      }
-    }
+      original = newOriginal;
+      Image = (Bitmap)newOriginal.Clone();
+      width = original.Width;
+      height = original.Height;
 
-    #endregion
-
-    #region set/get pictures
-
-    /// <summary>
-    /// Sets a new input picture.
-    /// </summary>
-    /// <param name="newInput">New input picture</param>
-    public void SetPicture ( Bitmap newInput )
-    {
-      input = newInput;
-      Image = (Bitmap)newInput.Clone();
+      warp = new Warping();
+      warp.GenerateTriangleMesh( columns, rows );
     }
 
     /// <summary>
-    /// Gets the current output picture.
+    /// Gets the current picture.
     /// </summary>
     public Bitmap GetPicture ()
     {
@@ -68,110 +59,69 @@ namespace _080warping
 
     #endregion
 
-    #region display results
+    #region Display results
 
     protected override void OnPaint ( PaintEventArgs e )
     {
       base.OnPaint( e );
+      if ( Image == null ||
+           warp == null )
+        return;
 
-      // !!! TODO: custom drawing !!!
+      // tri-mesh drawing:
+      warp.DrawGrid( e.Graphics, width, height );
     }
 
     #endregion
 
-    #region mouse events
+    #region Mouse events
 
     /// <summary>
     /// Stores position of mouse when button was pressed.
     /// </summary>
-    protected Point mouseDownPoint;
-
-    /// <summary>
-    /// Indicates wheter the right mouse button is down.
-    /// </summary>
-    protected bool rightButtonDown = false;
+    protected int mouseDownIndex = -1;
 
     protected override void OnMouseDown ( MouseEventArgs e )
     {
       base.OnMouseDown( e );
-      mouseDownPoint = e.Location;
-      if ( e.Button == MouseButtons.Right )
-        rightButtonDown = true;
+      if ( warp != null )
+        mouseDownIndex = warp.NearestVertex( e.Location, width, height );
     }
 
     protected override void OnMouseUp ( MouseEventArgs e )
     {
       base.OnMouseUp( e );
 
-      if ( input == null )
-        return;
-
-      if ( e.Button == MouseButtons.Right )
-        rightButtonDown = false;
-
-      if ( e.Location == mouseDownPoint )
-        return;
-
-      UseWaitCursor = true;
-
-      // choose action accodring to the mouse button
-      if ( e.Button == MouseButtons.Left )
+      if ( mouseDownIndex >= 0 )
       {
-        // !!! TODO: add new feature?
-        Bitmap bmp = (Bitmap)Image;
-        bmp.SetPixel( mouseDownPoint.X, mouseDownPoint.Y, gridColor );
-        bmp.SetPixel( e.Location.X, e.Location.Y, gridColor );
-        Invalidate( new Rectangle( Math.Min( mouseDownPoint.X, e.Location.X ),
-                                   Math.Min( mouseDownPoint.Y, e.Location.Y ),
-                                   Math.Abs( mouseDownPoint.X - e.Location.X ) + 1,
-                                   Math.Abs( mouseDownPoint.Y - e.Location.Y ) + 1 ) );
-        UseWaitCursor = false;
-        return;
+        if ( warp != null )
+          warp.MoveVertex( mouseDownIndex, e.Location, width, height );
+        mouseDownIndex = -1;
       }
 
-      if ( e.Button == MouseButtons.Right )
-      {
-        // !!! TODO: shift the last feature?
-        Invalidate( new Rectangle( Math.Min( mouseDownPoint.X, e.Location.X ),
-                                   Math.Min( mouseDownPoint.Y, e.Location.Y ),
-                                   Math.Abs( mouseDownPoint.X - e.Location.X ) + 1,
-                                   Math.Abs( mouseDownPoint.Y - e.Location.Y ) + 1 ) );
-      }
-      UseWaitCursor = false;
+      Invalidate();
    }
 
     protected override void OnMouseMove ( MouseEventArgs e )
     {
       base.OnMouseMove( e );
 
-      if ( rightButtonDown )
-        return;
-
-      // !!! TODO: active contour?
-      UseWaitCursor = true;
-      Invalidate( new Rectangle( Math.Min( mouseDownPoint.X, e.Location.X ),
-                                 Math.Min( mouseDownPoint.Y, e.Location.Y ),
-                                 Math.Abs( mouseDownPoint.X - e.Location.X ) + 1,
-                                 Math.Abs( mouseDownPoint.Y - e.Location.Y ) + 1 ) );
-      UseWaitCursor = false;
+      if ( mouseDownIndex >= 0 )
+      {
+        // !!! TODO: elastic mesh?
+      }
     }
 
     #endregion
 
-    #region keyboard events
+    #region Keyboard events
 
     protected override void OnKeyDown ( KeyEventArgs e )
     {
       base.OnKeyDown( e );
-      KeyPressed( e.KeyCode );
-    }
 
-    public void KeyPressed ( Keys key )
-    {
-      if ( key == Keys.Back )
-      {
-        // !!! TODO: undo the last vertex-move ???
-      }
+      if ( warp != null )
+        warp.KeyPressed( e.KeyCode );
     }
 
     #endregion
