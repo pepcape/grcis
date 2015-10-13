@@ -32,17 +32,19 @@
       this.buttonSave = new System.Windows.Forms.Button();
       this.numericParam = new System.Windows.Forms.NumericUpDown();
       this.label1 = new System.Windows.Forms.Label();
-      this.pictureTarget = new _080warping.GUIPictureBox();
+      this.tableImages = new System.Windows.Forms.TableLayoutPanel();
       this.pictureSource = new _080warping.GUIPictureBox();
+      this.pictureTarget = new _080warping.GUIPictureBox();
       ((System.ComponentModel.ISupportInitialize)(this.numericParam)).BeginInit();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureTarget)).BeginInit();
+      this.tableImages.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureSource)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureTarget)).BeginInit();
       this.SuspendLayout();
       // 
       // buttonOpen
       // 
       this.buttonOpen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonOpen.Location = new System.Drawing.Point( 12, 411 );
+      this.buttonOpen.Location = new System.Drawing.Point( 12, 450 );
       this.buttonOpen.Name = "buttonOpen";
       this.buttonOpen.Size = new System.Drawing.Size( 130, 23 );
       this.buttonOpen.TabIndex = 1;
@@ -53,7 +55,7 @@
       // buttonSave
       // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonSave.Location = new System.Drawing.Point( 570, 411 );
+      this.buttonSave.Location = new System.Drawing.Point( 679, 450 );
       this.buttonSave.Name = "buttonSave";
       this.buttonSave.Size = new System.Drawing.Size( 130, 23 );
       this.buttonSave.TabIndex = 2;
@@ -70,7 +72,7 @@
             0,
             0,
             65536} );
-      this.numericParam.Location = new System.Drawing.Point( 241, 414 );
+      this.numericParam.Location = new System.Drawing.Point( 241, 453 );
       this.numericParam.Name = "numericParam";
       this.numericParam.Size = new System.Drawing.Size( 79, 20 );
       this.numericParam.TabIndex = 3;
@@ -84,63 +86,83 @@
       // label1
       // 
       this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.label1.Location = new System.Drawing.Point( 168, 416 );
+      this.label1.Location = new System.Drawing.Point( 168, 455 );
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size( 58, 13 );
       this.label1.TabIndex = 4;
       this.label1.Text = "Parameter:";
+      // 
+      // tableImages
+      // 
+      this.tableImages.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                  | System.Windows.Forms.AnchorStyles.Left)
+                  | System.Windows.Forms.AnchorStyles.Right)));
+      this.tableImages.ColumnCount = 2;
+      this.tableImages.ColumnStyles.Add( new System.Windows.Forms.ColumnStyle( System.Windows.Forms.SizeType.Percent, 50F ) );
+      this.tableImages.ColumnStyles.Add( new System.Windows.Forms.ColumnStyle( System.Windows.Forms.SizeType.Percent, 50F ) );
+      this.tableImages.Controls.Add( this.pictureSource, 0, 0 );
+      this.tableImages.Controls.Add( this.pictureTarget, 1, 0 );
+      this.tableImages.GrowStyle = System.Windows.Forms.TableLayoutPanelGrowStyle.FixedSize;
+      this.tableImages.Location = new System.Drawing.Point( 12, 12 );
+      this.tableImages.Name = "tableImages";
+      this.tableImages.RowCount = 1;
+      this.tableImages.RowStyles.Add( new System.Windows.Forms.RowStyle( System.Windows.Forms.SizeType.Percent, 50F ) );
+      this.tableImages.Size = new System.Drawing.Size( 795, 426 );
+      this.tableImages.TabIndex = 0;
+      // 
+      // pictureSource
+      // 
+      this.pictureSource.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                  | System.Windows.Forms.AnchorStyles.Left)
+                  | System.Windows.Forms.AnchorStyles.Right)));
+      this.pictureSource.GridColor = System.Drawing.Color.LightGreen;
+      this.pictureSource.Location = new System.Drawing.Point( 3, 3 );
+      this.pictureSource.Name = "pictureSource";
+      this.pictureSource.Size = new System.Drawing.Size( 391, 420 );
+      this.pictureSource.TabIndex = 5;
+      this.pictureSource.TabStop = false;
       // 
       // pictureTarget
       // 
       this.pictureTarget.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                   | System.Windows.Forms.AnchorStyles.Left)
                   | System.Windows.Forms.AnchorStyles.Right)));
-      this.pictureTarget.FeaturesColor = System.Drawing.Color.LightGreen;
-      this.pictureTarget.Location = new System.Drawing.Point( 370, 18 );
+      this.pictureTarget.GridColor = System.Drawing.Color.LightGreen;
+      this.pictureTarget.Location = new System.Drawing.Point( 400, 3 );
       this.pictureTarget.Name = "pictureTarget";
-      this.pictureTarget.Size = new System.Drawing.Size( 330, 380 );
-      this.pictureTarget.TabIndex = 0;
+      this.pictureTarget.Size = new System.Drawing.Size( 392, 420 );
+      this.pictureTarget.TabIndex = 6;
       this.pictureTarget.TabStop = false;
-      // 
-      // pictureSource
-      // 
-      this.pictureSource.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                  | System.Windows.Forms.AnchorStyles.Left)));
-      this.pictureSource.FeaturesColor = System.Drawing.Color.LightGreen;
-      this.pictureSource.Location = new System.Drawing.Point( 25, 18 );
-      this.pictureSource.Name = "pictureSource";
-      this.pictureSource.Size = new System.Drawing.Size( 330, 380 );
-      this.pictureSource.TabIndex = 0;
-      this.pictureSource.TabStop = false;
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 13F );
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size( 712, 446 );
+      this.ClientSize = new System.Drawing.Size( 821, 485 );
+      this.Controls.Add( this.tableImages );
+      this.Controls.Add( this.buttonOpen );
       this.Controls.Add( this.label1 );
       this.Controls.Add( this.numericParam );
       this.Controls.Add( this.buttonSave );
-      this.Controls.Add( this.buttonOpen );
-      this.Controls.Add( this.pictureSource );
-      this.Controls.Add( this.pictureTarget );
       this.MinimumSize = new System.Drawing.Size( 620, 200 );
       this.Name = "Form1";
       this.Text = "080 trimesh warping";
       ((System.ComponentModel.ISupportInitialize)(this.numericParam)).EndInit();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureTarget)).EndInit();
+      this.tableImages.ResumeLayout( false );
       ((System.ComponentModel.ISupportInitialize)(this.pictureSource)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureTarget)).EndInit();
       this.ResumeLayout( false );
 
     }
 
     #endregion
 
+    private GUIPictureBox pictureSource;
+    private GUIPictureBox pictureTarget;
+    private System.Windows.Forms.TableLayoutPanel tableImages;
     public System.Windows.Forms.Button buttonOpen;
     public System.Windows.Forms.Button buttonSave;
     public System.Windows.Forms.NumericUpDown numericParam;
     private System.Windows.Forms.Label label1;
-    private GUIPictureBox pictureSource;
-    private GUIPictureBox pictureTarget;
   }
 }

@@ -27,20 +27,20 @@ namespace _080warping
     #region warping feature settings
 
     /// <summary>
-    ///  Color to paint the features.
+    /// Color to paint the grid.
     /// </summary>
-    protected Color featuresColor = Color.LightGreen;
+    protected Color gridColor = Color.LightGreen;
 
     /// <summary>
-    /// Gets or sets the features' color.
+    /// Gets or sets the grid's color.
     /// </summary>
-    public Color FeaturesColor
+    public Color GridColor
     {
-      get { return featuresColor; }
+      get { return gridColor; }
       set
       {
-        featuresColor = value;
-        // !!! TODO: redraw the current features?
+        gridColor = value;
+        // !!! TODO: redraw the current grid?
       }
     }
 
@@ -119,8 +119,8 @@ namespace _080warping
       {
         // !!! TODO: add new feature?
         Bitmap bmp = (Bitmap)Image;
-        bmp.SetPixel( mouseDownPoint.X, mouseDownPoint.Y, featuresColor );
-        bmp.SetPixel( e.Location.X, e.Location.Y, featuresColor );
+        bmp.SetPixel( mouseDownPoint.X, mouseDownPoint.Y, gridColor );
+        bmp.SetPixel( e.Location.X, e.Location.Y, gridColor );
         Invalidate( new Rectangle( Math.Min( mouseDownPoint.X, e.Location.X ),
                                    Math.Min( mouseDownPoint.Y, e.Location.Y ),
                                    Math.Abs( mouseDownPoint.X - e.Location.X ) + 1,
