@@ -47,21 +47,34 @@ namespace _080warping
     /// </summary>
     private void Reset ()
     {
-      if ( inputImage == null ||
-           outputImage == null ) return;
+      if ( inputImage == null ) return;
+      outputImage = new Bitmap( inputImage );
 
       int columns = (int)numericParam.Value;
       if ( columns < 4 ) columns = 4;
       int rows = (columns * inputImage.Height) / inputImage.Width;
 
-      pictureSource.SetPicture( (Bitmap)inputImage, columns, rows );
-      pictureTarget.SetPicture( (Bitmap)outputImage, columns, rows );
+      pictureSource.InitPicture( this, (Bitmap)inputImage, columns, rows );
+      pictureTarget.InitPicture( this, (Bitmap)outputImage, columns, rows );
+    }
+
+    /// <summary>
+    /// Recompute the target image according to current meshes.
+    /// </summary>
+    public void Recompute ()
+    {
+      if ( inputImage == null ) return;
+
+      outputImage = pictureTarget.warp.Warp( (Bitmap)inputImage, pictureSource.warp );
+      pictureTarget.SetPicture( (Bitmap)outputImage );
+
+      pictureSource.Invalidate();
+      pictureTarget.Invalidate();
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
-      if ( inputImage == null ||
-           outputImage != null ) return;
+      if ( outputImage == null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";
@@ -71,7 +84,7 @@ namespace _080warping
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureTarget.GetPicture().Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
     private void numericParam_ValueChanged ( object sender, EventArgs e )

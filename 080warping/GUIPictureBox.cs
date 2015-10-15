@@ -16,10 +16,9 @@ namespace _080warping
     #region Data
 
     /// <summary>
-    /// Original image.
-    /// Result image is stored in the 'Image' member.
+    /// Associated form.
     /// </summary>
-    private Bitmap original;
+    private Form1 form;
 
     /// <summary>
     /// Associated warping object (triangle mesh).
@@ -35,18 +34,24 @@ namespace _080warping
     #region Picture getters/setters
 
     /// <summary>
-    /// Sets a new original picture.
+    /// Inits a new original picture.
     /// </summary>
     /// <param name="newOriginal">New original picture</param>
-    public void SetPicture ( Bitmap newOriginal, int columns, int rows )
+    public void InitPicture ( Form1 f, Bitmap newOriginal, int columns, int rows )
     {
-      original = newOriginal;
+      form = f;
       Image = (Bitmap)newOriginal.Clone();
-      width = original.Width;
-      height = original.Height;
+      width = Image.Width;
+      height = Image.Height;
 
       warp = new Warping();
       warp.GenerateTriangleMesh( columns, rows );
+      Invalidate();
+    }
+
+    public void SetPicture ( Bitmap newImage )
+    {
+      Image = newImage;
     }
 
     /// <summary>
@@ -92,14 +97,14 @@ namespace _080warping
     {
       base.OnMouseUp( e );
 
-      if ( mouseDownIndex >= 0 )
-      {
-        if ( warp != null )
-          warp.MoveVertex( mouseDownIndex, e.Location, width, height );
-        mouseDownIndex = -1;
-      }
+      if ( mouseDownIndex < 0 )
+        return;
 
-      Invalidate();
+      if ( warp != null )
+        warp.MoveVertex( mouseDownIndex, e.Location, width, height );
+      mouseDownIndex = -1;
+
+      form.Recompute();
    }
 
     protected override void OnMouseMove ( MouseEventArgs e )
