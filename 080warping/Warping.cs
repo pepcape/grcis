@@ -22,8 +22,14 @@ namespace _080warping
     /// </summary>
     protected List<int> triangles = new List<int>();
 
+    /// <summary>
+    /// Current mesh topology: number of columns.
+    /// </summary>
     protected int columns;
 
+    /// <summary>
+    /// Current mesh topology: number of rows.
+    /// </summary>
     protected int rows;
 
     /// <summary>
@@ -121,15 +127,23 @@ namespace _080warping
       int hei = sourceImage.Height;
       Bitmap target = new Bitmap( wid, hei, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
+      // !!!{{ TODO: put your image-transformation code here
+
       int x, y;
       bool flip = (DateTime.Now.Second & 1) > 0;
       for ( y = 0; y < hei; y++ )
         for ( x = 0; x < wid; x++ )
           target.SetPixel( x, y, sourceImage.GetPixel( x, flip ? hei - 1 - y : y ) );
 
+      // !!!}}
+
       return target;
     }
 
+    /// <summary>
+    /// This function is called after user left-clicks on the image plane.
+    /// We need to define the nearest mesh vertex.
+    /// </summary>
     public int NearestVertex ( Point p, float width, float height )
     {
       float x = p.X / width;
@@ -152,16 +166,25 @@ namespace _080warping
       return nearest;
     }
 
+    /// <summary>
+    /// Finishing vertex dragging mode. The given vertex should be placed to the new
+    /// required position.
+    /// </summary>
     public void MoveVertex ( int i, Point newLocation, float width, float height )
     {
       if ( i < 0 ||
            i >= vertices.Count ) return;
 
-      // !!! TODO: moving border vertices is prohibited!
+      // !!! TODO: moving vertex outside the image region is prohibited!
+
+      // !!! TODO: moving border vertex out of the border is prohibited!
 
       vertices[ i ] = new PointF( newLocation.X / width, newLocation.Y / height );
     }
 
+    /// <summary>
+    /// Optional keystroke handling function.
+    /// </summary>
     public void KeyPressed ( Keys key )
     {
       if ( key == Keys.Back )
