@@ -117,8 +117,15 @@ namespace _080warping
     /// <returns>Target raster image.</returns>
     public Bitmap Warp ( Bitmap sourceImage, Warping sourceMesh )
     {
-      //Bitmap target = new Bitmap( sourceImage.Width, sourceImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
-      Bitmap target = new Bitmap( sourceImage );
+      int wid = sourceImage.Width;
+      int hei = sourceImage.Height;
+      Bitmap target = new Bitmap( wid, hei, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+
+      int x, y;
+      bool flip = (DateTime.Now.Second & 1) > 0;
+      for ( y = 0; y < hei; y++ )
+        for ( x = 0; x < wid; x++ )
+          target.SetPixel( x, y, sourceImage.GetPixel( x, flip ? hei - 1 - y : y ) );
 
       return target;
     }
