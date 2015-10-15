@@ -97,11 +97,11 @@ namespace _080warping
     {
       base.OnMouseUp( e );
 
-      if ( mouseDownIndex < 0 )
+      if ( mouseDownIndex < 0 ||
+           warp == null )
         return;
 
-      if ( warp != null )
-        warp.MoveVertex( mouseDownIndex, e.Location, width, height );
+      warp.MoveVertex( mouseDownIndex, e.Location, width, height );
       mouseDownIndex = -1;
 
       form.Recompute();
@@ -111,10 +111,12 @@ namespace _080warping
     {
       base.OnMouseMove( e );
 
-      if ( mouseDownIndex >= 0 )
-      {
-        // !!! TODO: elastic mesh?
-      }
+      if ( mouseDownIndex < 0 ||
+           warp == null )
+        return;
+
+      warp.MoveVertex( mouseDownIndex, e.Location, width, height );
+      Invalidate();
     }
 
     #endregion
