@@ -27,6 +27,7 @@ namespace _033colormap
       label1.Text = color2string( baseColor1 );
       baseBox2.color = baseColor2;
       label2.Text = color2string( baseColor2 );
+      numColors.Value = numCol;
       textParam.Text = param;
 
       Colormap.Generate( baseColor1, baseColor2, numCol, param, out colors );
