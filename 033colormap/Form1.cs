@@ -23,6 +23,9 @@ namespace _033colormap
       InitializeComponent();
       InitPaletteData();
 
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
+
       baseBox1.color = baseColor1;
       label1.Text = color2string( baseColor1 );
       baseBox2.color = baseColor2;
