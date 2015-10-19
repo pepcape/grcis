@@ -69,7 +69,7 @@
       this.buttonOpen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonOpen.Location = new System.Drawing.Point( 13, 408 );
       this.buttonOpen.Name = "buttonOpen";
-      this.buttonOpen.Size = new System.Drawing.Size( 96, 23 );
+      this.buttonOpen.Size = new System.Drawing.Size( 83, 23 );
       this.buttonOpen.TabIndex = 1;
       this.buttonOpen.Text = "Load image";
       this.buttonOpen.UseVisualStyleBackColor = true;
@@ -78,9 +78,9 @@
       // buttonSave
       // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonSave.Location = new System.Drawing.Point( 805, 408 );
+      this.buttonSave.Location = new System.Drawing.Point( 813, 408 );
       this.buttonSave.Name = "buttonSave";
-      this.buttonSave.Size = new System.Drawing.Size( 91, 23 );
+      this.buttonSave.Size = new System.Drawing.Size( 83, 23 );
       this.buttonSave.TabIndex = 3;
       this.buttonSave.Text = "Save image";
       this.buttonSave.UseVisualStyleBackColor = true;
@@ -90,7 +90,7 @@
       // 
       this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point( 122, 413 );
+      this.label1.Location = new System.Drawing.Point( 108, 413 );
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size( 40, 13 );
       this.label1.TabIndex = 5;
@@ -99,7 +99,7 @@
       // buttonRedraw
       // 
       this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonRedraw.Location = new System.Drawing.Point( 401, 408 );
+      this.buttonRedraw.Location = new System.Drawing.Point( 387, 408 );
       this.buttonRedraw.Name = "buttonRedraw";
       this.buttonRedraw.Size = new System.Drawing.Size( 84, 23 );
       this.buttonRedraw.TabIndex = 6;
@@ -110,7 +110,7 @@
       // textParam
       // 
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.textParam.Location = new System.Drawing.Point( 173, 410 );
+      this.textParam.Location = new System.Drawing.Point( 159, 410 );
       this.textParam.Name = "textParam";
       this.textParam.Size = new System.Drawing.Size( 160, 20 );
       this.textParam.TabIndex = 7;
@@ -119,9 +119,9 @@
       // 
       this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonStop.Enabled = false;
-      this.buttonStop.Location = new System.Drawing.Point( 501, 408 );
+      this.buttonStop.Location = new System.Drawing.Point( 487, 408 );
       this.buttonStop.Name = "buttonStop";
-      this.buttonStop.Size = new System.Drawing.Size( 64, 23 );
+      this.buttonStop.Size = new System.Drawing.Size( 56, 23 );
       this.buttonStop.TabIndex = 8;
       this.buttonStop.Text = "Stop";
       this.buttonStop.UseVisualStyleBackColor = true;
@@ -131,7 +131,7 @@
       // 
       this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelElapsed.AutoSize = true;
-      this.labelElapsed.Location = new System.Drawing.Point( 581, 413 );
+      this.labelElapsed.Location = new System.Drawing.Point( 560, 413 );
       this.labelElapsed.Name = "labelElapsed";
       this.labelElapsed.Size = new System.Drawing.Size( 48, 13 );
       this.labelElapsed.TabIndex = 9;
@@ -139,10 +139,11 @@
       // 
       // checkFast
       // 
+      this.checkFast.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkFast.AutoSize = true;
       this.checkFast.Checked = true;
       this.checkFast.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkFast.Location = new System.Drawing.Point( 349, 410 );
+      this.checkFast.Location = new System.Drawing.Point( 335, 413 );
       this.checkFast.Name = "checkFast";
       this.checkFast.Size = new System.Drawing.Size( 43, 17 );
       this.checkFast.TabIndex = 10;
@@ -164,7 +165,7 @@
       this.Controls.Add( this.buttonSave );
       this.Controls.Add( this.buttonOpen );
       this.Controls.Add( this.panel1 );
-      this.MinimumSize = new System.Drawing.Size( 760, 200 );
+      this.MinimumSize = new System.Drawing.Size( 850, 200 );
       this.Name = "Form1";
       this.Text = "081 full color";
       this.DragDrop += new System.Windows.Forms.DragEventHandler( this.Form1_DragDrop );

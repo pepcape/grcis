@@ -5,6 +5,7 @@ using System.Threading;
 using Raster;
 using System.Globalization;
 using System.Diagnostics;
+using Utilities;
 
 namespace _081fullcolor
 {
@@ -101,12 +102,26 @@ namespace _081fullcolor
 
       if ( inputImage != null )
         inputImage.Dispose();
-
       inputImage = new Bitmap( inp );
+
+      if ( outputImage != null )
+        outputImage.Dispose();
+      outputImage = null;
+
       inp.Dispose();
       recompute();
 
       return true;
+    }
+
+    protected void EnableGUI ( bool enable )
+    {
+      buttonRedraw.Enabled = enable;
+      buttonOpen.Enabled = enable;
+      buttonSave.Enabled = enable;
+      textParam.Enabled = enable;
+      checkFast.Enabled = enable;
+      buttonStop.Enabled = !enable;
     }
 
     delegate void StopComputationCallback ();
@@ -129,10 +144,7 @@ namespace _081fullcolor
         aThread = null;
 
         // GUI stuff:
-        buttonRedraw.Enabled = true;
-        buttonOpen.Enabled = true;
-        buttonSave.Enabled = true;
-        buttonStop.Enabled = false;
+        EnableGUI( true );
       }
     }
 
@@ -147,12 +159,14 @@ namespace _081fullcolor
 
       sw.Stop();
       float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
+      long missing = (1 << 24) - Draw.ColorNumber( bmp );
+
       SetImage( bmp );
       if ( outputImage != null )
         outputImage.Dispose();
       outputImage = bmp;
 
-      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s", elapsed ) );
+      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s - {1}", elapsed, (missing > 0) ? missing.ToString() : "Ok" ) );
 
       StopComputation();
     }
@@ -162,10 +176,7 @@ namespace _081fullcolor
       if ( aThread != null )
         return;
 
-      buttonRedraw.Enabled = false;
-      buttonOpen.Enabled = false;
-      buttonSave.Enabled = false;
-      buttonStop.Enabled = true;
+      EnableGUI( false );
       cont = true;
 
       aThread = new Thread( new ThreadStart( this.transform ) );
