@@ -32,7 +32,7 @@ namespace _081fullcolor
     /// <param name="param">Optional string parameter (its content and format is entierely up to you).</param>
     public static void Recompute ( Bitmap input, out Bitmap output, bool fast, string param )
     {
-      // !!!{{ TODO: write your own image transformation code here
+      // !!!{{ TODO: write your own image generation code here
 
       // Text parameter = image size
       int wid = 1024;
@@ -42,8 +42,13 @@ namespace _081fullcolor
         string[] size = param.Split( COMMA );
         if ( size.Length >= 2 )
         {
-          int.TryParse( size[ 0 ], out wid );
-          int.TryParse( size[ 1 ], out hei );
+          if ( !int.TryParse( size[ 0 ], out wid ) )
+            wid = 1024;
+          if ( !int.TryParse( size[ 1 ], out hei ) )
+            hei = 1024;
+
+          if ( wid < 1 ) wid = 1;
+          if ( hei < 1 ) hei = 1;
         }
       }
 
@@ -110,6 +115,7 @@ namespace _081fullcolor
       }
       else
       {
+        int col;
         if ( fast )
         {
           // generate pixel data (fast memory-mapped code):
@@ -119,18 +125,19 @@ namespace _081fullcolor
             byte* optr;
             int dO = Image.GetPixelFormatSize( output.PixelFormat ) / 8;  // pixel size in bytes
 
+            col = 0;
             for ( yo = 0; yo < hei; yo++ )
             {
               if ( !Form1.cont ) break;
 
               optr = (byte*)dataOut.Scan0 + yo * dataOut.Stride;
 
-              for ( xo = 0; xo < wid; xo++ )
+              for ( xo = 0; xo < wid; xo++, col++ )
               {
                 // !!! TODO: do anything with the colors
-                bo = (byte)((xo * 3 + yo * 7) & 0xFF);
-                go = (byte)((xo * 5) & 0xFF);
-                ro = (byte)((yo * 11) & 0xFF);
+                bo = (byte)((col >> 16) & 0xFF);
+                go = (byte)((col >> 8) & 0xFF);
+                ro = (byte)(col & 0xFF);
 
                 // write output colors
                 optr[ 0 ] = bo;
@@ -146,16 +153,17 @@ namespace _081fullcolor
         else
         {
           // generate pixel data (slow mode):
+          col = 0;
           for ( yo = 0; yo < hei; yo++ )
           {
             if ( !Form1.cont ) break;
 
-            for ( xo = 0; xo < wid; xo++ )
+            for ( xo = 0; xo < wid; xo++, col++ )
             {
               // !!! TODO: do anything with the colors
-              bo = (byte)((xo * 3 + yo * 7) & 0xFF);
-              go = (byte)((xo * 5) & 0xFF);
-              ro = (byte)((yo * 11) & 0xFF);
+              bo = (byte)((col >> 16) & 0xFF);
+              go = (byte)((col >> 8) & 0xFF);
+              ro = (byte)(col & 0xFF);
 
               // write output colors
               output.SetPixel( xo, yo, Color.FromArgb( ro, go, bo ) );

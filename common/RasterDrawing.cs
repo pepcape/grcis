@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
 using MathSupport;
+using System.Collections;
 
 namespace Raster
 {
@@ -472,6 +473,46 @@ namespace Raster
         }
 
       return (float)Math.Sqrt( sum / (width * height) );
+    }
+
+    public static long ColorNumber ( Bitmap input )
+    {
+      int width  = input.Width;
+      int height = input.Height;
+      int xi, yi;
+      BitArray usedColors = new BitArray( 1 << 24 );
+
+      BitmapData dataIn = input.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, input.PixelFormat );
+      unsafe
+      {
+        byte* iptr;
+        int ri, gi, bi, c;
+        int dI = Image.GetPixelFormatSize( input.PixelFormat ) / 8;   // pixel size in bytes
+
+        for ( yi = 0; yi < height; yi++ )
+        {
+          iptr = (byte*)dataIn.Scan0 + yi * dataIn.Stride;
+
+          for ( xi = 0; xi < width; xi++ )
+          {
+            // read input colors
+            bi = iptr[ 0 ];
+            gi = iptr[ 1 ];
+            ri = iptr[ 2 ];
+            c = (((ri << 8) + gi) << 8) + bi;
+            usedColors[ c ] = true;
+
+            iptr += dI;
+          }
+        }
+      }
+      input.UnlockBits( dataIn );
+
+      long count = 0L;
+      foreach ( bool bit in usedColors )
+        if ( bit ) count++;
+
+      return count;
     }
 
     /// <summary>
