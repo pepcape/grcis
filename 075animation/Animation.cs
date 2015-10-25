@@ -2,39 +2,35 @@
 
 using System;
 using System.Drawing;
-using System.Globalization;
-using System.Windows.Forms;
+using System.Threading;
 using MathSupport;
 
 namespace _075animation
 {
-  public partial class Form1 : Form
-  {
-    /// <summary>
-    /// Initialize animation parameters.
-    /// </summary>
-    private void InitializeParams ()
-    {
-      // single frame:
-      ImageWidth  = 640;
-      ImageHeight = 480;
-
-      // animation:
-      numFrom.Value = (decimal)0.0;
-      numTo.Value   = (decimal)10.0;
-      numFps.Value  = (decimal)25.0;
-    }
-  }
-
   public class Animation
   {
+    /// <summary>
+    /// Initialize form parameters.
+    /// </summary>
+    public static void InitParams ( out int wid, out int hei, out double from, out double to, out double fps )
+    {
+      // single frame:
+      wid = 640;
+      hei = 480;
+
+      // animation:
+      from =  0.0;
+      to   = 10.0;
+      fps  = 25.0;
+    }
+
     /// <summary>
     /// Global initialization. Called before each animation batch
     /// or single-frame computation.
     /// </summary>
     /// <param name="width">Width of the future canvas in pixels.</param>
     /// <param name="height">Height of the future canvas in pixels.</param>
-    public static void Init ( int width, int height )
+    public static void InitAnimation ( int width, int height )
     {
       // !!!{{ TODO: put your init code here
 

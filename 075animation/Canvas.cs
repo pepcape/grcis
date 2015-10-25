@@ -10,13 +10,13 @@ namespace _075animation
   {
     #region Status&Support
 
-    protected Bitmap bmp;
+    protected Bitmap bmp = null;
 
-    protected Graphics gr;
+    protected Graphics gr = null;
 
     protected Color currColor = Color.White;
 
-    protected SolidBrush currBrush;
+    protected SolidBrush currBrush = null;
 
     protected GraphicsPath path = new GraphicsPath();
 
@@ -26,6 +26,16 @@ namespace _075animation
 
     protected void InitializeBitmap ()
     {
+      if ( gr != null )
+      {
+        gr.Dispose();
+        gr = null;
+      }
+      if ( bmp != null )
+      {
+        bmp.Dispose();
+        bmp = null;
+      }
       bmp = new Bitmap( Width, Height, PixelFormat.Format24bppRgb );
       gr = Graphics.FromImage( bmp );
       gr.SmoothingMode = currAntiAlias ? SmoothingMode.AntiAlias : SmoothingMode.None;
@@ -61,6 +71,8 @@ namespace _075animation
       Width  = width;
       Height = height;
       InitializeBitmap();
+      if ( currBrush != null )
+        currBrush.Dispose();
       currBrush = new SolidBrush( Color.White );
     }
 
@@ -72,10 +84,7 @@ namespace _075animation
     {
       if ( bmp.Width != Width ||
            bmp.Height != Height )
-      {
-        bmp.Dispose();
         InitializeBitmap();
-      }
 
       gr.Clear( bg );
     }
@@ -160,9 +169,10 @@ namespace _075animation
     /// <returns>Result Bitmap.</returns>
     public Bitmap Finish ()
     {
-      gr.Dispose();
       Bitmap result = bmp;
+      bmp = null;
       InitializeBitmap();
+
       return result;
     }
   }

@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
-//using GuiSupport;
-using MathSupport;
-//using Rendering;
-using System.Globalization;
 using GuiSupport;
 
 namespace _075animation
@@ -46,6 +43,18 @@ namespace _075animation
     /// </summary>
     protected int ImageHeight = 480;
 
+    private void EnableGUI ( bool compute )
+    {
+      buttonRenderAnim.Enabled =
+      buttonRender.Enabled     =
+      numFrom.Enabled          =
+      numTo.Enabled            =
+      numFps.Enabled           =
+      numTime.Enabled          =
+      buttonRes.Enabled        = compute;
+      buttonStop.Enabled       = !compute;
+    }
+
     /// <summary>
     /// Redraws the whole image.
     /// </summary>
@@ -53,15 +62,13 @@ namespace _075animation
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      buttonRender.Enabled = false;
-      buttonRenderAnim.Enabled = false;
-      buttonRes.Enabled = false;
+      EnableGUI( false );
 
       width = ImageWidth;
       if ( width <= 0 ) width = panel1.Width;
       height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
-      Animation.Init( width, height );
+      Animation.InitAnimation( width, height );
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
@@ -70,16 +77,16 @@ namespace _075animation
 
       Animation.DrawFrame( c, (double)numTime.Value, (double)numFrom.Value, (double)numTo.Value );
 
-      pictureBox1.Image = outputImage = c.Finish();
-
+      if ( outputImage != null )
+        outputImage.Dispose();
+      outputImage = c.Finish();
       sw.Stop();
+
       labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
       pictureBox1.Image = outputImage;
 
-      buttonRender.Enabled = true;
-      buttonRenderAnim.Enabled = true;
-      buttonRes.Enabled = true;
+      EnableGUI( true );
 
       Cursor.Current = Cursors.Default;
     }
@@ -95,6 +102,11 @@ namespace _075animation
       }
       else
       {
+        if ( pictureBox1.Image != null )
+        {
+          pictureBox1.Image.Dispose();
+          pictureBox1.Image = null;
+        }
         pictureBox1.Image = newImage;
         pictureBox1.Invalidate();
       }
@@ -134,11 +146,13 @@ namespace _075animation
         aThread.Join();
         aThread = null;
 
+        // Dispose unwritten queued results:
+        initQueue( 0 );
+        semQueue = null;
+        semResults = null;
+
         // GUI stuff:
-        buttonRenderAnim.Enabled = true;
-        buttonRender.Enabled = true;
-        buttonRes.Enabled = true;
-        buttonStop.Enabled = false;
+        EnableGUI( true );
       }
     }
 
@@ -149,7 +163,12 @@ namespace _075animation
       Text += " (rev: " + tok[1] + ')';
 
       // Init rendering params:
-      InitializeParams();
+      double from, to, fps;
+      Animation.InitParams( out ImageWidth, out ImageHeight, out from, out to, out fps );
+      numFrom.Value = (decimal)from;
+      numTo.Value   = (decimal)to;
+      numFps.Value  = (decimal)fps;
+
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
@@ -232,33 +251,51 @@ namespace _075animation
     /// <summary>
     /// One computed animation frame.
     /// </summary>
-    public class Result
+    public class Result : IDisposable
     {
       public Bitmap image;
       public int frameNumber;
+
+      public void Dispose ()
+      {
+        if ( image != null )
+        {
+          image.Dispose();
+          image = null;
+        }
+      }
     }
 
     /// <summary>
     /// Semaphore guarding the output queue.
+    /// Signaled if there are results ready..
     /// </summary>
-    protected Semaphore sem = null;
+    protected Semaphore semResults = null;
+
+    /// <summary>
+    /// Semaphore for the maximum queue capacity.
+    /// Signaled if there is empty space in the queue.
+    /// </summary>
+    protected Semaphore semQueue = null;
 
     /// <summary>
     /// Output queue.
     /// </summary>
     protected Queue<Result> queue = null;
 
-    protected void initQueue ()
+    /// <summary>
+    /// Maximum allowed queue size.
+    /// </summary>
+    protected int queueSize = 1;
+
+    protected void initQueue ( int initSize )
     {
       if ( queue == null )
-        queue = new Queue<Result>();
+        queue = new Queue<Result>( initSize );
       else
       {
         while ( queue.Count > 0 )
-        {
-          Result r = queue.Dequeue();
-          r.image.Dispose();
-        }
+          queue.Dequeue().Dispose();
       }
     }
 
@@ -270,10 +307,7 @@ namespace _075animation
       if ( aThread != null )
         return;
 
-      buttonRenderAnim.Enabled = false;
-      buttonRender.Enabled = false;
-      buttonRes.Enabled = false;
-      buttonStop.Enabled = true;
+      EnableGUI( false );
       lock ( progress )
       {
         progress.Continue = true;
@@ -294,7 +328,7 @@ namespace _075animation
       if ( width <= 0 ) width = panel1.Width;
       height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
-      Animation.Init( width, height );
+      Animation.InitAnimation( width, height );
 
       // Start main rendering thread:
       aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
@@ -310,8 +344,10 @@ namespace _075animation
       Cursor.Current = Cursors.WaitCursor;
 
       int threads = Environment.ProcessorCount;
-      initQueue();
-      sem = new Semaphore( 0, totalFrames );
+      queueSize = threads + 2;                                // intended queue capacity
+      initQueue( queueSize );                                 // queue is prepared for the capacity
+      semResults = new Semaphore( 0, 2 * queueSize );         // no results are ready
+      semQueue   = new Semaphore( queueSize, 2 * queueSize ); // the whole queue capacity is ready
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
@@ -332,7 +368,7 @@ namespace _075animation
 
       while ( true )
       {
-        sem.WaitOne();                      // wait until a frame is finished
+        semResults.WaitOne();               // wait until a frame is finished
 
         lock ( progress )                   // regular finish, escape, user break?
         {
@@ -348,7 +384,9 @@ namespace _075animation
         {
           if ( queue.Count == 0 )
             continue;
+
           r = queue.Dequeue();
+          semQueue.Release();
         }
 
         // GUI progress indication:
@@ -365,9 +403,11 @@ namespace _075animation
         // save the image file:
         string fileName = String.Format( "out{0:0000}.png", r.frameNumber );
         r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
-        r.image.Dispose();
+        r.Dispose();
       }
 
+      // letting all the workers finish their work:
+      semQueue.Release( threads );
       for ( t = 0; t < threads; t++ )
       {
         pool[ t ].Join();
@@ -398,7 +438,7 @@ namespace _075animation
           if ( !progress.Continue ||
                time > end )
           {
-            sem.Release();                  // chance for the main animation thread to give up as well..
+            semResults.Release();                  // chance for the main animation thread to give up as well..
             return;
           }
 
@@ -416,11 +456,16 @@ namespace _075animation
         r.image = c.Finish();
 
         // ... and put the result into the output queue:
+        semQueue.WaitOne();                        // wait for a space in the result queue
         lock ( queue )
-        {
           queue.Enqueue( r );
+
+        lock ( progress )
+        {
+          semResults.Release();                    // notify the main animation thread
+          if ( !progress.Continue )
+            return;
         }
-        sem.Release();                      // notify the main animation thread
       }
     }
   }
