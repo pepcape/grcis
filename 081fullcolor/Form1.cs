@@ -192,9 +192,8 @@ namespace _081fullcolor
       sfd.Filter = "PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName = "";
-      sfd.ShowDialog();
 
-      if ( sfd.FileName == "" )
+      if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
       outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
