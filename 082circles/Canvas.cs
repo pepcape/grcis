@@ -24,11 +24,17 @@ namespace _082circles
 
     protected void InitializeBitmap ()
     {
-      if ( bmp != null )
-        bmp.Dispose();
-      bmp = new Bitmap( Width, Height, PixelFormat.Format24bppRgb );
       if ( gr != null )
+      {
         gr.Dispose();
+        gr = null;
+      }
+      if ( bmp != null )
+      {
+        bmp.Dispose();
+        bmp = null;
+      }
+      bmp = new Bitmap( Width, Height, PixelFormat.Format24bppRgb );
       gr = Graphics.FromImage( bmp );
       gr.SmoothingMode = currAntiAlias ? SmoothingMode.AntiAlias : SmoothingMode.None;
     }
@@ -63,9 +69,11 @@ namespace _082circles
       Width  = width;
       Height = height;
       InitializeBitmap();
+
       if ( currPen != null )
         currPen.Dispose();
       currPen = new Pen( Color.White, currPenWidth );
+
       if ( currBrush != null )
         currBrush.Dispose();
       currBrush = new SolidBrush( Color.White );
