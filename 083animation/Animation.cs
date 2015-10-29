@@ -29,7 +29,10 @@ namespace _083animation
     /// </summary>
     /// <param name="width">Width of the future canvas in pixels.</param>
     /// <param name="height">Height of the future canvas in pixels.</param>
-    public static void InitAnimation ( int width, int height )
+    /// <param name="start">Start time (t0)</param>
+    /// <param name="end">End time (for animation length normalization).</param>
+    /// <param name="fps">Required fps.</param>
+    public static void InitAnimation ( int width, int height, double start, double end, double fps )
     {
       // !!!{{ TODO: put your init code here
 
