@@ -68,14 +68,21 @@ namespace _083animation
       if ( width <= 0 ) width = panel1.Width;
       height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
-      Animation.InitAnimation( width, height );
+
+      double start = (double)numFrom.Value;
+      double end = (double)numTo.Value;
+      if ( end <= time )
+        end = time + 1.0;
+      double fps = (double)numFps.Value;
+
+      Animation.InitAnimation( width, height, start, end, fps );
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
       Canvas c = new Canvas( width, height );
 
-      Animation.DrawFrame( c, (double)numTime.Value, (double)numFrom.Value, (double)numTo.Value );
+      Animation.DrawFrame( c, (double)numTime.Value, start, end );
 
       if ( outputImage != null )
         outputImage.Dispose();
@@ -319,16 +326,18 @@ namespace _083animation
       if ( end <= time )
         end = time + 1.0;
       double fps = (double)numFps.Value;
-      dt = (fps > 0.0) ? 1.0 / fps : 25.0;
-      end += 0.5 * dt;
-      frameNumber = 0;
-      totalFrames = (int)( (end - time) / dt );
 
       width = ImageWidth;
       if ( width <= 0 ) width = panel1.Width;
       height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
-      Animation.InitAnimation( width, height );
+
+      Animation.InitAnimation( width, height, start, end, fps );
+
+      dt = (fps > 0.0) ? 1.0 / fps : 25.0;
+      end += 0.5 * dt;
+      frameNumber = 0;
+      totalFrames = (int)((end - time) / dt);
 
       // Start main rendering thread:
       aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
