@@ -74,6 +74,8 @@ namespace _083animation
       if ( end <= time )
         end = time + 1.0;
       double fps = (double)numFps.Value;
+      if ( fps <= 0.0 )
+        fps = 25.0;
 
       Animation.InitAnimation( width, height, start, end, fps );
 
@@ -172,6 +174,14 @@ namespace _083animation
       // Init rendering params:
       double from, to, fps;
       Animation.InitParams( out ImageWidth, out ImageHeight, out from, out to, out fps );
+      if ( ImageWidth < 0 )
+        ImageWidth = 0;          // 0 .. take image width from the form size
+      if ( ImageHeight < 0 )
+        ImageHeight = 0;         // 0 .. take image height from the form size
+      if ( to <= start )
+        to = start + 1.0;
+      if ( fps <= 0.0 )
+        fps = 25.0;
       numFrom.Value = (decimal)from;
       numTo.Value   = (decimal)to;
       numFps.Value  = (decimal)fps;
@@ -326,6 +336,8 @@ namespace _083animation
       if ( end <= time )
         end = time + 1.0;
       double fps = (double)numFps.Value;
+      if ( fps <= 0.0 )
+        fps = 25.0;
 
       width = ImageWidth;
       if ( width <= 0 ) width = panel1.Width;
@@ -334,7 +346,7 @@ namespace _083animation
 
       Animation.InitAnimation( width, height, start, end, fps );
 
-      dt = (fps > 0.0) ? 1.0 / fps : 25.0;
+      dt = 1.0 / fps;
       end += 0.5 * dt;
       frameNumber = 0;
       totalFrames = (int)((end - time) / dt);
@@ -383,7 +395,7 @@ namespace _083animation
         {
           if ( !progress.Continue ||
                time >= end &&
-               frames >= frameNumber )
+               frames > totalFrames )
             break;
         }
 
@@ -399,8 +411,10 @@ namespace _083animation
         }
 
         // GUI progress indication:
-        SetText( String.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
-                                threads, ++frames, 1.0e-3 * sw.ElapsedMilliseconds ) );
+        frames++;
+        SetText( String.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1} ({2:f1}%), {3:f1}s",
+                                threads, frames, (100.0 * frames) / totalFrames,
+                                1.0e-3 * sw.ElapsedMilliseconds ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
         {
