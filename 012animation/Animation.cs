@@ -5,27 +5,52 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
+using MathSupport;
 
 namespace _012animation
 {
   public class Animation
   {
-    public Animation ()
+    /// <summary>
+    /// Initialize form parameters.
+    /// </summary>
+    public static void InitParams ( out int wid, out int hei, out double from, out double to, out double fps )
     {
+      // single frame:
+      wid = 640;
+      hei = 480;
+
+      // animation:
+      from = 0.0;
+      to = 10.0;
+      fps = 25.0;
     }
 
-    public static void InitializeParams ( out int defaultWidth, out int defaultHeight, out int defaultFrames )
+    /// <summary>
+    /// Global initialization. Called before each animation batch
+    /// or single-frame computation.
+    /// </summary>
+    /// <param name="width">Width of future frames in pixels.</param>
+    /// <param name="height">Height of future frames in pixels.</param>
+    /// <param name="start">Start time (t0)</param>
+    /// <param name="end">End time (for animation length normalization).</param>
+    /// <param name="fps">Required fps.</param>
+    public static void InitAnimation ( int width, int height, double start, double end, double fps )
     {
-      // !!!{{ TODO: default animation parameters
-
-      defaultWidth  = 640;
-      defaultHeight = 480;
-      defaultFrames = 50;
+      // !!!{{ TODO: put your init code here
 
       // !!!}}
     }
 
-    public Bitmap RenderFrame ( int width, int height, int currentFrame, int totalFrames )
+    /// <summary>
+    /// Draw single animation frame.
+    /// </summary>
+    /// <param name="width">Required frame width in pixels.</param>
+    /// <param name="height">Required frame height in pixels.</param>
+    /// <param name="time">Current time in seconds.</param>
+    /// <param name="start">Start time (t0)</param>
+    /// <param name="end">End time (for animation length normalization).</param>
+    public static Bitmap RenderFrame ( int width, int height, double time, double start, double end )
     {
       // !!!{{ TODO: put your frame-rendering code here
 
@@ -40,11 +65,13 @@ namespace _012animation
       Pen p1 = new Pen( Color.FromArgb( 255, 255,  20 ), 1.0f );
       Pen p2 = new Pen( Color.FromArgb(  60, 120, 255 ), 2.0f );
 
-      double tim = currentFrame / (totalFrames - 1.0);
+      double tim = (time - start) / (end - start);
       int wid = (int)(tim * maxWid);
       int hei = (int)(tim * maxHei);
       gr.DrawEllipse( p2, x0 - hei, y0 - wid, hei + hei, wid + wid );
       gr.DrawEllipse( p1, x0 - wid, y0 - hei, wid + wid, hei + hei );
+
+      gr.Dispose();
 
       return result;
 
