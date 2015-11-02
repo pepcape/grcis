@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -29,12 +31,12 @@ namespace _012animation
     /// <summary>
     /// CGG logo colors.
     /// </summary>
-    protected Color[] COLORS = { Color.FromArgb( 0x71, 0x21, 0x6d ), Color.FromArgb( 0xe8, 0x75, 0x05 ) };
+    protected static Color[] COLORS = { Color.FromArgb( 0x71, 0x21, 0x6d ), Color.FromArgb( 0xe8, 0x75, 0x05 ) };
 
     /// <summary>
     /// Final discs' geometries { cx, cy, radius }.
     /// </summary>
-    protected double[,] DISC_DATA = new double[,] {
+    protected static double[,] DISC_DATA = new double[,] {
       {  59.2317,  77.2244, 2.1480 },
       {  29.5167,  69.7424, 4.1070 },
       {  50.0857,  90.1954, 4.4050 },
@@ -199,14 +201,65 @@ namespace _012animation
     /// </summary>
     protected const int FIRST_COLOR = 54;
 
-    protected double minX, maxX, minY, maxY;
+    protected static double minX, maxX, minY, maxY;
 
-    protected double maxR;
+    protected static double maxR;
 
-    protected List<Disc> discs;
+    protected static List<Disc> discs;
 
-    public Animation ()
+    protected static double kxy;
+
+    protected static double dx, dy;
+
+    protected const double SIZE = 0.9;
+
+    protected static void SetViewport ( int width, int height )
     {
+      double k = (width * SIZE) / (maxX - minX);
+      kxy = (height * SIZE) / (maxY - minY);
+      if ( k < kxy ) kxy = k;
+      dx = 0.5 * (width -  (minX + maxX) * kxy);
+      dy = 0.5 * (height - (minY + maxY) * kxy);
+    }
+
+    protected static float X ( double x )
+    {
+      return (float)(x * kxy + dx);
+    }
+
+    protected static float Y ( double y )
+    {
+      return (float)(y * kxy + dy);
+    }
+
+    /// <summary>
+    /// Initialize form parameters.
+    /// </summary>
+    public static void InitParams ( out int wid, out int hei, out double from, out double to, out double fps )
+    {
+      // single frame:
+      wid = 640;
+      hei = 480;
+
+      // animation:
+      from = 0.0;
+      to = 2.0;
+      fps = 25.0;
+    }
+
+    /// <summary>
+    /// Global initialization. Called before each animation batch
+    /// or single-frame computation.
+    /// </summary>
+    /// <param name="width">Width of future frames in pixels.</param>
+    /// <param name="height">Height of future frames in pixels.</param>
+    /// <param name="start">Start time (t0)</param>
+    /// <param name="end">End time (for animation length normalization).</param>
+    /// <param name="fps">Required fps.</param>
+    public static void InitAnimation ( int width, int height, double start, double end, double fps )
+    {
+      // !!!{{ TODO: put your init code here
+
       // Disc data initialization:
       minX = minY = Double.MaxValue;
       maxX = maxY = maxR = Double.MinValue;
@@ -224,45 +277,21 @@ namespace _012animation
         if ( y + r > maxY ) maxY = y + r;
         if ( r > maxR )     maxR = r;
       }
-    }
 
-    protected double kxy;
-
-    protected double dx, dy;
-
-    protected const double SIZE = 0.9;
-
-    protected void SetViewport ( int width, int height )
-    {
-      double k = (width * SIZE) / (maxX - minX);
-      kxy = (height * SIZE) / (maxY - minY);
-      if ( k < kxy ) kxy = k;
-      dx = 0.5 * (width -  (minX + maxX) * kxy);
-      dy = 0.5 * (height - (minY + maxY) * kxy);
-    }
-
-    protected float X ( double x )
-    {
-      return (float)(x * kxy + dx);
-    }
-
-    protected float Y ( double y )
-    {
-      return (float)(y * kxy + dy);
-    }
-
-    public static void InitializeParams ( out int defaultWidth, out int defaultHeight, out int defaultFrames )
-    {
-      // !!!{{ TODO: default animation parameters
-
-      defaultWidth  = 640;
-      defaultHeight = 480;
-      defaultFrames = 50;
+      SetViewport( width, height );
 
       // !!!}}
     }
 
-    public Bitmap RenderFrame ( int width, int height, int currentFrame, int totalFrames )
+    /// <summary>
+    /// Draw single animation frame.
+    /// </summary>
+    /// <param name="width">Required frame width in pixels.</param>
+    /// <param name="height">Required frame height in pixels.</param>
+    /// <param name="time">Current time in seconds.</param>
+    /// <param name="start">Start time (t0)</param>
+    /// <param name="end">End time (for animation length normalization).</param>
+    public static Bitmap RenderFrame ( int width, int height, double time, double start, double end )
     {
       // !!!{{ TODO: put your frame-rendering code here
 
@@ -270,11 +299,10 @@ namespace _012animation
       Graphics gr = Graphics.FromImage( result );
       SolidBrush br = new SolidBrush( Color.White );
       gr.FillRectangle( br, 0, 0, width, height );
-
       gr.SmoothingMode = SmoothingMode.AntiAlias;
-      SetViewport( width, height );
 
-      float radius = (float)(maxR * currentFrame * 1.05 / totalFrames);
+      double tim = (time - start) / (end - start);
+      float radius = (float)(maxR * tim);
 
       foreach ( Disc d in discs )
       {
