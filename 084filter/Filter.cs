@@ -58,13 +58,29 @@ namespace _084filter
         }
       }
 
-      Bitmap output = new Bitmap( wid, hei, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap output = new Bitmap( wid, hei, PixelFormat.Format24bppRgb );
 
-      // convert pixel data (fast memory-mapped code):
-      int x0, y0;
+      // convert pixel data:
       int x, y;
+
+#if false
+      // slow GetPixel-SetPixel code:
+      for ( y = 0; y < hei; y++ )
+      {
+        if ( !Form1.cont ) break;
+
+        for ( x = 0; x < wid; x++ )
+        {
+          Color ic = input.GetPixel( x, y );
+          Color oc = Color.FromArgb( 255 - ic.R, 255 - ic.G, 255 - ic.B );
+          output.SetPixel( x, y, oc );
+        }
+      }
+#else
+      // fast memory-mapped code:
+      int x0, y0;
       int x1, y1;
-      BitmapData dataIn  = input.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.ReadOnly, input.PixelFormat );
+      BitmapData dataIn  = input.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb );
       BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.WriteOnly, output.PixelFormat );
       unsafe
       {
@@ -116,6 +132,7 @@ namespace _084filter
       }
       output.UnlockBits( dataOut );
       input.UnlockBits( dataIn );
+#endif
 
       return output;
 
