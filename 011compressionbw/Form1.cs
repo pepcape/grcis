@@ -20,9 +20,12 @@ namespace _011compressionbw
 
     protected Bitmap diffImage = null;
 
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonLoad_Click ( object sender, EventArgs e )
@@ -43,9 +46,16 @@ namespace _011compressionbw
         return;
 
       Image inp = Image.FromFile( ofd.FileName );
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
+      if ( inputImage != null )
+        inputImage.Dispose();
+      inputImage = (Bitmap)inp;
+
       pictureBox1.Image = inputImage;
+
+      if ( outputImage != null )
+        outputImage.Dispose();
+      if ( diffImage != null )
+        diffImage.Dispose();
       outputImage =
       diffImage   = null;
     }
@@ -71,11 +81,15 @@ namespace _011compressionbw
       labelElapsed.Text = String.Format( "Enc: {0:f}s, {1}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
 
       // 3. image decoding
+      if ( outputImage != null )
+        outputImage.Dispose();
       fs.Seek( 0L, SeekOrigin.Begin );
       outputImage = codec.DecodeImage( fs );
       fs.Close();
 
       // 5. comparison
+      if ( diffImage != null )
+        diffImage.Dispose();
       if ( outputImage != null )
       {
         diffImage = new Bitmap( inputImage.Width, inputImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
@@ -95,7 +109,8 @@ namespace _011compressionbw
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
-      if ( outputImage == null ) return;
+      if ( outputImage == null ||
+           diffImage == null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";

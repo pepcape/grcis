@@ -36,8 +36,9 @@ namespace _003colortransform
         return;
 
       Image inp = Image.FromFile( ofd.FileName );
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
+      if ( inputImage != null )
+        inputImage.Dispose();
+      inputImage = (Bitmap)inp;
 
       recompute();
     }

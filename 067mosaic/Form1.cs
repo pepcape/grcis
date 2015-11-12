@@ -77,18 +77,18 @@ namespace _067mosaic
     /// </summary>
     private bool newImage ( string fn )
     {
-      Image inp = null;
+      if ( inputImage != null )
+        inputImage.Dispose();
+      inputImage = null;
       try
       {
-        inp = Image.FromFile( fn );
+        inputImage = Image.FromFile( fn );
       }
       catch ( Exception )
       {
         return false;
       }
 
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
       recompute();
 
       return true;
@@ -136,7 +136,7 @@ namespace _067mosaic
         float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
         SetImage( bmp );
 
-        SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s", elapsed ) );
+        SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s ({1})", elapsed, ibmp.PixelFormat.ToString() ) );
       }
 
       StopComputation();

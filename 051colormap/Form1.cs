@@ -15,6 +15,9 @@ namespace _051colormap
     public Form1 ()
     {
       InitializeComponent();
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
+
       colors = new Color[ 3 ];
       colors[ 0 ] = Color.FromArgb(   0, 100, 127 );
       colors[ 1 ] = Color.FromArgb( 150, 150,  80 );
@@ -63,8 +66,9 @@ namespace _051colormap
         return;
 
       Image inp = Image.FromFile( ofd.FileName );
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
+      if ( inputImage != null )
+        inputImage.Dispose();
+      inputImage = (Bitmap)inp;
 
       pictureInput.Image = inputImage;
       Colormap.Generate( inputImage, numCol, out colors );

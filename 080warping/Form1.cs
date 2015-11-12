@@ -12,7 +12,7 @@ namespace _080warping
     public Form1 ()
     {
       InitializeComponent();
-      // !!! TODO: 
+      // !!! TODO:
       String[] tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[ 1 ] + ')';
     }
@@ -35,7 +35,11 @@ namespace _080warping
         return;
 
       Image inp = Image.FromFile( ofd.FileName );
+      if ( inputImage != null )
+        inputImage.Dispose();
       inputImage = new Bitmap( inp );
+      if ( outputImage != null )
+        outputImage.Dispose();
       outputImage = new Bitmap( inp );
       inp.Dispose();
 

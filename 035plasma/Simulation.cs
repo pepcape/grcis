@@ -194,7 +194,8 @@ namespace _035plasma
     {
       // !!!{{ TODO: put your visualization code here
 
-      PixelFormat fmt = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+      PixelFormat fmt = PixelFormat.Format24bppRgb;
+      int dO = Image.GetPixelFormatSize( fmt ) / 8;
       Bitmap result = new Bitmap( Width, Height, fmt );
 
       BitmapData data = result.LockBits( new Rectangle( 0, 0, Width, Height ), ImageLockMode.ReadOnly, fmt );
@@ -210,7 +211,7 @@ namespace _035plasma
           {
             byte c = (byte)(255.0f * s[ y % simHeight, x % simWidth ]);
             ptr[ 0 ] = ptr[ 1 ] = ptr[ 2 ] = c;
-            ptr += 3;
+            ptr += dO;
           }
         }
       }

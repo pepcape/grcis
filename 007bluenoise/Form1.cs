@@ -35,6 +35,8 @@ namespace _007bluenoise
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
+      if ( inputImage != null )
+        inputImage.Dispose();
       inputImage = Image.FromFile( ofd.FileName );
 
       recompute();

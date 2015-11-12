@@ -58,20 +58,21 @@ namespace _066histogram
     /// </summary>
     private bool newImage ( string fn )
     {
-      Image inp = null;
+      if ( inputImage != null )
+        inputImage.Dispose();
+      inputImage = null;
       try
       {
-        inp = Image.FromFile( fn );
+        inputImage = Image.FromFile( fn );
       }
       catch ( Exception )
       {
         return false;
       }
       fileName = fn;
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
 
       recompute();
+
       return true;
     }
 
@@ -94,7 +95,7 @@ namespace _066histogram
       else
         histogramForm.Invalidate();
 
-      histogramForm.Text = "Histogram (" + fileName + ')';
+      histogramForm.Text = "Histogram (" + fileName + ", " + inputImage.PixelFormat.ToString() + ')';
     }
 
     private void buttonHistogram_Click ( object sender, EventArgs e )

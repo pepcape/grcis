@@ -10,9 +10,12 @@ namespace _036circles
 
     protected Image outputImage = null;
 
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonLoadImage_Click ( object sender, EventArgs e )
@@ -32,10 +35,13 @@ namespace _036circles
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
-      labelImageName.Text = "Input: " + ofd.FileName;
+      if ( inputImage != null )
+        inputImage.Dispose();
+      inputImage = Image.FromFile( ofd.FileName );
+
+      string txt = string.Format( "Input: {0} ({1}x{2}, {3})",
+                                  ofd.FileName, inputImage.Width, inputImage.Height, inputImage.PixelFormat.ToString() );
+      labelImageName.Text = txt;
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )

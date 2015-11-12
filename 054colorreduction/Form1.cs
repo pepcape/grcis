@@ -12,9 +12,14 @@ namespace _054colorreduction
   {
     protected Image inputImage = null;
 
+    protected Bitmap outputImage = null;
+
     public Form1 ()
     {
       InitializeComponent();
+
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     protected Thread aThread = null;
@@ -32,7 +37,10 @@ namespace _054colorreduction
       }
       else
       {
-        pictureBox1.Image = newImage;
+        pictureBox1.Image = null;
+        if ( outputImage != null )
+          outputImage.Dispose();
+        pictureBox1.Image = outputImage = newImage;
         pictureBox1.Invalidate();
       }
     }
@@ -54,9 +62,9 @@ namespace _054colorreduction
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
+      if ( inputImage != null )
+        inputImage.Dispose();
+      inputImage = Image.FromFile( ofd.FileName );
 
       recompute();
     }
@@ -127,8 +135,8 @@ namespace _054colorreduction
         db = ab.MAD( bb );
         float diffg = (dr * Draw.RED_WEIGHT + dg * Draw.GREEN_WEIGHT + db * Draw.BLUE_WEIGHT) / Draw.WEIGHT_TOTAL;
 
-        MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Time: {0:f3}s{4}plain MAD: {1:f5}{4}weighted MAD: {2:f5}{4}filtered weighted MAD: {3:f5}",
-                                        elapsed, diff, diffw, diffg, Environment.NewLine ), "MAE Difference" );
+        MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Image: {5}x{6} ({7}){0}Time: {1:f3}s{0}plain MAD: {2:f5}{0}weighted MAD: {3:f5}{0}filtered weighted MAD: {4:f5}",
+                                        Environment.NewLine, elapsed, diff, diffw, diffg, ibmp.Width, ibmp.Height, ibmp.PixelFormat.ToString() ), "MAE Difference" );
       }
 
       StopComputation();
@@ -151,7 +159,7 @@ namespace _054colorreduction
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
-      if ( inputImage == null ) return;
+      if ( outputImage == null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";
@@ -163,7 +171,7 @@ namespace _054colorreduction
       if ( sfd.FileName == "" )
         return;
 
-      pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )

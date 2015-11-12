@@ -69,9 +69,12 @@ namespace _037floodfill
       }
     }
 
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
     }
 
     public void FillProcess ()
@@ -185,8 +188,9 @@ namespace _037floodfill
         return;
 
       Image inp = Image.FromFile( ofd.FileName );
-      input = new Bitmap( inp );
-      inp.Dispose();
+      if ( input != null )
+        input.Dispose();
+      input = (Bitmap)inp;
       buttonStart.Enabled = true;
 
       // Automatic filename parsing..
