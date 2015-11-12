@@ -1,5 +1,6 @@
 ﻿using System.Windows.Forms;
 using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace _066histogram
 {
@@ -31,7 +32,7 @@ namespace _066histogram
       if ( backBuffer == null || parent.dirty )
       {
         if ( backBuffer == null )
-          backBuffer = new Bitmap( ClientSize.Width, ClientSize.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+          backBuffer = new Bitmap( ClientSize.Width, ClientSize.Height, PixelFormat.Format24bppRgb );
 
         parent.ComputeHistogram( (Bitmap)parent.inputImage, backBuffer, parent.param );
       }

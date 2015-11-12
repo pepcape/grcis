@@ -31,22 +31,29 @@ namespace _067mosaic
 
       int width  = input.Width;
       int height = input.Height;
-      output = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      output = new Bitmap( width, height, PixelFormat.Format24bppRgb );
       int x0, y0;
       int x, y;
       int x1, y1;
 
       // convert pixel data (fast memory-mapped code):
-      BitmapData dataIn  = input.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, input.PixelFormat );
-      BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, output.PixelFormat );
+      PixelFormat iFormat = input.PixelFormat;
+      if ( !PixelFormat.Format24bppRgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppArgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppPArgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppRgb.Equals( iFormat ) )
+        iFormat = PixelFormat.Format24bppRgb;
+
+      BitmapData dataIn  = input.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, iFormat );
+      BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb );
       unsafe
       {
         byte* iptr, optr;
         byte r, g, b;
         int sR, sG, sB;
         int pixels;
-        int dI = Image.GetPixelFormatSize( input.PixelFormat ) / 8;
-        int dO = Image.GetPixelFormatSize( output.PixelFormat ) / 8;
+        int dI = Image.GetPixelFormatSize( iFormat ) / 8;
+        int dO = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;
 
         for ( y0 = 0; y0 < height; y0 += cellH )
         {

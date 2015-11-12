@@ -213,7 +213,7 @@
       this.Controls.Add( this.label1 );
       this.Controls.Add( this.numericXres );
       this.Controls.Add( this.panel1 );
-      this.MinimumSize = new System.Drawing.Size( 600, 240 );
+      this.MinimumSize = new System.Drawing.Size( 650, 240 );
       this.Name = "Form1";
       this.Text = "036 circles";
       this.panel1.ResumeLayout( false );

@@ -12,6 +12,7 @@ namespace _081fullcolor
   public partial class Form1 : Form
   {
     protected Bitmap inputImage = null;
+
     protected Bitmap outputImage = null;
 
     public Form1 ()
@@ -76,8 +77,8 @@ namespace _081fullcolor
       {
         if ( inputImage != null )
           inputImage.Dispose();
-
         inputImage = null;
+
         recompute();
         return;
       }
@@ -102,13 +103,12 @@ namespace _081fullcolor
 
       if ( inputImage != null )
         inputImage.Dispose();
-      inputImage = new Bitmap( inp );
+      inputImage = (Bitmap)inp;
 
       if ( outputImage != null )
         outputImage.Dispose();
       outputImage = null;
 
-      inp.Dispose();
       recompute();
 
       return true;

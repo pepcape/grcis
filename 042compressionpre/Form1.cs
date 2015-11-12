@@ -42,8 +42,10 @@ namespace _042compressionpre
         return;
 
       Image inp = Image.FromFile( ofd.FileName );
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
+      if ( inputImage != null )
+        inputImage.Dispose();
+      inputImage = (Bitmap)inp;
+
       pictureBox1.Image = inputImage;
       outputImage =
       diffImage   = null;

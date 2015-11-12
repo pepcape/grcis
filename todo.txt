@@ -3,11 +3,17 @@
 ================================================================================
   ($Rev$ $Date$)
 ================================================================================
-- stinovani do 070subdivision
+- stinovani do 070subdivision (?)
 - 016videoslow: zkontrolovat Bitmap.Dispose()
+- zkontrolovat po zmenach 12. 11. 2015:
+  016videoslow
+  010quadtree
+  007bluenoise
+  006warping
+  005denoise
+  003colortransform
+  002warping
 
-- pridat par dalsich teles: Plane (test: nahodny konvexni polyedr nebo
-  Platonska telesa), Cone
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
 - numericke chyby v Torusu (stinovaci paprsky?)

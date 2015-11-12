@@ -43,8 +43,9 @@ namespace _010quadtree
         return;
 
       Image inp = Image.FromFile( ofd.FileName );
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
+      if ( inputImage != null )
+        inputImage.Dispose();
+      inputImage = (Bitmap)inp;
 
       pictureBox1.Image = inputImage;
       outputImage =
@@ -82,8 +83,9 @@ namespace _010quadtree
       if ( inputImage == null )
       {
         Image inp = Image.FromFile( "toucan.png" );
-        inputImage = new Bitmap( inp );
-        inp.Dispose();
+        if ( inputImage != null )
+          inputImage.Dispose();
+        inputImage = (Bitmap)inp;
         outputImage =
         diffImage   = null;
       }

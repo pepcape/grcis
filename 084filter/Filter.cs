@@ -59,7 +59,7 @@ namespace _084filter
       }
 
       Bitmap output = new Bitmap( wid, hei, PixelFormat.Format24bppRgb );
-
+           
       // convert pixel data:
       int x, y;
 
@@ -78,18 +78,25 @@ namespace _084filter
       }
 #else
       // fast memory-mapped code:
+      PixelFormat iFormat = input.PixelFormat;
+      if ( !PixelFormat.Format24bppRgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppArgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppPArgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppRgb.Equals( iFormat ) )
+        iFormat = PixelFormat.Format24bppRgb;
+
       int x0, y0;
       int x1, y1;
-      BitmapData dataIn  = input.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb );
-      BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.WriteOnly, output.PixelFormat );
+      BitmapData dataIn  = input.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.ReadOnly, iFormat );
+      BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb );
       unsafe
       {
         byte* iptr, optr;
         byte r, g, b;
         int sR, sG, sB;
         int pixels;
-        int dI = Image.GetPixelFormatSize( input.PixelFormat ) / 8;
-        int dO = Image.GetPixelFormatSize( output.PixelFormat ) / 8;
+        int dI = Image.GetPixelFormatSize( iFormat ) / 8;
+        int dO = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;
 
         for ( y0 = 0; y0 < hei; y0 += cellH )
         {

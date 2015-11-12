@@ -31,13 +31,20 @@ namespace _054colorreduction
       output.Palette = pal;
 
       // convert pixel data (fast memory-mapped code):
-      BitmapData dataIn = input.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, input.PixelFormat );
-      BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, output.PixelFormat );
+      PixelFormat iFormat = input.PixelFormat;
+      if ( !PixelFormat.Format24bppRgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppArgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppPArgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppRgb.Equals( iFormat ) )
+        iFormat = PixelFormat.Format24bppRgb;
+
+      BitmapData dataIn = input.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, iFormat );
+      BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, PixelFormat.Format8bppIndexed );
       unsafe
       {
         byte* iptr, optr;
         int r, g, b;
-        int dI = Image.GetPixelFormatSize( input.PixelFormat ) / 8;
+        int dI = Image.GetPixelFormatSize( iFormat ) / 8;
         for ( int y = 0; y < height; y++ )
         {
           if ( !Form1.cont ) break;

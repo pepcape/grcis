@@ -13,10 +13,13 @@ namespace _016videoslow
   public partial class Form1 : Form
   {
     protected string videoFileName = "video.bin";
-    
+
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonCapture_Click ( object sender, EventArgs e )
@@ -90,8 +93,7 @@ namespace _016videoslow
       sw.Start();
 
       Image inp = Image.FromFile( fn );
-      Bitmap frameImage = new Bitmap( inp );
-      inp.Dispose();
+      Bitmap frameImage = (Bitmap)inp;
       IEntropyCodec s = vc.EncodeHeader( frameImage.Width, frameImage.Height, (float)numericFps.Value, fs );
       int i = 0;
       do
@@ -101,10 +103,12 @@ namespace _016videoslow
         // next frame:
         fn = String.Format( textInputMask.Text, ++i );
         if ( !File.Exists( fn ) ) break;
+        if ( inp != null )
+          inp.Dispose();
         inp = Image.FromFile( fn );
-        frameImage = new Bitmap( inp );
-        inp.Dispose();
-      } while ( true );
+        frameImage = (Bitmap)inp;
+      }
+      while ( true );
 
       s.Close();
       labelSpeed.Text = String.Format( "Encoded {0} frames in {1:f} s!", i, (float)(sw.ElapsedMilliseconds * 0.001) );

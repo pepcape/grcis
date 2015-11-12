@@ -47,10 +47,14 @@ namespace _055quadtree
         return;
 
       Image inp = Image.FromFile( ofd.FileName );
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
+      if ( inputImage != null )
+        inputImage.Dispose();
+      pictureBox1.Image = inputImage = (Bitmap)inp;
 
-      pictureBox1.Image = inputImage;
+      if ( outputImage != null )
+        outputImage.Dispose();
+      if ( diffImage != null )
+        diffImage.Dispose();
       outputImage =
       diffImage   = null;
     }
@@ -61,6 +65,8 @@ namespace _055quadtree
 
       int width  = (int)numericXres.Value;
       int height = (int)numericYres.Value;
+      if ( inputImage != null )
+        inputImage.Dispose();
       inputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
       int seed   = (int)numericSeed.Value;
       Random rnd = (seed == 0) ? new Random() : new Random( seed );
@@ -75,6 +81,10 @@ namespace _055quadtree
       }
 
       pictureBox1.Image = inputImage;
+      if ( outputImage != null )
+        outputImage.Dispose();
+      if ( diffImage != null )
+        diffImage.Dispose();
       outputImage =
       diffImage   = null;
 
@@ -83,6 +93,8 @@ namespace _055quadtree
 
     private void buttonRecode_Click ( object sender, EventArgs e )
     {
+      pictureBox1.Image = null;
+
       if ( inputImage == null )
       {
         if ( File.Exists( CONFIG_FILE ) )
@@ -92,11 +104,15 @@ namespace _055quadtree
         }
 
         Image inp = Image.FromFile( "toucan.png" );
-        inputImage = new Bitmap( inp );
-        inp.Dispose();
-        outputImage =
-        diffImage   = null;
+        inputImage = (Bitmap)inp;
       }
+
+      if ( outputImage != null )
+        outputImage.Dispose();
+      if ( diffImage != null )
+        diffImage.Dispose();
+      outputImage =
+      diffImage   = null;
 
       Cursor.Current = Cursors.WaitCursor;
 

@@ -12,6 +12,8 @@ namespace _084filter
     protected Bitmap inputImage  = null;
     protected Bitmap outputImage = null;
 
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public Form1 ()
     {
       InitializeComponent();
@@ -19,8 +21,7 @@ namespace _084filter
       Filter.InitParams( out par );
       textParam.Text = par;
 
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     protected Thread aThread = null;
@@ -100,13 +101,12 @@ namespace _084filter
 
       if ( inputImage != null )
         inputImage.Dispose();
-      inputImage = new Bitmap( inp );
+      inputImage = (Bitmap)inp;
 
       if ( outputImage != null )
         outputImage.Dispose();
       outputImage = null;
 
-      inp.Dispose();
       recompute();
 
       return true;
@@ -162,7 +162,7 @@ namespace _084filter
         outputImage.Dispose();
       outputImage = bmp;
 
-      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s", elapsed ) );
+      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s ({1})", elapsed, ibmp.PixelFormat.ToString() ) );
 
       StopComputation();
     }

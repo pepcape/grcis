@@ -13,6 +13,9 @@ namespace _053rectangles
     public Form1 ()
     {
       InitializeComponent();
+
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     private void buttonLoadImage_Click ( object sender, EventArgs e )
@@ -32,21 +35,27 @@ namespace _053rectangles
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
-      inputImage = new Bitmap( inp );
-      inp.Dispose();
-      labelImageName.Text = "Input: " + ofd.FileName;
+      if ( inputImage != null )
+        inputImage.Dispose();
+      inputImage = Image.FromFile( ofd.FileName );
+
+      string txt = string.Format( "Input: {0} ({1}x{2}, {3})",
+                                  ofd.FileName, inputImage.Width, inputImage.Height, inputImage.PixelFormat.ToString() );
+      labelImageName.Text = txt ;
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
     {
-      int width    = (int)numericXres.Value;
-      int height   = (int)numericYres.Value;
+      int width  = (int)numericXres.Value;
+      int height = (int)numericYres.Value;
 
       Canvas c = new Canvas( width, height );
 
       Rectangles.Draw( c, (Bitmap)inputImage, textParam.Text );
 
+      pictureBox1.Image = null;
+      if ( outputImage != null )
+        outputImage.Dispose();
       pictureBox1.Image = outputImage = c.Finish();
       buttonSave.Enabled = true;
     }

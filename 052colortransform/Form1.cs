@@ -13,6 +13,9 @@ namespace _052colortransform
     public Form1 ()
     {
       InitializeComponent();
+
+      String[] tok = "$Rev$".Split( ' ' );
+      Text += " (rev: " + tok[ 1 ] + ')';
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -33,9 +36,14 @@ namespace _052colortransform
         return;
 
       Image inp = Image.FromFile( ofd.FileName );
-      inputImage = new Bitmap( inp );
+
+      if ( inputImage != null )
+        inputImage.Dispose();
+      if ( outputImage != null )
+        outputImage.Dispose();
+
+      inputImage = (Bitmap)inp;
       outputImage = null;
-      inp.Dispose();
 
       recompute();
     }
@@ -44,7 +52,11 @@ namespace _052colortransform
     {
       if ( inputImage == null ) return;
 
+      if ( outputImage != null )
+        outputImage.Dispose();
+
       Transform.TransformImage( inputImage, out outputImage, textParam.Text );
+
       pictureBox1.Image = outputImage;
       checkOriginal.Checked = false;
     }

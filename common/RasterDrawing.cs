@@ -288,12 +288,7 @@ namespace Raster
       int height = img.Height;
 
       PixelFormat fmt = img.PixelFormat;
-      int pixelSize = 1;
-      if ( fmt.Equals( PixelFormat.Format24bppRgb ) )
-        pixelSize = 3;
-      if ( fmt.Equals( PixelFormat.Format32bppArgb ) ||
-           fmt.Equals( PixelFormat.Format32bppPArgb ) )
-        pixelSize = 4;
+      int pixelSize = Image.GetPixelFormatSize( fmt ) / 8;
 
       long result = 0L;
       BitmapData data = img.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, fmt );
@@ -363,12 +358,7 @@ namespace Raster
            (xor.Width < width || xor.Height < height || !fmt.Equals( xor.PixelFormat )) )
         xor = null;
 
-      int pixelSize = 1;
-      if ( fmt.Equals( PixelFormat.Format24bppRgb ) )
-        pixelSize = 3;
-      if ( fmt.Equals( PixelFormat.Format32bppArgb ) ||
-           fmt.Equals( PixelFormat.Format32bppPArgb ) )
-        pixelSize = 4;
+      int pixelSize = Image.GetPixelFormatSize( fmt ) / 8;
 
       BitmapData data1 = img1.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, fmt );
       BitmapData data2 = img2.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, fmt );
