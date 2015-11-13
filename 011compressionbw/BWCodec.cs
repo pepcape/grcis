@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Author: Josef Pelikan
+
 using System.Drawing;
-using System.Text;
 using System.IO;
 using System.IO.Compression;
 using Support;

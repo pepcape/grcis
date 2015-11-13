@@ -76,7 +76,7 @@ namespace _015avatar
             for ( int i = 0; i++ < n; )
             {
               triangleCounter += scene.Triangles;
-              GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+              GL.DrawElements( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
               GL.Translate( delta, 0.0f, 0.0f );
             }
             GL.PopMatrix();
@@ -88,7 +88,7 @@ namespace _015avatar
       }
       else                              // color cube (JB)
       {
-        GL.Begin( BeginMode.Quads );
+        GL.Begin( PrimitiveType.Quads );
 
         GL.Color3( 0.0f, 1.0f, 0.0f );          // Set The Color To Green
         GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Right Of The Quad (Top)

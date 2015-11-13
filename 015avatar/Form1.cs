@@ -9,6 +9,8 @@ namespace _015avatar
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     protected SceneBrep scene = new SceneBrep();
 
     /// <summary>
@@ -39,8 +41,7 @@ namespace _015avatar
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )

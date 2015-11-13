@@ -6,7 +6,8 @@ namespace _006warping
 {
   public partial class Form1 : Form
   {
-    protected Image inputImage = null;
+    protected Bitmap inputImage  = null;
+    protected Bitmap outputImage = null;
 
     public Form1 ()
     {
@@ -32,10 +33,10 @@ namespace _006warping
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
+      pictureResult.SetPicture( null );
       if ( inputImage != null )
         inputImage.Dispose();
-      inputImage = (Bitmap)inp;
+      inputImage = (Bitmap)Image.FromFile( ofd.FileName );
 
       recompute();
     }
@@ -44,7 +45,7 @@ namespace _006warping
     {
       if ( inputImage == null ) return;
 
-      pictureResult.SetPicture( (Bitmap)inputImage );
+      pictureResult.SetPicture( inputImage );
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )

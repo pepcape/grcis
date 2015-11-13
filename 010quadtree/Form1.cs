@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
+using System.Windows.Forms;
 using Raster;
 
 namespace _010quadtree
@@ -15,14 +10,15 @@ namespace _010quadtree
   public partial class Form1 : Form
   {
     protected Bitmap inputImage = null;
-
     protected Bitmap outputImage = null;
-
     protected Bitmap diffImage = null;
+
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonLoad_Click ( object sender, EventArgs e )
@@ -42,12 +38,17 @@ namespace _010quadtree
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
+      pictureBox1.Image = null;
       if ( inputImage != null )
         inputImage.Dispose();
-      inputImage = (Bitmap)inp;
+      inputImage = (Bitmap)Image.FromFile( ofd.FileName );
 
       pictureBox1.Image = inputImage;
+      if ( outputImage != null )
+        outputImage.Dispose();
+      if ( diffImage != null )
+        diffImage.Dispose();
+
       outputImage =
       diffImage   = null;
     }
@@ -55,6 +56,9 @@ namespace _010quadtree
     private void buttonGenerate_Click ( object sender, EventArgs e )
     {
       Cursor.Current = Cursors.WaitCursor;
+      pictureBox1.Image = null;
+      if ( inputImage != null )
+        inputImage.Dispose();
 
       int width  = (int)numericXres.Value;
       int height = (int)numericYres.Value;
@@ -72,6 +76,11 @@ namespace _010quadtree
       }
 
       pictureBox1.Image = inputImage;
+      if ( outputImage != null )
+        outputImage.Dispose();
+      if ( diffImage != null )
+        diffImage.Dispose();
+
       outputImage =
       diffImage   = null;
 
@@ -80,17 +89,16 @@ namespace _010quadtree
 
     private void buttonRecode_Click ( object sender, EventArgs e )
     {
-      if ( inputImage == null )
-      {
-        Image inp = Image.FromFile( "toucan.png" );
-        if ( inputImage != null )
-          inputImage.Dispose();
-        inputImage = (Bitmap)inp;
-        outputImage =
-        diffImage   = null;
-      }
-
       Cursor.Current = Cursors.WaitCursor;
+      pictureBox1.Image = null;
+      if ( inputImage == null )
+        inputImage = (Bitmap)Image.FromFile( "toucan.png" );
+      if ( outputImage != null )
+        outputImage.Dispose();
+      if ( diffImage != null )
+        diffImage.Dispose();
+      outputImage =
+      diffImage   = null;
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
@@ -136,7 +144,8 @@ namespace _010quadtree
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
-      if ( outputImage == null ) return;
+      if ( outputImage == null ||
+           diffImage == null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";

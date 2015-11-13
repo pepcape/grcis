@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
+using System.Windows.Forms;
 using Raster;
 
 namespace _011compressionbw
@@ -15,9 +10,7 @@ namespace _011compressionbw
   public partial class Form1 : Form
   {
     protected Bitmap inputImage = null;
-
     protected Bitmap outputImage = null;
-
     protected Bitmap diffImage = null;
 
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
@@ -45,17 +38,16 @@ namespace _011compressionbw
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
+      pictureBox1.Image = null;
       if ( inputImage != null )
         inputImage.Dispose();
-      inputImage = (Bitmap)inp;
-
-      pictureBox1.Image = inputImage;
+      pictureBox1.Image = inputImage = (Bitmap)Image.FromFile( ofd.FileName );
 
       if ( outputImage != null )
         outputImage.Dispose();
       if ( diffImage != null )
         diffImage.Dispose();
+
       outputImage =
       diffImage   = null;
     }
@@ -81,6 +73,7 @@ namespace _011compressionbw
       labelElapsed.Text = String.Format( "Enc: {0:f}s, {1}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
 
       // 3. image decoding
+      pictureBox1.Image = null;
       if ( outputImage != null )
         outputImage.Dispose();
       fs.Seek( 0L, SeekOrigin.Begin );
@@ -100,8 +93,7 @@ namespace _011compressionbw
       else
       {
         labelResult.Text = "File error";
-        pictureBox1.Image = null;
-        outputImage = diffImage = null;
+        diffImage = null;
       }
 
       Cursor.Current = Cursors.Default;

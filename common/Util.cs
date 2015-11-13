@@ -53,6 +53,21 @@ namespace Utilities
       return b ? "yes" : "no";
     }
 
+    public static double percent ( double count, double total )
+    {
+      return (100.0 * count) / Math.Max( total, 1.0 );
+    }
+
+    public static double percent ( long count, long total )
+    {
+      return (100.0 * count) / Math.Max( total, 1L );
+    }
+
+    public static double percent ( int count, int total )
+    {
+      return (100.0 * count) / Math.Max( total, 1 );
+    }
+
     /// <summary>
     /// Checks validity of the given IP address.
     /// </summary>

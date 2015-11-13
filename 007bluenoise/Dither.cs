@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Author: Josef Pelikan
+
 using System.Drawing;
-using System.Text;
+using System.Drawing.Imaging;
 
 namespace _007bluenoise
 {
@@ -14,7 +13,7 @@ namespace _007bluenoise
 
       int width = input.Width;
       int height = input.Height;
-      output = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      output = new Bitmap( width, height, PixelFormat.Format24bppRgb );
       float[ , ] buf = new float[ 2, width + 2 ];
       int bi = 0;
       for ( int i = 0; i < 2; i++ )

@@ -10,13 +10,11 @@ namespace _014compressiontr
 {
   public partial class Form1 : Form
   {
-    protected Bitmap inputImage = null;
-
-    protected Bitmap outputImage = null;
-
-    protected Bitmap diffImage = null;
-
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    protected Bitmap inputImage = null;
+    protected Bitmap outputImage = null;
+    protected Bitmap diffImage = null;
 
     public Form1 ()
     {
@@ -41,16 +39,16 @@ namespace _014compressiontr
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
+      pictureBox1.Image = null;
       if ( inputImage != null )
         inputImage.Dispose();
-      inputImage = (Bitmap)inp;
-      pictureBox1.Image = inputImage;
+      pictureBox1.Image = inputImage = (Bitmap)Image.FromFile( ofd.FileName );;
 
       if ( outputImage != null )
         outputImage.Dispose();
       if ( diffImage != null )
         diffImage.Dispose();
+
       outputImage =
       diffImage   = null;
     }
@@ -77,6 +75,7 @@ namespace _014compressiontr
       labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f3}s, {1:f1}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
 
       // 3. image decoding
+      pictureBox1.Image = null;
       if ( outputImage != null )
         outputImage.Dispose();
       fs.Seek( 0L, SeekOrigin.Begin );
@@ -96,8 +95,7 @@ namespace _014compressiontr
       else
       {
         labelResult.Text = "File error";
-        pictureBox1.Image = null;
-        outputImage = diffImage = null;
+        diffImage = null;
       }
 
       Cursor.Current = Cursors.Default;

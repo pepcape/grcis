@@ -6,13 +6,8 @@
 - stinovani do 070subdivision (?)
 - 016videoslow: zkontrolovat Bitmap.Dispose()
 - zkontrolovat po zmenach 12. 11. 2015:
-  016videoslow
-  010quadtree
-  007bluenoise
-  006warping
-  005denoise
-  003colortransform
-  002warping
+  017graph-
+- Util.percent() - hledat "100.0"
 
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
@@ -67,3 +62,6 @@
 - vyzkouse SAH heuristiku pri stavbe R-tree (optimal bucket size = 3)
 - OBJ umi cist .gz soubory
 - pridat lom svetla do RT (zatim bez ucasti osvetlovaciho modelu)
+- zkontrolovano: 002warping, 003colortransform, 005denoise, 006warping,
+  007bluenoise, 008kdtree, 009floodfill, 010quadtree, 011compressionbw,
+  013scene, 014compressiontr, 015avatar,

@@ -12,9 +12,9 @@ namespace _016videoslow
 {
   public partial class Form1 : Form
   {
-    protected string videoFileName = "video.bin";
-
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    protected string videoFileName = "video.bin";
 
     public Form1 ()
     {
@@ -92,24 +92,24 @@ namespace _016videoslow
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      Image inp = Image.FromFile( fn );
-      Bitmap frameImage = (Bitmap)inp;
+      Bitmap frameImage = (Bitmap)Image.FromFile( fn );
       IEntropyCodec s = vc.EncodeHeader( frameImage.Width, frameImage.Height, (float)numericFps.Value, fs );
       int i = 0;
       do
       {
         vc.EncodeFrame( i, frameImage, s );
         frameImage.Dispose();
+        frameImage = null;
+
         // next frame:
         fn = String.Format( textInputMask.Text, ++i );
         if ( !File.Exists( fn ) ) break;
-        if ( inp != null )
-          inp.Dispose();
-        inp = Image.FromFile( fn );
-        frameImage = (Bitmap)inp;
+        frameImage = (Bitmap)Image.FromFile( fn );
       }
       while ( true );
 
+      if ( frameImage != null )
+        frameImage.Dispose();
       s.Close();
       labelSpeed.Text = String.Format( "Encoded {0} frames in {1:f} s!", i, (float)(sw.ElapsedMilliseconds * 0.001) );
       sw.Stop();
@@ -124,33 +124,35 @@ namespace _016videoslow
 
       FileStream fs = new FileStream( videoFileName, FileMode.Open );
       IEntropyCodec s;
-
       if ( fs == null ) return;
 
-      labelSpeed.Text = "Decoding..";
-      Stopwatch sw = new Stopwatch();
-      sw.Start();
-
-      VideoCodec vc = new VideoCodec();
-      s = vc.DecodeHeader( fs );
-      int i = 0;
-      do
+      using ( fs )
       {
-        using ( Bitmap fi = vc.DecodeFrame( i, s ) )
+        labelSpeed.Text = "Decoding..";
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+
+        VideoCodec vc = new VideoCodec();
+        s = vc.DecodeHeader( fs );
+        int i = 0;
+        do
         {
-          if ( fi == null )
+          using ( Bitmap fi = vc.DecodeFrame( i, s ) )
           {
-            s.Close();
-            fs.Close();
-            labelSpeed.Text = String.Format( "Decoded {0} frames in {1:f} s!", i, (float)(sw.ElapsedMilliseconds * 0.001) );
-            sw.Stop();
-            return;
+            if ( fi == null )
+            {
+              s.Close();
+              fs.Close();
+              labelSpeed.Text = String.Format( "Decoded {0} frames in {1:f} s!", i, (float)(sw.ElapsedMilliseconds * 0.001) );
+              sw.Stop();
+              return;
+            }
+            fn = String.Format( textOutputMask.Text, i++ );
+            fi.Save( fn, ImageFormat.Png );
           }
-          fn = String.Format( textOutputMask.Text, i++ );
-          fi.Save( fn, ImageFormat.Png );
         }
+        while ( true );
       }
-      while ( true );
     }
   }
 }
