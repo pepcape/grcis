@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 using OpenTK;
@@ -156,7 +158,7 @@ namespace _015avatar
 
       triangleCounter++;
       GL.Color3( Color.Yellow );
-      GL.Begin( BeginMode.Triangles );
+      GL.Begin( PrimitiveType.Triangles );
       GL.Vertex3( -20.0f, -20.0f, 0.0f );
       GL.Vertex3( 30.0f, -25.0f, 0.0f );
       GL.Vertex3( 0.0f, 40.0f, 0.0f );

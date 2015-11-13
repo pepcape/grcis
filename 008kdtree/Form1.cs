@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
 using Raster;
 
 namespace _008kdtree
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     private List<Segment2D> segments = null;
@@ -49,6 +46,9 @@ namespace _008kdtree
       Cursor.Current = Cursors.WaitCursor;
 
       // target image:
+      pictureBox1.Image = null;
+      if ( output != null )
+        output.Dispose();
       if ( checkVisual.Checked )
         output = new Bitmap( SIZE, SIZE, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
       else
@@ -202,6 +202,9 @@ namespace _008kdtree
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
+      if ( output == null )
+        return;
+
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";
       sfd.Filter = "PNG Files|*.png";
@@ -210,7 +213,7 @@ namespace _008kdtree
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      output.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
   }
 }

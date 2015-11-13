@@ -53,7 +53,10 @@ namespace _006warping
     public void SetPicture ( Bitmap newInput )
     {
       input = newInput;
-      Image = (Bitmap)newInput.Clone();
+      if ( newInput != null )
+        Image = (Image)newInput.Clone();
+      else
+        Image = null;
     }
 
     /// <summary>

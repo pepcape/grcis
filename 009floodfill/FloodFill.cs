@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Author: Josef Pelikan
+
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Text;
 
 namespace Raster
 {

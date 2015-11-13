@@ -13,9 +13,12 @@ namespace _009floodfill
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
     }
 
     private void redraw ()
@@ -55,12 +58,18 @@ namespace _009floodfill
       long hash = Draw.Hash( output );
       labelHash.Text = String.Format( "{0:X}", hash );
 
+      Image old = pictureBox1.Image;
       pictureBox1.Image = output;
+      if ( old != null )
+        old.Dispose();
       Cursor.Current = Cursors.Default;
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
+      if ( pictureBox1.Image == null )
+        return;
+
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";
       sfd.Filter = "PNG Files|*.png";

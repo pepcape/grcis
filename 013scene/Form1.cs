@@ -9,6 +9,8 @@ namespace _013scene
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     protected SceneBrep scene = new SceneBrep();
 
     protected Bitmap outputImage = null;
@@ -16,8 +18,7 @@ namespace _013scene
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ');
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -65,6 +66,9 @@ namespace _013scene
       if ( scene == null ) return;
 
       Cursor.Current = Cursors.WaitCursor;
+      pictureBox1.Image = null;
+      if ( outputImage != null )
+        outputImage.Dispose();
 
       int width  = panel1.Width;
       int height = panel1.Height;
@@ -80,7 +84,6 @@ namespace _013scene
       renderer.Render( outputImage, scene );
 
       pictureBox1.Image = outputImage;
-
       Cursor.Current = Cursors.Default;
     }
 
@@ -118,9 +121,8 @@ namespace _013scene
 
       WavefrontObj objWriter = new WavefrontObj();
       objWriter.MirrorConversion = true;
-      StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) );
-      objWriter.WriteBrep( writer, scene );
-      writer.Close();
+      using ( StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) ) )
+        objWriter.WriteBrep( writer, scene );
     }
   }
 }

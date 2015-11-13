@@ -6,11 +6,14 @@ using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
 using GuiSupport;
+using Utilities;
 
 namespace _012animation
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Output raster image.
     /// </summary>
@@ -82,11 +85,13 @@ namespace _012animation
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      if ( outputImage != null )
+      if ( pictureBox1.Image != null )
       {
-        outputImage.Dispose();
-        outputImage = null;
+        pictureBox1.Image.Dispose();
+        pictureBox1.Image = null;
       }
+      if ( outputImage != null )
+        outputImage.Dispose();
       outputImage = Animation.RenderFrame( width, height, (double)numTime.Value, start, end );
 
       sw.Stop();
@@ -168,8 +173,7 @@ namespace _012animation
     public Form1 ()
     {
       InitializeComponent();
-      String []tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[1] + ')';
+      Text += " (rev: " + rev + ')';
 
       // Init rendering params:
       double from, to, fps;
@@ -413,7 +417,7 @@ namespace _012animation
         // GUI progress indication:
         frames++;
         SetText( String.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1} ({2:f1}%), {3:f1}s",
-                                threads, frames, (100.0 * frames) / totalFrames,
+                                threads, frames, Util.percent( frames, totalFrames + 1 ),
                                 1.0e-3 * sw.ElapsedMilliseconds ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )

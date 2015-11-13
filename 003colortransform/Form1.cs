@@ -1,21 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 namespace _003colortransform
 {
   public partial class FormColorTransform : Form
   {
-    protected Image inputImage = null;
+    protected Bitmap inputImage  = null;
+    protected Bitmap outputImage = null;
+
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     public FormColorTransform ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -35,10 +34,10 @@ namespace _003colortransform
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
+      pictureBox1.Image = null;
       if ( inputImage != null )
         inputImage.Dispose();
-      inputImage = (Bitmap)inp;
+      inputImage = (Bitmap)Image.FromFile( ofd.FileName );
 
       recompute();
     }
@@ -47,27 +46,28 @@ namespace _003colortransform
     {
       if ( inputImage == null ) return;
 
-      Bitmap ibmp = (Bitmap)inputImage;
-      Bitmap bmp;
-      Transform.TransformImage( ibmp, out bmp, (double)numericParam.Value );
-      pictureBox1.Image = bmp;
+      pictureBox1.Image = inputImage;
+      if ( outputImage != null )
+        outputImage.Dispose();
+
+      Transform.TransformImage( inputImage, out outputImage, (double)numericParam.Value );
+
+      pictureBox1.Image = outputImage;
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
-      if ( inputImage == null ) return;
+      if ( outputImage == null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";
       sfd.Filter = "PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName = "";
-      sfd.ShowDialog();
-
-      if ( sfd.FileName == "" )
+      if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )

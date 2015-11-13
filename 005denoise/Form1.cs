@@ -11,11 +11,15 @@ namespace _005denoise
 {
   public partial class Form1 : Form
   {
-    protected Image inputImage = null;
+    protected Bitmap inputImage = null;
+    protected Bitmap outputImage = null;
+
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -35,10 +39,10 @@ namespace _005denoise
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
+      pictureBox1.Image = null;
       if ( inputImage != null )
         inputImage.Dispose();
-      inputImage = (Bitmap)inp;
+      inputImage = (Bitmap)Image.FromFile( ofd.FileName );
 
       recompute();
     }
@@ -48,18 +52,19 @@ namespace _005denoise
       if ( inputImage == null ) return;
 
       Cursor.Current = Cursors.WaitCursor;
+      pictureBox1.Image = inputImage;
+      if ( outputImage != null )
+        outputImage.Dispose();
 
-      Bitmap ibmp = (Bitmap)inputImage;
-      Bitmap bmp;
-      Denoise.TransformImage( ibmp, out bmp, (double)numericParam.Value );
-      pictureBox1.Image = bmp;
+      Denoise.TransformImage( inputImage, out outputImage, (double)numericParam.Value );
 
+      pictureBox1.Image = outputImage;
       Cursor.Current = Cursors.Default;
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
-      if ( inputImage == null ) return;
+      if ( outputImage == null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";
@@ -69,13 +74,12 @@ namespace _005denoise
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
     private void buttonRecalc_Click ( object sender, EventArgs e )
     {
       recompute();
     }
-
   }
 }
