@@ -7,190 +7,227 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using System.Diagnostics;
+using System.Drawing.Imaging;
+using Raster;
+using MathSupport;
 
 namespace _085segmentation
 {
-  public class Warping
+  public class Segmentation
   {
     /// <summary>
-    /// Tri-mesh vertices. They are shared between adjacent triangles.
+    /// Image mask - input for segmentation algorithm.
     /// </summary>
-    protected List<PointF> vertices = new List<PointF>();
+    protected Bitmap mask = null;
+
+    public const int COL_BACKGROUND = 0;
+
+    public const int COL_EXTERIOR = 1;
+
+    public const int COL_INTERIOR = 2;
+
+    public const int COL_OTHER = 3;
 
     /// <summary>
-    /// Triangles as vertex triples.
+    /// Initialize the segmented image.
     /// </summary>
-    protected List<int> triangles = new List<int>();
-
-    /// <summary>
-    /// Current mesh topology: number of columns.
-    /// </summary>
-    protected int columns;
-
-    /// <summary>
-    /// Current mesh topology: number of rows.
-    /// </summary>
-    protected int rows;
-
-    /// <summary>
-    /// Initialize the triangle mesh (to be uniform..).
-    /// </summary>
-    public void GenerateTriangleMesh ( int clmns, int rws )
+    /// <returns>Initial target image.</returns>
+    public Bitmap InitImage ( Bitmap sourceImage )
     {
-      columns = clmns;
-      rows = rws;
-      int v = (columns + 1) * (rows + 1);
-      vertices.Clear();
-      vertices.Capacity = v;
-      int t = columns * rows * 6;
-      triangles.Clear();
-      triangles.Capacity = t;
+      Debug.Assert( sourceImage != null );
 
-      // vertices:
-      float dc = 1.0f / columns;
-      float dr = 1.0f / rows;
-      float c, r;
-      int ci, ri;
-      for ( r = 0.0f, ri = 0; ri++ <= rows; r += dr )
-        for ( c = 0.0f, ci = 0; ci++ <= columns; c += dc )
-          vertices.Add( new PointF( c, r ) );
+      if ( mask != null )
+        mask.Dispose();
 
-      // triangles (index-array):
-      int i = 0;
-      for ( ri = 0; ri++ < rows; i++ )
-        for ( ci = 0; ci++ < columns; i++ )
-        {
-          // UL triangle:
-          triangles.Add( i );
-          triangles.Add( i + columns + 1 );
-          triangles.Add( i + 1 );
-          // BR triangle:
-          triangles.Add( i + 1 );
-          triangles.Add( i + columns + 1 );
-          triangles.Add( i + columns + 2 );
-        }
+      mask = new Bitmap( sourceImage.Width, sourceImage.Height, PixelFormat.Format8bppIndexed );
+
+      // set the palette (transparent background, blue surround, red object):
+      ColorPalette pal = mask.Palette;
+      pal.Entries[ COL_BACKGROUND ] = Color.FromArgb( 0, 0, 0, 0 );
+      pal.Entries[ COL_EXTERIOR ]   = Color.Blue;
+      pal.Entries[ COL_INTERIOR ]   = Color.Red;
+
+      for ( int i = COL_OTHER; i < 256; )
+        pal.Entries[ i++ ] = Color.Black;
+
+      mask.Palette = pal;
+
+      // initial target image:
+      Bitmap target = new Bitmap( sourceImage.Width, sourceImage.Height, PixelFormat.Format1bppIndexed );
+
+      // set the B/W palette (0 .. white, 1 .. black):
+      pal = target.Palette;
+      pal.Entries[ 0 ] = Color.White;
+      pal.Entries[ 1 ] = Color.Black;
+      target.Palette = pal;
+
+      return target;
     }
 
     /// <summary>
-    /// Color to paint the grid.
-    /// </summary>
-    protected Color gridColor = Color.Yellow;
-
-    /// <summary>
-    /// Gets or sets the grid's color.
-    /// </summary>
-    public Color GridColor
-    {
-      get { return gridColor; }
-      set
-      {
-        gridColor = value;
-      }
-    }
-
-    /// <summary>
-    /// Draws the current triangle mesh.
+    /// Draws overlay over the given source image.
     /// </summary>
     /// <param name="g">Graphic context to draw to.</param>
-    /// <param name="width">Canvas width.</param>
-    /// <param name="height">Canvas height.</param>
-    public void DrawGrid ( Graphics g, float width, float height )
+    public void DrawOverlay ( Graphics g )
     {
-      Pen pen = new Pen( gridColor );
+      Debug.Assert( g != null );
+      Debug.Assert( mask != null );
 
-      for ( int i = 0; i < triangles.Count; i += 3 )
-      {
-        PointF A = vertices[ triangles[ i ] ];
-        A.X *= width;
-        A.Y *= height;
-        PointF B = vertices[ triangles[ i + 1 ] ];
-        B.X *= width;
-        B.Y *= height;
-        PointF C = vertices[ triangles[ i + 2 ] ];
-        C.X *= width;
-        C.Y *= height;
-        g.DrawLine( pen, A, B );
-        g.DrawLine( pen, B, C );
-        g.DrawLine( pen, C, A );
-      }
+      g.DrawImageUnscaled( mask, 0, 0 );
     }
 
     /// <summary>
-    /// Warps the given source image from the given source mesh to this (current) mesh.
+    /// Segments the given source image using the 'clasImage' mask.
     /// </summary>
     /// <param name="sourceImage">Source raster image.</param>
-    /// <param name="sourceMesh">Source mesh in [0,1]x[0,1] coordinate space.</param>
     /// <returns>Target raster image.</returns>
-    public Bitmap Warp ( Bitmap sourceImage, Warping sourceMesh )
+    public Bitmap DoSegmentation ( Bitmap sourceImage )
     {
+      Debug.Assert( sourceImage != null );
+      Debug.Assert( mask != null );
+
       int wid = sourceImage.Width;
       int hei = sourceImage.Height;
-      Bitmap target = new Bitmap( wid, hei, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Debug.Assert( mask.Width == wid && mask.Height == hei );
+      Bitmap target = new Bitmap( wid, hei, PixelFormat.Format1bppIndexed );
 
-      // !!!{{ TODO: put your image-transformation code here
+      // set the B/W palette (0 .. white, 1 .. black):
+      ColorPalette pal = target.Palette;
+      pal.Entries[ 0 ] = Color.White;
+      pal.Entries[ 1 ] = Color.Black;
+      target.Palette = pal;
+
+      // !!!{{ TODO: put your image-segmentation code here
 
       int x, y;
-      bool flip = (DateTime.Now.Second & 1) > 0;
-      for ( y = 0; y < hei; y++ )
-        for ( x = 0; x < wid; x++ )
-          target.SetPixel( x, y, sourceImage.GetPixel( x, flip ? hei - 1 - y : y ) );
+
+      PixelFormat iFormat = sourceImage.PixelFormat;
+      if ( !PixelFormat.Format24bppRgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppArgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppPArgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppRgb.Equals( iFormat ) )
+        iFormat = PixelFormat.Format24bppRgb;
+
+      // Segmentation (fast memory-mapped code):
+      BitmapData dataIn  = sourceImage.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.ReadOnly, iFormat );
+      BitmapData dataOut = target.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.WriteOnly, PixelFormat.Format1bppIndexed );
+      unsafe
+      {
+        byte* optr, iptr;
+        int buffer;   // bit buffer (8 pixels in one byte)
+        int dI = Image.GetPixelFormatSize( iFormat ) / 8;
+
+        for ( y = 0; y < hei; y++ )
+        {
+          iptr = (byte*)dataIn.Scan0  + y * dataIn.Stride;
+          optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+          buffer = 0;
+
+          for ( x = 0; x < wid; iptr += dI )
+          {
+            int gray = Draw.RgbToGray( iptr[ 2 ], iptr[ 1 ], iptr[ 0 ] );
+
+            buffer += buffer;
+            if ( gray < 128 ) buffer++;
+
+            if ( (++x & 7) == 0 )
+            {
+              *optr++ = (byte)buffer;
+              buffer = 0;
+            }
+          }
+
+          // finish the last byte of the scanline:
+          if ( (x & 7) != 0 )
+          {
+            while ( (x++ & 7) != 0 )
+              buffer += buffer;
+            *optr = (byte)buffer;
+          }
+        }
+      }
+      target.UnlockBits( dataOut );
+      sourceImage.UnlockBits( dataIn );
 
       // !!!}}
 
       return target;
     }
 
-    /// <summary>
-    /// This function is called after user left-clicks on the image plane.
-    /// We need to define the nearest mesh vertex.
-    /// </summary>
-    public int NearestVertex ( Point p, float width, float height )
-    {
-      float x = p.X / width;
-      float y = p.Y / height;
+    const int RADIUS = 3;
 
-      int nearest = -1;
-      float minDD = float.MaxValue;
-      float dx, dy, dd;
-      for ( int i = 0; i < vertices.Count; i++ )
+    public void DrawTrace ( int x, int y, bool interior )
+    {
+      Debug.Assert( mask != null );
+
+      int wid = mask.Width;
+      int hei = mask.Height;
+      int xmin = Arith.Clamp( x - RADIUS, 0, wid - 1 );
+      int xmax = Arith.Clamp( x + RADIUS, 0, wid - 1 );
+      int ymin = Arith.Clamp( y - RADIUS, 0, hei - 1 );
+      int ymax = Arith.Clamp( y + RADIUS, 0, hei - 1 );
+      if ( xmin > xmax ||
+           ymin > ymax )
+        return;
+
+      int xi, yi;
+      byte col = (byte)(interior ? COL_INTERIOR : COL_EXTERIOR);
+
+      BitmapData dataOut = mask.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.WriteOnly, PixelFormat.Format8bppIndexed );
+      unsafe
       {
-        dx = vertices[ i ].X - x;
-        dy = vertices[ i ].Y - y;
-        if ( (dd = dx * dx + dy * dy) < minDD )
+        byte* optr;
+        int dO = Image.GetPixelFormatSize( PixelFormat.Format8bppIndexed ) / 8;
+
+        for ( yi = ymin; yi <= ymax; yi++ )
         {
-          minDD = dd;
-          nearest = i;
+          optr = (byte*)dataOut.Scan0 + yi * dataOut.Stride + xmin * dO;
+          for ( xi = xmin; xi++ <= xmax; optr += dO )
+            optr[ 0 ] = col;
         }
       }
-
-      return nearest;
+      mask.UnlockBits( dataOut );
     }
 
-    /// <summary>
-    /// Finishing vertex dragging mode. The given vertex should be placed to the new
-    /// required position.
-    /// </summary>
-    public void MoveVertex ( int i, Point newLocation, float width, float height )
+    public bool MouseDown ( int x, int y, MouseButtons button )
     {
-      if ( i < 0 ||
-           i >= vertices.Count ) return;
+      if ( mask == null )
+        return false;
 
-      // !!! TODO: moving vertex outside the image region is prohibited!
+      DrawTrace( x, y, button == MouseButtons.Left );
+      return true;
+    }
 
-      // !!! TODO: moving border vertex out of the border is prohibited!
+    public bool MouseUp ( int x, int y, MouseButtons button )
+    {
+      if ( mask == null )
+        return false;
 
-      vertices[ i ] = new PointF( newLocation.X / width, newLocation.Y / height );
+      return false;
+    }
+
+    public bool MouseMove ( int x, int y, MouseButtons button )
+    {
+      if ( mask == null ||
+           button == MouseButtons.None )
+        return false;
+
+      DrawTrace( x, y, button == MouseButtons.Left );
+      return true;
     }
 
     /// <summary>
     /// Optional keystroke handling function.
     /// </summary>
-    public void KeyPressed ( Keys key )
+    public bool KeyPressed ( Keys key )
     {
       if ( key == Keys.Back )
       {
-        // !!! TODO: undo the last vertex-move ???
+        // !!! TODO: reset the mask, undo.. ???
       }
+
+      return false;
     }
   }
 }

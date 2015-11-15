@@ -3,6 +3,7 @@
 ================================================================================
   ($Rev$ $Date$)
 ================================================================================
+- 085: Reset button, set trace radius?
 - stinovani do 070subdivision (?)
 - 016videoslow: zkontrolovat Bitmap.Dispose()
 - zkontrolovat po zmenach 12. 11. 2015:

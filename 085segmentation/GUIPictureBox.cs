@@ -21,13 +21,9 @@ namespace _085segmentation
     private Form1 form;
 
     /// <summary>
-    /// Associated warping object (triangle mesh).
+    /// Associated segmentation object.
     /// </summary>
-    public Warping warp;
-
-    protected float width;
-
-    protected float height;
+    public Segmentation segm;
 
     #endregion
 
@@ -37,16 +33,17 @@ namespace _085segmentation
     /// Inits a new original picture.
     /// </summary>
     /// <param name="newOriginal">New original picture</param>
-    public void InitPicture ( Form1 f, Bitmap newOriginal, int columns, int rows )
+    /// <returns>Initial result image.</returns>
+    public Bitmap InitPicture ( Form1 f, Bitmap newOriginal )
     {
       form = f;
-      Image = (Bitmap)newOriginal.Clone();
-      width = Image.Width;
-      height = Image.Height;
+      Image = newOriginal;
 
-      warp = new Warping();
-      warp.GenerateTriangleMesh( columns, rows );
+      segm = new Segmentation();
+      Bitmap result = segm.InitImage( newOriginal );
       Invalidate();
+
+      return result;
     }
 
     public void SetPicture ( Bitmap newImage )
@@ -70,53 +67,41 @@ namespace _085segmentation
     {
       base.OnPaint( e );
       if ( Image == null ||
-           warp == null )
+           segm == null )
         return;
 
-      // tri-mesh drawing:
-      warp.DrawGrid( e.Graphics, width, height );
+      // draw custom overlay:
+      segm.DrawOverlay( e.Graphics );
     }
 
     #endregion
 
     #region Mouse events
 
-    /// <summary>
-    /// Stores position of mouse when button was pressed.
-    /// </summary>
-    protected int mouseDownIndex = -1;
-
     protected override void OnMouseDown ( MouseEventArgs e )
     {
       base.OnMouseDown( e );
-      if ( warp != null )
-        mouseDownIndex = warp.NearestVertex( e.Location, width, height );
+      if ( segm != null &&
+           segm.MouseDown( e.X, e.Y, e.Button ) )
+        Invalidate();
     }
 
     protected override void OnMouseUp ( MouseEventArgs e )
     {
       base.OnMouseUp( e );
 
-      if ( mouseDownIndex < 0 ||
-           warp == null )
-        return;
-
-      warp.MoveVertex( mouseDownIndex, e.Location, width, height );
-      mouseDownIndex = -1;
-
-      form.Recompute();
+      if ( segm != null &&
+           segm.MouseUp( e.X, e.Y, e.Button ) )
+        Invalidate();
    }
 
     protected override void OnMouseMove ( MouseEventArgs e )
     {
       base.OnMouseMove( e );
 
-      if ( mouseDownIndex < 0 ||
-           warp == null )
-        return;
-
-      warp.MoveVertex( mouseDownIndex, e.Location, width, height );
-      Invalidate();
+      if ( segm != null &&
+           segm.MouseMove( e.X, e.Y, e.Button ) )
+        Invalidate();
     }
 
     #endregion
@@ -127,8 +112,9 @@ namespace _085segmentation
     {
       base.OnKeyDown( e );
 
-      if ( warp != null )
-        warp.KeyPressed( e.KeyCode );
+      if ( segm != null &&
+           segm.KeyPressed( e.KeyCode ) )
+        Invalidate();
     }
 
     #endregion

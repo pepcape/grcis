@@ -6,8 +6,8 @@ namespace _085segmentation
 {
   public partial class Form1 : Form
   {
-    protected Image inputImage  = null;
-    protected Image outputImage = null;
+    protected Bitmap inputImage  = null;
+    protected Bitmap outputImage = null;
 
     public Form1 ()
     {
@@ -34,46 +34,41 @@ namespace _085segmentation
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
       if ( inputImage != null )
         inputImage.Dispose();
-      inputImage = new Bitmap( inp );
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = new Bitmap( inp );
-      inp.Dispose();
+      inputImage = (Bitmap)Image.FromFile( ofd.FileName );
 
       Reset();
     }
 
     /// <summary>
-    /// Reset source/target images with the new regular grid.
+    /// Reset source/target images.
     /// </summary>
     private void Reset ()
     {
       if ( inputImage == null ) return;
-      outputImage = new Bitmap( inputImage );
 
-      int columns = (int)numericParam.Value;
-      if ( columns < 4 ) columns = 4;
-      int rows = (columns * inputImage.Height) / inputImage.Width;
+      if ( outputImage != null )
+        outputImage.Dispose();
 
-      pictureSource.InitPicture( this, (Bitmap)inputImage, columns, rows );
-      pictureTarget.Image = (Bitmap)outputImage.Clone();
+      pictureTarget.Image = outputImage = pictureSource.InitPicture( this, inputImage );
     }
 
     /// <summary>
-    /// Recompute the target image according to current meshes.
+    /// Recompute the target image according to current mask.
     /// </summary>
     public void Recompute ()
     {
       if ( inputImage == null ) return;
 
-      //outputImage = pictureTarget.warp.Warp( (Bitmap)inputImage, pictureSource.warp );
-      pictureTarget.Image = (Bitmap)outputImage.Clone();
+      pictureTarget.Image = null;
+      if ( outputImage != null )
+        outputImage.Dispose();
 
-      pictureSource.Invalidate();
-      pictureTarget.Invalidate();
+      pictureTarget.Image = outputImage = pictureSource.segm.DoSegmentation( inputImage );
+
+      //pictureSource.Invalidate();
+      //pictureTarget.Invalidate();
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
@@ -91,9 +86,9 @@ namespace _085segmentation
       outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
-    private void numericParam_ValueChanged ( object sender, EventArgs e )
+    private void buttonRecompute_Click ( object sender, EventArgs e )
     {
-      Reset();
+      Recompute();
     }
   }
 }
