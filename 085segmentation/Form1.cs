@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace _080warping
+namespace _085segmentation
 {
   public partial class Form1 : Form
   {
@@ -59,7 +59,7 @@ namespace _080warping
       int rows = (columns * inputImage.Height) / inputImage.Width;
 
       pictureSource.InitPicture( this, (Bitmap)inputImage, columns, rows );
-      pictureTarget.InitPicture( this, (Bitmap)outputImage, columns, rows );
+      pictureTarget.Image = (Bitmap)outputImage.Clone();
     }
 
     /// <summary>
@@ -69,8 +69,8 @@ namespace _080warping
     {
       if ( inputImage == null ) return;
 
-      outputImage = pictureTarget.warp.Warp( (Bitmap)inputImage, pictureSource.warp );
-      pictureTarget.SetPicture( (Bitmap)outputImage );
+      //outputImage = pictureTarget.warp.Warp( (Bitmap)inputImage, pictureSource.warp );
+      pictureTarget.Image = (Bitmap)outputImage.Clone();
 
       pictureSource.Invalidate();
       pictureTarget.Invalidate();

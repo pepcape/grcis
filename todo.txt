@@ -7,7 +7,6 @@
 - 016videoslow: zkontrolovat Bitmap.Dispose()
 - zkontrolovat po zmenach 12. 11. 2015:
   017graph-
-- Util.percent() - hledat "100.0"
 
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
 - textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
@@ -25,43 +24,44 @@
 ================================================================================
   DONE:
 ================================================================================
-- pridat par dalsich teles: Cube, Plane, Cylinder, Torus
-- pridat nejlepsi studentske sceny z ulohy 018: Hedgehog, Flags
-- gamma pre-compensation (gamma encoding) do SimpleImageSynthesizer
-- Progress objekt: prijemce informaci o prubehu renderingu
-- SVN revision number into Window title
-- RT vypocet umistit do separatniho vlakna, abort mechanismus
-- vylepsit SimpleImageSynthesizer, aby pocital adaptivne (viz JaGrLib)
-- statistiky poctu zpracovavanych pruseciku v CSG
-- vyber sceny pomoci combo-boxu
-- zkracene vyhodnocovani CSG
-- telesa presunout RayCastingBasic -> RayCastingSolids
-- asi je neco spatne s normalami u Cube
-- dalsi optimalizace CSG operaci (reuse seznamu, odstraneni zbytecneho new)
-- korektni vrzene stiny
-- super-sampling do RT (pravidelny i jittering)
-- zapinat jednotlive komponenty ray-tracingu (check-boxes)
-- vicevlaknovy vypocet RT (kazde vlakno svuj Rnd generator, sdileni zamykane bitmapy
+x pridat par dalsich teles: Cube, Plane, Cylinder, Torus
+x pridat nejlepsi studentske sceny z ulohy 018: Hedgehog, Flags
+x gamma pre-compensation (gamma encoding) do SimpleImageSynthesizer
+x Progress objekt: prijemce informaci o prubehu renderingu
+x SVN revision number into Window title
+x RT vypocet umistit do separatniho vlakna, abort mechanismus
+x vylepsit SimpleImageSynthesizer, aby pocital adaptivne (viz JaGrLib)
+x statistiky poctu zpracovavanych pruseciku v CSG
+x vyber sceny pomoci combo-boxu
+x zkracene vyhodnocovani CSG
+x telesa presunout RayCastingBasic -> RayCastingSolids
+x asi je neco spatne s normalami u Cube
+x dalsi optimalizace CSG operaci (reuse seznamu, odstraneni zbytecneho new)
+x korektni vrzene stiny
+x super-sampling do RT (pravidelny i jittering)
+x zapinat jednotlive komponenty ray-tracingu (check-boxes)
+x vicevlaknovy vypocet RT (kazde vlakno svuj Rnd generator, sdileni zamykane bitmapy
   s vysledkem, rozdeleni prace pres modulo)
-- testovaci scena pro Bezierovy plochy
-- animace kamerou v RT (uloha 046 - pilotni animovana kamera krouzici kolem
+x testovaci scena pro Bezierovy plochy
+x animace kamerou v RT (uloha 046 - pilotni animovana kamera krouzici kolem
   jednoho bodu)
-- Bezierova plocha: implementace s mikropolygony na konci subdivision
+x Bezierova plocha: implementace s mikropolygony na konci subdivision
   (neoptimalizovano na rychlost /R-tree/, to jeste prijde)
-- R-tree pro Bezierovy platy, pridany relevantni citace (statistika)
-- pridan citac paprsku (vsechny paprsky vrzene do sceny)
-- zadavani libovolneho rozliseni RT obrazku pomoci tlacitka a custom dialogu
+x R-tree pro Bezierovy platy, pridany relevantni citace (statistika)
+x pridan citac paprsku (vsechny paprsky vrzene do sceny)
+x zadavani libovolneho rozliseni RT obrazku pomoci tlacitka a custom dialogu
   (otestovano na max. rozliseni 20k x 20k pix)
-- vsude k "rank, total" pridat jeste "rnd", sdileni bude zalozeno na
+x vsude k "rank, total" pridat jeste "rnd", sdileni bude zalozeno na
   "one-instance-per-thread"
-- prezentace zadaneho rozliseni na tlacitku "Resolution"
-- plosny svetelny zdroj + test Distr-RT rizeneho anti-aliasingem
-- OBJ musi umet cist polygony vetsi nez trojuhelniky
-- OBJ musi umet cist relativni indexy (zaporna cisla) a prokladane definice
+x prezentace zadaneho rozliseni na tlacitku "Resolution"
+x plosny svetelny zdroj + test Distr-RT rizeneho anti-aliasingem
+x OBJ musi umet cist polygony vetsi nez trojuhelniky
+x OBJ musi umet cist relativni indexy (zaporna cisla) a prokladane definice
   vrcholu a sten
-- vyzkouse SAH heuristiku pri stavbe R-tree (optimal bucket size = 3)
-- OBJ umi cist .gz soubory
-- pridat lom svetla do RT (zatim bez ucasti osvetlovaciho modelu)
-- zkontrolovano: 002warping, 003colortransform, 005denoise, 006warping,
+x vyzkouse SAH heuristiku pri stavbe R-tree (optimal bucket size = 3)
+x OBJ umi cist .gz soubory
+x pridat lom svetla do RT (zatim bez ucasti osvetlovaciho modelu)
+x zkontrolovano: 002warping, 003colortransform, 005denoise, 006warping,
   007bluenoise, 008kdtree, 009floodfill, 010quadtree, 011compressionbw,
   013scene, 014compressiontr, 015avatar,
+x Util.percent() - hledat "100.0"

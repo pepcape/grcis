@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
 using GuiSupport;
+using Utilities;
 
 namespace _083animation
 {
@@ -413,7 +414,7 @@ namespace _083animation
         // GUI progress indication:
         frames++;
         SetText( String.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1} ({2:f1}%), {3:f1}s",
-                                threads, frames, (100.0 * frames) / totalFrames,
+                                threads, frames, Util.percent( frames, totalFrames ),
                                 1.0e-3 * sw.ElapsedMilliseconds ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
