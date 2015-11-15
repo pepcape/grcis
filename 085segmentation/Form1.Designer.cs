@@ -30,30 +30,28 @@
     {
       this.buttonOpen = new System.Windows.Forms.Button();
       this.buttonSave = new System.Windows.Forms.Button();
-      this.numericParam = new System.Windows.Forms.NumericUpDown();
-      this.label1 = new System.Windows.Forms.Label();
       this.tableImages = new System.Windows.Forms.TableLayoutPanel();
-      this.pictureSource = new _085segmentation.GUIPictureBox();
       this.pictureTarget = new System.Windows.Forms.PictureBox();
-      ((System.ComponentModel.ISupportInitialize)(this.numericParam)).BeginInit();
+      this.buttonRecompute = new System.Windows.Forms.Button();
+      this.pictureSource = new _085segmentation.GUIPictureBox();
       this.tableImages.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureSource)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureTarget)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureSource)).BeginInit();
       this.SuspendLayout();
-      //
+      // 
       // buttonOpen
-      //
+      // 
       this.buttonOpen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonOpen.Location = new System.Drawing.Point(12, 450);
       this.buttonOpen.Name = "buttonOpen";
-      this.buttonOpen.Size = new System.Drawing.Size(130, 23);
+      this.buttonOpen.Size = new System.Drawing.Size(106, 23);
       this.buttonOpen.TabIndex = 1;
       this.buttonOpen.Text = "Load image";
       this.buttonOpen.UseVisualStyleBackColor = true;
       this.buttonOpen.Click += new System.EventHandler(this.buttonOpen_Click);
-      //
+      // 
       // buttonSave
-      //
+      // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.buttonSave.Location = new System.Drawing.Point(679, 450);
       this.buttonSave.Name = "buttonSave";
@@ -62,39 +60,11 @@
       this.buttonSave.Text = "Save image";
       this.buttonSave.UseVisualStyleBackColor = true;
       this.buttonSave.Click += new System.EventHandler(this.buttonSave_Click);
-      //
-      // numericParam
-      //
-      this.numericParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.numericParam.Location = new System.Drawing.Point(241, 453);
-      this.numericParam.Minimum = new decimal(new int[] {
-            4,
-            0,
-            0,
-            0});
-      this.numericParam.Name = "numericParam";
-      this.numericParam.Size = new System.Drawing.Size(62, 20);
-      this.numericParam.TabIndex = 3;
-      this.numericParam.Value = new decimal(new int[] {
-            6,
-            0,
-            0,
-            0});
-      this.numericParam.ValueChanged += new System.EventHandler(this.numericParam_ValueChanged);
-      //
-      // label1
-      //
-      this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.label1.Location = new System.Drawing.Point(168, 455);
-      this.label1.Name = "label1";
-      this.label1.Size = new System.Drawing.Size(58, 13);
-      this.label1.TabIndex = 4;
-      this.label1.Text = "Mesh size:";
-      //
+      // 
       // tableImages
-      //
-      this.tableImages.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+      // 
+      this.tableImages.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
       this.tableImages.ColumnCount = 2;
       this.tableImages.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
@@ -108,46 +78,55 @@
       this.tableImages.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
       this.tableImages.Size = new System.Drawing.Size(795, 426);
       this.tableImages.TabIndex = 0;
-      //
-      // pictureSource
-      //
-      this.pictureSource.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.pictureSource.Location = new System.Drawing.Point(3, 3);
-      this.pictureSource.Name = "pictureSource";
-      this.pictureSource.Size = new System.Drawing.Size(391, 420);
-      this.pictureSource.TabIndex = 5;
-      this.pictureSource.TabStop = false;
-      //
+      // 
       // pictureTarget
-      //
-      this.pictureTarget.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+      // 
+      this.pictureTarget.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
       this.pictureTarget.Location = new System.Drawing.Point(400, 3);
       this.pictureTarget.Name = "pictureTarget";
       this.pictureTarget.Size = new System.Drawing.Size(392, 420);
       this.pictureTarget.TabIndex = 6;
       this.pictureTarget.TabStop = false;
-      //
+      // 
+      // buttonRecompute
+      // 
+      this.buttonRecompute.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonRecompute.Location = new System.Drawing.Point(137, 450);
+      this.buttonRecompute.Name = "buttonRecompute";
+      this.buttonRecompute.Size = new System.Drawing.Size(104, 23);
+      this.buttonRecompute.TabIndex = 3;
+      this.buttonRecompute.Text = "Recompute";
+      this.buttonRecompute.UseVisualStyleBackColor = true;
+      this.buttonRecompute.Click += new System.EventHandler(this.buttonRecompute_Click);
+      // 
+      // pictureSource
+      // 
+      this.pictureSource.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.pictureSource.Location = new System.Drawing.Point(3, 3);
+      this.pictureSource.Name = "pictureSource";
+      this.pictureSource.Size = new System.Drawing.Size(391, 420);
+      this.pictureSource.TabIndex = 5;
+      this.pictureSource.TabStop = false;
+      // 
       // Form1
-      //
+      // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(821, 485);
+      this.Controls.Add(this.buttonRecompute);
       this.Controls.Add(this.tableImages);
       this.Controls.Add(this.buttonOpen);
-      this.Controls.Add(this.label1);
-      this.Controls.Add(this.numericParam);
       this.Controls.Add(this.buttonSave);
       this.MinimumSize = new System.Drawing.Size(620, 200);
       this.Name = "Form1";
       this.Text = "085 segmentation";
-      ((System.ComponentModel.ISupportInitialize)(this.numericParam)).EndInit();
       this.tableImages.ResumeLayout(false);
-      ((System.ComponentModel.ISupportInitialize)(this.pictureSource)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureTarget)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.pictureSource)).EndInit();
       this.ResumeLayout(false);
 
     }
@@ -159,7 +138,6 @@
     private System.Windows.Forms.TableLayoutPanel tableImages;
     public System.Windows.Forms.Button buttonOpen;
     public System.Windows.Forms.Button buttonSave;
-    public System.Windows.Forms.NumericUpDown numericParam;
-    private System.Windows.Forms.Label label1;
+    private System.Windows.Forms.Button buttonRecompute;
   }
 }
