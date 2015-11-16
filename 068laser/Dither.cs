@@ -81,7 +81,7 @@ namespace _068laser
         }
       }
 
-      output = new Bitmap( oWidth, oHeight, System.Drawing.Imaging.PixelFormat.Format1bppIndexed );
+      output = new Bitmap( oWidth, oHeight, PixelFormat.Format1bppIndexed );
       float dx = (iWidth - 1.0f) / (oWidth - 1.0f);
       float dy = (iHeight - 1.0f) / (oHeight - 1.0f);
 
@@ -96,13 +96,20 @@ namespace _068laser
       Random rnd = new Random();
 
       // convert pixel data (fast memory-mapped code):
-      BitmapData dataIn  = input.LockBits( new Rectangle( 0, 0, iWidth, iHeight ), ImageLockMode.ReadOnly, input.PixelFormat );
+      PixelFormat iFormat = input.PixelFormat;
+      if ( !PixelFormat.Format24bppRgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppArgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppPArgb.Equals( iFormat ) &&
+           !PixelFormat.Format32bppRgb.Equals( iFormat ) )
+        iFormat = PixelFormat.Format24bppRgb;
+
+      BitmapData dataIn = input.LockBits( new Rectangle( 0, 0, iWidth, iHeight ), ImageLockMode.ReadOnly, iFormat );
       BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, oWidth, oHeight ), ImageLockMode.WriteOnly, output.PixelFormat );
       unsafe
       {
         byte* optr;
         int buffer;
-        int dI = Image.GetPixelFormatSize( input.PixelFormat ) / 8;
+        int dI = Image.GetPixelFormatSize( iFormat ) / 8;
 
         for ( y = 0, fy = 0.0f; y < oHeight; y++, fy += dy )
         {
