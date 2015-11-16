@@ -84,6 +84,8 @@ namespace _085segmentation
       if ( segm != null &&
            segm.MouseDown( e.X, e.Y, e.Button ) )
         Invalidate();
+
+      Focus();
     }
 
     protected override void OnMouseUp ( MouseEventArgs e )
