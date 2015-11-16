@@ -59,16 +59,23 @@ namespace _081fullcolor
       if ( input != null )
       {
         // convert pixel data (fast memory-mapped code):
+        PixelFormat iFormat = input.PixelFormat;
+        if ( !PixelFormat.Format24bppRgb.Equals( iFormat ) &&
+             !PixelFormat.Format32bppArgb.Equals( iFormat ) &&
+             !PixelFormat.Format32bppPArgb.Equals( iFormat ) &&
+             !PixelFormat.Format32bppRgb.Equals( iFormat ) )
+          iFormat = PixelFormat.Format24bppRgb;
+
         int width  = input.Width;
         int height = input.Height;
         int xi, yi;
-        BitmapData dataIn = input.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, input.PixelFormat );
+        BitmapData dataIn = input.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, iFormat );
         BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.WriteOnly, output.PixelFormat );
         unsafe
         {
           byte* iptr, optr;
           byte ri, gi, bi;
-          int dI = Image.GetPixelFormatSize( input.PixelFormat ) / 8;   // pixel size in bytes
+          int dI = Image.GetPixelFormatSize( iFormat ) / 8;             // pixel size in bytes
           int dO = Image.GetPixelFormatSize( output.PixelFormat ) / 8;  // pixel size in bytes
 
           yi = 0;
