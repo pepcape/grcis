@@ -306,8 +306,8 @@ namespace _085segmentation
 
       // set the B/W palette (0 .. white/exterior, 1 .. black/interior):
       ColorPalette pal = target.Palette;
-      pal.Entries[ 0 ] = Color.White;
-      pal.Entries[ 1 ] = Color.Black;
+      pal.Entries[ whiteExterior ? 0 : 1 ] = Color.White;
+      pal.Entries[ whiteExterior ? 1 : 0 ] = Color.Black;
       target.Palette = pal;
 
       // !!!{{ TODO: put your image-segmentation code here
@@ -339,11 +339,11 @@ namespace _085segmentation
           for ( x = 0; x < wid; iptr += dI )
           {
             int gray = Draw.RgbToGray( iptr[ 2 ], iptr[ 1 ], iptr[ 0 ] );
-            bool InMask = mask.GetPixel( x, y ).GetBrightness() > 0.0f;
+            bool InMask = mask.GetPixel( x, y ).R > 0;
 
             // set/clear one bit (output pixel):
             buffer += buffer;
-            if ( (gray < 128 || InMask) == whiteExterior )
+            if ( gray < 128 || InMask )
               buffer++;
 
             // check the output buffer:
