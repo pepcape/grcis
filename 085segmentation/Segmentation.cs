@@ -166,6 +166,9 @@ namespace _085segmentation
       pal.Entries[ 1 ] = Color.Black;
       target.Palette = pal;
 
+      lastx =
+      lasty = -1;
+
       return target;
     }
 
@@ -210,7 +213,9 @@ namespace _085segmentation
       unsafe
       {
         // SetPixel( x0, y0, col ):
-        *((byte*)dataOut.Scan0 + y0 * dataOut.Stride + x0 * depth) = col;
+        if ( x0 >= 0 && x0 < wWid &&
+             y0 >= 0 && y0 < wHei )
+          *((byte*)dataOut.Scan0 + y0 * dataOut.Stride + x0 * depth) = col;
 
         if ( traceSize > 1.0 )
           for ( int peni = 1; peni < Draw.squares.Length && Draw.squares[ peni ] <= traceSize; peni++ )
@@ -252,7 +257,8 @@ namespace _085segmentation
     public bool MouseMove ( int x, int y, MouseButtons button )
     {
       if ( mask == null ||
-           button == MouseButtons.None )
+           button == MouseButtons.None ||
+           lastx < 0 )
       {
         lastx = lasty = -1;
         return false;
