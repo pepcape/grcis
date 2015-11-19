@@ -28,7 +28,7 @@ namespace _008kdtree
     private void buttonGenerate_Click ( object sender, EventArgs e )
     {
       // Lorentz attractor constants:
-      // see http://astronomy.swin.edu.au/~pbourke/fractals/lorenz/
+      // see http://paulbourke.net/fractals/lorenz/
       const double DT    = 0.004;
       const double DELTA = 10.0;
       const double R     = 28.0;
