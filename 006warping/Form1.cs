@@ -6,14 +6,22 @@ namespace _006warping
 {
   public partial class Form1 : Form
   {
-    protected Bitmap inputImage  = null;
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -34,9 +42,7 @@ namespace _006warping
         return;
 
       pictureResult.SetPicture( null );
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = (Bitmap)Image.FromFile( ofd.FileName );
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
 
       recompute();
     }

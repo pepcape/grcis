@@ -84,9 +84,7 @@
     <Compile Include="..\common\RasterDrawing.cs">
       <Link>RasterDrawing.cs</Link>
     </Compile>
-    <Compile Include="Contours.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="Contours.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

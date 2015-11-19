@@ -8,11 +8,16 @@ using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Rendering;
+using System.Drawing.Imaging;
 
 namespace _019raytracing
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    public static Form1 singleton = null;
+
     /// <summary>
     /// Current output raster image. Locked access.
     /// </summary>
@@ -21,7 +26,7 @@ namespace _019raytracing
     /// <summary>
     /// The same order as items in the comboScenes.
     /// </summary>
-    protected List<InitSceneDelegate> sceneInitFunctions = null;
+    public List<InitSceneDelegate> sceneInitFunctions = null;
 
     /// <summary>
     /// Index of the current (selected) scene.
@@ -87,7 +92,7 @@ namespace _019raytracing
 
         lastSync = now;
         f.SetText( String.Format( "{0:f1}%:  {1:f1}s", 100.0f * Finished, 1.0e-3 * now ) );
-        Bitmap b = (msg as Bitmap);
+        Bitmap b = msg as Bitmap;
         if ( b != null )
           f.SetImage( (Bitmap)b.Clone() );
       }
@@ -101,11 +106,16 @@ namespace _019raytracing
     /// <summary>
     /// Default behavior - create scene selected in the combo-box.
     /// </summary>
-    protected IRayScene SceneByComboBox ()
+    public  IRayScene SceneByComboBox ()
     {
       DefaultRayScene sc = new DefaultRayScene();
       sceneInitFunctions[ selectedScene ]( sc );
       return sc;
+    }
+
+    public ComboBox ComboScene
+    {
+      get { return comboScene; }
     }
 
     /// <summary>
@@ -120,18 +130,21 @@ namespace _019raytracing
       if ( width <= 0 ) width = panel1.Width;
       int height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+
+      if ( outputImage != null )
+        outputImage.Dispose();
+      outputImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       if ( imf == null )
       {
-        imf = getImageFunction( getScene() );
+        imf = FormSupport.getImageFunction( FormSupport.getScene() );
         rend = null;
       }
       imf.Width  = width;
       imf.Height = height;
 
       if ( rend == null )
-        rend = getRenderer( imf );
+        rend = FormSupport.getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 8;
@@ -180,7 +193,10 @@ namespace _019raytracing
       }
       else
       {
+        Image old = pictureBox1.Image;
         pictureBox1.Image = newImage;
+        if ( old != null )
+          old.Dispose();
         pictureBox1.Invalidate();
       }
     }
@@ -238,7 +254,7 @@ namespace _019raytracing
     {
       if ( imf == null )
       {
-        imf = getImageFunction( getScene() );
+        imf = FormSupport.getImageFunction( FormSupport.getScene() );
         rend = null;
       }
 
@@ -257,13 +273,13 @@ namespace _019raytracing
 
     public Form1 ()
     {
+      singleton = this;
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
       progress = new RenderingProgress( this );
-      String []tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[1] + ')';
 
       // Init scenes etc.
-      InitializeScenes();
+      FormSupport.InitializeScenes();
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 

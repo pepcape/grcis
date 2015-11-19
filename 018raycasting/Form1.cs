@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Globalization;
 using System.Windows.Forms;
 using MathSupport;
 using Rendering;
@@ -9,6 +11,8 @@ namespace _018raycasting
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Output raster image.
     /// </summary>
@@ -43,15 +47,21 @@ namespace _018raycasting
 
       int width   = panel1.Width;
       int height  = panel1.Height;
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+
+      if ( outputImage != null )
+      {
+        pictureBox1.Image = null;
+        outputImage.Dispose();
+      }
+      outputImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       if ( imf == null )
-        imf = getImageFunction();
+        imf = FormSupport.getImageFunction( out scene );
       imf.Width  = width;
       imf.Height = height;
 
       if ( rend == null )
-        rend = getRenderer( imf );
+        rend = FormSupport.getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 0;
@@ -62,7 +72,7 @@ namespace _018raycasting
       rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
       pictureBox1.Image = outputImage;
 
@@ -77,21 +87,20 @@ namespace _018raycasting
     private void singleSample ( int x, int y )
     {
       if ( imf == null )
-        imf = getImageFunction();
+        imf = FormSupport.getImageFunction( out scene );
 
       imf.Width  = panel1.Width;
       imf.Height = panel1.Height;
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x, y, color );
-      labelSample.Text = String.Format( "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
+      labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )

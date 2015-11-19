@@ -59,8 +59,8 @@
       this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
       this.pictureBox1.TabIndex = 2;
       this.pictureBox1.TabStop = false;
-      this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler( this.pictureBox1_MouseMove );
       this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler( this.pictureBox1_MouseDown );
+      this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler( this.pictureBox1_MouseMove );
       // 
       // buttonSave
       // 
@@ -98,7 +98,7 @@
       // 
       this.labelSample.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelSample.AutoSize = true;
-      this.labelSample.Location = new System.Drawing.Point( 282, 417 );
+      this.labelSample.Location = new System.Drawing.Point( 266, 417 );
       this.labelSample.Name = "labelSample";
       this.labelSample.Size = new System.Drawing.Size( 45, 13 );
       this.labelSample.TabIndex = 22;
@@ -114,7 +114,7 @@
       this.Controls.Add( this.buttonRedraw );
       this.Controls.Add( this.buttonSave );
       this.Controls.Add( this.panel1 );
-      this.MinimumSize = new System.Drawing.Size( 660, 200 );
+      this.MinimumSize = new System.Drawing.Size( 690, 200 );
       this.Name = "Form1";
       this.Text = "018 ray-casting";
       this.panel1.ResumeLayout( false );

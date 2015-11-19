@@ -6,15 +6,23 @@ namespace _003colortransform
 {
   public partial class FormColorTransform : Form
   {
-    protected Bitmap inputImage  = null;
-    protected Bitmap outputImage = null;
-
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    protected Bitmap inputImage = null;
+    protected Bitmap outputImage = null;
 
     public FormColorTransform ()
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -34,10 +42,7 @@ namespace _003colortransform
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image = null;
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = (Bitmap)Image.FromFile( ofd.FileName );
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
 
       recompute();
     }
@@ -46,13 +51,10 @@ namespace _003colortransform
     {
       if ( inputImage == null ) return;
 
-      pictureBox1.Image = inputImage;
-      if ( outputImage != null )
-        outputImage.Dispose();
+      Bitmap newImage;
+      Transform.TransformImage( inputImage, out newImage, (double)numericParam.Value );
 
-      Transform.TransformImage( inputImage, out outputImage, (double)numericParam.Value );
-
-      pictureBox1.Image = outputImage;
+      setImage( ref outputImage, newImage );
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )

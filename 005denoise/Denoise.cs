@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Author: Josef Pelikan
+
 using System.Drawing;
-using System.Text;
+using System.Drawing.Imaging;
 
 namespace _005denoise
 {
@@ -14,7 +13,7 @@ namespace _005denoise
 
       int width = input.Width;
       int height = input.Height;
-      output = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      output = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       for ( int y = 0; y < height; y++ )
         for ( int x = 0; x < width; x++ )

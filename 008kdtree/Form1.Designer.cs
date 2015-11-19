@@ -83,6 +83,11 @@
             0,
             0,
             0} );
+      this.numericSize.Minimum = new decimal( new int[] {
+            1000,
+            0,
+            0,
+            0} );
       this.numericSize.Name = "numericSize";
       this.numericSize.Size = new System.Drawing.Size( 96, 20 );
       this.numericSize.TabIndex = 3;

@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
+﻿// Author: Josef Pelikan
+
+using System.Collections.Generic;
 using System.Windows.Forms;
 using OpenTK;
 using Rendering;
 
-namespace _018raycasting
+namespace Rendering
 {
-  public partial class Form1 : Form
+  public class FormSupport
   {
     /// <summary>
     /// Initialize ray-scene and image function (good enough for single samples).
     /// </summary>
-    private IImageFunction getImageFunction ()
+    public static IImageFunction getImageFunction ( out IRayScene scene )
     {
       // default constructor of the RayScene .. custom scene
       scene = new RayScene();
@@ -20,17 +22,14 @@ namespace _018raycasting
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    private IRenderer getRenderer ( IImageFunction imf )
+    public static IRenderer getRenderer ( IImageFunction imf )
     {
       SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
       sis.ImageFunction = imf;
       return sis;
     }
   }
-}
 
-namespace Rendering
-{
   /// <summary>
   /// Test scene for ray-based rendering.
   /// </summary>

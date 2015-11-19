@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Globalization;
 using System.Windows.Forms;
 using Raster;
 
@@ -34,9 +36,6 @@ namespace _008kdtree
       const double R     = 28.0;
       const double B     = 8.0 / 3.0;
 
-      const double LINE_RADIUS_MIN = 0.3;
-      const double LINE_RADIUS_MAX = 0.8;
-
       // Lorentz attractor variables:
       double lx = 0.1;
       double ly = 0.0;
@@ -50,7 +49,7 @@ namespace _008kdtree
       if ( output != null )
         output.Dispose();
       if ( checkVisual.Checked )
-        output = new Bitmap( SIZE, SIZE, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+        output = new Bitmap( SIZE, SIZE, PixelFormat.Format24bppRgb );
       else
         output = null;
 
@@ -61,6 +60,10 @@ namespace _008kdtree
       // set size (number of line segments):
       int size = (int)numericSize.Value;
       segments = new List<Segment2D>( size );
+
+      // line segment size:
+      double lineMin = 300.0 / Math.Sqrt( size );    // 0.3 for 10^6
+      double lineRng = 500.0 / Math.Sqrt( size );    // 0.5 for 10^6
 
       double x, y, x1, y1, x2, y2;
       for ( int i = 0; i < size; i++ )
@@ -81,7 +84,7 @@ namespace _008kdtree
 
         x *= SIZE;
         y *= SIZE;
-        double rad = LINE_RADIUS_MIN + (LINE_RADIUS_MAX - LINE_RADIUS_MIN) * rnd.NextDouble();
+        double rad = lineMin + lineRng * rnd.NextDouble();
         double a   = rnd.NextDouble() * Math.PI;
         x2 = rad * Math.Sin( a );
         y2 = rad * Math.Cos( a );
@@ -110,7 +113,7 @@ namespace _008kdtree
       // Build-phase statistics:
       long segStat, boxStat, heapStat;
       tree.GetStatistics( out segStat, out boxStat, out heapStat );
-      labelStat.Text = String.Format( "Elapsed: {0:f} s [{1:D}-{2:D}-{3:D}]",
+      labelStat.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f} s [{1:D}-{2:D}-{3:D}]",
                                       1.0e-3 * sw.ElapsedMilliseconds,
                                       segStat, boxStat, heapStat );
       if ( output != null )
@@ -190,7 +193,7 @@ namespace _008kdtree
 
       // Query-phase statistics:
       tree.GetStatistics( out segStat, out boxStat, out heapStat );
-      labelStat.Text = String.Format( "Elapsed: {0:f} s [{1:D}-{2:D}-{3:D}-{4:D}]",
+      labelStat.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f} s [{1:D}-{2:D}-{3:D}-{4:D}]",
                                       1.0e-3 * sw.ElapsedMilliseconds,
                                       segCount, segStat, boxStat, heapStat );
       labelHash.Text = String.Format( "{0:X}", hash );

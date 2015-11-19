@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Diagnostics;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Drawing;
 using OpenTK;
-using OpenTK.Graphics;
 
 namespace Scene3D
 {
@@ -181,6 +177,5 @@ namespace Scene3D
     }
 
     #endregion
-
   }
 }

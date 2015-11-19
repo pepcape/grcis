@@ -11,21 +11,35 @@ namespace _002warping
 {
   public partial class FormWarping : Form
   {
-    protected Bitmap inputImage  = null;
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
 
     /// <summary>
     /// Available warping functions.
     /// </summary>
-    protected List<IWarp> functions;
+    public List<IWarp> functions;
 
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    public ComboBox ComboFunction
+    {
+      get { return comboFunction; }
+    }
 
     public FormWarping ()
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
-      InitializeFunctions();
+
+      FormSupport.InitializeFunctions( this );
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonInput_Click ( object sender, EventArgs e )
@@ -45,10 +59,7 @@ namespace _002warping
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image = null;
-      if ( inputImage != null )
-        inputImage.Dispose();
-      pictureBox1.Image = inputImage = (Bitmap)Image.FromFile( ofd.FileName );
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
     }
 
     private void rewarp ()
@@ -59,13 +70,10 @@ namespace _002warping
       double fact = (double)numericFactor.Value;
       warp.Factor = fact;
 
-      pictureBox1.Image = inputImage;
-      if ( outputImage != null )
-        outputImage.Dispose();
+      Bitmap newImage;
+      Warping.WarpImage( inputImage, out newImage, warp );
 
-      Warping.WarpImage( inputImage, out outputImage, warp );
-
-      pictureBox1.Image = outputImage;
+      setImage( ref outputImage, newImage );
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
