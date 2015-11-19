@@ -1,25 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Diagnostics;
-using System.IO;
-using OpenTK;
+using System.Drawing;
+using System.Windows.Forms;
 using Scene3D;
 
 namespace _017graph
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     protected Bitmap outputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
     }
 
     private void redraw ()
@@ -28,6 +24,10 @@ namespace _017graph
 
       int width   = panel1.Width;
       int height  = panel1.Height;
+
+      pictureBox1.Image = null;
+      if ( outputImage != null )
+        outputImage.Dispose();
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       FunctionsR2ToR fun = new FunctionsR2ToR();

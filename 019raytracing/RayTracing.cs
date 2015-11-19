@@ -8,20 +8,20 @@ using Rendering;
 
 namespace _019raytracing
 {
-  public partial class Form1 : Form
+  public class FormSupport
   {
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    private IRayScene getScene ()
+    public static IRayScene getScene ()
     {
-      return SceneByComboBox();
+      return Form1.singleton.SceneByComboBox();
     }
 
     /// <summary>
     /// Initialize ray-scene and image function (good enough for simple samples).
     /// </summary>
-    private IImageFunction getImageFunction ( IRayScene scene )
+    public static IImageFunction getImageFunction ( IRayScene scene )
     {
       return new RayTracing( scene );
     }
@@ -29,7 +29,7 @@ namespace _019raytracing
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    private IRenderer getRenderer ( IImageFunction imf )
+    public static IRenderer getRenderer ( IImageFunction imf )
     {
       SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
       sis.ImageFunction = imf;
@@ -39,20 +39,21 @@ namespace _019raytracing
     /// <summary>
     /// Prepare combo-box of available scenes.
     /// </summary>
-    private void InitializeScenes ()
+    public static void InitializeScenes ()
     {
-      sceneInitFunctions = new List<InitSceneDelegate>( Scenes.InitFunctions );
+      Form1 f = Form1.singleton;
+      f.sceneInitFunctions = new List<InitSceneDelegate>( Scenes.InitFunctions );
 
       // 1. default scenes from RayCastingScenes
       foreach ( string name in Scenes.Names )
-        comboScene.Items.Add( name );
+        f.ComboScene.Items.Add( name );
 
       // 2. eventually add custom scenes
-      sceneInitFunctions.Add( new InitSceneDelegate( CustomScene.TestScene ) );
-      comboScene.Items.Add( "Test scene" );
+      f.sceneInitFunctions.Add( new InitSceneDelegate( CustomScene.TestScene ) );
+      f.ComboScene.Items.Add( "Test scene" );
 
       // .. and set your favorite scene here:
-      comboScene.SelectedIndex = comboScene.Items.IndexOf( "Test scene" );
+      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
     }
   }
 }

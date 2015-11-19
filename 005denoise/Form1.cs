@@ -1,25 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 namespace _005denoise
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
-
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     public Form1 ()
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -39,10 +42,7 @@ namespace _005denoise
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image = null;
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = (Bitmap)Image.FromFile( ofd.FileName );
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
 
       recompute();
     }
@@ -52,13 +52,12 @@ namespace _005denoise
       if ( inputImage == null ) return;
 
       Cursor.Current = Cursors.WaitCursor;
-      pictureBox1.Image = inputImage;
-      if ( outputImage != null )
-        outputImage.Dispose();
 
-      Denoise.TransformImage( inputImage, out outputImage, (double)numericParam.Value );
+      Bitmap newImage;
+      Denoise.TransformImage( inputImage, out newImage, (double)numericParam.Value );
 
-      pictureBox1.Image = outputImage;
+      setImage( ref outputImage, newImage );
+
       Cursor.Current = Cursors.Default;
     }
 

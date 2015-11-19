@@ -15,11 +15,6 @@ namespace _012animation
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     /// <summary>
-    /// Output raster image.
-    /// </summary>
-    protected Bitmap outputImage = null;
-
-    /// <summary>
     /// Main animation-rendering thread.
     /// </summary>
     protected Thread aThread = null;
@@ -64,7 +59,6 @@ namespace _012animation
     private void RenderImage ()
     {
       Cursor.Current = Cursors.WaitCursor;
-
       EnableGUI( false );
 
       width = ImageWidth;
@@ -85,27 +79,28 @@ namespace _012animation
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      if ( pictureBox1.Image != null )
-      {
-        pictureBox1.Image.Dispose();
-        pictureBox1.Image = null;
-      }
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = Animation.RenderFrame( width, height, (double)numTime.Value, start, end );
+      Bitmap newImage = Animation.RenderFrame( width, height, (double)numTime.Value, start, end );
 
       sw.Stop();
 
       labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
-      pictureBox1.Image = outputImage;
+      setImage( newImage );
 
       EnableGUI( true );
-
       Cursor.Current = Cursors.Default;
     }
 
     delegate void SetImageCallback ( Bitmap newImage );
+
+    protected void setImage ( Bitmap newImage )
+    {
+      Image old = pictureBox1.Image;
+      pictureBox1.Image = newImage;
+      pictureBox1.Invalidate();
+      if ( old != null )
+        old.Dispose();
+    }
 
     protected void SetImage ( Bitmap newImage )
     {
@@ -115,15 +110,7 @@ namespace _012animation
         BeginInvoke( si, new object[] { newImage } );
       }
       else
-      {
-        if ( pictureBox1.Image != null )
-        {
-          pictureBox1.Image.Dispose();
-          pictureBox1.Image = null;
-        }
-        pictureBox1.Image = newImage;
-        pictureBox1.Invalidate();
-      }
+        setImage( newImage );
     }
 
     delegate void SetTextCallback ( string text );

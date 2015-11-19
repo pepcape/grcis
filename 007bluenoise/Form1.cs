@@ -6,15 +6,23 @@ namespace _007bluenoise
 {
   public partial class Form1 : Form
   {
-    protected Bitmap inputImage  = null;
-    protected Bitmap outputImage = null;
-
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    protected Bitmap inputImage = null;
+    protected Bitmap outputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -34,10 +42,7 @@ namespace _007bluenoise
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image = null;
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = (Bitmap)Image.FromFile( ofd.FileName );
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
 
       recompute();
     }
@@ -47,13 +52,12 @@ namespace _007bluenoise
       if ( inputImage == null ) return;
 
       Cursor.Current = Cursors.WaitCursor;
-      pictureBox1.Image = inputImage;
-      if ( outputImage != null )
-        outputImage.Dispose();
 
-      Dither.TransformImage( inputImage, out outputImage, (double)numericParam.Value );
+      Bitmap newImage;
+      Dither.TransformImage( inputImage, out newImage, (double)numericParam.Value );
 
-      pictureBox1.Image = outputImage;
+      setImage( ref outputImage, newImage );
+
       Cursor.Current = Cursors.Default;
     }
 

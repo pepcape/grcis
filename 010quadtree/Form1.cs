@@ -4,21 +4,38 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using Raster;
+using System.Drawing.Imaging;
+using System.Globalization;
 
 namespace _010quadtree
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
     protected Bitmap diffImage = null;
-
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     public Form1 ()
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
+    private void resetImage ( ref Bitmap bakImage )
+    {
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = null;
     }
 
     private void buttonLoad_Click ( object sender, EventArgs e )
@@ -38,31 +55,18 @@ namespace _010quadtree
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image = null;
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = (Bitmap)Image.FromFile( ofd.FileName );
-
-      pictureBox1.Image = inputImage;
-      if ( outputImage != null )
-        outputImage.Dispose();
-      if ( diffImage != null )
-        diffImage.Dispose();
-
-      outputImage =
-      diffImage   = null;
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
+      resetImage( ref outputImage );
+      resetImage( ref diffImage );
     }
 
     private void buttonGenerate_Click ( object sender, EventArgs e )
     {
       Cursor.Current = Cursors.WaitCursor;
-      pictureBox1.Image = null;
-      if ( inputImage != null )
-        inputImage.Dispose();
 
       int width  = (int)numericXres.Value;
       int height = (int)numericYres.Value;
-      inputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
       int seed   = (int)numericSeed.Value;
       Random rnd = (seed == 0) ? new Random() : new Random( seed );
 
@@ -72,17 +76,12 @@ namespace _010quadtree
         int y1 = rnd.Next( height );
         int x2 = rnd.Next( width );
         int y2 = rnd.Next( height );
-        Draw.Line( inputImage, x1, y1, x2, y2, Color.Yellow );
+        Draw.Line( newImage, x1, y1, x2, y2, Color.Yellow );
       }
 
-      pictureBox1.Image = inputImage;
-      if ( outputImage != null )
-        outputImage.Dispose();
-      if ( diffImage != null )
-        diffImage.Dispose();
-
-      outputImage =
-      diffImage   = null;
+      setImage( ref inputImage, newImage );
+      resetImage( ref outputImage );
+      resetImage( ref diffImage );
 
       Cursor.Current = Cursors.Default;
     }
@@ -90,15 +89,13 @@ namespace _010quadtree
     private void buttonRecode_Click ( object sender, EventArgs e )
     {
       Cursor.Current = Cursors.WaitCursor;
-      pictureBox1.Image = null;
+
       if ( inputImage == null )
         inputImage = (Bitmap)Image.FromFile( "toucan.png" );
-      if ( outputImage != null )
-        outputImage.Dispose();
-      if ( diffImage != null )
-        diffImage.Dispose();
-      outputImage =
-      diffImage   = null;
+
+      pictureBox1.Image = inputImage;
+      resetImage( ref outputImage );
+      resetImage( ref diffImage );
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
@@ -114,7 +111,8 @@ namespace _010quadtree
       long fileSize = fs.Position;
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Enc: {0:f}s, {1}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f}s, {1}kb",
+                                         1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
 
       // 3. quad-tree re-read (disk file)
       fs.Seek( 0L, SeekOrigin.Begin );
@@ -127,7 +125,7 @@ namespace _010quadtree
         outputImage = qt.DecodeTree();
 
         // 5. comparison
-        diffImage = new Bitmap( inputImage.Width, inputImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+        diffImage = new Bitmap( inputImage.Width, inputImage.Height, PixelFormat.Format24bppRgb );
         long diffHash = Draw.ImageCompare( inputImage, outputImage, diffImage );
         labelResult.Text = String.Format( "Errs: {0}", diffHash );
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;

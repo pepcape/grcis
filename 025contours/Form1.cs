@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Globalization;
 using System.Windows.Forms;
 using OpenTK;
 
@@ -9,6 +11,8 @@ namespace _025contours
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Output raster image.
     /// </summary>
@@ -17,32 +21,37 @@ namespace _025contours
     /// <summary>
     /// Implicit function delegate.
     /// </summary>
-    protected Func<double,double,double> f = null;
+    public Func<double,double,double> f = null;
 
     /// <summary>
     /// Array of thresholds.
     /// </summary>
-    protected List<double> thr = new List<double>();
+    public List<double> thr = new List<double>();
 
     /// <summary>
     /// Available functions.
     /// </summary>
-    protected List<Func<double, double, double>> functions;
+    public List<Func<double, double, double>> functions;
 
     /// <summary>
     /// Position of the coordinate system origin in Bitmap coordinates.
     /// </summary>
-    protected Vector2d origin = new Vector2d( 200.0, 200.0 );
+    public Vector2d origin = new Vector2d( 200.0, 200.0 );
 
     /// <summary>
     /// Scaling factor from Bitmap coordinates to function argument space.
     /// </summary>
-    protected double scale = 1.0;
+    public double scale = 1.0;
 
     /// <summary>
     /// Threshold drift (from the standard threshold set).
     /// </summary>
-    protected double valueDrift = 0.0;
+    public double valueDrift = 0.0;
+
+    public ComboBox ComboFunction
+    {
+      get { return comboFunction; }
+    }
 
     private void resetScale ()
     {
@@ -61,20 +70,20 @@ namespace _025contours
 
       int width   = panel1.Width;
       int height  = panel1.Height;
-      if ( outputImage == null ||
-           outputImage.Width != width ||
-           outputImage.Height != height )
-        outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      ComputeContours( outputImage );
+      Contours.ComputeContours( this, newImage );
 
       sw.Stop();
       labelElapsed.Text = String.Format( "Elapsed: {0:f}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
-      pictureBox1.Image = outputImage;
+      pictureBox1.Image = newImage;
+      if ( outputImage != null )
+        outputImage.Dispose();
+      outputImage = newImage;
 
       Cursor.Current = Cursors.Default;
     }
@@ -91,7 +100,7 @@ namespace _025contours
         double dx = (x - origin.X) * scale;
         double dy = (y - origin.Y) * scale;
         double val = f( dx, dy );
-        labelSample.Text = String.Format( "Sample at [{0},{1}], [{2:f},{3:f}] = {4:f}",
+        labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}], [{2:f},{3:f}] = {4:f}",
                                           x, y, dx, dy, val );
       }
     }
@@ -99,7 +108,9 @@ namespace _025contours
     public Form1 ()
     {
       InitializeComponent();
-      InitializeFunctions();
+      Text += " (rev: " + rev + ')';
+
+      FormSupport.InitializeFunctions( this );
     }
 
     protected bool dragging = false;

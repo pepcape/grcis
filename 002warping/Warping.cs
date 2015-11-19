@@ -2,36 +2,36 @@
 
 using System.Collections.Generic;
 using System.Drawing;
-using System.Windows.Forms;
+using System.Drawing.Imaging;
 
 namespace _002warping
 {
-  public partial class FormWarping : Form
+  public class FormSupport
   {
     /// <summary>
     /// Initialize the function-selection combo-box.
     /// </summary>
-    protected void InitializeFunctions ()
+    public static void InitializeFunctions ( FormWarping form )
     {
-      functions = new List<IWarp>();
+      form.functions = new List<IWarp>();
 
       // 0:
-      functions.Add( new WarpMagniGlass() );
-      comboFunction.Items.Add( "MagniGlass" );
+      form.functions.Add( new WarpMagniGlass() );
+      form.ComboFunction.Items.Add( "MagniGlass" );
 
       // 1
-      functions.Add( new WarpSpiral() );
-      comboFunction.Items.Add( "Spiral" );
+      form.functions.Add( new WarpSpiral() );
+      form.ComboFunction.Items.Add( "Spiral" );
 
       // 2:
-      functions.Add( new WarpInvSpiral() );
-      comboFunction.Items.Add( "InvSpiral" );
+      form.functions.Add( new WarpInvSpiral() );
+      form.ComboFunction.Items.Add( "InvSpiral" );
 
       // 3:
       // !!!{{ TODO: insert your own warping function here
       // !!!}}
 
-      comboFunction.SelectedIndex = 0;
+      form.ComboFunction.SelectedIndex = 0;
     }
   }
 
@@ -45,7 +45,7 @@ namespace _002warping
       int height = input.Height;
       int owidth, oheight;
       warp.OutputSize( width, height, out owidth, out oheight );
-      output = new Bitmap( owidth, oheight, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      output = new Bitmap( owidth, oheight, PixelFormat.Format24bppRgb );
       for ( int y = 0; y < oheight; y++ )
         for ( int x = 0; x < owidth; x++ )
         {

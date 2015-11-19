@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Windows.Forms;
 using Raster;
 
 namespace _009floodfill
@@ -15,10 +11,20 @@ namespace _009floodfill
   {
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
+    private Bitmap outputImage = null;
+
     public Form1 ()
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void redraw ()
@@ -26,7 +32,7 @@ namespace _009floodfill
       const int SIZE = 800;
 
       Cursor.Current = Cursors.WaitCursor;
-      Bitmap output = new Bitmap( SIZE, SIZE, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap output = new Bitmap( SIZE, SIZE, PixelFormat.Format24bppRgb );
       int seed = (int)numericSeed.Value;
       Random rnd = (seed == 0) ? new Random() : new Random( seed );
 
@@ -58,16 +64,14 @@ namespace _009floodfill
       long hash = Draw.Hash( output );
       labelHash.Text = String.Format( "{0:X}", hash );
 
-      Image old = pictureBox1.Image;
-      pictureBox1.Image = output;
-      if ( old != null )
-        old.Dispose();
+      setImage( ref outputImage, output );
+
       Cursor.Current = Cursors.Default;
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
-      if ( pictureBox1.Image == null )
+      if ( outputImage == null )
         return;
 
       SaveFileDialog sfd = new SaveFileDialog();
@@ -78,7 +82,7 @@ namespace _009floodfill
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, ImageFormat.Png );
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
