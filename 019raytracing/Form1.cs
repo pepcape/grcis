@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Rendering;
-using System.Drawing.Imaging;
 
 namespace _019raytracing
 {
@@ -91,7 +91,8 @@ namespace _019raytracing
           return;
 
         lastSync = now;
-        f.SetText( String.Format( "{0:f1}%:  {1:f1}s", 100.0f * Finished, 1.0e-3 * now ) );
+        f.SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
+                                  100.0f * Finished, 1.0e-3 * now ) );
         Bitmap b = msg as Bitmap;
         if ( b != null )
           f.SetImage( (Bitmap)b.Clone() );
@@ -118,6 +119,16 @@ namespace _019raytracing
       get { return comboScene; }
     }
 
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      pictureBox1.Invalidate();
+
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
     /// <summary>
     /// [Re]-renders the whole image (in separate thread).
     /// </summary>
@@ -131,9 +142,7 @@ namespace _019raytracing
       int height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
 
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       if ( imf == null )
       {
@@ -150,7 +159,7 @@ namespace _019raytracing
       rend.Adaptive = 8;
 
       rend.ProgressData = progress;
-      progress.SyncInterval = 10000L;
+      progress.SyncInterval = 5000L;
       progress.Reset();
       CSGInnerNode.ResetStatistics();
 
@@ -160,7 +169,7 @@ namespace _019raytracing
         sw.Start();
       }
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
+      rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
 
       long elapsed;
       lock ( sw )
@@ -175,7 +184,7 @@ namespace _019raytracing
                               (Intersection.countIntersections + 500L) / 1000L,
                               (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
                               (CSGInnerNode.countTriangles + 500L) / 1000L ) );
-      SetImage( (Bitmap)outputImage.Clone() );
+      SetImage( newImage );
 
       Cursor.Current = Cursors.Default;
 
@@ -192,13 +201,7 @@ namespace _019raytracing
         BeginInvoke( si, new object[] { newImage } );
       }
       else
-      {
-        Image old = pictureBox1.Image;
-        pictureBox1.Image = newImage;
-        if ( old != null )
-          old.Dispose();
-        pictureBox1.Invalidate();
-      }
+        setImage( ref outputImage, newImage );
     }
 
     delegate void SetTextCallback ( string text );
@@ -267,7 +270,7 @@ namespace _019raytracing
       imf.Height = height;
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x + 0.5, y + 0.5, color );
-      labelSample.Text = String.Format( "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
+      labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 
@@ -309,6 +312,7 @@ namespace _019raytracing
         progress.Continue = true;
       }
 
+      SetText( "Wait a moment.." );
       aThread = new Thread( new ThreadStart( this.RenderImage ) );
       aThread.Start();
     }

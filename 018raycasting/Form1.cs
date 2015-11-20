@@ -38,6 +38,14 @@ namespace _018raycasting
     /// </summary>
     private static RandomJames rnd = new RandomJames();
 
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
     /// <summary>
     /// Redraws the whole image.
     /// </summary>
@@ -48,12 +56,7 @@ namespace _018raycasting
       int width   = panel1.Width;
       int height  = panel1.Height;
 
-      if ( outputImage != null )
-      {
-        pictureBox1.Image = null;
-        outputImage.Dispose();
-      }
-      outputImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       if ( imf == null )
         imf = FormSupport.getImageFunction( out scene );
@@ -69,12 +72,13 @@ namespace _018raycasting
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
+      rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f2}s",
+                                         1.0e-3 * sw.ElapsedMilliseconds );
 
-      pictureBox1.Image = outputImage;
+      setImage( ref outputImage, newImage );
 
       Cursor.Current = Cursors.Default;
     }

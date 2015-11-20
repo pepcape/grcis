@@ -35,6 +35,8 @@ namespace _015avatar
     long lastFpsTime = 0L;
     int frameCounter = 0;
     long triangleCounter = 0L;
+    double lastFps = 0.0;
+    double lastTps = 0.0;
 
     #endregion
 
@@ -89,7 +91,9 @@ namespace _015avatar
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
-      //if ( outputImage == null ) return;
+#if false
+      // not yet!
+      if ( outputImage == null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";
@@ -99,7 +103,8 @@ namespace _015avatar
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      //outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+#endif
     }
 
     private void glControl1_Load ( object sender, EventArgs e )

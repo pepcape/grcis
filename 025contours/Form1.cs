@@ -61,6 +61,14 @@ namespace _025contours
       valueDrift = 0.0;
     }
 
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
     /// <summary>
     /// Redraws the whole image.
     /// </summary>
@@ -78,12 +86,10 @@ namespace _025contours
       Contours.ComputeContours( this, newImage );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f}s",
+                                         1.0e-3 * sw.ElapsedMilliseconds );
 
-      pictureBox1.Image = newImage;
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = newImage;
+      setImage( ref outputImage, newImage );
 
       Cursor.Current = Cursors.Default;
     }

@@ -38,7 +38,7 @@ namespace _025contours
 
   }
 
-  public static class Contours
+  public class Contours
   {
     /// <summary>
     /// Draw contour field to the given Bitmap

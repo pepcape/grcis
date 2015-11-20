@@ -1,19 +1,19 @@
-﻿using System;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
-using Rendering;
 using Scene3D;
 
-namespace _028rtmesh
+namespace Rendering
 {
-  public partial class Form1 : Form
+  public class FormSupport
   {
     /// <summary>
     /// Initialize ray-scene and image function (good enough for single samples).
     /// </summary>
-    private IImageFunction getImageFunction ()
+    public static IImageFunction getImageFunction ( out IRayScene scene, SceneBrep brepScene )
     {
       // default constructor of the RayScene .. custom scene
       scene = new RayScene( brepScene );
@@ -24,17 +24,14 @@ namespace _028rtmesh
     /// Initialize image synthesizer (responsible for raster image computation).
     /// The 'imf' member has been already initialized..
     /// </summary>
-    private IRenderer getRenderer ()
+    public static IRenderer getRenderer ( IImageFunction imf )
     {
       SimpleImageSynthesizer sis = new SimpleImageSynthesizer();
       sis.ImageFunction = imf;
       return sis;
     }
   }
-}
 
-namespace Rendering
-{
   /// <summary>
   /// Test scene for ray-based rendering.
   /// </summary>

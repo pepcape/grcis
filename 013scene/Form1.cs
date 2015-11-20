@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 using OpenTK;
 using Scene3D;
+using System.Drawing.Imaging;
 
 namespace _013scene
 {
@@ -19,6 +20,14 @@ namespace _013scene
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -66,13 +75,10 @@ namespace _013scene
       if ( scene == null ) return;
 
       Cursor.Current = Cursors.WaitCursor;
-      pictureBox1.Image = null;
-      if ( outputImage != null )
-        outputImage.Dispose();
 
       int width  = panel1.Width;
       int height = panel1.Height;
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       Wireframe renderer = new Wireframe();
       renderer.Perspective = checkPerspective.Checked;
@@ -81,9 +87,9 @@ namespace _013scene
       renderer.ViewVolume  = 30.0;
       renderer.Distance    = 10.0;
       renderer.DrawNormals = checkNormals.Checked;
-      renderer.Render( outputImage, scene );
+      renderer.Render( newImage, scene );
 
-      pictureBox1.Image = outputImage;
+      setImage( ref outputImage, newImage );
       Cursor.Current = Cursors.Default;
     }
 
