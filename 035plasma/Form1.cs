@@ -3,11 +3,15 @@ using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 using Scene3D;
+using System.Globalization;
+using System.Drawing.Imaging;
 
 namespace _035plasma
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Global thread variable. Valid while the simulation is in progress..
     /// </summary>
@@ -45,6 +49,15 @@ namespace _035plasma
 
     delegate void SetImageCallback ( Bitmap newImage );
 
+    protected void setImage ( Bitmap newImage )
+    {
+      Image old = pictureBox1.Image;
+      pictureBox1.Image = newImage;
+      pictureBox1.Invalidate();
+      if ( old != null )
+        old.Dispose();
+    }
+
     protected void SetImage ( Bitmap newImage )
     {
       if ( pictureBox1.InvokeRequired )
@@ -53,11 +66,7 @@ namespace _035plasma
         BeginInvoke( si, new object[] { newImage } );
       }
       else
-        if ( true )
-        {
-          pictureBox1.Image = newImage;
-          pictureBox1.Invalidate();
-        }
+        setImage( newImage );
     }
 
     delegate void SetTextCallback ( string text );
@@ -101,8 +110,7 @@ namespace _035plasma
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     public void Simulation ()
@@ -123,14 +131,15 @@ namespace _035plasma
 
         float newFp = fps.Frame();
         if ( sim.Frame % 32 == 0 ) fp = newFp;
-        SetText( String.Format( "Frame: {0} (FPS = {1:0.0})", sim.Frame, fp ) );
+        SetText( String.Format( CultureInfo.InvariantCulture, "Frame: {0} (FPS = {1:f1})",
+                                sim.Frame, fp ) );
 
         if ( saveFrames )
         {
           string fileName = String.Format( "out{0:0000}.png", sim.Frame );
           using ( Bitmap bmp = (Bitmap)frame.Clone() )
           {
-            bmp.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+            bmp.Save( fileName, ImageFormat.Png );
           }
         }
       }

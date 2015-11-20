@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Author: Jan Dupej, Josef Pelikan
+
+using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using Raster;

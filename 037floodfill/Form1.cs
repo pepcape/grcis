@@ -8,13 +8,21 @@ namespace _037floodfill
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     protected Thread aThread = null;
 
     protected Bitmap input = null;
-
     protected Bitmap working = null;
 
     volatile protected bool cont = true;
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
 
     delegate void SetImageCallback ( Bitmap newImage );
 
@@ -27,6 +35,8 @@ namespace _037floodfill
       }
       else
       {
+        if ( pictureBox1.Image != null )
+          pictureBox1.Image.Dispose();
         pictureBox1.Image = newImage;
         pictureBox1.Invalidate();
       }
@@ -68,8 +78,6 @@ namespace _037floodfill
         buttonStop.Enabled = false;
       }
     }
-
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     public Form1 ()
     {
@@ -164,7 +172,7 @@ namespace _037floodfill
       buttonStop.Enabled  = true;
       cont = true;
 
-      working = new Bitmap( input );
+      setImage( ref working, new Bitmap( input ) );
 
       aThread = new Thread( new ThreadStart( this.FillProcess ) );
       aThread.Start();
@@ -187,10 +195,8 @@ namespace _037floodfill
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
-      if ( input != null )
-        input.Dispose();
-      input = (Bitmap)inp;
+      setImage( ref input, (Bitmap)Image.FromFile( ofd.FileName ) );
+      SetImage( new Bitmap( input ) );
       buttonStart.Enabled = true;
 
       // Automatic filename parsing..
