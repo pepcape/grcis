@@ -6,7 +6,7 @@
 - stinovani do 070subdivision (?)
 - 016videoslow: zkontrolovat Bitmap.Dispose()
 - zkontrolovat po zmenach 12. 11. 2015:
-  013scene-   (setImage(), resetImage()..)
+  033colormap-   (setImage(), resetImage()..)
 - ignore: .vs (Visual Studio 2015 opening old projects)
 
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
@@ -71,7 +71,9 @@ x 085: Reset button, pen-size, save/load mask, negative?
 x 068, 081: LockBits() input format fix
 x setImage improvement: 002warping, 003colortransform, 005denoise,
   006warping, 007bluenoise, 008kdtree, 009floodfill, 010quadtree,
-  11compressionbw, 012animation
+  11compressionbw, 012animation, 013scene, 014compressiontr,
+  015avatar, 017graph, 018raycasting, 019raytracing, 025contours,
+  028rtmesh, 029flow
 
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )

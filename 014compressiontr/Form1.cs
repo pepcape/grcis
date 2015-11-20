@@ -22,6 +22,21 @@ namespace _014compressiontr
       Text += " (rev: " + rev + ')';
     }
 
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
+    private void resetImage ( ref Bitmap bakImage )
+    {
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = null;
+    }
+
     private void buttonLoad_Click ( object sender, EventArgs e )
     {
       OpenFileDialog ofd = new OpenFileDialog();
@@ -39,24 +54,19 @@ namespace _014compressiontr
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      pictureBox1.Image = null;
-      if ( inputImage != null )
-        inputImage.Dispose();
-      pictureBox1.Image = inputImage = (Bitmap)Image.FromFile( ofd.FileName );;
-
-      if ( outputImage != null )
-        outputImage.Dispose();
-      if ( diffImage != null )
-        diffImage.Dispose();
-
-      outputImage =
-      diffImage   = null;
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
+      resetImage( ref outputImage );
+      resetImage( ref diffImage );
     }
 
     private void buttonRecode_Click ( object sender, EventArgs e )
     {
       if ( inputImage == null ) return;
       Cursor.Current = Cursors.WaitCursor;
+
+      pictureBox1.Image = inputImage;
+      resetImage( ref outputImage );
+      resetImage( ref diffImage );
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
@@ -75,16 +85,11 @@ namespace _014compressiontr
       labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f3}s, {1:f1}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
 
       // 3. image decoding
-      pictureBox1.Image = null;
-      if ( outputImage != null )
-        outputImage.Dispose();
       fs.Seek( 0L, SeekOrigin.Begin );
       outputImage = codec.DecodeImage( fs );
       fs.Close();
 
       // 5. comparison
-      if ( diffImage != null )
-        diffImage.Dispose();
       if ( outputImage != null )
       {
         diffImage = new Bitmap( inputImage.Width, inputImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
@@ -95,6 +100,7 @@ namespace _014compressiontr
       else
       {
         labelResult.Text = "File error";
+        pictureBox1.Image = null;
         diffImage = null;
       }
 

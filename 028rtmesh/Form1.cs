@@ -12,6 +12,8 @@ namespace _028rtmesh
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Output raster image.
     /// </summary>
@@ -52,6 +54,14 @@ namespace _028rtmesh
     /// </summary>
     protected SceneBrep brepScene = new SceneBrep();
 
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
     /// <summary>
     /// Redraws the whole image.
     /// </summary>
@@ -64,15 +74,15 @@ namespace _028rtmesh
       if ( width <= 0 ) width = panel1.Width;
       int height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       if ( imf == null )
-        imf = getImageFunction();
+        imf = FormSupport.getImageFunction( out scene, brepScene );
       imf.Width  = width;
       imf.Height = height;
 
       if ( rend == null )
-        rend = getRenderer();
+        rend = FormSupport.getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
       CSGInnerNode.ResetStatistics();
@@ -80,7 +90,7 @@ namespace _028rtmesh
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
+      rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
 
       sw.Stop();
       labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, r{3:#,#}k, i{4:#,#}k, bb{5:#,#}k, t{6:#,#}k ]",
@@ -89,7 +99,8 @@ namespace _028rtmesh
                                          (Intersection.countIntersections + 500L) / 1000L,
                                          (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
                                          (CSGInnerNode.countTriangles + 500L) / 1000L );
-      pictureBox1.Image = outputImage;
+
+      setImage( ref outputImage, newImage );
 
       Cursor.Current = Cursors.Default;
     }
@@ -102,7 +113,7 @@ namespace _028rtmesh
     private void singleSample ( int x, int y )
     {
       if ( imf == null )
-        imf = getImageFunction();
+        imf = FormSupport.getImageFunction( out scene, brepScene );
 
       // determine output image size:
       int width = ImageWidth;
@@ -113,15 +124,14 @@ namespace _028rtmesh
       imf.Height = height;
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x, y, color );
-      labelSample.Text = String.Format( "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
+      labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 

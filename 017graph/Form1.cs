@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Globalization;
 using System.Windows.Forms;
 using Scene3D;
 
@@ -18,17 +20,21 @@ namespace _017graph
       Text += " (rev: " + rev + ')';
     }
 
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
     private void redraw ()
     {
       Cursor.Current = Cursors.WaitCursor;
 
       int width   = panel1.Width;
       int height  = panel1.Height;
-
-      pictureBox1.Image = null;
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       FunctionsR2ToR fun = new FunctionsR2ToR();
       fun.Variant = (int)numericVariant.Value;
@@ -52,12 +58,13 @@ namespace _017graph
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      renderer.Render( outputImage, fun );
+      renderer.Render( newImage, fun );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f2}s",
+                                         1.0e-3 * sw.ElapsedMilliseconds );
 
-      pictureBox1.Image = outputImage;
+      setImage( ref outputImage, newImage );
 
       Cursor.Current = Cursors.Default;
     }
@@ -79,7 +86,7 @@ namespace _017graph
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, ImageFormat.Png );
     }
   }
 }

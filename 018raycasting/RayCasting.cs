@@ -1,7 +1,7 @@
 ﻿// Author: Josef Pelikan
 
 using System.Collections.Generic;
-using System.Windows.Forms;
+using System.Diagnostics;
 using OpenTK;
 using Rendering;
 
