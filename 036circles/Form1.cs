@@ -6,16 +6,23 @@ namespace _036circles
 {
   public partial class Form1 : Form
   {
-    protected Image inputImage = null;
-
-    protected Image outputImage = null;
-
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    protected Bitmap inputImage = null;
+    protected Bitmap outputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonLoadImage_Click ( object sender, EventArgs e )
@@ -35,9 +42,7 @@ namespace _036circles
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = Image.FromFile( ofd.FileName );
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
 
       string txt = string.Format( "Input: {0} ({1}x{2}, {3})",
                                   ofd.FileName, inputImage.Width, inputImage.Height, inputImage.PixelFormat.ToString() );
@@ -51,9 +56,10 @@ namespace _036circles
 
       Canvas c = new Canvas( width, height );
 
-      Circles.Draw( c, (Bitmap)inputImage, textParam.Text );
+      Circles.Draw( c, inputImage, textParam.Text );
 
-      pictureBox1.Image = outputImage = c.Finish();
+      setImage( ref outputImage, c.Finish() );
+
       buttonSave.Enabled = true;
     }
 

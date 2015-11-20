@@ -6,6 +6,8 @@ namespace _033colormap
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Output color array = color palette.
     /// </summary>
@@ -21,10 +23,8 @@ namespace _033colormap
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
       InitPaletteData();
-
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
 
       baseBox1.color = baseColor1;
       label1.Text = color2string( baseColor1 );

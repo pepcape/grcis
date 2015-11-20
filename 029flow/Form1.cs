@@ -21,6 +21,7 @@ namespace _029flow
   public partial class Form1 : Form
   {
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Current output raster image. Locked access.
     /// </summary>
@@ -94,7 +95,7 @@ namespace _029flow
 
         return true;
       }
-      
+
       public override void Sync ( Object msg )
       {
         if ( !NeedsSync() )

@@ -11,6 +11,8 @@ namespace _034ascii
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// The bitmap to be used as source data
     /// </summary>
@@ -24,8 +26,15 @@ namespace _034ascii
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void btnOpen_Click ( object sender, EventArgs e )
@@ -47,12 +56,11 @@ namespace _034ascii
 
       try
       {
-        inputImage = new Bitmap( Bitmap.FromFile( dlg.FileName ) );
-        pictureBox1.Image = inputImage;
+        setImage( ref inputImage, (Bitmap)Image.FromFile( dlg.FileName ) );
       }
       catch ( Exception exc )
       {
-        inputImage = null;
+        setImage( ref inputImage, null );
         MessageBox.Show( exc.Message );
       }
 

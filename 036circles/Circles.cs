@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Drawing;
 
 namespace _036circles
@@ -63,6 +65,5 @@ namespace _036circles
 
       // !!!}}
     }
-
   }
 }
