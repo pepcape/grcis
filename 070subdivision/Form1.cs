@@ -9,6 +9,8 @@ namespace _070subdivision
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Scene read from file or generated procedurally.
     /// </summary>
@@ -56,14 +58,15 @@ namespace _070subdivision
     long lastFpsTime = 0L;
     int frameCounter = 0;
     long pointCounter = 0L;
+    double lastFps = 0.0;
+    double lastTps = 0.0;
 
     #endregion
 
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     private void glControl1_Load ( object sender, EventArgs e )

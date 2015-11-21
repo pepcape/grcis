@@ -10,11 +10,12 @@ namespace _040morph3d
 {
   public partial class MorphForm : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public MorphForm ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
 
       mMorph = new Morph();
       mWavefrontObj = new WavefrontObj();
@@ -46,7 +47,7 @@ namespace _040morph3d
       {
         if ( scene.HasNormals() && scene.Normals > 0 )
         {
-          GL.Begin( BeginMode.Triangles );
+          GL.Begin( PrimitiveType.Triangles );
           for ( int i = 0; i < scene.Triangles; ++i )
           {
             int v1, v2, v3;
@@ -63,7 +64,7 @@ namespace _040morph3d
         else
         {
           GL.End();
-          GL.Begin( BeginMode.Triangles );
+          GL.Begin( PrimitiveType.Triangles );
           for ( int i = 0; i < scene.Triangles; ++i )
           {
             Vector3 v1, v2, v3;
@@ -77,7 +78,7 @@ namespace _040morph3d
       }
       else                              // color cube (JB)
       {
-        GL.Begin( BeginMode.Quads );
+        GL.Begin( PrimitiveType.Quads );
 
         GL.Color3( 0.0f, 1.0f, 0.0f );          // Set The Color To Green
         GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Right Of The Quad (Top)

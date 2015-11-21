@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
@@ -13,6 +14,10 @@ namespace _048rtmontecarlo
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    public static Form1 singleton = null;
+
     /// <summary>
     /// Current output raster image. Locked access.
     /// </summary>
@@ -21,7 +26,7 @@ namespace _048rtmontecarlo
     /// <summary>
     /// The same order as items in the comboScenes.
     /// </summary>
-    protected List<InitSceneDelegate> sceneInitFunctions = null;
+    public List<InitSceneDelegate> sceneInitFunctions = null;
 
     /// <summary>
     /// Index of the current (selected) scene.
@@ -41,12 +46,17 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageWidth = 0;
+    public int ImageWidth = 0;
 
     /// <summary>
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageHeight = 0;
+    public int ImageHeight = 0;
+
+    /// <summary>
+    /// Global instance of a random generator.
+    /// </summary>
+    public static RandomJames rnd = new RandomJames();
 
     /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
@@ -81,8 +91,9 @@ namespace _048rtmontecarlo
           return;
 
         lastSync = now;
-        f.SetText( String.Format( "{0:f1}%:  {1:f1}s", 100.0f * Finished, 1.0e-3 * now ) );
-        Bitmap b = (msg as Bitmap);
+        f.SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
+                                  100.0f * Finished, 1.0e-3 * now ) );
+        Bitmap b = msg as Bitmap;
         if ( b != null )
         {
           Bitmap nb;
@@ -101,11 +112,41 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Default behavior - create scene selected in the combo-box.
     /// </summary>
-    protected IRayScene SceneByComboBox ()
+    public IRayScene SceneByComboBox ()
     {
       DefaultRayScene sc = new DefaultRayScene();
       sceneInitFunctions[ selectedScene ]( sc );
       return sc;
+    }
+
+    public ComboBox ComboScene
+    {
+      get { return comboScene; }
+    }
+
+    public NumericUpDown NumericSupersampling
+    {
+      get { return numericSupersampling; }
+    }
+
+    public CheckBox CheckJitter
+    {
+      get { return checkJitter; }
+    }
+
+    public CheckBox CheckMultithreading
+    {
+      get { return checkMultithreading; }
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      pictureBox1.Invalidate();
+
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     /// <summary>
@@ -123,11 +164,14 @@ namespace _048rtmontecarlo
       /// </summary>
       public ThreadSelector sel;
 
+      public Bitmap image;
+
       public int width;
       public int height;
 
-      public WorkerThreadInit ( int wid, int hei, int rank, int total )
+      public WorkerThreadInit ( Bitmap im, int wid, int hei, int rank, int total )
       {
+        image  = im;
         id     = rank;
         width  = wid;
         height = hei;
@@ -144,7 +188,7 @@ namespace _048rtmontecarlo
     {
       WorkerThreadInit init = spec as WorkerThreadInit;
       if ( init != null )
-        rend.RenderRectangle( outputImage, 0, 0, init.width, init.height,
+        rend.RenderRectangle( init.image, 0, 0, init.width, init.height,
                               init.sel, new RandomJames( Thread.CurrentThread.GetHashCode() ) );
     }
 
@@ -161,13 +205,11 @@ namespace _048rtmontecarlo
       int height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
 
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       if ( imf == null )
       {
-        imf = getImageFunction( getScene() );
+        imf = FormSupport.getImageFunction( FormSupport.getScene() );
         rend = null;
       }
       imf.Width  = width;
@@ -181,11 +223,12 @@ namespace _048rtmontecarlo
       }
 
       if ( rend == null )
-        rend = getRenderer( imf );
+        rend = FormSupport.getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 8;
       rend.ProgressData = progress;
+
       SupersamplingImageSynthesizer ss = rend as SupersamplingImageSynthesizer;
       if ( ss != null )
       {
@@ -209,7 +252,7 @@ namespace _048rtmontecarlo
         for ( t = 0; t < pool.Length; t++ )
           pool[ t ] = new Thread( new ParameterizedThreadStart( this.RenderWorker ) );
         for ( t = pool.Length; --t >= 0; )
-          pool[ t ].Start( new WorkerThreadInit( width, height, t, pool.Length ) );
+          pool[ t ].Start( new WorkerThreadInit( newImage, width, height, t, pool.Length ) );
 
         for ( t = 0; t < pool.Length; t++ )
         {
@@ -218,7 +261,7 @@ namespace _048rtmontecarlo
         }
       }
       else
-        rend.RenderRectangle( outputImage, 0, 0, width, height, rnd );
+        rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
 
       long elapsed;
       lock ( sw )
@@ -227,8 +270,7 @@ namespace _048rtmontecarlo
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      String msg = String.Format( CultureInfo.InvariantCulture,
-                                  "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
+      String msg = String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
                                   1.0e-3 * elapsed, width, height, checkMultithreading.Checked ? Environment.ProcessorCount : 1,
                                   (Intersection.countRays + 500L) / 1000L,
                                   (Intersection.countIntersections + 500L) / 1000L,
@@ -236,11 +278,27 @@ namespace _048rtmontecarlo
                                   (CSGInnerNode.countTriangles + 500L) / 1000L );
       SetText( msg );
       Console.WriteLine( "Rendering finished: " + msg );
-      SetImage( (Bitmap)outputImage.Clone() );
+      SetImage( newImage );
 
       Cursor.Current = Cursors.Default;
 
       StopRendering();
+    }
+
+    void SetGUI ( bool enable )
+    {
+      numericSupersampling.Enabled =
+      checkJitter.Enabled =
+      checkShadows.Enabled =
+      checkReflections.Enabled =
+      checkReflections.Enabled =
+      checkRefractions.Enabled =
+      checkMultithreading.Enabled =
+      buttonRender.Enabled =
+      comboScene.Enabled =
+      buttonRes.Enabled =
+      buttonSave.Enabled = enable;
+      buttonStop.Enabled = !enable;
     }
 
     delegate void SetImageCallback ( Bitmap newImage );
@@ -253,10 +311,7 @@ namespace _048rtmontecarlo
         BeginInvoke( si, new object[] { newImage } );
       }
       else
-      {
-        pictureBox1.Image = newImage;
-        pictureBox1.Invalidate();
-      }
+        setImage( ref outputImage, newImage );
     }
 
     delegate void SetTextCallback ( string text );
@@ -288,18 +343,12 @@ namespace _048rtmontecarlo
       {
         // actually stop the rendering:
         lock ( progress )
-        {
           progress.Continue = false;
-        }
         aThread.Join();
         aThread = null;
 
         // GUI stuff:
-        buttonRender.Enabled = true;
-        comboScene.Enabled = true;
-        buttonRes.Enabled = true;
-        buttonSave.Enabled = true;
-        buttonStop.Enabled = false;
+        SetGUI( true );
       }
     }
 
@@ -312,9 +361,10 @@ namespace _048rtmontecarlo
     {
       if ( imf == null )
       {
-        imf = getImageFunction( getScene() );
+        imf = FormSupport.getImageFunction( FormSupport.getScene() );
         rend = null;
       }
+
       // determine output image size:
       int width = ImageWidth;
       if ( width <= 0 ) width = panel1.Width;
@@ -339,13 +389,13 @@ namespace _048rtmontecarlo
 
     public Form1 ()
     {
+      singleton = this;
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
       progress = new RenderingProgress( this );
-      String []tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[1] + ')';
 
       // Init scenes etc.
-      InitializeScenes();
+      FormSupport.InitializeScenes();
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
@@ -365,16 +415,11 @@ namespace _048rtmontecarlo
       if ( aThread != null )
         return;
 
-      buttonRender.Enabled = false;
-      comboScene.Enabled = false;
-      buttonRes.Enabled = false;
-      buttonSave.Enabled = false;
-      buttonStop.Enabled = true;
+      SetGUI( false );
       lock ( progress )
-      {
         progress.Continue = true;
-      }
 
+      SetText( "Wait a moment.." );
       aThread = new Thread( new ThreadStart( this.RenderImage ) );
       aThread.Start();
     }

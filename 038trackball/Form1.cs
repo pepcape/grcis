@@ -9,6 +9,8 @@ namespace _038trackball
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Scene read from file.
     /// </summary>
@@ -46,14 +48,15 @@ namespace _038trackball
     long lastFpsTime = 0L;
     int frameCounter = 0;
     long triangleCounter = 0L;
+    double lastFps = 0.0;
+    double lastTps = 0.0;
 
     #endregion
 
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     private void glControl1_Load ( object sender, EventArgs e )

@@ -10,18 +10,31 @@ namespace _042compressionpre
 {
   public partial class Form1 : Form
   {
-    protected Bitmap inputImage = null;
-
-    protected Bitmap outputImage = null;
-
-    protected Bitmap diffImage = null;
-
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    protected Bitmap inputImage = null;
+    protected Bitmap outputImage = null;
+    protected Bitmap diffImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
+    private void resetImage ( ref Bitmap bakImage )
+    {
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = null;
     }
 
     private void buttonLoad_Click ( object sender, EventArgs e )
@@ -41,20 +54,19 @@ namespace _042compressionpre
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = (Bitmap)inp;
-
-      pictureBox1.Image = inputImage;
-      outputImage =
-      diffImage   = null;
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
+      resetImage( ref outputImage );
+      resetImage( ref diffImage );
     }
 
     private void buttonRecode_Click ( object sender, EventArgs e )
     {
       if ( inputImage == null ) return;
       Cursor.Current = Cursors.WaitCursor;
+
+      pictureBox1.Image = inputImage;
+      resetImage( ref outputImage );
+      resetImage( ref diffImage );
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
@@ -88,7 +100,7 @@ namespace _042compressionpre
       {
         labelResult.Text = "File error";
         pictureBox1.Image = null;
-        outputImage = diffImage = null;
+        diffImage = null;
       }
 
       Cursor.Current = Cursors.Default;

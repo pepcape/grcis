@@ -1,9 +1,8 @@
-﻿using System;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
 using Rendering;
@@ -11,20 +10,20 @@ using Scene3D;
 
 namespace _050rtmesh
 {
-  public partial class Form1 : Form
+  public class FormSupport
   {
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    private IRayScene getScene ()
+    public static IRayScene getScene ()
     {
-      return SceneByComboBox();
+      return Form1.singleton.SceneByComboBox();
     }
 
     /// <summary>
     /// Initialize ray-scene and image function (good enough for simple samples).
     /// </summary>
-    private IImageFunction getImageFunction ( IRayScene scene )
+    public static IImageFunction getImageFunction ( IRayScene scene )
     {
       return new RayTracing( scene );
     }
@@ -32,7 +31,7 @@ namespace _050rtmesh
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    private IRenderer getRenderer ( IImageFunction imf )
+    public static IRenderer getRenderer ( IImageFunction imf )
     {
       SupersamplingImageSynthesizer sis = new SupersamplingImageSynthesizer();
       sis.ImageFunction = imf;
@@ -40,29 +39,30 @@ namespace _050rtmesh
     }
 
     /// <summary>
-    /// Prepare combo-box of available scenes.
+    /// Prepare form data (e.g. combo-box with available scenes).
     /// </summary>
-    private void InitializeScenes ()
+    public static void InitializeScenes ()
     {
-      sceneInitFunctions = new List<InitSceneStrDelegate>( Scenes.InitFunctionsStr );
+      Form1 f = Form1.singleton;
+      f.sceneInitFunctions = new List<InitSceneStrDelegate>( Scenes.InitFunctionsStr );
 
       // 1. default scenes from RayCastingScenes
       foreach ( string name in Scenes.NamesStr )
-        comboScene.Items.Add( name );
+        f.ComboScene.Items.Add( name );
 
       // 2. eventually add custom scenes
-      sceneInitFunctions.Add( new InitSceneStrDelegate( CustomScene.TestScene ) );
-      comboScene.Items.Add( "Test scene" );
+      f.sceneInitFunctions.Add( new InitSceneStrDelegate( CustomScene.TestScene ) );
+      f.ComboScene.Items.Add( "Test scene" );
 
       // .. and set your favorite scene here:
-      comboScene.SelectedIndex = comboScene.Items.IndexOf( "Test scene" );
+      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
 
       // default image parameters?
-      ImageWidth  = 400;
-      ImageHeight = 300;
-      numericSupersampling.Value = 1;
-      checkJitter.Checked = false;
-      checkMultithreading.Checked = true;
+      f.ImageWidth  = 400;
+      f.ImageHeight = 300;
+      f.NumericSupersampling.Value = 1;
+      f.CheckJitter.Checked = false;
+      f.CheckMultithreading.Checked = true;
     }
   }
 }

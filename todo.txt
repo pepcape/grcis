@@ -6,7 +6,7 @@
 - stinovani do 070subdivision (?)
 - 016videoslow: zkontrolovat Bitmap.Dispose()
 - zkontrolovat po zmenach 12. 11. 2015:
-  038trackball-   (setImage(), resetImage()..)
+  051colormap-   (setImage(), resetImage()..)
 - ignore: .vs (Visual Studio 2015 opening old projects)
 
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
@@ -59,7 +59,7 @@ x plosny svetelny zdroj + test Distr-RT rizeneho anti-aliasingem
 x OBJ musi umet cist polygony vetsi nez trojuhelniky
 x OBJ musi umet cist relativni indexy (zaporna cisla) a prokladane definice
   vrcholu a sten
-x vyzkouse SAH heuristiku pri stavbe R-tree (optimal bucket size = 3)
+x vyzkouset SAH heuristiku pri stavbe R-tree (optimal bucket size = 3)
 x OBJ umi cist .gz soubory
 x pridat lom svetla do RT (zatim bez ucasti osvetlovaciho modelu)
 x zkontrolovano: 002warping, 003colortransform, 005denoise, 006warping,
@@ -74,8 +74,9 @@ x setImage improvement: 002warping, 003colortransform, 005denoise,
   11compressionbw, 012animation, 013scene, 014compressiontr,
   015avatar, 017graph, 018raycasting, 019raytracing, 025contours,
   028rtmesh, 029flow, 033colormap, 034ascii, 035plasma, 036circles,
-  037floodfill
-
+  037floodfill, 038trackball, 039terrain, 040morph3d, 041lsystems,
+  042compressionpre, 46cameranim, 048montecarlo, 049distributedrt,
+  050rtmesh
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {

@@ -8,11 +8,14 @@ using GuiSupport;
 using MathSupport;
 using Rendering;
 using System.Globalization;
+using System.Drawing.Imaging;
 
 namespace _046cameranim
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Output raster image.
     /// </summary>
@@ -45,6 +48,14 @@ namespace _046cameranim
     /// </summary>
     protected int ImageHeight = 480;
 
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
     /// <summary>
     /// Redraws the whole image.
     /// </summary>
@@ -61,16 +72,16 @@ namespace _046cameranim
       height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       if ( scene == null )
-        scene = getScene();                 // scene prototype
+        scene = FormSupport.getScene();                 // scene prototype
 
-      IImageFunction imf = getImageFunction( scene );
+      IImageFunction imf = FormSupport.getImageFunction( scene );
       imf.Width  = width;
       imf.Height = height;
 
-      IRenderer rend = getRenderer( imf );
+      IRenderer rend = FormSupport.getRenderer( imf, superSampling );
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 0;
@@ -85,12 +96,13 @@ namespace _046cameranim
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height, new RandomJames() );
+      rend.RenderRectangle( newImage, 0, 0, width, height, new RandomJames() );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s",
+                                         1.0e-3 * sw.ElapsedMilliseconds );
 
-      pictureBox1.Image = outputImage;
+      setImage( ref outputImage, newImage );
 
       buttonRender.Enabled = true;
       buttonRenderAnim.Enabled = true;
@@ -110,7 +122,7 @@ namespace _046cameranim
       }
       else
       {
-        pictureBox1.Image = newImage;
+        setImage( ref outputImage, newImage );
         pictureBox1.Invalidate();
       }
     }
@@ -160,8 +172,7 @@ namespace _046cameranim
     public Form1 ()
     {
       InitializeComponent();
-      String []tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[1] + ')';
+      Text += " (rev: " + rev + ')';
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
@@ -303,7 +314,7 @@ namespace _046cameranim
       superSampling = (int)numericSupersampling.Value;
 
       if ( scene == null )
-        scene = getScene();                 // scene prototype
+        scene = FormSupport.getScene();                 // scene prototype
 
       // Start main rendering thread:
       aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
@@ -399,11 +410,11 @@ namespace _046cameranim
       mySceneTD = myScene as ITimeDependent;
       RandomJames rnd = new RandomJames();
 
-      IImageFunction imf = getImageFunction( myScene );
+      IImageFunction imf = FormSupport.getImageFunction( myScene );
       imf.Width = width;
       imf.Height = height;
 
-      IRenderer rend = getRenderer( imf );
+      IRenderer rend = FormSupport.getRenderer( imf, superSampling );
       rend.Width = width;
       rend.Height = height;
       rend.Adaptive = 0;                    // turn off adaptive bitmap synthesis completely (interactive preview not needed)
