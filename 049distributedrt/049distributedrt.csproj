@@ -100,9 +100,7 @@
     <Compile Include="..\common\WavefrontObj.cs">
       <Link>WavefrontObj.cs</Link>
     </Compile>
-    <Compile Include="DistributedRT.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="DistributedRT.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

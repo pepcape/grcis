@@ -7,6 +7,8 @@ namespace _058marbles
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// GLControl guard flag.
     /// </summary>
@@ -23,14 +25,15 @@ namespace _058marbles
     long lastFpsTime = 0L;
     int frameCounter = 0;
     static public long triangleCounter = 0L;
+    double lastFps = 0.0;
+    double lastTps = 0.0;
 
     #endregion
 
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     private void buttonInit_Click ( object sender, EventArgs e )

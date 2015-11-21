@@ -10,11 +10,12 @@ namespace _041lsystems
 {
   public partial class LSystemMainWin : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public LSystemMainWin ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
 
       mLSystem = new LSystem();
       mLSystemGenerator = new LSystemGenerator();

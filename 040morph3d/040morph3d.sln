@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "040morph3d", "040morph3d.csproj", "{8657B47C-E9EE-4FE3-ABC3-E397518AB4DC}"
 EndProject
 Global

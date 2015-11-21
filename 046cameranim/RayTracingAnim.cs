@@ -10,12 +10,12 @@ using System.Collections.Generic;
 
 namespace _046cameranim
 {
-  public partial class Form1 : Form
+  public class FormSupport
   {
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    private IRayScene getScene ()
+    public static IRayScene getScene ()
     {
       return new RayScene();
     }
@@ -23,7 +23,7 @@ namespace _046cameranim
     /// <summary>
     /// Initialize ray-scene and image function (good enough for simple samples).
     /// </summary>
-    private IImageFunction getImageFunction ( IRayScene scene )
+    public static IImageFunction getImageFunction ( IRayScene scene )
     {
       return new RayTracing( scene );
     }
@@ -31,7 +31,7 @@ namespace _046cameranim
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    private IRenderer getRenderer ( IImageFunction imf )
+    public static IRenderer getRenderer ( IImageFunction imf, int superSampling )
     {
       if ( superSampling > 1 )
       {

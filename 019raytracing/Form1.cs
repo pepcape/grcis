@@ -46,17 +46,17 @@ namespace _019raytracing
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageWidth = 0;
+    public int ImageWidth = 0;
 
     /// <summary>
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageHeight = 0;
+    public int ImageHeight = 0;
 
     /// <summary>
     /// Global instance of a random generator.
     /// </summary>
-    private static RandomJames rnd = new RandomJames();
+    public static RandomJames rnd = new RandomJames();
 
     /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
@@ -95,7 +95,12 @@ namespace _019raytracing
                                   100.0f * Finished, 1.0e-3 * now ) );
         Bitmap b = msg as Bitmap;
         if ( b != null )
-          f.SetImage( (Bitmap)b.Clone() );
+        {
+          Bitmap nb;
+          lock ( b )
+            nb = (Bitmap)b.Clone();
+          f.SetImage( nb );
+        }
       }
     }
 
@@ -107,7 +112,7 @@ namespace _019raytracing
     /// <summary>
     /// Default behavior - create scene selected in the combo-box.
     /// </summary>
-    public  IRayScene SceneByComboBox ()
+    public IRayScene SceneByComboBox ()
     {
       DefaultRayScene sc = new DefaultRayScene();
       sceneInitFunctions[ selectedScene ]( sc );
@@ -157,8 +162,8 @@ namespace _019raytracing
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 8;
-
       rend.ProgressData = progress;
+
       progress.SyncInterval = 5000L;
       progress.Reset();
       CSGInnerNode.ResetStatistics();
@@ -178,17 +183,28 @@ namespace _019raytracing
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, r{3:#,#}k, i{4:#,#}k, bb{5:#,#}k, t{6:#,#}k ]",
-                              1.0e-3 * elapsed, width, height,
-                              (Intersection.countRays + 500L) / 1000L,
-                              (Intersection.countIntersections + 500L) / 1000L,
-                              (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
-                              (CSGInnerNode.countTriangles + 500L) / 1000L ) );
+      string msg = String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, r{3:#,#}k, i{4:#,#}k, bb{5:#,#}k, t{6:#,#}k ]",
+                                  1.0e-3 * elapsed, width, height,
+                                  (Intersection.countRays + 500L) / 1000L,
+                                  (Intersection.countIntersections + 500L) / 1000L,
+                                  (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
+                                  (CSGInnerNode.countTriangles + 500L) / 1000L );
+      SetText( msg );
+      Console.WriteLine( "Rendering finished: " + msg );
       SetImage( newImage );
 
       Cursor.Current = Cursors.Default;
 
       StopRendering();
+    }
+
+    void SetGUI ( bool enable )
+    {
+      buttonRender.Enabled =
+      comboScene.Enabled =
+      buttonRes.Enabled =
+      buttonSave.Enabled = enable;
+      buttonStop.Enabled = !enable;
     }
 
     delegate void SetImageCallback ( Bitmap newImage );
@@ -233,18 +249,12 @@ namespace _019raytracing
       {
         // actually stop the rendering:
         lock ( progress )
-        {
           progress.Continue = false;
-        }
         aThread.Join();
         aThread = null;
 
         // GUI stuff:
-        buttonRender.Enabled = true;
-        comboScene.Enabled = true;
-        buttonRes.Enabled = true;
-        buttonSave.Enabled = true;
-        buttonStop.Enabled = false;
+        SetGUI( true );
       }
     }
 
@@ -302,15 +312,9 @@ namespace _019raytracing
       if ( aThread != null )
         return;
 
-      buttonRender.Enabled = false;
-      comboScene.Enabled = false;
-      buttonRes.Enabled = false;
-      buttonSave.Enabled = false;
-      buttonStop.Enabled = true;
+      SetGUI( false );
       lock ( progress )
-      {
         progress.Continue = true;
-      }
 
       SetText( "Wait a moment.." );
       aThread = new Thread( new ThreadStart( this.RenderImage ) );

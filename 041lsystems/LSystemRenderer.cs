@@ -154,7 +154,7 @@ namespace _041lsystems
       #region Render ground ...
 
       GL.Color3( Color.Green );
-      GL.Begin( BeginMode.Quads );
+      GL.Begin( PrimitiveType.Quads );
 
       GL.Normal3( 0.0f, 0.0f, 1.0f );
       GL.Vertex3( -10.0f, -10.0f, 0.0f );
@@ -217,7 +217,7 @@ namespace _041lsystems
 
     private void ForwardStep ( double aStepSize, double aRadius0, double aRadius1 )
     {
-      GL.Begin( BeginMode.Quads );
+      GL.Begin( PrimitiveType.Quads );
 
       GL.Normal3( 0.0f, 0.0f, -1.0f );
       GL.Vertex3( -aRadius0, -aRadius0, 0.0f );

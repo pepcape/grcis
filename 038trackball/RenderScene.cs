@@ -20,17 +20,20 @@ namespace _038trackball
         Thread.Sleep( 5 );
 
         long now = DateTime.Now.Ticks;
-        if ( now - lastFpsTime > 10000000 )      // more than 1 sec
+        if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
         {
-          double fps = frameCounter * 1.0e7 / (now - lastFpsTime);
-          double tps = triangleCounter * 1.0e7 / (now - lastFpsTime);
+          lastFps = 0.5 * lastFps + 0.5 * (frameCounter * 1.0e7 / (now - lastFpsTime));
+          lastTps = 0.5 * lastTps + 0.5 * (triangleCounter * 1.0e7 / (now - lastFpsTime));
           lastFpsTime = now;
           frameCounter = 0;
           triangleCounter = 0L;
-          if ( tps < 5.0e5 )
-            labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0}k", fps, (tps * 1.0e-3) );
+
+          if ( lastTps < 5.0e5 )
+            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f0}k",
+                                           lastFps, (lastTps * 1.0e-3) );
           else
-            labelFps.Text = String.Format( "Fps: {0:0.0}, Tps: {1:0.0}m", fps, (tps * 1.0e-6) );
+            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f1}m",
+                                           lastFps, (lastTps * 1.0e-6) );
         }
       }
     }
