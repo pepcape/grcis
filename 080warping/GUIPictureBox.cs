@@ -91,6 +91,8 @@ namespace _080warping
       base.OnMouseDown( e );
       if ( warp != null )
         mouseDownIndex = warp.NearestVertex( e.Location, width, height );
+
+      Focus();
     }
 
     protected override void OnMouseUp ( MouseEventArgs e )
@@ -127,8 +129,9 @@ namespace _080warping
     {
       base.OnKeyDown( e );
 
-      if ( warp != null )
-        warp.KeyPressed( e.KeyCode );
+      if ( warp != null &&
+           warp.KeyPressed( e.KeyCode ) )
+        form.Recompute();
     }
 
     #endregion

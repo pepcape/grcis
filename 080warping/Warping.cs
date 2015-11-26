@@ -185,12 +185,15 @@ namespace _080warping
     /// <summary>
     /// Optional keystroke handling function.
     /// </summary>
-    public void KeyPressed ( Keys key )
+    public bool KeyPressed ( Keys key )
     {
       if ( key == Keys.Back )
       {
         // !!! TODO: undo the last vertex-move ???
+        return true;
       }
+
+      return false;
     }
   }
 }
