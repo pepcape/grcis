@@ -801,4 +801,91 @@ namespace MathSupport
       return D - B - C + A;
     }
   }
+
+  /// <summary>
+  /// Mitchell-style generator for 2D sample sets.
+  /// Naive implementation (no spatial search structures are used).
+  /// </summary>
+  class Mitchell2D
+  {
+    /// <summary>
+    /// Sample generator in 2D.
+    /// </summary>
+    public delegate PointF SampleGenerator ();
+
+    /// <summary>
+    /// Set of already accepted samples.
+    /// </summary>
+    public List<PointF> samples = null;
+
+    /// <summary>
+    /// Quality-controlling constant. The algorithm is too slow if set higher than 5.
+    /// </summary>
+    public int K = 5;
+
+    /// <summary>
+    /// Current generator of new samples.
+    /// </summary>
+    public SampleGenerator Generator = null;
+
+    public Mitchell2D ( SampleGenerator g, int k =5 )
+    {
+      Generator = g;
+      K = Math.Max( 1, k );
+
+      samples = new List<PointF>();
+    }
+
+    public void Reset ( SampleGenerator g =null, int k =0 )
+    {
+      if ( g != null )
+        Generator = g;
+      if ( k > 0 )
+        K = k;
+
+      samples.Clear();
+    }
+
+    /// <summary>
+    /// Generates at least n samples.
+    /// </summary>
+    /// <returns>Distance of the last sample or 0.0f.</returns>
+    public float Generate ( int n )
+    {
+      int i = samples.Count;
+
+      float lastMaxDist = 0.0f;
+
+      while ( i < n )
+      {
+        int ns = i * K;
+
+        float maxDist = 0.0f;
+        PointF maxSample = PointF.Empty;
+        for ( int j = 0; j++ < ns; )
+        {
+          PointF c = Generator();
+          float minDist = float.MaxValue;
+          foreach ( var sample in samples )
+          {
+            float dx = sample.X - c.X;
+            float dy = sample.Y - c.Y;
+            float dist = dx * dx + dy * dy;
+            if ( dist < minDist )
+              minDist = dist;
+          }
+          if ( minDist > maxDist )
+          {
+            maxDist = minDist;
+            maxSample = c;
+          }
+        }
+        samples.Add( maxSample );
+        i++;
+        lastMaxDist = 0.9f * lastMaxDist + 0.1f * maxDist;
+      }
+
+      return (float)Math.Sqrt( lastMaxDist );
+    }
+  }
 }

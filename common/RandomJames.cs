@@ -321,6 +321,41 @@ namespace MathSupport
       return( min + (float)( (max - min) * UniformNumber() ) );
     }
 
+    protected bool normalReady = false;
+
+    protected double normalVal = 0.0;
+
+    /// <summary>
+    /// Generates one sample from normal distribution N(mu,sigma^2).
+    /// Using the polar form of Box-Muller transform (https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform)
+    /// </summary>
+    /// <param name="mu">Mean value.</param>
+    /// <param name="sigma">Square root of the variance.</param>
+    public double Normal ( double mu, double sigma )
+    {
+      double val;
+      if ( (normalReady = !normalReady) )
+      {
+        double u, v, s;
+        do
+        {
+          u = RandomDouble( -1.0, 1.0 );
+          v = RandomDouble( -1.0, 1.0 );
+          s = u * u + v * v;
+        }
+        while ( s < 2.0 * double.Epsilon ||
+                s >= 1.0 );
+
+        s = Math.Sqrt( -2.0 * Math.Log( s ) / s );
+        val       = u * s;
+        normalVal = v * s;
+      }
+      else
+        val = normalVal;
+
+      return( mu + sigma * val );
+    }
+
     /// <summary>
     /// Generates random point in the given triangle.
     /// Works in either dimension (2D, 3D).
