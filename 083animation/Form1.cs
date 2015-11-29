@@ -12,10 +12,7 @@ namespace _083animation
 {
   public partial class Form1 : Form
   {
-    /// <summary>
-    /// Output raster image.
-    /// </summary>
-    protected Bitmap outputImage = null;
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     /// <summary>
     /// Main animation-rendering thread.
@@ -62,7 +59,6 @@ namespace _083animation
     private void RenderImage ()
     {
       Cursor.Current = Cursors.WaitCursor;
-
       EnableGUI( false );
 
       width = ImageWidth;
@@ -86,19 +82,25 @@ namespace _083animation
       Canvas c = new Canvas( width, height );
 
       Animation.DrawFrame( c, (double)numTime.Value, start, end );
+      Bitmap newImage = c.Finish();
 
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = c.Finish();
       sw.Stop();
 
       labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
-      pictureBox1.Image = outputImage;
+      setImage( newImage );
 
       EnableGUI( true );
-
       Cursor.Current = Cursors.Default;
+    }
+
+    protected void setImage ( Bitmap newImage )
+    {
+      Image old = pictureBox1.Image;
+      pictureBox1.Image = newImage;
+      pictureBox1.Invalidate();
+      if ( old != null )
+        old.Dispose();
     }
 
     delegate void SetImageCallback ( Bitmap newImage );
@@ -111,15 +113,7 @@ namespace _083animation
         BeginInvoke( si, new object[] { newImage } );
       }
       else
-      {
-        if ( pictureBox1.Image != null )
-        {
-          pictureBox1.Image.Dispose();
-          pictureBox1.Image = null;
-        }
-        pictureBox1.Image = newImage;
-        pictureBox1.Invalidate();
-      }
+        setImage( newImage );
     }
 
     delegate void SetTextCallback ( string text );
@@ -169,8 +163,7 @@ namespace _083animation
     public Form1 ()
     {
       InitializeComponent();
-      String []tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[1] + ')';
+      Text += " (rev: " + rev + ')';
 
       // Init rendering params:
       double from, to, fps;
@@ -327,9 +320,7 @@ namespace _083animation
 
       EnableGUI( false );
       lock ( progress )
-      {
         progress.Continue = true;
-      }
 
       // Global animation properties (it's safe to access GUI components here):
       start = time = (double)numFrom.Value;
@@ -414,7 +405,7 @@ namespace _083animation
         // GUI progress indication:
         frames++;
         SetText( String.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1} ({2:f1}%), {3:f1}s",
-                                threads, frames, Util.percent( frames, totalFrames ),
+                                threads, frames, Util.percent( frames, totalFrames + 1 ),
                                 1.0e-3 * sw.ElapsedMilliseconds ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
@@ -475,7 +466,6 @@ namespace _083animation
         // set up the new result record:
         Result r = new Result();
         r.frameNumber = myFrameNumber;
-
         Animation.DrawFrame( c, myTime, start, end );
         r.image = c.Finish();
 

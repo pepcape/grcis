@@ -8,10 +8,12 @@ namespace _082circles
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Current computed image.
     /// </summary>
-    protected Image outputImage = null;
+    protected Bitmap outputImage = null;
 
     public Form1 ()
     {
@@ -25,9 +27,15 @@ namespace _082circles
       numericYres.Value = Math.Max( height, 10 );
       textParam.Text = param ?? "";
 
-      // SVN revision #:
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
@@ -35,26 +43,21 @@ namespace _082circles
       int width  = (int)numericXres.Value;
       int height = (int)numericYres.Value;
 
-      if ( outputImage != null )
-      {
-        outputImage.Dispose();
-        outputImage = null;
-      }
       buttonSave.Enabled = false;
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
       Canvas c = new Canvas( width, height );
-
       Circles.Draw( c, textParam.Text );
-      outputImage = c.Finish();
+      Bitmap newImage = c.Finish();
 
       sw.Stop();
       float elapsed = 0.001f * sw.ElapsedMilliseconds;
 
       labelElapsed.Text  = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s", elapsed );
-      pictureBox1.Image  = outputImage;
+      setImage( ref outputImage, newImage );
+
       buttonSave.Enabled = true;
     }
 

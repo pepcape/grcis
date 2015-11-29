@@ -9,15 +9,23 @@ namespace _085segmentation
 {
   public partial class Form1 : Form
   {
-    protected Bitmap inputImage  = null;
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
+    protected Bitmap inputImage  = null;
     protected Bitmap outputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureTarget.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -51,11 +59,7 @@ namespace _085segmentation
     {
       if ( inputImage == null ) return;
 
-      pictureTarget.Image = null;
-      if ( outputImage != null )
-        outputImage.Dispose();
-
-      pictureTarget.Image = outputImage = pictureSource.InitPicture( this, inputImage );
+      setImage( ref outputImage, pictureSource.InitPicture( this, inputImage ) );
     }
 
     /// <summary>
@@ -65,18 +69,15 @@ namespace _085segmentation
     {
       if ( inputImage == null ) return;
 
-      pictureTarget.Image = null;
-      if ( outputImage != null )
-        outputImage.Dispose();
-
       Stopwatch sw = new Stopwatch();
       sw.Start();
       
-      outputImage = pictureSource.segm.DoSegmentation( inputImage, checkBoxWhite.Checked );
+      Bitmap newImage = pictureSource.segm.DoSegmentation( inputImage, checkBoxWhite.Checked );
 
       sw.Stop();
       labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
-      pictureTarget.Image = outputImage;
+
+      setImage( ref outputImage, newImage );
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )

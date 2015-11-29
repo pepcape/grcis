@@ -9,10 +9,10 @@ namespace _084filter
 {
   public partial class Form1 : Form
   {
-    protected Bitmap inputImage  = null;
-    protected Bitmap outputImage = null;
-
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    protected Bitmap inputImage = null;
+    protected Bitmap outputImage = null;
 
     public Form1 ()
     {
@@ -28,6 +28,13 @@ namespace _084filter
 
     volatile public static bool cont = true;
 
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
     delegate void SetImageCallback ( Bitmap newImage );
 
     protected void SetImage ( Bitmap newImage )
@@ -40,7 +47,7 @@ namespace _084filter
       else
       {
         pictureBox1.Image = newImage;
-        pictureBox1.Invalidate();
+        setImage( ref outputImage, newImage );
       }
     }
 
@@ -72,14 +79,7 @@ namespace _084filter
       ofd.FilterIndex = 6;
       ofd.FileName = "";
       if ( ofd.ShowDialog() != DialogResult.OK )
-      {
-        if ( inputImage != null )
-          inputImage.Dispose();
-
-        inputImage = null;
-        recompute();
         return;
-      }
 
       newImage( ofd.FileName );
     }
@@ -89,23 +89,22 @@ namespace _084filter
     /// </summary>
     private bool newImage ( string fn )
     {
-      Image inp = null;
+      Bitmap inp = null;
       try
       {
-        inp = Image.FromFile( fn );
+        inp = (Bitmap)Image.FromFile( fn );
       }
       catch ( Exception )
       {
         return false;
       }
 
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = (Bitmap)inp;
+      if ( inp == null )
+        return false;
 
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = null;
+      pictureBox1.Image = null;
+      setImage( ref inputImage, inp );
+      setImage( ref outputImage, null );
 
       recompute();
 
@@ -147,29 +146,24 @@ namespace _084filter
 
     private void transform ()
     {
-      Bitmap ibmp = inputImage;
-      Bitmap bmp;
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      bmp = Filter.Recompute( ibmp, textParam.Text );
+      Bitmap bmp = Filter.Recompute( inputImage, textParam.Text );
 
       sw.Stop();
       float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
 
       SetImage( bmp );
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = bmp;
-
-      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s ({1})", elapsed, ibmp.PixelFormat.ToString() ) );
+      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s ({1})", elapsed, inputImage.PixelFormat.ToString() ) );
 
       StopComputation();
     }
 
     private void recompute ()
     {
-      if ( aThread != null )
+      if ( aThread != null ||
+           inputImage == null )
         return;
 
       EnableGUI( false );
