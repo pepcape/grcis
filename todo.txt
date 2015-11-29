@@ -6,7 +6,7 @@
 - stinovani do 070subdivision (?)
 - 016videoslow: zkontrolovat Bitmap.Dispose()
 - zkontrolovat po zmenach 12. 11. 2015:
-  051colormap-   (setImage(), resetImage()..)
+  051colormap-080  (setImage(), resetImage()..)
 - ignore: .vs (Visual Studio 2015 opening old projects)
 
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
@@ -77,6 +77,10 @@ x setImage improvement: 002warping, 003colortransform, 005denoise,
   037floodfill, 038trackball, 039terrain, 040morph3d, 041lsystems,
   042compressionpre, 46cameranim, 048montecarlo, 049distributedrt,
   050rtmesh
+  081fullcolor, 082circles, 083animation, 084filter, 085segmentation
+
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+      Text += " (rev: " + rev + ')';
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {

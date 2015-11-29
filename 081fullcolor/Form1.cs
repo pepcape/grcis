@@ -11,8 +11,9 @@ namespace _081fullcolor
 {
   public partial class Form1 : Form
   {
-    protected Bitmap inputImage = null;
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
+    protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
 
     public Form1 ()
@@ -22,13 +23,19 @@ namespace _081fullcolor
       Generator.InitParams( out par );
       textParam.Text = par;
 
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     protected Thread aThread = null;
 
     volatile public static bool cont = true;
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
 
     delegate void SetImageCallback ( Bitmap newImage );
 
@@ -42,7 +49,7 @@ namespace _081fullcolor
       else
       {
         pictureBox1.Image = newImage;
-        pictureBox1.Invalidate();
+        setImage( ref outputImage, newImage );
       }
     }
 
@@ -74,14 +81,7 @@ namespace _081fullcolor
       ofd.FilterIndex = 6;
       ofd.FileName = "";
       if ( ofd.ShowDialog() != DialogResult.OK )
-      {
-        if ( inputImage != null )
-          inputImage.Dispose();
-        inputImage = null;
-
-        recompute();
         return;
-      }
 
       newImage( ofd.FileName );
     }
@@ -91,23 +91,22 @@ namespace _081fullcolor
     /// </summary>
     private bool newImage ( string fn )
     {
-      Image inp = null;
+      Bitmap inp = null;
       try
       {
-        inp = Image.FromFile( fn );
+        inp = (Bitmap)Image.FromFile( fn );
       }
       catch ( Exception )
       {
         return false;
       }
 
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = (Bitmap)inp;
+      if ( inp == null )
+        return false;
 
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = null;
+      pictureBox1.Image = null;
+      setImage( ref inputImage, inp );
+      setImage( ref outputImage, null );
 
       recompute();
 
@@ -150,22 +149,17 @@ namespace _081fullcolor
 
     private void transform ()
     {
-      Bitmap ibmp = inputImage;
       Bitmap bmp;
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      Generator.Recompute( ibmp, out bmp, checkFast.Checked, textParam.Text );
+      Generator.Recompute( inputImage, out bmp, checkFast.Checked, textParam.Text );
 
       sw.Stop();
       float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
       long missing = (1 << 24) - Draw.ColorNumber( bmp );
 
       SetImage( bmp );
-      if ( outputImage != null )
-        outputImage.Dispose();
-      outputImage = bmp;
-
       SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s - {1}", elapsed, (missing > 0) ? missing.ToString() : "Ok" ) );
 
       StopComputation();

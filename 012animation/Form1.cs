@@ -91,8 +91,6 @@ namespace _012animation
       Cursor.Current = Cursors.Default;
     }
 
-    delegate void SetImageCallback ( Bitmap newImage );
-
     protected void setImage ( Bitmap newImage )
     {
       Image old = pictureBox1.Image;
@@ -101,6 +99,8 @@ namespace _012animation
       if ( old != null )
         old.Dispose();
     }
+
+    delegate void SetImageCallback ( Bitmap newImage );
 
     protected void SetImage ( Bitmap newImage )
     {
@@ -317,9 +317,7 @@ namespace _012animation
 
       EnableGUI( false );
       lock ( progress )
-      {
         progress.Continue = true;
-      }
 
       // Global animation properties (it's safe to access GUI components here):
       start = time = (double)numFrom.Value;
