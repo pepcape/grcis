@@ -69,6 +69,7 @@ x zkontrolovano: 002warping, 003colortransform, 005denoise, 006warping,
 x Util.percent() - hledat "100.0"
 x 085: Reset button, pen-size, save/load mask, negative?
 x 068, 081: LockBits() input format fix
+x System.Globalization: needed for FPS counting
 x setImage improvement: 002warping, 003colortransform, 005denoise,
   006warping, 007bluenoise, 008kdtree, 009floodfill, 010quadtree,
   11compressionbw, 012animation, 013scene, 014compressiontr,

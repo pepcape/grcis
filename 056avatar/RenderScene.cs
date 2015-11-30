@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Threading;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
