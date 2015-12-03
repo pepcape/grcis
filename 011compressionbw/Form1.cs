@@ -81,8 +81,8 @@ namespace _011compressionbw
       long fileSize = fs.Position;
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f}s, {1}kb",
-                                         1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f2}s, {1}b",
+                                         1.0e-3 * sw.ElapsedMilliseconds, fileSize );
 
       // 3. image decoding
       fs.Seek( 0L, SeekOrigin.Begin );
