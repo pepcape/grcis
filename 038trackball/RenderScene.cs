@@ -11,8 +11,6 @@ namespace _038trackball
     /// <summary>
     /// Function called whenever the main application is idle..
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
     private void Application_Idle ( object sender, EventArgs e )
     {
       while ( glControl1.IsIdle )
@@ -40,7 +38,7 @@ namespace _038trackball
     }
 
     /// <summary>
-    /// Renders a 3D scene, rendering code separated for clarity.
+    /// Rendering code itself (separated for clarity).
     /// </summary>
     private void RenderScene ()
     {
@@ -51,7 +49,7 @@ namespace _038trackball
       {
         // [colors] [normals] vertices
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-        int p = 0;
+        IntPtr p = IntPtr.Zero;
         if ( scene.HasColors() )
         {
           GL.ColorPointer( 3, ColorPointerType.Float, stride, p );

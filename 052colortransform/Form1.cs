@@ -6,16 +6,23 @@ namespace _052colortransform
 {
   public partial class Form1 : Form
   {
-    protected Bitmap inputImage = null;
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
+    protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
+    }
 
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -35,15 +42,8 @@ namespace _052colortransform
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
-
-      if ( inputImage != null )
-        inputImage.Dispose();
-      if ( outputImage != null )
-        outputImage.Dispose();
-
-      inputImage = (Bitmap)inp;
-      outputImage = null;
+      setImage( ref outputImage, null );
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
 
       recompute();
     }
@@ -52,12 +52,10 @@ namespace _052colortransform
     {
       if ( inputImage == null ) return;
 
-      if ( outputImage != null )
-        outputImage.Dispose();
+      Bitmap newImage;
+      Transform.TransformImage( inputImage, out newImage, textParam.Text );
 
-      Transform.TransformImage( inputImage, out outputImage, textParam.Text );
-
-      pictureBox1.Image = outputImage;
+      setImage( ref outputImage, newImage );
       checkOriginal.Checked = false;
     }
 
@@ -71,8 +69,7 @@ namespace _052colortransform
       sfd.Filter = "PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName = "";
-      if ( sfd.ShowDialog() != DialogResult.OK ||
-           sfd.FileName == "" )
+      if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
       outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );

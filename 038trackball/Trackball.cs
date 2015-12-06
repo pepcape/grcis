@@ -181,9 +181,13 @@ namespace _038trackball
 
       frameCounter++;
       GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
-      GL.ShadeModel( ShadingModel.Flat );
-      GL.PolygonMode( MaterialFace.Front, PolygonMode.Fill );
-      GL.Enable( EnableCap.CullFace );
+      GL.ShadeModel( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
+      GL.PolygonMode( checkTwosided.Checked ? MaterialFace.FrontAndBack : MaterialFace.Front,
+                      checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
+      if ( checkTwosided.Checked )
+        GL.Disable( EnableCap.CullFace );
+      else
+        GL.Enable( EnableCap.CullFace );
 
       SetCamera();
       RenderScene();

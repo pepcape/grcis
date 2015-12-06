@@ -138,7 +138,10 @@ namespace _056avatar
 
     private void control_PreviewKeyDown ( object sender, PreviewKeyDownEventArgs e )
     {
-      if ( e.KeyCode == Keys.Up || e.KeyCode == Keys.Down || e.KeyCode == Keys.Left || e.KeyCode == Keys.Right )
+      if ( e.KeyCode == Keys.Up ||
+           e.KeyCode == Keys.Down ||
+           e.KeyCode == Keys.Left ||
+           e.KeyCode == Keys.Right )
         e.IsInputKey = true;
     }
 

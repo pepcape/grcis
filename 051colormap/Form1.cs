@@ -6,23 +6,30 @@ namespace _051colormap
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     public static Color[] colors;
-
     private static Bitmap inputImage = null;
-
     public static int numCol = 3;
 
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
 
       colors = new Color[ 3 ];
       colors[ 0 ] = Color.FromArgb(   0, 100, 127 );
       colors[ 1 ] = Color.FromArgb( 150, 150,  80 );
       colors[ 2 ] = Color.FromArgb( 255, 100,  20 );
       pictureBox1.Invalidate();
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureInput.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonClose_Click ( object sender, EventArgs e )
@@ -65,12 +72,8 @@ namespace _051colormap
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      Image inp = Image.FromFile( ofd.FileName );
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = (Bitmap)inp;
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
 
-      pictureInput.Image = inputImage;
       Colormap.Generate( inputImage, numCol, out colors );
       pictureBox1.Invalidate();
     }

@@ -1,21 +1,29 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 namespace _053rectangles
 {
   public partial class Form1 : Form
   {
-    protected Image inputImage = null;
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
-    protected Image outputImage = null;
+    protected Bitmap inputImage = null;
+    protected Bitmap outputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
+      Text += " (rev: " + rev + ')';
+    }
 
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonLoadImage_Click ( object sender, EventArgs e )
@@ -35,10 +43,7 @@ namespace _053rectangles
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = Image.FromFile( ofd.FileName );
-
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
       string txt = string.Format( "Input: {0} ({1}x{2}, {3})",
                                   ofd.FileName, inputImage.Width, inputImage.Height, inputImage.PixelFormat.ToString() );
       labelImageName.Text = txt ;
@@ -51,12 +56,9 @@ namespace _053rectangles
 
       Canvas c = new Canvas( width, height );
 
-      Rectangles.Draw( c, (Bitmap)inputImage, textParam.Text );
+      Rectangles.Draw( c, inputImage, textParam.Text );
 
-      pictureBox1.Image = null;
-      if ( outputImage != null )
-        outputImage.Dispose();
-      pictureBox1.Image = outputImage = c.Finish();
+      setImage( ref outputImage, c.Finish() );
       buttonSave.Enabled = true;
     }
 
@@ -72,7 +74,7 @@ namespace _053rectangles
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, ImageFormat.Png );
     }
   }
 }
