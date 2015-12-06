@@ -39,6 +39,7 @@ namespace _056avatar
       this.checkSmooth = new System.Windows.Forms.CheckBox();
       this.checkWireframe = new System.Windows.Forms.CheckBox();
       this.textParam = new System.Windows.Forms.TextBox();
+      this.checkTwosided = new System.Windows.Forms.CheckBox();
       ((System.ComponentModel.ISupportInitialize)(this.numericInstances)).BeginInit();
       this.SuspendLayout();
       // 
@@ -57,7 +58,7 @@ namespace _056avatar
       // 
       this.labelFaces.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelFaces.AutoSize = true;
-      this.labelFaces.Location = new System.Drawing.Point(334, 383);
+      this.labelFaces.Location = new System.Drawing.Point(395, 383);
       this.labelFaces.Name = "labelFaces";
       this.labelFaces.Size = new System.Drawing.Size(33, 13);
       this.labelFaces.TabIndex = 6;
@@ -121,7 +122,7 @@ namespace _056avatar
       // 
       this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point(390, 417);
+      this.label1.Location = new System.Drawing.Point(395, 417);
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size(56, 13);
       this.label1.TabIndex = 19;
@@ -130,7 +131,7 @@ namespace _056avatar
       // numericInstances
       // 
       this.numericInstances.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.numericInstances.Location = new System.Drawing.Point(452, 414);
+      this.numericInstances.Location = new System.Drawing.Point(457, 414);
       this.numericInstances.Maximum = new decimal(new int[] {
             25,
             0,
@@ -156,9 +157,9 @@ namespace _056avatar
       this.checkSmooth.AutoSize = true;
       this.checkSmooth.Location = new System.Drawing.Point(137, 382);
       this.checkSmooth.Name = "checkSmooth";
-      this.checkSmooth.Size = new System.Drawing.Size(102, 17);
+      this.checkSmooth.Size = new System.Drawing.Size(62, 17);
       this.checkSmooth.TabIndex = 21;
-      this.checkSmooth.Text = "Smooth shading";
+      this.checkSmooth.Text = "Smooth";
       this.checkSmooth.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.checkSmooth.UseVisualStyleBackColor = true;
       // 
@@ -166,7 +167,7 @@ namespace _056avatar
       // 
       this.checkWireframe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkWireframe.AutoSize = true;
-      this.checkWireframe.Location = new System.Drawing.Point(248, 382);
+      this.checkWireframe.Location = new System.Drawing.Point(207, 382);
       this.checkWireframe.Name = "checkWireframe";
       this.checkWireframe.Size = new System.Drawing.Size(74, 17);
       this.checkWireframe.TabIndex = 22;
@@ -181,11 +182,25 @@ namespace _056avatar
       this.textParam.Size = new System.Drawing.Size(205, 20);
       this.textParam.TabIndex = 23;
       // 
+      // checkTwosided
+      // 
+      this.checkTwosided.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkTwosided.AutoSize = true;
+      this.checkTwosided.Checked = true;
+      this.checkTwosided.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkTwosided.Location = new System.Drawing.Point(287, 382);
+      this.checkTwosided.Name = "checkTwosided";
+      this.checkTwosided.Size = new System.Drawing.Size(75, 17);
+      this.checkTwosided.TabIndex = 24;
+      this.checkTwosided.Text = "Two-sided";
+      this.checkTwosided.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(712, 446);
+      this.Controls.Add(this.checkTwosided);
       this.Controls.Add(this.textParam);
       this.Controls.Add(this.checkWireframe);
       this.Controls.Add(this.checkSmooth);
@@ -219,6 +234,7 @@ namespace _056avatar
     private System.Windows.Forms.CheckBox checkSmooth;
     private System.Windows.Forms.CheckBox checkWireframe;
     private System.Windows.Forms.TextBox textParam;
+    private System.Windows.Forms.CheckBox checkTwosided;
   }
 }
 

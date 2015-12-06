@@ -13,24 +13,27 @@ namespace _056avatar
     /// </summary>
     private void Application_Idle ( object sender, EventArgs e )
     {
-      glControl1.Invalidate();
-      Thread.Sleep( 5 );
-
-      long now = DateTime.Now.Ticks;
-      if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
+      while ( glControl1.IsIdle )
       {
-        lastFps = 0.5 * lastFps + 0.5 * (frameCounter * 1.0e7 / (now - lastFpsTime));
-        lastTps = 0.5 * lastTps + 0.5 * (triangleCounter * 1.0e7 / (now - lastFpsTime));
-        lastFpsTime = now;
-        frameCounter = 0;
-        triangleCounter = 0L;
+        glControl1.Invalidate();
+        Thread.Sleep( 5 );
 
-        if ( lastTps < 5.0e5 )
-          labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f0}k",
-                                         lastFps, (lastTps * 1.0e-3) );
-        else
-          labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f1}m",
-                                         lastFps, (lastTps * 1.0e-6) );
+        long now = DateTime.Now.Ticks;
+        if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
+        {
+          lastFps = 0.5 * lastFps + 0.5 * (frameCounter * 1.0e7 / (now - lastFpsTime));
+          lastTps = 0.5 * lastTps + 0.5 * (triangleCounter * 1.0e7 / (now - lastFpsTime));
+          lastFpsTime = now;
+          frameCounter = 0;
+          triangleCounter = 0L;
+
+          if ( lastTps < 5.0e5 )
+            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f0}k",
+                                           lastFps, (lastTps * 1.0e-3) );
+          else
+            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f1}m",
+                                           lastFps, (lastTps * 1.0e-6) );
+        }
       }
     }
 
@@ -75,7 +78,7 @@ namespace _056avatar
             for ( int i = 0; i++ < n; )
             {
               triangleCounter += scene.Triangles;
-              GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+              GL.DrawElements( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
               GL.Translate( delta, 0.0f, 0.0f );
             }
             GL.PopMatrix();
@@ -87,7 +90,7 @@ namespace _056avatar
       }
       else                              // color cube (JB)
       {
-        GL.Begin( BeginMode.Quads );
+        GL.Begin( PrimitiveType.Quads );
 
         GL.Color3( 0.0f, 1.0f, 0.0f );          // Set The Color To Green
         GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Right Of The Quad (Top)

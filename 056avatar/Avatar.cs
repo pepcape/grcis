@@ -1,6 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////
 // Based on (c) 2012 Pavel Ševeček's code
-// Original template & final modifications: (c) 2010-2013 Josef Pelikán
+// Original template & final modifications: (c) 2010-2015 Josef Pelikán
 ////////////////////////////////////////////////////////////////////////////////
 
 using System;
@@ -314,16 +314,20 @@ namespace _056avatar
     /// </summary>
     private void Render ()
     {
-      if ( !loaded ) return;
+      if ( !loaded )
+        return;
 
       frameCounter++;
       GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
       GL.ShadeModel( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
-      GL.PolygonMode( MaterialFace.FrontAndBack, checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
+      GL.PolygonMode( checkTwosided.Checked ? MaterialFace.FrontAndBack : MaterialFace.Front,
+                      checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
+      if ( checkTwosided.Checked )
+        GL.Disable( EnableCap.CullFace );
+      else
+        GL.Enable( EnableCap.CullFace );
 
       SetCamera();
-
-      // Scene rendering:
       RenderScene();
 
       glControl1.SwapBuffers();

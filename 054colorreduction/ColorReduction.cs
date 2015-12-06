@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿// Author: Josef Pelikan
+
+using System.Drawing;
 using System.Drawing.Imaging;
 using MathSupport;
 using Raster;

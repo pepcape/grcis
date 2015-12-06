@@ -1,30 +1,38 @@
 ﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
-using System.Threading;
-using Raster;
-using System.Globalization;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Globalization;
+using System.Threading;
+using System.Windows.Forms;
+using Raster;
 
 namespace _054colorreduction
 {
   public partial class Form1 : Form
   {
-    protected Image inputImage = null;
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
+    protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
-
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
     }
 
     protected Thread aThread = null;
 
     volatile public static bool cont = true;
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
 
     delegate void SetImageCallback ( Bitmap newImage );
 
@@ -37,10 +45,7 @@ namespace _054colorreduction
       }
       else
       {
-        pictureBox1.Image = null;
-        if ( outputImage != null )
-          outputImage.Dispose();
-        pictureBox1.Image = outputImage = newImage;
+        setImage( ref outputImage, newImage );
         pictureBox1.Invalidate();
       }
     }
@@ -62,9 +67,8 @@ namespace _054colorreduction
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      if ( inputImage != null )
-        inputImage.Dispose();
-      inputImage = Image.FromFile( ofd.FileName );
+      setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
+      setImage( ref outputImage, null );
 
       recompute();
     }
@@ -100,20 +104,19 @@ namespace _054colorreduction
     {
       if ( inputImage != null )
       {
-        Bitmap ibmp = (Bitmap)inputImage;
-        Bitmap bmp;
         Stopwatch sw = new Stopwatch();
         sw.Start();
 
-        ColorReduction.Reduce( ibmp, out bmp, textParam.Text );
+        Bitmap bmp;
+        ColorReduction.Reduce( inputImage, out bmp, textParam.Text );
 
         sw.Stop();
         float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
-        SetImage( bmp );
+        SetImage( (Bitmap)bmp.Clone() );
 
         // Image differences:
         FloatImage ar, ag, ab, br, bg, bb;
-        FloatImage.BitmapBands( ibmp, 1, out ar, out ag, out ab );
+        FloatImage.BitmapBands( inputImage, 1, out ar, out ag, out ab );
         FloatImage.BitmapBands( bmp, 1, out br, out bg, out bb );
 
         // Simple differences:
@@ -136,7 +139,9 @@ namespace _054colorreduction
         float diffg = (dr * Draw.RED_WEIGHT + dg * Draw.GREEN_WEIGHT + db * Draw.BLUE_WEIGHT) / Draw.WEIGHT_TOTAL;
 
         MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Image: {5}x{6} ({7}){0}Time: {1:f3}s{0}plain MAD: {2:f5}{0}weighted MAD: {3:f5}{0}filtered weighted MAD: {4:f5}",
-                                        Environment.NewLine, elapsed, diff, diffw, diffg, ibmp.Width, ibmp.Height, ibmp.PixelFormat.ToString() ), "MAE Difference" );
+                                        Environment.NewLine, elapsed, diff, diffw, diffg,
+                                        inputImage.Width, inputImage.Height, inputImage.PixelFormat.ToString() ), "MAE Difference" );
+        bmp.Dispose();
       }
 
       StopComputation();
@@ -166,12 +171,10 @@ namespace _054colorreduction
       sfd.Filter = "PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName = "";
-      sfd.ShowDialog();
-
-      if ( sfd.FileName == "" )
+      if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, ImageFormat.Png );
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )

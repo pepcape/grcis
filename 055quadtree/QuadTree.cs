@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Author: Josef Pelikan
+
 using System.Drawing;
-using System.Text;
+using System.Drawing.Imaging;
 using System.IO;
 
 namespace _055quadtree
 {
   class QuadTree
   {
-
     protected class QTNode
     {
       public QTNode ul, ur, ll, lr;
@@ -69,7 +67,7 @@ namespace _055quadtree
       if ( width < 1 || height < 1 )
         return null;
 
-      Bitmap result = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap result = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       return result;
 
@@ -177,7 +175,5 @@ namespace _055quadtree
     // !!!}}
 
     #endregion
-
   }
-
 }
