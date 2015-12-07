@@ -19,6 +19,11 @@ namespace _057scene
     public Form1 ()
     {
       InitializeComponent();
+
+      string param;
+      Construction.InitParams( out param );
+      textParam.Text = param ?? "";
+
       Text += " (rev: " + rev + ')';
     }
 

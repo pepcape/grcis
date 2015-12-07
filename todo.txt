@@ -80,6 +80,7 @@ x setImage improvement: 002warping, 003colortransform, 005denoise,
   050rtmesh, 051, 052, 053, 054, 055, 056, 057
   081fullcolor, 082circles, 083animation, 084filter, 085segmentation
 x CheckCornerTable into the library
+x konstrukce ctyrstenu do Construction.cs
 
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
       Text += " (rev: " + rev + ')';
