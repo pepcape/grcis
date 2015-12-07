@@ -65,6 +65,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\MathSupport.cs">
+      <Link>MathSupport.cs</Link>
+    </Compile>
     <Compile Include="..\common\Scene.cs">
       <Link>Scene.cs</Link>
     </Compile>

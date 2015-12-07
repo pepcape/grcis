@@ -56,6 +56,11 @@ namespace _038trackball
     public Form1 ()
     {
       InitializeComponent();
+
+      string param;
+      Construction.InitParams( out param );
+      textParam.Text = param ?? "";
+
       Text += " (rev: " + rev + ')';
     }
 
