@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
 using OpenTK;
@@ -9,6 +10,8 @@ namespace _057scene
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     protected SceneBrep scene = new SceneBrep();
 
     protected Bitmap outputImage = null;
@@ -16,8 +19,15 @@ namespace _057scene
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      Text += " (rev: " + rev + ')';
+    }
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -102,7 +112,7 @@ namespace _057scene
 
       int width  = panel1.Width;
       int height = panel1.Height;
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
       Wireframe renderer = new Wireframe();
       renderer.Perspective = checkPerspective.Checked;
@@ -111,9 +121,9 @@ namespace _057scene
       renderer.ViewVolume  = 30.0;
       renderer.Distance    = 10.0;
       renderer.DrawNormals = checkNormals.Checked;
-      renderer.Render( outputImage, scene );
+      renderer.Render( newImage, scene );
 
-      pictureBox1.Image = outputImage;
+      setImage( ref outputImage, newImage );
 
       Cursor.Current = Cursors.Default;
     }
@@ -135,7 +145,7 @@ namespace _057scene
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, ImageFormat.Png );
     }
 
     private void buttonSaveOBJ_Click ( object sender, EventArgs e )

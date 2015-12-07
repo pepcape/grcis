@@ -2,6 +2,8 @@
 
 using System.IO;
 using OpenTK;
+using MathSupport;
+using System;
 
 namespace Scene3D
 {
@@ -41,22 +43,5 @@ namespace Scene3D
     }
 
     #endregion
-  }
-
-  public partial class SceneBrep
-  {
-    /// <summary>
-    /// Checks consistency of the Corner-table.
-    /// </summary>
-    /// <param name="errors">Optional output stream for detailed error messages</param>
-    /// <returns>Number of errors/inconsistencies (0 if everything is Ok)</returns>
-    public int CheckCornerTable ( StreamWriter errors )
-    {
-      // !!!{{ TODO: put your Corner-table checking code here
-
-      return 0;
-
-      // !!!}}
-    }
   }
 }
