@@ -67,6 +67,7 @@ namespace _038trackball
     private void glControl1_Load ( object sender, EventArgs e )
     {
       loaded = true;
+      glControl1.VSync = true;
 
       // OpenGL init code:
       GL.ClearColor( Color.DarkBlue );
@@ -94,6 +95,11 @@ namespace _038trackball
     private void glControl1_Paint ( object sender, PaintEventArgs e )
     {
       Render();
+    }
+
+    private void checkVsync_CheckedChanged ( object sender, EventArgs e )
+    {
+      glControl1.VSync = checkVsync.Checked;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )

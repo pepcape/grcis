@@ -42,6 +42,7 @@
       this.checkSmooth = new System.Windows.Forms.CheckBox();
       this.checkWireframe = new System.Windows.Forms.CheckBox();
       this.checkTwosided = new System.Windows.Forms.CheckBox();
+      this.checkVsync = new System.Windows.Forms.CheckBox();
       ((System.ComponentModel.ISupportInitialize)(this.numericSensitivity)).BeginInit();
       this.SuspendLayout();
       // 
@@ -54,7 +55,7 @@
       this.glControl1.BackColor = System.Drawing.Color.Black;
       this.glControl1.Location = new System.Drawing.Point(13, 12);
       this.glControl1.Name = "glControl1";
-      this.glControl1.Size = new System.Drawing.Size(680, 350);
+      this.glControl1.Size = new System.Drawing.Size(712, 350);
       this.glControl1.TabIndex = 17;
       this.glControl1.VSync = false;
       this.glControl1.Load += new System.EventHandler(this.glControl1_Load);
@@ -70,7 +71,7 @@
       // 
       this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelFps.AutoSize = true;
-      this.labelFps.Location = new System.Drawing.Point(566, 381);
+      this.labelFps.Location = new System.Drawing.Point(602, 381);
       this.labelFps.Name = "labelFps";
       this.labelFps.Size = new System.Drawing.Size(27, 13);
       this.labelFps.TabIndex = 18;
@@ -79,9 +80,9 @@
       // buttonReset
       // 
       this.buttonReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonReset.Location = new System.Drawing.Point(602, 411);
+      this.buttonReset.Location = new System.Drawing.Point(641, 411);
       this.buttonReset.Name = "buttonReset";
-      this.buttonReset.Size = new System.Drawing.Size(91, 23);
+      this.buttonReset.Size = new System.Drawing.Size(84, 23);
       this.buttonReset.TabIndex = 22;
       this.buttonReset.Text = "Reset";
       this.buttonReset.UseVisualStyleBackColor = true;
@@ -91,7 +92,7 @@
       // 
       this.labelSensitivity.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelSensitivity.AutoSize = true;
-      this.labelSensitivity.Location = new System.Drawing.Point(433, 417);
+      this.labelSensitivity.Location = new System.Drawing.Point(501, 417);
       this.labelSensitivity.Name = "labelSensitivity";
       this.labelSensitivity.Size = new System.Drawing.Size(54, 13);
       this.labelSensitivity.TabIndex = 23;
@@ -101,7 +102,7 @@
       // 
       this.numericSensitivity.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.numericSensitivity.DecimalPlaces = 2;
-      this.numericSensitivity.Location = new System.Drawing.Point(493, 415);
+      this.numericSensitivity.Location = new System.Drawing.Point(561, 415);
       this.numericSensitivity.Maximum = new decimal(new int[] {
             10,
             0,
@@ -113,7 +114,7 @@
             0,
             65536});
       this.numericSensitivity.Name = "numericSensitivity";
-      this.numericSensitivity.Size = new System.Drawing.Size(63, 20);
+      this.numericSensitivity.Size = new System.Drawing.Size(59, 20);
       this.numericSensitivity.TabIndex = 24;
       this.numericSensitivity.Value = new decimal(new int[] {
             10,
@@ -136,7 +137,7 @@
       // 
       this.labelFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelFile.AutoSize = true;
-      this.labelFile.Location = new System.Drawing.Point(369, 381);
+      this.labelFile.Location = new System.Drawing.Point(442, 380);
       this.labelFile.Name = "labelFile";
       this.labelFile.Size = new System.Drawing.Size(88, 13);
       this.labelFile.TabIndex = 26;
@@ -147,7 +148,7 @@
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.textParam.Location = new System.Drawing.Point(180, 414);
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(172, 20);
+      this.textParam.Size = new System.Drawing.Size(244, 20);
       this.textParam.TabIndex = 29;
       // 
       // label3
@@ -175,7 +176,7 @@
       // 
       this.checkMulti.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkMulti.AutoSize = true;
-      this.checkMulti.Location = new System.Drawing.Point(371, 416);
+      this.checkMulti.Location = new System.Drawing.Point(446, 416);
       this.checkMulti.Name = "checkMulti";
       this.checkMulti.Size = new System.Drawing.Size(51, 17);
       this.checkMulti.TabIndex = 30;
@@ -217,11 +218,26 @@
       this.checkTwosided.Text = "Two-sided";
       this.checkTwosided.UseVisualStyleBackColor = true;
       // 
+      // checkVsync
+      // 
+      this.checkVsync.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkVsync.AutoSize = true;
+      this.checkVsync.Checked = true;
+      this.checkVsync.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkVsync.Location = new System.Drawing.Point(367, 380);
+      this.checkVsync.Name = "checkVsync";
+      this.checkVsync.Size = new System.Drawing.Size(57, 17);
+      this.checkVsync.TabIndex = 34;
+      this.checkVsync.Text = "VSync";
+      this.checkVsync.UseVisualStyleBackColor = true;
+      this.checkVsync.CheckedChanged += new System.EventHandler(this.checkVsync_CheckedChanged);
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(712, 446);
+      this.ClientSize = new System.Drawing.Size(744, 446);
+      this.Controls.Add(this.checkVsync);
       this.Controls.Add(this.checkTwosided);
       this.Controls.Add(this.checkWireframe);
       this.Controls.Add(this.checkSmooth);
@@ -236,7 +252,7 @@
       this.Controls.Add(this.buttonReset);
       this.Controls.Add(this.labelFps);
       this.Controls.Add(this.glControl1);
-      this.MinimumSize = new System.Drawing.Size(700, 200);
+      this.MinimumSize = new System.Drawing.Size(760, 200);
       this.Name = "Form1";
       this.Text = "038 trackball";
       this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseWheel);
@@ -262,6 +278,7 @@
     private System.Windows.Forms.CheckBox checkSmooth;
     private System.Windows.Forms.CheckBox checkWireframe;
     private System.Windows.Forms.CheckBox checkTwosided;
+    private System.Windows.Forms.CheckBox checkVsync;
   }
 }
 
