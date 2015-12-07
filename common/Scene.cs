@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Text;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using OpenTK;
-using Edge = System.Collections.Generic.KeyValuePair<int, int>;
 
 namespace Scene3D
 {
+  using Edge = KeyValuePair<int, int>;
+
   /// <summary>
   /// B-rep 3D scene with associated corner-table (Jarek Rossignac).
   /// </summary>
@@ -798,6 +795,153 @@ namespace Scene3D
     public int cLeft ( int c )
     {
       return cOpposite( cPrev( c ) );
+    }
+
+    /// <summary>
+    /// Checks consistency of the Corner-table.
+    /// Based on code of Karel Hrkal, 2014.
+    /// </summary>
+    /// <param name="errors">Optional output stream for detailed error messages</param>
+    /// <returns>Number of errors/inconsistencies (0 if everything is Ok)</returns>
+    public int CheckCornerTable ( StreamWriter errors )
+    {
+      if ( errors == null )
+      {
+        errors = new StreamWriter( Console.OpenStandardOutput() );
+        errors.AutoFlush = true;
+        Console.SetOut( errors );
+      }
+      int errCount = 0;
+      Action<string> log = ( s ) => { errCount++; errors.WriteLine( s ); };
+
+      // 1. check trivial things such as in 1 triangle, all corners and all vertexes are disjont,
+      //    cNext and cPevious, etc
+      for ( int i = 0; i < Corners; i++ )
+      {
+        int r1 = cNext( i );
+        int r2 = cNext( r1 );
+        int r3 = cNext( r2 );
+
+        if ( i == r1 || r1 == r2 || r2 == i || i != r3 )
+          log( "cNext not working properly for corner " + i );
+
+        if ( i != cPrev( r1 ) || r1 != cPrev( r2 ) || r2 != cPrev( i ) )
+          log( "cPrev not working properly for corner " + i );
+
+        int v0 = cVertex( i );
+        int v1 = cVertex( r1 );
+        int v2 = cVertex( r2 );
+        if ( v0 == v1 || v1 == v2 || v2 == v0 )
+          log( "Duplicate vertex in triangle with corner " + i );
+      }
+
+      // 2. check corner <-> opposite validity
+      for ( int i = 0; i < Corners; i++ )
+      {
+        int other = cOpposite( i );
+        if ( other != NULL )
+          if ( cOpposite( other ) != i )
+            log( "Corner " + i + " has an opposite " + other + " but not vice versa!" );
+          else
+          {
+            // while we are at it, check if 2 corners are linked as opposite
+            // they also have same neighbour vertexes
+            int a, b, c, d;
+            a = cVertex( cNext( i ) );
+            b = cVertex( cPrev( i ) );
+            c = cVertex( cNext( other ) );
+            d = cVertex( cPrev( other ) );
+            bool correct = (a == d) && (b == c);
+            bool semiCorrect = (a == c) && (b == d);
+
+            if ( !correct )
+              if ( semiCorrect )
+                // this is the case where the triangles indeed have same neighbours,
+                // but one is facing the other way than the other (and that is at least suspicious)
+                //  makes sense only for one-sided faces, disable this otherwise
+                log( "Opposite corners " + i + " and " + other +
+                     " have the same neighbour, but are facing opposite directions!" );
+              else
+                log( "Opposite corners " + i + " and " + other + " does not have the same neighbours!" );
+          }
+      }
+
+      // 3. now let's check that the cRight works properly
+      //    we will use cPrev(cOpposite(cPrev()))
+      //    also, this whole test assumes that neighbour triangles are facing the same way
+      //    if triangles have both faces (front and back) visible, this test doesn't make much sence
+      int[] temp = new int[ Triangles + 1 ]; // corners will be saved here
+
+      for ( int i = 0; i < Corners; i++ )
+      {
+        temp[ 0 ] = i;
+        for ( int j = 0; j < Triangles; j++ )
+        {
+          int right = cOpposite( cPrev( temp[ j ] ) );
+          if ( right != NULL )
+          {
+            right = cPrev( right );
+            temp[ j + 1 ] = right;
+          }
+
+          if ( right == i || right == NULL )
+          {
+            // test vertex equality
+            for ( int k = 0; k < j - 1; k++ )
+              if ( cVertex( temp[ k ] ) != cVertex( temp[ k + 1 ] ) )
+                log( "Traversing right corners from " + i + " resolved into differrent vertices at " + temp[ k ] );
+
+            break;
+          }
+
+          for ( int k = 0; k <= j; k++ )
+            if ( temp[ k ] == right )
+            {
+              log( "Starting in corner " + i + " we went right into corner " + right + " twice before returning to " + i );
+              j = Triangles;
+              break;
+            }
+        }
+      }
+
+      // 4. finally check if 2 triangles share the 2 vertices, then they have properly set opposite corners
+      //    moreover, at most 2 triangles can share an edge (2-manifold)
+      int[ , ] arr = new int[ Vertices, Vertices ];
+      // for edge i<j, at position [i,j] is which corner is first found opposite corner to this edge
+      // at position [j,i] is how many edges in triangles are there
+
+      for ( int i = 0; i < Corners; i++ )
+      {
+        int a = cVertex( cNext( i ) );
+        int b = cVertex( cPrev( i ) );
+        // ensure a < b
+        if ( a > b )
+        {
+          int tmp = a;
+          a = b;
+          b = tmp;
+        }
+
+        if ( arr[ b, a ] == 0 )
+        {
+          // for the 1st time at this edge
+          arr[ a, b ] = i;
+          arr[ b, a ] = 1;
+        }
+        else
+          if ( arr[ b, a ] == 1 )
+          {
+            // for the 2nd time at this edge
+            if ( cOpposite( i ) != arr[ a, b ] )
+              log( "Corners " + i + " and " + arr[ a, b ] + " have the same opposite side, but are not linked together!" );
+            arr[ b, a ] = 2;
+          }
+          else
+            // broken 2-manifold
+            log( "Corner " + i + " has an opposide side thas was already used at least twice, 2-manifold is broken!" );
+      }
+
+      return errCount;
     }
 
     #endregion
