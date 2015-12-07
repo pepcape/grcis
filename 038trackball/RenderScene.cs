@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define USE_INVALIDATE
+
+using System;
 using System.Globalization;
 using System.Threading;
 using OpenTK;
@@ -15,8 +17,12 @@ namespace _038trackball
     {
       while ( glControl1.IsIdle )
       {
+#if USE_INVALIDATE
         glControl1.Invalidate();
-        Thread.Sleep( 5 );
+#else
+        glControl1.MakeCurrent();
+        Render();
+#endif
 
         long now = DateTime.Now.Ticks;
         if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
