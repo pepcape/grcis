@@ -219,6 +219,55 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Looks for the required file in many locations.
+    /// </summary>
+    /// <param name="fileName">Simple file-name (w/o directories).</param>
+    /// <param name="hint">Optional hint directory.</param>
+    /// <returns>File-name or null if not found.</returns>
+    public static string FindSourceFile ( string fileName, string hint =null )
+    {
+      if ( fileName == null ||
+           fileName.Length == 0 )
+        return null;
+
+      // 1. local folder
+      if ( File.Exists( fileName ) )
+        return fileName;
+
+      // 2. parent folders
+      string fn = "../" + fileName;
+      if ( File.Exists( fn ) )
+        return fn;
+
+      fn = "../" + fn;
+      if ( File.Exists( fn ) )
+        return fn;
+
+      fn = "../" + fn;
+      if ( File.Exists( fn ) )
+        return fn;
+
+      if ( hint != null ||
+           hint.Length == 0 )
+        return null;
+
+      // 3. hint folder tries
+      fn = "../" + hint + '/' + fileName;
+      if ( File.Exists( fn ) )
+        return fn;
+
+      fn = "../" + fn;
+      if ( File.Exists( fn ) )
+        return fn;
+
+      fn = "../" + fn;
+      if ( File.Exists( fn ) )
+        return fn;
+
+      return null;
+    }
+
+    /// <summary>
     /// Separator for the config-file lists.
     /// </summary>
     public const char COMMA = ',';
@@ -507,23 +556,37 @@ namespace Utilities
     /// Logging (log message is always appended to the log-file).
     /// </summary>
     /// <param name="msg">The explicit message.</param>
-    // [Conditional( "DEBUG" )]
-    public static void Log ( string msg )
+    public static string Log ( string msg )
     {
       try
       {
-        StreamWriter log = new StreamWriter( logFileName, true );
-        if ( firstLog )
-          log.WriteLine();
-        log.WriteLine( string.Format( "{0}: {1}", DateTime.UtcNow.ToString( "yyyy-MM-dd HH:mm:ss" ), msg ) );
-        log.Close();
+        lock ( logFileName )
+          using ( StreamWriter log = new StreamWriter( logFileName, true ) )
+          {
+            if ( firstLog )
+              log.WriteLine();
+            log.WriteLine( string.Format( "{0}: {1}", DateTime.UtcNow.ToString( "yyyy-MM-dd HH:mm:ss" ), msg ) );
+          }
       }
       catch ( IOException e )
       {
         Console.WriteLine( "Log - unhandled IOException: " + e.Message );
-        Console.WriteLine( e.StackTrace );
+        Console.WriteLine( "Stack: " + e.StackTrace );
       }
       firstLog = false;
+
+      return msg;
+    }
+
+    /// <summary>
+    /// Logging (log message is always appended to the log-file).
+    /// </summary>
+    /// <param name="fmt">Format string.</param>
+    /// <param name="pars">Values to substitute.</param>
+    public static string LogFormat ( string fmt, params object[] pars )
+    {
+      fmt = string.Format( CultureInfo.InvariantCulture, fmt, pars );
+      return Log( fmt );
     }
 
     public static void GetFrameworkVersions ( out string targetFramework, out string runningFramework )
