@@ -81,6 +81,7 @@ x setImage improvement: 002warping, 003colortransform, 005denoise,
   081fullcolor, 082circles, 083animation, 084filter, 085segmentation
 x CheckCornerTable into the library
 x konstrukce ctyrstenu do Construction.cs
+x prvni verze projektu OpenGL + GLSL
 
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
       Text += " (rev: " + rev + ')';
