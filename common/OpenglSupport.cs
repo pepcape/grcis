@@ -2,6 +2,7 @@
 using System.IO;
 using OpenTK.Graphics.OpenGL;
 using Utilities;
+using System.Collections.Generic;
 
 namespace OpenglSupport
 {
@@ -79,4 +80,29 @@ namespace OpenglSupport
       return CompileShader( type, source );
     }
   }
+
+  public class UniformInfo
+  {
+    public string name = "";
+    public int address = -1;
+    public int size = 0;
+    public ActiveUniformType type;
+  }
+
+  public class AttributeInfo
+  {
+    public string name = "";
+    public int address = -1;
+    public int size = 0;
+    public ActiveAttribType type;
+  }
+
+  public class GlProgram : IDisposable
+  {
+    Dictionary<ShaderType, GlShader> shaders = new Dictionary<ShaderType, GlShader>();
+    Dictionary<string, AttributeInfo> attributes = new Dictionary<string, AttributeInfo>();
+    Dictionary<string, UniformInfo> uniforms = new Dictionary<string, UniformInfo>();
+    Dictionary<string, uint> buffers = new Dictionary<string, uint>();
+  }
+
 }
