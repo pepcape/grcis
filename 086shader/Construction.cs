@@ -76,6 +76,12 @@ namespace Scene3D
       scene.SetNormal( v[ 2 ], Vector3.TransformVector( C, m ).Normalized() );
       scene.SetNormal( v[ 3 ], Vector3.TransformVector( D, m ).Normalized() );
 
+      // texture coordinates:
+      scene.SetTxtCoord( v[ 0 ], new Vector2( 1.0f, 0.0f ) );
+      scene.SetTxtCoord( v[ 1 ], new Vector2( 0.0f, 0.0f ) );
+      scene.SetTxtCoord( v[ 2 ], new Vector2( 1.0f, 1.0f ) );
+      scene.SetTxtCoord( v[ 3 ], new Vector2( 0.0f, 1.0f ) );
+
       // triangle faces:
       scene.AddTriangle( v[ 0 ], v[ 1 ], v[ 2 ] );
       scene.AddTriangle( v[ 2 ], v[ 1 ], v[ 3 ] );
