@@ -47,6 +47,7 @@ namespace _086shader
 
     private GlShader vs = null;
     private GlShader fs = null;
+    private GlProgram glp = null;
 
     #endregion
 
@@ -95,7 +96,13 @@ namespace _086shader
           fs = null;
         }
         else
-          useShaders = true;
+        {
+          glp = new GlProgram();
+          useShaders = glp.AttachShader( vs ) &&
+                       glp.AttachShader( fs ) &&
+                       glp.Link() &&
+                       glp.GenBuffers();
+        }
       }
 
       // general OpenGL:
