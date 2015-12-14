@@ -6,6 +6,7 @@ using OpenTK.Graphics.OpenGL;
 using Scene3D;
 using OpenglSupport;
 using Utilities;
+using System.Collections.Generic;
 
 namespace _086shader
 {
@@ -38,16 +39,23 @@ namespace _086shader
     /// </summary>
     bool useVBO = true;
 
+    /// <summary>
+    /// Can we use shaders?
+    /// </summary>
+    bool canShaders = false;
+
+    /// <summary>
+    /// Are we currently using shaders?
+    /// </summary>
+    bool useShaders = false;
+
     #region OpenGL globals
 
     private uint[] VBOid = new uint[ 2 ];       // vertex array (colors, normals, coords), index array
     private int stride = 0;                     // stride for vertex array
 
-    bool useShaders = false;
-
-    private GlShader vs = null;
-    private GlShader fs = null;
-    private GlProgram glp = null;
+    private List<GlProgram> programs = new List<GlProgram>();
+    private GlProgram activeProgram = null;
 
     #endregion
 
@@ -75,35 +83,7 @@ namespace _086shader
     private void glControl1_Load ( object sender, EventArgs e )
     {
       // OpenGL init code:
-
-      // shaders:
-      vs = new GlShader();
-      if ( !vs.CompileShader( ShaderType.VertexShader, "vertex.glsl", "086shader" ) )
-      {
-        Util.LogFormat( "Vertex shader compile error: {0} .. giving up GLSL", vs.Message );
-        vs.Dispose();
-        vs = null;
-      }
-      else
-      {
-        fs = new GlShader();
-        if ( !fs.CompileShader( ShaderType.VertexShader, "fragment.glsl", "086shader" ) )
-        {
-          Util.LogFormat( "Fragment shader compile error: {0} .. giving up GLSL", fs.Message );
-          vs.Dispose();
-          vs = null;
-          fs.Dispose();
-          fs = null;
-        }
-        else
-        {
-          glp = new GlProgram();
-          useShaders = glp.AttachShader( vs ) &&
-                       glp.AttachShader( fs ) &&
-                       glp.Link() &&
-                       glp.GenBuffers();
-        }
-      }
+      GlInfo.LogGLProperties();
 
       // general OpenGL:
       glControl1.VSync = true;
@@ -113,8 +93,48 @@ namespace _086shader
 
       // VBO init:
       GL.GenBuffers( 2, VBOid );
-      if ( GL.GetError() != ErrorCode.NoError )
-        useVBO = false;
+      useVBO = (GL.GetError() == ErrorCode.NoError);
+
+      // shaders:
+      if ( useVBO )
+      {
+        GlShader vs, fs;
+        GlProgram glp;
+        programs.Clear();
+
+        vs = new GlShader();
+        if ( !vs.CompileShader( ShaderType.VertexShader, "vertex.glsl", "086shader" ) )
+        {
+          Util.LogFormat( "Vertex shader compile error: {0} .. giving up GLSL", vs.Message );
+          vs.Dispose();
+          vs = null;
+        }
+        else
+        {
+          fs = new GlShader();
+          if ( !fs.CompileShader( ShaderType.FragmentShader, "fragment.glsl", "086shader" ) )
+          {
+            Util.LogFormat( "Fragment shader compile error: {0} .. giving up GLSL", fs.Message );
+            vs.Dispose();
+            vs = null;
+            fs.Dispose();
+            fs = null;
+          }
+          else
+          {
+            glp = new GlProgram();
+            canShaders = glp.AttachShader( vs ) &&
+                         glp.AttachShader( fs ) &&
+                         glp.Link();
+            if ( canShaders )
+            {
+              activeProgram = glp;
+              programs.Add( glp );
+              glp.LogProgramInfo();
+            }
+          }
+        }
+      }
 
       SetupViewport();
 
@@ -230,18 +250,21 @@ namespace _086shader
            scene.Triangles > 0 )
       {
         GL.EnableClientState( ArrayCap.VertexArray );
+        if ( scene.TxtCoords > 0 )
+          GL.EnableClientState( ArrayCap.TextureCoordArray );
         if ( scene.Normals > 0 )
           GL.EnableClientState( ArrayCap.NormalArray );
-        GL.EnableClientState( ArrayCap.ColorArray );
+        if ( scene.Colors > 0 )
+          GL.EnableClientState( ArrayCap.ColorArray );
 
         // Vertex array: color [normal] coord
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-        int vertexBufferSize = scene.VertexBufferSize( true, false, true, true );
+        int vertexBufferSize = scene.VertexBufferSize( true, true, true, true );
         GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
         IntPtr videoMemoryPtr = GL.MapBuffer( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
         unsafe
         {
-          stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, false, true, true );
+          stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, true, true, true );
         }
         GL.UnmapBuffer( BufferTarget.ArrayBuffer );
         GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
@@ -260,6 +283,7 @@ namespace _086shader
       else
       {
         GL.DisableClientState( ArrayCap.VertexArray );
+        GL.DisableClientState( ArrayCap.TextureCoordArray );
         GL.DisableClientState( ArrayCap.NormalArray );
         GL.DisableClientState( ArrayCap.ColorArray );
 

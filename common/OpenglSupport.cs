@@ -7,6 +7,46 @@ using System.Text;
 
 namespace OpenglSupport
 {
+  public static class GlInfo
+  {
+    public static void LogGLProperties ( bool ext =false )
+    {
+      // 1. OpenGL version, vendor, ..
+      string version = GL.GetString( StringName.Version );
+      string vendor = GL.GetString( StringName.Vendor );
+      string renderer = GL.GetString( StringName.Renderer );
+      string shVer = GL.GetString( StringName.ShadingLanguageVersion );
+      Util.LogFormat( "OpenGL version: {0}, shading language: {1}",
+                      version ?? "-", shVer ?? "-" );
+      Util.LogFormat( "Vendor: {0}, driver: {1}",
+                      vendor ?? "-", renderer ?? "-" );
+
+      // 2. OpenGL parameters:
+      int maxVertices = GL.GetInteger( GetPName.MaxElementsVertices );
+      int maxIndices = GL.GetInteger( GetPName.MaxElementsIndices );
+      string extensions = GL.GetString( StringName.Extensions );
+      int extLen = (extensions == null) ? 0 : extensions.Split( ' ' ).Length;
+      Util.LogFormat( "Max-vertices: {0}, max-indices: {1}, extensions: {2}",
+                      maxVertices, maxIndices, extLen );
+
+      // 3. OpenGL extensions:
+      if ( ext &&
+           extensions != null )
+        while ( extensions.Length > 0 )
+        {
+          int split = Math.Min( extensions.Length, 80 ) - 1;
+          while ( split < extensions.Length &&
+                  !char.IsWhiteSpace( extensions[ split ] ) )
+            split++;
+          Util.LogFormat( "Ext: {0}", extensions.Substring( 0, split ) );
+          if ( split + 1 >= extensions.Length )
+            break;
+
+          extensions = extensions.Substring( split + 1 );
+        }
+    }
+  }
+
   /// <summary>
   /// GLSL shader object.
   /// </summary>
@@ -28,11 +68,11 @@ namespace OpenglSupport
 
     public void Dispose ()
     {
-      if ( Id >= 0 )
-      {
-        GL.DeleteShader( Id );
-        Id = -1;
-      }
+      if ( Id < 0 )
+        return;
+
+      GL.DeleteShader( Id );
+      Id = -1;
     }
 
     protected bool CompileShader ()
@@ -100,10 +140,24 @@ namespace OpenglSupport
 
   public class GlProgram : IDisposable
   {
+    /// <summary>
+    /// All attached shaders by their type.
+    /// </summary>
     Dictionary<ShaderType, GlShader> shaders = new Dictionary<ShaderType, GlShader>();
+
+    /// <summary>
+    /// All active vertex attributes.
+    /// Attribute identifier in GLSL is the key.
+    /// </summary>
     Dictionary<string, AttributeInfo> attributes = new Dictionary<string, AttributeInfo>();
+
+    /// <summary>
+    /// All active uniforms.
+    /// Uniform identifier in GLSL is the key.
+    /// </summary>
     Dictionary<string, UniformInfo> uniforms = new Dictionary<string, UniformInfo>();
-    Dictionary<string, uint> buffers = new Dictionary<string, uint>();
+
+    public string Name;
 
     /// <summary>
     /// Program Id by CreateProgram()
@@ -117,22 +171,21 @@ namespace OpenglSupport
 
     public string Message = "Ok.";
 
-    public GlProgram ()
+    public GlProgram ( string name ="default" )
     {
+      Name = name;
       Id = GL.CreateProgram();
     }
 
     public void Dispose ()
     {
-      foreach ( var shader in shaders.Values )
-        shader.Dispose();
-      shaders.Clear();
+      if ( Id < 0 )
+        return;
 
-      if ( Id >= 0 )
-      {
-        GL.DeleteProgram( Id );
-        Id = -1;
-      }
+      foreach ( var shader in shaders.Values )
+        GL.DetachShader( Id, shader.Id );
+      GL.DeleteProgram( Id );
+      Id = -1;
     }
 
     public bool AttachShader ( GlShader shader )
@@ -175,15 +228,15 @@ namespace OpenglSupport
       }
 
       GL.LinkProgram( Id );
-      GL.GetProgram( Id, ProgramParameter.LinkStatus, out Status );
+      GL.GetProgram( Id, GetProgramParameterName.LinkStatus, out Status );
       Message = GL.GetProgramInfoLog( Id );
 
       if ( Status == 0 )
         return false;
 
       int attrCount, uniformCount;
-      GL.GetProgram( Id, ProgramParameter.ActiveAttributes, out attrCount );
-      GL.GetProgram( Id, ProgramParameter.ActiveUniforms, out uniformCount );
+      GL.GetProgram( Id, GetProgramParameterName.ActiveAttributes, out attrCount );
+      GL.GetProgram( Id, GetProgramParameterName.ActiveUniforms, out uniformCount );
 
       int i, len;
       StringBuilder name = new StringBuilder();
@@ -219,27 +272,6 @@ namespace OpenglSupport
       return true;
     }
 
-    public bool GenBuffers ()
-    {
-      buffers.Clear();
-
-      foreach ( var attr in attributes.Values )
-      {
-        uint buffer = 0;
-        GL.GenBuffers( 1, out buffer );
-        buffers.Add( attr.Name, buffer );
-      }
-
-      foreach ( var uni in uniforms.Values )
-      {
-        uint buffer = 0;
-        GL.GenBuffers( 1, out buffer );
-        buffers.Add( uni.Name, buffer );
-      }
-
-      return true;
-    }
-
     public void EnableVertexAttribArrays ()
     {
       foreach ( var attr in attributes.Values )
@@ -250,6 +282,11 @@ namespace OpenglSupport
     {
       foreach ( var attr in attributes.Values )
         GL.DisableVertexAttribArray( attr.Address );
+    }
+
+    public bool HasAttribute ( string name )
+    {
+      return attributes.ContainsKey( name );
     }
 
     public int GetAttribute ( string name )
@@ -269,11 +306,25 @@ namespace OpenglSupport
       return -1;
     }
 
-    public uint GetBuffer ( string name )
+    public void LogProgramInfo ()
     {
-      uint address = 0;
-      buffers.TryGetValue( name, out address );
-      return address;
+      Util.LogFormat( "GLSL program '{0}': {1}, shaders: {2}",
+                      Name, Id, shaders.Count );
+      foreach ( var shader in shaders.Values )
+        Util.LogFormat( "  {0}: {1}",
+                        shader.Type, shader.Id );
+
+      // program attributes:
+      Util.LogFormat( "Attributes[ {0} ]:", attributes.Count );
+      foreach ( var attr in attributes.Values )
+        Util.LogFormat( "  {0}: {1}, {2}, {3}",
+                        attr.Name, attr.Address, attr.Type, attr.Size );
+
+      // program attributes:
+      Util.LogFormat( "Uniforms[ {0} ]:", uniforms.Count );
+      foreach ( var uni in uniforms.Values )
+        Util.LogFormat( "  {0}: {1}, {2}, {3}",
+                        uni.Name, uni.Address, uni.Type, uni.Size );
     }
   }
 }

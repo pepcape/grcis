@@ -3,10 +3,12 @@
 //   normal vector, single point light-source
 //   @version $Rev$
 //---------------------------------------------------------------
+#version 330
 
-varying vec2 varTexCoords;
-varying vec3 varNormal;
-varying vec3 varWorld;
+in vec2 varTexCoords;
+in vec3 varNormal;
+in vec3 varWorld;
+in vec3 varColor;
 
 uniform vec3 globalAmbient;
 uniform vec3 lightColor;
@@ -17,6 +19,7 @@ uniform vec3 Kd;
 uniform vec3 Ks;
 uniform float shininess;
 uniform bool useTexture;
+uniform bool globalColor;
 uniform sampler2D texWater;
 
 out vec4 fragColor;
@@ -40,10 +43,15 @@ void main ()
     ka = kd = vec3( texture2D( texWater, varTexCoords ) );
   }
   else
-  {
-    ka = Ka;
-    kd = Kd;
-  }
+    if ( globalColor )
+    {
+      ka = Ka;
+      kd = Kd;
+    }
+    else
+    {
+      ka = kd = varColor;
+    }
   vec3 ambient  = ka * globalAmbient;
   vec3 diffuse  = kd * lightColor * cosa;
   vec3 specular = Ks * lightColor * cosb;

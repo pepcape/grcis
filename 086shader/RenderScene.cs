@@ -49,31 +49,78 @@ namespace _086shader
     private void RenderScene ()
     {
       // Scene rendering:
-      if ( useVBO &&
-           scene != null &&
-           scene.Triangles > 0 )        // scene is nonempty => render it
+      if ( scene != null &&
+           scene.Triangles > 0 &&        // scene is nonempty => render it
+           useVBO )
       {
-        // [colors] [normals] vertices
+        // [txt] [colors] [normals] vertices
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
         IntPtr p = IntPtr.Zero;
-        if ( scene.HasColors() )
-        {
-          GL.ColorPointer( 3, ColorPointerType.Float, stride, p );
-          p += Vector3.SizeInBytes;
-        }
-        if ( scene.HasNormals() )
-        {
-          GL.NormalPointer( NormalPointerType.Float, stride, p );
-          p += Vector3.SizeInBytes;
-        }
-        GL.VertexPointer( 3, VertexPointerType.Float, stride, p );
 
-        // index buffer
-        GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+        if ( useShaders &&
+             activeProgram != null )
+        {
+          if ( scene.HasTxtCoords() )
+          {
+            if ( activeProgram.HasAttribute( "texCoords" ) )
+              GL.VertexAttribPointer( activeProgram.GetAttribute( "texCoords" ), 2, VertexAttribPointerType.Float, false, stride, p );
+            p += Vector2.SizeInBytes;
+          }
 
-        // engage!
+          if ( scene.HasColors() )
+          {
+            if ( activeProgram.HasAttribute( "color" ) )
+              GL.VertexAttribPointer( activeProgram.GetAttribute( "color" ), 3, VertexAttribPointerType.Float, false, stride, p );
+            p += Vector3.SizeInBytes;
+          }
+
+          if ( scene.HasNormals() )
+          {
+            if ( activeProgram.HasAttribute( "normal" ) )
+              GL.VertexAttribPointer( activeProgram.GetAttribute( "normal" ), 3, VertexAttribPointerType.Float, false, stride, p );
+            p += Vector3.SizeInBytes;
+          }
+
+          GL.VertexAttribPointer( activeProgram.GetAttribute( "position" ), 3, VertexAttribPointerType.Float, false, stride, p );
+
+          // index buffer
+          GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+
+          // engage!
+          GL.UseProgram( activeProgram.Id );
+          GL.DrawElements( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+          GL.UseProgram( 0 );
+        }
+        else
+        {
+          // FFP:
+          if ( scene.HasTxtCoords() )
+          {
+            p += Vector2.SizeInBytes;
+          }
+
+          if ( scene.HasColors() )
+          {
+            GL.ColorPointer( 3, ColorPointerType.Float, stride, p );
+            p += Vector3.SizeInBytes;
+          }
+
+          if ( scene.HasNormals() )
+          {
+            GL.NormalPointer( NormalPointerType.Float, stride, p );
+            p += Vector3.SizeInBytes;
+          }
+
+          GL.VertexPointer( 3, VertexPointerType.Float, stride, p );
+
+          // index buffer
+          GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+
+          // engage!
+          GL.DrawElements( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+        }
+
         triangleCounter += scene.Triangles;
-        GL.DrawElements( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
       }
       else                              // color cube (JB)
       {

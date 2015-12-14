@@ -142,22 +142,33 @@ namespace _086shader
       setEllipse();
     }
 
+    static Matrix4 identity = Matrix4.Identity;
+
     /// <summary>
     /// Setup of a camera called for every frame prior to any rendering.
     /// </summary>
     private void SetCamera ()
     {
-      // !!!{{ TODO: add camera setup here
-
+      Matrix4 modelview = GetModelView();
       GL.MatrixMode( MatrixMode.Modelview );
-      Matrix4 modelview = Matrix4.CreateTranslation( -center ) *
-                          Matrix4.CreateScale( zoom / diameter ) *
-                          prevRotation *
-                          rotation *
-                          Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
-      GL.LoadMatrix( ref modelview );
+      if ( useShaders )
+      {
+        GL.LoadMatrix( ref identity );
+        GL.UniformMatrix4( activeProgram.GetUniform( "matrixModelView" ), false, ref modelview );
+      }
+      else
+      {
+        GL.LoadMatrix( ref modelview );
+      }
+    }
 
-      // !!!}}
+    private Matrix4 GetModelView ()
+    {
+      return Matrix4.CreateTranslation( -center ) *
+             Matrix4.CreateScale( zoom / diameter ) *
+             prevRotation *
+             rotation *
+             Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
     }
 
     private void ResetCamera ()
@@ -268,10 +279,21 @@ namespace _086shader
     private void setProjection ()
     {
       GL.MatrixMode( MatrixMode.Projection );
-      if ( perspective )
-        GL.LoadMatrix( ref perspectiveProjection );
+      if ( useShaders )
+      {
+        GL.LoadMatrix( ref identity );
+        if ( perspective )
+          GL.UniformMatrix4( activeProgram.GetUniform( "matrixProjection" ), false, ref perspectiveProjection );
+        else
+          GL.UniformMatrix4( activeProgram.GetUniform( "matrixProjection" ), false, ref ortographicProjection );
+      }
       else
-        GL.LoadMatrix( ref ortographicProjection );
+      {
+        if ( perspective )
+          GL.LoadMatrix( ref perspectiveProjection );
+        else
+          GL.LoadMatrix( ref ortographicProjection );
+      }
     }
 
     private void buttonReset_Click ( object sender, EventArgs e )
