@@ -74,6 +74,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\BufferedDeflateStream.cs">
+      <Link>BufferedDeflateStream.cs</Link>
+    </Compile>
     <Compile Include="..\common\Compression.cs">
       <Link>Compression.cs</Link>
     </Compile>
