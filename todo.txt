@@ -3,7 +3,6 @@
 ================================================================================
   ($Rev$ $Date$)
 ================================================================================
-- stinovani do 070subdivision (?)
 - 016videoslow: zkontrolovat Bitmap.Dispose()
 - zkontrolovat po zmenach 12. 11. 2015:
   057-080  (setImage(), resetImage()..)
@@ -82,6 +81,8 @@ x setImage improvement: 002warping, 003colortransform, 005denoise,
 x CheckCornerTable into the library
 x konstrukce ctyrstenu do Construction.cs
 x prvni verze projektu OpenGL + GLSL
+x stinovani do 070subdivision (?)
+x pouziti shaderu: 086shader
 
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
       Text += " (rev: " + rev + ')';

@@ -3,7 +3,7 @@
 //   normal vector, single point light-source
 //   @version $Rev$
 //---------------------------------------------------------------
-#version 330
+#version 140
 
 in vec2 varTexCoords;
 in vec3 varNormal;
@@ -20,7 +20,7 @@ uniform vec3 Ks;
 uniform float shininess;
 uniform bool useTexture;
 uniform bool globalColor;
-uniform sampler2D texWater;
+uniform sampler2D texSurface;
 
 out vec4 fragColor;
 
@@ -32,15 +32,17 @@ void main ()
   vec3 V = normalize( eyePosition - P );
   vec3 H = normalize( L + V );
 
-  float cosb = pow( max( dot( N, H ), 0.0 ), shininess );
+  float cosb = 0.0;
   float cosa = dot( N, L );
-  if ( cosa < 0.0 ) cosb = 0.0;
-  cosa = max( cosa, 0.0 );
+  if ( cosa > 0.0 )
+    cosb = pow( max( dot( N, H ), 0.0 ), shininess );
+  else
+    cosa = 0.0;
 
   vec3 ka, kd;
   if ( useTexture )
   {
-    ka = kd = vec3( texture2D( texWater, varTexCoords ) );
+    ka = kd = vec3( texture2D( texSurface, varTexCoords ) );
   }
   else
     if ( globalColor )

@@ -1,12 +1,7 @@
 using System;
-using System.Drawing;
 using System.Windows.Forms;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
 using Scene3D;
-using OpenglSupport;
-using Utilities;
-using System.Collections.Generic;
 
 namespace _086shader
 {
@@ -34,41 +29,6 @@ namespace _086shader
     /// </summary>
     bool loaded = false;
 
-    /// <summary>
-    /// Are we allowed to use VBO?
-    /// </summary>
-    bool useVBO = true;
-
-    /// <summary>
-    /// Can we use shaders?
-    /// </summary>
-    bool canShaders = false;
-
-    /// <summary>
-    /// Are we currently using shaders?
-    /// </summary>
-    bool useShaders = false;
-
-    #region OpenGL globals
-
-    private uint[] VBOid = new uint[ 2 ];       // vertex array (colors, normals, coords), index array
-    private int stride = 0;                     // stride for vertex array
-
-    private List<GlProgram> programs = new List<GlProgram>();
-    private GlProgram activeProgram = null;
-
-    #endregion
-
-    #region FPS counter
-
-    long lastFpsTime = 0L;
-    int frameCounter = 0;
-    long triangleCounter = 0L;
-    double lastFps = 0.0;
-    double lastTps = 0.0;
-
-    #endregion
-
     public Form1 ()
     {
       InitializeComponent();
@@ -76,66 +36,14 @@ namespace _086shader
       string param;
       Construction.InitParams( out param );
       textParam.Text = param ?? "";
-
       Text += " (rev: " + rev + ')';
+
+      InitShaderRepository();
     }
 
     private void glControl1_Load ( object sender, EventArgs e )
     {
-      // OpenGL init code:
-      GlInfo.LogGLProperties();
-
-      // general OpenGL:
-      glControl1.VSync = true;
-      GL.ClearColor( Color.DarkBlue );
-      GL.Enable( EnableCap.DepthTest );
-      GL.ShadeModel( ShadingModel.Flat );
-
-      // VBO init:
-      GL.GenBuffers( 2, VBOid );
-      useVBO = (GL.GetError() == ErrorCode.NoError);
-
-      // shaders:
-      if ( useVBO )
-      {
-        GlShader vs, fs;
-        GlProgram glp;
-        programs.Clear();
-
-        vs = new GlShader();
-        if ( !vs.CompileShader( ShaderType.VertexShader, "vertex.glsl", "086shader" ) )
-        {
-          Util.LogFormat( "Vertex shader compile error: {0} .. giving up GLSL", vs.Message );
-          vs.Dispose();
-          vs = null;
-        }
-        else
-        {
-          fs = new GlShader();
-          if ( !fs.CompileShader( ShaderType.FragmentShader, "fragment.glsl", "086shader" ) )
-          {
-            Util.LogFormat( "Fragment shader compile error: {0} .. giving up GLSL", fs.Message );
-            vs.Dispose();
-            vs = null;
-            fs.Dispose();
-            fs = null;
-          }
-          else
-          {
-            glp = new GlProgram();
-            canShaders = glp.AttachShader( vs ) &&
-                         glp.AttachShader( fs ) &&
-                         glp.Link();
-            if ( canShaders )
-            {
-              activeProgram = glp;
-              programs.Add( glp );
-              glp.LogProgramInfo();
-            }
-          }
-        }
-      }
-
+      InitOpenGL();
       SetupViewport();
 
       loaded = true;
@@ -166,7 +74,7 @@ namespace _086shader
 
       ofd.Title = "Open Scene File";
       ofd.Filter = "Wavefront OBJ Files|*.obj;*.obj.gz" +
-          "|All scene types|*.obj";
+                   "|All scene types|*.obj";
 
       ofd.FilterIndex = 1;
       ofd.FileName = "";
@@ -238,65 +146,6 @@ namespace _086shader
       glControl1.Invalidate();
 
       Cursor.Current = Cursors.Default;
-    }
-
-    /// <summary>
-    /// Prepare VBO content and upload it to the GPU.
-    /// </summary>
-    private void PrepareDataBuffers ()
-    {
-      if ( useVBO &&
-           scene != null &&
-           scene.Triangles > 0 )
-      {
-        GL.EnableClientState( ArrayCap.VertexArray );
-        if ( scene.TxtCoords > 0 )
-          GL.EnableClientState( ArrayCap.TextureCoordArray );
-        if ( scene.Normals > 0 )
-          GL.EnableClientState( ArrayCap.NormalArray );
-        if ( scene.Colors > 0 )
-          GL.EnableClientState( ArrayCap.ColorArray );
-
-        // Vertex array: color [normal] coord
-        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-        int vertexBufferSize = scene.VertexBufferSize( true, true, true, true );
-        GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
-        IntPtr videoMemoryPtr = GL.MapBuffer( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
-        unsafe
-        {
-          stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, true, true, true );
-        }
-        GL.UnmapBuffer( BufferTarget.ArrayBuffer );
-        GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
-
-        // Index buffer
-        GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)(scene.Triangles * 3 * sizeof( uint )), IntPtr.Zero, BufferUsageHint.StaticDraw );
-        videoMemoryPtr = GL.MapBuffer( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
-        unsafe
-        {
-          scene.FillIndexBuffer( (uint*)videoMemoryPtr.ToPointer() );
-        }
-        GL.UnmapBuffer( BufferTarget.ElementArrayBuffer );
-        GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
-      }
-      else
-      {
-        GL.DisableClientState( ArrayCap.VertexArray );
-        GL.DisableClientState( ArrayCap.TextureCoordArray );
-        GL.DisableClientState( ArrayCap.NormalArray );
-        GL.DisableClientState( ArrayCap.ColorArray );
-
-        if ( useVBO )
-        {
-          GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-          GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
-          GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
-          GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-          GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
-          GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
-        }
-      }
     }
   }
 }
