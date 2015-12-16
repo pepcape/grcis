@@ -1,9 +1,9 @@
 //---------------------------------------------------------------
 // Simple vertex shader
-//   propagates 2D texture coords, normal vector, world coords
+//   propagates 2D texture coords, normal vector, world coords, color
 //   @version $Rev$
 //---------------------------------------------------------------
-#version 330
+#version 140
 
 in vec4 position;
 in vec3 normal;

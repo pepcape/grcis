@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using OpenTK.Graphics.OpenGL;
 using Utilities;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OpenglSupport
 {
   public static class GlInfo
   {
+    /// <summary>
+    /// Logs OpenGL properties.
+    /// </summary>
+    /// <param name="ext">Print detailed list of extensions as well?</param>
     public static void LogGLProperties ( bool ext =false )
     {
       // 1. OpenGL version, vendor, ..
@@ -44,6 +48,137 @@ namespace OpenglSupport
 
           extensions = extensions.Substring( split + 1 );
         }
+    }
+
+    /// <summary>
+    /// Checks OpenGL error and logs a message eventually.
+    /// </summary>
+    /// <param name="checkpoint">Optional checkpoint identification.</param>
+    public static void LogError ( string checkpoint ="?" )
+    {
+      ErrorCode err = GL.GetError();
+      if ( err == ErrorCode.NoError )
+        return;
+
+      Util.LogFormat( "OpenGL error {0} at {1}", err, checkpoint );
+    }
+  }
+
+  /// <summary>
+  /// Item of shader repository database.
+  /// </summary>
+  public class GlShaderInfo
+  {
+    public ShaderType type;
+    
+    public string sourceFile;
+
+    /// <summary>
+    /// Optional hint of directory in which shader source file will be looked for.
+    /// </summary>
+    public string hintDir;
+
+    /// <summary>
+    /// Shader id if compiled successfully.
+    /// </summary>
+    public GlShader shader;
+
+    public GlShaderInfo ( ShaderType st, string source, string hint =null )
+    {
+      type = st;
+      sourceFile = source;
+      hintDir = hint;
+      shader = null;
+    }
+
+    public bool Compile ()
+    {
+      shader = new GlShader();
+      if ( !shader.CompileShader( type, sourceFile, hintDir ) )
+      {
+        Util.LogFormat( "{0} compile error: {1} .. giving up", type.ToString(), shader.Message );
+        shader.Dispose();
+        shader = null;
+        return false;
+      }
+      return true;
+    }
+  }
+
+  /// <summary>
+  /// Item of program repository database.
+  /// </summary>
+  public class GlProgramInfo
+  {
+    /// <summary>
+    /// Name used in GUI, etc.
+    /// </summary>
+    public string name;
+
+    /// <summary>
+    /// Program id if assembled, linked and verified successfully.
+    /// </summary>
+    public GlProgram program;
+
+    public List<GlShaderInfo> shaders;
+
+    public GlProgramInfo ( string _name, IEnumerable<GlShaderInfo> si =null )
+    {
+      name = _name;
+      program = null;
+      shaders = (si == null) ? new List<GlShaderInfo>() : new List<GlShaderInfo>( si );
+    }
+
+    public bool Setup ()
+    {
+      bool okProgram = true;
+      program = null;
+
+      foreach ( var shaderInfo in shaders )
+        if ( !shaderInfo.Compile() )
+        {
+          okProgram = false;
+          break;
+        }
+
+      if ( okProgram )
+      {
+        // all shaders compiled ok, now we'll try to link them together..
+        program = new GlProgram();
+        foreach ( var shaderInfo in shaders )
+          if ( !program.AttachShader( shaderInfo.shader ) )
+          {
+            Util.LogFormat( "GLSL program attach error: {0}", program.Message );
+            okProgram = false;
+            break;
+          }
+
+        if ( okProgram )
+        {
+          okProgram = program.Link();
+          if ( okProgram )
+            program.LogProgramInfo();
+          else
+            Util.LogFormat( "GLSL program link error: {0}", program.Message );
+        }
+      }
+
+      if ( !okProgram )
+      {
+        if ( program != null )
+        {
+          program.Dispose();
+          program = null;
+        }
+        foreach ( var shaderInfo in shaders )
+          if ( shaderInfo.shader != null )
+          {
+            shaderInfo.shader.Dispose();
+            shaderInfo.shader = null;
+          }
+      }
+
+      return okProgram;
     }
   }
 
@@ -157,6 +292,9 @@ namespace OpenglSupport
     /// </summary>
     Dictionary<string, UniformInfo> uniforms = new Dictionary<string, UniformInfo>();
 
+    /// <summary>
+    /// Program name, can be used in GUI.
+    /// </summary>
     public string Name;
 
     /// <summary>
@@ -234,6 +372,13 @@ namespace OpenglSupport
       if ( Status == 0 )
         return false;
 
+      GL.ValidateProgram( Id );
+      GL.GetProgram( Id, GetProgramParameterName.ValidateStatus, out Status );
+      Message = GL.GetProgramInfoLog( Id );
+
+      if ( Status == 0 )
+        return false;
+
       int attrCount, uniformCount;
       GL.GetProgram( Id, GetProgramParameterName.ActiveAttributes, out attrCount );
       GL.GetProgram( Id, GetProgramParameterName.ActiveUniforms, out uniformCount );
@@ -289,11 +434,20 @@ namespace OpenglSupport
       return attributes.ContainsKey( name );
     }
 
+    static HashSet<string> unknownNames = new HashSet<string>();
+
     public int GetAttribute ( string name )
     {
       AttributeInfo ai;
       if ( attributes.TryGetValue( name, out ai ) )
         return ai.Address;
+
+      if ( !unknownNames.Contains( name ) )
+      {
+        Util.LogFormat( "GetAttribute: unknown attribute '{0}'", name );
+        unknownNames.Add( name );
+      }
+
       return -1;
     }
 
@@ -302,6 +456,12 @@ namespace OpenglSupport
       UniformInfo ui;
       if ( uniforms.TryGetValue( name, out ui ) )
         return ui.Address;
+
+      if ( !unknownNames.Contains( name ) )
+      {
+        Util.LogFormat( "GetUniform: unknown uniform '{0}'", name );
+        unknownNames.Add( name );
+      }
 
       return -1;
     }
@@ -320,7 +480,7 @@ namespace OpenglSupport
         Util.LogFormat( "  {0}: {1}, {2}, {3}",
                         attr.Name, attr.Address, attr.Type, attr.Size );
 
-      // program attributes:
+      // program uniforms:
       Util.LogFormat( "Uniforms[ {0} ]:", uniforms.Count );
       foreach ( var uni in uniforms.Values )
         Util.LogFormat( "  {0}: {1}, {2}, {3}",
