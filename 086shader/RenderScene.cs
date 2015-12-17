@@ -1,4 +1,4 @@
-﻿//#define USE_INVALIDATE
+﻿#define USE_INVALIDATE
 
 using System;
 using System.Collections.Generic;
@@ -427,6 +427,7 @@ namespace _086shader
           // using FFP:
           if ( scene.HasTxtCoords() )
           {
+            GL.TexCoordPointer( 2, TexCoordPointerType.Float, stride, p );
             p += Vector2.SizeInBytes;
           }
 
