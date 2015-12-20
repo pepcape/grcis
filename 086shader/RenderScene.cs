@@ -218,14 +218,14 @@ namespace _086shader
     }
 
     // appearance:
-    Vector3 globalAmbient = new Vector3(  0.2f,  0.2f,  0.2f );
-    Vector3 matAmbient    = new Vector3(  0.8f,  0.6f,  0.2f );
-    Vector3 matDiffuse    = new Vector3(  0.8f,  0.6f,  0.2f );
-    Vector3 matSpecular   = new Vector3(  0.8f,  0.8f,  0.8f );
+    Vector3 globalAmbient = new Vector3(   0.2f,  0.2f,  0.2f );
+    Vector3 matAmbient    = new Vector3(   0.8f,  0.6f,  0.2f );
+    Vector3 matDiffuse    = new Vector3(   0.8f,  0.6f,  0.2f );
+    Vector3 matSpecular   = new Vector3(   0.8f,  0.8f,  0.8f );
     float   matShininess  = 100.0f;
-    Vector3 whiteLight    = new Vector3(  1.0f,  1.0f,  1.0f );
-    Vector3 lightPosition = new Vector3(-20.0f, 10.0f, 10.0f );
-    Vector3 eyePosition   = new Vector3(  0.0f,  0.0f, 10.0f );
+    Vector3 whiteLight    = new Vector3(   1.0f,  1.0f,  1.0f );
+    Vector3 lightPosition = new Vector3( -20.0f, 10.0f, 10.0f );
+    Vector3 eyePosition   = new Vector3(   0.0f,  0.0f, 10.0f );
 
     void SetLightEye ( float size )
     {

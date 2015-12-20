@@ -77,7 +77,7 @@ namespace _087fireworks
         Vector3 dir = new Vector3( (float)dird.X, (float)dird.Y, (float)dird.Z );                        // we need float-version of the vector
         Particle p = new Particle( position, dir * rnd.RandomFloat( 0.2f, 0.8f ), up,
                                    new Vector3( rnd.RandomFloat( 0.1f, 1.0f ), rnd.RandomFloat( 0.1f, 1.0f ), rnd.RandomFloat( 0.1f, 1.0f ) ),
-                                   rnd.RandomFloat( 1.0f, 4.0f ), time, rnd.RandomFloat( 2.0f, 12.0f ) );
+                                   rnd.RandomFloat( 0.5f, 3.0f ), time, rnd.RandomFloat( 2.0f, 12.0f ) );
         fw.AddParticle( p );
         probability -= 1.0f;
       }
@@ -291,18 +291,6 @@ namespace _087fireworks
   public class Fireworks
   {
     /// <summary>
-    /// Optional data initialization.
-    /// </summary>
-    public static void InitParams ( out string param, out Vector3 center, out float diameter, out bool GLSL, out bool globalColor )
-    {
-      param = "freq=8000.0,max=60000";
-      center = new Vector3( 0.0f, 1.5f, 0.0f );
-      diameter = 5.0f;
-      GLSL = true;
-      globalColor = false;
-    }
-
-    /// <summary>
     /// Set of active particles.
     /// </summary>
     List<Particle> particles;
@@ -411,6 +399,11 @@ namespace _087fireworks
       }
     }
 
+    /// <summary>
+    /// Slow motion coefficient.
+    /// </summary>
+    public static double slow = 0.25;
+
     public Fireworks ( int maxPart = 1000 )
     {
       maxParticles     = maxPart;
@@ -419,6 +412,7 @@ namespace _087fireworks
       expiredParticles = new List<int>();
       launchers        = new List<Launcher>();
       frames           = 0;
+      lastTime         = 0.0f;
       Running          = true;
     }
 
@@ -437,6 +431,9 @@ namespace _087fireworks
       if ( !Util.TryParse( p, "max", ref maxParticles ) ||
            maxParticles < 10 )
         maxParticles = 1000;
+      if ( !Util.TryParse( p, "slow", ref slow ) ||
+           slow < 1.0e-4 )
+        slow = 0.25;
 
       // initialization job itself:
       particles.Clear();
@@ -444,8 +441,9 @@ namespace _087fireworks
 
       AddLauncher( new Launcher( freq ) );
 
-      frames  = 0;
-      Running = true;
+      frames   = 0;
+      lastTime = 0.0f;
+      Running  = true;
     }
 
     public void AddLauncher ( Launcher la )
@@ -472,7 +470,6 @@ namespace _087fireworks
         return;
 
       frames++;
-      lastTime = time;
 
       // clean the work table:
       newParticles.Clear();
@@ -493,6 +490,8 @@ namespace _087fireworks
       // add new particles:
       foreach ( var p in newParticles )
         particles.Add( p );
+
+      lastTime = time;
     }
 
     public unsafe int FillTriangleData ( ref float* ptr, ref uint* iptr, out int stride, bool txt, bool col, bool normal, bool ptsize )
@@ -558,6 +557,18 @@ namespace _087fireworks
 
   public partial class Form1
   {
+    /// <summary>
+    /// Optional form-data initialization.
+    /// </summary>
+    public static void InitParams ( out string param, out Vector3 center, out float diameter, out bool useNormals, out bool globalColor )
+    {
+      param = "freq=8000.0,max=60000,slow=0.25";
+      center = new Vector3( 0.0f, 1.5f, 0.0f );
+      diameter = 5.0f;
+      useNormals = false;
+      globalColor = false;
+    }
+
     /// <summary>
     /// Can we use shaders?
     /// </summary>
@@ -693,7 +704,6 @@ namespace _087fireworks
     /// </summary>
     void GenerateTexture ()
     {
-      // {{ 
       GL.PixelStore( PixelStoreParameter.UnpackAlignment, 1 );
       texName = GL.GenTexture();
       GL.BindTexture( TextureTarget.Texture2D, texName );
@@ -772,7 +782,7 @@ namespace _087fireworks
 
       // vertex-buffer size:
       int maxVB;
-      maxVB = Align( fw.MaxParticles * p.TriangleVertices( ref ptr, ref origin, out stride, true, true, true, true ) );
+      maxVB =                  Align( fw.MaxParticles * p.TriangleVertices( ref ptr, ref origin, out stride, true, true, true, true ) );
       maxVB = Math.Max( maxVB, Align( fw.MaxParticles * p.LineVertices( ref ptr, ref origin, out stride, true, true, true, true ) ) );
       maxVB = Math.Max( maxVB, Align( fw.MaxParticles * p.PointVertices( ref ptr, ref origin, out stride, true, true, true, true ) ) );
       maxVB = Math.Max( maxVB, Align( fw.MaxLaunchers * l.TriangleVertices( ref ptr, ref origin, out stride, true, true, true, true ) ) );
@@ -782,7 +792,7 @@ namespace _087fireworks
 
       // index-buffer size:
       int maxIB;
-      maxIB = Align( fw.MaxParticles * p.TriangleIndices( ref iptr, 0 ) );
+      maxIB =                  Align( fw.MaxParticles * p.TriangleIndices( ref iptr, 0 ) );
       maxIB = Math.Max( maxIB, Align( fw.MaxParticles * p.LineIndices( ref iptr, 0 ) ) );
       maxIB = Math.Max( maxIB, Align( fw.MaxLaunchers * l.TriangleIndices( ref iptr, 0 ) ) );
       maxIB = Math.Max( maxIB, Align( fw.MaxLaunchers * l.LineIndices( ref iptr, 0 ) ) );
@@ -800,30 +810,25 @@ namespace _087fireworks
       // Index buffer in VBO[ 1 ]:
       GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
       GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)VBOlen[ 1 ], IntPtr.Zero, BufferUsageHint.DynamicDraw );
-      /*
-      videoMemoryPtr = GL.MapBuffer( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
-      scene.FillIndexBuffer( (uint*)videoMemoryPtr.ToPointer() );
-      GL.UnmapBuffer( BufferTarget.ElementArrayBuffer );
-      */
       GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
       GlInfo.LogError( "allocate index-buffer" );
     }
 
     // appearance:
-    Vector3 globalAmbient = new Vector3( 0.2f, 0.2f, 0.2f );
-    Vector3 matAmbient = new Vector3( 0.8f, 0.6f, 0.2f );
-    Vector3 matDiffuse = new Vector3( 0.8f, 0.6f, 0.2f );
-    Vector3 matSpecular = new Vector3( 0.8f, 0.8f, 0.8f );
-    float matShininess = 100.0f;
-    Vector3 whiteLight = new Vector3( 1.0f, 1.0f, 1.0f );
+    Vector3 globalAmbient = new Vector3(   0.2f,  0.2f,  0.2f );
+    Vector3 matAmbient    = new Vector3(   1.0f,  0.8f,  0.3f );
+    Vector3 matDiffuse    = new Vector3(   1.0f,  0.8f,  0.3f );
+    Vector3 matSpecular   = new Vector3(   0.8f,  0.8f,  0.8f );
+    float matShininess    = 100.0f;
+    Vector3 whiteLight    = new Vector3(   1.0f,  1.0f,  1.0f );
     Vector3 lightPosition = new Vector3( -20.0f, 10.0f, 10.0f );
-    Vector3 eyePosition = new Vector3( 0.0f, 0.0f, 10.0f );
+    Vector3 eyePosition   = new Vector3(   0.0f,  0.0f, 10.0f );
 
     void SetLightEye ( float size )
     {
       size += size;
       lightPosition = new Vector3( -2.0f * size, size, size );
-      eyePosition = new Vector3( 0.0f, 0.0f, size );
+      eyePosition   = new Vector3(         0.0f, 0.0f, size );
     }
 
     // attribute/vertex arrays:
@@ -854,14 +859,14 @@ namespace _087fireworks
     }
 
     /// <summary>
-    /// Time0 in system ticks (100ns units)
+    /// Simulation time of the last checkpoint in system ticks (100ns units)
     /// </summary>
-    long ticksOrigin = DateTime.Now.Ticks;
+    long ticksLast = DateTime.Now.Ticks;
 
     /// <summary>
-    /// If nonzero, ticks-time of the recent pause command.
+    /// Simulation time of the last checkpoint in seconds.
     /// </summary>
-    long ticksPaused = 0L;
+    double timeLast = 0.0;
 
     /// <summary>
     /// Prime simulation init.
@@ -884,8 +889,8 @@ namespace _087fireworks
       {
         ResetDataBuffers();
         fw.Reset( textParam.Text );
-        ticksOrigin = DateTime.Now.Ticks;
-        ticksPaused = 0L;
+        ticksLast = DateTime.Now.Ticks;
+        timeLast = 0.0;
       }
     }
 
@@ -898,17 +903,7 @@ namespace _087fireworks
         return;
 
       lock ( fw )
-        if ( fw.Running )
-        {
-          ticksPaused = DateTime.Now.Ticks;
-          fw.Running = false;
-        }
-        else
-        {
-          ticksOrigin += DateTime.Now.Ticks - ticksPaused;
-          ticksPaused = 0L;
-          fw.Running = true;
-        }
+        fw.Running  = !fw.Running;
     }
 
     /// <summary>
@@ -920,11 +915,19 @@ namespace _087fireworks
         return;
 
       lock ( fw )
-        if ( fw.Running )
+      {
+        long nowTicks = DateTime.Now.Ticks;
+        if ( nowTicks > ticksLast )
         {
-          float time = (float)((DateTime.Now.Ticks - ticksOrigin) * 1.0e-7);
-          fw.Simulate( time );
+          if ( fw.Running )
+          {
+            double timeScale = checkSlow.Checked ? Fireworks.slow : 1.0;
+            timeLast += (nowTicks - ticksLast) * timeScale * 1.0e-7;
+            fw.Simulate( (float)timeLast );
+          }
+          ticksLast = nowTicks;
         }
+      }
     }
 
     /// <summary>
@@ -937,17 +940,12 @@ namespace _087fireworks
 
       frameCounter++;
       useShaders = canShaders &&
-                   activeProgram != null &&
-                   checkShaders.Checked;
+                   activeProgram != null;
 
       GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
-      GL.ShadeModel( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
-      GL.PolygonMode( checkTwosided.Checked ? MaterialFace.FrontAndBack : MaterialFace.Front,
-                      PolygonMode.Fill );
-      if ( checkTwosided.Checked )
-        GL.Disable( EnableCap.CullFace );
-      else
-        GL.Enable( EnableCap.CullFace );
+      GL.ShadeModel( ShadingModel.Smooth );
+      GL.PolygonMode( MaterialFace.FrontAndBack, PolygonMode.Fill );
+      GL.Disable( EnableCap.CullFace );
 
       SetCamera();
       RenderScene();
@@ -997,6 +995,10 @@ namespace _087fireworks
           // color handling:
           bool useColors = !checkGlobalColor.Checked;
           GL.Uniform1( activeProgram.GetUniform( "globalColor" ), useColors ? 0 : 1 );
+
+          // use varying normals?
+          bool useNormals = checkNormals.Checked;
+          GL.Uniform1( activeProgram.GetUniform( "useNormal" ), useNormals ? 1 : 0 );
           GlInfo.LogError( "set-uniforms" );
 
           // texture handling:
@@ -1010,7 +1012,6 @@ namespace _087fireworks
           }
           GlInfo.LogError( "set-texture" );
 
-          bool useNormals = false;
           bool usePointSize = true;
 
           // [txt] [colors] [normals] [ptsize] vertices

@@ -29,8 +29,9 @@ namespace _087fireworks
 
       string param;
       bool globalColor;
-      Fireworks.InitParams( out param, out center, out diameter, out useShaders, out globalColor );
-      checkShaders.Checked = useShaders;
+      bool useNormals;
+      InitParams( out param, out center, out diameter, out useNormals, out globalColor );
+      checkNormals.Checked = useNormals;
       checkGlobalColor.Checked = globalColor;
       textParam.Text = param ?? "";
       Text += " (rev: " + rev + ')';

@@ -36,12 +36,12 @@
       this.textParam = new System.Windows.Forms.TextBox();
       this.label3 = new System.Windows.Forms.Label();
       this.buttonResetSim = new System.Windows.Forms.Button();
-      this.checkSmooth = new System.Windows.Forms.CheckBox();
+      this.checkSlow = new System.Windows.Forms.CheckBox();
       this.checkTwosided = new System.Windows.Forms.CheckBox();
       this.checkVsync = new System.Windows.Forms.CheckBox();
       this.checkTexture = new System.Windows.Forms.CheckBox();
       this.checkGlobalColor = new System.Windows.Forms.CheckBox();
-      this.checkShaders = new System.Windows.Forms.CheckBox();
+      this.checkNormals = new System.Windows.Forms.CheckBox();
       this.SuspendLayout();
       // 
       // glControl1
@@ -137,16 +137,16 @@
       this.buttonResetSim.UseVisualStyleBackColor = true;
       this.buttonResetSim.Click += new System.EventHandler(this.buttonResetSim_Click);
       // 
-      // checkSmooth
+      // checkSlow
       // 
-      this.checkSmooth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.checkSmooth.AutoSize = true;
-      this.checkSmooth.Location = new System.Drawing.Point(139, 380);
-      this.checkSmooth.Name = "checkSmooth";
-      this.checkSmooth.Size = new System.Drawing.Size(62, 17);
-      this.checkSmooth.TabIndex = 31;
-      this.checkSmooth.Text = "Smooth";
-      this.checkSmooth.UseVisualStyleBackColor = true;
+      this.checkSlow.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkSlow.AutoSize = true;
+      this.checkSlow.Location = new System.Drawing.Point(139, 380);
+      this.checkSlow.Name = "checkSlow";
+      this.checkSlow.Size = new System.Drawing.Size(49, 17);
+      this.checkSlow.TabIndex = 31;
+      this.checkSlow.Text = "Slow";
+      this.checkSlow.UseVisualStyleBackColor = true;
       // 
       // checkTwosided
       // 
@@ -154,7 +154,7 @@
       this.checkTwosided.AutoSize = true;
       this.checkTwosided.Checked = true;
       this.checkTwosided.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkTwosided.Location = new System.Drawing.Point(206, 380);
+      this.checkTwosided.Location = new System.Drawing.Point(194, 380);
       this.checkTwosided.Name = "checkTwosided";
       this.checkTwosided.Size = new System.Drawing.Size(57, 17);
       this.checkTwosided.TabIndex = 33;
@@ -167,7 +167,7 @@
       this.checkVsync.AutoSize = true;
       this.checkVsync.Checked = true;
       this.checkVsync.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkVsync.Location = new System.Drawing.Point(443, 380);
+      this.checkVsync.Location = new System.Drawing.Point(441, 380);
       this.checkVsync.Name = "checkVsync";
       this.checkVsync.Size = new System.Drawing.Size(57, 17);
       this.checkVsync.TabIndex = 34;
@@ -179,7 +179,7 @@
       // 
       this.checkTexture.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkTexture.AutoSize = true;
-      this.checkTexture.Location = new System.Drawing.Point(326, 380);
+      this.checkTexture.Location = new System.Drawing.Point(268, 380);
       this.checkTexture.Name = "checkTexture";
       this.checkTexture.Size = new System.Drawing.Size(44, 17);
       this.checkTexture.TabIndex = 35;
@@ -190,35 +190,35 @@
       // 
       this.checkGlobalColor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkGlobalColor.AutoSize = true;
-      this.checkGlobalColor.Location = new System.Drawing.Point(375, 380);
+      this.checkGlobalColor.Location = new System.Drawing.Point(317, 380);
       this.checkGlobalColor.Name = "checkGlobalColor";
       this.checkGlobalColor.Size = new System.Drawing.Size(63, 17);
       this.checkGlobalColor.TabIndex = 36;
       this.checkGlobalColor.Text = "GlobalC";
       this.checkGlobalColor.UseVisualStyleBackColor = true;
       // 
-      // checkShaders
+      // checkNormals
       // 
-      this.checkShaders.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.checkShaders.AutoSize = true;
-      this.checkShaders.Location = new System.Drawing.Point(268, 380);
-      this.checkShaders.Name = "checkShaders";
-      this.checkShaders.Size = new System.Drawing.Size(53, 17);
-      this.checkShaders.TabIndex = 37;
-      this.checkShaders.Text = "GLSL";
-      this.checkShaders.UseVisualStyleBackColor = true;
+      this.checkNormals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkNormals.AutoSize = true;
+      this.checkNormals.Location = new System.Drawing.Point(385, 380);
+      this.checkNormals.Name = "checkNormals";
+      this.checkNormals.Size = new System.Drawing.Size(51, 17);
+      this.checkNormals.TabIndex = 37;
+      this.checkNormals.Text = "Norm";
+      this.checkNormals.UseVisualStyleBackColor = true;
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(844, 446);
-      this.Controls.Add(this.checkShaders);
+      this.Controls.Add(this.checkNormals);
       this.Controls.Add(this.checkGlobalColor);
       this.Controls.Add(this.checkTexture);
       this.Controls.Add(this.checkVsync);
       this.Controls.Add(this.checkTwosided);
-      this.Controls.Add(this.checkSmooth);
+      this.Controls.Add(this.checkSlow);
       this.Controls.Add(this.textParam);
       this.Controls.Add(this.label3);
       this.Controls.Add(this.buttonResetSim);
@@ -246,12 +246,12 @@
     private System.Windows.Forms.TextBox textParam;
     private System.Windows.Forms.Label label3;
     private System.Windows.Forms.Button buttonResetSim;
-    private System.Windows.Forms.CheckBox checkSmooth;
+    private System.Windows.Forms.CheckBox checkSlow;
     private System.Windows.Forms.CheckBox checkTwosided;
     private System.Windows.Forms.CheckBox checkVsync;
     private System.Windows.Forms.CheckBox checkTexture;
     private System.Windows.Forms.CheckBox checkGlobalColor;
-    private System.Windows.Forms.CheckBox checkShaders;
+    private System.Windows.Forms.CheckBox checkNormals;
   }
 }
 

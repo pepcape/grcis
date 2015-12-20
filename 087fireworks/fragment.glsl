@@ -19,6 +19,7 @@ uniform vec3 Kd;
 uniform vec3 Ks;
 uniform float shininess;
 uniform bool useTexture;
+uniform bool useNormal;
 uniform bool globalColor;
 uniform sampler2D texSurface;
 
@@ -32,14 +33,7 @@ void main ()
   vec3 V = normalize( eyePosition - P );
   vec3 H = normalize( L + V );
 
-  float cosb = 0.0;
-  float cosa = dot( N, L );
-  if ( cosa > 0.0 )
-    cosb = pow( max( dot( N, H ), 0.0 ), shininess );
-  else
-    cosa = 0.0;
-
-  vec3 ka, kd;
+  vec3 ka, kd, ks;
   if ( useTexture )
   {
     ka = kd = vec3( texture2D( texSurface, varTexCoords ) );
@@ -54,11 +48,29 @@ void main ()
     {
       ka = kd = varColor;
     }
+
+  float cosa;
+  float cosb = 0.0;
+
+  if ( useNormal )
+  {
+    ks = Ks;
+    cosa = dot( N, L );
+    if ( cosa > 0.0 )
+      cosb = pow( max( dot( N, H ), 0.0 ), shininess );
+    else
+      cosa = 0.0;
+  }
+  else
+  {
+    ks = kd;
+    cosa = 1.0;
+  }
+
   vec3 ambient  = ka * globalAmbient;
   vec3 diffuse  = kd * lightColor * cosa;
-  vec3 specular = Ks * lightColor * cosb;
+  vec3 specular = ks * lightColor * cosb;
 
-  // fragColor.rgb = vec3( 1.0, 1.0, 0.3 );
   fragColor.rgb = ambient + diffuse + specular;
   fragColor.a   = 1.0;
 }
