@@ -1,6 +1,6 @@
 //---------------------------------------------------------------
-// Simple fragment shader utilizing single texture
-//   normal vector, single point light-source
+// Phong fragment shader with optional texture and other modes
+//   normal vector, single point light-source, global color, ..
 //   @version $Rev$
 //---------------------------------------------------------------
 #version 140

@@ -117,7 +117,7 @@ namespace MathSupport
       Vector3d axis1, axis2;
       GetAxes( ref dir, out axis1, out axis2 );
       Matrix4d fromz = new Matrix4d( new Vector4d( axis1 ), new Vector4d( axis2 ), new Vector4d( dir ), Vector4d.UnitW );
-      fromz.Transpose();
+      //fromz.Transpose();
       double deviation = rnd.Normal( 0.0, variance );
       double orientation = rnd.RandomDouble( 0.0, Math.PI );
       Matrix4d mat = Matrix4d.CreateRotationX( deviation ) * Matrix4d.CreateRotationZ( orientation ) * fromz;

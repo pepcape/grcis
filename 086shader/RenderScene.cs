@@ -129,7 +129,7 @@ namespace _086shader
     const int TEX_SIZE = 128;
     const int TEX_CHECKER_SIZE = 8;
     static Vector3 colWhite = new Vector3( 0.85f, 0.75f, 0.30f );
-    static Vector3 colBlack = new Vector3( 0.15f, 0.15f, 0.50f );
+    static Vector3 colBlack = new Vector3( 0.15f, 0.15f, 0.60f );
     static Vector3 colShade = new Vector3( 0.15f, 0.15f, 0.15f );
 
     /// <summary>
@@ -146,17 +146,18 @@ namespace _086shader
       texName = GL.GenTexture();
       GL.BindTexture( TextureTarget.Texture2D, texName );
 
-      Vector3[,] data = new Vector3[ TEX_SIZE, TEX_SIZE ];
+      Vector3[] data = new Vector3[ TEX_SIZE * TEX_SIZE ];
       for ( int y = 0; y < TEX_SIZE; y++ )
         for ( int x = 0; x < TEX_SIZE; x++ )
         {
+          int i = y * TEX_SIZE + x;
           bool odd = ((x / TEX_CHECKER_SIZE + y / TEX_CHECKER_SIZE) & 1) > 0;
-          data[ y, x ] = odd ? colBlack : colWhite;
+          data[ i ] = odd ? colBlack : colWhite;
           // add some fancy shading on the edges:
           if ( (x % TEX_CHECKER_SIZE) == 0 || (y % TEX_CHECKER_SIZE) == 0 )
-            data[ y, x ] += colShade;
-          if ( ((x+1) % TEX_CHECKER_SIZE) == 0 || ((y+1) % TEX_CHECKER_SIZE) == 0 )
-            data[ y, x ] -= colShade;
+            data[ i ] += colShade;
+          if ( ((x + 1) % TEX_CHECKER_SIZE) == 0 || ((y + 1) % TEX_CHECKER_SIZE) == 0 )
+            data[ i ] -= colShade;
         }
 
       GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, TEX_SIZE, TEX_SIZE, 0, PixelFormat.Rgb, PixelType.Float, data );
