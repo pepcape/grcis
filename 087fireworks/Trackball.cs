@@ -116,9 +116,9 @@ namespace _087fireworks
     /// </summary>
     bool perspective = true;
 
-    float minZoom = 0.2f;
+    float minZoom =  0.2f;
 
-    float maxZoom = 5.0f;
+    float maxZoom = 20.0f;
 
     /// <summary>
     /// Sets up a projective viewport
@@ -132,11 +132,11 @@ namespace _087fireworks
       GL.Viewport( 0, 0, width, height );
 
       // 2. set projection matrix
-      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, (float)width / (float)height, 0.02f, 500.0f );
+      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, (float)width / (float)height, 0.01f, 1000.0f );
       float minSize = 2.0f * Math.Min( width, height );
       ortographicProjection = Matrix4.CreateOrthographic( diameter * width / minSize,
                                                           diameter * height / minSize,
-                                                          0.02f, 500.0f );
+                                                          0.01f, 1000.0f );
       SetProjection();
       setEllipse();
     }
@@ -223,7 +223,7 @@ namespace _087fireworks
         return rotation;
 
       Vector3 axis = Vector3.Cross( a.Value, b.Value );
-      float angle = Vector3.CalculateAngle( a.Value, b.Value );    // * (float)numericSensitivity.Value
+      float angle = Vector3.CalculateAngle( a.Value, b.Value ) * 0.5f;    // * (float)numericSensitivity.Value
       return Matrix4.CreateFromAxisAngle( axis, angle );
     }
 

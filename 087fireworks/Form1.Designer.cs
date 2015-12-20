@@ -37,7 +37,7 @@
       this.label3 = new System.Windows.Forms.Label();
       this.buttonResetSim = new System.Windows.Forms.Button();
       this.checkSlow = new System.Windows.Forms.CheckBox();
-      this.checkTwosided = new System.Windows.Forms.CheckBox();
+      this.checkPointSize = new System.Windows.Forms.CheckBox();
       this.checkVsync = new System.Windows.Forms.CheckBox();
       this.checkTexture = new System.Windows.Forms.CheckBox();
       this.checkGlobalColor = new System.Windows.Forms.CheckBox();
@@ -148,18 +148,18 @@
       this.checkSlow.Text = "Slow";
       this.checkSlow.UseVisualStyleBackColor = true;
       // 
-      // checkTwosided
+      // checkPointSize
       // 
-      this.checkTwosided.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.checkTwosided.AutoSize = true;
-      this.checkTwosided.Checked = true;
-      this.checkTwosided.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkTwosided.Location = new System.Drawing.Point(194, 380);
-      this.checkTwosided.Name = "checkTwosided";
-      this.checkTwosided.Size = new System.Drawing.Size(57, 17);
-      this.checkTwosided.TabIndex = 33;
-      this.checkTwosided.Text = "2sided";
-      this.checkTwosided.UseVisualStyleBackColor = true;
+      this.checkPointSize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkPointSize.AutoSize = true;
+      this.checkPointSize.Checked = true;
+      this.checkPointSize.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkPointSize.Location = new System.Drawing.Point(374, 380);
+      this.checkPointSize.Name = "checkPointSize";
+      this.checkPointSize.Size = new System.Drawing.Size(56, 17);
+      this.checkPointSize.TabIndex = 33;
+      this.checkPointSize.Text = "PtSize";
+      this.checkPointSize.UseVisualStyleBackColor = true;
       // 
       // checkVsync
       // 
@@ -167,7 +167,7 @@
       this.checkVsync.AutoSize = true;
       this.checkVsync.Checked = true;
       this.checkVsync.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkVsync.Location = new System.Drawing.Point(441, 380);
+      this.checkVsync.Location = new System.Drawing.Point(437, 380);
       this.checkVsync.Name = "checkVsync";
       this.checkVsync.Size = new System.Drawing.Size(57, 17);
       this.checkVsync.TabIndex = 34;
@@ -179,7 +179,7 @@
       // 
       this.checkTexture.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkTexture.AutoSize = true;
-      this.checkTexture.Location = new System.Drawing.Point(268, 380);
+      this.checkTexture.Location = new System.Drawing.Point(195, 380);
       this.checkTexture.Name = "checkTexture";
       this.checkTexture.Size = new System.Drawing.Size(44, 17);
       this.checkTexture.TabIndex = 35;
@@ -190,7 +190,7 @@
       // 
       this.checkGlobalColor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkGlobalColor.AutoSize = true;
-      this.checkGlobalColor.Location = new System.Drawing.Point(317, 380);
+      this.checkGlobalColor.Location = new System.Drawing.Point(246, 380);
       this.checkGlobalColor.Name = "checkGlobalColor";
       this.checkGlobalColor.Size = new System.Drawing.Size(63, 17);
       this.checkGlobalColor.TabIndex = 36;
@@ -201,7 +201,7 @@
       // 
       this.checkNormals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkNormals.AutoSize = true;
-      this.checkNormals.Location = new System.Drawing.Point(385, 380);
+      this.checkNormals.Location = new System.Drawing.Point(316, 380);
       this.checkNormals.Name = "checkNormals";
       this.checkNormals.Size = new System.Drawing.Size(51, 17);
       this.checkNormals.TabIndex = 37;
@@ -217,7 +217,7 @@
       this.Controls.Add(this.checkGlobalColor);
       this.Controls.Add(this.checkTexture);
       this.Controls.Add(this.checkVsync);
-      this.Controls.Add(this.checkTwosided);
+      this.Controls.Add(this.checkPointSize);
       this.Controls.Add(this.checkSlow);
       this.Controls.Add(this.textParam);
       this.Controls.Add(this.label3);
@@ -247,7 +247,7 @@
     private System.Windows.Forms.Label label3;
     private System.Windows.Forms.Button buttonResetSim;
     private System.Windows.Forms.CheckBox checkSlow;
-    private System.Windows.Forms.CheckBox checkTwosided;
+    private System.Windows.Forms.CheckBox checkPointSize;
     private System.Windows.Forms.CheckBox checkVsync;
     private System.Windows.Forms.CheckBox checkTexture;
     private System.Windows.Forms.CheckBox checkGlobalColor;

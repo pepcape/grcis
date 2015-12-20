@@ -1,6 +1,6 @@
 //---------------------------------------------------------------
-// Simple vertex shader
-//   propagates 2D texture coords, normal vector, world coords, color
+// Vertex shader for texturing and point-sprite rendering
+//   propagates 2D texture coords, normal vector, world coords, color, point size
 //   @version $Rev$
 //---------------------------------------------------------------
 #version 140
@@ -18,11 +18,12 @@ out vec3 varColor;
 
 uniform mat4 matrixModelView;
 uniform mat4 matrixProjection;
+uniform float sizeMul;
 
 void main ()
 {
   gl_Position = matrixProjection * matrixModelView * vec4( position, 1.0 );
-  gl_PointSize = ptSize;
+  gl_PointSize = ptSize * sizeMul;
   varTexCoords = texCoords;
   varNormal = normal;
   varColor = color;

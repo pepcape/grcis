@@ -22,27 +22,27 @@ namespace _087fireworks
     /// <summary>
     /// Particle source position.
     /// </summary>
-    public Vector3 position;
+    public Vector3d position;
 
     /// <summary>
     /// Particle source aim (initial direction of the particles).
     /// </summary>
-    public Vector3 aim;
+    public Vector3d aim;
 
     /// <summary>
     /// Particle source up vector (initial up vector of the particles).
     /// </summary>
-    public Vector3 up;
+    public Vector3d up;
 
     /// <summary>
     /// Number of particles generated in every second.
     /// </summary>
-    public float frequency;
+    public double frequency;
 
     /// <summary>
     /// Last simulated time in seconds.
     /// </summary>
-    public float simTime;
+    public double simTime;
 
     /// <summary>
     /// Global constant launcher color.
@@ -60,26 +60,25 @@ namespace _087fireworks
     /// <param name="time">Required target time.</param>
     /// <param name="fw">Simulation context.</param>
     /// <returns>False in case of expiry.</returns>
-    public bool Simulate ( float time, Fireworks fw )
+    public bool Simulate ( double time, Fireworks fw )
     {
       if ( time <= simTime )
         return true;
 
-      float dt = time - simTime;
+      double dt = time - simTime;
       // generate new particles for the [simTime-time] interval:
 
-      float probability = dt * frequency;
-      while ( probability > 1.0f ||
+      double probability = dt * frequency;
+      while ( probability > 1.0 ||
               rnd.UniformNumber() < probability )
       {
         // emit a new particle:
-        Vector3d dird = Geometry.RandomDirectionNormal( rnd, new Vector3d( aim.X, aim.Y, aim.Z ), 0.02 ); // random direction around 'aim'
-        Vector3 dir = new Vector3( (float)dird.X, (float)dird.Y, (float)dird.Z );                        // we need float-version of the vector
-        Particle p = new Particle( position, dir * rnd.RandomFloat( 0.2f, 0.8f ), up,
+        Vector3d dir = Geometry.RandomDirectionNormal( rnd, aim, 0.1 );               // random direction around 'aim'
+        Particle p = new Particle( position, dir * rnd.RandomDouble( 0.2, 0.8 ), up,
                                    new Vector3( rnd.RandomFloat( 0.1f, 1.0f ), rnd.RandomFloat( 0.1f, 1.0f ), rnd.RandomFloat( 0.1f, 1.0f ) ),
-                                   rnd.RandomFloat( 0.5f, 3.0f ), time, rnd.RandomFloat( 2.0f, 12.0f ) );
+                                   rnd.RandomFloat( 0.2f, 3.0f ), time, rnd.RandomDouble( 2.0, 12.0 ) );
         fw.AddParticle( p );
-        probability -= 1.0f;
+        probability -= 1.0;
       }
 
       simTime = time;
@@ -87,15 +86,15 @@ namespace _087fireworks
       return true;
     }
 
-    public Launcher ( float freq )
+    public Launcher ( double freq )
     {
-      position = Vector3.Zero;
-      aim = new Vector3( 0.1f, 1.0f, -0.05f );
+      position = Vector3d.Zero;
+      aim = new Vector3d( 0.1, 1.0, -0.05 );
       aim.Normalize();
-      up = new Vector3( 0.0f, 0.05f, 1.0f );
+      up = new Vector3d( 1.0, -0.1, 0.0 );
       up.Normalize();
       frequency = freq;      // number of emitted particles per second
-      simTime = 0.0f;
+      simTime = 0.0;
     }
 
     // --- rendering ---
@@ -104,12 +103,17 @@ namespace _087fireworks
     {
       get
       {
-        return 1;
+        return 2;
       }
     }
 
-    static Vector2 txt10 = new Vector2( 1.0f, 0.0f );
-    static Vector2 txt01 = new Vector2( 0.0f, 1.0f );
+    public override uint TriVertices
+    {
+      get
+      {
+        return 4;
+      }
+    }
 
     public override unsafe int TriangleVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize )
     {
@@ -117,11 +121,11 @@ namespace _087fireworks
       if ( ptr == null )
         return total;
 
-      Vector3 n = Vector3.Cross( aim, up ).Normalized();
+      Vector3d n = Vector3d.Cross( aim, up ).Normalized();
 
       // 1. center
       if ( txt )
-        Fill( ref ptr, Vector2.Zero );
+        Fill( ref ptr, 0.0f, 0.5f );
       if ( col )
         Fill( ref ptr, ref color );
       if ( normal )
@@ -132,25 +136,36 @@ namespace _087fireworks
 
       // 2. aim
       if ( txt )
-        Fill( ref ptr, ref txt10 );
+        Fill( ref ptr, 1.0f, 0.5f );
       if ( col )
         Fill( ref ptr, ref color );
       if ( normal )
         Fill( ref ptr, ref n );
       if ( ptsize )
         *ptr++ = 1.0f;
-      Fill( ref ptr, position + 0.2f * aim );
+      Fill( ref ptr, position + 0.2 * aim );
 
       // 3. up
       if ( txt )
-        Fill( ref ptr, ref txt01 );
+        Fill( ref ptr, 0.0f, 0.25f );
       if ( col )
         Fill( ref ptr, ref color );
       if ( normal )
         Fill( ref ptr, ref n );
       if ( ptsize )
         *ptr++ = 1.0f;
-      Fill( ref ptr, position + 0.1f * up );
+      Fill( ref ptr, position + 0.05 * up );
+
+      // 4. down
+      if ( txt )
+        Fill( ref ptr, 0.0f, 0.75f );
+      if ( col )
+        Fill( ref ptr, ref color );
+      if ( normal )
+        Fill( ref ptr, ref n );
+      if ( ptsize )
+        *ptr++ = 1.0f;
+      Fill( ref ptr, position - 0.05 * up );
 
       return total;
     }
@@ -159,9 +174,13 @@ namespace _087fireworks
     {
       if ( ptr != null )
       {
-        *ptr++ = origin++;
-        *ptr++ = origin++;
         *ptr++ = origin;
+        *ptr++ = origin + 1;
+        *ptr++ = origin + 2;
+
+        *ptr++ = origin;
+        *ptr++ = origin + 3;
+        *ptr++ = origin + 1;
       }
 
       return 3 * sizeof( uint );
@@ -177,17 +196,17 @@ namespace _087fireworks
     /// <summary>
     /// Current particle position.
     /// </summary>
-    public Vector3 position;
+    public Vector3d position;
 
     /// <summary>
     /// Current particle velocity.
     /// </summary>
-    public Vector3 velocity;
+    public Vector3d velocity;
 
     /// <summary>
     /// Current particle up vector.
     /// </summary>
-    public Vector3 up;
+    public Vector3d up;
 
     /// <summary>
     /// Particle color.
@@ -202,14 +221,14 @@ namespace _087fireworks
     /// <summary>
     /// Time of death.
     /// </summary>
-    public float maxAge;
+    public double maxAge;
 
     /// <summary>
     /// Last simulated time in seconds.
     /// </summary>
-    public float simTime;
+    public double simTime;
 
-    public Particle ( Vector3 pos, Vector3 vel, Vector3 _up, Vector3 col, float siz, float time, float age )
+    public Particle ( Vector3d pos, Vector3d vel, Vector3d _up, Vector3 col, float siz, double time, double age )
     {
       position = pos;
       velocity = vel;
@@ -226,7 +245,7 @@ namespace _087fireworks
     /// <param name="time">Required target time.</param>
     /// <param name="fw">Simulation context.</param>
     /// <returns>False in case of expiry.</returns>
-    public bool Simulate ( float time, Fireworks fw )
+    public bool Simulate ( double time, Fireworks fw )
     {
       if ( time <= simTime )
         return true;
@@ -235,7 +254,7 @@ namespace _087fireworks
         return false;
 
       // fly the particle:
-      float dt = time - simTime;
+      double dt = time - simTime;
       position += dt * velocity;
 
       simTime = time;
@@ -271,7 +290,7 @@ namespace _087fireworks
         return total;
 
       if ( txt )
-        Fill( ref ptr, Vector2.Zero );
+        Fill( ref ptr, color.Xy );
       if ( col )
         Fill( ref ptr, ref color );
       if ( normal )
@@ -389,9 +408,9 @@ namespace _087fireworks
       }
     }
 
-    float lastTime;
+    double lastTime;
 
-    public float Time
+    public double Time
     {
       get
       {
@@ -412,7 +431,7 @@ namespace _087fireworks
       expiredParticles = new List<int>();
       launchers        = new List<Launcher>();
       frames           = 0;
-      lastTime         = 0.0f;
+      lastTime         = 0.0;
       Running          = true;
     }
 
@@ -424,10 +443,10 @@ namespace _087fireworks
     {
       // input params:
       Dictionary<string, string> p = Util.ParseKeyValueList( param );
-      float freq = 10.0f;
+      double freq = 10.0;
       if ( !Util.TryParse( p, "freq", ref freq ) ||
-           freq < 1.0f )
-        freq = 10.0f;
+           freq < 1.0 )
+        freq = 10.0;
       if ( !Util.TryParse( p, "max", ref maxParticles ) ||
            maxParticles < 10 )
         maxParticles = 1000;
@@ -464,7 +483,7 @@ namespace _087fireworks
     /// Do one step of simulation.
     /// </summary>
     /// <param name="time">Required target time.</param>
-    public void Simulate ( float time )
+    public void Simulate ( double time )
     {
       if ( !Running )
         return;
@@ -563,7 +582,7 @@ namespace _087fireworks
     public static void InitParams ( out string param, out Vector3 center, out float diameter, out bool useNormals, out bool globalColor )
     {
       param = "freq=8000.0,max=60000,slow=0.25";
-      center = new Vector3( 0.0f, 1.5f, 0.0f );
+      center = new Vector3( 0.0f, 0.0f, 0.0f );
       diameter = 5.0f;
       useNormals = false;
       globalColor = false;
@@ -650,13 +669,13 @@ namespace _087fireworks
 
       // general OpenGL:
       glControl1.VSync = true;
-      GL.ClearColor( Color.DarkBlue );
+      GL.ClearColor( Color.FromArgb( 14, 20, 40 ) );    // darker "navy blue"
       GL.Enable( EnableCap.DepthTest );
       GL.Enable( EnableCap.VertexProgramPointSize );
       GL.ShadeModel( ShadingModel.Flat );
 
       // VBO init:
-      VBOid = new uint[ 2 ];           // one big buffer for vertex data, another buffer for triangle indices
+      VBOid = new uint[ 2 ];           // one big buffer for vertex data, another buffer for tri/line indices
       GL.GenBuffers( 2, VBOid );
       GlInfo.LogError( "VBO init" );
       VBOlen = new int[ 2 ];           // zeroes..
@@ -690,8 +709,8 @@ namespace _087fireworks
     // generated texture:
     const int TEX_SIZE = 128;
     const int TEX_CHECKER_SIZE = 8;
-    static Vector3 colWhite = new Vector3( 0.85f, 0.75f, 0.30f );
-    static Vector3 colBlack = new Vector3( 0.15f, 0.15f, 0.50f );
+    static Vector3 colWhite = new Vector3( 0.85f, 0.75f, 0.15f );
+    static Vector3 colBlack = new Vector3( 0.15f, 0.15f, 0.60f );
     static Vector3 colShade = new Vector3( 0.15f, 0.15f, 0.15f );
 
     /// <summary>
@@ -708,17 +727,18 @@ namespace _087fireworks
       texName = GL.GenTexture();
       GL.BindTexture( TextureTarget.Texture2D, texName );
 
-      Vector3[ , ] data = new Vector3[ TEX_SIZE, TEX_SIZE ];
+      Vector3[] data = new Vector3[ TEX_SIZE * TEX_SIZE ];
       for ( int y = 0; y < TEX_SIZE; y++ )
         for ( int x = 0; x < TEX_SIZE; x++ )
         {
+          int i = y * TEX_SIZE + x;
           bool odd = ((x / TEX_CHECKER_SIZE + y / TEX_CHECKER_SIZE) & 1) > 0;
-          data[ y, x ] = odd ? colBlack : colWhite;
+          data[ i ] = odd ? colBlack : colWhite;
           // add some fancy shading on the edges:
           if ( (x % TEX_CHECKER_SIZE) == 0 || (y % TEX_CHECKER_SIZE) == 0 )
-            data[ y, x ] += colShade;
+            data[ i ] += colShade;
           if ( ((x + 1) % TEX_CHECKER_SIZE) == 0 || ((y + 1) % TEX_CHECKER_SIZE) == 0 )
-            data[ y, x ] -= colShade;
+            data[ i ] -= colShade;
         }
 
       GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, TEX_SIZE, TEX_SIZE, 0, PixelFormat.Rgb, PixelType.Float, data );
@@ -923,7 +943,7 @@ namespace _087fireworks
           {
             double timeScale = checkSlow.Checked ? Fireworks.slow : 1.0;
             timeLast += (nowTicks - ticksLast) * timeScale * 1.0e-7;
-            fw.Simulate( (float)timeLast );
+            fw.Simulate( timeLast );
           }
           ticksLast = nowTicks;
         }
@@ -999,6 +1019,10 @@ namespace _087fireworks
           // use varying normals?
           bool useNormals = checkNormals.Checked;
           GL.Uniform1( activeProgram.GetUniform( "useNormal" ), useNormals ? 1 : 0 );
+
+          bool usePointSize = checkPointSize.Checked;
+          GL.Uniform1( activeProgram.GetUniform( "sizeMul" ), usePointSize ? 1.0f : 0.0f );
+          usePointSize = true;
           GlInfo.LogError( "set-uniforms" );
 
           // texture handling:
@@ -1011,8 +1035,6 @@ namespace _087fireworks
             GL.BindTexture( TextureTarget.Texture2D, texName );
           }
           GlInfo.LogError( "set-texture" );
-
-          bool usePointSize = true;
 
           // [txt] [colors] [normals] [ptsize] vertices
           GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );

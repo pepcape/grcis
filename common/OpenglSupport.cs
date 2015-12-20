@@ -589,6 +589,25 @@ namespace OpenglSupport
   public abstract class DefaultRenderObject : IRenderObject
   {
     /// <summary>
+    /// Support function writing a [x,y] object to the given buffer.
+    /// </summary>
+    public static unsafe void Fill ( ref float* ptr, float x, float y )
+    {
+      *ptr++ = x;
+      *ptr++ = y;
+    }
+
+    /// <summary>
+    /// Support function writing a [x,y] object to the given buffer.
+    /// </summary>
+    public static unsafe void Fill ( ref float* ptr, float x, float y, float z )
+    {
+      *ptr++ = x;
+      *ptr++ = y;
+      *ptr++ = z;
+    }
+
+    /// <summary>
     /// Support function writing a Vector2 object to the given buffer.
     /// </summary>
     public static unsafe void Fill ( ref float* ptr, Vector2 v )
@@ -624,6 +643,26 @@ namespace OpenglSupport
       *ptr++ = v.X;
       *ptr++ = v.Y;
       *ptr++ = v.Z;
+    }
+
+    /// <summary>
+    /// Support function writing a Vector3d object to the given buffer.
+    /// </summary>
+    public static unsafe void Fill ( ref float* ptr, Vector3d v )
+    {
+      *ptr++ = (float)v.X;
+      *ptr++ = (float)v.Y;
+      *ptr++ = (float)v.Z;
+    }
+
+    /// <summary>
+    /// Support function writing a Vector3d object to the given buffer.
+    /// </summary>
+    public static unsafe void Fill ( ref float* ptr, ref Vector3d v )
+    {
+      *ptr++ = (float)v.X;
+      *ptr++ = (float)v.Y;
+      *ptr++ = (float)v.Z;
     }
 
     /// <summary>
