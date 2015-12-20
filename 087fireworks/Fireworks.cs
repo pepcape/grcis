@@ -76,7 +76,7 @@ namespace _087fireworks
         Vector3d dir = Geometry.RandomDirectionNormal( rnd, aim, 0.1 );               // random direction around 'aim'
         Particle p = new Particle( position, dir * rnd.RandomDouble( 0.2, 0.8 ), up,
                                    new Vector3( rnd.RandomFloat( 0.1f, 1.0f ), rnd.RandomFloat( 0.1f, 1.0f ), rnd.RandomFloat( 0.1f, 1.0f ) ),
-                                   rnd.RandomFloat( 0.2f, 3.0f ), time, rnd.RandomDouble( 2.0, 12.0 ) );
+                                   rnd.RandomDouble( 0.2, 3.0 ), time, rnd.RandomDouble( 2.0, 12.0 ) );
         fw.AddParticle( p );
         probability -= 1.0;
       }
@@ -216,7 +216,7 @@ namespace _087fireworks
     /// <summary>
     /// Particle size in pixels.
     /// </summary>
-    public float size;
+    public double size;
 
     /// <summary>
     /// Time of death.
@@ -228,7 +228,7 @@ namespace _087fireworks
     /// </summary>
     public double simTime;
 
-    public Particle ( Vector3d pos, Vector3d vel, Vector3d _up, Vector3 col, float siz, double time, double age )
+    public Particle ( Vector3d pos, Vector3d vel, Vector3d _up, Vector3 col, double siz, double time, double age )
     {
       position = pos;
       velocity = vel;
@@ -256,6 +256,11 @@ namespace _087fireworks
       // fly the particle:
       double dt = time - simTime;
       position += dt * velocity;
+
+      velocity += dt * -0.05 * up;
+      double extinction = Math.Pow( 0.9, dt );
+      size *= extinction;
+      color *= (float)extinction;
 
       simTime = time;
 
@@ -296,7 +301,7 @@ namespace _087fireworks
       if ( normal )
         Fill( ref ptr, ref up );
       if ( ptsize )
-        *ptr++ = size;
+        *ptr++ = (float)size;
       Fill( ref ptr, ref position );
 
       return total;
