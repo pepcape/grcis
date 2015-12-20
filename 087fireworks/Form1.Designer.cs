@@ -69,7 +69,7 @@
       // 
       this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelFps.AutoSize = true;
-      this.labelFps.Location = new System.Drawing.Point(702, 381);
+      this.labelFps.Location = new System.Drawing.Point(723, 381);
       this.labelFps.Name = "labelFps";
       this.labelFps.Size = new System.Drawing.Size(27, 13);
       this.labelFps.TabIndex = 18;
@@ -101,7 +101,7 @@
       // 
       this.labelStat.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelStat.AutoSize = true;
-      this.labelStat.Location = new System.Drawing.Point(508, 380);
+      this.labelStat.Location = new System.Drawing.Point(502, 381);
       this.labelStat.Name = "labelStat";
       this.labelStat.Size = new System.Drawing.Size(86, 13);
       this.labelStat.TabIndex = 26;

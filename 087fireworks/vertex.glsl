@@ -5,10 +5,11 @@
 //---------------------------------------------------------------
 #version 140
 
-in vec4 position;
+in vec3 position;
 in vec3 normal;
 in vec2 texCoords;
 in vec3 color;
+in float ptSize;
 
 out vec2 varTexCoords;
 out vec3 varNormal;
@@ -20,7 +21,8 @@ uniform mat4 matrixProjection;
 
 void main ()
 {
-  gl_Position = matrixProjection * matrixModelView * position;
+  gl_Position = matrixProjection * matrixModelView * vec4( position, 1.0 );
+  gl_PointSize = ptSize;
   varTexCoords = texCoords;
   varNormal = normal;
   varColor = color;

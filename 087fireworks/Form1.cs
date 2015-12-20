@@ -16,7 +16,7 @@ namespace _087fireworks
     /// <summary>
     /// Scene diameter.
     /// </summary>
-    protected float diameter = 4.0f;
+    protected float diameter = 6.0f;
 
     /// <summary>
     /// GLControl guard flag.
@@ -28,7 +28,10 @@ namespace _087fireworks
       InitializeComponent();
 
       string param;
-      Fireworks.InitParams( out param, out center, out diameter );
+      bool globalColor;
+      Fireworks.InitParams( out param, out center, out diameter, out useShaders, out globalColor );
+      checkShaders.Checked = useShaders;
+      checkGlobalColor.Checked = globalColor;
       textParam.Text = param ?? "";
       Text += " (rev: " + rev + ')';
 
@@ -38,6 +41,7 @@ namespace _087fireworks
     private void glControl1_Load ( object sender, EventArgs e )
     {
       InitOpenGL();
+      InitSimulation();
       SetupViewport();
 
       loaded = true;
@@ -64,11 +68,12 @@ namespace _087fireworks
 
     private void buttonStart_Click ( object sender, EventArgs e )
     {
+      PauseRestartSimulation();
     }
 
     private void buttonResetSim_Click ( object sender, EventArgs e )
     {
-      ResetCamera();
+      ResetSimulation();
     }
   }
 }
