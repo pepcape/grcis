@@ -132,11 +132,11 @@ namespace _087fireworks
       GL.Viewport( 0, 0, width, height );
 
       // 2. set projection matrix
-      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, (float)width / (float)height, 0.1f, 1000.0f );
+      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, (float)width / (float)height, 0.02f, 500.0f );
       float minSize = 2.0f * Math.Min( width, height );
       ortographicProjection = Matrix4.CreateOrthographic( diameter * width / minSize,
                                                           diameter * height / minSize,
-                                                          0.1f, 1000.0f );
+                                                          0.02f, 500.0f );
       SetProjection();
       setEllipse();
     }
