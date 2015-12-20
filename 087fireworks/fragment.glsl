@@ -58,6 +58,7 @@ void main ()
   vec3 diffuse  = kd * lightColor * cosa;
   vec3 specular = Ks * lightColor * cosb;
 
+  // fragColor.rgb = vec3( 1.0, 1.0, 0.3 );
   fragColor.rgb = ambient + diffuse + specular;
   fragColor.a   = 1.0;
 }

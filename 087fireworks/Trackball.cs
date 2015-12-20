@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using MathSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -115,6 +116,10 @@ namespace _087fireworks
     /// </summary>
     bool perspective = true;
 
+    float minZoom = 0.2f;
+
+    float maxZoom = 5.0f;
+
     /// <summary>
     /// Sets up a projective viewport
     /// </summary>
@@ -228,10 +233,7 @@ namespace _087fireworks
       zoom *= (float)Math.Pow( 1.04, dZoom );
 
       // zoom bounds:
-      if ( zoom < 0.25f )
-        zoom = 0.25f;
-      if ( zoom > 3.0f )
-        zoom = 3.0f;
+      zoom = Arith.Clamp( zoom, minZoom, maxZoom );
     }
 
     private void glControl1_KeyDown ( object sender, KeyEventArgs e )

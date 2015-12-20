@@ -54,11 +54,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\GeomSupport.cs">
+      <Link>GeomSupport.cs</Link>
+    </Compile>
     <Compile Include="..\common\MathSupport.cs">
       <Link>MathSupport.cs</Link>
     </Compile>
     <Compile Include="..\common\OpenglSupport.cs">
       <Link>OpenglSupport.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RandomJames.cs">
+      <Link>RandomJames.cs</Link>
     </Compile>
     <Compile Include="..\common\Util.cs">
       <Link>Util.cs</Link>

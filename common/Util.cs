@@ -287,11 +287,44 @@ namespace Utilities
     /// Parses integer value from the dictionary.
     /// </summary>
     /// <returns>True if everything went well.</returns>
-    public static bool TryParseInt ( Dictionary<string, string> rec, string key, ref int val )
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref int val )
     {
       string sval;
-      return (rec.TryGetValue( key, out sval ) &&
-              int.TryParse( sval, out val ));
+      return ( rec.TryGetValue( key, out sval ) &&
+               int.TryParse( sval, out val ) );
+    }
+
+    /// <summary>
+    /// Parses long value from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well.</returns>
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref long val )
+    {
+      string sval;
+      return ( rec.TryGetValue( key, out sval ) &&
+               long.TryParse( sval, out val ) );
+    }
+
+    /// <summary>
+    /// Parses float value from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well.</returns>
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref float val )
+    {
+      string sval;
+      return ( rec.TryGetValue( key, out sval ) &&
+               float.TryParse( sval, NumberStyles.Number, CultureInfo.InvariantCulture, out val ) );
+    }
+
+    /// <summary>
+    /// Parses double value from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well.</returns>
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref double val )
+    {
+      string sval;
+      return ( rec.TryGetValue( key, out sval ) &&
+               double.TryParse( sval, NumberStyles.Number, CultureInfo.InvariantCulture, out val ) );
     }
 
     /// <summary>
@@ -478,10 +511,12 @@ namespace Utilities
     /// <param name="separator">Optional specification of the separator character.</param>
     public static Dictionary<string,string> ParseKeyValueList ( string str, char separator =',' )
     {
+      Dictionary<string, string> result = new Dictionary<string, string>();
+      if ( str == null )
+        return result;
+
       int len = str.Length;
       int start = 0;
-      Dictionary<string, string> result = new Dictionary<string, string>();
-
       while ( start < len )
       {
         int end = str.IndexOf( separator, start );

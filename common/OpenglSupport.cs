@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Utilities;
 
@@ -485,6 +486,260 @@ namespace OpenglSupport
       foreach ( var uni in uniforms.Values )
         Util.LogFormat( "  {0}: {1}, {2}, {3}",
                         uni.Name, uni.Address, uni.Type, uni.Size );
+    }
+  }
+
+  /// <summary>
+  /// Abstract object rendered using points/lines/triangles.
+  /// There are two phases:
+  /// <list type=">">
+  /// <item>1. determining vertex-buffer size & stride (separately for points/lines/triangles)</item>
+  /// <item>2. actually writing data to the memory (mapped VBO buffer or VAO buffer)</item>
+  /// </list>
+  /// </summary>
+  public interface IRenderObject
+  {
+    /// <summary>
+    /// Number of triangles to render (could be 0).
+    /// </summary>
+    uint Triangles
+    {
+      get;
+    }
+
+    /// <summary>
+    /// Triangles: returns vertex-array size (if ptr is null) or fills vertex array.
+    /// </summary>
+    /// <param name="ptr">Data pointer (null for determining buffer size).</param>
+    /// <param name="origin">Index number in the global vertex array.</param>
+    /// <param name="stride">Vertex size (stride) in bytes.</param>
+    /// <param name="col">Use color attribute?</param>
+    /// <param name="txt">Use txtCoord attribute?</param>
+    /// <param name="normal">Use normal vector attribute?</param>
+    /// <param name="ptsize">Use point-size/line-width attribute?</param>
+    /// <returns>Data size of the vertex-set (in bytes).</returns>
+    unsafe int TriangleVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize );
+
+    /// <summary>
+    /// Triangles: returns index-array size (if ptr is null) or fills index array.
+    /// </summary>
+    /// <param name="ptr">Data pointer (null for determining buffer size).</param>
+    /// <param name="origin">First index to use.</param>
+    /// <returns>Data size of the index-set (in bytes).</returns>
+    unsafe int TriangleIndices ( ref uint* ptr, uint origin );
+
+    /// <summary>
+    /// Number of lines to render (could be 0).
+    /// </summary>
+    uint Lines
+    {
+      get;
+    }
+
+    /// <summary>
+    /// Lines: returns vertex-array size (if ptr is null) or fills vertex array.
+    /// </summary>
+    /// <param name="ptr">Data pointer (null for determining buffer size).</param>
+    /// <param name="origin">Index number in the global vertex array.</param>
+    /// <param name="stride">Vertex size (stride) in bytes.</param>
+    /// <param name="col">Use color attribute?</param>
+    /// <param name="txt">Use txtCoord attribute?</param>
+    /// <param name="normal">Use normal vector attribute?</param>
+    /// <param name="ptsize">Use point-size/line-width attribute?</param>
+    /// <returns>Data size of the vertex-set (in bytes).</returns>
+    unsafe int LineVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize );
+
+    /// <summary>
+    /// Lines: returns index-array size (if ptr is null) or fills index array.
+    /// </summary>
+    /// <param name="ptr">Data pointer (null for determining buffer size).</param>
+    /// <param name="origin">First index to use.</param>
+    /// <returns>Data size of the index-set (in bytes).</returns>
+    unsafe int LineIndices ( ref uint* ptr, uint origin );
+
+    /// <summary>
+    /// Number of points to render (could be 0).
+    /// </summary>
+    uint Points
+    {
+      get;
+    }
+
+    /// <summary>
+    /// Points: returns vertex-array size (if ptr is null) or fills vertex array.
+    /// </summary>
+    /// <param name="ptr">Data pointer (null for determining buffer size).</param>
+    /// <param name="origin">Index number in the global vertex array.</param>
+    /// <param name="stride">Vertex size (stride) in bytes.</param>
+    /// <param name="col">Use color attribute?</param>
+    /// <param name="txt">Use txtCoord attribute?</param>
+    /// <param name="normal">Use normal vector attribute?</param>
+    /// <param name="ptsize">Use point-size/line-width attribute?</param>
+    /// <returns>Data size of the vertex-set (in bytes).</returns>
+    unsafe int PointVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize );
+  }
+
+  /// <summary>
+  /// Default implementation of IRenderObject.
+  /// *Vertices() and *Indices() functions can be used for buffer size determination
+  /// (no actual data are written to the buffer).
+  /// <see cref="TriVertices"/> and <see cref="LinVertices"/> must be overriden
+  /// to work properly.
+  /// </summary>
+  public abstract class DefaultRenderObject : IRenderObject
+  {
+    /// <summary>
+    /// Support function writing a Vector2 object to the given buffer.
+    /// </summary>
+    public static unsafe void Fill ( ref float* ptr, Vector2 v )
+    {
+      *ptr++ = v.X;
+      *ptr++ = v.Y;
+    }
+
+    /// <summary>
+    /// Support function writing a Vector2 object to the given buffer.
+    /// </summary>
+    public static unsafe void Fill ( ref float* ptr, ref Vector2 v )
+    {
+      *ptr++ = v.X;
+      *ptr++ = v.Y;
+    }
+
+    /// <summary>
+    /// Support function writing a Vector3 object to the given buffer.
+    /// </summary>
+    public static unsafe void Fill ( ref float* ptr, Vector3 v )
+    {
+      *ptr++ = v.X;
+      *ptr++ = v.Y;
+      *ptr++ = v.Z;
+    }
+
+    /// <summary>
+    /// Support function writing a Vector3 object to the given buffer.
+    /// </summary>
+    public static unsafe void Fill ( ref float* ptr, ref Vector3 v )
+    {
+      *ptr++ = v.X;
+      *ptr++ = v.Y;
+      *ptr++ = v.Z;
+    }
+
+    /// <summary>
+    /// Number of triangles to render (0 by default).
+    /// </summary>
+    public virtual uint Triangles
+    {
+      get
+      {
+        return 0;
+      }
+    }
+
+    /// <summary>
+    /// Number of vertices for triangle rendering (not shared vertices by default).
+    /// </summary>
+    public virtual uint TriVertices
+    {
+      get
+      {
+        return Triangles * 3;
+      }
+    }
+
+    public virtual unsafe int TriangleVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize )
+    {
+      stride = 3;
+      if ( txt )
+        stride += 2;
+      if ( col )
+        stride += 3;
+      if ( normal )
+        stride += 3;
+      if ( ptsize )
+        stride++;
+
+      origin += TriVertices;
+
+      return (int)TriVertices * (stride *= sizeof( float ));
+    }
+
+    public virtual unsafe int TriangleIndices ( ref uint* ptr, uint origin )
+    {
+      return (int)Triangles * 3 * sizeof( uint );
+    }
+
+    /// <summary>
+    /// Number of lines to render (0 by default).
+    /// </summary>
+    public virtual uint Lines
+    {
+      get
+      {
+        return 0;
+      }
+    }
+
+    /// <summary>
+    /// Number of vertices for line rendering (not shared vertices by default).
+    /// </summary>
+    public virtual uint LinVertices
+    {
+      get
+      {
+        return Lines * 2;
+      }
+    }
+
+    public virtual unsafe int LineVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize )
+    {
+      stride = 3;
+      if ( txt )
+        stride += 2;
+      if ( col )
+        stride += 3;
+      if ( normal )
+        stride += 3;
+      if ( ptsize )
+        stride++;
+
+      origin += LinVertices;
+
+      return (int)LinVertices * (stride *= sizeof( float ));
+    }
+
+    public virtual unsafe int LineIndices ( ref uint* ptr, uint origin )
+    {
+      return (int)Lines * 2 * sizeof( uint );
+    }
+
+    /// <summary>
+    /// Number of points to render (0 by default).
+    /// </summary>
+    public virtual uint Points
+    {
+      get
+      {
+        return 0;
+      }
+    }
+
+    public virtual unsafe int PointVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize )
+    {
+      stride = 3;
+      if ( txt )
+        stride += 2;
+      if ( col )
+        stride += 3;
+      if ( normal )
+        stride += 3;
+      if ( ptsize )
+        stride++;
+
+      origin += Points;
+
+      return (int)Points * (stride *= sizeof( float ));
     }
   }
 }
