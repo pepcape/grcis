@@ -9,6 +9,7 @@ in vec2 varTexCoords;
 in vec3 varNormal;
 in vec3 varWorld;
 in vec3 varColor;
+flat in vec3 flatColor;
 
 uniform vec3 globalAmbient;
 uniform vec3 lightColor;
@@ -21,43 +22,59 @@ uniform float shininess;
 uniform bool useTexture;
 uniform bool globalColor;
 uniform sampler2D texSurface;
+uniform bool useAmbient;
+uniform bool useDiffuse;
+uniform bool useSpecular;
+uniform bool shadingPhong;
+uniform bool shadingGouraud;
 
-out vec4 fragColor;
+out vec3 fragColor;
 
 void main ()
 {
-  vec3 P = varWorld;
-  vec3 N = normalize( varNormal );
-  vec3 L = normalize( lightPosition - P );
-  vec3 V = normalize( eyePosition - P );
-  vec3 H = normalize( L + V );
-
-  float cosb = 0.0;
-  float cosa = dot( N, L );
-  if ( cosa > 0.0 )
-    cosb = pow( max( dot( N, H ), 0.0 ), shininess );
-  else
-    cosa = 0.0;
-
-  vec3 ka, kd;
-  if ( useTexture )
+  if ( shadingPhong )
   {
-    ka = kd = vec3( texture2D( texSurface, varTexCoords ) );
-  }
-  else
-    if ( globalColor )
+    // Phong shading (interpolation of normals):
+    vec3 P = varWorld;
+    vec3 N = normalize( varNormal );
+    vec3 L = normalize( lightPosition - P );
+    vec3 V = normalize( eyePosition - P );
+    vec3 H = normalize( L + V );
+
+    float cosb = 0.0;
+    float cosa = dot( N, L );
+    if ( cosa > 0.0 )
+      cosb = pow( max( dot( N, H ), 0.0 ), shininess );
+    else
+      cosa = 0.0;
+
+    vec3 ka, kd;
+    if ( useTexture )
     {
-      ka = Ka;
-      kd = Kd;
+      ka = kd = vec3( texture2D( texSurface, varTexCoords ) );
     }
     else
-    {
-      ka = kd = varColor;
-    }
-  vec3 ambient  = ka * globalAmbient;
-  vec3 diffuse  = kd * lightColor * cosa;
-  vec3 specular = Ks * lightColor * cosb;
+      if ( globalColor )
+      {
+        ka = Ka;
+        kd = Kd;
+      }
+      else
+      {
+        ka = kd = varColor;
+      }
 
-  fragColor.rgb = ambient + diffuse + specular;
-  fragColor.a   = 1.0;
+    fragColor = vec3( 0.0 );
+    if ( useAmbient )
+      fragColor += ka * globalAmbient;
+    if ( useDiffuse )
+      fragColor += kd * lightColor * cosa;
+    if ( useSpecular )
+      fragColor += Ks * lightColor * cosb;
+  }
+  else
+    if ( shadingGouraud )     // Gouraud shading (interpolation of colors):
+      fragColor = varColor;
+    else                      // flat shading (constant color):
+      fragColor = flatColor;
 }

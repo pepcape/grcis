@@ -46,6 +46,10 @@
       this.checkTexture = new System.Windows.Forms.CheckBox();
       this.checkGlobalColor = new System.Windows.Forms.CheckBox();
       this.checkShaders = new System.Windows.Forms.CheckBox();
+      this.checkAmbient = new System.Windows.Forms.CheckBox();
+      this.checkDiffuse = new System.Windows.Forms.CheckBox();
+      this.checkSpecular = new System.Windows.Forms.CheckBox();
+      this.checkPhong = new System.Windows.Forms.CheckBox();
       ((System.ComponentModel.ISupportInitialize)(this.numericSensitivity)).BeginInit();
       this.SuspendLayout();
       // 
@@ -83,7 +87,7 @@
       // buttonReset
       // 
       this.buttonReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonReset.Location = new System.Drawing.Point(741, 411);
+      this.buttonReset.Location = new System.Drawing.Point(741, 434);
       this.buttonReset.Name = "buttonReset";
       this.buttonReset.Size = new System.Drawing.Size(84, 23);
       this.buttonReset.TabIndex = 22;
@@ -95,7 +99,7 @@
       // 
       this.labelSensitivity.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelSensitivity.AutoSize = true;
-      this.labelSensitivity.Location = new System.Drawing.Point(604, 417);
+      this.labelSensitivity.Location = new System.Drawing.Point(604, 440);
       this.labelSensitivity.Name = "labelSensitivity";
       this.labelSensitivity.Size = new System.Drawing.Size(54, 13);
       this.labelSensitivity.TabIndex = 23;
@@ -105,7 +109,7 @@
       // 
       this.numericSensitivity.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.numericSensitivity.DecimalPlaces = 2;
-      this.numericSensitivity.Location = new System.Drawing.Point(664, 415);
+      this.numericSensitivity.Location = new System.Drawing.Point(664, 438);
       this.numericSensitivity.Maximum = new decimal(new int[] {
             10,
             0,
@@ -138,7 +142,7 @@
       // 
       // labelFile
       // 
-      this.labelFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.labelFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelFile.AutoSize = true;
       this.labelFile.Location = new System.Drawing.Point(546, 380);
       this.labelFile.Name = "labelFile";
@@ -150,7 +154,7 @@
       // 
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.textParam.Location = new System.Drawing.Point(180, 414);
+      this.textParam.Location = new System.Drawing.Point(180, 437);
       this.textParam.Name = "textParam";
       this.textParam.Size = new System.Drawing.Size(353, 20);
       this.textParam.TabIndex = 29;
@@ -159,7 +163,7 @@
       // 
       this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label3.AutoSize = true;
-      this.label3.Location = new System.Drawing.Point(135, 417);
+      this.label3.Location = new System.Drawing.Point(135, 440);
       this.label3.Name = "label3";
       this.label3.Size = new System.Drawing.Size(40, 13);
       this.label3.TabIndex = 28;
@@ -168,7 +172,7 @@
       // buttonGenerate
       // 
       this.buttonGenerate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonGenerate.Location = new System.Drawing.Point(15, 411);
+      this.buttonGenerate.Location = new System.Drawing.Point(15, 434);
       this.buttonGenerate.Name = "buttonGenerate";
       this.buttonGenerate.Size = new System.Drawing.Size(108, 23);
       this.buttonGenerate.TabIndex = 27;
@@ -180,7 +184,7 @@
       // 
       this.checkMulti.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.checkMulti.AutoSize = true;
-      this.checkMulti.Location = new System.Drawing.Point(549, 416);
+      this.checkMulti.Location = new System.Drawing.Point(549, 439);
       this.checkMulti.Name = "checkMulti";
       this.checkMulti.Size = new System.Drawing.Size(51, 17);
       this.checkMulti.TabIndex = 30;
@@ -191,6 +195,8 @@
       // 
       this.checkSmooth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkSmooth.AutoSize = true;
+      this.checkSmooth.Checked = true;
+      this.checkSmooth.CheckState = System.Windows.Forms.CheckState.Checked;
       this.checkSmooth.Location = new System.Drawing.Point(139, 380);
       this.checkSmooth.Name = "checkSmooth";
       this.checkSmooth.Size = new System.Drawing.Size(62, 17);
@@ -269,11 +275,67 @@
       this.checkShaders.Text = "GLSL";
       this.checkShaders.UseVisualStyleBackColor = true;
       // 
+      // checkAmbient
+      // 
+      this.checkAmbient.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkAmbient.AutoSize = true;
+      this.checkAmbient.Checked = true;
+      this.checkAmbient.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkAmbient.Location = new System.Drawing.Point(204, 408);
+      this.checkAmbient.Name = "checkAmbient";
+      this.checkAmbient.Size = new System.Drawing.Size(64, 17);
+      this.checkAmbient.TabIndex = 38;
+      this.checkAmbient.Text = "Ambient";
+      this.checkAmbient.UseVisualStyleBackColor = true;
+      // 
+      // checkDiffuse
+      // 
+      this.checkDiffuse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkDiffuse.AutoSize = true;
+      this.checkDiffuse.Checked = true;
+      this.checkDiffuse.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkDiffuse.Location = new System.Drawing.Point(274, 408);
+      this.checkDiffuse.Name = "checkDiffuse";
+      this.checkDiffuse.Size = new System.Drawing.Size(59, 17);
+      this.checkDiffuse.TabIndex = 39;
+      this.checkDiffuse.Text = "Diffuse";
+      this.checkDiffuse.UseVisualStyleBackColor = true;
+      // 
+      // checkSpecular
+      // 
+      this.checkSpecular.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkSpecular.AutoSize = true;
+      this.checkSpecular.Checked = true;
+      this.checkSpecular.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkSpecular.Location = new System.Drawing.Point(339, 408);
+      this.checkSpecular.Name = "checkSpecular";
+      this.checkSpecular.Size = new System.Drawing.Size(68, 17);
+      this.checkSpecular.TabIndex = 40;
+      this.checkSpecular.Text = "Specular";
+      this.checkSpecular.UseVisualStyleBackColor = true;
+      // 
+      // checkPhong
+      // 
+      this.checkPhong.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkPhong.AutoSize = true;
+      this.checkPhong.Checked = true;
+      this.checkPhong.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkPhong.Location = new System.Drawing.Point(139, 408);
+      this.checkPhong.Name = "checkPhong";
+      this.checkPhong.Size = new System.Drawing.Size(57, 17);
+      this.checkPhong.TabIndex = 41;
+      this.checkPhong.Text = "Phong";
+      this.checkPhong.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(844, 446);
+      this.ClientSize = new System.Drawing.Size(844, 469);
+      this.Controls.Add(this.checkPhong);
+      this.Controls.Add(this.checkSpecular);
+      this.Controls.Add(this.checkDiffuse);
+      this.Controls.Add(this.checkAmbient);
       this.Controls.Add(this.checkShaders);
       this.Controls.Add(this.checkGlobalColor);
       this.Controls.Add(this.checkTexture);
@@ -292,7 +354,7 @@
       this.Controls.Add(this.buttonReset);
       this.Controls.Add(this.labelFps);
       this.Controls.Add(this.glControl1);
-      this.MinimumSize = new System.Drawing.Size(860, 200);
+      this.MinimumSize = new System.Drawing.Size(860, 350);
       this.Name = "Form1";
       this.Text = "086 shaders";
       this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseWheel);
@@ -322,6 +384,10 @@
     private System.Windows.Forms.CheckBox checkTexture;
     private System.Windows.Forms.CheckBox checkGlobalColor;
     private System.Windows.Forms.CheckBox checkShaders;
+    private System.Windows.Forms.CheckBox checkAmbient;
+    private System.Windows.Forms.CheckBox checkDiffuse;
+    private System.Windows.Forms.CheckBox checkSpecular;
+    private System.Windows.Forms.CheckBox checkPhong;
   }
 }
 
