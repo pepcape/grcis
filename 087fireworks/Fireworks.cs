@@ -508,6 +508,8 @@ namespace _087fireworks
     {
       // input params:
       Dictionary<string, string> p = Util.ParseKeyValueList( param );
+      if ( p.Count == 0 )
+        return;
 
       // launchers: frequency
       if ( Util.TryParse( p, "freq", ref freq ) )

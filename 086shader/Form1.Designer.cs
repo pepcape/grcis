@@ -158,6 +158,7 @@
       this.textParam.Name = "textParam";
       this.textParam.Size = new System.Drawing.Size(353, 20);
       this.textParam.TabIndex = 29;
+      this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
       // 
       // label3
       // 

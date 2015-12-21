@@ -1,6 +1,7 @@
 //---------------------------------------------------------------
 // Simple fragment shader utilizing single texture
-//   normal vector, single point light-source
+//   normal vector, single point light-source, switchable shading components,
+//   flat/smooth shading (Gouraud/Phong)
 //   @version $Rev$
 //---------------------------------------------------------------
 #version 140

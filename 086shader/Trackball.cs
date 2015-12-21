@@ -101,6 +101,8 @@ namespace _086shader
     /// Zoom factor (multiplication).
     /// </summary>
     float zoom = 1.0f;
+    float minZoom = 0.2f;
+    float maxZoom = 5.0f;
 
     Matrix4 prevRotation = Matrix4.Identity;
     Matrix4 rotation = Matrix4.Identity;
@@ -115,10 +117,6 @@ namespace _086shader
     /// Perspective / orthographic projection?
     /// </summary>
     bool perspective = true;
-
-    float minZoom = 0.2f;
-
-    float maxZoom = 5.0f;
 
     /// <summary>
     /// Sets up a projective viewport
@@ -174,13 +172,16 @@ namespace _086shader
              Matrix4.CreateTranslation( center );
     }
 
+    Vector3 light = new Vector3( -2, 1, 1 );
+
     private void ResetCamera ()
     {
-      SetLightEye( diameter );
+      zoom = 1.0f;      // could be modified in UpdateParams()
+      UpdateParams( textParam.Text );
+      SetLightEye( diameter, ref light );
 
       // !!!{{ TODO: add camera reset code here
 
-      zoom = 1.0f;
       rotation = Matrix4.Identity;
       prevRotation = Matrix4.Identity;
 
