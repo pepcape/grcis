@@ -44,6 +44,7 @@ namespace _086shader
     private void glControl1_Load ( object sender, EventArgs e )
     {
       InitOpenGL();
+      UpdateParams( textParam.Text );
       SetupViewport();
 
       loaded = true;
@@ -146,6 +147,15 @@ namespace _086shader
       glControl1.Invalidate();
 
       Cursor.Current = Cursors.Default;
+    }
+
+    private void textParam_KeyPress ( object sender, System.Windows.Forms.KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        UpdateParams( textParam.Text );
+      }
     }
   }
 }

@@ -1,6 +1,7 @@
 //---------------------------------------------------------------
 // Simple vertex shader
 //   propagates 2D texture coords, normal vector, world coords, color
+//   can compute vertex-based shading with switchable components
 //   @version $Rev$
 //---------------------------------------------------------------
 #version 140
@@ -46,7 +47,7 @@ void main ()
     varColor = flatColor = color;
   else
   {
-    // Phong model:
+    // Phong model at the vertex:
     vec3 P = position.xyz;
     vec3 N = normalize( normal );
     vec3 L = normalize( lightPosition - P );

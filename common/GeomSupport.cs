@@ -1,6 +1,7 @@
 ﻿using System;
 using OpenTK;
 using System.Collections.Generic;
+using System.Globalization;
 
 // Support math code.
 namespace MathSupport
@@ -123,6 +124,86 @@ namespace MathSupport
       Matrix4d mat = Matrix4d.CreateRotationX( deviation ) * Matrix4d.CreateRotationZ( orientation ) * fromz;
       
       return new Vector3d( mat.Row2 ); // [0,0,1] * mat
+    }
+
+    /// <summary>
+    /// Parse vector of float numbers delimited by semicolons/colons/commas optinally enclosed in [] or () parenthesis.
+    /// Empty token is assumed to be zero (0.0f).
+    /// </summary>
+    /// <returns>Float array or null if failed</returns>
+    public static float[] TryParseFloatVector ( string str )
+    {
+      int len;
+      if ( str == null ||
+           (len = (str = str.Trim()).Length) == 0 )
+        return null;
+
+      if ( (str[ 0 ] == '(' &&
+            str[ len - 1 ] == ')') ||
+           (str[ 0 ] == '[' &&
+            str[ len - 1 ] == ']') )
+        str = str.Substring( 1, len - 2 );
+
+      string[] tokens;
+      if ( str.IndexOf( ';' ) >= 0 )
+        tokens = str.Split( ';' );
+      else
+        if ( str.IndexOf( ':' ) >= 0 )
+          tokens = str.Split( ':' );
+        else
+          tokens = str.Split( ',' );
+
+      List<float> floats = new List<float>();
+      float val;
+      foreach ( string token in tokens )
+        if ( token.Trim().Length == 0 )
+          floats.Add( 0.0f );
+        else
+          if ( float.TryParse( token, NumberStyles.Number, CultureInfo.InvariantCulture, out val ) )
+            floats.Add( val );
+
+      return floats.ToArray();
+    }
+
+    /// <summary>
+    /// Parses Vector3 value from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well.</returns>
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref Vector3 val )
+    {
+      string sval;
+      if ( !rec.TryGetValue( key, out sval ) )
+        return false;
+
+      float[] vec = TryParseFloatVector( sval );
+      if ( vec == null ||
+           vec.Length < 3 )
+        return false;
+
+      val.X = vec[ 0 ];
+      val.Y = vec[ 1 ];
+      val.Z = vec[ 2 ];
+      return true;
+    }
+
+    /// <summary>
+    /// Parses Vector2 value from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well.</returns>
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref Vector2 val )
+    {
+      string sval;
+      if ( !rec.TryGetValue( key, out sval ) )
+        return false;
+
+      float[] vec = TryParseFloatVector( sval );
+      if ( vec == null ||
+           vec.Length < 2 )
+        return false;
+
+      val.X = vec[ 0 ];
+      val.Y = vec[ 1 ];
+      return true;
     }
 
     /// <summary>

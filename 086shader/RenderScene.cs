@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using MathSupport;
 using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Utilities;
 
 namespace _086shader
 {
@@ -228,11 +230,64 @@ namespace _086shader
     Vector3 lightPosition = new Vector3( -20.0f, 10.0f, 10.0f );
     Vector3 eyePosition   = new Vector3(   0.0f,  0.0f, 10.0f );
 
-    void SetLightEye ( float size )
+    /// <summary>
+    /// Set light-source and eye coordinates in the world-space.
+    /// </summary>
+    /// <param name="size">Relative size (based on the scene size).</param>
+    /// <param name="light">Relative light position (default=[-2,1,1],viewer=[0,0,1]).</param>
+    void SetLightEye ( float size, ref Vector3 light )
     {
       size += size;
-      lightPosition = new Vector3( -2.0f * size, size, size );
-      eyePosition   = new Vector3(         0.0f, 0.0f, size );
+      lightPosition = size * light;
+      eyePosition   = new Vector3( 0.0f, 0.0f, size );
+    }
+
+    /// <summary>
+    /// Update rendering/trackball parameters.
+    /// </summary>
+    /// <param name="param">User-provided parameter string.</param>
+    void UpdateParams ( string param )
+    {
+      // input params:
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+      if ( p.Count == 0 )
+        return;
+
+      // trackball: zoom limits
+      if ( Util.TryParse( p, "minZoom", ref minZoom ) )
+        minZoom = Math.Max( 1.0e-4f, minZoom );
+      if ( Util.TryParse( p, "maxZoom", ref maxZoom ) )
+        maxZoom = Arith.Clamp( maxZoom, minZoom, 1.0e6f );
+
+      // trackball: zoom
+      Util.TryParse( p, "zoom", ref zoom );
+      zoom = Arith.Clamp( zoom, minZoom, maxZoom );
+
+      // rendering: perspective/orthographic projection
+      Util.TryParse( p, "perspective", ref perspective );
+
+      // rendering: vertical field-of-view
+      if ( !Util.TryParse( p, "fov", ref fov ) )
+      {
+        fov = Arith.Clamp( fov, 0.1f, 2.0f );
+        SetupViewport();
+      }
+
+      // shading: relative light position
+      if ( Geometry.TryParse( p, "light", ref light ) )
+      {
+        if ( light.Length < 1.0e-3f )
+          light = new Vector3( -2, 1, 1 );
+        SetLightEye( eyePosition.Z * 0.5f, ref light );
+      }
+
+      // shading: global material color
+      if ( Geometry.TryParse( p, "color", ref matAmbient ) )
+        matDiffuse = matAmbient;
+
+      // shading: shininess
+      if ( !Util.TryParse( p, "shininess", ref matShininess ) )
+        matShininess = Arith.Clamp( matShininess, 1.0f, 1.0e4f );
     }
 
     // attribute/vertex arrays:
