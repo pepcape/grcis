@@ -28,11 +28,12 @@ namespace _087fireworks
       InitializeComponent();
 
       string param;
-      bool globalColor;
-      bool useNormals;
-      InitParams( out param, out center, out diameter, out useNormals, out globalColor );
-      checkNormals.Checked = useNormals;
+      bool useTexture, globalColor, useNormals, usePtSize;
+      InitParams( out param, out center, out diameter, out useTexture, out globalColor, out useNormals, out usePtSize );
+      checkTexture.Checked = useTexture;
       checkGlobalColor.Checked = globalColor;
+      checkNormals.Checked = useNormals;
+      checkPointSize.Checked = usePtSize;
       textParam.Text = param ?? "";
       Text += " (rev: " + rev + ')';
 
@@ -75,6 +76,20 @@ namespace _087fireworks
     private void buttonResetSim_Click ( object sender, EventArgs e )
     {
       ResetSimulation();
+    }
+
+    private void buttonUpdate_Click ( object sender, EventArgs e )
+    {
+      UpdateSimulation();
+    }
+
+    private void textParam_KeyPress ( object sender, System.Windows.Forms.KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        UpdateSimulation();
+      }
     }
   }
 }

@@ -328,6 +328,20 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Parses boolean value from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well.</returns>
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref bool val )
+    {
+      string sval;
+      if ( !rec.TryGetValue( key, out sval ) )
+        return false;
+
+      val = positive( sval );
+      return true;
+    }
+
+    /// <summary>
     /// Returns first defined value (for the given keys) or null.
     /// </summary>
     public static string FirstDefined ( Dictionary<string, string> rec, string[] keys )

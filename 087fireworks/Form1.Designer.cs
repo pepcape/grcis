@@ -42,6 +42,7 @@
       this.checkTexture = new System.Windows.Forms.CheckBox();
       this.checkGlobalColor = new System.Windows.Forms.CheckBox();
       this.checkNormals = new System.Windows.Forms.CheckBox();
+      this.buttonUpdate = new System.Windows.Forms.Button();
       this.SuspendLayout();
       // 
       // glControl1
@@ -91,7 +92,7 @@
       this.buttonStart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonStart.Location = new System.Drawing.Point(15, 375);
       this.buttonStart.Name = "buttonStart";
-      this.buttonStart.Size = new System.Drawing.Size(108, 23);
+      this.buttonStart.Size = new System.Drawing.Size(85, 23);
       this.buttonStart.TabIndex = 25;
       this.buttonStart.Text = "Start / stop";
       this.buttonStart.UseVisualStyleBackColor = true;
@@ -101,7 +102,7 @@
       // 
       this.labelStat.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelStat.AutoSize = true;
-      this.labelStat.Location = new System.Drawing.Point(502, 381);
+      this.labelStat.Location = new System.Drawing.Point(478, 381);
       this.labelStat.Name = "labelStat";
       this.labelStat.Size = new System.Drawing.Size(86, 13);
       this.labelStat.TabIndex = 26;
@@ -111,16 +112,17 @@
       // 
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.textParam.Location = new System.Drawing.Point(180, 413);
+      this.textParam.Location = new System.Drawing.Point(256, 413);
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(537, 20);
+      this.textParam.Size = new System.Drawing.Size(461, 20);
       this.textParam.TabIndex = 29;
+      this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
       // 
       // label3
       // 
       this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label3.AutoSize = true;
-      this.label3.Location = new System.Drawing.Point(135, 416);
+      this.label3.Location = new System.Drawing.Point(211, 416);
       this.label3.Name = "label3";
       this.label3.Size = new System.Drawing.Size(40, 13);
       this.label3.TabIndex = 28;
@@ -131,9 +133,9 @@
       this.buttonResetSim.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonResetSim.Location = new System.Drawing.Point(15, 411);
       this.buttonResetSim.Name = "buttonResetSim";
-      this.buttonResetSim.Size = new System.Drawing.Size(108, 23);
+      this.buttonResetSim.Size = new System.Drawing.Size(85, 23);
       this.buttonResetSim.TabIndex = 27;
-      this.buttonResetSim.Text = "Reset simulation";
+      this.buttonResetSim.Text = "Reset sim";
       this.buttonResetSim.UseVisualStyleBackColor = true;
       this.buttonResetSim.Click += new System.EventHandler(this.buttonResetSim_Click);
       // 
@@ -141,7 +143,7 @@
       // 
       this.checkSlow.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkSlow.AutoSize = true;
-      this.checkSlow.Location = new System.Drawing.Point(139, 380);
+      this.checkSlow.Location = new System.Drawing.Point(115, 380);
       this.checkSlow.Name = "checkSlow";
       this.checkSlow.Size = new System.Drawing.Size(49, 17);
       this.checkSlow.TabIndex = 31;
@@ -154,7 +156,7 @@
       this.checkPointSize.AutoSize = true;
       this.checkPointSize.Checked = true;
       this.checkPointSize.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkPointSize.Location = new System.Drawing.Point(374, 380);
+      this.checkPointSize.Location = new System.Drawing.Point(350, 380);
       this.checkPointSize.Name = "checkPointSize";
       this.checkPointSize.Size = new System.Drawing.Size(56, 17);
       this.checkPointSize.TabIndex = 33;
@@ -167,7 +169,7 @@
       this.checkVsync.AutoSize = true;
       this.checkVsync.Checked = true;
       this.checkVsync.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkVsync.Location = new System.Drawing.Point(437, 380);
+      this.checkVsync.Location = new System.Drawing.Point(413, 380);
       this.checkVsync.Name = "checkVsync";
       this.checkVsync.Size = new System.Drawing.Size(57, 17);
       this.checkVsync.TabIndex = 34;
@@ -179,7 +181,7 @@
       // 
       this.checkTexture.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkTexture.AutoSize = true;
-      this.checkTexture.Location = new System.Drawing.Point(195, 380);
+      this.checkTexture.Location = new System.Drawing.Point(171, 380);
       this.checkTexture.Name = "checkTexture";
       this.checkTexture.Size = new System.Drawing.Size(44, 17);
       this.checkTexture.TabIndex = 35;
@@ -190,7 +192,7 @@
       // 
       this.checkGlobalColor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkGlobalColor.AutoSize = true;
-      this.checkGlobalColor.Location = new System.Drawing.Point(246, 380);
+      this.checkGlobalColor.Location = new System.Drawing.Point(222, 380);
       this.checkGlobalColor.Name = "checkGlobalColor";
       this.checkGlobalColor.Size = new System.Drawing.Size(63, 17);
       this.checkGlobalColor.TabIndex = 36;
@@ -201,18 +203,30 @@
       // 
       this.checkNormals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkNormals.AutoSize = true;
-      this.checkNormals.Location = new System.Drawing.Point(316, 380);
+      this.checkNormals.Location = new System.Drawing.Point(292, 380);
       this.checkNormals.Name = "checkNormals";
       this.checkNormals.Size = new System.Drawing.Size(51, 17);
       this.checkNormals.TabIndex = 37;
       this.checkNormals.Text = "Norm";
       this.checkNormals.UseVisualStyleBackColor = true;
       // 
+      // buttonUpdate
+      // 
+      this.buttonUpdate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonUpdate.Location = new System.Drawing.Point(115, 411);
+      this.buttonUpdate.Name = "buttonUpdate";
+      this.buttonUpdate.Size = new System.Drawing.Size(85, 23);
+      this.buttonUpdate.TabIndex = 38;
+      this.buttonUpdate.Text = "Update sim";
+      this.buttonUpdate.UseVisualStyleBackColor = true;
+      this.buttonUpdate.Click += new System.EventHandler(this.buttonUpdate_Click);
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(844, 446);
+      this.Controls.Add(this.buttonUpdate);
       this.Controls.Add(this.checkNormals);
       this.Controls.Add(this.checkGlobalColor);
       this.Controls.Add(this.checkTexture);
@@ -252,6 +266,7 @@
     private System.Windows.Forms.CheckBox checkTexture;
     private System.Windows.Forms.CheckBox checkGlobalColor;
     private System.Windows.Forms.CheckBox checkNormals;
+    private System.Windows.Forms.Button buttonUpdate;
   }
 }
 
