@@ -210,20 +210,23 @@ namespace _087fireworks
 
     private void glControl1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( e.Button != System.Windows.Forms.MouseButtons.Left )
+      if ( e.Button != MouseButtons.Left )
         return;
 
+       
       b = ellipse.IntersectionI( e.X, e.Y );
-      rotation = calculateRotation( a, b );
+      rotation = calculateRotation( a, b, (Control.ModifierKeys & Keys.Shift) != Keys.None );
     }
 
-    Matrix4 calculateRotation ( Vector3? a, Vector3? b )
+    Matrix4 calculateRotation ( Vector3? a, Vector3? b, bool sensitive )
     {
       if ( !a.HasValue || !b.HasValue )
         return rotation;
 
       Vector3 axis = Vector3.Cross( a.Value, b.Value );
-      float angle = Vector3.CalculateAngle( a.Value, b.Value ) * 0.5f;    // * (float)numericSensitivity.Value
+      float angle = Vector3.CalculateAngle( a.Value, b.Value );
+      if ( sensitive )
+        angle *= 0.4f;
       return Matrix4.CreateFromAxisAngle( axis, angle );
     }
 
@@ -245,7 +248,10 @@ namespace _087fireworks
     private void glControl1_KeyUp ( object sender, KeyEventArgs e )
     {
       if ( e.KeyCode == Keys.O )
+      {
+        e.Handled = true;
         togglePerspective();
+      }
     }
 
     private void togglePerspective ()

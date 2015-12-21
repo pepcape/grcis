@@ -574,9 +574,10 @@ namespace _087fireworks
       expiredParticles.Clear();
 
       int i;
+      bool oddFrame = (frames & 1) > 0;
 
       // simulate launchers:
-      if ( (frames & 1) > 0 )
+      if ( oddFrame )
         for ( i = 0; i < launchers.Count; i++ )
           launchers[ i ].Simulate( time, this );
       else
@@ -584,7 +585,7 @@ namespace _087fireworks
           launchers[ i ].Simulate( time, this );
 
       // simulate particles:
-      if ( (frames & 1) > 0 )
+      if ( oddFrame )
       {
         for ( i = 0; i < particles.Count; i++ )
           if ( !particles[ i ].Simulate( time, this ) )
@@ -671,7 +672,7 @@ namespace _087fireworks
   public partial class Form1
   {
     /// <summary>
-    /// Optional form-data initialization.
+    /// Form-data initialization.
     /// </summary>
     public static void InitParams ( out string param, out Vector3 center, out float diameter,
                                     out bool useTexture, out bool globalColor, out bool useNormals, out bool usePtSize )
@@ -999,16 +1000,14 @@ namespace _087fireworks
     /// </summary>
     private void ResetSimulation ()
     {
-      if ( fw == null )
-        return;
-
-      lock ( fw )
-      {
-        ResetDataBuffers();
-        fw.Reset( textParam.Text );
-        ticksLast = DateTime.Now.Ticks;
-        timeLast = 0.0;
-      }
+      if ( fw != null )
+        lock ( fw )
+        {
+          ResetDataBuffers();
+          fw.Reset( textParam.Text );
+          ticksLast = DateTime.Now.Ticks;
+          timeLast = 0.0;
+        }
     }
 
     /// <summary>
@@ -1016,11 +1015,9 @@ namespace _087fireworks
     /// </summary>
     private void PauseRestartSimulation ()
     {
-      if ( fw == null )
-        return;
-
-      lock ( fw )
-        fw.Running  = !fw.Running;
+      if ( fw != null )
+        lock ( fw )
+          fw.Running  = !fw.Running;
     }
 
     /// <summary>
@@ -1028,11 +1025,9 @@ namespace _087fireworks
     /// </summary>
     private void UpdateSimulation ()
     {
-      if ( fw == null )
-        return;
-
-      lock ( fw )
-        fw.Update( textParam.Text );
+      if ( fw != null )
+        lock ( fw )
+          fw.Update( textParam.Text );
     }
 
     /// <summary>
@@ -1040,23 +1035,21 @@ namespace _087fireworks
     /// </summary>
     private void Simulate ()
     {
-      if ( fw == null )
-        return;
-
-      lock ( fw )
-      {
-        long nowTicks = DateTime.Now.Ticks;
-        if ( nowTicks > ticksLast )
+      if ( fw != null )
+        lock ( fw )
         {
-          if ( fw.Running )
+          long nowTicks = DateTime.Now.Ticks;
+          if ( nowTicks > ticksLast )
           {
-            double timeScale = checkSlow.Checked ? Fireworks.slow : 1.0;
-            timeLast += (nowTicks - ticksLast) * timeScale * 1.0e-7;
-            fw.Simulate( timeLast );
+            if ( fw.Running )
+            {
+              double timeScale = checkSlow.Checked ? Fireworks.slow : 1.0;
+              timeLast += (nowTicks - ticksLast) * timeScale * 1.0e-7;
+              fw.Simulate( timeLast );
+            }
+            ticksLast = nowTicks;
           }
-          ticksLast = nowTicks;
         }
-      }
     }
 
     /// <summary>
@@ -1087,7 +1080,8 @@ namespace _087fireworks
     /// </summary>
     void RenderScene ()
     {
-      if ( useShaders )
+      if ( useShaders &&
+           fw != null )
       {
         if ( (VBOlen[ 0 ] == 0 &&
               VBOlen[ 1 ] == 0) ||
