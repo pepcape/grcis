@@ -214,16 +214,18 @@ namespace _086shader
         return;
 
       b = ellipse.IntersectionI( e.X, e.Y );
-      rotation = calculateRotation( a, b );
+      rotation = calculateRotation( a, b, (Control.ModifierKeys & Keys.Shift) != Keys.None );
     }
 
-    Matrix4 calculateRotation ( Vector3? a, Vector3? b )
+    Matrix4 calculateRotation ( Vector3? a, Vector3? b, bool sensitive )
     {
       if ( !a.HasValue || !b.HasValue )
         return rotation;
 
       Vector3 axis = Vector3.Cross( a.Value, b.Value );
       float angle = Vector3.CalculateAngle( a.Value, b.Value ) * (float)numericSensitivity.Value;
+      if ( sensitive )
+        angle *= 0.4f;
       return Matrix4.CreateFromAxisAngle( axis, angle );
     }
 
