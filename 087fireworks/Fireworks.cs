@@ -73,10 +73,10 @@ namespace _087fireworks
               rnd.UniformNumber() < probability )
       {
         // emit a new particle:
-        Vector3d dir = Geometry.RandomDirectionNormal( rnd, aim, 0.1 );               // random direction around 'aim'
+        Vector3d dir = Geometry.RandomDirectionNormal( rnd, aim, fw.variance );         // random direction around 'aim'
         Particle p = new Particle( position, dir * rnd.RandomDouble( 0.2, 0.8 ), up,
                                    new Vector3( rnd.RandomFloat( 0.1f, 1.0f ), rnd.RandomFloat( 0.1f, 1.0f ), rnd.RandomFloat( 0.1f, 1.0f ) ),
-                                   rnd.RandomDouble( 0.2, 3.0 ), time, rnd.RandomDouble( 2.0, 12.0 ) );
+                                   rnd.RandomDouble( 0.2, 4.0 ), time, rnd.RandomDouble( 2.0, 12.0 ) );
         fw.AddParticle( p );
         probability -= 1.0;
       }
@@ -86,12 +86,12 @@ namespace _087fireworks
       return true;
     }
 
-    public Launcher ( double freq )
+    public Launcher ( double freq, Vector3d? pos =null, Vector3d? _aim =null, Vector3d? _up =null )
     {
-      position = Vector3d.Zero;
-      aim = new Vector3d( 0.1, 1.0, -0.05 );
+      position = pos ?? Vector3d.Zero;
+      aim = _aim ?? new Vector3d( 0.1, 1.0, -0.1 );
       aim.Normalize();
-      up = new Vector3d( 1.0, -0.1, 0.0 );
+      up  = _up  ?? new Vector3d( 0.5, 0.0,  0.5 );
       up.Normalize();
       frequency = freq;      // number of emitted particles per second
       simTime = 0.0;
@@ -257,10 +257,13 @@ namespace _087fireworks
       double dt = time - simTime;
       position += dt * velocity;
 
-      velocity += dt * -0.05 * up;
-      double extinction = Math.Pow( 0.9, dt );
-      size *= extinction;
-      color *= (float)extinction;
+      if ( fw.particleDynamic )
+      {
+        velocity += dt * -0.05 * up;
+        double extinction = Math.Pow( 0.9, dt );
+        size *= extinction;
+        color *= (float)extinction;
+      }
 
       simTime = time;
 
@@ -356,6 +359,21 @@ namespace _087fireworks
     int maxParticles;
 
     /// <summary>
+    /// Particle emitting frequency for the launchers.
+    /// </summary>
+    double freq;
+
+    /// <summary>
+    /// Dynamic particle behavior.
+    /// </summary>
+    public bool particleDynamic;
+
+    /// <summary>
+    /// Variance for particle generation (direction).
+    /// </summary>
+    public double variance;
+
+    /// <summary>
     /// This limit is used for render-buffer allocation.
     /// </summary>
     public int MaxParticles
@@ -405,6 +423,9 @@ namespace _087fireworks
 
     int frames;
 
+    /// <summary>
+    /// Number of simulated frames so far.
+    /// </summary>
     public int Frames
     {
       get
@@ -415,12 +436,24 @@ namespace _087fireworks
 
     double lastTime;
 
+    /// <summary>
+    /// Current sim-world time.
+    /// </summary>
     public double Time
     {
       get
       {
         return lastTime;
       }
+    }
+
+    /// <summary>
+    /// Significant change of simulation parameters .. need to reallocate buffers.
+    /// </summary>
+    public bool Dirty
+    {
+      get;
+      set;
     }
 
     /// <summary>
@@ -431,6 +464,7 @@ namespace _087fireworks
     public Fireworks ( int maxPart = 1000 )
     {
       maxParticles     = maxPart;
+      freq             = 10.0;
       particles        = new List<Particle>( maxParticles );
       newParticles     = new List<Particle>();
       expiredParticles = new List<int>();
@@ -438,6 +472,9 @@ namespace _087fireworks
       frames           = 0;
       lastTime         = 0.0;
       Running          = true;
+      Dirty            = false;
+      particleDynamic  = false;
+      variance         = 0.1;
     }
 
     /// <summary>
@@ -447,27 +484,64 @@ namespace _087fireworks
     public void Reset ( string param )
     {
       // input params:
-      Dictionary<string, string> p = Util.ParseKeyValueList( param );
-      double freq = 10.0;
-      if ( !Util.TryParse( p, "freq", ref freq ) ||
-           freq < 1.0 )
-        freq = 10.0;
-      if ( !Util.TryParse( p, "max", ref maxParticles ) ||
-           maxParticles < 10 )
-        maxParticles = 1000;
-      if ( !Util.TryParse( p, "slow", ref slow ) ||
-           slow < 1.0e-4 )
-        slow = 0.25;
+      Update( param );
 
       // initialization job itself:
       particles.Clear();
       launchers.Clear();
 
-      AddLauncher( new Launcher( freq ) );
+      Launcher l = new Launcher( freq, new Vector3d( -0.5, 0.0, 0.0 ), null, new Vector3d( -0.5, 0.0, -0.5 ) );
+      AddLauncher( l );
+      l = new Launcher( freq, new Vector3d( 0.5, 0.0, 0.0 ) );
+      AddLauncher( l );
 
-      frames   = 0;
+      frames = 0;
       lastTime = 0.0f;
       Running  = true;
+    }
+
+    /// <summary>
+    /// Update simulation parameters.
+    /// </summary>
+    /// <param name="param">User-provided parameter string.</param>
+    public void Update ( string param )
+    {
+      // input params:
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+
+      // launchers: frequency
+      if ( Util.TryParse( p, "freq", ref freq ) )
+      {
+        if ( freq < 1.0 )
+          freq = 10.0;
+        foreach ( var l in launchers )
+          l.frequency = freq;
+      }
+
+      // launchers: variance
+      if ( Util.TryParse( p, "variance", ref variance ) )
+      {
+        if ( variance < 0.0 )
+          variance = 0.0;
+      }
+
+      // global: maxParticles
+      if ( Util.TryParse( p, "max", ref maxParticles ) )
+      {
+        if ( maxParticles < 10 )
+          maxParticles = 1000;
+        Dirty = true;
+      }
+
+      // global: slow-motion coeff
+      if ( !Util.TryParse( p, "slow", ref slow ) ||
+           slow < 1.0e-4 )
+        slow = 0.25;
+
+      // particles: dynamic behavior
+      bool dyn = false;
+      if ( Util.TryParse( p, "dynamic", ref dyn ) )
+        particleDynamic = dyn;
     }
 
     public void AddLauncher ( Launcher la )
@@ -499,17 +573,32 @@ namespace _087fireworks
       newParticles.Clear();
       expiredParticles.Clear();
 
-      // do the simulation job:
-      foreach ( var l in launchers )
-        l.Simulate( time, this );
-      for ( int i = 0; i < particles.Count; i++ )
-        if ( !particles[ i ].Simulate( time, this ) )
-          expiredParticles.Add( i );
+      int i;
+
+      // simulate launchers:
+      if ( (frames & 1) > 0 )
+        for ( i = 0; i < launchers.Count; i++ )
+          launchers[ i ].Simulate( time, this );
+      else
+        for ( i = launchers.Count; --i >= 0; )
+          launchers[ i ].Simulate( time, this );
+
+      // simulate particles:
+      if ( (frames & 1) > 0 )
+      {
+        for ( i = 0; i < particles.Count; i++ )
+          if ( !particles[ i ].Simulate( time, this ) )
+            expiredParticles.Add( i );
+      }
+      else
+        for ( i = particles.Count; --i >= 0; )
+          if ( !particles[ i ].Simulate( time, this ) )
+            expiredParticles.Add( i );
 
       // remove expired particles:
       expiredParticles.Sort( ReverseComparer );
-      foreach ( int i in expiredParticles )
-        particles.RemoveAt( i );
+      foreach ( int j in expiredParticles )
+        particles.RemoveAt( j );
 
       // add new particles:
       foreach ( var p in newParticles )
@@ -584,13 +673,16 @@ namespace _087fireworks
     /// <summary>
     /// Optional form-data initialization.
     /// </summary>
-    public static void InitParams ( out string param, out Vector3 center, out float diameter, out bool useNormals, out bool globalColor )
+    public static void InitParams ( out string param, out Vector3 center, out float diameter,
+                                    out bool useTexture, out bool globalColor, out bool useNormals, out bool usePtSize )
     {
-      param = "freq=8000.0,max=60000,slow=0.25";
-      center = new Vector3( 0.0f, 0.0f, 0.0f );
+      param = "freq=4000.0,max=60000,slow=0.25,dynamic=1,variance=0.1";
+      center = new Vector3( 0.0f, 1.0f, 0.0f );
       diameter = 5.0f;
-      useNormals = false;
+      useTexture = false;
       globalColor = false;
+      useNormals = false;
+      usePtSize = true;
     }
 
     /// <summary>
@@ -605,9 +697,6 @@ namespace _087fireworks
 
     uint[] VBOid = null;  // vertex array VBO (colors, normals, coords), index array VBO
     int[] VBOlen = null;  // currently allocated lengths of VBOs
-
-    int stride = 0;       // stride for vertex array
-    int indices = 0;      // number of indices for index array
 
     /// <summary>
     /// Simulation fireworks.
@@ -799,11 +888,14 @@ namespace _087fireworks
            (l = fw.GetLauncher( 0 )) == null )
         return;
 
+      fw.Dirty = false;
+
       // init data buffers for current simulation state (current number of launchers + max number of particles):
       // triangles: determine maximum stride, maximum vertices and indices
       float* ptr = null;
       uint* iptr = null;
       uint origin = 0;
+      int stride = 0;
 
       // vertex-buffer size:
       int maxVB;
@@ -932,6 +1024,18 @@ namespace _087fireworks
     }
 
     /// <summary>
+    /// Update Simulation parameters.
+    /// </summary>
+    private void UpdateSimulation ()
+    {
+      if ( fw == null )
+        return;
+
+      lock ( fw )
+        fw.Update( textParam.Text );
+    }
+
+    /// <summary>
     /// Simulate one frame.
     /// </summary>
     private void Simulate ()
@@ -985,8 +1089,9 @@ namespace _087fireworks
     {
       if ( useShaders )
       {
-        if ( VBOlen[ 0 ] == 0 &&
-             VBOlen[ 1 ] == 0 )
+        if ( (VBOlen[ 0 ] == 0 &&
+              VBOlen[ 1 ] == 0) ||
+             fw.Dirty )
           InitDataBuffers();
 
         if ( VBOlen[ 0 ] > 0 ||
@@ -1044,6 +1149,8 @@ namespace _087fireworks
           // [txt] [colors] [normals] [ptsize] vertices
           GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
           GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+          int stride = 0;       // stride for vertex arrays
+          int indices = 0;      // number of indices for index arrays
 
           //-------------------------
           // draw all triangles:
