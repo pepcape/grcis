@@ -1125,6 +1125,10 @@ namespace _087fireworks
           GL.Uniform1( activeProgram.GetUniform( "useNormal" ), useNormals ? 1 : 0 );
 
           bool usePointSize = checkPointSize.Checked;
+          if ( usePointSize )
+            GL.Enable( EnableCap.VertexProgramPointSize );
+          else
+            GL.Disable( EnableCap.VertexProgramPointSize );
           GL.Uniform1( activeProgram.GetUniform( "sizeMul" ), usePointSize ? 1.0f : 0.0f );
           usePointSize = true;
           GlInfo.LogError( "set-uniforms" );
