@@ -373,6 +373,17 @@ namespace _086shader
           if ( !scene.HasColors() )
             useGlobalColor = true;
           GL.Uniform1( activeProgram.GetUniform( "globalColor" ), useGlobalColor ? 1 : 0 );
+
+          // shading:
+          bool shadingPhong = checkPhong.Checked;
+          bool shadingGouraud = checkSmooth.Checked;
+          if ( !shadingGouraud )
+            shadingPhong = false;
+          GL.Uniform1( activeProgram.GetUniform( "shadingPhong" ), shadingPhong ? 1 : 0 );
+          GL.Uniform1( activeProgram.GetUniform( "shadingGouraud" ), shadingGouraud ? 1 : 0 );
+          GL.Uniform1( activeProgram.GetUniform( "useAmbient" ), checkAmbient.Checked ? 1 : 0 );
+          GL.Uniform1( activeProgram.GetUniform( "useDiffuse" ), checkDiffuse.Checked ? 1 : 0 );
+          GL.Uniform1( activeProgram.GetUniform( "useSpecular" ), checkSpecular.Checked ? 1 : 0 );
           GlInfo.LogError( "set-uniforms" );
 
           // texture handling:
