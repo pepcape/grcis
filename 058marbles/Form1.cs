@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace _058marbles
@@ -8,6 +9,16 @@ namespace _058marbles
   public partial class Form1 : Form
   {
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
+    /// <summary>
+    /// Scene center point.
+    /// </summary>
+    protected Vector3 center = Vector3.Zero;
+
+    /// <summary>
+    /// Scene diameter.
+    /// </summary>
+    protected float diameter = 30.0f;
 
     /// <summary>
     /// GLControl guard flag.
@@ -77,7 +88,7 @@ namespace _058marbles
       renderer = new MarblesRenderer();
       world.Init( textParam.Text );
 
-      SetupViewport( true );
+      SetupViewport();
 
       Application.Idle += new EventHandler( Application_Idle );
 
