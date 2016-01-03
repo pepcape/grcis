@@ -1,8 +1,11 @@
-﻿using System;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Threading;
+using MathSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -103,8 +106,8 @@ namespace _058marbles
           *ptr++ = data.centers[ i ].Y + rad;
           *ptr++ = data.centers[ i ].Z;
         }
-        GL.UnmapBuffer( BufferTarget.ArrayBuffer );
       }
+      GL.UnmapBuffer( BufferTarget.ArrayBuffer );
 
       // index buffer
       GL.BindBuffer( BufferTarget.ElementArrayBuffer, Form1.VBOid[ 1 ] );
@@ -114,7 +117,7 @@ namespace _058marbles
       GL.VertexPointer( 3, VertexPointerType.Float, stride, (IntPtr)(Vector3.SizeInBytes) );
 
       Form1.triangleCounter += triangles;
-      GL.DrawElements( BeginMode.Triangles, triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
+      GL.DrawElements( PrimitiveType.Triangles, triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
 
       // !!!}}
     }
@@ -147,7 +150,7 @@ namespace _058marbles
       int marbles = 0;
       int.TryParse( param, out marbles );
       if ( marbles < 12 ) marbles = 12;
-      Random rnd = new Random( 144 );
+      RandomJames rnd = new RandomJames();
 
       centers = new List<Vector3>( marbles );
       radii = new List<float>( marbles );
@@ -156,17 +159,19 @@ namespace _058marbles
 
       for ( int i = 0; i < marbles; i++ )
       {
-        centers.Add( new Vector3( -10.0f + 20.0f * (float)rnd.NextDouble(),
-                                  -10.0f + 20.0f * (float)rnd.NextDouble(),
-                                  -10.0f + 20.0f * (float)rnd.NextDouble() ) );
+        centers.Add( new Vector3( rnd.RandomFloat( -10.0f, 10.0f ),
+                                  rnd.RandomFloat( -10.0f, 10.0f ),
+                                  rnd.RandomFloat( -10.0f, 10.0f ) ) );
 
-        radii.Add( 0.4f + 0.6f * (float)rnd.NextDouble() );
+        radii.Add( rnd.RandomFloat( 0.4f, 1.0f ) );
 
-        velocities.Add( new Vector3( -2.0f + 4.0f * (float)rnd.NextDouble(),
-                                     -2.0f + 4.0f * (float)rnd.NextDouble(),
-                                     -2.0f + 4.0f * (float)rnd.NextDouble() ) );
+        velocities.Add( new Vector3( rnd.RandomFloat( -2.0f, 2.0f ),
+                                     rnd.RandomFloat( -2.0f, 2.0f ),
+                                     rnd.RandomFloat( -2.0f, 2.0f ) ) );
 
-        colors.Add( Color.FromArgb( rnd.Next( 255 ), rnd.Next( 255 ), rnd.Next( 255 ) ) );
+        colors.Add( Color.FromArgb( rnd.RandomInteger( 0, 255 ),
+                                    rnd.RandomInteger( 0, 255 ),
+                                    rnd.RandomInteger( 0, 255 ) ) );
 
         // !!!{{ TODO: more initialization?
         // !!!}}
@@ -271,6 +276,16 @@ namespace _058marbles
       }
     }
 
+    Vector3 lightPosition = new Vector3( -20.0f, 10.0f, 10.0f );
+    Vector3 eyePosition   = new Vector3(   0.0f,  0.0f, 10.0f );
+
+    void SetLightEye ( float size )
+    {
+      size += size;
+      lightPosition = new Vector3( -2.0f * size, size, size );
+      eyePosition   = new Vector3(  0.0f,        0.0f, size );
+    }
+
     /// <summary>
     /// Rendering of one frame, all the stuff.
     /// </summary>
@@ -287,8 +302,8 @@ namespace _058marbles
       float dTime = (float)(timeInSeconds - lastFrameTime);
       lastFrameTime = timeInSeconds;
 
-      // Camera animation:
-      SetCamera( checkCamera.Checked ? dTime : 0.0f );
+      // Current camera:
+      SetCamera();
 
       // Scene rendering:
       RenderScene();
@@ -309,7 +324,7 @@ namespace _058marbles
       }
       else                              // color cube (JB)
       {
-        GL.Begin( BeginMode.Quads );
+        GL.Begin( PrimitiveType.Quads );
 
         GL.Color3( 0.0f, 1.0f, 0.0f );          // Set The Color To Green
         GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Right Of The Quad (Top)

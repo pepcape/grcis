@@ -5,7 +5,7 @@
 ================================================================================
 - 016videoslow: zkontrolovat Bitmap.Dispose()
 - zkontrolovat po zmenach 12. 11. 2015:
-  057-080  (setImage(), resetImage()..)
+  059-080  (setImage(), resetImage()..)
 - ignore: .vs (Visual Studio 2015 opening old projects)
 
 - IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
@@ -76,7 +76,7 @@ x setImage improvement: 002warping, 003colortransform, 005denoise,
   028rtmesh, 029flow, 033colormap, 034ascii, 035plasma, 036circles,
   037floodfill, 038trackball, 039terrain, 040morph3d, 041lsystems,
   042compressionpre, 46cameranim, 048montecarlo, 049distributedrt,
-  050rtmesh, 051, 052, 053, 054, 055, 056, 057
+  050rtmesh, 051, 052, 053, 054, 055, 056, 057, 058
   081fullcolor, 082circles, 083animation, 084filter, 085segmentation
 x CheckCornerTable into the library
 x konstrukce ctyrstenu do Construction.cs
