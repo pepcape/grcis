@@ -58,8 +58,14 @@
     <Compile Include="..\common\MathSupport.cs">
       <Link>MathSupport.cs</Link>
     </Compile>
+    <Compile Include="..\common\OpenglSupport.cs">
+      <Link>OpenglSupport.cs</Link>
+    </Compile>
     <Compile Include="..\common\RandomJames.cs">
       <Link>RandomJames.cs</Link>
+    </Compile>
+    <Compile Include="..\common\Util.cs">
+      <Link>Util.cs</Link>
     </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -85,6 +91,9 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.config" />
+    <None Include="fragment.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -94,6 +103,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="vertex.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

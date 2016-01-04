@@ -461,7 +461,7 @@ namespace _087fireworks
     /// </summary>
     public static double slow = 0.25;
 
-    public Fireworks ( int maxPart = 1000 )
+    public Fireworks ( int maxPart =1000 )
     {
       maxParticles     = maxPart;
       freq             = 10.0;
