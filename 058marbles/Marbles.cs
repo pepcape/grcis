@@ -313,6 +313,11 @@ namespace _058marbles
     }
 
     /// <summary>
+    /// Maximum simulation speed in sims per second.
+    /// </summary>
+    public int maxSpeed = 1000;
+
+    /// <summary>
     /// Random generator instance.
     /// </summary>
     RandomJames rnd;
@@ -408,13 +413,19 @@ namespace _058marbles
       if ( p.Count == 0 )
         return;
 
-      // global: number of marbles
+      // simulation: number of marbles
       if ( Util.TryParse( p, "n", ref marbles ) )
       {
         if ( marbles < 1 )
           marbles = 1;
         if ( Running )
           UpdateMarbles();
+      }
+
+      // simulation: maximum simulation speed (Sps)
+      if ( Util.TryParse( p, "speed", ref maxSpeed ) )
+      {
+        maxSpeed = Arith.Clamp( maxSpeed, 5, 1000 );
       }
 
       // !!!{{TODO: more parameter-parsing?
@@ -561,7 +572,7 @@ namespace _058marbles
 
       // general OpenGL:
       glC.VSync = true;
-      GL.ClearColor( Color.DarkBlue );
+      GL.ClearColor( Color.FromArgb( 30, 40, 90 ) );
       GL.Enable( EnableCap.DepthTest );
       GL.ShadeModel( ShadingModel.Flat );
 
@@ -653,14 +664,14 @@ namespace _058marbles
     public Vector3 matSpecular   = new Vector3(   0.8f,  0.8f,  0.8f );
     public float matShininess    = 100.0f;
     public Vector3 whiteLight    = new Vector3(   1.0f,  1.0f,  1.0f );
-    public Vector3 lightPosition = new Vector3( -20.0f, 10.0f, 10.0f );
+    public Vector3 lightPosition = new Vector3( -20.0f, 10.0f, 15.0f );
     public Vector3 eyePosition   = new Vector3(   0.0f,  0.0f, 10.0f );
 
     public void SetLightEye ( float size )
     {
       size *= 0.4f;
-      lightPosition = new Vector3( -2.0f * size, size,  size );
-      eyePosition   = new Vector3(         0.0f, 0.0f,  size );
+      lightPosition = new Vector3( -2.0f * size, size, 1.5f * size );
+      eyePosition   = new Vector3(         0.0f, 0.0f,        size );
     }
 
     public Matrix4 GetModelView ()
@@ -707,7 +718,7 @@ namespace _058marbles
     /// Form-data initialization.
     /// </summary>
     public static void InitParams ( out string param, out Vector3 center, out float diameter,
-                                    out bool useTexture, out bool globalColor, out bool useNormals, out bool useWireframe )
+                                    out bool useTexture, out bool globalColor, out bool useNormals, out bool useWireframe, out bool useMT )
     {
       param        = "n=1000";
 
@@ -718,6 +729,7 @@ namespace _058marbles
       globalColor  = false;
       useNormals   = false;
       useWireframe = false;
+      useMT        = true;
     }
 
     /// <summary>
@@ -739,8 +751,10 @@ namespace _058marbles
     // FPS-related stuff:
     long lastFpsTime = 0L;
     int frameCounter = 0;
+    volatile int simCounter = 0;
     long primitiveCounter = 0L;
     double lastFps = 0.0;
+    double lastSps = 0.0;
     double lastTps = 0.0;
 
     /// <summary>
@@ -753,7 +767,8 @@ namespace _058marbles
         glControl1.MakeCurrent();
 
         // World simulation (sets the 'data' object):
-        Simulate();
+        if ( simThread == null )
+          Simulate();
 
         // Rendering (from the 'data' object);
         Render();
@@ -762,21 +777,24 @@ namespace _058marbles
         if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
         {
           lastFps = 0.5 * lastFps + 0.5 * (frameCounter     * 1.0e7 / (now - lastFpsTime));
+          lastSps = 0.5 * lastSps + 0.5 * (simCounter       * 1.0e7 / (now - lastFpsTime));
           lastTps = 0.5 * lastTps + 0.5 * (primitiveCounter * 1.0e7 / (now - lastFpsTime));
           lastFpsTime = now;
           frameCounter = 0;
+          simCounter = 0;
           primitiveCounter = 0L;
 
           if ( lastTps < 5.0e5 )
-            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f0}k",
-                                           lastFps, (lastTps * 1.0e-3) );
+            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Sps: {1:f1}, Tps: {2:f0}k",
+                                           lastFps, lastSps, (lastTps * 1.0e-3) );
           else
-            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f1}m",
-                                           lastFps, (lastTps * 1.0e-6) );
+            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Sps: {1:f1}, Tps: {2:f1}m",
+                                           lastFps, lastSps, (lastTps * 1.0e-6) );
 
           if ( world != null )
-            labelStat.Text = String.Format( CultureInfo.InvariantCulture, "time: {0:f1}s, frames: {1}, marbles: {2}",
-                                            world.Time, world.Frames, world.Marbles );
+            labelStat.Text = String.Format( CultureInfo.InvariantCulture, "T: {0:f1}s, fr: {1}{3}, mrbl: {2}",
+                                            world.Time, world.Frames, world.Marbles,
+                                            (simThread == null) ? "" : " mt" );
         }
       }
     }
@@ -853,9 +871,17 @@ namespace _058marbles
           {
             if ( world.Running )
             {
+              // 1000Hz .. 1ms (Sleep) .. 5000 ticks
+              if ( nowTicks - ticksLast < 9900000L / world.maxSpeed )
+              {
+                // too fast..
+                Thread.Sleep( 1 + 999 / world.maxSpeed );
+                nowTicks = DateTime.Now.Ticks;
+              }
               double timeScale = checkSlow.Checked ? MarblesWorld.slow : 1.0;
               timeLast += (nowTicks - ticksLast) * timeScale * 1.0e-7;
               newData = world.Simulate( timeLast );
+              simCounter++;
             }
             ticksLast = nowTicks;
           }
