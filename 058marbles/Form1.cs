@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -30,17 +31,28 @@ namespace _058marbles
     /// </summary>
     OpenglState OGL;
 
+    /// <summary>
+    /// Simulation worker-thread.
+    /// </summary>
+    Thread simThread = null;
+
+    /// <summary>
+    /// Simulation-control flag.
+    /// </summary>
+    volatile bool simulate = false;
+
     public Form1 ()
     {
       InitializeComponent();
 
       string param;
-      bool useTexture, globalColor, useNormals, useWireframe;
-      InitParams( out param, out center, out diameter, out useTexture, out globalColor, out useNormals, out useWireframe );
+      bool useTexture, globalColor, useNormals, useWireframe, useMT;
+      InitParams( out param, out center, out diameter, out useTexture, out globalColor, out useNormals, out useWireframe, out useMT );
       checkTexture.Checked = useTexture;
       checkGlobalColor.Checked = globalColor;
       checkNormals.Checked = useNormals;
       checkWireframe.Checked = useWireframe;
+      checkMultithread.Checked = useMT;
       textParam.Text = param ?? "";
       Text += " (rev: " + rev + ')';
 
@@ -48,13 +60,44 @@ namespace _058marbles
       OGL.InitShaderRepository();
     }
 
+    void StopSimulation ()
+    {
+      simulate = false;
+      if ( simThread == null )
+        return;
+
+      simThread.Join();
+      simThread = null;
+    }
+
+    void StartSimulation ()
+    {
+      if ( simThread != null ||
+           !checkMultithread.Checked ||
+           Environment.ProcessorCount < 2 )
+        return;
+
+      simulate = true;
+      simThread = new Thread( new ThreadStart( SimulationLoop ) );
+      simThread.Start();
+    }
+
+    /// <summary>
+    /// Infinite simulation loop.
+    /// </summary>
+    void SimulationLoop ()
+    {
+      while ( simulate )
+        Simulate();
+    }
+
     private void buttonResetSim_Click ( object sender, EventArgs e )
     {
-      // TODO: stop the simulation thread?
+      StopSimulation();
 
       ResetSimulation();
 
-      // TODO: start the simulation thread?
+      StartSimulation();
     }
 
     private void glControl1_Load ( object sender, EventArgs e )
@@ -69,7 +112,8 @@ namespace _058marbles
       loaded = true;
       Application.Idle += new EventHandler( Application_Idle );
 
-      // TODO: start the simulation thread?
+      // Start the simulation thread?
+      StartSimulation();
     }
 
     private void glControl1_Resize ( object sender, EventArgs e )
@@ -107,6 +151,19 @@ namespace _058marbles
     private void checkVsync_CheckedChanged ( object sender, EventArgs e )
     {
       glControl1.VSync = checkVsync.Checked;
+    }
+
+    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    {
+      StopSimulation();
+    }
+
+    private void checkMultithread_CheckedChanged ( object sender, EventArgs e )
+    {
+      if ( checkMultithread.Checked )
+        StartSimulation();
+      else
+        StopSimulation();
     }
   }
 }
