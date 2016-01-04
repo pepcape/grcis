@@ -108,14 +108,6 @@ namespace _058marbles
     Ellipse ellipse;
     Vector3? a, b;
 
-    Matrix4 perspectiveProjection;
-    Matrix4 ortographicProjection;
-
-    /// <summary>
-    /// Perspective / orthographic projection?
-    /// </summary>
-    bool perspective = true;
-
     float minZoom =  0.2f;
 
     float maxZoom = 20.0f;
@@ -132,13 +124,14 @@ namespace _058marbles
       GL.Viewport( 0, 0, width, height );
 
       // 2. set projection matrix
-      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, (float)width / (float)height, 0.01f, 1000.0f );
+      OGL.perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, (float)width / (float)height, 0.01f, 1000.0f );
       float minSize = 2.0f * Math.Min( width, height );
-      ortographicProjection = Matrix4.CreateOrthographic( 0.1f * diameter * width / minSize,
-                                                          0.1f * diameter * height / minSize,
-                                                          0.01f, 1000.0f );
+      OGL.ortographicProjection = Matrix4.CreateOrthographic( 0.1f * diameter * width / minSize,
+                                                              0.1f * diameter * height / minSize,
+                                                              0.01f, 1000.0f );
       SetProjection();
       setEllipse();
+      OGL.SetLightEye( diameter );
     }
 
     static Matrix4 identity = Matrix4.Identity;
@@ -154,7 +147,7 @@ namespace _058marbles
       GL.LoadMatrix( ref modelview );
     }
 
-    private Matrix4 GetModelView ()
+    public Matrix4 GetModelView ()
     {
       return Matrix4.CreateTranslation( -center ) *
              Matrix4.CreateScale( zoom / diameter ) *
@@ -163,7 +156,7 @@ namespace _058marbles
              Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
     }
 
-    private Matrix4 GetModelViewInv ()
+    public Matrix4 GetModelViewInv ()
     {
       Matrix4 rot = prevRotation * rotation;
       rot.Transpose();
@@ -176,7 +169,7 @@ namespace _058marbles
 
     private void ResetCamera ()
     {
-      SetLightEye( diameter );
+      OGL.SetLightEye( diameter );
 
       // !!!{{ TODO: add camera reset code here
 
@@ -256,7 +249,7 @@ namespace _058marbles
 
     private void togglePerspective ()
     {
-      perspective = !perspective;
+      OGL.perspective = !OGL.perspective;
       SetProjection();
     }
 
@@ -264,10 +257,10 @@ namespace _058marbles
     {
       // not needed if shaders are active .. but doesn't make any harm..
       GL.MatrixMode( MatrixMode.Projection );
-      if ( perspective )
-        GL.LoadMatrix( ref perspectiveProjection );
+      if ( OGL.perspective )
+        GL.LoadMatrix( ref OGL.perspectiveProjection );
       else
-        GL.LoadMatrix( ref ortographicProjection );
+        GL.LoadMatrix( ref OGL.ortographicProjection );
     }
 
     private void buttonReset_Click ( object sender, EventArgs e )
