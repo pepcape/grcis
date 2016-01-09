@@ -18,6 +18,22 @@ namespace Utilities
     /// </summary>
     public const long ONE_DAY = 24 * 3600L;
 
+    private static readonly Lazy<bool> runningOnMono = new Lazy<bool>( () =>
+    {
+      return Type.GetType( "Mono.Runtime" ) != null;
+    } );
+
+    /// <summary>
+    /// Is the current running runtime Mono?
+    /// </summary>
+    public static bool IsRunningOnMono
+    {
+      get
+      {
+        return runningOnMono.Value;
+      }
+    }
+    
     /// <summary>
     /// Positive value (1, yes, y, true, ano, a)
     /// </summary>
