@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows.Forms;
 using OpenTK;
 using Scene3D;
+using Utilities;
 
 namespace _057scene
 {
@@ -29,6 +30,13 @@ namespace _057scene
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
+      if ( newImage != null &&
+           Util.IsRunningOnMono )
+      {
+        Bitmap bak = newImage;
+        newImage = new Bitmap( bak );
+        bak.Dispose();
+      }
       pictureBox1.Image = newImage;
       if ( bakImage != null )
         bakImage.Dispose();
