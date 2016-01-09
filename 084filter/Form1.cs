@@ -210,5 +210,10 @@ namespace _084filter
       if ( e.Data.GetDataPresent( DataFormats.FileDrop ) )
         e.Effect = DragDropEffects.Copy;
     }
+
+    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    {
+      StopComputation();
+    }
   }
 }
