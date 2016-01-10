@@ -76,7 +76,7 @@ namespace Scene3D
       scene.SetNormal( v[ 2 ], Vector3.TransformVector( C, m ).Normalized() );
       scene.SetNormal( v[ 3 ], Vector3.TransformVector( D, m ).Normalized() );
       
-      // colors
+      // colors:
       long seed = (long)Math.Min( long.MaxValue, (m.Row3.LengthSquared * 10000.0f) );
       seed = RandomStatic.numericRecipes( seed );
       float r = (seed & 255) / 255.0f;
