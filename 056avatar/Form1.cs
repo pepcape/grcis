@@ -92,8 +92,7 @@ namespace _056avatar
       // finishing:
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
-      if ( !scene.HasColors() )
-        scene.GenerateColors( 12 );
+      scene.GenerateColors( 12 );
       diameter = scene.GetDiameter( out center );
 
       Cursor.Current = Cursors.Default;
