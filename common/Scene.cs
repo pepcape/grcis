@@ -643,15 +643,11 @@ namespace Scene3D
     {
       Random rnd = new Random( seed );
 
-      if ( colors == null || Colors < Vertices )
-      {
+      if ( colors == null )
         colors = new List<Vector3>( geometry.Count );
-        for ( int i = 0; i < geometry.Count; i++ )
-          colors.Add( new Vector3( (float)rnd.NextDouble(), (float)rnd.NextDouble(), (float)rnd.NextDouble() ) );
-      }
-      else
-        for ( int i = 0; i < geometry.Count; i++ )
-          colors[ i ] = new Vector3( (float)rnd.NextDouble(), (float)rnd.NextDouble(), (float)rnd.NextDouble() );
+
+      while ( Colors < Vertices )
+        colors.Add( new Vector3( (float)rnd.NextDouble(), (float)rnd.NextDouble(), (float)rnd.NextDouble() ) );
     }
 
     #endregion

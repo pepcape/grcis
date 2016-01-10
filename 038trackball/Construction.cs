@@ -75,6 +75,22 @@ namespace Scene3D
       scene.SetNormal( v[ 1 ], Vector3.TransformVector( B, m ).Normalized() );
       scene.SetNormal( v[ 2 ], Vector3.TransformVector( C, m ).Normalized() );
       scene.SetNormal( v[ 3 ], Vector3.TransformVector( D, m ).Normalized() );
+      
+      // colors
+      long seed = (long)Math.Min( long.MaxValue, (m.Row3.LengthSquared * 10000.0f) );
+      seed = RandomStatic.numericRecipes( seed );
+      float r = (seed & 255) / 255.0f;
+      seed = RandomStatic.numericRecipes( seed );
+      float g = (seed & 255) / 255.0f;
+      seed = RandomStatic.numericRecipes( seed );
+      float b = (seed & 255) / 255.0f;
+      scene.SetColor( v[ 0 ], new Vector3( r, g, b ) );
+      r = Math.Min( r + 0.2f, 1.0f );
+      scene.SetColor( v[ 1 ], new Vector3( r, g, b ) );
+      g = Math.Min( g + 0.2f, 1.0f );
+      scene.SetColor( v[ 2 ], new Vector3( r, g, b ) );
+      b = Math.Min( b + 0.2f, 1.0f );
+      scene.SetColor( v[ 3 ], new Vector3( r, g, b ) );
 
       // triangle faces:
       scene.AddTriangle( v[ 0 ], v[ 1 ], v[ 2 ] );
