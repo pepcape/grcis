@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
-using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Windows.Forms;
 
 namespace _085segmentation
 {
@@ -12,6 +13,7 @@ namespace _085segmentation
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     protected Bitmap inputImage  = null;
+    protected string inputImageName = null;
     protected Bitmap outputImage = null;
 
     public Form1 ()
@@ -48,6 +50,8 @@ namespace _085segmentation
       if ( inputImage != null )
         inputImage.Dispose();
       inputImage = (Bitmap)Image.FromFile( ofd.FileName );
+      inputImageName = Path.GetFileName( ofd.FileName );
+      labelElapsed.Text = String.Format( "Input: {0}", inputImageName ?? "" );
 
       Reset();
     }
@@ -75,7 +79,8 @@ namespace _085segmentation
       Bitmap newImage = pictureSource.segm.DoSegmentation( inputImage, checkBoxWhite.Checked );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s ({1})",
+                                         1.0e-3 * sw.ElapsedMilliseconds, inputImageName ?? "" );
 
       setImage( ref outputImage, newImage );
     }
