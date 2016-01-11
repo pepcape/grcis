@@ -862,6 +862,7 @@ namespace Scene3D
           }
       }
 
+#if false
       // 3. now let's check that the cRight works properly
       //    we will use cPrev(cOpposite(cPrev()))
       //    also, this whole test assumes that neighbour triangles are facing the same way
@@ -936,7 +937,7 @@ namespace Scene3D
             // broken 2-manifold
             log( "Corner " + i + " has an opposide side thas was already used at least twice, 2-manifold is broken!" );
       }
-
+#endif
       return errCount;
     }
 

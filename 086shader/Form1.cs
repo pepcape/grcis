@@ -142,7 +142,7 @@ namespace _086shader
       scene.GenerateColors( 12 );
       ResetCamera();
 
-      labelFile.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      labelFile.Text = String.Format( "{0} faces ({1} rep), {2} errors", scene.Triangles, faces, errors );
       PrepareDataBuffers();
       glControl1.Invalidate();
 
