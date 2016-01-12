@@ -582,9 +582,9 @@ namespace OpenglSupport
   /// <summary>
   /// Default implementation of IRenderObject.
   /// *Vertices() and *Indices() functions can be used for buffer size determination
-  /// (no actual data are written to the buffer).
-  /// <see cref="TriVertices"/> and <see cref="LinVertices"/> must be overriden
-  /// to work properly.
+  /// (no actual data are written to the buffer except for LineIndices()).
+  /// <see cref="TriVertices"/> should usually be overriden (if triangles are used at all),
+  /// <see cref="LinVertices"/> only for shared line-vertices.
   /// </summary>
   public abstract class DefaultRenderObject : IRenderObject
   {
@@ -687,6 +687,11 @@ namespace OpenglSupport
       }
     }
 
+    /// <summary>
+    /// Doesn't fill any vertex data, only counts the stride and the total buffer size.
+    /// Necessary to override if you need triangles.
+    /// </summary>
+    /// <returns>Data size of the vertex-set (in bytes).</returns>
     public virtual unsafe int TriangleVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize )
     {
       stride = 3;
@@ -704,6 +709,11 @@ namespace OpenglSupport
       return (int)TriVertices * (stride *= sizeof( float ));
     }
 
+    /// <summary>
+    /// Doesn't fill any index data, only counts the buffer size.
+    /// Necessary to override if you need triangles.
+    /// </summary>
+    /// <returns>Data size of the index-set (in bytes).</returns>
     public virtual unsafe int TriangleIndices ( ref uint* ptr, uint origin )
     {
       return (int)Triangles * 3 * sizeof( uint );
@@ -731,6 +741,11 @@ namespace OpenglSupport
       }
     }
 
+    /// <summary>
+    /// Doesn't fill any vertex data, only counts the stride and the total buffer size.
+    /// Necessary to override if you need lines.
+    /// </summary>
+    /// <returns>Data size of the vertex-set (in bytes).</returns>
     public virtual unsafe int LineVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize )
     {
       stride = 3;
@@ -748,9 +763,19 @@ namespace OpenglSupport
       return (int)LinVertices * (stride *= sizeof( float ));
     }
 
+    /// <summary>
+    /// Fills simple nonshared line indices, counts the buffer size.
+    /// Necessary to override if you need shared vertices.
+    /// </summary>
+    /// <returns>Data size of the index-set (in bytes).</returns>
     public virtual unsafe int LineIndices ( ref uint* ptr, uint origin )
     {
-      return (int)Lines * 2 * sizeof( uint );
+      int indices = (int)Lines * 2;
+      if ( ptr != null )
+        for ( int i = 0; i++ < indices; )
+          *ptr++ = origin++;
+
+      return indices * sizeof( uint );
     }
 
     /// <summary>
@@ -764,6 +789,11 @@ namespace OpenglSupport
       }
     }
 
+    /// <summary>
+    /// Doesn't fill any vertex data, only counts the stride and the total buffer size.
+    /// Necessary to override if you need point-sprites.
+    /// </summary>
+    /// <returns>Data size of the vertex-set (in bytes).</returns>
     public virtual unsafe int PointVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize )
     {
       stride = 3;
@@ -779,6 +809,242 @@ namespace OpenglSupport
       origin += Points;
 
       return (int)Points * (stride *= sizeof( float ));
+    }
+  }
+
+  /// <summary>
+  /// Simple 3D coordinate axis object for debugging purposes.
+  /// </summary>
+  public class CoordinateAxes : DefaultRenderObject
+  {
+    /// <summary>
+    /// Tick length for all axes.
+    /// </summary>
+    public float tick;
+
+    /// <summary>
+    /// X-axis length in ticks.
+    /// </summary>
+    public int ticksX;
+
+    /// <summary>
+    /// Y-axis length in ticks.
+    /// </summary>
+    public int ticksY;
+
+    /// <summary>
+    /// Z-axis length in ticks.
+    /// </summary>
+    public int ticksZ;
+
+    /// <summary>
+    /// X-axis color.
+    /// </summary>
+    public Vector3 colorX;
+
+    /// <summary>
+    /// Y-axis color.
+    /// </summary>
+    public Vector3 colorY;
+
+    /// <summary>
+    /// Z-axis color.
+    /// </summary>
+    public Vector3 colorZ;
+
+    public CoordinateAxes ( Vector3 colX, Vector3 colY, Vector3 colZ, float t =1.0f, int tX =5, int tY =5, int tZ =5 )
+    {
+      colorX = colX;
+      colorY = colY;
+      colorZ = colZ;
+      tick = t;
+      ticksX = Math.Max( tX, 1 );
+      ticksY = Math.Max( tY, 1 );
+      ticksZ = Math.Max( tZ, 1 );
+    }
+
+    public CoordinateAxes ( float t =1.0f, int tX =5, int tY =5, int tZ =5 )
+      : this( new Vector3( 1.0f, 0.3f, 0.0f ), new Vector3( 0.0f, 0.8f, 0.2f ), new Vector3( 0.2f, 0.4f, 1.0f ),
+              t, tX, tY, tZ )
+    {
+    }
+
+    //--- rendering ---
+
+    public override uint Lines
+    {
+      get
+      {
+        return (uint)(ticksX + ticksY + ticksZ);
+      }
+    }
+
+    /// <summary>
+    /// Lines: returns vertex-array size (if ptr is null) or fills vertex array.
+    /// </summary>
+    /// <param name="ptr">Data pointer (null for determining buffer size).</param>
+    /// <param name="origin">Index number in the global vertex array.</param>
+    /// <param name="stride">Vertex size (stride) in bytes.</param>
+    /// <param name="col">Use color attribute?</param>
+    /// <param name="txt">Use txtCoord attribute?</param>
+    /// <param name="normal">Use normal vector attribute?</param>
+    /// <param name="ptsize">Use point-size/line-width attribute?</param>
+    /// <returns>Data size of the vertex-set (in bytes).</returns>
+    public override unsafe int LineVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize )
+    {
+      int total = base.LineVertices( ref ptr, ref origin, out stride, txt, col, normal, ptsize );
+      if ( ptr == null )
+        return total;
+
+      int i;
+      float coord, s;
+      float tickSize = tick * 0.08f;
+
+      // 1. X-axis
+      if ( txt )
+        Fill( ref ptr, 0.0f, 0.0f );
+      if ( col )
+        Fill( ref ptr, ref colorX );
+      if ( normal )
+        Fill( ref ptr, Vector3.UnitZ );
+      if ( ptsize )
+        *ptr++ = 1.0f;
+      Fill( ref ptr, Vector3.Zero );
+
+      if ( txt )
+        Fill( ref ptr, 1.0f, 0.0f );
+      if ( col )
+        Fill( ref ptr, ref colorX );
+      if ( normal )
+        Fill( ref ptr, Vector3.UnitZ );
+      if ( ptsize )
+        *ptr++ = 1.0f;
+      Fill( ref ptr, (tick * ticksX) * Vector3.UnitX );
+
+      // X-ticks
+      for ( i = 1; i < ticksX; i++ )
+      {
+        coord = i * tick;
+        s = i / (float)ticksX;
+
+        if ( txt )
+          Fill( ref ptr, s, 0.0f );
+        if ( col )
+          Fill( ref ptr, ref colorX );
+        if ( normal )
+          Fill( ref ptr, Vector3.UnitZ );
+        if ( ptsize )
+          *ptr++ = 1.0f;
+        Fill( ref ptr, new Vector3( coord, 0.0f, 0.0f ) );
+
+        if ( txt )
+          Fill( ref ptr, s, 0.1f );
+        if ( col )
+          Fill( ref ptr, ref colorX );
+        if ( normal )
+          Fill( ref ptr, Vector3.UnitZ );
+        if ( ptsize )
+          *ptr++ = 1.0f;
+        Fill( ref ptr, new Vector3( coord, tickSize, 0.0f ) );
+      }
+
+      // 2. Y-axis
+      if ( txt )
+        Fill( ref ptr, 0.0f, 0.0f );
+      if ( col )
+        Fill( ref ptr, ref colorY );
+      if ( normal )
+        Fill( ref ptr, Vector3.UnitX );
+      if ( ptsize )
+        *ptr++ = 1.0f;
+      Fill( ref ptr, Vector3.Zero );
+
+      if ( txt )
+        Fill( ref ptr, 1.0f, 0.0f );
+      if ( col )
+        Fill( ref ptr, ref colorY );
+      if ( normal )
+        Fill( ref ptr, Vector3.UnitX );
+      if ( ptsize )
+        *ptr++ = 1.0f;
+      Fill( ref ptr, (tick * ticksY) * Vector3.UnitY );
+
+      // Y-ticks
+      for ( i = 1; i < ticksY; i++ )
+      {
+        coord = i * tick;
+        s = i / (float)ticksY;
+
+        if ( txt )
+          Fill( ref ptr, s, 0.0f );
+        if ( col )
+          Fill( ref ptr, ref colorY );
+        if ( normal )
+          Fill( ref ptr, Vector3.UnitX );
+        if ( ptsize )
+          *ptr++ = 1.0f;
+        Fill( ref ptr, new Vector3( 0.0f, coord, 0.0f ) );
+
+        if ( txt )
+          Fill( ref ptr, s, 0.1f );
+        if ( col )
+          Fill( ref ptr, ref colorY );
+        if ( normal )
+          Fill( ref ptr, Vector3.UnitX );
+        if ( ptsize )
+          *ptr++ = 1.0f;
+        Fill( ref ptr, new Vector3( 0.0f, coord, tickSize ) );
+      }
+
+      // 3. Z-axis
+      if ( txt )
+        Fill( ref ptr, 0.0f, 0.0f );
+      if ( col )
+        Fill( ref ptr, ref colorZ );
+      if ( normal )
+        Fill( ref ptr, Vector3.UnitY );
+      if ( ptsize )
+        *ptr++ = 1.0f;
+      Fill( ref ptr, Vector3.Zero );
+
+      if ( txt )
+        Fill( ref ptr, 1.0f, 0.0f );
+      if ( col )
+        Fill( ref ptr, ref colorZ );
+      if ( normal )
+        Fill( ref ptr, Vector3.UnitY );
+      if ( ptsize )
+        *ptr++ = 1.0f;
+      Fill( ref ptr, (tick * ticksZ) * Vector3.UnitZ );
+
+      // Z-ticks
+      for ( i = 1; i < ticksZ; i++ )
+      {
+        coord = i * tick;
+        s = i / (float)ticksZ;
+
+        if ( txt )
+          Fill( ref ptr, s, 0.0f );
+        if ( col )
+          Fill( ref ptr, ref colorZ );
+        if ( normal )
+          Fill( ref ptr, Vector3.UnitY );
+        if ( ptsize )
+          *ptr++ = 1.0f;
+        Fill( ref ptr, new Vector3( 0.0f, 0.0f, coord ) );
+
+        if ( txt )
+          Fill( ref ptr, s, 0.1f );
+        if ( col )
+          Fill( ref ptr, ref colorZ );
+        if ( normal )
+          Fill( ref ptr, Vector3.UnitY );
+        if ( ptsize )
+          *ptr++ = 1.0f;
+        Fill( ref ptr, new Vector3( tickSize, 0.0f, coord ) );
+      }
+
+      return total;
     }
   }
 }
