@@ -115,6 +115,17 @@ namespace _087fireworks
       }
     }
 
+    /// <summary>
+    /// Triangles: returns vertex-array size (if ptr is null) or fills vertex array.
+    /// </summary>
+    /// <param name="ptr">Data pointer (null for determining buffer size).</param>
+    /// <param name="origin">Index number in the global vertex array.</param>
+    /// <param name="stride">Vertex size (stride) in bytes.</param>
+    /// <param name="col">Use color attribute?</param>
+    /// <param name="txt">Use txtCoord attribute?</param>
+    /// <param name="normal">Use normal vector attribute?</param>
+    /// <param name="ptsize">Use point-size/line-width attribute?</param>
+    /// <returns>Data size of the vertex-set (in bytes).</returns>
     public override unsafe int TriangleVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal, bool ptsize )
     {
       int total = base.TriangleVertices( ref ptr, ref origin, out stride, txt, col, normal, ptsize );
@@ -170,6 +181,12 @@ namespace _087fireworks
       return total;
     }
 
+    /// <summary>
+    /// Triangles: returns index-array size (if ptr is null) or fills index array.
+    /// </summary>
+    /// <param name="ptr">Data pointer (null for determining buffer size).</param>
+    /// <param name="origin">First index to use.</param>
+    /// <returns>Data size of the index-set (in bytes).</returns>
     public override unsafe int TriangleIndices ( ref uint* ptr, uint origin )
     {
       if ( ptr != null )
@@ -183,7 +200,7 @@ namespace _087fireworks
         *ptr++ = origin + 1;
       }
 
-      return 3 * sizeof( uint );
+      return 6 * sizeof( uint );
     }
   }
 
@@ -411,6 +428,19 @@ namespace _087fireworks
       return null;
     }
 
+    public int ticks = 1;
+
+    public CoordinateAxes axes;
+
+    public bool HasAxes
+    {
+      get
+      {
+        return( ticks > 0 &&
+                axes != null );
+      }
+    }
+
     /// <summary>
     /// Lock-protected simulation state.
     /// Pause-related stuff could be stored/handled elsewhere.
@@ -475,6 +505,7 @@ namespace _087fireworks
       Dirty            = false;
       particleDynamic  = false;
       variance         = 0.1;
+      axes             = new CoordinateAxes( 1.0f, ticks, ticks, ticks );
     }
 
     /// <summary>
@@ -532,6 +563,16 @@ namespace _087fireworks
       {
         if ( maxParticles < 10 )
           maxParticles = 1000;
+        Dirty = true;
+      }
+
+      // global: ticks
+      if ( Util.TryParse( p, "ticks", ref ticks ) )
+      {
+        if ( ticks < 0 )
+          ticks = 0;
+
+        axes = new CoordinateAxes( 1.0f, ticks, ticks, ticks );
         Dirty = true;
       }
 
@@ -610,6 +651,10 @@ namespace _087fireworks
       lastTime = time;
     }
 
+    /// <summary>
+    /// Prepares (fills) all the triangle-related data into the provided vertex buffer and index buffer.
+    /// </summary>
+    /// <returns>Number of used indices (to draw).</returns>
     public unsafe int FillTriangleData ( ref float* ptr, ref uint* iptr, out int stride, bool txt, bool col, bool normal, bool ptsize )
     {
       uint* bakIptr = iptr;
@@ -633,6 +678,10 @@ namespace _087fireworks
       return (int)(iptr - bakIptr);
     }
 
+    /// <summary>
+    /// Prepares (fills) all the line-related data into the provided vertex buffer and index buffer.
+    /// </summary>
+    /// <returns>Number of used indices (to draw).</returns>
     public unsafe int FillLineData ( ref float* ptr, ref uint* iptr, out int stride, bool txt, bool col, bool normal, bool ptsize )
     {
       uint* bakIptr = iptr;
@@ -653,9 +702,20 @@ namespace _087fireworks
         p.LineIndices( ref iptr, bakOrigin );
       }
 
+      if ( HasAxes )
+      {
+        uint bakOrigin = origin;
+        axes.LineVertices( ref ptr, ref origin, out stride, txt, col, normal, ptsize );
+        axes.LineIndices( ref iptr, bakOrigin );
+      }
+
       return (int)(iptr - bakIptr);
     }
 
+    /// <summary>
+    /// Prepares (fills) all the point-related data into the provided vertex buffer.
+    /// </summary>
+    /// <returns>Number of point-sprites (to draw).</returns>
     public unsafe int FillPointData ( ref float* ptr, out int stride, bool txt, bool col, bool normal, bool ptsize )
     {
       stride = 0;
@@ -679,7 +739,7 @@ namespace _087fireworks
     public static void InitParams ( out string param, out Vector3 center, out float diameter,
                                     out bool useTexture, out bool globalColor, out bool useNormals, out bool usePtSize )
     {
-      param = "freq=4000.0,max=60000,slow=0.25,dynamic=1,variance=0.1";
+      param = "freq=4000.0,max=60000,slow=0.25,dynamic=1,variance=0.1,ticks=0";
       center = new Vector3( 0.0f, 1.0f, 0.0f );
       diameter = 5.0f;
       useTexture = false;
@@ -902,20 +962,22 @@ namespace _087fireworks
 
       // vertex-buffer size:
       int maxVB;
-      maxVB =                  Align( fw.MaxParticles * p.TriangleVertices( ref ptr, ref origin, out stride, true, true, true, true ) );
-      maxVB = Math.Max( maxVB, Align( fw.MaxParticles * p.LineVertices( ref ptr, ref origin, out stride, true, true, true, true ) ) );
-      maxVB = Math.Max( maxVB, Align( fw.MaxParticles * p.PointVertices( ref ptr, ref origin, out stride, true, true, true, true ) ) );
-      maxVB = Math.Max( maxVB, Align( fw.MaxLaunchers * l.TriangleVertices( ref ptr, ref origin, out stride, true, true, true, true ) ) );
-      maxVB = Math.Max( maxVB, Align( fw.MaxLaunchers * l.LineVertices( ref ptr, ref origin, out stride, true, true, true, true ) ) );
-      maxVB = Math.Max( maxVB, Align( fw.MaxLaunchers * l.PointVertices( ref ptr, ref origin, out stride, true, true, true, true ) ) );
+      maxVB =                  Align( fw.MaxParticles * p.TriangleVertices( ref ptr, ref origin, out stride, true, true, true, true ) +
+                                      fw.MaxLaunchers * l.TriangleVertices( ref ptr, ref origin, out stride, true, true, true, true ) );
+      maxVB = Math.Max( maxVB, Align( fw.MaxParticles * p.LineVertices( ref ptr, ref origin, out stride, true, true, true, true ) +
+                                      fw.MaxLaunchers * l.LineVertices( ref ptr, ref origin, out stride, true, true, true, true ) +
+                                      (fw.HasAxes ? fw.axes.LineVertices( ref ptr, ref origin, out stride, true, true, true, true ) : 0 ) ) );
+      maxVB = Math.Max( maxVB, Align( fw.MaxParticles * p.PointVertices( ref ptr, ref origin, out stride, true, true, true, true ) +
+                                      fw.MaxLaunchers * l.PointVertices( ref ptr, ref origin, out stride, true, true, true, true ) ) );
       // maxVB contains maximal vertex-buffer size for all batches
 
       // index-buffer size:
       int maxIB;
-      maxIB =                  Align( fw.MaxParticles * p.TriangleIndices( ref iptr, 0 ) );
-      maxIB = Math.Max( maxIB, Align( fw.MaxParticles * p.LineIndices( ref iptr, 0 ) ) );
-      maxIB = Math.Max( maxIB, Align( fw.MaxLaunchers * l.TriangleIndices( ref iptr, 0 ) ) );
-      maxIB = Math.Max( maxIB, Align( fw.MaxLaunchers * l.LineIndices( ref iptr, 0 ) ) );
+      maxIB =                  Align( fw.MaxParticles * p.TriangleIndices( ref iptr, 0 ) +
+                                      fw.MaxLaunchers * l.TriangleIndices( ref iptr, 0 ) );
+      maxIB = Math.Max( maxIB, Align( fw.MaxParticles * p.LineIndices( ref iptr, 0 ) +
+                                      fw.MaxLaunchers * l.LineIndices( ref iptr, 0 ) +
+                                      (fw.HasAxes ? fw.axes.LineIndices( ref iptr, 0 ) : 0 ) ) );
       // maxIB contains maximal index-buffer size for all launchers
 
       VBOlen[ 0 ] = maxVB;
