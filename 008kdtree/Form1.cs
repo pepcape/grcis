@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.Windows.Forms;
 using Raster;
+using Utilities;
 
 namespace _008kdtree
 {
@@ -113,9 +114,12 @@ namespace _008kdtree
       // Build-phase statistics:
       long segStat, boxStat, heapStat;
       tree.GetStatistics( out segStat, out boxStat, out heapStat );
-      labelStat.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f} s [{1:D}-{2:D}-{3:D}]",
-                                      1.0e-3 * sw.ElapsedMilliseconds,
-                                      segStat, boxStat, heapStat );
+      string stat1 = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f} s [{1:D}-{2:D}-{3:D}]",
+                                    1.0e-3 * sw.ElapsedMilliseconds,
+                                    segStat, boxStat, heapStat );
+      labelStat.Text = stat1;
+      Util.LogFormat( "Build[ {0}, {1} ]: {2}", size, seed, stat1 );
+
       if ( output != null )
         pictureBox1.Image = output;
 
@@ -193,10 +197,14 @@ namespace _008kdtree
 
       // Query-phase statistics:
       tree.GetStatistics( out segStat, out boxStat, out heapStat );
-      labelStat.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f} s [{1:D}-{2:D}-{3:D}-{4:D}]",
-                                      1.0e-3 * sw.ElapsedMilliseconds,
-                                      segCount, segStat, boxStat, heapStat );
-      labelHash.Text = String.Format( "{0:X}", hash );
+      string stat1 = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f} s [{1:D}-{2:D}-{3:D}-{4:D}]",
+                                    1.0e-3 * sw.ElapsedMilliseconds,
+                                    segCount, segStat, boxStat, heapStat );
+      labelStat.Text = stat1;
+      string stat2 = String.Format( "{0:X}", hash );
+      labelHash.Text = stat2;
+      Util.LogFormat( "Query[ {0}, {1}, {2} ]: hash: {3,16}, {4}",
+                      (int)numericSize.Value, seed, size, stat2, stat1 );
 
       if ( visual )
         pictureBox1.Invalidate();
