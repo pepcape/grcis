@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
+using System.Text;
 using System.Windows.Forms;
 using Raster;
 using Utilities;
@@ -191,6 +192,13 @@ namespace _008kdtree
                        (int)segments[ result[ j ] ].x2, (int)segments[ result[ j ] ].y2,
                        Draw.ColorRamp( 1.0 - colorMul * j ) );
         }
+#if LOG
+        StringBuilder sb = new StringBuilder( "Result[" );
+        sb.Append( i ).Append( "]:" );
+        for ( int j = 0; j < n; j++ )
+          sb.Append( ' ' ).Append( result[ j ] );
+        Util.Log( sb.ToString() );
+#endif
       }
 
       sw.Stop();
