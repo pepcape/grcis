@@ -1,10 +1,13 @@
-﻿using System;
+﻿#define LOG
+
+using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 using Raster;
-using System.Globalization;
+using Utilities;
 
 namespace _011compressionbw
 {
@@ -59,6 +62,10 @@ namespace _011compressionbw
       resetImage( ref diffImage );
     }
 
+#if LOG
+    static long totalLen = 0L;
+#endif
+
     private void buttonRecode_Click ( object sender, EventArgs e )
     {
       if ( inputImage == null ) return;
@@ -97,6 +104,12 @@ namespace _011compressionbw
         long diffHash = Draw.ImageCompareBW( inputImage, outputImage, diffImage );
         labelResult.Text = String.Format( "Errs: {0}", diffHash );
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
+#if LOG
+        // log results:
+        Util.LogFormat( "Recoding finished - err: {0}, codeSize: {1}, total: {2} (image res: {3}x{4})",
+                        diffHash, fileSize, (totalLen += fileSize),
+                        inputImage.Width, inputImage.Height );
+#endif
       }
       else
       {
