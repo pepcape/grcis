@@ -428,6 +428,12 @@ namespace _058marbles
         maxSpeed = Arith.Clamp( maxSpeed, 5, 1000 );
       }
 
+      // global: screencast
+      bool recent = false;
+      if ( Util.TryParse( p, "screencast", ref recent ) &&
+           (Form1.screencast != null) != recent )
+        Form1.StartStopScreencast( recent );
+
       // !!!{{TODO: more parameter-parsing?
       // !!!}}
     }
@@ -771,7 +777,7 @@ namespace _058marbles
           Simulate();
 
         // Rendering (from the 'data' object);
-        Render();
+        Render( true );
 
         long now = DateTime.Now.Ticks;
         long newTicks = now - lastFpsTime;
@@ -793,8 +799,9 @@ namespace _058marbles
                                            lastFps, lastSps, (lastTps * 1.0e-6) );
 
           if ( world != null )
-            labelStat.Text = String.Format( CultureInfo.InvariantCulture, "T: {0:f1}s, fr: {1}{3}, mrbl: {2}",
+            labelStat.Text = String.Format( CultureInfo.InvariantCulture, "T: {0:f1}s, fr: {1}{3}{4}, mrbl: {2}",
                                             world.Time, world.Frames, world.Marbles,
+                                            (screencast != null) ? (" (" + screencast.Queue + ')') : "",
                                             (simThread == null) ? "" : " mt" );
         }
       }
@@ -826,6 +833,7 @@ namespace _058marbles
     /// </summary>
     private void ResetSimulation ()
     {
+      Snapshots.ResetFrameNumber();
       if ( world != null )
         lock ( world )
         {
@@ -899,7 +907,7 @@ namespace _058marbles
     /// <summary>
     /// Rendering of one frame, all the stuff.
     /// </summary>
-    private void Render ()
+    private void Render ( bool snapshot =false )
     {
       if ( !loaded )
         return;
@@ -916,6 +924,12 @@ namespace _058marbles
 
       // Scene rendering:
       RenderScene();
+
+      if ( snapshot &&
+           screencast != null &&
+           world != null &&
+           world.Running )
+        screencast.SaveScreenshotAsync( glControl1 );
 
       glControl1.SwapBuffers();
     }

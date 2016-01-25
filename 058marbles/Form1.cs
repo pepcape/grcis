@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
+using OpenglSupport;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
 
 namespace _058marbles
 {
@@ -40,6 +39,11 @@ namespace _058marbles
     /// Simulation-control flag.
     /// </summary>
     volatile bool simulate = false;
+
+    /// <summary>
+    /// Async screencast object instance, null if not screencasting.
+    /// </summary>
+    public static Snapshots screencast = null;
 
     public Form1 ()
     {
@@ -154,8 +158,27 @@ namespace _058marbles
       glControl1.VSync = checkVsync.Checked;
     }
 
+    public static void StartStopScreencast ( bool start )
+    {
+      if ( start == (screencast != null) )
+        return;
+
+      if ( start )
+      {
+        screencast = new Snapshots( true );
+        screencast.StartSaveThread();
+      }
+      else
+      {
+        screencast.StopSaveThread();
+        screencast = null;
+      }
+    }
+
     private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
     {
+      if ( screencast != null )
+        screencast.StopSaveThread();
       StopSimulation();
     }
 
