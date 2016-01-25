@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Text;
+using System.Threading;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using Utilities;
 
@@ -14,7 +17,7 @@ namespace OpenglSupport
     /// Logs OpenGL properties.
     /// </summary>
     /// <param name="ext">Print detailed list of extensions as well?</param>
-    public static void LogGLProperties ( bool ext =false )
+    public static void LogGLProperties ( bool ext = false )
     {
       // 1. OpenGL version, vendor, ..
       string version = GL.GetString( StringName.Version );
@@ -55,13 +58,285 @@ namespace OpenglSupport
     /// Checks OpenGL error and logs a message eventually.
     /// </summary>
     /// <param name="checkpoint">Optional checkpoint identification.</param>
-    public static void LogError ( string checkpoint ="?" )
+    public static void LogError ( string checkpoint = "?" )
     {
       ErrorCode err = GL.GetError();
       if ( err == ErrorCode.NoError )
         return;
 
       Util.LogFormat( "OpenGL error {0} at {1}", err, checkpoint );
+    }
+  }
+
+  /// <summary>
+  /// OpenGL canvas snapshot support.
+  /// </summary>
+  public class Snapshots
+  {
+    /// <summary>
+    /// Current screencast frame number.
+    /// </summary>
+    protected static int frameCounter = 0;
+
+    /// <summary>
+    /// frameCounter guard.
+    /// </summary>
+    protected static object frameLock = new object();
+
+    /// <summary>
+    /// Reset frame number.
+    /// </summary>
+    public static void ResetFrameNumber ()
+    {
+      lock ( frameLock )
+        frameCounter = 0;
+    }
+
+    /// <summary>
+    /// Takes current snapshot of the given GLControl and returns it as a Bitmap.
+    /// </summary>
+    public static Bitmap TakeScreenshot ( GLControl glc )
+    {
+      if ( GraphicsContext.CurrentContext == null )
+        return null;
+
+      GL.Finish();
+      GL.Flush();
+      int wid = glc.ClientSize.Width;
+      int hei = glc.ClientSize.Height;
+      Bitmap bmp = new Bitmap( wid, hei );
+      System.Drawing.Imaging.BitmapData data = bmp.LockBits( glc.ClientRectangle, System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      GL.ReadPixels( 0, 0, wid, hei, PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0 );
+      bmp.UnlockBits( data );
+      bmp.RotateFlip( RotateFlipType.RotateNoneFlipY );
+      return bmp;
+    }
+
+    /// <summary>
+    /// Saves GLControl snapshot synchronously.
+    /// </summary>
+    public static void SaveScreenshot ( GLControl glc, string fileNameTemplate ="out{0:00000}.png" )
+    { 
+      Bitmap bmp = TakeScreenshot( glc );
+      if ( bmp != null )
+      {
+        // save the image file:
+        string fileName;
+        lock ( frameLock )
+          fileName = String.Format( fileNameTemplate, frameCounter++ );
+        bmp.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+        bmp.Dispose();
+      }
+    }
+
+    /// <summary>
+    /// One screencast frame.
+    /// </summary>
+    public class Result : IDisposable
+    {
+      public Bitmap image;
+      public int frameNumber;
+
+      public void Dispose ()
+      {
+        if ( image != null )
+        {
+          image.Dispose();
+          image = null;
+        }
+      }
+    }
+
+    /// <summary>
+    /// Template (format) of the output image files.
+    /// Should consume one integer parameter ({0}), preferably in
+    /// a fixed format, e.g. {0:00000}.
+    /// </summary>
+    public string FileNameTemplate
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Frame-saving thread or null if async saving machine is not active.
+    /// </summary>
+    protected Thread aThread = null;
+
+    /// <summary>
+    /// Semaphore guarding the output queue.
+    /// Signaled if there are results ready..
+    /// </summary>
+    protected Semaphore semResults = null;
+
+    /// <summary>
+    /// Output queue.
+    /// </summary>
+    protected Queue<Result> queue = null;
+
+    /// <summary>
+    /// True if frame-saving thread should do its job.
+    /// </summary>
+    protected bool cont = true;
+
+    public int Queue
+    {
+      get
+      {
+        int size = 0;
+        lock ( this )
+          if ( queue != null )
+            size = queue.Count;
+        return size;
+      }
+    }
+
+    public Snapshots ( bool resetFrameNumber =true, string fnTemplate ="out{0:00000}.png" )
+    {
+      FileNameTemplate = fnTemplate;
+      if ( resetFrameNumber )
+        ResetFrameNumber();
+    }
+
+    protected void resetQueue ()
+    {
+      lock ( this )
+        if ( queue != null )
+          while ( queue.Count > 0 )
+            queue.Dequeue().Dispose();
+    }
+
+    protected void initQueue ( int maxSize =500 )
+    {
+      lock ( this )
+      {
+        if ( queue == null )
+          queue = new Queue<Result>( maxSize );
+        else
+          while ( queue.Count > 0 )
+            queue.Dequeue().Dispose();
+
+        semResults = new Semaphore( 0, maxSize );
+      }
+    }
+
+    /// <summary>
+    /// Start async frame-saving machine.
+    /// </summary>
+    /// <param name="maxQueue"></param>
+    public void StartSaveThread ( int maxQueue =500 )
+    {
+      lock ( this )
+      {
+        if ( aThread != null )
+          return;
+
+        cont = true;
+        initQueue( maxQueue );
+
+        // Start main rendering thread:
+        aThread = new Thread( new ThreadStart( this.SaveFrames ) );
+        aThread.Start();
+      }
+    }
+
+    /// <summary>
+    /// Stop async frame-saving machine.
+    /// </summary>
+    public void StopSaveThread ()
+    {
+      Thread stopThread;
+
+      lock ( this )
+      {
+        if ( aThread == null )
+          return;
+
+        cont = false;
+        stopThread = aThread;
+      }
+
+      semResults.Release();
+      stopThread.Join();
+
+      lock ( this )
+      {
+        aThread = null;
+        resetQueue();
+      }
+    }
+
+    /// <summary>
+    /// Frame-saver thread.
+    /// </summary>
+    protected void SaveFrames ()
+    {
+      while ( true )
+      {
+        semResults.WaitOne();               // wait until a frame is finished
+
+        lock ( this )                       // regular finish test
+          if ( !cont )
+            return;
+
+        // there should be a frame to process:
+        Result r = null;
+        lock ( this )
+        {
+          if ( queue.Count == 0 )
+            continue;
+
+          r = queue.Dequeue();
+        }
+
+        // save the image file:
+        string fileName = String.Format( FileNameTemplate, r.frameNumber );
+        r.image.RotateFlip( RotateFlipType.RotateNoneFlipY );
+        r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+        r.Dispose();
+      }
+    }
+
+    /// <summary>
+    /// Saves current snapshot asynchronously using the running save-thread.
+    /// </summary>
+    /// <returns>True if a screenshot was acquired correctly.</returns>
+    public bool SaveScreenshotAsync ( GLControl glc )
+    {
+      if ( GraphicsContext.CurrentContext == null )
+        return false;
+
+      GL.Finish();
+      GL.Flush();
+      int wid = glc.ClientSize.Width;
+      int hei = glc.ClientSize.Height;
+      Bitmap bmp = new Bitmap( wid, hei );
+      System.Drawing.Imaging.BitmapData data = bmp.LockBits( glc.ClientRectangle, System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      GL.ReadPixels( 0, 0, wid, hei, PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0 );
+      bmp.UnlockBits( data );
+
+      // set up the new result record:
+      Result r = new Result();
+      r.image = bmp;
+
+      lock ( this )
+      {
+        if ( aThread == null ||
+             !cont )
+        {
+          r.Dispose();
+          return false;
+        }
+
+        lock ( frameLock )
+          r.frameNumber = frameCounter++;
+
+        // ... and put the result into the output queue:
+        queue.Enqueue( r );
+      }
+
+      semResults.Release();                    // notify the frame-saver thread
+      return true;
     }
   }
 

@@ -581,6 +581,12 @@ namespace _087fireworks
            slow < 1.0e-4 )
         slow = 0.25;
 
+      // global: screencast
+      bool recent = false;
+      if ( Util.TryParse( p, "screencast", ref recent ) &&
+           (Form1.screencast != null) != recent )
+        Form1.StartStopScreencast( recent );
+
       // particles: dynamic behavior
       bool dyn = false;
       if ( Util.TryParse( p, "dynamic", ref dyn ) )
@@ -791,7 +797,7 @@ namespace _087fireworks
       {
         glControl1.MakeCurrent();
         Simulate();
-        Render();
+        Render( true );
 
         long now = DateTime.Now.Ticks;
         if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
@@ -810,8 +816,10 @@ namespace _087fireworks
                                            lastFps, (lastPps * 1.0e-6) );
 
           if ( fw != null )
-            labelStat.Text = String.Format( CultureInfo.InvariantCulture, "time: {0:f1}s, fr: {1}, laun: {2}, part: {3}",
-                                            fw.Time, fw.Frames, fw.Launchers, fw.Particles );
+            labelStat.Text = String.Format( CultureInfo.InvariantCulture, "time: {0:f1}s, fr: {1}{2}, laun: {3}, part: {4}",
+                                            fw.Time, fw.Frames,
+                                            (screencast != null) ? (" (" + screencast.Queue + ')') : "",
+                                            fw.Launchers, fw.Particles );
         }
       }
     }
@@ -1064,6 +1072,7 @@ namespace _087fireworks
     /// </summary>
     private void ResetSimulation ()
     {
+      Snapshots.ResetFrameNumber();
       if ( fw != null )
         lock ( fw )
         {
@@ -1119,7 +1128,7 @@ namespace _087fireworks
     /// <summary>
     /// Render one frame.
     /// </summary>
-    private void Render ()
+    private void Render ( bool snapshot =false )
     {
       if ( !loaded )
         return;
@@ -1135,6 +1144,12 @@ namespace _087fireworks
 
       SetCamera();
       RenderScene();
+
+      if ( snapshot &&
+           screencast != null &&
+           fw != null &&
+           fw.Running )
+        screencast.SaveScreenshotAsync( glControl1 );
 
       glControl1.SwapBuffers();
     }

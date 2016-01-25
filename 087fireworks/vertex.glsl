@@ -3,7 +3,7 @@
 //   propagates 2D texture coords, normal vector, world coords, color, point size
 //   @version $Rev$
 //---------------------------------------------------------------
-#version 140
+#version 130
 
 in vec3 position;
 in vec3 normal;

@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using OpenglSupport;
 using OpenTK;
 
 namespace _087fireworks
@@ -22,6 +23,11 @@ namespace _087fireworks
     /// GLControl guard flag.
     /// </summary>
     bool loaded = false;
+
+    /// <summary>
+    /// Async screencast object instance, null if not screencasting.
+    /// </summary>
+    public static Snapshots screencast = null;
 
     public Form1 ()
     {
@@ -90,6 +96,29 @@ namespace _087fireworks
         e.Handled = true;
         UpdateSimulation();
       }
+    }
+
+    public static void StartStopScreencast ( bool start )
+    {
+      if ( start == (screencast != null) )
+        return;
+
+      if ( start )
+      {
+        screencast = new Snapshots( true );
+        screencast.StartSaveThread();
+      }
+      else
+      {
+        screencast.StopSaveThread();
+        screencast = null;
+      }
+    }
+
+    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    {
+      if ( screencast != null )
+        screencast.StopSaveThread();
     }
   }
 }

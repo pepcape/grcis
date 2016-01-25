@@ -244,6 +244,7 @@
       this.MinimumSize = new System.Drawing.Size(860, 200);
       this.Name = "Form1";
       this.Text = "087 fireworks";
+      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
       this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseWheel);
       this.ResumeLayout(false);
       this.PerformLayout();
