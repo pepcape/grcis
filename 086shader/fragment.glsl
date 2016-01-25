@@ -4,7 +4,7 @@
 //   flat/smooth shading (Gouraud/Phong)
 //   @version $Rev$
 //---------------------------------------------------------------
-#version 140
+#version 130
 
 in vec2 varTexCoords;
 in vec3 varNormal;

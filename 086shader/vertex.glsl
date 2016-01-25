@@ -4,7 +4,7 @@
 //   can compute vertex-based shading with switchable components
 //   @version $Rev$
 //---------------------------------------------------------------
-#version 140
+#version 130
 
 in vec4 position;
 in vec3 normal;

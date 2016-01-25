@@ -774,14 +774,15 @@ namespace _058marbles
         Render();
 
         long now = DateTime.Now.Ticks;
-        if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
+        long newTicks = now - lastFpsTime;
+        if ( newTicks > 5000000 )      // more than 0.5 sec
         {
-          lastFps = 0.5 * lastFps + 0.5 * (frameCounter     * 1.0e7 / (now - lastFpsTime));
-          lastSps = 0.5 * lastSps + 0.5 * (simCounter       * 1.0e7 / (now - lastFpsTime));
-          lastTps = 0.5 * lastTps + 0.5 * (primitiveCounter * 1.0e7 / (now - lastFpsTime));
-          lastFpsTime = now;
-          frameCounter = 0;
-          simCounter = 0;
+          lastFps = 0.5 * lastFps + 0.5 * (frameCounter     * 1.0e7 / newTicks);
+          lastSps = 0.5 * lastSps + 0.5 * (simCounter       * 1.0e7 / newTicks);
+          lastTps = 0.5 * lastTps + 0.5 * (primitiveCounter * 1.0e7 / newTicks);
+          lastFpsTime      = now;
+          frameCounter     = 0;
+          simCounter       = 0;
           primitiveCounter = 0L;
 
           if ( lastTps < 5.0e5 )
@@ -871,11 +872,13 @@ namespace _058marbles
           {
             if ( world.Running )
             {
-              // 1000Hz .. 1ms (Sleep) .. 5000 ticks
-              if ( nowTicks - ticksLast < 9900000L / world.maxSpeed )
+              // 1000Hz .. 1ms .. 10000 ticks
+              long minTicks = 10000000L / world.maxSpeed;       // min ticks between simulation steps
+              if ( nowTicks - ticksLast < (3 * minTicks) / 4 )
               {
-                // too fast..
-                Thread.Sleep( 1 + 999 / world.maxSpeed );
+                // we are going too fast..
+                int sleepMs = (int)(((5 * minTicks) / 4 - nowTicks + ticksLast) / 10000L);
+                Thread.Sleep( sleepMs );
                 nowTicks = DateTime.Now.Ticks;
               }
               double timeScale = checkSlow.Checked ? MarblesWorld.slow : 1.0;

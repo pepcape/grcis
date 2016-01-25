@@ -3,7 +3,7 @@
 //   normal vector, single point light-source, global color, ..
 //   @version $Rev$
 //---------------------------------------------------------------
-#version 140
+#version 130
 
 in vec2 varTexCoords;
 in vec3 varNormal;

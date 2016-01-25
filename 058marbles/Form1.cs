@@ -79,6 +79,7 @@ namespace _058marbles
 
       simulate = true;
       simThread = new Thread( new ThreadStart( SimulationLoop ) );
+      simThread.Priority = ThreadPriority.AboveNormal;
       simThread.Start();
     }
 
