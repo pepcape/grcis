@@ -358,6 +358,7 @@
       this.MinimumSize = new System.Drawing.Size(860, 350);
       this.Name = "Form1";
       this.Text = "086 shaders";
+      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
       this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseWheel);
       ((System.ComponentModel.ISupportInitialize)(this.numericSensitivity)).EndInit();
       this.ResumeLayout(false);

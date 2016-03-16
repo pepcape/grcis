@@ -2,6 +2,7 @@ using System;
 using System.Windows.Forms;
 using OpenglSupport;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 
 namespace _087fireworks
 {
@@ -119,6 +120,12 @@ namespace _087fireworks
     {
       if ( screencast != null )
         screencast.StopSaveThread();
+      if ( VBOid != null &&
+           VBOid[ 0 ] != 0 )
+      {
+        GL.DeleteBuffers( 2, VBOid );
+        VBOid = null;
+      }
     }
   }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 using Scene3D;
 
 namespace _086shader
@@ -155,6 +156,16 @@ namespace _086shader
       {
         e.Handled = true;
         UpdateParams( textParam.Text );
+      }
+    }
+
+    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    {
+      if ( VBOid != null &&
+           VBOid[ 0 ] != 0 )
+      {
+        GL.DeleteBuffers( 2, VBOid );
+        VBOid = null;
       }
     }
   }
