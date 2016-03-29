@@ -1,4 +1,6 @@
 using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -96,6 +98,44 @@ namespace _086shader
       labelFile.Text = String.Format( "{0}: {1} faces", ofd.SafeFileName, faces );
       PrepareDataBuffers();
       glControl1.Invalidate();
+    }
+
+    private void buttonLoadTexture_Click ( object sender, EventArgs e )
+    {
+      OpenFileDialog ofd = new OpenFileDialog();
+
+      ofd.Title = "Open Image File";
+      ofd.Filter = "Bitmap Files|*.bmp" +
+          "|Gif Files|*.gif" +
+          "|JPEG Files|*.jpg" +
+          "|PNG Files|*.png" +
+          "|TIFF Files|*.tif" +
+          "|All image types|*.bmp;*.gif;*.jpg;*.png;*.tif";
+
+      ofd.FilterIndex = 6;
+      ofd.FileName = "";
+      if ( ofd.ShowDialog() != DialogResult.OK )
+        return;
+
+      Bitmap inputImage = (Bitmap)Image.FromFile( ofd.FileName );
+
+      if ( texName == 0 )
+        texName = GL.GenTexture();
+
+      GL.BindTexture( TextureTarget.Texture2D, texName );
+
+      Rectangle rect = new Rectangle( 0, 0, inputImage.Width, inputImage.Height );
+      BitmapData bmpData = inputImage.LockBits( rect, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, inputImage.Width, inputImage.Height, 0,
+                     OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, bmpData.Scan0 );
+      inputImage.UnlockBits( bmpData );
+      inputImage.Dispose();
+      inputImage = null;
+
+      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat );
+      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat );
+      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear );
+      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Linear );
     }
 
     private void buttonGenerate_Click ( object sender, EventArgs e )

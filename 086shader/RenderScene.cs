@@ -474,11 +474,12 @@ namespace _086shader
 
           // texture handling:
           bool useTexture = checkTexture.Checked;
-          if ( !scene.HasTxtCoords() )
+          if ( !scene.HasTxtCoords() ||
+               texName == 0 )
             useTexture = false;
           GL.Uniform1( activeProgram.GetUniform( "useTexture" ), useTexture ? 1 : 0 );
           GL.Uniform1( activeProgram.GetUniform( "texSurface" ), 0 );
-          if ( useTexture && texName != 0 )
+          if ( useTexture )
           {
             GL.ActiveTexture( TextureUnit.Texture0 );
             GL.BindTexture( TextureTarget.Texture2D, texName );
@@ -518,7 +519,7 @@ namespace _086shader
 
           // cleanup:
           GL.UseProgram( 0 );
-          if ( useTexture && texName != 0 )
+          if ( useTexture )
             GL.BindTexture( TextureTarget.Texture2D, 0 );
         }
         else
@@ -528,13 +529,15 @@ namespace _086shader
 
           // texture handling:
           bool useTexture = checkTexture.Checked;
-          if ( !scene.HasTxtCoords() )
+          if ( !scene.HasTxtCoords() ||
+               texName == 0 )
             useTexture = false;
-          if ( useTexture && texName != 0 )
+          if ( useTexture  )
           {
             GL.Enable( EnableCap.Texture2D );
             GL.ActiveTexture( TextureUnit.Texture0 );
             GL.BindTexture( TextureTarget.Texture2D, texName );
+            GL.TexEnv( TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvMode, (int)TextureEnvMode.Replace );
           }
 
           // using FFP:
@@ -565,7 +568,7 @@ namespace _086shader
           GL.DrawElements( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
           GlInfo.LogError( "draw-elements-ffp" );
 
-          if ( useTexture && texName != 0 )
+          if ( useTexture  )
           {
             GL.BindTexture( TextureTarget.Texture2D, 0 );
             GL.Disable( EnableCap.Texture2D );
