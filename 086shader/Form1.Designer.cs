@@ -50,6 +50,7 @@
       this.checkDiffuse = new System.Windows.Forms.CheckBox();
       this.checkSpecular = new System.Windows.Forms.CheckBox();
       this.checkPhong = new System.Windows.Forms.CheckBox();
+      this.buttonLoadTexture = new System.Windows.Forms.Button();
       ((System.ComponentModel.ISupportInitialize)(this.numericSensitivity)).BeginInit();
       this.SuspendLayout();
       // 
@@ -328,11 +329,23 @@
       this.checkPhong.Text = "Phong";
       this.checkPhong.UseVisualStyleBackColor = true;
       // 
+      // buttonLoadTexture
+      // 
+      this.buttonLoadTexture.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonLoadTexture.Location = new System.Drawing.Point(15, 404);
+      this.buttonLoadTexture.Name = "buttonLoadTexture";
+      this.buttonLoadTexture.Size = new System.Drawing.Size(108, 23);
+      this.buttonLoadTexture.TabIndex = 42;
+      this.buttonLoadTexture.Text = "Load texture";
+      this.buttonLoadTexture.UseVisualStyleBackColor = true;
+      this.buttonLoadTexture.Click += new System.EventHandler(this.buttonLoadTexture_Click);
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(844, 469);
+      this.Controls.Add(this.buttonLoadTexture);
       this.Controls.Add(this.checkPhong);
       this.Controls.Add(this.checkSpecular);
       this.Controls.Add(this.checkDiffuse);
@@ -390,6 +403,7 @@
     private System.Windows.Forms.CheckBox checkDiffuse;
     private System.Windows.Forms.CheckBox checkSpecular;
     private System.Windows.Forms.CheckBox checkPhong;
+    private System.Windows.Forms.Button buttonLoadTexture;
   }
 }
 
