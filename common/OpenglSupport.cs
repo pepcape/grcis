@@ -379,6 +379,15 @@ namespace OpenglSupport
       }
       return true;
     }
+
+    public void Destroy ()
+    {
+      if ( shader != null )
+      {
+        shader.Dispose();
+        shader = null;
+      }
+    }
   }
 
   /// <summary>
@@ -440,21 +449,20 @@ namespace OpenglSupport
       }
 
       if ( !okProgram )
-      {
-        if ( program != null )
-        {
-          program.Dispose();
-          program = null;
-        }
-        foreach ( var shaderInfo in shaders )
-          if ( shaderInfo.shader != null )
-          {
-            shaderInfo.shader.Dispose();
-            shaderInfo.shader = null;
-          }
-      }
+        Destroy();
 
       return okProgram;
+    }
+
+    public void Destroy ()
+    {
+      if ( program != null )
+      {
+        program.Dispose();
+        program = null;
+      }
+      foreach ( var shaderInfo in shaders )
+        shaderInfo.Destroy();
     }
   }
 
@@ -463,6 +471,11 @@ namespace OpenglSupport
   /// </summary>
   public class GlShader : IDisposable
   {
+    /// <summary>
+    /// Global repository of active shaders.
+    /// </summary>
+    static HashSet<int> liveShaders = new HashSet<int>();
+
     /// <summary>
     /// Shader Id by CreateShader()
     /// </summary>
@@ -482,7 +495,13 @@ namespace OpenglSupport
       if ( Id < 0 )
         return;
 
-      GL.DeleteShader( Id );
+      lock ( liveShaders )
+        if ( liveShaders.Contains( Id ) )
+        { 
+          GL.DeleteShader( Id );
+          liveShaders.Remove( Id );
+        }
+
       Id = -1;
     }
 
@@ -508,6 +527,8 @@ namespace OpenglSupport
       }
 
       Id = GL.CreateShader( Type = type );
+      lock ( liveShaders )
+        liveShaders.Add( Id );
       GL.ShaderSource( Id, source );
       return CompileShader();
     }
