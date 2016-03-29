@@ -1,4 +1,6 @@
-﻿#define USE_INVALIDATE
+﻿// author: Josef Pelikan
+
+#define USE_INVALIDATE
 
 using System;
 using System.Collections.Generic;
@@ -33,6 +35,11 @@ namespace _086shader
     int stride = 0;              // stride for vertex array
 
     /// <summary>
+    /// Current texture.
+    /// </summary>
+    int texName = 0;
+
+    /// <summary>
     /// Global GLSL program repository.
     /// </summary>
     Dictionary<string, GlProgramInfo> programs = new Dictionary<string, GlProgramInfo>();
@@ -50,6 +57,7 @@ namespace _086shader
 
     /// <summary>
     /// Function called whenever the main application is idle..
+    /// It actually contains the redraw-loop.
     /// </summary>
     void Application_Idle ( object sender, EventArgs e )
     {
@@ -82,7 +90,7 @@ namespace _086shader
     }
 
     /// <summary>
-    /// OpenGL init code.
+    /// OpenGL init code (cold init).
     /// </summary>
     void InitOpenGL ()
     {
@@ -105,9 +113,13 @@ namespace _086shader
         canShaders = SetupShaders();
 
       // texture:
-      GenerateTexture();
+      texName = GenerateTexture();
     }
 
+    /// <summary>
+    /// Init shaders registered in global repository 'programs'.
+    /// </summary>
+    /// <returns>True if succeeded.</returns>
     bool SetupShaders ()
     {
       activeProgram = null;
@@ -127,25 +139,21 @@ namespace _086shader
       return true;
     }
 
-    // generated texture:
-    const int TEX_SIZE = 128;
-    const int TEX_CHECKER_SIZE = 8;
-    static Vector3 colWhite = new Vector3( 0.85f, 0.75f, 0.30f );
-    static Vector3 colBlack = new Vector3( 0.15f, 0.15f, 0.60f );
-    static Vector3 colShade = new Vector3( 0.15f, 0.15f, 0.15f );
-
     /// <summary>
-    /// Texture handle
+    /// Generate static procedural texture.
     /// </summary>
-    int texName = 0;
-
-    /// <summary>
-    /// Generate the texture.
-    /// </summary>
-    void GenerateTexture ()
+    /// <returns>Texture handle.</returns>
+    int GenerateTexture ()
     {
+      // generated texture:
+      const int TEX_SIZE = 128;
+      const int TEX_CHECKER_SIZE = 8;
+      Vector3 colWhite = new Vector3( 0.85f, 0.75f, 0.30f );
+      Vector3 colBlack = new Vector3( 0.15f, 0.15f, 0.60f );
+      Vector3 colShade = new Vector3( 0.15f, 0.15f, 0.15f );
+
       GL.PixelStore( PixelStoreParameter.UnpackAlignment, 1 );
-      texName = GL.GenTexture();
+      int texName = GL.GenTexture();
       GL.BindTexture( TextureTarget.Texture2D, texName );
 
       Vector3[] data = new Vector3[ TEX_SIZE * TEX_SIZE ];
@@ -170,6 +178,20 @@ namespace _086shader
       GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Linear );
 
       GlInfo.LogError( "create-texture" );
+
+      return texName;
+    }
+
+    /// <summary>
+    /// De-allocated all the data associated with the given texture object.
+    /// </summary>
+    /// <param name="texName"></param>
+    void DestroyTexture ( ref int texName )
+    {
+      int tHandle = texName;
+      texName = 0;
+      if ( tHandle != 0 )
+        GL.DeleteTexture( tHandle );
     }
 
     /// <summary>
@@ -334,6 +356,9 @@ namespace _086shader
       vertexPointerOn = on;
     }
 
+    /// <summary>
+    /// Fill the shader-repository.
+    /// </summary>
     void InitShaderRepository ()
     {
       programs.Clear();
@@ -349,6 +374,12 @@ namespace _086shader
       // pi = new GlProgramInfo( ..
       //   ..
       // programs[ pi.name ] = pi;
+    }
+
+    void DestroyShaders ()
+    {
+      foreach ( var prg in programs.Values )
+        prg.Destroy();
     }
 
     /// <summary>
@@ -447,7 +478,7 @@ namespace _086shader
             useTexture = false;
           GL.Uniform1( activeProgram.GetUniform( "useTexture" ), useTexture ? 1 : 0 );
           GL.Uniform1( activeProgram.GetUniform( "texSurface" ), 0 );
-          if ( useTexture )
+          if ( useTexture && texName != 0 )
           {
             GL.ActiveTexture( TextureUnit.Texture0 );
             GL.BindTexture( TextureTarget.Texture2D, texName );
@@ -484,12 +515,27 @@ namespace _086shader
           // engage!
           GL.DrawElements( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
           GlInfo.LogError( "draw-elements-shader" );
+
+          // cleanup:
           GL.UseProgram( 0 );
+          if ( useTexture && texName != 0 )
+            GL.BindTexture( TextureTarget.Texture2D, 0 );
         }
         else
         {
           SetVertexAttrib( false );
           SetVertexPointer( true );
+
+          // texture handling:
+          bool useTexture = checkTexture.Checked;
+          if ( !scene.HasTxtCoords() )
+            useTexture = false;
+          if ( useTexture && texName != 0 )
+          {
+            GL.Enable( EnableCap.Texture2D );
+            GL.ActiveTexture( TextureUnit.Texture0 );
+            GL.BindTexture( TextureTarget.Texture2D, texName );
+          }
 
           // using FFP:
           if ( scene.HasTxtCoords() )
@@ -518,6 +564,12 @@ namespace _086shader
           // engage!
           GL.DrawElements( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
           GlInfo.LogError( "draw-elements-ffp" );
+
+          if ( useTexture && texName != 0 )
+          {
+            GL.BindTexture( TextureTarget.Texture2D, 0 );
+            GL.Disable( EnableCap.Texture2D );
+          }
         }
 
         triangleCounter += scene.Triangles;

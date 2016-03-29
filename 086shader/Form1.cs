@@ -161,12 +161,16 @@ namespace _086shader
 
     private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
     {
+      DestroyTexture( ref texName );
+
       if ( VBOid != null &&
            VBOid[ 0 ] != 0 )
       {
         GL.DeleteBuffers( 2, VBOid );
         VBOid = null;
       }
+
+      DestroyShaders();
     }
   }
 }
