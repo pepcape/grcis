@@ -84,21 +84,21 @@ namespace _048rtmontecarlo
         lastSync = 0L;
       }
 
-      public override void Sync ( Object msg )
+      public override void Sync ( object msg )
       {
         long now = f.sw.ElapsedMilliseconds;
         if ( now - lastSync < SyncInterval )
           return;
 
         lastSync = now;
-        f.SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
+        f.SetText( string.Format( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
                                   100.0f * Finished, 1.0e-3 * now ) );
         Bitmap b = msg as Bitmap;
         if ( b != null )
         {
           Bitmap nb;
           lock ( b )
-            nb = (Bitmap)b.Clone();
+            nb = new Bitmap( b );
           f.SetImage( nb );
         }
       }
@@ -270,7 +270,7 @@ namespace _048rtmontecarlo
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      String msg = String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
+      string msg = string.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
                                   1.0e-3 * elapsed, width, height, checkMultithreading.Checked ? Environment.ProcessorCount : 1,
                                   (Intersection.countRays + 500L) / 1000L,
                                   (Intersection.countIntersections + 500L) / 1000L,

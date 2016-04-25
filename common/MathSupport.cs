@@ -107,9 +107,9 @@ namespace MathSupport
       double nx = ay - by;
       double ny = bx - ax;
       double den = nx * dx + ny * dy;
-      if ( den > -2.0 * Double.Epsilon &&
-           den < 2.0 * Double.Epsilon )
-        return Double.NegativeInfinity;
+      if ( den > -2.0 * double.Epsilon &&
+           den < 2.0 * double.Epsilon )
+        return double.NegativeInfinity;
 
       double t = (nx * (ax - ox) + ny * (ay - oy)) / den;
       double resol;
@@ -119,14 +119,14 @@ namespace MathSupport
         resol = ox + t * dx;
         if ( resol < Math.Min( ax, bx ) ||
              resol > Math.Max( ax, bx ) )
-          return Double.NegativeInfinity;
+          return double.NegativeInfinity;
       }
       else
       {                                     // use Y coordinate
         resol = oy + t * dy;
         if ( resol < Math.Min( ay, by ) ||
              resol > Math.Max( ay, by ) )
-          return Double.NegativeInfinity;
+          return double.NegativeInfinity;
       }
 
       return t;
@@ -177,7 +177,7 @@ namespace MathSupport
     /// <summary>
     /// Any message from computing unit to the GUI main.
     /// </summary>
-    public virtual void Sync ( Object msg )
+    public virtual void Sync ( object msg )
     {
     }
 
