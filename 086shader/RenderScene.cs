@@ -487,25 +487,19 @@ namespace _086shader
           GlInfo.LogError( "set-texture" );
 
           if ( activeProgram.HasAttribute( "texCoords" ) )
-          {
             GL.VertexAttribPointer( activeProgram.GetAttribute( "texCoords" ), 2, VertexAttribPointerType.Float, false, stride, p );
-            if ( scene.HasTxtCoords() )
-              p += Vector2.SizeInBytes;
-          }
+          if ( scene.HasTxtCoords() )
+            p += Vector2.SizeInBytes;
 
           if ( activeProgram.HasAttribute( "color" ) )
-          {
             GL.VertexAttribPointer( activeProgram.GetAttribute( "color" ), 3, VertexAttribPointerType.Float, false, stride, p );
-            if ( scene.HasColors() )
-              p += Vector3.SizeInBytes;
-          }
+          if ( scene.HasColors() )
+            p += Vector3.SizeInBytes;
 
           if ( activeProgram.HasAttribute( "normal" ) )
-          {
             GL.VertexAttribPointer( activeProgram.GetAttribute( "normal" ), 3, VertexAttribPointerType.Float, false, stride, p );
-            if ( scene.HasNormals() )
-              p += Vector3.SizeInBytes;
-          }
+          if ( scene.HasNormals() )
+            p += Vector3.SizeInBytes;
 
           GL.VertexAttribPointer( activeProgram.GetAttribute( "position" ), 3, VertexAttribPointerType.Float, false, stride, p );
           GlInfo.LogError( "set-attrib-pointers" );
