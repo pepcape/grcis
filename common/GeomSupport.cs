@@ -166,6 +166,45 @@ namespace MathSupport
     }
 
     /// <summary>
+    /// Parse vector of double numbers delimited by semicolons/colons/commas optinally enclosed in [] or () parenthesis.
+    /// Empty token is assumed to be zero (0.0).
+    /// </summary>
+    /// <returns>Float array or null if failed</returns>
+    public static double[] TryParseDoubleVector ( string str )
+    {
+      int len;
+      if ( str == null ||
+           (len = (str = str.Trim()).Length) == 0 )
+        return null;
+
+      if ( (str[ 0 ] == '(' &&
+            str[ len - 1 ] == ')') ||
+           (str[ 0 ] == '[' &&
+            str[ len - 1 ] == ']') )
+        str = str.Substring( 1, len - 2 );
+
+      string[] tokens;
+      if ( str.IndexOf( ';' ) >= 0 )
+        tokens = str.Split( ';' );
+      else
+        if ( str.IndexOf( ':' ) >= 0 )
+        tokens = str.Split( ':' );
+      else
+        tokens = str.Split( ',' );
+
+      List<double> floats = new List<double>();
+      double val;
+      foreach ( string token in tokens )
+        if ( token.Trim().Length == 0 )
+          floats.Add( 0.0 );
+        else
+          if ( double.TryParse( token, NumberStyles.Number, CultureInfo.InvariantCulture, out val ) )
+          floats.Add( val );
+
+      return floats.ToArray();
+    }
+
+    /// <summary>
     /// Parses Vector3 value from the dictionary.
     /// </summary>
     /// <returns>True if everything went well.</returns>
@@ -197,6 +236,26 @@ namespace MathSupport
         return false;
 
       float[] vec = TryParseFloatVector( sval );
+      if ( vec == null ||
+           vec.Length < 2 )
+        return false;
+
+      val.X = vec[ 0 ];
+      val.Y = vec[ 1 ];
+      return true;
+    }
+
+    /// <summary>
+    /// Parses Vector2d value from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well.</returns>
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref Vector2d val )
+    {
+      string sval;
+      if ( !rec.TryGetValue( key, out sval ) )
+        return false;
+
+      double[] vec = TryParseDoubleVector( sval );
       if ( vec == null ||
            vec.Length < 2 )
         return false;
