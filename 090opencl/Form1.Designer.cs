@@ -139,6 +139,7 @@
       this.checkOpenCL.TabIndex = 37;
       this.checkOpenCL.Text = "OpenCL";
       this.checkOpenCL.UseVisualStyleBackColor = true;
+      this.checkOpenCL.CheckedChanged += new System.EventHandler(this.checkOpenCL_CheckedChanged);
       // 
       // comboBoxPlatform
       // 
