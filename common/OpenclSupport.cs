@@ -41,6 +41,17 @@ namespace OpenclSupport
       }
     }
 
+    public static bool ExtensionCheck ( ComputeContext context, string extName )
+    {
+      if ( context == null ||
+           string.IsNullOrEmpty( extName ) )
+        return false;
+
+      ComputeDevice device = context.Devices[ 0 ];
+      return device != null &&
+             device.Extensions.Contains( extName );
+    }
+
     /// <summary>
     /// Reads source code from a disk file.
     /// </summary>

@@ -231,9 +231,18 @@ namespace _090opencl
       form.clKernel.SetValueArgument(  1, width );
       form.clKernel.SetValueArgument(  2, height );
       form.clKernel.SetValueArgument(  3, iter );
-      form.clKernel.SetValueArgument(  4, xOrig );
-      form.clKernel.SetValueArgument(  5, yOrig );
-      form.clKernel.SetValueArgument(  6, dxy );
+      if ( form.CanUseDouble )
+      {
+        form.clKernel.SetValueArgument( 4, xOrig );
+        form.clKernel.SetValueArgument( 5, yOrig );
+        form.clKernel.SetValueArgument( 6, dxy );
+      }
+      else
+      {
+        form.clKernel.SetValueArgument( 4, (float)xOrig );
+        form.clKernel.SetValueArgument( 5, (float)yOrig );
+        form.clKernel.SetValueArgument( 6, (float)dxy );
+      }
       form.clKernel.SetMemoryArgument( 7, form.cmap );
       form.clKernel.SetValueArgument(  8, colormap.Length );
 
@@ -347,8 +356,9 @@ namespace _090opencl
           pixelCounter = 0L;
           computeCounter = 0.0;
 
+          bool isDouble = checkDouble.Checked && (!checkOpenCL.Checked || CanUseDouble);
           labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, pps: {1:f1} MPx/s ({2}), compute: {3:f2} ms",
-                                         lastFps, (lastPps * 1.0e-6), checkDouble.Checked ? "double" : "single", (lastCompute * 1000.0) );
+                                         lastFps, (lastPps * 1.0e-6), isDouble ? "double" : "single", (lastCompute * 1000.0) );
           string clStat = checkOpenCL.Checked ? string.Format( ", {0} grps {1}x{1}", (globalWidth * globalHeight) / (groupSize * groupSize), groupSize ) : "";
           labelSize.Text = string.Format( "{0}x{1}px{2}", texWidth, texHeight, clStat );
         }
@@ -491,7 +501,7 @@ namespace _090opencl
       try
       {
         // OpenCL C source:
-        string src = ClInfo.ReadSourceFile( "mandel.cl", "090opencl" );
+        string src = ClInfo.ReadSourceFile( CanUseDouble ? "mandel.cl" : "mandelSingle.cl", "090opencl" );
         if ( string.IsNullOrEmpty( src ) )
           return;
 
@@ -502,7 +512,7 @@ namespace _090opencl
         // program & kernel:
         clProgram = new ComputeProgram( clContext, src );
         clProgram.Build( clContext.Devices, null, null, IntPtr.Zero );
-        clKernel = clProgram.CreateKernel( checkDouble.Checked ? "mandelDouble" : "mandelSingle" );
+        clKernel = clProgram.CreateKernel( (checkDouble.Checked && CanUseDouble) ? "mandelDouble" : "mandelSingle" );
         clCommands = new ComputeCommandQueue( clContext, clContext.Devices[ 0 ], ComputeCommandQueueFlags.None );
         globalWidth  = (texWidth  + groupSize - 1) & -groupSize;
         globalHeight = (texHeight + groupSize - 1) & -groupSize;
@@ -517,7 +527,7 @@ namespace _090opencl
       }
       catch ( Exception exc )
       {
-        Util.LogFormat( "clCreateFromGLTexture2D error: {0}", exc.Message );
+        Util.LogFormat( "OpenCL build error: {0}", exc.Message );
 #if SHARED_BUFFER
         outBuffer = null;
 #endif
