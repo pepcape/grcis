@@ -43,15 +43,15 @@ inline int mandelbrotDouble ( const double x0, const double y0, const int iter )
 }
 
 // Mandelbrot OpenCL kernel (single precision)
-kernel void mandelSingle ( global write_only uchar *dst, // 0
-                           const int width,              // 1
-                           const int height,             // 2
-                           const int iter,               // 3
-                           const double xOrig,           // 4
-                           const double yOrig,           // 5
-                           const double dxy,             // 6
-                           global read_only uchar* cmap, // 7
-                           const int cmapSize )          // 8
+kernel void mandelSingle ( global write_only uchar4 *dst, // 0
+                           const int width,               // 1
+                           const int height,              // 2
+                           const int iter,                // 3
+                           const double xOrig,            // 4
+                           const double yOrig,            // 5
+                           const double dxy,              // 6
+                           global read_only uchar4* cmap, // 7
+                           const int cmapSize )           // 8
 {
   const int ix = get_global_id(0);
   const int iy = get_global_id(1);
@@ -68,36 +68,28 @@ kernel void mandelSingle ( global write_only uchar *dst, // 0
     m = m > 0 ? iter - m : 0;
 
     // convert the Madelbrot index into a color:
-    int pixel = 4 * (width * iy + ix);
+    uchar4 color;
+
+    if ( m <= 0 )
+      color.xyzw = 0;
+    else
+      color = cmap[ m % cmapSize ];
 
     // write the pixel:
-    if ( m <= 0 )
-    {
-      dst[ pixel++ ] = 0;
-      dst[ pixel++ ] = 0;
-      dst[ pixel++ ] = 0;
-    }
-    else
-    {
-      m = (m * 4) % cmapSize;
-      dst[ pixel++ ] = cmap[ m++ ];
-      dst[ pixel++ ] = cmap[ m++ ];
-      dst[ pixel++ ] = cmap[ m++ ];
-    }
-    dst[ pixel ] = 0;
+    dst[ width * iy + ix ] = color;
   }
 }
 
 // Mandelbrot OpenCL kernel (double precision)
-kernel void mandelDouble ( global write_only uchar *dst, // 0
-                           const int width,              // 1
-                           const int height,             // 2
-                           const int iter,               // 3
-                           const double xOrig,           // 4
-                           const double yOrig,           // 5
-                           const double dxy,             // 6
-                           global read_only uchar* cmap, // 7
-                           const int cmapSize )          // 8
+kernel void mandelDouble ( global write_only uchar4 *dst, // 0
+                           const int width,               // 1
+                           const int height,              // 2
+                           const int iter,                // 3
+                           const double xOrig,            // 4
+                           const double yOrig,            // 5
+                           const double dxy,              // 6
+                           global read_only uchar4* cmap, // 7
+                           const int cmapSize )           // 8
 {
   const int ix = get_global_id(0);
   const int iy = get_global_id(1);
@@ -114,22 +106,14 @@ kernel void mandelDouble ( global write_only uchar *dst, // 0
     m = m > 0 ? iter - m : 0;
 
     // convert the Madelbrot index into a color:
-    int pixel = 4 * (width * iy + ix);
+    uchar4 color;
+
+    if ( m <= 0 )
+      color.xyzw = 0;
+    else
+      color = cmap[ m % cmapSize ];
 
     // write the pixel:
-    if ( m <= 0 )
-    {
-      dst[ pixel++ ] = 0;
-      dst[ pixel++ ] = 0;
-      dst[ pixel++ ] = 0;
-    }
-    else
-    {
-      m = (m * 4) % cmapSize;
-      dst[ pixel++ ] = cmap[ m++ ];
-      dst[ pixel++ ] = cmap[ m++ ];
-      dst[ pixel++ ] = cmap[ m++ ];
-    }
-    dst[ pixel ] = 0;
+    dst[ width * iy + ix ] = color;
   }
 }

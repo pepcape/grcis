@@ -244,7 +244,7 @@ namespace _090opencl
         form.clKernel.SetValueArgument( 6, (float)dxy );
       }
       form.clKernel.SetMemoryArgument( 7, form.cmap );
-      form.clKernel.SetValueArgument(  8, colormap.Length );
+      form.clKernel.SetValueArgument(  8, colormap.Length / 4 );
 
       form.clCommands.Execute( form.clKernel, null,
                                new long[] { form.globalWidth, form.globalHeight },
