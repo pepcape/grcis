@@ -41,6 +41,8 @@
       this.label2 = new System.Windows.Forms.Label();
       this.comboBoxDevice = new System.Windows.Forms.ComboBox();
       this.checkPalette = new System.Windows.Forms.CheckBox();
+      this.checkBigGroup = new System.Windows.Forms.CheckBox();
+      this.labelSize = new System.Windows.Forms.Label();
       this.SuspendLayout();
       // 
       // glControl1
@@ -68,7 +70,7 @@
       // 
       this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelFps.AutoSize = true;
-      this.labelFps.Location = new System.Drawing.Point(513, 381);
+      this.labelFps.Location = new System.Drawing.Point(527, 381);
       this.labelFps.Name = "labelFps";
       this.labelFps.Size = new System.Drawing.Size(27, 13);
       this.labelFps.TabIndex = 18;
@@ -77,7 +79,7 @@
       // buttonReset
       // 
       this.buttonReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonReset.Location = new System.Drawing.Point(732, 434);
+      this.buttonReset.Location = new System.Drawing.Point(734, 435);
       this.buttonReset.Name = "buttonReset";
       this.buttonReset.Size = new System.Drawing.Size(93, 23);
       this.buttonReset.TabIndex = 22;
@@ -88,9 +90,9 @@
       // textParam
       // 
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.textParam.Location = new System.Drawing.Point(66, 437);
+      this.textParam.Location = new System.Drawing.Point(61, 437);
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(432, 20);
+      this.textParam.Size = new System.Drawing.Size(452, 20);
       this.textParam.TabIndex = 29;
       this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
       // 
@@ -108,12 +110,13 @@
       // 
       this.checkDouble.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkDouble.AutoSize = true;
-      this.checkDouble.Location = new System.Drawing.Point(518, 441);
+      this.checkDouble.Location = new System.Drawing.Point(528, 441);
       this.checkDouble.Name = "checkDouble";
       this.checkDouble.Size = new System.Drawing.Size(60, 17);
       this.checkDouble.TabIndex = 31;
       this.checkDouble.Text = "Double";
       this.checkDouble.UseVisualStyleBackColor = true;
+      this.checkDouble.CheckedChanged += new System.EventHandler(this.checkDouble_CheckedChanged);
       // 
       // checkVsync
       // 
@@ -121,7 +124,7 @@
       this.checkVsync.AutoSize = true;
       this.checkVsync.Checked = true;
       this.checkVsync.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkVsync.Location = new System.Drawing.Point(594, 441);
+      this.checkVsync.Location = new System.Drawing.Point(595, 441);
       this.checkVsync.Name = "checkVsync";
       this.checkVsync.Size = new System.Drawing.Size(57, 17);
       this.checkVsync.TabIndex = 34;
@@ -133,7 +136,7 @@
       // 
       this.checkOpenCL.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkOpenCL.AutoSize = true;
-      this.checkOpenCL.Location = new System.Drawing.Point(518, 411);
+      this.checkOpenCL.Location = new System.Drawing.Point(528, 408);
       this.checkOpenCL.Name = "checkOpenCL";
       this.checkOpenCL.Size = new System.Drawing.Size(65, 17);
       this.checkOpenCL.TabIndex = 37;
@@ -145,9 +148,9 @@
       // 
       this.comboBoxPlatform.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.comboBoxPlatform.FormattingEnabled = true;
-      this.comboBoxPlatform.Location = new System.Drawing.Point(66, 376);
+      this.comboBoxPlatform.Location = new System.Drawing.Point(61, 376);
       this.comboBoxPlatform.Name = "comboBoxPlatform";
-      this.comboBoxPlatform.Size = new System.Drawing.Size(432, 21);
+      this.comboBoxPlatform.Size = new System.Drawing.Size(452, 21);
       this.comboBoxPlatform.TabIndex = 38;
       this.comboBoxPlatform.SelectedIndexChanged += new System.EventHandler(this.comboBoxPlatform_SelectedIndexChanged);
       // 
@@ -175,9 +178,9 @@
       // 
       this.comboBoxDevice.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.comboBoxDevice.FormattingEnabled = true;
-      this.comboBoxDevice.Location = new System.Drawing.Point(66, 406);
+      this.comboBoxDevice.Location = new System.Drawing.Point(61, 406);
       this.comboBoxDevice.Name = "comboBoxDevice";
-      this.comboBoxDevice.Size = new System.Drawing.Size(432, 21);
+      this.comboBoxDevice.Size = new System.Drawing.Size(452, 21);
       this.comboBoxDevice.TabIndex = 40;
       this.comboBoxDevice.SelectedIndexChanged += new System.EventHandler(this.comboBoxDevice_SelectedIndexChanged);
       // 
@@ -187,18 +190,42 @@
       this.checkPalette.AutoSize = true;
       this.checkPalette.Checked = true;
       this.checkPalette.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkPalette.Location = new System.Drawing.Point(594, 411);
+      this.checkPalette.Location = new System.Drawing.Point(657, 441);
       this.checkPalette.Name = "checkPalette";
       this.checkPalette.Size = new System.Drawing.Size(59, 17);
       this.checkPalette.TabIndex = 42;
       this.checkPalette.Text = "Palette";
       this.checkPalette.UseVisualStyleBackColor = true;
       // 
+      // checkBigGroup
+      // 
+      this.checkBigGroup.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkBigGroup.AutoSize = true;
+      this.checkBigGroup.Location = new System.Drawing.Point(595, 408);
+      this.checkBigGroup.Name = "checkBigGroup";
+      this.checkBigGroup.Size = new System.Drawing.Size(76, 17);
+      this.checkBigGroup.TabIndex = 43;
+      this.checkBigGroup.Text = "Big groups";
+      this.checkBigGroup.UseVisualStyleBackColor = true;
+      this.checkBigGroup.CheckedChanged += new System.EventHandler(this.checkBigGroup_CheckedChanged);
+      // 
+      // labelSize
+      // 
+      this.labelSize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.labelSize.AutoSize = true;
+      this.labelSize.Location = new System.Drawing.Point(675, 409);
+      this.labelSize.Name = "labelSize";
+      this.labelSize.Size = new System.Drawing.Size(30, 13);
+      this.labelSize.TabIndex = 44;
+      this.labelSize.Text = "Size:";
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(844, 469);
+      this.Controls.Add(this.labelSize);
+      this.Controls.Add(this.checkBigGroup);
       this.Controls.Add(this.checkPalette);
       this.Controls.Add(this.label2);
       this.Controls.Add(this.comboBoxDevice);
@@ -237,6 +264,8 @@
     private System.Windows.Forms.Label label2;
     private System.Windows.Forms.ComboBox comboBoxDevice;
     private System.Windows.Forms.CheckBox checkPalette;
+    private System.Windows.Forms.CheckBox checkBigGroup;
+    private System.Windows.Forms.Label labelSize;
   }
 }
 

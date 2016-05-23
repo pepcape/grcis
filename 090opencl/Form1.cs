@@ -11,8 +11,6 @@ namespace _090opencl
   {
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
-    public static Form1 singleton = null;
-
     /// <summary>
     /// GLControl guard flag.
     /// </summary>
@@ -45,12 +43,10 @@ namespace _090opencl
 
     public Form1 ()
     {
-      singleton = this;
-
       InitializeComponent();
 
       // Mandelbrot singleton:
-      mandel = new Mandelbrot();
+      mandel = new Mandelbrot( this );
 
       // Param string:
       string param;
@@ -156,6 +152,17 @@ namespace _090opencl
 
     private void checkOpenCL_CheckedChanged ( object sender, EventArgs e )
     {
+      PrepareClBuffers();
+    }
+
+    private void checkDouble_CheckedChanged ( object sender, EventArgs e )
+    {
+      PrepareClBuffers();
+    }
+
+    private void checkBigGroup_CheckedChanged ( object sender, EventArgs e )
+    {
+      groupSize = checkBigGroup.Checked ? 16L : 8L;
       PrepareClBuffers();
     }
   }
