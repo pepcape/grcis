@@ -27,11 +27,6 @@ namespace _090opencl
     public bool clDirty = true;
 
     /// <summary>
-    /// Current OpenCL context.
-    /// </summary>
-    public ComputeContext clContext = null;
-
-    /// <summary>
     /// Current OpenCL platform.
     /// </summary>
     public ComputePlatform clPlatform = null;
@@ -40,6 +35,16 @@ namespace _090opencl
     /// Current OpenCL device.
     /// </summary>
     public ComputeDevice clDevice = null;
+
+    /// <summary>
+    /// Current OpenCL context.
+    /// </summary>
+    public ComputeContext clContext = null;
+
+    /// <summary>
+    /// Are we able to use 'double' type at all in current OpenCL context?
+    /// </summary>
+    public bool CanUseDouble = false;
 
     public Form1 ()
     {
@@ -140,6 +145,8 @@ namespace _090opencl
         ComputeContextPropertyList properties = new ComputeContextPropertyList( clPlatform );
         clContext = new ComputeContext( new ComputeDevice[] { clDevice }, properties, null, IntPtr.Zero );
 
+        // check the double-extension:
+        CanUseDouble = ClInfo.ExtensionCheck( clContext, "cl_khr_fp64" );
         ClInfo.LogCLProperties( clContext, true );
       }
       catch ( Exception exc )
@@ -148,10 +155,19 @@ namespace _090opencl
         clDevice  = null;
         clContext = null;
       }
+
+      bool enableDouble = !checkOpenCL.Checked ||
+                          CanUseDouble;
+      checkDouble.Enabled = enableDouble;
     }
 
     private void checkOpenCL_CheckedChanged ( object sender, EventArgs e )
     {
+      if ( checkOpenCL.Checked )
+        checkDouble.Enabled = CanUseDouble;
+      else
+        checkDouble.Enabled = true;
+
       PrepareClBuffers();
     }
 
