@@ -26,6 +26,13 @@ namespace _090opencl
       param = "center=[-0.5;0.0],radius=1.5,iter=200";
     }
 
+    Form1 form;
+
+    public Mandelbrot ( Form1 f )
+    {
+      form = f;
+    }
+
     /// <summary>
     /// View center point.
     /// </summary>
@@ -212,48 +219,32 @@ namespace _090opencl
       assertBuffer( width, height );
 
       dxy = (radius + radius) / Math.Min( width, height );
-      double xOrig = center.X - width * 0.5 * dxy;
+      double xOrig = center.X - width  * 0.5 * dxy;
       double yOrig = center.Y - height * 0.5 * dxy;
 
-      string src = ClInfo.ReadSourceFile( "mandel.cl", "090opencl" );
-      if ( string.IsNullOrEmpty( src ) )
-        return;
+      form.PrepareClBuffers( false );
 
-      // buffers:
-      ComputeBuffer<byte> result = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.WriteOnly, width * height * 4 );
-      ComputeBuffer<byte> cmap   = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.ReadOnly | ComputeMemoryFlags.CopyHostPointer, colormap );
+      if ( form.clDirty )
+        return;               // something went wrong..
 
-      // program & kernel:
-      ComputeProgram clProgram = new ComputeProgram( clContext, src );
-      clProgram.Build( clContext.Devices, null, null, IntPtr.Zero );
-      ComputeKernel clKernel = clProgram.CreateKernel( useDouble ? "mandelDouble" : "mandelSingle" );
-      clKernel.SetMemoryArgument( 0, result );
-      clKernel.SetValueArgument(  1, width );
-      clKernel.SetValueArgument(  2, height );
-      clKernel.SetValueArgument(  3, iter );
-      clKernel.SetValueArgument(  4, xOrig );
-      clKernel.SetValueArgument(  5, yOrig );
-      clKernel.SetValueArgument(  6, dxy );
-      clKernel.SetMemoryArgument( 7, cmap );
-      clKernel.SetValueArgument(  8, colormap.Length );
+      form.clKernel.SetMemoryArgument( 0, form.result );
+      form.clKernel.SetValueArgument(  1, width );
+      form.clKernel.SetValueArgument(  2, height );
+      form.clKernel.SetValueArgument(  3, iter );
+      form.clKernel.SetValueArgument(  4, xOrig );
+      form.clKernel.SetValueArgument(  5, yOrig );
+      form.clKernel.SetValueArgument(  6, dxy );
+      form.clKernel.SetMemoryArgument( 7, form.cmap );
+      form.clKernel.SetValueArgument(  8, colormap.Length );
 
-      ComputeCommandQueue clCommands = new ComputeCommandQueue( clContext, clContext.Devices[ 0 ], ComputeCommandQueueFlags.None );
+      form.clCommands.Execute( form.clKernel, null,
+                               new long[] { form.globalWidth, form.globalHeight },
+                               new long[] { form.groupSize,   form.groupSize },
+                               null );
+      form.clCommands.ReadFromBuffer( form.result, ref swBuffer, false, null );
+      form.clCommands.Finish();
 
-      long globalWidth = (width + 7) & -8L;
-      long globalHeight = (height + 7) & -8L;
-
-      clCommands.Execute( clKernel, null, new long[] { globalWidth, globalHeight }, new long[] { 8, 8 }, null );
-
-      clCommands.ReadFromBuffer( result, ref swBuffer, false, null );
-
-      clCommands.Finish();
-
-      result.Dispose();
-      cmap.Dispose();
-      clCommands.Dispose();
-      clKernel.Dispose();
-      clProgram.Dispose();
-
+      // temporary solution (w/o OpenCL - OpenGL interop):
       GL.BindTexture( TextureTarget.Texture2D, texName );
       GL.TexSubImage2D( TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, swBuffer );
       Debug.Assert( GL.GetError() == ErrorCode.NoError, "glTexSubImage2D" );
@@ -293,6 +284,35 @@ namespace _090opencl
     /// </summary>
     GlProgram activeProgram = null;
 
+    //--- OpenCL global variables ---
+
+#if SHARED_BUFFER
+    /// <summary>
+    /// Local working buffer for the OpenCL solution.
+    /// </summary>
+    ComputeImage2D outBuffer = null;
+#else
+
+    public ComputeBuffer<byte> result = null;
+
+    public ComputeBuffer<byte> cmap = null;
+
+    ComputeProgram clProgram = null;
+
+    public ComputeKernel clKernel = null;
+
+    public ComputeCommandQueue clCommands = null;
+
+    public long globalWidth = 1;
+
+    public long globalHeight = 1;
+
+    public long groupSize = 8L;
+
+#endif
+
+    //--- Form global variables ---
+
     long lastFpsTime = 0L;
     int frameCounter = 0;
     long pixelCounter = 0L;
@@ -327,8 +347,10 @@ namespace _090opencl
           pixelCounter = 0L;
           computeCounter = 0.0;
 
-          labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, pps: {1:f1} MPx/s ({2}), compute: {3:f1} ms",
+          labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, pps: {1:f1} MPx/s ({2}), compute: {3:f2} ms",
                                          lastFps, (lastPps * 1.0e-6), checkDouble.Checked ? "double" : "single", (lastCompute * 1000.0) );
+          string clStat = checkOpenCL.Checked ? string.Format( ", {0} grps {1}x{1}", (globalWidth * globalHeight) / (groupSize * groupSize), groupSize ) : "";
+          labelSize.Text = string.Format( "{0}x{1}px{2}", texWidth, texHeight, clStat );
         }
       }
     }
@@ -444,44 +466,102 @@ namespace _090opencl
     }
 
     /// <summary>
-    /// Local working buffer for the OpenCL solution.
+    /// Prepare OpenCL program, data buffers, etc.
     /// </summary>
-    ComputeImage2D outBuffer = null;
-
-    /// <summary>
-    /// Prepare OpenCL data buffer[s].
-    /// </summary>
-    void PrepareClBuffers ()
+    public void PrepareClBuffers ( bool dirty =true )
     {
+      clDirty = clDirty || dirty;
+
       if ( texName == 0 ||
-           !checkOpenCL.Checked ||
-           clContext == null )
+           clContext == null || 
+           !checkOpenCL.Checked )
       {
         DestroyClBuffers();
         return;
       }
 
+      if ( !clDirty )
+        return;
+
+      DestroyClBuffers();
+
+#if SHARED_BUFFER
       GL.BindTexture( TextureTarget.Texture2D, texName );
+#endif
       try
       {
-        outBuffer = new ComputeImage2D( clContext, ComputeMemoryFlags.WriteOnly, new ComputeImageFormat( ComputeImageChannelOrder.Rgba, ComputeImageChannelType.UnsignedInt8 ),
-                                        texWidth, texHeight, 0, (IntPtr)0 );
-        //outBuffer = ComputeImage2D.CreateFromGLTexture2D( clContext, ComputeMemoryFlags.WriteOnly, (int)TextureTarget.Texture2D, 0, texName );
+        // OpenCL C source:
+        string src = ClInfo.ReadSourceFile( "mandel.cl", "090opencl" );
+        if ( string.IsNullOrEmpty( src ) )
+          return;
+
+        // buffers:
+        result = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.WriteOnly, texWidth * texHeight * 4 );
+        cmap   = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.ReadOnly | ComputeMemoryFlags.CopyHostPointer, colormap );
+
+        // program & kernel:
+        clProgram = new ComputeProgram( clContext, src );
+        clProgram.Build( clContext.Devices, null, null, IntPtr.Zero );
+        clKernel = clProgram.CreateKernel( checkDouble.Checked ? "mandelDouble" : "mandelSingle" );
+        clCommands = new ComputeCommandQueue( clContext, clContext.Devices[ 0 ], ComputeCommandQueueFlags.None );
+        globalWidth  = (texWidth  + groupSize - 1) & -groupSize;
+        globalHeight = (texHeight + groupSize - 1) & -groupSize;
+
+#if SHARED_BUFFER
+        //outBuffer = new ComputeImage2D( clContext, ComputeMemoryFlags.WriteOnly, new ComputeImageFormat( ComputeImageChannelOrder.Rgba, ComputeImageChannelType.UnsignedInt8 ),
+        //                                texWidth, texHeight, 0, (IntPtr)0 );
+        outBuffer = ComputeImage2D.CreateFromGLTexture2D( clContext, ComputeMemoryFlags.WriteOnly, (int)TextureTarget.Texture2D, 0, texName );
+#endif
+        // synced..
+        clDirty = false;
       }
       catch ( Exception exc )
       {
         Util.LogFormat( "clCreateFromGLTexture2D error: {0}", exc.Message );
+#if SHARED_BUFFER
         outBuffer = null;
+#endif
+        clDirty = true;
       }
     }
 
     void DestroyClBuffers ()
     {
+#if SHARED_BUFFER
       if ( outBuffer != null )
       {
         outBuffer.Dispose();
         outBuffer = null;
       }
+#endif
+
+      if ( result != null )
+      {
+        result.Dispose();
+        result = null;
+      }
+      if ( cmap != null )
+      {
+        cmap.Dispose();
+        cmap = null;
+      }
+      if ( clCommands != null )
+      {
+        clCommands.Dispose();
+        clCommands = null;
+      }
+      if ( clKernel != null )
+      {
+        clKernel.Dispose();
+        clKernel = null;
+      }
+      if ( clProgram != null )
+      {
+        clProgram.Dispose();
+        clProgram = null;
+      }
+
+      clDirty = true;
     }
 
     /// <summary>
