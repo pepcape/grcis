@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Windows.Forms;
 using Cloo;
 using MathSupport;
+using OpenclSupport;
 using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -203,6 +204,60 @@ namespace _090opencl
       }
 
       return i;
+    }
+
+    public void ComputeCL ( ComputeContext clContext, int texName, int width, int height, byte[] colormap,
+                            bool useDouble )
+    {
+      assertBuffer( width, height );
+
+      dxy = (radius + radius) / Math.Min( width, height );
+      double xOrig = center.X - width * 0.5 * dxy;
+      double yOrig = center.Y - height * 0.5 * dxy;
+
+      string src = ClInfo.ReadSourceFile( "mandel.cl", "090opencl" );
+      if ( string.IsNullOrEmpty( src ) )
+        return;
+
+      // buffers:
+      ComputeBuffer<byte> result = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.WriteOnly, width * height * 4 );
+      ComputeBuffer<byte> cmap   = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.ReadOnly | ComputeMemoryFlags.CopyHostPointer, colormap );
+
+      // program & kernel:
+      ComputeProgram clProgram = new ComputeProgram( clContext, src );
+      clProgram.Build( clContext.Devices, null, null, IntPtr.Zero );
+      ComputeKernel clKernel = clProgram.CreateKernel( useDouble ? "mandelDouble" : "mandelSingle" );
+      clKernel.SetMemoryArgument( 0, result );
+      clKernel.SetValueArgument(  1, width );
+      clKernel.SetValueArgument(  2, height );
+      clKernel.SetValueArgument(  3, iter );
+      clKernel.SetValueArgument(  4, xOrig );
+      clKernel.SetValueArgument(  5, yOrig );
+      clKernel.SetValueArgument(  6, dxy );
+      clKernel.SetMemoryArgument( 7, cmap );
+      clKernel.SetValueArgument(  8, colormap.Length );
+
+      ComputeCommandQueue clCommands = new ComputeCommandQueue( clContext, clContext.Devices[ 0 ], ComputeCommandQueueFlags.None );
+
+      long globalWidth = (width + 7) & -8L;
+      long globalHeight = (height + 7) & -8L;
+
+      clCommands.Execute( clKernel, null, new long[] { globalWidth, globalHeight }, new long[] { 8, 8 }, null );
+
+      clCommands.ReadFromBuffer( result, ref swBuffer, false, null );
+
+      clCommands.Finish();
+
+      result.Dispose();
+      cmap.Dispose();
+      clCommands.Dispose();
+      clKernel.Dispose();
+      clProgram.Dispose();
+
+      GL.BindTexture( TextureTarget.Texture2D, texName );
+      GL.TexSubImage2D( TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, swBuffer );
+      Debug.Assert( GL.GetError() == ErrorCode.NoError, "glTexSubImage2D" );
+      GL.BindTexture( TextureTarget.Texture2D, 0 );
     }
   }
 
@@ -399,13 +454,25 @@ namespace _090opencl
     void PrepareClBuffers ()
     {
       if ( texName == 0 ||
-           clContext == null )  // !!! TODO: OpenCL queue check? !!!
+           !checkOpenCL.Checked ||
+           clContext == null )
       {
         DestroyClBuffers();
         return;
       }
 
-      outBuffer = ComputeImage2D.CreateFromGLTexture2D( clContext, ComputeMemoryFlags.WriteOnly, (int)TextureTarget.Texture2D, 0, texName );
+      GL.BindTexture( TextureTarget.Texture2D, texName );
+      try
+      {
+        outBuffer = new ComputeImage2D( clContext, ComputeMemoryFlags.WriteOnly, new ComputeImageFormat( ComputeImageChannelOrder.Rgba, ComputeImageChannelType.UnsignedInt8 ),
+                                        texWidth, texHeight, 0, (IntPtr)0 );
+        //outBuffer = ComputeImage2D.CreateFromGLTexture2D( clContext, ComputeMemoryFlags.WriteOnly, (int)TextureTarget.Texture2D, 0, texName );
+      }
+      catch ( Exception exc )
+      {
+        Util.LogFormat( "clCreateFromGLTexture2D error: {0}", exc.Message );
+        outBuffer = null;
+      }
     }
 
     void DestroyClBuffers ()
@@ -535,11 +602,11 @@ namespace _090opencl
       pixelCounter += texWidth * texHeight;
 
       // 1. compute Mandelbrot set into the texture:
-      bool useCL = false;
       long startTicks = DateTime.Now.Ticks;
-      if ( useCL )
+      if ( checkOpenCL.Checked )
       {
         // OpenCL version:
+        mandel.ComputeCL( clContext, texName, texWidth, texHeight, colormap, checkDouble.Checked );
       }
       else
       {

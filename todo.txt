@@ -104,3 +104,4 @@ x vyzkouset GLSL shadery (upgrade OpenTK?)
 x OpenCL integration test (using Cloo)
 x ignore: .vs (temporary Visual Studio 2015 files)
 x 090opencl: project template (Mandelbrot demo in CPU/OpenCL)
+x 090opencl: 1st version of OpenCL kernel works!

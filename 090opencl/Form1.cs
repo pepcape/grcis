@@ -1,6 +1,9 @@
 using System;
 using System.Windows.Forms;
 using Cloo;
+using OpenTK.Graphics.OpenGL;
+using OpenclSupport;
+using Utilities;
 
 namespace _090opencl
 {
@@ -111,7 +114,7 @@ namespace _090opencl
       DestroyShaders();
     }
 
-    void comboBoxPlatform_SelectedIndexChanged ( object sender, EventArgs e )
+    private void comboBoxPlatform_SelectedIndexChanged ( object sender, EventArgs e )
     {
       clDirty = true;
       clPlatform = ComputePlatform.Platforms[ comboBoxPlatform.SelectedIndex ];
@@ -130,11 +133,30 @@ namespace _090opencl
       clDirty = true;
       if ( clPlatform == null )
       {
-        clDevice = null;
+        clDevice  = null;
+        clContext = null;
         return;
       }
 
-      clDevice = clPlatform.Devices[ comboBoxDevice.SelectedIndex ];
+      try
+      {
+        clDevice = clPlatform.Devices[ comboBoxDevice.SelectedIndex ];
+        ComputeContextPropertyList properties = new ComputeContextPropertyList( clPlatform );
+        clContext = new ComputeContext( new ComputeDevice[] { clDevice }, properties, null, IntPtr.Zero );
+
+        ClInfo.LogCLProperties( clContext, true );
+      }
+      catch ( Exception exc )
+      {
+        Util.LogFormat( "OpenCL error: {0}", exc.Message );
+        clDevice  = null;
+        clContext = null;
+      }
+    }
+
+    private void checkOpenCL_CheckedChanged ( object sender, EventArgs e )
+    {
+      PrepareClBuffers();
     }
   }
 }

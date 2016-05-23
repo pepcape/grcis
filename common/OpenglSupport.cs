@@ -17,7 +17,7 @@ namespace OpenglSupport
     /// Logs OpenGL properties.
     /// </summary>
     /// <param name="ext">Print detailed list of extensions as well?</param>
-    public static void LogGLProperties ( bool ext = false )
+    public static void LogGLProperties ( bool ext =false )
     {
       // 1. OpenGL version, vendor, ..
       string version = GL.GetString( StringName.Version );

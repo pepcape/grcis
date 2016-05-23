@@ -61,6 +61,9 @@
     <Compile Include="..\common\MathSupport.cs">
       <Link>MathSupport.cs</Link>
     </Compile>
+    <Compile Include="..\common\OpenclSupport.cs">
+      <Link>OpenclSupport.cs</Link>
+    </Compile>
     <Compile Include="..\common\OpenglSupport.cs">
       <Link>OpenglSupport.cs</Link>
     </Compile>
