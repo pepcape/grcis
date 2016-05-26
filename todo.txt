@@ -106,3 +106,4 @@ x ignore: .vs (temporary Visual Studio 2015 files)
 x 090opencl: project template (Mandelbrot demo in CPU/OpenCL)
 x 090opencl: 1st version of OpenCL kernel works!
 x 090opencl: OpenCL optimization.
+x StaticCamera fix (thx to Petr Houska)

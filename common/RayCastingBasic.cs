@@ -366,13 +366,15 @@ namespace Rendering
     /// </summary>
     protected void prepare ()
     {
-      Vector3d left = Vector3d.Cross( direction, up );
+      Vector3d left = Vector3d.Cross( direction, up ).Normalized();
+      Vector3d top  = Vector3d.Cross( left, direction ).Normalized();
+
       origin = center + direction;
       double halfWidth  = Math.Tan( 0.5 * hAngle );
       double halfHeight = halfWidth / AspectRatio;
-      origin += up * halfHeight + left * halfWidth;
+      origin += top * halfHeight + left * halfWidth;
       dx = left * (-2.0 * halfWidth / width);
-      dy = -up * (2.0 * halfHeight / height);
+      dy = -top * ( 2.0 * halfHeight / height);
     }
 
     /// <summary>
@@ -386,9 +388,27 @@ namespace Rendering
       center    = cen;
       direction = dir;
       direction.Normalize();
-      hAngle = MathHelper.DegreesToRadians( (float)ang );
-      Width  = 300;
-      Height = 400;
+      hAngle    = MathHelper.DegreesToRadians( (float)ang );
+      Width     = 300;
+      Height    = 400;
+    }
+
+    /// <summary>
+    /// Initializing constructor, able to set all camera parameters.
+    /// </summary>
+    /// <param name="cen">Center of the projection.</param>
+    /// <param name="dir">View direction (must not be zero).</param>
+    /// <param name="u">Up vector.</param>
+    /// <param name="ang">Horizontal viewing angle in degrees.</param>
+    public StaticCamera ( Vector3d cen, Vector3d dir, Vector3d u, double ang )
+    {
+      center    = cen;
+      direction = dir;
+      direction.Normalize();
+      up        = u;
+      hAngle    = MathHelper.DegreesToRadians( (float)ang );
+      Width     = 300;
+      Height    = 400;
     }
 
     /// <summary>
