@@ -20,7 +20,7 @@ namespace Rendering
 
   /// <summary>
   /// Some interesting scenes created mostly by MFF UK students.
-  /// http://cgg.mff.cuni.cz/~pepca/lectures/npgr004.current.html
+  /// http://cgg.mff.cuni.cz/~pepca/gr/grcis/
   /// </summary>
   public class Scenes
   {
