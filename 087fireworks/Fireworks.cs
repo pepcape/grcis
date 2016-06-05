@@ -742,8 +742,8 @@ namespace _087fireworks
     /// <summary>
     /// Form-data initialization.
     /// </summary>
-    public static void InitParams ( out string param, out Vector3 center, out float diameter,
-                                    out bool useTexture, out bool globalColor, out bool useNormals, out bool usePtSize )
+    static void InitParams ( out string param, out Vector3 center, out float diameter,
+                             out bool useTexture, out bool globalColor, out bool useNormals, out bool usePtSize )
     {
       param = "freq=4000.0,max=60000,slow=0.25,dynamic=1,variance=0.1,ticks=0";
       center = new Vector3( 0.0f, 1.0f, 0.0f );
@@ -752,6 +752,15 @@ namespace _087fireworks
       globalColor = false;
       useNormals = false;
       usePtSize = true;
+    }
+
+    /// <summary>
+    /// Set real-world coordinates of the camera/light source.
+    /// </summary>
+    void SetLightEye ( Vector3 center, float diameter )
+    {
+      diameter += diameter;
+      lightPosition = center + new Vector3( -2.0f * diameter, diameter, diameter );
     }
 
     /// <summary>
@@ -1012,14 +1021,6 @@ namespace _087fireworks
     float matShininess    = 100.0f;
     Vector3 whiteLight    = new Vector3(   1.0f,  1.0f,  1.0f );
     Vector3 lightPosition = new Vector3( -20.0f, 10.0f, 10.0f );
-    Vector3 eyePosition   = new Vector3(   0.0f,  0.0f, 10.0f );
-
-    void SetLightEye ( float size )
-    {
-      size += size;
-      lightPosition = new Vector3( -2.0f * size, size, size );
-      eyePosition   = new Vector3(         0.0f, 0.0f, size );
-    }
 
     // attribute/vertex arrays:
     private void SetVertexAttrib ( bool on )
@@ -1142,7 +1143,7 @@ namespace _087fireworks
       GL.PolygonMode( MaterialFace.FrontAndBack, PolygonMode.Fill );
       GL.Disable( EnableCap.CullFace );
 
-      SetCamera();
+      tb.GLsetCamera();
       RenderScene();
 
       if ( snapshot &&
@@ -1177,19 +1178,16 @@ namespace _087fireworks
           GL.UseProgram( activeProgram.Id );
 
           // uniforms:
-          Matrix4 modelView = GetModelView();
-          Matrix4 modelViewInv = GetModelViewInv();
-          Vector3 relEye = Vector3.TransformVector( eyePosition, modelViewInv );
+          Matrix4 modelView    = tb.ModelView;
+          Matrix4 projection   = tb.Projection;
+          Vector3 eye          = tb.Eye;
           GL.UniformMatrix4( activeProgram.GetUniform( "matrixModelView" ), false, ref modelView );
-          if ( perspective )
-            GL.UniformMatrix4( activeProgram.GetUniform( "matrixProjection" ), false, ref perspectiveProjection );
-          else
-            GL.UniformMatrix4( activeProgram.GetUniform( "matrixProjection" ), false, ref ortographicProjection );
+          GL.UniformMatrix4( activeProgram.GetUniform( "matrixProjection" ), false, ref projection );
 
           GL.Uniform3( activeProgram.GetUniform( "globalAmbient" ), ref globalAmbient );
           GL.Uniform3( activeProgram.GetUniform( "lightColor" ), ref whiteLight );
           GL.Uniform3( activeProgram.GetUniform( "lightPosition" ), ref lightPosition );
-          GL.Uniform3( activeProgram.GetUniform( "eyePosition" ), ref relEye );
+          GL.Uniform3( activeProgram.GetUniform( "eyePosition" ), ref eye );
           GL.Uniform3( activeProgram.GetUniform( "Ka" ), ref matAmbient );
           GL.Uniform3( activeProgram.GetUniform( "Kd" ), ref matDiffuse );
           GL.Uniform3( activeProgram.GetUniform( "Ks" ), ref matSpecular );
