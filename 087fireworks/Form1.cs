@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using MathSupport;
 using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -11,16 +12,6 @@ namespace _087fireworks
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     /// <summary>
-    /// Scene center point.
-    /// </summary>
-    protected Vector3 center = Vector3.Zero;
-
-    /// <summary>
-    /// Scene diameter.
-    /// </summary>
-    protected float diameter = 6.0f;
-
-    /// <summary>
     /// GLControl guard flag.
     /// </summary>
     bool loaded = false;
@@ -30,12 +21,20 @@ namespace _087fireworks
     /// </summary>
     public static Snapshots screencast = null;
 
+    /// <summary>
+    /// Associated Trackball instance.
+    /// </summary>
+    static Trackball tb = null;
+
     public Form1 ()
     {
       InitializeComponent();
 
+      // Form params:
       string param;
       bool useTexture, globalColor, useNormals, usePtSize;
+      Vector3 center;
+      float diameter;
       InitParams( out param, out center, out diameter, out useTexture, out globalColor, out useNormals, out usePtSize );
       checkTexture.Checked = useTexture;
       checkGlobalColor.Checked = globalColor;
@@ -43,6 +42,10 @@ namespace _087fireworks
       checkPointSize.Checked = usePtSize;
       textParam.Text = param ?? "";
       Text += " (rev: " + rev + ')';
+      SetLightEye( center, diameter );
+
+      // Trackball:
+      tb = new Trackball( center, diameter );
 
       InitShaderRepository();
     }
@@ -51,7 +54,7 @@ namespace _087fireworks
     {
       InitOpenGL();
       InitSimulation();
-      SetupViewport();
+      tb.GLsetupViewport( glControl1.Width, glControl1.Height );
 
       loaded = true;
       Application.Idle += new EventHandler( Application_Idle );
@@ -61,7 +64,7 @@ namespace _087fireworks
     {
       if ( !loaded ) return;
 
-      SetupViewport();
+      tb.GLsetupViewport( glControl1.Width, glControl1.Height );
       glControl1.Invalidate();
     }
 
@@ -126,6 +129,41 @@ namespace _087fireworks
         GL.DeleteBuffers( 2, VBOid );
         VBOid = null;
       }
+    }
+
+    private void glControl1_MouseDown ( object sender, MouseEventArgs e )
+    {
+      tb.MouseDown( e );
+    }
+
+    private void glControl1_MouseUp ( object sender, MouseEventArgs e )
+    {
+      tb.MouseUp( e );
+    }
+
+    private void glControl1_MouseMove ( object sender, MouseEventArgs e )
+    {
+      tb.MouseMove( e );
+    }
+
+    private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
+    {
+      tb.MouseWheel( e );
+    }
+
+    private void glControl1_KeyDown ( object sender, KeyEventArgs e )
+    {
+      tb.KeyDown( e );
+    }
+
+    private void glControl1_KeyUp ( object sender, KeyEventArgs e )
+    {
+      tb.KeyUp( e );
+    }
+
+    private void buttonReset_Click ( object sender, EventArgs e )
+    {
+      tb.Reset();
     }
   }
 }

@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Windows.Forms;
-using MathSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace _087fireworks
+namespace MathSupport
 {
-  // Original code: Matyas Brenner
-
   class Ellipse
   {
     float a, b, c;
@@ -71,39 +68,61 @@ namespace _087fireworks
     }
   }
 
-  public partial class Form1
+  /// <summary>
+  /// Trackball interactive 3D scene navigation
+  /// Original code: Matyas Brenner
+  /// </summary>
+  public class Trackball
   {
-    #region Camera attributes
+    /// <summary>
+    /// Center of the rotation (world coords).
+    /// </summary>
+    public Vector3 Center
+    {
+      get;
+      set;
+    }
 
     /// <summary>
-    /// Current camera position.
+    /// Scene diameter (for default zoom factor only).
     /// </summary>
-    private Vector3 eye = new Vector3( 0.0f, 0.0f, 10.0f );
+    private float diameter = 5.0f;
 
     /// <summary>
-    /// Current point to look at.
+    /// Inital camera position (world coords).
     /// </summary>
-    private Vector3 pointAt = Vector3.Zero;
+    private Vector3 eye0 = new Vector3( 0.0f, 0.0f, 10.0f );
 
     /// <summary>
-    /// Current "up" vector.
+    /// Current camera position (world coords).
     /// </summary>
-    private Vector3 up = Vector3.UnitY;
+    public Vector3 Eye
+    {
+      get
+      {
+        return Vector3.TransformVector( eye0, ModelViewInv );
+      }
+    }
 
     /// <summary>
     /// Vertical field-of-view angle in radians.
     /// </summary>
     private float fov = 1.0f;
 
-    #endregion
-
     /// <summary>
     /// Zoom factor (multiplication).
     /// </summary>
     float zoom = 1.0f;
 
+    public Trackball ( Vector3 cent, float diam =5.0f )
+    {
+      Center   = cent;
+      diameter = diam;
+      eye0     = cent + new Vector3( 0.0f, 0.0f, 2.0f * diam );
+    }
+
     Matrix4 prevRotation = Matrix4.Identity;
-    Matrix4 rotation = Matrix4.Identity;
+    Matrix4 rotation     = Matrix4.Identity;
 
     Ellipse ellipse;
     Vector3? a, b;
@@ -116,109 +135,104 @@ namespace _087fireworks
     /// </summary>
     bool perspective = true;
 
-    float minZoom =  0.2f;
+    public Matrix4 PerspectiveProjection
+    {
+      get
+      {
+        return perspectiveProjection;
+      }
+    }
 
+    public Matrix4 OrthographicProjection
+    {
+      get
+      {
+        return ortographicProjection;
+      }
+    }
+
+    public Matrix4 Projection
+    {
+      get
+      {
+        return perspective ? perspectiveProjection : ortographicProjection;
+      }
+    }
+
+    float minZoom =  0.2f;
     float maxZoom = 20.0f;
 
     /// <summary>
     /// Sets up a projective viewport
     /// </summary>
-    private void SetupViewport ()
+    public void GLsetupViewport ( int width, int height )
     {
-      int width  = glControl1.Width;
-      int height = glControl1.Height;
-
       // 1. set ViewPort transform:
       GL.Viewport( 0, 0, width, height );
 
       // 2. set projection matrix
-      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, (float)width / (float)height, 0.01f, 1000.0f );
+      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, width / (float)height, 0.01f, 1000.0f );
       float minSize = 2.0f * Math.Min( width, height );
       ortographicProjection = Matrix4.CreateOrthographic( diameter * width / minSize,
                                                           diameter * height / minSize,
                                                           0.01f, 1000.0f );
-      SetProjection();
-      setEllipse();
+      GLsetProjection();
+      setEllipse( width, height );
     }
-
-    static Matrix4 identity = Matrix4.Identity;
 
     /// <summary>
     /// Setup of a camera called for every frame prior to any rendering.
     /// </summary>
-    private void SetCamera ()
+    public void GLsetCamera ()
     {
       // not needed if shaders are active .. but doesn't make any harm..
-      Matrix4 modelview = GetModelView();
+      Matrix4 modelview = ModelView;
       GL.MatrixMode( MatrixMode.Modelview );
       GL.LoadMatrix( ref modelview );
     }
 
-    private Matrix4 GetModelView ()
+    public Matrix4 ModelView
     {
-      return Matrix4.CreateTranslation( -center ) *
-             Matrix4.CreateScale( zoom / diameter ) *
-             prevRotation *
-             rotation *
-             Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
+      get
+      {
+        return Matrix4.CreateTranslation( -Center ) *
+               Matrix4.CreateScale( zoom / diameter ) *
+               prevRotation *
+               rotation *
+               Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
+      }
     }
 
-    private Matrix4 GetModelViewInv ()
+    public Matrix4 ModelViewInv
     {
-      Matrix4 rot = prevRotation * rotation;
-      rot.Transpose();
+      get
+      {
+        Matrix4 rot = prevRotation * rotation;
+        rot.Transpose();
 
-      return Matrix4.CreateTranslation( 0.0f, 0.0f, 1.5f ) *
-             rot *
-             Matrix4.CreateScale( diameter / zoom ) *
-             Matrix4.CreateTranslation( center );
+        return Matrix4.CreateTranslation( 0.0f, 0.0f, 1.5f ) *
+               rot *
+               Matrix4.CreateScale( diameter / zoom ) *
+               Matrix4.CreateTranslation( Center );
+      }
     }
 
-    private void ResetCamera ()
+    public void Reset ()
     {
-      SetLightEye( diameter );
-
-      // !!!{{ TODO: add camera reset code here
-
-      zoom = 1.0f;
-      rotation = Matrix4.Identity;
+      zoom         = 1.0f;
+      rotation     = Matrix4.Identity;
       prevRotation = Matrix4.Identity;
-
-      // !!!}}
     }
 
-    private void setEllipse ()
+    private void setEllipse ( int width, int height )
     {
-      int width  = glControl1.Width / 2;
-      int height = glControl1.Height / 2;
+      width  /= 2;
+      height /= 2;
 
       ellipse = new Ellipse( Math.Min( width, height ), new Vector3( width, height, 0 ) );
     }
 
-    private void glControl1_MouseDown ( object sender, MouseEventArgs e )
-    {
-      a = ellipse.IntersectionI( e.X, e.Y );
-    }
-
-    private void glControl1_MouseUp ( object sender, MouseEventArgs e )
-    {
-      prevRotation *= rotation;
-      rotation = Matrix4.Identity;
-      a = null;
-      b = null;
-    }
-
-    private void glControl1_MouseMove ( object sender, MouseEventArgs e )
-    {
-      if ( e.Button != MouseButtons.Left )
-        return;
-
-       
-      b = ellipse.IntersectionI( e.X, e.Y );
-      rotation = calculateRotation( a, b, (Control.ModifierKeys & Keys.Shift) != Keys.None );
-    }
-
-    Matrix4 calculateRotation ( Vector3? a, Vector3? b, bool sensitive )
+    private Matrix4 calculateRotation ( Vector3? a, Vector3? b, bool sensitive )
     {
       if ( !a.HasValue || !b.HasValue )
         return rotation;
@@ -230,37 +244,13 @@ namespace _087fireworks
       return Matrix4.CreateFromAxisAngle( axis, angle );
     }
 
-    private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
-    {
-      float dZoom = -e.Delta / 120.0f;
-      zoom *= (float)Math.Pow( 1.04, dZoom );
-
-      // zoom bounds:
-      zoom = Arith.Clamp( zoom, minZoom, maxZoom );
-    }
-
-    private void glControl1_KeyDown ( object sender, KeyEventArgs e )
-    {
-      // !!!{{ TODO: add the event handler here
-      // !!!}}
-    }
-
-    private void glControl1_KeyUp ( object sender, KeyEventArgs e )
-    {
-      if ( e.KeyCode == Keys.O )
-      {
-        e.Handled = true;
-        togglePerspective();
-      }
-    }
-
-    private void togglePerspective ()
+    public void GLtogglePerspective ()
     {
       perspective = !perspective;
-      SetProjection();
+      GLsetProjection();
     }
 
-    private void SetProjection ()
+    public void GLsetProjection ()
     {
       // not needed if shaders are active .. but doesn't make any harm..
       GL.MatrixMode( MatrixMode.Projection );
@@ -270,9 +260,52 @@ namespace _087fireworks
         GL.LoadMatrix( ref ortographicProjection );
     }
 
-    private void buttonReset_Click ( object sender, EventArgs e )
+    //--- GUI interaction ---
+
+    public void MouseDown ( MouseEventArgs e )
     {
-      ResetCamera();
+      a = ellipse.IntersectionI( e.X, e.Y );
+    }
+
+    public void MouseUp ( MouseEventArgs e )
+    {
+      prevRotation *= rotation;
+      rotation = Matrix4.Identity;
+      a = null;
+      b = null;
+    }
+
+    public void MouseMove ( MouseEventArgs e )
+    {
+      if ( e.Button != MouseButtons.Left )
+        return;
+
+       
+      b = ellipse.IntersectionI( e.X, e.Y );
+      rotation = calculateRotation( a, b, (Control.ModifierKeys & Keys.Shift) != Keys.None );
+    }
+
+    public void MouseWheel ( MouseEventArgs e )
+    {
+      float dZoom = -e.Delta / 120.0f;
+      zoom *= (float)Math.Pow( 1.04, dZoom );
+
+      // zoom bounds:
+      zoom = Arith.Clamp( zoom, minZoom, maxZoom );
+    }
+
+    public void KeyDown ( KeyEventArgs e )
+    {
+      // nothing yet
+    }
+
+    public void KeyUp ( KeyEventArgs e )
+    {
+      if ( e.KeyCode == Keys.O )
+      {
+        e.Handled = true;
+        GLtogglePerspective();
+      }
     }
   }
 }
