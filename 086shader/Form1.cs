@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using MathSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Scene3D;
@@ -27,10 +28,17 @@ namespace _086shader
     /// </summary>
     protected float diameter = 4.0f;
 
+    Vector3 light = new Vector3( -2, 1, 1 );
+
     /// <summary>
     /// GLControl guard flag.
     /// </summary>
     bool loaded = false;
+
+    /// <summary>
+    /// Associated Trackball instance.
+    /// </summary>
+    Trackball tb = null;
 
     public Form1 ()
     {
@@ -41,6 +49,9 @@ namespace _086shader
       textParam.Text = param ?? "";
       Text += " (rev: " + rev + ')';
 
+      // Trackball:
+      tb = new Trackball( center, diameter );
+
       InitShaderRepository();
     }
 
@@ -48,7 +59,7 @@ namespace _086shader
     {
       InitOpenGL();
       UpdateParams( textParam.Text );
-      SetupViewport();
+      tb.GLsetupViewport( glControl1.Width, glControl1.Height );
 
       loaded = true;
       Application.Idle += new EventHandler( Application_Idle );
@@ -58,7 +69,7 @@ namespace _086shader
     {
       if ( !loaded ) return;
 
-      SetupViewport();
+      tb.GLsetupViewport( glControl1.Width, glControl1.Height );
       glControl1.Invalidate();
     }
 
@@ -93,9 +104,13 @@ namespace _086shader
       scene.BuildCornerTable();
       diameter = scene.GetDiameter( out center );
       scene.GenerateColors( 12 );
-      ResetCamera();
+      UpdateParams( textParam.Text );
+      tb.Center   = center;
+      tb.Diameter = diameter;
+      SetLight( diameter, ref light );
+      tb.Reset();
 
-      labelFile.Text = String.Format( "{0}: {1} faces", ofd.SafeFileName, faces );
+      labelFile.Text = string.Format( "{0}: {1} faces", ofd.SafeFileName, faces );
       PrepareDataBuffers();
       glControl1.Invalidate();
     }
@@ -179,11 +194,14 @@ namespace _086shader
 
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
-
       scene.GenerateColors( 12 );
-      ResetCamera();
+      UpdateParams( textParam.Text );
+      tb.Center   = center;
+      tb.Diameter = diameter;
+      SetLight( diameter, ref light );
+      tb.Reset();
 
-      labelFile.Text = String.Format( "{0} faces ({1} rep), {2} errors", scene.Triangles, faces, errors );
+      labelFile.Text = string.Format( "{0} faces ({1} rep), {2} errors", scene.Triangles, faces, errors );
       PrepareDataBuffers();
       glControl1.Invalidate();
 
@@ -211,6 +229,41 @@ namespace _086shader
       }
 
       DestroyShaders();
+    }
+
+    private void glControl1_MouseDown ( object sender, MouseEventArgs e )
+    {
+      tb.MouseDown( e );
+    }
+
+    private void glControl1_MouseUp ( object sender, MouseEventArgs e )
+    {
+      tb.MouseUp( e );
+    }
+
+    private void glControl1_MouseMove ( object sender, MouseEventArgs e )
+    {
+      tb.MouseMove( e );
+    }
+
+    private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
+    {
+      tb.MouseWheel( e );
+    }
+
+    private void glControl1_KeyDown ( object sender, KeyEventArgs e )
+    {
+      tb.KeyDown( e );
+    }
+
+    private void glControl1_KeyUp ( object sender, KeyEventArgs e )
+    {
+      tb.KeyUp( e );
+    }
+
+    private void buttonReset_Click ( object sender, EventArgs e )
+    {
+      tb.Reset();
     }
   }
 }

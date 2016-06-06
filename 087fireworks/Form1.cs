@@ -24,7 +24,7 @@ namespace _087fireworks
     /// <summary>
     /// Associated Trackball instance.
     /// </summary>
-    static Trackball tb = null;
+    Trackball tb = null;
 
     public Form1 ()
     {

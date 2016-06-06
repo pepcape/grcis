@@ -66,6 +66,9 @@
     <Compile Include="..\common\RandomJames.cs">
       <Link>RandomJames.cs</Link>
     </Compile>
+    <Compile Include="..\common\Trackball.cs">
+      <Link>Trackball.cs</Link>
+    </Compile>
     <Compile Include="..\common\Util.cs">
       <Link>Util.cs</Link>
     </Compile>
@@ -78,7 +81,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Trackball.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
