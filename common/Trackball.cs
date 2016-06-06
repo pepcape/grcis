@@ -88,6 +88,19 @@ namespace MathSupport
     /// </summary>
     private float diameter = 5.0f;
 
+    public float Diameter
+    {
+      get
+      {
+        return diameter;
+      }
+      set
+      {
+        diameter = value;
+        eye0 = Center + new Vector3( 0.0f, 0.0f, 2.0f * diameter );
+      }
+    }
+
     /// <summary>
     /// Inital camera position (world coords).
     /// </summary>
@@ -107,18 +120,30 @@ namespace MathSupport
     /// <summary>
     /// Vertical field-of-view angle in radians.
     /// </summary>
-    private float fov = 1.0f;
+    public float Fov
+    {
+      get;
+      set;
+    }
 
     /// <summary>
     /// Zoom factor (multiplication).
     /// </summary>
-    float zoom = 1.0f;
+    public float Zoom
+    {
+      get;
+      set;
+    }
 
     public Trackball ( Vector3 cent, float diam =5.0f )
     {
-      Center   = cent;
-      diameter = diam;
-      eye0     = cent + new Vector3( 0.0f, 0.0f, 2.0f * diam );
+      Center      =  cent;
+      Diameter    =  diam;
+      MinZoom     =  0.2f;
+      MaxZoom     = 20.0f;
+      Zoom        =  1.0f;
+      Fov         =  1.0f;
+      Perspective =  true;
     }
 
     Matrix4 prevRotation = Matrix4.Identity;
@@ -133,7 +158,11 @@ namespace MathSupport
     /// <summary>
     /// Perspective / orthographic projection?
     /// </summary>
-    bool perspective = true;
+    public bool Perspective
+    {
+      get;
+      set;
+    }
 
     public Matrix4 PerspectiveProjection
     {
@@ -155,12 +184,21 @@ namespace MathSupport
     {
       get
       {
-        return perspective ? perspectiveProjection : ortographicProjection;
+        return Perspective ? perspectiveProjection : ortographicProjection;
       }
     }
 
-    float minZoom =  0.2f;
-    float maxZoom = 20.0f;
+    public float MinZoom
+    {
+      get;
+      set;
+    }
+
+    public float MaxZoom
+    {
+      get;
+      set;
+    }
 
     /// <summary>
     /// Sets up a projective viewport
@@ -171,7 +209,7 @@ namespace MathSupport
       GL.Viewport( 0, 0, width, height );
 
       // 2. set projection matrix
-      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, width / (float)height, 0.01f, 1000.0f );
+      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( Fov, width / (float)height, 0.01f, 1000.0f );
       float minSize = 2.0f * Math.Min( width, height );
       ortographicProjection = Matrix4.CreateOrthographic( diameter * width / minSize,
                                                           diameter * height / minSize,
@@ -196,7 +234,7 @@ namespace MathSupport
       get
       {
         return Matrix4.CreateTranslation( -Center ) *
-               Matrix4.CreateScale( zoom / diameter ) *
+               Matrix4.CreateScale( Zoom / diameter ) *
                prevRotation *
                rotation *
                Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
@@ -212,14 +250,14 @@ namespace MathSupport
 
         return Matrix4.CreateTranslation( 0.0f, 0.0f, 1.5f ) *
                rot *
-               Matrix4.CreateScale( diameter / zoom ) *
+               Matrix4.CreateScale( diameter / Zoom ) *
                Matrix4.CreateTranslation( Center );
       }
     }
 
     public void Reset ()
     {
-      zoom         = 1.0f;
+      Zoom         = 1.0f;
       rotation     = Matrix4.Identity;
       prevRotation = Matrix4.Identity;
     }
@@ -246,7 +284,7 @@ namespace MathSupport
 
     public void GLtogglePerspective ()
     {
-      perspective = !perspective;
+      Perspective = !Perspective;
       GLsetProjection();
     }
 
@@ -254,7 +292,7 @@ namespace MathSupport
     {
       // not needed if shaders are active .. but doesn't make any harm..
       GL.MatrixMode( MatrixMode.Projection );
-      if ( perspective )
+      if ( Perspective )
         GL.LoadMatrix( ref perspectiveProjection );
       else
         GL.LoadMatrix( ref ortographicProjection );
@@ -288,10 +326,10 @@ namespace MathSupport
     public void MouseWheel ( MouseEventArgs e )
     {
       float dZoom = -e.Delta / 120.0f;
-      zoom *= (float)Math.Pow( 1.04, dZoom );
+      Zoom *= (float)Math.Pow( 1.04, dZoom );
 
       // zoom bounds:
-      zoom = Arith.Clamp( zoom, minZoom, maxZoom );
+      Zoom = Arith.Clamp( Zoom, MinZoom, MaxZoom );
     }
 
     public void KeyDown ( KeyEventArgs e )

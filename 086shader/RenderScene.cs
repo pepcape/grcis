@@ -250,18 +250,15 @@ namespace _086shader
     float   matShininess  = 100.0f;
     Vector3 whiteLight    = new Vector3(   1.0f,  1.0f,  1.0f );
     Vector3 lightPosition = new Vector3( -20.0f, 10.0f, 10.0f );
-    Vector3 eyePosition   = new Vector3(   0.0f,  0.0f, 10.0f );
 
     /// <summary>
-    /// Set light-source and eye coordinates in the world-space.
+    /// Set light-source coordinate in the world-space.
     /// </summary>
     /// <param name="size">Relative size (based on the scene size).</param>
     /// <param name="light">Relative light position (default=[-2,1,1],viewer=[0,0,1]).</param>
-    void SetLightEye ( float size, ref Vector3 light )
+    void SetLight ( float size, ref Vector3 light )
     {
-      size += size;
-      lightPosition = size * light;
-      eyePosition   = new Vector3( 0.0f, 0.0f, size );
+      lightPosition = 2.0f * size * light;
     }
 
     /// <summary>
@@ -276,23 +273,29 @@ namespace _086shader
         return;
 
       // trackball: zoom limits
+      float minZoom = tb.MinZoom;
+      float maxZoom = tb.MaxZoom;
       if ( Util.TryParse( p, "minZoom", ref minZoom ) )
-        minZoom = Math.Max( 1.0e-4f, minZoom );
+        tb.MinZoom = Math.Max( 1.0e-4f, minZoom );
       if ( Util.TryParse( p, "maxZoom", ref maxZoom ) )
-        maxZoom = Arith.Clamp( maxZoom, minZoom, 1.0e6f );
+        tb.MaxZoom = Arith.Clamp( maxZoom, minZoom, 1.0e6f );
 
       // trackball: zoom
-      Util.TryParse( p, "zoom", ref zoom );
-      zoom = Arith.Clamp( zoom, minZoom, maxZoom );
+      float zoom = tb.Zoom;
+      if ( Util.TryParse( p, "zoom", ref zoom ) )
+        tb.Zoom = Arith.Clamp( zoom, tb.MinZoom, tb.MaxZoom );
 
       // rendering: perspective/orthographic projection
-      Util.TryParse( p, "perspective", ref perspective );
+      bool perspective = tb.Perspective;
+      if ( Util.TryParse( p, "perspective", ref perspective ) )
+        tb.Perspective = perspective;
 
       // rendering: vertical field-of-view
+      float fov = tb.Fov;
       if ( !Util.TryParse( p, "fov", ref fov ) )
       {
-        fov = Arith.Clamp( fov, 0.1f, 2.0f );
-        SetupViewport();
+        tb.Fov = Arith.Clamp( fov, 0.1f, 2.0f );
+        tb.GLsetupViewport( glControl1.Width, glControl1.Height );
       }
 
       // shading: relative light position
@@ -300,7 +303,7 @@ namespace _086shader
       {
         if ( light.Length < 1.0e-3f )
           light = new Vector3( -2, 1, 1 );
-        SetLightEye( eyePosition.Z * 0.5f, ref light );
+        SetLight( tb.Eye.Z * 0.5f, ref light );
       }
 
       // shading: global material color
@@ -313,7 +316,7 @@ namespace _086shader
     }
 
     // attribute/vertex arrays:
-    bool vertexAttribOn = false;
+    bool vertexAttribOn  = false;
     bool vertexPointerOn = false;
 
     private void SetVertexAttrib ( bool on )
@@ -407,7 +410,7 @@ namespace _086shader
       else
         GL.Enable( EnableCap.CullFace );
 
-      SetCamera();
+      tb.GLsetCamera();
       RenderScene();
 
       glControl1.SwapBuffers();
@@ -436,19 +439,16 @@ namespace _086shader
           GL.UseProgram( activeProgram.Id );
 
           // uniforms:
-          Matrix4 modelView    = GetModelView();
-          Matrix4 modelViewInv = GetModelViewInv();
-          Vector3 relEye       = Vector3.TransformVector( eyePosition, modelViewInv );
-          GL.UniformMatrix4( activeProgram.GetUniform( "matrixModelView" ), false, ref modelView );
-          if ( perspective )
-            GL.UniformMatrix4( activeProgram.GetUniform( "matrixProjection" ), false, ref perspectiveProjection );
-          else
-            GL.UniformMatrix4( activeProgram.GetUniform( "matrixProjection" ), false, ref ortographicProjection );
+          Matrix4 modelView  = tb.ModelView;
+          Matrix4 projection = tb.Projection;
+          Vector3 eye        = tb.Eye;
+          GL.UniformMatrix4( activeProgram.GetUniform( "matrixModelView" ),  false, ref modelView );
+          GL.UniformMatrix4( activeProgram.GetUniform( "matrixProjection" ), false, ref projection );
 
           GL.Uniform3( activeProgram.GetUniform( "globalAmbient" ), ref globalAmbient );
           GL.Uniform3( activeProgram.GetUniform( "lightColor" ),    ref whiteLight );
           GL.Uniform3( activeProgram.GetUniform( "lightPosition" ), ref lightPosition );
-          GL.Uniform3( activeProgram.GetUniform( "eyePosition" ),   ref relEye );
+          GL.Uniform3( activeProgram.GetUniform( "eyePosition" ),   ref eye );
           GL.Uniform3( activeProgram.GetUniform( "Ka" ),            ref matAmbient );
           GL.Uniform3( activeProgram.GetUniform( "Kd" ),            ref matDiffuse );
           GL.Uniform3( activeProgram.GetUniform( "Ks" ),            ref matSpecular );
