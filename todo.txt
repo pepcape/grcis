@@ -107,3 +107,4 @@ x 090opencl: project template (Mandelbrot demo in CPU/OpenCL)
 x 090opencl: 1st version of OpenCL kernel works!
 x 090opencl: OpenCL optimization.
 x StaticCamera fix (thx to Petr Houska)
+x Sphere flake test scene (checking CSGInnerNode relative transforms)
