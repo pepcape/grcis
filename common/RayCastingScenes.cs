@@ -34,6 +34,7 @@ namespace Rendering
       "Flags",
       "Sphere on the plane",
       "Two spheres",
+      "Sphere flake",
       "Cubes",
       "Cylinders",
       "Circus",
@@ -51,6 +52,7 @@ namespace Rendering
       new InitSceneDelegate( Flags ),
       new InitSceneDelegate( SpherePlane ),
       new InitSceneDelegate( TwoSpheres ),
+      new InitSceneDelegate( SphereFlake ),
       new InitSceneDelegate( Cubes ),
       new InitSceneDelegate( Cylinders ),
       new InitSceneDelegate( Circus ),
@@ -498,6 +500,76 @@ namespace Rendering
       // Opaque sphere:
       s = new Sphere();
       root.InsertChild( s, Matrix4d.Scale( 1.2 ) * Matrix4d.CreateTranslation( 1.5, 0.2, 2.4 ) );
+
+      // Infinite plane with checker:
+      Plane pl = new Plane();
+      pl.SetAttribute( PropertyName.COLOR, new double[] { 0.3, 0.0, 0.0 } );
+      pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 0.6, 0.6, new double[] { 1.0, 1.0, 1.0 } ) );
+      root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
+    }
+
+    public static ISceneNode flake ( int depth )
+    {
+      const double COEF = 0.4;
+      Matrix4d mat = Matrix4d.Scale( COEF ) * Matrix4d.CreateTranslation( 0.0, 1.0 + COEF, 0.0 );
+      CSGInnerNode sf = new CSGInnerNode( SetOperation.Union );
+      ISceneNode ch;
+
+      Sphere s = new Sphere();
+      sf.InsertChild( s, Matrix4d.Identity );
+
+      if ( --depth > 0 )
+      {
+        ch = flake( depth );
+        sf.InsertChild( ch, mat );
+
+        ch = flake( depth );
+        sf.InsertChild( ch, mat * Matrix4d.RotateX(  0.5 * Math.PI ) );
+        ch = flake( depth );
+        sf.InsertChild( ch, mat * Matrix4d.RotateX( -0.5 * Math.PI ) );
+        ch = flake( depth );
+        sf.InsertChild( ch, mat * Matrix4d.RotateZ(  0.5 * Math.PI ) );
+        ch = flake( depth );
+        sf.InsertChild( ch, mat * Matrix4d.RotateZ( -0.5 * Math.PI ) );
+      }
+
+      return sf;
+    }
+
+    /// <summary>
+    /// Infinite plane with limited transparent sphereflake on it
+    /// </summary>
+    public static void SphereFlake ( IRayScene sc )
+    {
+      Debug.Assert( sc != null );
+
+      // CSG scene:
+      CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
+      root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
+      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 1.0, 0.8, 0.1 }, 0.1, 0.6, 0.4, 128 ) );
+      sc.Intersectable = root;
+
+      // Background color:
+      sc.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
+
+      // Camera:
+      sc.Camera = new StaticCamera( new Vector3d(  1.6,  2.2, -6.0 ),
+                                    new Vector3d( -0.12, -0.3,  1.0 ),
+                                    50.0 );
+
+      // Light sources:
+      sc.Sources = new LinkedList<ILightSource>();
+      sc.Sources.Add( new AmbientLightSource( 0.8 ) );
+      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 4.0, -3.0 ), 1.2 ) );
+
+      // --- NODE DEFINITIONS ----------------------------------------------------
+
+      // Transparent sphere:
+      PhongMaterial pm = new PhongMaterial( new double[] { 1.0, 1.0, 0.8 }, 0.0, 0.1, 0.9, 128 );
+
+      ISceneNode sf  = flake( 5 );
+      sf.SetAttribute( PropertyName.MATERIAL, pm );
+      root.InsertChild( sf, Matrix4d.Identity );
 
       // Infinite plane with checker:
       Plane pl = new Plane();
