@@ -1,7 +1,14 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Cloo;
 using Utilities;
+
+public static class OpenGL
+{
+  [DllImport( "opengl32.dll" )]
+  extern public static IntPtr wglGetCurrentDC ();
+}
 
 namespace OpenclSupport
 {
