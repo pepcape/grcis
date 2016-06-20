@@ -24,9 +24,9 @@ namespace _049distributedrt
     protected Bitmap outputImage = null;
 
     /// <summary>
-    /// The same order as items in the comboScenes.
+    /// Scenes for the listbox.
     /// </summary>
-    public List<InitSceneDelegate> sceneInitFunctions = null;
+    public Dictionary<string, object> sceneRepository = null;
 
     /// <summary>
     /// Index of the current (selected) scene.
@@ -84,14 +84,14 @@ namespace _049distributedrt
         lastSync = 0L;
       }
 
-      public override void Sync ( Object msg )
+      public override void Sync ( object msg )
       {
         long now = f.sw.ElapsedMilliseconds;
         if ( now - lastSync < SyncInterval )
           return;
 
         lastSync = now;
-        f.SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
+        f.SetText( string.Format( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
                                   100.0f * Finished, 1.0e-3 * now ) );
         Bitmap b = msg as Bitmap;
         if ( b != null )
@@ -115,7 +115,23 @@ namespace _049distributedrt
     public IRayScene SceneByComboBox ()
     {
       DefaultRayScene sc = new DefaultRayScene();
-      sceneInitFunctions[ selectedScene ]( sc );
+      string sceneName = (string)comboScene.Items[ selectedScene ];
+
+      object initFunction;
+      InitSceneDelegate isd = null;
+      InitSceneParamDelegate ispd = null;
+      sceneRepository.TryGetValue( sceneName, out initFunction );
+      isd = initFunction as InitSceneDelegate;
+      ispd = initFunction as InitSceneParamDelegate;
+      if ( isd == null &&
+           ispd == null )
+        isd = Scenes.Repository[ "Sphere on the plane" ] as InitSceneDelegate;
+
+      if ( isd != null )
+        isd( sc );
+      else
+        ispd?.Invoke( sc, textParam.Text );
+
       return sc;
     }
 
@@ -137,6 +153,11 @@ namespace _049distributedrt
     public CheckBox CheckMultithreading
     {
       get { return checkMultithreading; }
+    }
+
+    public TextBox TextParam
+    {
+      get { return textParam; }
     }
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
@@ -270,7 +291,7 @@ namespace _049distributedrt
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      String msg = String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
+      string msg = string.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
                                   1.0e-3 * elapsed, width, height, checkMultithreading.Checked ? Environment.ProcessorCount : 1,
                                   (Intersection.countRays + 500L) / 1000L,
                                   (Intersection.countIntersections + 500L) / 1000L,
@@ -296,6 +317,7 @@ namespace _049distributedrt
       checkMultithreading.Enabled =
       buttonRender.Enabled =
       comboScene.Enabled =
+      textParam.Enabled =
       buttonRes.Enabled =
       buttonSave.Enabled = enable;
       buttonStop.Enabled = !enable;
@@ -383,7 +405,7 @@ namespace _049distributedrt
 
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x + 0.5, y + 0.5, color );
-      labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
+      labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 
@@ -448,6 +470,11 @@ namespace _049distributedrt
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
       selectedScene = comboScene.SelectedIndex;
+      imf = null;
+    }
+
+    private void textParam_TextChanged ( object sender, EventArgs e )
+    {
       imf = null;
     }
 

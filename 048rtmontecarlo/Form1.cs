@@ -24,9 +24,9 @@ namespace _048rtmontecarlo
     protected Bitmap outputImage = null;
 
     /// <summary>
-    /// The same order as items in the comboScenes.
+    /// Scenes for the listbox.
     /// </summary>
-    public List<InitSceneDelegate> sceneInitFunctions = null;
+    public Dictionary<string,object> sceneRepository = null;
 
     /// <summary>
     /// Index of the current (selected) scene.
@@ -115,7 +115,23 @@ namespace _048rtmontecarlo
     public IRayScene SceneByComboBox ()
     {
       DefaultRayScene sc = new DefaultRayScene();
-      sceneInitFunctions[ selectedScene ]( sc );
+      string sceneName = (string)comboScene.Items[ selectedScene ];
+
+      object initFunction;
+      InitSceneDelegate isd = null;
+      InitSceneParamDelegate ispd = null;
+      sceneRepository.TryGetValue( sceneName, out initFunction );
+      isd = initFunction as InitSceneDelegate;
+      ispd = initFunction as InitSceneParamDelegate;
+      if ( isd == null &&
+           ispd == null )
+        isd = Scenes.Repository[ "Sphere on the plane" ] as InitSceneDelegate;
+
+      if ( isd != null )
+        isd( sc );
+      else
+        ispd?.Invoke( sc, textParam.Text );
+
       return sc;
     }
 
@@ -137,6 +153,11 @@ namespace _048rtmontecarlo
     public CheckBox CheckMultithreading
     {
       get { return checkMultithreading; }
+    }
+
+    public TextBox TextParam
+    {
+      get { return textParam; }
     }
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
@@ -184,7 +205,7 @@ namespace _048rtmontecarlo
     /// Result image and rendering progress are the only two shared objects.
     /// </summary>
     /// <param name="spec">Thread-specific data (worker-thread-selector).</param>
-    private void RenderWorker ( Object spec )
+    private void RenderWorker ( object spec )
     {
       WorkerThreadInit init = spec as WorkerThreadInit;
       if ( init != null )
@@ -296,6 +317,7 @@ namespace _048rtmontecarlo
       checkMultithreading.Enabled =
       buttonRender.Enabled =
       comboScene.Enabled =
+      textParam.Enabled =
       buttonRes.Enabled =
       buttonSave.Enabled = enable;
       buttonStop.Enabled = !enable;
@@ -383,7 +405,7 @@ namespace _048rtmontecarlo
 
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x + 0.5, y + 0.5, color );
-      labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
+      labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 
@@ -448,6 +470,11 @@ namespace _048rtmontecarlo
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
       selectedScene = comboScene.SelectedIndex;
+      imf = null;
+    }
+
+    private void textParam_TextChanged ( object sender, EventArgs e )
+    {
       imf = null;
     }
 

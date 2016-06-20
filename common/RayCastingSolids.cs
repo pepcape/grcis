@@ -76,6 +76,36 @@ namespace Rendering
     }
   }
 
+  public class BoundingSphere : IBoundingVolume
+  {
+    double rr;
+
+    public BoundingSphere ( double r =1.0 )
+    {
+      rr = r * r;
+    }
+
+    public double Intersect ( Vector3d p0, Vector3d p1 )
+    {
+      double OD; Vector3d.Dot( ref p0, ref p1, out OD );
+      double DD; Vector3d.Dot( ref p1, ref p1, out DD );
+      double OO; Vector3d.Dot( ref p0, ref p0, out OO );
+      double d = OD * OD + DD * (rr - OO);   // discriminant
+      if ( d <= 0.0 ) return -1.0;           // no intersections
+
+      d = Math.Sqrt( d );
+
+      // there will be two intersections: (-OD - d) / DD, (-OD + d) / DD
+      if ( d - OD < 0.0 )                    // negative intersection
+        return -1.0;
+
+      if ( (d += OD) >= 0.0 )
+        return 0.0;
+
+      return -d / DD;
+    }
+  }
+
   /// <summary>
   /// Normalized (unit) cube as a simple solid able to compute ray-intersection, normal vector
   /// and 2D texture coordinates. [0,1]^3
