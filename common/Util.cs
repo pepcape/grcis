@@ -302,55 +302,80 @@ namespace Utilities
     /// <summary>
     /// Parses integer value from the dictionary.
     /// </summary>
-    /// <returns>True if everything went well.</returns>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
     public static bool TryParse ( Dictionary<string, string> rec, string key, ref int val )
     {
       string sval;
-      return ( rec.TryGetValue( key, out sval ) &&
-               int.TryParse( sval, out val ) );
+      int v;
+      if ( rec == null ||
+           !rec.TryGetValue( key, out sval ) ||
+           !int.TryParse( sval, out v ) )
+        return false;
+
+      val = v;
+      return true;
     }
 
     /// <summary>
     /// Parses long value from the dictionary.
     /// </summary>
-    /// <returns>True if everything went well.</returns>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
     public static bool TryParse ( Dictionary<string, string> rec, string key, ref long val )
     {
       string sval;
-      return ( rec.TryGetValue( key, out sval ) &&
-               long.TryParse( sval, out val ) );
+      long v;
+      if ( rec == null ||
+           !rec.TryGetValue( key, out sval ) ||
+           !long.TryParse( sval, out v ) )
+        return false;
+
+      val = v;
+      return true;
     }
 
     /// <summary>
     /// Parses float value from the dictionary.
     /// </summary>
-    /// <returns>True if everything went well.</returns>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
     public static bool TryParse ( Dictionary<string, string> rec, string key, ref float val )
     {
       string sval;
-      return ( rec.TryGetValue( key, out sval ) &&
-               float.TryParse( sval, NumberStyles.Number, CultureInfo.InvariantCulture, out val ) );
+      float v;
+      if ( rec == null ||
+           !rec.TryGetValue( key, out sval ) ||
+           !float.TryParse( sval, NumberStyles.Number, CultureInfo.InvariantCulture, out v ) )
+        return false;
+
+      val = v;
+      return true;
     }
 
     /// <summary>
     /// Parses double value from the dictionary.
     /// </summary>
-    /// <returns>True if everything went well.</returns>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
     public static bool TryParse ( Dictionary<string, string> rec, string key, ref double val )
     {
       string sval;
-      return ( rec.TryGetValue( key, out sval ) &&
-               double.TryParse( sval, NumberStyles.Number, CultureInfo.InvariantCulture, out val ) );
+      double v;
+      if ( rec == null ||
+           !rec.TryGetValue( key, out sval ) ||
+           !double.TryParse( sval, NumberStyles.Number, CultureInfo.InvariantCulture, out v ) )
+        return false;
+
+      val = v;
+      return true;
     }
 
     /// <summary>
     /// Parses boolean value from the dictionary.
     /// </summary>
-    /// <returns>True if everything went well.</returns>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
     public static bool TryParse ( Dictionary<string, string> rec, string key, ref bool val )
     {
       string sval;
-      if ( !rec.TryGetValue( key, out sval ) )
+      if ( rec == null ||
+           !rec.TryGetValue( key, out sval ) )
         return false;
 
       val = positive( sval );
@@ -542,7 +567,7 @@ namespace Utilities
     public static Dictionary<string,string> ParseKeyValueList ( string str, char separator =',' )
     {
       Dictionary<string, string> result = new Dictionary<string, string>();
-      if ( str == null )
+      if ( string.IsNullOrWhiteSpace( str ) )
         return result;
 
       int len = str.Length;

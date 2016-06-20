@@ -4,6 +4,8 @@
   ($Rev$ $Date$)
 ================================================================================
 - 016videoslow: zkontrolovat Bitmap.Dispose()
+- RayCastingScenes: scene repository refactor
+  018, 019, 046, 050, 062
 - zkontrolovat po zmenach 12. 11. 2015:
   059-080  (setImage(), resetImage()..)
 
@@ -108,3 +110,5 @@ x 090opencl: 1st version of OpenCL kernel works!
 x 090opencl: OpenCL optimization.
 x StaticCamera fix (thx to Petr Houska)
 x Sphere flake test scene (checking CSGInnerNode relative transforms)
+x text field for more specific RayScene definitions (048montecarlo &
+  049 so far)

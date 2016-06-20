@@ -341,6 +341,11 @@ namespace Rendering
     protected bool trivial;
 
     /// <summary>
+    /// Optional bounding volume.
+    /// </summary>
+    public IBoundingVolume BoundingVolume;
+
+    /// <summary>
     /// Number of ray x bounding-box intersections.
     /// </summary>
     public static long countBoundingBoxes = 0L;
@@ -405,6 +410,13 @@ namespace Rendering
     {
       if ( children == null || children.Count == 0 )
         return null;
+
+      if ( BoundingVolume != null )
+      {
+        countBoundingBoxes++;
+        if ( BoundingVolume.Intersect( p0, p1 ) < -0.5 )
+          return null;
+      }
 
       LinkedList<Intersection> result = null;
       LinkedList<Intersection> left   = null;          // I'm going to reuse these two..

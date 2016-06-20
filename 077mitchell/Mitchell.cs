@@ -53,33 +53,21 @@ namespace _077mitchell
     /// <param name="count">Desired number of samples</param>
     /// <param name="param">Optional textual parameter set.</param>
     /// <returns>Actual number of generated samples.</returns>
-    public int GenerateSampleSet ( SampleSet set, int count, string param = null )
+    public int GenerateSampleSet ( SampleSet set, int count, string param =null )
     {
       Debug.Assert( set != null );
 
       // sampling parameters:
       int K = 5;
       bool toroid = true;
-      if ( param != null )
-      {
-        string astr;
-        Dictionary<string, string> p = Util.ParseKeyValueList( param );
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
 
-        // d = <distance>
-        if ( p.TryGetValue( "k", out astr ) )
-        {
-          int.TryParse( astr, out K );
-          p.Remove( "k" );
-        }
-        if ( K < 1 ) K = 1;
+      // d = <distance>
+      Util.TryParse( p, "k", ref K );
+      if ( K < 1 ) K = 1;
 
-        // toroid = {true|false}
-        if ( p.TryGetValue( "toroid", out astr ) )
-        {
-          toroid = Util.positive( astr );
-          p.Remove( "toroid" );
-        }
-      }
+      // toroid = {true|false}
+      Util.TryParse( p, "toroid", ref toroid );
 
       hash = 0L;
       pointPointCounter = pointBoxCounter = heapCounter = 0L;

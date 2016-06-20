@@ -298,6 +298,21 @@ namespace Rendering
   }
 
   /// <summary>
+  /// Simple bounding volume, able to compute the closest positive intersection.
+  /// </summary>
+  public interface IBoundingVolume
+  {
+    /// <summary>
+    /// Bounding volume vs. ray intersection.
+    /// </summary>
+    /// <param name="p0">Ray origin.</param>
+    /// <param name="p1">Ray direction vector.</param>
+    /// <returns>Negative number (-1.0) if there is no intersection, zero if the origin is inside the solid,
+    /// otherwise the closest intersection point.</returns>
+    double Intersect ( Vector3d p0, Vector3d p1 );
+  }
+
+  /// <summary>
   /// Texture object: general value-modulator (value = color, normal vector..).
   /// </summary>
   public interface ITexture

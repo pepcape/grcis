@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using OpenTK;
 using Scene3D;
+using Utilities;
 
 namespace Rendering
 {
@@ -12,6 +13,11 @@ namespace Rendering
   /// Delegate used for RT-scene initialization.
   /// </summary>
   public delegate void InitSceneDelegate ( IRayScene sc );
+
+  /// <summary>
+  /// More general RT-scene initialization, can pass user-provided string.
+  /// </summary>
+  public delegate void InitSceneParamDelegate ( IRayScene sc, string param );
 
   /// <summary>
   /// Delegate used for RT-scene initialization (variant with list of strings .. e.g. mesh names).
@@ -25,40 +31,26 @@ namespace Rendering
   public class Scenes
   {
     /// <summary>
-    /// Scene names how to appear in a combo-box.
+    /// Scene repository.
+    /// InitSceneDelegate, InitSceneParamDelegate can be used.
     /// </summary>
-    public static string[] Names =
-    {
-      "Five balls",
-      "Hedgehog in the cage",
-      "Flags",
-      "Sphere on the plane",
-      "Two spheres",
-      "Sphere flake",
-      "Cubes",
-      "Cylinders",
-      "Circus",
-      "Toroids",
-      "Bezier",
-    };
+    public static Dictionary<string, object> Repository;
 
-    /// <summary>
-    /// The init functions themselves..
-    /// </summary>
-    public static InitSceneDelegate[] InitFunctions =
+    static Scenes ()
     {
-      new InitSceneDelegate( FiveBalls ),
-      new InitSceneDelegate( HedgehogInTheCage ),
-      new InitSceneDelegate( Flags ),
-      new InitSceneDelegate( SpherePlane ),
-      new InitSceneDelegate( TwoSpheres ),
-      new InitSceneDelegate( SphereFlake ),
-      new InitSceneDelegate( Cubes ),
-      new InitSceneDelegate( Cylinders ),
-      new InitSceneDelegate( Circus ),
-      new InitSceneDelegate( Toroids ),
-      new InitSceneDelegate( Bezier ),
-    };
+      Repository = new Dictionary<string, object>();
+      Repository[ "Five balls" ]           = new InitSceneDelegate( FiveBalls );
+      Repository[ "Hedgehog in the cage" ] = new InitSceneDelegate( HedgehogInTheCage );
+      Repository[ "Flags" ]                = new InitSceneDelegate( Flags );
+      Repository[ "Sphere on the plane" ]  = new InitSceneDelegate( SpherePlane );
+      Repository[ "Two spheres" ]          = new InitSceneParamDelegate( TwoSpheres );
+      Repository[ "Sphere flake" ]         = new InitSceneParamDelegate( SphereFlake );
+      Repository[ "Cubes" ]                = new InitSceneParamDelegate( Cubes );
+      Repository[ "Cylinders" ]            = new InitSceneDelegate( Cylinders );
+      Repository[ "Circus" ]               = new InitSceneDelegate( Circus );
+      Repository[ "Toroids" ]              = new InitSceneDelegate( Toroids );
+      Repository[ "Bezier" ]               = new InitSceneDelegate( Bezier );
+    }
 
     /// <summary>
     /// Scene names (Str variant) how to appear in a combo-box.
@@ -463,7 +455,7 @@ namespace Rendering
     /// <summary>
     /// Infinite plane with two spheres on it (one of them is transparent)
     /// </summary>
-    public static void TwoSpheres ( IRayScene sc )
+    public static void TwoSpheres ( IRayScene sc, string param )
     {
       Debug.Assert( sc != null );
 
@@ -488,11 +480,18 @@ namespace Rendering
 
       // --- NODE DEFINITIONS ----------------------------------------------------
 
+      // Params dictionary:
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+
+      // n = <index-of-refraction>
+      double n = 1.6;
+      Util.TryParse( p, "n", ref n );
+
       // Transparent sphere:
       Sphere s;
       s = new Sphere();
       PhongMaterial pm = new PhongMaterial( new double[] { 0.0, 0.2, 0.1 }, 0.05, 0.05, 0.1, 128 );
-      pm.n = 1.6;
+      pm.n = n;
       pm.Kt = 0.9;
       s.SetAttribute( PropertyName.MATERIAL, pm );
       root.InsertChild( s, Matrix4d.Identity );
@@ -508,11 +507,15 @@ namespace Rendering
       root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
     }
 
-    public static ISceneNode flake ( int depth )
+    public static ISceneNode flake ( int depth, double coef )
     {
-      const double COEF = 0.4;
-      Matrix4d mat = Matrix4d.Scale( COEF ) * Matrix4d.CreateTranslation( 0.0, 1.0 + COEF, 0.0 );
+      Matrix4d mat = Matrix4d.Scale( coef ) * Matrix4d.CreateTranslation( 0.0, 1.0 + coef, 0.0 );
       CSGInnerNode sf = new CSGInnerNode( SetOperation.Union );
+
+      double a = Math.Atan2( 1.0, Math.Sqrt( 2.0 ) ) * 2.0;
+      Matrix4d m1 = mat * Matrix4d.RotateX( a );
+      Matrix4d m2 = mat * Matrix4d.RotateX( a + Math.PI );
+
       ISceneNode ch;
 
       Sphere s = new Sphere();
@@ -520,17 +523,23 @@ namespace Rendering
 
       if ( --depth > 0 )
       {
-        ch = flake( depth );
+        ch = flake( depth, coef );
         sf.InsertChild( ch, mat );
 
-        ch = flake( depth );
-        sf.InsertChild( ch, mat * Matrix4d.RotateX(  0.5 * Math.PI ) );
-        ch = flake( depth );
-        sf.InsertChild( ch, mat * Matrix4d.RotateX( -0.5 * Math.PI ) );
-        ch = flake( depth );
-        sf.InsertChild( ch, mat * Matrix4d.RotateZ(  0.5 * Math.PI ) );
-        ch = flake( depth );
-        sf.InsertChild( ch, mat * Matrix4d.RotateZ( -0.5 * Math.PI ) );
+        ch = flake( depth, coef );
+        sf.InsertChild( ch, m1 );
+        ch = flake( depth, coef );
+        sf.InsertChild( ch, m2 );
+
+        ch = flake( depth, coef );
+        sf.InsertChild( ch, m1 * Matrix4d.RotateY( 2 * Math.PI / 3 ) );
+        ch = flake( depth, coef );
+        sf.InsertChild( ch, m2 * Matrix4d.RotateY( 2 * Math.PI / 3 ) );
+
+        ch = flake( depth, coef );
+        sf.InsertChild( ch, m1 * Matrix4d.RotateY( 4 * Math.PI / 3 ) );
+        ch = flake( depth, coef );
+        sf.InsertChild( ch, m2 * Matrix4d.RotateY( 4 * Math.PI / 3 ) );
       }
 
       return sf;
@@ -539,7 +548,7 @@ namespace Rendering
     /// <summary>
     /// Infinite plane with limited transparent sphereflake on it
     /// </summary>
-    public static void SphereFlake ( IRayScene sc )
+    public static void SphereFlake ( IRayScene sc, string param =null )
     {
       Debug.Assert( sc != null );
 
@@ -553,7 +562,7 @@ namespace Rendering
       sc.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
 
       // Camera:
-      sc.Camera = new StaticCamera( new Vector3d(  1.6,  2.2, -6.0 ),
+      sc.Camera = new StaticCamera( new Vector3d(  1.6,  2.2, -7.0 ),
                                     new Vector3d( -0.12, -0.3,  1.0 ),
                                     50.0 );
 
@@ -564,10 +573,40 @@ namespace Rendering
 
       // --- NODE DEFINITIONS ----------------------------------------------------
 
-      // Transparent sphere:
-      PhongMaterial pm = new PhongMaterial( new double[] { 1.0, 1.0, 0.8 }, 0.0, 0.1, 0.9, 128 );
+      // Params dictionary:
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
 
-      ISceneNode sf  = flake( 5 );
+      // depth = <depth>
+      int depth = 5;
+      Util.TryParse( p, "depth", ref depth );
+
+      // n = <index-of-refraction>
+      double n = 1.6;
+      Util.TryParse( p, "n", ref n );
+
+      // coef = <scale-coef>
+      double coef = 0.4;
+      Util.TryParse( p, "coef", ref coef );
+
+      // mat = {mirror|glass|diffuse}
+      PhongMaterial pm = new PhongMaterial( new double[] { 1.0, 0.6, 0.1 }, 0.1, 0.85, 0.05, 16 );
+      string mat;
+      if ( p.TryGetValue( "mat", out mat ) )
+        switch ( mat )
+        {
+          case "mirror":
+            pm = new PhongMaterial( new double[] { 1.0, 1.0, 0.8 }, 0.0, 0.1, 0.9, 128 );
+            break;
+
+          case "glass":
+            pm = new PhongMaterial( new double[] { 0.0, 0.2, 0.1 }, 0.05, 0.05, 0.1, 128 );
+            pm.n = n;
+            pm.Kt = 0.9;
+            break;
+        }
+
+      // Sphere flake - recursive definition:
+      ISceneNode sf  = flake( depth, coef );
       sf.SetAttribute( PropertyName.MATERIAL, pm );
       root.InsertChild( sf, Matrix4d.Identity );
 
@@ -581,7 +620,7 @@ namespace Rendering
     /// <summary>
     /// Test scene for cubes
     /// </summary>
-    public static void Cubes ( IRayScene sc )
+    public static void Cubes ( IRayScene sc, string param )
     {
       Debug.Assert( sc != null );
 
@@ -606,6 +645,30 @@ namespace Rendering
 
       // --- NODE DEFINITIONS ----------------------------------------------------
 
+      // Params dictionary:
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+
+      // n = <index-of-refraction>
+      double n = 1.6;
+      Util.TryParse( p, "n", ref n );
+
+      // mat = {mirror|glass|diffuse}
+      PhongMaterial pm = new PhongMaterial( new double[] { 1.0, 0.6, 0.1 }, 0.1, 0.8, 0.2, 16 );
+      string mat;
+      if ( p.TryGetValue( "mat", out mat ) )
+        switch ( mat )
+        {
+          case "mirror":
+            pm = new PhongMaterial( new double[] { 1.0, 1.0, 0.8 }, 0.0, 0.1, 0.9, 128 );
+            break;
+
+          case "glass":
+            pm = new PhongMaterial( new double[] { 0.0, 0.2, 0.1 }, 0.05, 0.05, 0.1, 128 );
+            pm.n = n;
+            pm.Kt = 0.9;
+            break;
+        }
+
       // Base plane
       Plane pl = new Plane();
       pl.SetAttribute( PropertyName.COLOR, new double[] { 0.6, 0.0, 0.0 } );
@@ -617,29 +680,41 @@ namespace Rendering
       // front row:
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateY( 0.6 ) * Matrix4d.CreateTranslation( -3.5, -0.8, 0.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateY( 1.2 ) * Matrix4d.CreateTranslation( -1.5, -0.8, 0.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateY( 1.8 ) * Matrix4d.CreateTranslation( 0.5, -0.8, 0.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateY( 2.4 ) * Matrix4d.CreateTranslation( 2.5, -0.8, 0.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateY( 3.0 ) * Matrix4d.CreateTranslation( 4.5, -0.8, 0.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       // back row:
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateX( 3.5 ) * Matrix4d.CreateTranslation( -4.0, 1.0, 2.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateX( 3.0 ) * Matrix4d.CreateTranslation( -2.5, 1.0, 2.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateX( 2.5 ) * Matrix4d.CreateTranslation( -1.0, 1.0, 2.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateX( 2.0 ) * Matrix4d.CreateTranslation( 0.5, 1.0, 2.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateX( 1.5 ) * Matrix4d.CreateTranslation( 2.0, 1.0, 2.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateX( 1.0 ) * Matrix4d.CreateTranslation( 3.5, 1.0, 2.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
       c = new Cube();
       root.InsertChild( c, Matrix4d.RotateX( 0.5 ) * Matrix4d.CreateTranslation( 5.0, 1.0, 2.0 ) );
+      c.SetAttribute( PropertyName.MATERIAL, pm );
     }
 
     /// <summary>
