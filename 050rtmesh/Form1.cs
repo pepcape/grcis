@@ -97,7 +97,7 @@ namespace _050rtmesh
           return;
 
         lastSync = now;
-        f.SetText( String.Format( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
+        f.SetText( string.Format( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
                                   100.0f * Finished, 1.0e-3 * now ) );
         Bitmap b = msg as Bitmap;
         if ( b != null )
@@ -278,7 +278,7 @@ namespace _050rtmesh
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      String msg = String.Format( CultureInfo.InvariantCulture,
+      string msg = string.Format( CultureInfo.InvariantCulture,
                                   "{0:f1}s  [ {1}x{2}, f{3:#,#}, mt{4}, r{5:#,#}k, i{6:#,#}k, bb{7:#,#}k, t{8:#,#}k ]",
                                   1.0e-3 * elapsed, width, height, CSGInnerNode.countFaces,
                                   checkMultithreading.Checked ? Environment.ProcessorCount : 1,
@@ -393,7 +393,7 @@ namespace _050rtmesh
 
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x + 0.5, y + 0.5, color );
-      labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
+      labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 
@@ -447,7 +447,7 @@ namespace _050rtmesh
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, ImageFormat.Png );
     }
 
     private void buttonObj_Click ( object sender, EventArgs e )

@@ -41,18 +41,24 @@ namespace _019raytracing
     public static void InitializeScenes ()
     {
       Form1 f = Form1.singleton;
-      f.sceneInitFunctions = new List<InitSceneDelegate>( Scenes.InitFunctions );
 
       // 1. default scenes from RayCastingScenes
-      foreach ( string name in Scenes.Names )
-        f.ComboScene.Items.Add( name );
+      f.sceneRepository = new Dictionary<string, object>( Scenes.Repository );
 
-      // 2. eventually add custom scenes
-      f.sceneInitFunctions.Add( new InitSceneDelegate( CustomScene.TestScene ) );
-      f.ComboScene.Items.Add( "Test scene" );
+      // 2. optionally add custom scenes
+      f.sceneRepository[ "Test scene" ] = new InitSceneDelegate( CustomScene.TestScene );
+
+      // 3. fill the combo-box
+      foreach ( string key in f.sceneRepository.Keys )
+        f.ComboScene.Items.Add( key );
 
       // .. and set your favorite scene here:
       f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
+
+      // default image parameters?
+      f.ImageWidth  = 800;
+      f.ImageHeight = 540;
+      f.TextParam.Text = "";
     }
   }
 }

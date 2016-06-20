@@ -13,6 +13,8 @@ namespace _062animation
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     /// <summary>
     /// Output raster image.
     /// </summary>
@@ -88,7 +90,7 @@ namespace _062animation
       rend.RenderRectangle( outputImage, 0, 0, width, height, new RandomJames() );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = string.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
       pictureBox1.Image = outputImage;
 
@@ -160,8 +162,7 @@ namespace _062animation
     public Form1 ()
     {
       InitializeComponent();
-      String []tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[1] + ')';
+      Text += " (rev: " + rev + ')';
 
       // Init rendering params:
       InitializeParams();
@@ -309,7 +310,7 @@ namespace _062animation
         scene = getScene();                 // scene prototype
 
       // Start main rendering thread:
-      aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
+      aThread = new Thread( new ThreadStart( RenderAnimation ) );
       aThread.Start();
     }
 
@@ -330,7 +331,7 @@ namespace _062animation
       int t;
       for ( t = 0; t < threads; t++ )
       {
-        pool[ t ] = new Thread( new ThreadStart( this.RenderWorker ) );
+        pool[ t ] = new Thread( new ThreadStart( RenderWorker ) );
         pool[ t ].Start();
       }
 
@@ -364,7 +365,7 @@ namespace _062animation
         }
 
         // GUI progress indication:
-        SetText( String.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
+        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
                                 threads, ++frames, 1.0e-3 * sw.ElapsedMilliseconds ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
@@ -375,7 +376,7 @@ namespace _062animation
         }
 
         // save the image file:
-        string fileName = String.Format( "out{0:0000}.png", r.frameNumber );
+        string fileName = string.Format( "out{0:0000}.png", r.frameNumber );
         r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
         r.image.Dispose();
       }

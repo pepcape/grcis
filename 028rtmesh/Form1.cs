@@ -93,7 +93,7 @@ namespace _028rtmesh
       rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, r{3:#,#}k, i{4:#,#}k, bb{5:#,#}k, t{6:#,#}k ]",
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, r{3:#,#}k, i{4:#,#}k, bb{5:#,#}k, t{6:#,#}k ]",
                                          1.0e-3 * sw.ElapsedMilliseconds, width, height,
                                          (Intersection.countRays + 500L) / 1000L,
                                          (Intersection.countIntersections + 500L) / 1000L,
@@ -124,7 +124,7 @@ namespace _028rtmesh
       imf.Height = height;
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x, y, color );
-      labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
+      labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 

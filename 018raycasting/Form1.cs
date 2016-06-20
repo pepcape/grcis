@@ -75,7 +75,7 @@ namespace _018raycasting
       rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f2}s",
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f2}s",
                                          1.0e-3 * sw.ElapsedMilliseconds );
 
       setImage( ref outputImage, newImage );
@@ -97,7 +97,7 @@ namespace _018raycasting
       imf.Height = panel1.Height;
       double[] color = new double[ 3 ];
       long hash = imf.GetSample( x, y, color );
-      labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5}",
+      labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 
@@ -124,7 +124,7 @@ namespace _018raycasting
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, ImageFormat.Png );
     }
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
