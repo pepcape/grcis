@@ -53,7 +53,7 @@
       // 
       this.numColors.Location = new System.Drawing.Point(439, 340);
       this.numColors.Maximum = new decimal(new int[] {
-            8,
+            10,
             0,
             0,
             0});
@@ -66,7 +66,7 @@
       this.numColors.Size = new System.Drawing.Size(46, 20);
       this.numColors.TabIndex = 8;
       this.numColors.Value = new decimal(new int[] {
-            3,
+            6,
             0,
             0,
             0});
