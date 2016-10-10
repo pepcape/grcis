@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using MathSupport;
 
 namespace _051colormap
 {
@@ -10,17 +11,20 @@ namespace _051colormap
 
     public static Color[] colors;
     private static Bitmap inputImage = null;
-    public static int numCol = 3;
+    public static int numCol = 6;
 
     public Form1 ()
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
 
-      colors = new Color[ 3 ];
+      colors = new Color[ 6 ];
       colors[ 0 ] = Color.FromArgb(   0, 100, 127 );
       colors[ 1 ] = Color.FromArgb( 150, 150,  80 );
       colors[ 2 ] = Color.FromArgb( 255, 100,  20 );
+      colors[ 3 ] = Color.FromArgb(  20, 200,  20 );
+      colors[ 4 ] = Color.FromArgb(   0, 250, 160 );
+      colors[ 5 ] = Color.FromArgb(  20,  20, 255 );
       pictureBox1.Invalidate();
     }
 
@@ -39,9 +43,7 @@ namespace _051colormap
 
     private void numColors_ValueChanged ( object sender, EventArgs e )
     {
-      numCol = (int)numColors.Value;
-      if ( numCol > 8 ) numCol = 8;
-      if ( numCol < 3 ) numCol = 3;
+      numCol = Arith.Clamp( (int)numColors.Value, 3, 10 );
 
       if ( inputImage != null )
       {
