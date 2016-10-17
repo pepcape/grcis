@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Author: Josef Pelikan
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -13,7 +15,7 @@ namespace _091svg
     /// <summary>
     /// Program version.
     /// </summary>
-    public static string ProgramVersion = "$Rev: 12280 $".Replace( '$', ' ' ).Trim();
+    public static string ProgramVersion = "$Rev: 405 $".Replace( '$', ' ' ).Trim();
 
     /// <summary>
     /// Target (compiled against) .NET framework version.
