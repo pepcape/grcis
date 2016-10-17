@@ -288,9 +288,9 @@ namespace Utilities
     /// </summary>
     public const char COMMA = ',';
 
-    public static string[] ParseList ( string value )
+    public static string[] ParseList ( string value, char sep =COMMA )
     {
-      string[] list = value.Split( COMMA );
+      string[] list = value.Split( sep );
       if ( list.Length < 1 ) return null;
 
       for ( int i = 0; i < list.Length; i++ )
@@ -298,6 +298,75 @@ namespace Utilities
 
       return list;
     }
+
+    /// <summary>
+    /// Can be used for parsing JSON int-arrays as well.
+    /// </summary>
+    public static List<int> ParseIntList ( string value, char sep =COMMA )
+    {
+      if ( value == null || value.Length < 1 )
+        return null;
+
+      string[] list;
+
+      if ( value.Length > 2 &&
+           value.StartsWith( "[" ) &&
+           value.EndsWith( "]" ) )
+        list = ParseList( value.Substring( 1, value.Length - 2 ), sep );
+      else
+      if ( value.Contains( "" + sep ) )
+        list = ParseList( value, sep );
+      else
+        list = new string[] { value.Trim() };
+
+      int len;
+      if ( list == null ||
+           (len = list.Length) < 1 )
+        return null;
+
+      List<int> result = new List<int>();
+      int newVal;
+      for ( int i = 0; i < len; i++ )
+        if ( int.TryParse( list[ i ], out newVal ) )
+          result.Add( newVal );
+
+      return result;
+    }
+
+    /// <summary>
+    /// Can be used for parsing JSON int-arrays as well.
+    /// </summary>
+    public static List<double> ParseDoubleList ( string value, char sep =COMMA )
+    {
+      if ( value == null || value.Length < 1 )
+        return null;
+
+      string[] list;
+
+      if ( value.Length > 2 &&
+           value.StartsWith( "[" ) &&
+           value.EndsWith( "]" ) )
+        list = ParseList( value.Substring( 1, value.Length - 2 ), sep );
+      else
+      if ( value.Contains( "" + sep ) )
+        list = ParseList( value );
+      else
+        list = new string[] { value.Trim() };
+
+      int len;
+      if ( list == null ||
+           (len = list.Length) < 1 )
+        return null;
+
+      List<double> result = new List<double>();
+      double newVal;
+      for ( int i = 0; i < len; i++ )
+        if ( double.TryParse( list[ i ], NumberStyles.Float, CultureInfo.InvariantCulture, out newVal ) )
+          result.Add( newVal );
+
+      return result;
+    }
+
 
     /// <summary>
     /// Parses integer value from the dictionary.
@@ -594,6 +663,11 @@ namespace Utilities
       }
 
       return result;
+    }
+
+    public static string FormatNowUtc ( string fmt ="yyyy-MM-dd HH:mm:ss" )
+    {
+      return DateTime.UtcNow.ToString( fmt );
     }
 
     public static int OccupiedString ( string s )
