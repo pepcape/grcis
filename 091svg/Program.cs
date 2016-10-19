@@ -1,4 +1,7 @@
 ﻿// Author: Josef Pelikan
+//
+// Instructions:
+//  make changes in 'Customizable parameters' and 'Custom drawing' regions
 
 using System;
 using System.Collections.Generic;
@@ -26,6 +29,8 @@ namespace _091svg
     /// Currently running .NET framework version.
     /// </summary>
     public static string RunningFramework = "";
+
+#region Customizable parameters
 
     /// <summary>
     /// Fractal type. 't' .. test, ..
@@ -142,6 +147,10 @@ namespace _091svg
 
       return false;
     }
+
+#endregion
+
+#region Command-line framework - no need to change
 
     static void parseDictionary ( Dictionary<string,string> d )
     {
@@ -261,6 +270,16 @@ namespace _091svg
         Draw();
     }
 
+#endregion
+
+#region Custom drawing
+
+    /// <summary>
+    /// One subdivision step - Chaikin algorithm.
+    /// See http://www.cs.unc.edu/~dm/UNC/COMP258/LECTURES/Chaikins-Algorithm.pdf
+    /// </summary>
+    /// <param name="src">Source vertex-array.</param>
+    /// <returns>Result vertex array.</returns>
     static List<Vector2d> Subdivide ( List<Vector2d> src )
     {
       List<Vector2d> result = new List<Vector2d>( src.Count * 2 );
@@ -275,6 +294,14 @@ namespace _091svg
       return result;
     }
 
+    /// <summary>
+    /// Writes one polyline in SVG format to the given output stream.
+    /// </summary>
+    /// <param name="wri">Opened output stream (must be left open).</param>
+    /// <param name="workList">List of vertices.</param>
+    /// <param name="x0">Origin - x-coord (will be subtracted from all x-coords).</param>
+    /// <param name="y0">Origin - y-coord (will be subtracted from all y-coords)</param>
+    /// <param name="color">Line color (default = black).</param>
     static void drawCurve ( StreamWriter wri, List<Vector2d> workList, double x0, double y0, string color ="#000" )
     {
       StringBuilder sb = new StringBuilder();
@@ -287,6 +314,15 @@ namespace _091svg
       wri.WriteLine( "<path d=\"{0}\" stroke=\"{1}\" fill=\"none\"/>", sb.ToString(), color );
     }
 
+    /// <summary>
+    /// Draws vertices in SVG format to the given output stream.
+    /// For debugging purposes.
+    /// </summary>
+    /// <param name="wri">Opened output stream (must be left open).</param>
+    /// <param name="workList">List of vertices.</param>
+    /// <param name="x0">Origin - x-coord (will be subtracted from all x-coords).</param>
+    /// <param name="y0">Origin - y-coord (will be subtracted from all y-coords)</param>
+    /// <param name="color">Vertex color (default = lime).</param>
     static void drawVertices ( StreamWriter wri, List<Vector2d> workList, double x0, double y0, string color ="lime" )
     {
       for ( int i = 0; i < workList.Count; i++ )
@@ -295,7 +331,7 @@ namespace _091svg
     }
 
     /// <summary>
-    /// Generate a SVG output according to globally stored parameters (see setOption() function)..
+    /// Generates a SVG output according to globally stored parameters (see setOption() function)..
     /// Must be able to be executed more than once.
     /// </summary>
     static void Draw ()
@@ -367,5 +403,7 @@ namespace _091svg
       else
         Console.WriteLine( "Error: unknown output type '{0}'!", type );
     }
+
+#endregion
   }
 }
