@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 using Cloo;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics;
 using OpenclSupport;
 using Utilities;
 
@@ -45,6 +45,11 @@ namespace _090opencl
     /// Are we able to use 'double' type at all in current OpenCL context?
     /// </summary>
     public bool CanUseDouble = false;
+
+    /// <summary>
+    /// Are we able to use OpenCL-GL interop?
+    /// </summary>
+    public bool CanUseInterop = false;
 
     public Form1 ()
     {
@@ -129,36 +134,41 @@ namespace _090opencl
       comboBoxDevice.SelectedIndex = 0;
     }
 
-    private void comboBoxDevice_SelectedIndexChanged ( object sender, EventArgs e )
+    public void SetupClContext ()
     {
-      clDirty = true;
-      if ( clPlatform == null )
-      {
-        clDevice  = null;
-        clContext = null;
-        return;
-      }
-
+      CanUseDouble = CanUseInterop = false;
       try
       {
         clDevice = clPlatform.Devices[ comboBoxDevice.SelectedIndex ];
         ComputeContextPropertyList properties = new ComputeContextPropertyList( clPlatform );
+        IGraphicsContextInternal ctx = (IGraphicsContextInternal)GraphicsContext.CurrentContext;
+        properties.Add( new ComputeContextProperty( ComputeContextPropertyName.CL_GL_CONTEXT_KHR, ctx.Context.Handle ) );
+        properties.Add( new ComputeContextProperty( ComputeContextPropertyName.CL_WGL_HDC_KHR, OpenGL.wglGetCurrentDC() ) );
         clContext = new ComputeContext( new ComputeDevice[] { clDevice }, properties, null, IntPtr.Zero );
 
         // check the double-extension:
-        CanUseDouble = ClInfo.ExtensionCheck( clContext, "cl_khr_fp64" );
+        CanUseDouble  = ClInfo.ExtensionCheck( clContext, "cl_khr_fp64" );
+        CanUseInterop = ClInfo.ExtensionCheck( clContext, "cl_khr_gl_sharing" );
         ClInfo.LogCLProperties( clContext, true );
       }
       catch ( Exception exc )
       {
         Util.LogFormat( "OpenCL error: {0}", exc.Message );
-        clDevice  = null;
+        clDevice = null;
         clContext = null;
       }
 
       bool enableDouble = !checkOpenCL.Checked ||
                           CanUseDouble;
       checkDouble.Enabled = enableDouble;
+      checkInterop.Enabled = CanUseInterop;
+    }
+
+    private void comboBoxDevice_SelectedIndexChanged ( object sender, EventArgs e )
+    {
+      clDirty   = true;
+      clDevice  = null;
+      clContext = null;
     }
 
     private void checkOpenCL_CheckedChanged ( object sender, EventArgs e )
@@ -172,6 +182,11 @@ namespace _090opencl
     }
 
     private void checkDouble_CheckedChanged ( object sender, EventArgs e )
+    {
+      PrepareClBuffers();
+    }
+
+    private void checkInterop_CheckedChanged ( object sender, EventArgs e )
     {
       PrepareClBuffers();
     }

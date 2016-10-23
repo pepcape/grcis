@@ -43,6 +43,7 @@
       this.checkPalette = new System.Windows.Forms.CheckBox();
       this.checkBigGroup = new System.Windows.Forms.CheckBox();
       this.labelSize = new System.Windows.Forms.Label();
+      this.checkInterop = new System.Windows.Forms.CheckBox();
       this.SuspendLayout();
       // 
       // glControl1
@@ -79,11 +80,11 @@
       // buttonReset
       // 
       this.buttonReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonReset.Location = new System.Drawing.Point(734, 435);
+      this.buttonReset.Location = new System.Drawing.Point(767, 435);
       this.buttonReset.Name = "buttonReset";
-      this.buttonReset.Size = new System.Drawing.Size(93, 23);
+      this.buttonReset.Size = new System.Drawing.Size(60, 23);
       this.buttonReset.TabIndex = 22;
-      this.buttonReset.Text = "Reset view";
+      this.buttonReset.Text = "Reset";
       this.buttonReset.UseVisualStyleBackColor = true;
       this.buttonReset.Click += new System.EventHandler(this.buttonReset_Click);
       // 
@@ -124,7 +125,7 @@
       this.checkVsync.AutoSize = true;
       this.checkVsync.Checked = true;
       this.checkVsync.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkVsync.Location = new System.Drawing.Point(595, 441);
+      this.checkVsync.Location = new System.Drawing.Point(640, 441);
       this.checkVsync.Name = "checkVsync";
       this.checkVsync.Size = new System.Drawing.Size(57, 17);
       this.checkVsync.TabIndex = 34;
@@ -190,7 +191,7 @@
       this.checkPalette.AutoSize = true;
       this.checkPalette.Checked = true;
       this.checkPalette.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkPalette.Location = new System.Drawing.Point(657, 441);
+      this.checkPalette.Location = new System.Drawing.Point(702, 441);
       this.checkPalette.Name = "checkPalette";
       this.checkPalette.Size = new System.Drawing.Size(59, 17);
       this.checkPalette.TabIndex = 42;
@@ -219,11 +220,24 @@
       this.labelSize.TabIndex = 44;
       this.labelSize.Text = "Size:";
       // 
+      // checkInterop
+      // 
+      this.checkInterop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkInterop.AutoSize = true;
+      this.checkInterop.Location = new System.Drawing.Point(592, 441);
+      this.checkInterop.Name = "checkInterop";
+      this.checkInterop.Size = new System.Drawing.Size(40, 17);
+      this.checkInterop.TabIndex = 45;
+      this.checkInterop.Text = "GL";
+      this.checkInterop.UseVisualStyleBackColor = true;
+      this.checkInterop.CheckedChanged += new System.EventHandler(this.checkInterop_CheckedChanged);
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(844, 469);
+      this.Controls.Add(this.checkInterop);
       this.Controls.Add(this.labelSize);
       this.Controls.Add(this.checkBigGroup);
       this.Controls.Add(this.checkPalette);
@@ -266,6 +280,7 @@
     private System.Windows.Forms.CheckBox checkPalette;
     private System.Windows.Forms.CheckBox checkBigGroup;
     private System.Windows.Forms.Label labelSize;
+    private System.Windows.Forms.CheckBox checkInterop;
   }
 }
 
