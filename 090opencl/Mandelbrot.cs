@@ -214,7 +214,7 @@ namespace _090opencl
     }
 
     public void ComputeCL ( ComputeContext clContext, int texName, int width, int height, byte[] colormap,
-                            bool useDouble )
+                            bool useDouble, bool useInterop )
     {
       assertBuffer( width, height );
 
@@ -227,7 +227,17 @@ namespace _090opencl
       if ( form.clDirty )
         return;               // something went wrong..
 
-      form.clKernel.SetMemoryArgument( 0, form.result );
+      // output buffer: GL texture or OpenCL buffer
+      List<ComputeMemory> images = null;
+      if ( useInterop )
+      {
+        images = new List<ComputeMemory>() { form.clImage };
+        form.clCommands.AcquireGLObjects( images, null );
+        form.clKernel.SetMemoryArgument( 0, form.clImage );
+      }
+      else
+        form.clKernel.SetMemoryArgument( 0, form.result );
+
       form.clKernel.SetValueArgument(  1, width );
       form.clKernel.SetValueArgument(  2, height );
       form.clKernel.SetValueArgument(  3, iter );
@@ -250,14 +260,22 @@ namespace _090opencl
                                new long[] { form.globalWidth, form.globalHeight },
                                new long[] { form.groupSize,   form.groupSize },
                                null );
-      form.clCommands.ReadFromBuffer( form.result, ref swBuffer, false, null );
-      form.clCommands.Finish();
+      if ( useInterop )
+      {
+        form.clCommands.Finish();
+        form.clCommands.ReleaseGLObjects( images, null );
+      }
+      else
+      {
+        // w/o OpenCL - OpenGL interop:
+        form.clCommands.ReadFromBuffer( form.result, ref swBuffer, false, null );
+        form.clCommands.Finish();
 
-      // temporary solution (w/o OpenCL - OpenGL interop):
-      GL.BindTexture( TextureTarget.Texture2D, texName );
-      GL.TexSubImage2D( TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, swBuffer );
-      Debug.Assert( GL.GetError() == ErrorCode.NoError, "glTexSubImage2D" );
-      GL.BindTexture( TextureTarget.Texture2D, 0 );
+        GL.BindTexture( TextureTarget.Texture2D, texName );
+        GL.TexSubImage2D( TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, swBuffer );
+        Debug.Assert( GL.GetError() == ErrorCode.NoError, "glTexSubImage2D" );
+        GL.BindTexture( TextureTarget.Texture2D, 0 );
+      }
     }
   }
 
@@ -295,12 +313,10 @@ namespace _090opencl
 
     //--- OpenCL global variables ---
 
-#if SHARED_BUFFER
     /// <summary>
-    /// Local working buffer for the OpenCL solution.
+    /// OpenCL image bound to OpenGL texture.
     /// </summary>
-    ComputeImage2D outBuffer = null;
-#else
+    public ComputeMemory clImage = null;
 
     public ComputeBuffer<byte> result = null;
 
@@ -317,8 +333,6 @@ namespace _090opencl
     public long globalHeight = 1;
 
     public long groupSize = 8L;
-
-#endif
 
     //--- Form global variables ---
 
@@ -357,8 +371,10 @@ namespace _090opencl
           computeCounter = 0.0;
 
           bool isDouble = checkDouble.Checked && (!checkOpenCL.Checked || CanUseDouble);
-          labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, pps: {1:f1} MPx/s ({2}), compute: {3:f2} ms",
-                                         lastFps, (lastPps * 1.0e-6), isDouble ? "double" : "single", (lastCompute * 1000.0) );
+          bool isInterop = checkInterop.Checked && CanUseInterop;
+          labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, pps: {1:f1} MPx/s ({2}{3}), compute: {4:f2} ms",
+                                         lastFps, (lastPps * 1.0e-6), isDouble ? "double" : "single",
+                                         isInterop ? ",gl" : "", (lastCompute * 1000.0) );
           string clStat = checkOpenCL.Checked ? string.Format( ", {0} grps {1}x{1}", (globalWidth * globalHeight) / (groupSize * groupSize), groupSize ) : "";
           labelSize.Text = string.Format( "{0}x{1}px{2}", texWidth, texHeight, clStat );
         }
@@ -450,17 +466,17 @@ namespace _090opencl
 
       GL.PixelStore( PixelStoreParameter.UnpackAlignment, 1 );
       GL.PixelStore( PixelStoreParameter.PackAlignment, 1 );
-      GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, texWidth, texHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)0 );
+      GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, texWidth, texHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)0 );
       Debug.Assert( GL.GetError() == ErrorCode.NoError, "glTexImage2D" );
 
-      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat );
-      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat );
-      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear );
-      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Linear );
-
-      PrepareClBuffers();
+      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge );
+      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge );
+      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest );
+      GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Nearest );
 
       GlInfo.LogError( "resize-texture" );
+
+      PrepareClBuffers();
     }
 
     /// <summary>
@@ -483,7 +499,6 @@ namespace _090opencl
       clDirty = clDirty || dirty;
 
       if ( texName == 0 ||
-           clContext == null || 
            !checkOpenCL.Checked )
       {
         DestroyClBuffers();
@@ -495,19 +510,16 @@ namespace _090opencl
 
       DestroyClBuffers();
 
-#if SHARED_BUFFER
-      GL.BindTexture( TextureTarget.Texture2D, texName );
-#endif
+      if ( clContext == null )
+        SetupClContext();
+
+      //GL.BindTexture( TextureTarget.Texture2D, texName );
       try
       {
         // OpenCL C source:
         string src = ClInfo.ReadSourceFile( CanUseDouble ? "mandel.cl" : "mandelSingle.cl", "090opencl" );
         if ( string.IsNullOrEmpty( src ) )
           return;
-
-        // buffers:
-        result = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.WriteOnly, texWidth * texHeight * 4 );
-        cmap   = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.ReadOnly | ComputeMemoryFlags.CopyHostPointer, colormap );
 
         // program & kernel:
         clProgram = new ComputeProgram( clContext, src );
@@ -517,33 +529,36 @@ namespace _090opencl
         globalWidth  = (texWidth  + groupSize - 1) & -groupSize;
         globalHeight = (texHeight + groupSize - 1) & -groupSize;
 
-#if SHARED_BUFFER
-        //outBuffer = new ComputeImage2D( clContext, ComputeMemoryFlags.WriteOnly, new ComputeImageFormat( ComputeImageChannelOrder.Rgba, ComputeImageChannelType.UnsignedInt8 ),
-        //                                texWidth, texHeight, 0, (IntPtr)0 );
-        outBuffer = ComputeImage2D.CreateFromGLTexture2D( clContext, ComputeMemoryFlags.WriteOnly, (int)TextureTarget.Texture2D, 0, texName );
-#endif
+        // buffers:
+        cmap = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.ReadOnly | ComputeMemoryFlags.CopyHostPointer, colormap );
+
+        if ( checkInterop.Checked )
+        {
+          clImage = ComputeImage2D.CreateFromGLTexture2D( clContext, ComputeMemoryFlags.WriteOnly, (int)TextureTarget.Texture2D, 0, texName );
+        }
+        else
+        {
+          result = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.WriteOnly, texWidth * texHeight * 4 );
+        }
+
         // synced..
         clDirty = false;
       }
       catch ( Exception exc )
       {
         Util.LogFormat( "OpenCL build error: {0}", exc.Message );
-#if SHARED_BUFFER
-        outBuffer = null;
-#endif
+        clImage = null;
         clDirty = true;
       }
     }
 
     void DestroyClBuffers ()
     {
-#if SHARED_BUFFER
-      if ( outBuffer != null )
+      if ( clImage != null )
       {
-        outBuffer.Dispose();
-        outBuffer = null;
+        clImage.Dispose();
+        clImage = null;
       }
-#endif
 
       if ( result != null )
       {
@@ -696,12 +711,14 @@ namespace _090opencl
       if ( checkOpenCL.Checked )
       {
         // OpenCL version:
-        mandel.ComputeCL( clContext, texName, texWidth, texHeight, colormap, checkDouble.Checked );
+        mandel.ComputeCL( clContext, texName, texWidth, texHeight, colormap,
+                          checkDouble.Checked, checkInterop.Checked );
       }
       else
       {
         // SW version:
-        mandel.ComputeSW( texName, texWidth, texHeight, colormap, checkDouble.Checked, checkPalette.Checked );
+        mandel.ComputeSW( texName, texWidth, texHeight, colormap,
+                          checkDouble.Checked, checkPalette.Checked );
       }
       computeCounter += 1.0e-7 * (DateTime.Now.Ticks - startTicks);
 
