@@ -1,8 +1,9 @@
-base     = ./input/
-outDir   = ./output/
+base       = ./input/
+outDir     = ./output/
 
-output   = test.html
+output     = test.html
+imageWidth = 600
 
-forfiles = ./input/*.png, image={0}
-
-forfiles = ./input/*.cs, source={0}
+forfiles   = ./input/*.png, image={0}
+forfiles   = ./input/*.cs, source={0}
+library    = ../../common/MathSupport.cs
