@@ -156,7 +156,7 @@ namespace _091svg
     /// Parsing of the text config-file. Key=value pairs, list of commands / input file-names, ..
     /// </summary>
     /// <param name="path">Config file-name.</param>
-    static void parseConfig ( string path, bool initial = true )
+    static void parseConfig ( string path, bool initial =true )
     {
       string line;
       int lineNumber = 0;
@@ -218,7 +218,7 @@ namespace _091svg
         Console.WriteLine( "Warning: no command-line options, using default values!" );
       else
         for ( int i = 0; i < args.Length; i++ )
-          if ( args[ i ] != null && args[ i ].Length > 0 )
+          if ( !string.IsNullOrEmpty( args[ i ] ) )
           {
             if ( args[ i ].Equals( "-c" ) )     // process the config file
             {

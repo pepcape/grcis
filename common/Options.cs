@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -299,12 +300,75 @@ namespace Utilities
         if ( !File.Exists( currFileName ) &&
              !File.Exists( currFileName + ".gz" ) ) break;
         i++;
-      } while ( true );
+      }
+      while ( true );
 
       // rename current log-file to the 1st available backup name:
       File.Move( origFileName, currFileName );
 
       return new StreamWriter( origFileName, false );
+    }
+
+    /// <summary>
+    /// Logging (log message is always appended to the log-file).
+    /// </summary>
+    /// <param name="fmt">Format string.</param>
+    /// <param name="pars">Values to substitute.</param>
+    public static string LogFormat ( string fmt, params object[] pars )
+    {
+      fmt = string.Format( CultureInfo.InvariantCulture, fmt, pars );
+      return Log( fmt );
+    }
+
+    /// <summary>
+    /// Logging (log message is appended to the log-file).
+    /// </summary>
+    /// <param name="modes">Message mode[s].</param>
+    /// <param name="fmt">Format string.</param>
+    /// <param name="pars">Values to substitute.</param>
+    public static string LogFormatMode ( string modes, string fmt, params object[] pars )
+    {
+      if ( !options.MsgMode( modes ) )
+        return null;
+
+      fmt = string.Format( CultureInfo.InvariantCulture, fmt, pars );
+      return Log( fmt );
+    }
+
+    /// <summary>
+    /// Logging (log message is appended to the log-file).
+    /// </summary>
+    /// <param name="modes">Message mode[s].</param>
+    /// <param name="msg">The explicit message.</param>
+    public static string Log ( string modes, string msg )
+    {
+      if ( !options.MsgMode( modes ) )
+        return null;
+
+      return Log( msg );
+    }
+
+    /// <summary>
+    /// Logging (log message is always appended to the log-file).
+    /// </summary>
+    /// <param name="msg">The explicit message.</param>
+    public static string Log ( string msg )
+    {
+      try
+      {
+        lock ( options.logFileName )
+          using ( TextWriter log = options.GetLogFile( options.logFileName ) )
+          {
+            log.WriteLine( string.Format( "{0}: {1}", Util.FormatNowUtc(), msg ) );
+            //Util.Touch( ++MemstatCounter >= Options.options.memoryCheckPeriod, log );
+          }
+      }
+      catch ( IOException e )
+      {
+        Console.WriteLine( "Log - unhandled IOException: " + e.Message );
+        Console.WriteLine( "Stack: " + e.StackTrace );
+      }
+      return msg;
     }
 
     /// <summary>
@@ -677,6 +741,53 @@ namespace Utilities
       Console.WriteLine( "Finished reading config-file '{0}' ({1}, {2}, {3}, {4})",
                          path, Util.ProgramVersion, Util.TargetFramework, Util.RunningFramework,
                          Util.FormatNowUtc() );
+    }
+
+    /// <summary>
+    /// Parse single option from the command-line.
+    /// </summary>
+    /// <param name="args">Global argument-list.</param>
+    /// <param name="i">Index to the argument-list.</param>
+    /// <returns>True if the option was recognized and handled ok.</returns>
+    public virtual bool ParseOption ( string[] args, ref int i )
+    {
+      if ( i >= args.Length ||
+           string.IsNullOrEmpty( args[ i ] ) )
+        return false;
+
+      if ( args[ i ][ 0 ] != '-' )
+        return HandleCommand( args[ i ] );
+
+      string opt = args[ i ].Substring( 1 );
+      int pos = opt.IndexOf( '=' );
+      if ( pos < 0 )
+      {
+        if ( opt == "c" &&
+             i + 1 < args.Length )
+        {
+          if ( File.Exists( args[ ++i ] ) )
+          {
+            configFile = Path.GetFullPath( args[ i ] );
+            ParseConfig( configFile );
+          }
+          else
+            Console.WriteLine( "Warning: config-file '{0}' doesn't exist!", args[ i ] );
+
+          return true;
+        }
+
+        return HandleCommand( opt );
+      }
+
+      string key = opt.Substring( 0, pos ).Trim();
+      if ( key.Length < 1 )
+        return false;
+
+      string value = opt.Substring( pos + 1 ).Trim();
+      if ( value.Length == 0 )
+        return HandleEmptyValue( key );
+
+      return AdditionalKey( key, value, args[ i ] );
     }
 
     /// <summary>
