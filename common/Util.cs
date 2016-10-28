@@ -310,6 +310,63 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Reads the given text file-name into the string variable.
+    /// </summary>
+    /// <returns>True if ok.</returns>
+    public static bool ReadTextFile ( string filename, out string content )
+    {
+      if ( !File.Exists( filename ) )
+      {
+        content = string.Empty;
+        return false;
+      }
+
+      try
+      {
+        using ( FileStream fs = File.Open( filename, FileMode.Open, FileAccess.Read ) )
+          using ( StreamReader sr = new StreamReader( fs, Encoding.UTF8, true ) )
+            content = sr.ReadToEnd();
+      }
+      catch ( Exception )
+      {
+        LogFormat( "Error reading text file '{0}'!", filename );
+        content = string.Empty;
+        return false;
+      }
+
+      return true;
+    }
+
+    /// <summary>
+    /// File-path relativization.
+    /// </summary>
+    /// <param name="basePath">Base path (folder).</param>
+    /// <param name="path">Path to relativize.</param>
+    /// <param name="sep">Dir-separation character.</param>
+    /// <returns>Relative file path.</returns>
+    public static string MakeRelativePath ( string basePath, string path, char sep ='/' )
+    {
+      if ( string.IsNullOrEmpty( basePath ) )
+        throw new ArgumentNullException( "basePath" );
+      if ( string.IsNullOrEmpty( path ) )
+        throw new ArgumentNullException( "path" );
+
+      Uri fromUri = new Uri( Path.GetFullPath( basePath ) );
+      Uri toUri   = new Uri( Path.GetFullPath( path ) );
+
+      //if ( !fromUri.Scheme.Equals( toUri.Scheme, StringComparison.InvariantCultureIgnoreCase ) )
+      //  return path;   // cannot relativize different schemes..
+
+      Uri relativeUri = fromUri.MakeRelativeUri( toUri );
+      string relativePath = Uri.UnescapeDataString( relativeUri.ToString() );
+
+      //if ( toUri.Scheme.Equals( "file", StringComparison.InvariantCultureIgnoreCase ) )
+      //  relativePath = relativePath.Replace( Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar );
+
+      return relativePath.Replace( Path.DirectorySeparatorChar, sep );
+    }
+
+    /// <summary>
     /// Separator for the config-file lists.
     /// </summary>
     public const char COMMA = ',';

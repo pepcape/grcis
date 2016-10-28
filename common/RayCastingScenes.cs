@@ -1148,7 +1148,7 @@ namespace Rendering
         if ( names[ i ] == null || names[ i ].Length == 0 )
           result[ i ] = "";
         else
-          if ( names[ i ].Contains( "\\" ) )
+          if ( names[ i ].Contains( @"\" ) )
             result[ i ] = names[ i ];
           else
             try
@@ -1165,13 +1165,13 @@ namespace Rendering
                 result[ i ] = search[ 0 ];
                 continue;
               }
-              search = Directory.GetFiles( "..\\..", names[ i ], SearchOption.AllDirectories );
+              search = Directory.GetFiles( @"..\..", names[ i ], SearchOption.AllDirectories );
               if ( search.Length > 0 )
               {
                 result[ i ] = search[ 0 ];
                 continue;
               }
-              search = Directory.GetFiles( "..\\..\\..", names[ i ], SearchOption.AllDirectories );
+              search = Directory.GetFiles( @"..\..\..", names[ i ], SearchOption.AllDirectories );
               if ( search.Length > 0 )
               {
                 result[ i ] = search[ 0 ];

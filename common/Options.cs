@@ -163,7 +163,7 @@ namespace Utilities
     /// Returns true if any of given message-mode[s] is[are] set.
     /// Uses logical OR.
     /// </summary>
-    /// <param name="modes">One or more modes (separated by comma).</param>
+    /// <param name="modes">One or more modes (comma-separated).</param>
     public bool MsgMode ( string modes )
     {
       if ( string.IsNullOrEmpty( modes ) )
@@ -216,17 +216,12 @@ namespace Utilities
     /// <summary>
     /// Ordered list of input file-names
     /// </summary>
-    public List<string> fileNames = new List<string>();
+    public List<string> inputFiles = new List<string>();
 
     /// <summary>
     /// Format for the absolute dates..
     /// </summary>
     public const string DATE_FORMAT_STRING = "yyyy'-'MM'-'dd";
-
-    /// <summary>
-    /// One day in seconds.
-    /// </summary>
-    public const long ONE_DAY = 24 * 3600L;
 
     /// <summary>
     /// List of commands to execute.
@@ -553,8 +548,8 @@ namespace Utilities
     public virtual void Cleanup ()
     {
       commands.Clear();
-      fileNames = new List<string>();
-      baseDir   = "";
+      inputFiles.Clear();
+      baseDir = ".";
     }
 
     /// <summary>
@@ -679,9 +674,11 @@ namespace Utilities
           }
 
           string value = line.Substring( pos + 1 ).Trim();
-          if ( value.Length == 0 &&
-               HandleEmptyValue( key ) )
+          if ( value.Length == 0 )
+          {
+            HandleEmptyValue( key );
             continue;
+          }
 
           switch ( key )
           {
@@ -725,6 +722,72 @@ namespace Utilities
                 break;
               }
 
+            case "foreach":
+              {
+                string[] tokens = Util.ParseList( value );
+                if ( tokens.Length >= 2 )
+                {
+                  int i = tokens.Length - 1;
+                  string template = tokens[ i ];
+
+                  // generate the lines:
+                  while ( --i >= 0 )
+                    buffer.Push( string.Format( template, tokens[ i ] ) );
+
+                  includeFiles.Push( "foreach(" + template + ')' );
+                  includeLines.Push( tokens.Length - 1 );
+                  parentLine.Push( lineNumber );
+                  lineNumber = 0;
+                }
+                else
+                  Console.WriteLine( "Warning: error in 'foreach' statement in config-file line: '{0}'", line );
+                break;
+              }
+
+            case "forfiles":
+              {
+                string[] tokens = Util.ParseList( value );
+                if ( tokens.Length >= 2 )
+                {
+                  int i = tokens.Length - 1;
+                  string template = tokens[ i ];
+                  int files = 0;
+
+                  // generate the lines:
+                  while ( --i >= 0 )
+                  {
+                    try
+                    {
+                      string dir = Path.GetDirectoryName( tokens[ i ] );
+                      string mask = Path.GetFileName( tokens[ i ] );
+                      string[] search = Directory.GetFiles( dir, mask );
+                      int len = search.Length;
+                      while ( --len >= 0 )
+                      {
+                        buffer.Push( string.Format( template, search[ len ] ) );
+                        files++;
+                      }
+                    }
+                    catch ( IOException )
+                    {
+                      Console.WriteLine( "Warning: I/O error in 'foreach' statement for token: '{0}'", tokens[ i ] );
+                    }
+                    catch ( UnauthorizedAccessException )
+                    {
+                      Console.WriteLine( "Warning: access error in 'foreach' statement for token: '{0}'", tokens[ i ] );
+                    }
+                  }
+
+                  includeFiles.Push( "forfiles(" + template + ')' );
+                  includeLines.Push( files );
+                  parentLine.Push( lineNumber );
+                  lineNumber = 0;
+                }
+                else
+                  Console.WriteLine( "Warning: error in 'forfiles' statement in config-file line: '{0}'", line );
+                break;
+              }
+
             default:
               if ( !AdditionalKey( key, value, line ) )
                 Console.WriteLine( "Warning: unknown key '{0}' in config-file {1} ({2})", key, FileLineNo(), line );
@@ -735,8 +798,6 @@ namespace Utilities
       }
 
       PostConfig();
-
-      Util.GetFrameworkVersions( out Util.TargetFramework, out Util.RunningFramework );
 
       Console.WriteLine( "Finished reading config-file '{0}' ({1}, {2}, {3}, {4})",
                          path, Util.ProgramVersion, Util.TargetFramework, Util.RunningFramework,
@@ -759,25 +820,48 @@ namespace Utilities
         return HandleCommand( args[ i ] );
 
       string opt = args[ i ].Substring( 1 );
-      int pos = opt.IndexOf( '=' );
-      if ( pos < 0 )
-      {
-        if ( opt == "c" &&
-             i + 1 < args.Length )
-        {
-          if ( File.Exists( args[ ++i ] ) )
-          {
-            configFile = Path.GetFullPath( args[ i ] );
-            ParseConfig( configFile );
-          }
-          else
-            Console.WriteLine( "Warning: config-file '{0}' doesn't exist!", args[ i ] );
 
-          return true;
+      if ( opt == "c" &&
+           i + 1 < args.Length )
+      {
+        if ( File.Exists( args[ ++i ] ) )
+        {
+          configFile = Path.GetFullPath( args[ i ] );
+          ParseConfig( configFile );
+        }
+        else
+          Console.WriteLine( "Warning: config-file '{0}' doesn't exist!", args[ i ] );
+
+        return true;
+      }
+
+      if ( opt == "o" &&
+           i + 1 < args.Length )       // priority output file-name
+      {
+        if ( !string.IsNullOrEmpty( args[ ++i ] ) )    // potentially valid output file-name
+        {
+          outputFileName = args[ i ];
+          priorityOutputFileName = true;
         }
 
-        return HandleCommand( opt );
+        return true;
       }
+
+      if ( opt == "l" &&
+           i + 1 < args.Length )       // log file-name
+      {
+        if ( !string.IsNullOrEmpty( args[ ++i ] ) )    // potentially valid log file-name
+        {
+          logFileName = args[ i ];
+          priorityLogFileName = true;
+        }
+
+        return true;
+      }
+
+      int pos = opt.IndexOf( '=' );
+      if ( pos < 0 )
+        return HandleCommand( opt );
 
       string key = opt.Substring( 0, pos ).Trim();
       if ( key.Length < 1 )
@@ -883,9 +967,9 @@ namespace Utilities
     }
 
     /// <summary>
-    /// How to handle the non-key-value config-file line?
+    /// How to handle the non-key-value config line?
     /// </summary>
-    /// <param name="line">The nonempty config-file line.</param>
+    /// <param name="line">The nonempty config line.</param>
     /// <returns>True if config line was handled.</returns>
     public virtual bool HandleCommand ( string line )
     {

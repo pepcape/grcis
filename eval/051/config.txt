@@ -1,0 +1,6 @@
+base     = ./input/
+outDir   = ./output/
+
+output   = test.html
+
+forfiles = ./input/*.png, image={0}

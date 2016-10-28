@@ -29,7 +29,7 @@ namespace _016videoslow
       string fn = String.Format( textInputMask.Text, 0 );
       string dir = Path.GetDirectoryName( fn );
       Directory.CreateDirectory( dir );
-      dir += "\\capturelog.txt";
+      dir += @"\capturelog.txt";
       StreamWriter log = new StreamWriter( new FileStream( dir, FileMode.Create ) );
 
       Image im;
