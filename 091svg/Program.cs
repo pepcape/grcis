@@ -16,19 +16,12 @@ namespace _091svg
   class Program
   {
     /// <summary>
-    /// Program version.
+    /// Defines program version (Rev#).
     /// </summary>
-    public static string ProgramVersion = "$Rev: 405 $".Replace( '$', ' ' ).Trim();
-
-    /// <summary>
-    /// Target (compiled against) .NET framework version.
-    /// </summary>
-    public static string TargetFramework = "";
-
-    /// <summary>
-    /// Currently running .NET framework version.
-    /// </summary>
-    public static string RunningFramework = "";
+    static Program ()
+    {
+      Util.SetVersion( "$Rev: 405 $" );
+    }
 
 #region Customizable parameters
 
@@ -210,10 +203,8 @@ namespace _091svg
         while ( true );
       }
 
-      Util.GetFrameworkVersions( out TargetFramework, out RunningFramework );
-
       Console.WriteLine( "Finished reading config-file '{0}' ({1}, {2}, {3}, {4})",
-                         path, ProgramVersion, TargetFramework, RunningFramework,
+                         path, Util.ProgramVersion, Util.TargetFramework, Util.RunningFramework,
                          Util.FormatNowUtc() );
     }
 
