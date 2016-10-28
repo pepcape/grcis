@@ -1,6 +1,9 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Utilities;
 
@@ -50,11 +53,18 @@ namespace _051
     public string footerFile = @".\output\footer-standalone.html";
 
     /// <summary>
+    /// List of source files.
+    /// </summary>
+    public List<string> sourceFiles = new List<string>();
+
+    /// <summary>
     /// Specific data cleanup.
     /// </summary>
     public override void Cleanup ()
     {
       base.Cleanup();
+
+      sourceFiles.Clear();
     }
 
     /// <summary>
@@ -88,6 +98,16 @@ namespace _051
             Console.WriteLine( "Warning: ignoring nonexistent image '{0}' ({1})", value, FileLineNo() );
           break;
 
+        case "source":
+          if ( File.Exists( value ) )
+            sourceFiles.Add( value );
+          else
+          if ( File.Exists( baseDir + value ) )
+            sourceFiles.Add( baseDir + value );
+          else
+            Console.WriteLine( "Warning: ignoring nonexistent source '{0}' ({1})", value, FileLineNo() );
+          break;
+
         case "headerFile":
           if ( File.Exists( value ) )
             headerFile = value;
@@ -119,6 +139,10 @@ namespace _051
       {
         case "image":
           inputFiles.Clear();
+          return true;
+
+        case "source":
+          sourceFiles.Clear();
           return true;
       }
 
@@ -208,10 +232,75 @@ namespace _051
           wri.WriteLine( "</p>" );
         }
 
+        foreach ( var src in EvalOptions.options.sourceFiles )
+        {
+          EvaluateSource( src, wri );
+        }
+
         // HTML file footer:
         if ( Util.ReadTextFile( EvalOptions.options.footerFile, out part ) )
           wri.Write( part );
       }
+    }
+
+    static void EvaluateSource ( string fn, TextWriter wri )
+    {
+      CodeDomProvider P = CodeDomProvider.CreateProvider( "C#" );
+      CompilerParameters Opt = new CompilerParameters();
+      Opt.GenerateInMemory = true;
+      Opt.ReferencedAssemblies.Add( @"System.dll" );
+      Opt.ReferencedAssemblies.Add( @"System.Linq.dll" );
+      Opt.ReferencedAssemblies.Add( @"System.Drawing.dll" );
+      Opt.IncludeDebugInformation = false;
+
+      // read original source file ..
+      string source;
+      if ( !Util.ReadTextFile( fn, out source ) )
+        return;
+
+      // .. determine the name ..
+      int end = fn.LastIndexOf( ".cs" );
+      if ( end < 1 )
+        return;
+
+      string name = fn.Substring( 0, end );
+      end = name.LastIndexOf( '.' );
+      if ( end < 0 )
+        return;
+      name = name.Substring( end + 1 );
+
+      // .. change its namespace ..
+      string ns = "cmap" + name;
+      source = source.Replace( "_051colormap", ns );
+
+      CompilerResults R = P.CompileAssemblyFromSource( Opt, source );
+      wri.WriteLine( "<p>" );
+      wri.WriteLine( "Source: {0}, method: {1}.Colormap.Generate()", fn, ns );
+      if ( R.Errors.Count > 0 )
+      {
+        wri.WriteLine( "</p>" );
+        wri.WriteLine( "<pre>" );
+        foreach ( var err in R.Errors )
+          wri.WriteLine( err.ToString() );
+        wri.WriteLine( "</pre>" );
+        return;
+      }
+
+      Assembly Ass = R.CompiledAssembly;
+      Color[] colors = null;
+      Bitmap image = (Bitmap)Image.FromFile( EvalOptions.options.inputFiles[ 0 ] );
+      object[] arguments = new object[] { image, 10, colors };
+      Ass.GetType( ns + ".Colormap" ).GetMethod( "Generate" ).Invoke( null, arguments );
+      colors = arguments[ 2 ] as Color[];
+
+      // report:
+      if ( colors != null )
+      {
+        wri.Write( "<br/>colors: {0} -", colors.Length );
+        foreach ( var col in colors )
+          wri.Write( " #{0:X2}{1:X2}{2:X2}", col.R, col.G, col.B );
+      }
+      wri.WriteLine( "</p>" );
     }
   }
 }
