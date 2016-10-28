@@ -13,6 +13,32 @@ namespace Utilities
   /// </summary>
   class Util
   {
+    static Util ()
+    {
+      SetVersion( "$Rev$" );
+    }
+
+    /// <summary>
+    /// Program version.
+    /// </summary>
+    public static string ProgramVersion = "";
+
+    /// <summary>
+    /// Target (compiled against) .NET framework version.
+    /// </summary>
+    public static string TargetFramework = "";
+
+    /// <summary>
+    /// Currently running .NET framework version.
+    /// </summary>
+    public static string RunningFramework = "";
+
+    public static void SetVersion ( string revision )
+    {
+      GetFrameworkVersions( out TargetFramework, out RunningFramework );
+      ProgramVersion = revision.Replace( '$', ' ' ).Trim();
+    }
+
     /// <summary>
     /// One day in seconds.
     /// </summary>
