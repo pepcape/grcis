@@ -4,3 +4,5 @@ outDir   = ./output/
 output   = test.html
 
 forfiles = ./input/*.png, image={0}
+
+forfiles = ./input/*.cs, source={0}

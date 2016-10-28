@@ -46,9 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\common\MathSupport.cs">
-      <Link>MathSupport.cs</Link>
-    </Compile>
     <Compile Include="..\..\common\Options.cs">
       <Link>Options.cs</Link>
     </Compile>
