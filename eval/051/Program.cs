@@ -1,10 +1,13 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using MathSupport;
 using Utilities;
 
 namespace _051
@@ -36,6 +39,11 @@ namespace _051
     {
       // default values of structured members:
       baseDir = @".\input\";
+
+      references.Add( @"System.dll" );
+      references.Add( @"System.Core.dll" );
+      references.Add( @"System.Linq.dll" );
+      references.Add( @"System.Drawing.dll" );
     }
 
     public static void Touch ()
@@ -52,6 +60,18 @@ namespace _051
 
     public string footerFile = @".\output\footer-standalone.html";
 
+    public HashSet<string> references = new HashSet<string>();
+
+    public HashSet<string> libraries = new HashSet<string>();
+
+    public string compilerOptions = "/optimize+ /unsafe";
+
+    public int imageWidth = 400;
+
+    public double minV = 40.0;
+
+    public double minS =  0.1;
+
     /// <summary>
     /// List of source files.
     /// </summary>
@@ -65,6 +85,7 @@ namespace _051
       base.Cleanup();
 
       sourceFiles.Clear();
+      libraries.Clear();
     }
 
     /// <summary>
@@ -79,8 +100,7 @@ namespace _051
         return true;
 
       int newInt = 0;
-      long newLong = 0L;
-      float newFloat = 0.0f;
+      double newDouble = 0.0;
 
       switch ( key )
       {
@@ -122,6 +142,34 @@ namespace _051
             Console.WriteLine( "Warning: ignoring nonexistent file '{0}' ({1})", value, FileLineNo() );
           break;
 
+        case "reference":
+          references.Add( value );
+          break;
+
+        case "library":
+          libraries.Add( value );
+          break;
+
+        case "imageWidth":
+          if ( int.TryParse( value, out newInt ) &&
+               newInt > 10 )
+            imageWidth = newInt;
+          break;
+
+        case "compilerOptions":
+          compilerOptions = value;
+          break;
+
+        case "minV":
+          if ( double.TryParse( value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble ) )
+            minV = newDouble;
+          break;
+
+        case "minS":
+          if ( double.TryParse( value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble ) )
+            minS = newDouble;
+          break;
+
         default:
           return false;
       }
@@ -143,6 +191,10 @@ namespace _051
 
         case "source":
           sourceFiles.Clear();
+          return true;
+
+        case "library":
+          libraries.Clear();
           return true;
       }
 
@@ -213,6 +265,10 @@ namespace _051
 
     static bool wasEvaluated = false;
 
+    static Dictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
+
+    static Stopwatch sw = new Stopwatch();
+
     static public void Evaluate ()
     {
       wasEvaluated = true;
@@ -220,22 +276,37 @@ namespace _051
       {
         string part;
 
+        // compile all source files:
+        Options.Log( null );
+        CompileSources( EvalOptions.options.sourceFiles );
+
         // HTML file header:
         if ( Util.ReadTextFile( EvalOptions.options.headerFile, out part ) )
           wri.Write( part );
 
-        foreach ( var image in EvalOptions.options.inputFiles )
-        {
-          string relative = Util.MakeRelativePath( EvalOptions.options.outDir, image );
-          wri.WriteLine( "<p>" );
-          wri.WriteLine( "<img src=\"{0}\" width=\"400\"/>", relative );
-          wri.WriteLine( "</p>" );
-        }
+        wri.WriteLine( "<table>" );
+        wri.WriteLine( "<tr><th>Name</th><th>Time</th><th>Image / colors</th></tr>" );
 
-        foreach ( var src in EvalOptions.options.sourceFiles )
+        foreach ( var imageFn in EvalOptions.options.inputFiles )
         {
-          EvaluateSource( src, wri );
+          wri.WriteLine( "<tr><td>&nbsp;</td></tr>" );
+
+          string relative = Util.MakeRelativePath( EvalOptions.options.outDir, imageFn );
+          wri.WriteLine( "<tr><td>&nbsp;</td><td>&nbsp;</td>" );
+          wri.WriteLine( "<td><img src=\"{0}\" width=\"{1}\"/></td>",
+                         relative, EvalOptions.options.imageWidth );
+          wri.WriteLine( "</tr>" );
+
+          Bitmap image = (Bitmap)Image.FromFile( imageFn );
+
+          List<string> names = new List<string>( assemblies.Keys );
+          names.Sort();
+          foreach ( var name in names )
+            EvaluateSolution( name, assemblies[ name ], image, wri );
+
+          image.Dispose();
         }
+        wri.WriteLine( "</table>" );
 
         // HTML file footer:
         if ( Util.ReadTextFile( EvalOptions.options.footerFile, out part ) )
@@ -243,64 +314,150 @@ namespace _051
       }
     }
 
-    static void EvaluateSource ( string fn, TextWriter wri )
+    static void CompileSources ( IEnumerable<string> sources )
     {
+      sw.Restart();
+
       CodeDomProvider P = CodeDomProvider.CreateProvider( "C#" );
       CompilerParameters Opt = new CompilerParameters();
       Opt.GenerateInMemory = true;
-      Opt.ReferencedAssemblies.Add( @"System.dll" );
-      Opt.ReferencedAssemblies.Add( @"System.Linq.dll" );
-      Opt.ReferencedAssemblies.Add( @"System.Drawing.dll" );
+      foreach ( string refName in EvalOptions.options.references )
+        Opt.ReferencedAssemblies.Add( refName );
       Opt.IncludeDebugInformation = false;
+      Opt.CompilerOptions = EvalOptions.options.compilerOptions;
 
-      // read original source file ..
+      // Common optional library files ..
       string source;
-      if ( !Util.ReadTextFile( fn, out source ) )
-        return;
+      List<string> globalSources = new List<string>();
+      foreach ( var libName in EvalOptions.options.libraries )
+        if ( Util.ReadTextFile( libName, out source ) )
+          globalSources.Add( source );
+        else
+          Options.LogFormat( "Error reading library source file '{0}', ignored.", libName );
 
-      // .. determine the name ..
-      int end = fn.LastIndexOf( ".cs" );
-      if ( end < 1 )
-        return;
-
-      string name = fn.Substring( 0, end );
-      end = name.LastIndexOf( '.' );
-      if ( end < 0 )
-        return;
-      name = name.Substring( end + 1 );
-
-      // .. change its namespace ..
-      string ns = "cmap" + name;
-      source = source.Replace( "_051colormap", ns );
-
-      CompilerResults R = P.CompileAssemblyFromSource( Opt, source );
-      wri.WriteLine( "<p>" );
-      wri.WriteLine( "Source: {0}, method: {1}.Colormap.Generate()", fn, ns );
-      if ( R.Errors.Count > 0 )
+      int files = 0;
+      int errors = 0;
+      
+      foreach ( var fn in sources )
       {
-        wri.WriteLine( "</p>" );
-        wri.WriteLine( "<pre>" );
-        foreach ( var err in R.Errors )
-          wri.WriteLine( err.ToString() );
-        wri.WriteLine( "</pre>" );
-        return;
+        // read original source file ..
+        if ( !Util.ReadTextFile( fn, out source ) )
+        {
+          Options.LogFormat( "Error reading source file '{0}', ignored.", fn );
+          continue;
+        }
+
+        // .. determine the name ..
+        int end = fn.LastIndexOf( ".cs" );
+        if ( end < 1 )
+        {
+          Options.LogFormat( "Invalid format of source file name '{0}', ignored.", fn );
+          continue;
+        }
+
+        string name = fn.Substring( 0, end );
+        end = name.LastIndexOf( '.' );
+        if ( end < 0 )
+        {
+          Options.LogFormat( "Invalid format of source file name '{0}', ignored.", fn );
+          continue;
+        }
+        name = name.Substring( end + 1 );
+
+        files++;
+
+        // .. change its namespace ..
+        source = source.Replace( "_051colormap", "cmap" + name );
+        List<string> localSources = new List<string>( globalSources );
+        localSources.Add( source );
+
+        // .. and finally compile it all:
+        CompilerResults R = P.CompileAssemblyFromSource( Opt, localSources.ToArray() );
+        if ( R.Errors.Count > 0 )
+        {
+          errors += R.Errors.Count;
+          Options.LogFormat( "Source: {0}, name: {1}, errors:", fn, name );
+          foreach ( var err in R.Errors )
+            Options.Log( " " + err );
+          continue;
+        }
+
+        Options.LogFormat( "Source: {0}, name: {1}, OK", fn, name );
+        assemblies[ name ] = R.CompiledAssembly;
       }
 
-      Assembly Ass = R.CompiledAssembly;
+      sw.Stop();
+      Console.WriteLine( Options.LogFormat( "Compile finished, files: {0}, time: {1:f2}s, errors: {2}",
+                                            files, sw.ElapsedMilliseconds * 0.001, errors ) );
+    }
+
+    static void EvaluateSolution ( string name, Assembly ass, Bitmap image, TextWriter wri )
+    {
       Color[] colors = null;
-      Bitmap image = (Bitmap)Image.FromFile( EvalOptions.options.inputFiles[ 0 ] );
       object[] arguments = new object[] { image, 10, colors };
-      Ass.GetType( ns + ".Colormap" ).GetMethod( "Generate" ).Invoke( null, arguments );
+
+      sw.Restart();
+      ass.GetType( "cmap" + name + ".Colormap" ).GetMethod( "Generate" ).Invoke( null, arguments );
+      sw.Stop();
+
       colors = arguments[ 2 ] as Color[];
+      double minS = EvalOptions.options.minS;
+      double minV = EvalOptions.options.minV;
 
       // report:
       if ( colors != null )
       {
-        wri.Write( "<br/>colors: {0} -", colors.Length );
+        wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}</td><td class=\"t r\">{1:f2}s</td>",
+                                  name, sw.ElapsedMilliseconds * 0.001 ) );
+
+        // color ordering:
+        Array.Sort( colors, ( a, b ) =>
+        {
+          double aH, aS, aV;
+          Arith.ColorToHSV( a, out aH, out aS, out aV );
+          double bH, bS, bV;
+          Arith.ColorToHSV( b, out bH, out bS, out bV );
+
+          if ( aV < minV )
+            if ( bV < minV )
+              return aV.CompareTo( bV );
+            else
+              return -1;
+          else
+            if ( bV < minV )
+              return 1;
+
+          if ( aS < minS )
+            if ( bS < minS )
+              return aS.CompareTo( bS );
+            else
+              return -1;
+          else
+            if ( bS < minS )
+              return 1;
+
+          return aH.CompareTo( bH );
+        } );
+
+        // SVG color visualization:
+        int width = EvalOptions.options.imageWidth;
+        int widthBin = width / 10;
+        int height = 50;
+        int border = 2;
+        wri.WriteLine( "<td><svg width=\"{0}\" height=\"{1}\">", width, height );
+        int x = 0;
         foreach ( var col in colors )
-          wri.Write( " #{0:X2}{1:X2}{2:X2}", col.R, col.G, col.B );
+        {
+          string rgb = string.Format( "#{0:X2}{1:X2}{2:X2}", col.R, col.G, col.B );
+          wri.WriteLine( "<rect x=\"{0}\" y=\"{1}\" width=\"{2}\" height=\"{3}\" fill=\"{4}\" />",
+                         x + border, border, widthBin - 2 * border, height - 2 * border - 14, rgb );
+          wri.WriteLine( "<text x=\"{0}\" y=\"{1}\" class=\"rgb\" text-anchor=\"middle\">{2}</text>",
+                         x + widthBin / 2, height - border, rgb );
+          x += widthBin;
+        }
+        wri.WriteLine( "</svg></td>" );
+        wri.WriteLine( "</tr>" );
       }
-      wri.WriteLine( "</p>" );
     }
   }
 }

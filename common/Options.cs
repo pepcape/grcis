@@ -354,7 +354,10 @@ namespace Utilities
         lock ( options.logFileName )
           using ( TextWriter log = options.GetLogFile( options.logFileName ) )
           {
-            log.WriteLine( string.Format( "{0}: {1}", Util.FormatNowUtc(), msg ) );
+            if ( msg == null )
+              log.WriteLine();
+            else
+              log.WriteLine( string.Format( "{0}: {1}", Util.FormatNowUtc(), msg ) );
             //Util.Touch( ++MemstatCounter >= Options.options.memoryCheckPeriod, log );
           }
       }
