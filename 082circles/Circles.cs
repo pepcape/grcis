@@ -3,6 +3,7 @@
 using System;
 using System.Drawing;
 using System.Globalization;
+using CircleCanvas;
 
 namespace _082circles
 {

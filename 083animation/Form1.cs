@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
+using CircleCanvas;
 using GuiSupport;
 using Utilities;
 

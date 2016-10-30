@@ -3,6 +3,7 @@
 using System;
 using System.Drawing;
 using MathSupport;
+using CircleCanvas;
 
 namespace _083animation
 {

@@ -68,7 +68,9 @@ namespace _051
 
     public int imageWidth = 400;
 
-    public double minV = 40.0;
+    public double minV = 0.2;
+
+    public double maxV = 0.8;
 
     public double minS =  0.1;
 
@@ -76,6 +78,10 @@ namespace _051
     /// List of source files.
     /// </summary>
     public List<string> sourceFiles = new List<string>();
+
+    public HashSet<string> bans = new HashSet<string>();
+
+    public HashSet<string> best = new HashSet<string>();
 
     /// <summary>
     /// Specific data cleanup.
@@ -86,6 +92,8 @@ namespace _051
 
       sourceFiles.Clear();
       libraries.Clear();
+      bans.Clear();
+      best.Clear();
     }
 
     /// <summary>
@@ -150,6 +158,14 @@ namespace _051
           libraries.Add( value );
           break;
 
+        case "ban":
+          bans.Add( value );
+          break;
+
+        case "best":
+          best.Add( value );
+          break;
+
         case "imageWidth":
           if ( int.TryParse( value, out newInt ) &&
                newInt > 10 )
@@ -163,6 +179,11 @@ namespace _051
         case "minV":
           if ( double.TryParse( value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble ) )
             minV = newDouble;
+          break;
+
+        case "maxV":
+          if ( double.TryParse( value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble ) )
+            maxV = newDouble;
           break;
 
         case "minS":
@@ -195,6 +216,14 @@ namespace _051
 
         case "library":
           libraries.Clear();
+          return true;
+
+        case "ban":
+          bans.Clear();
+          return true;
+
+        case "best":
+          best.Clear();
           return true;
       }
 
@@ -258,11 +287,11 @@ namespace _051
           }
 
       //--- do the job ---
-      Options.Log( "debug", "Log(debug) test" );
       if ( !wasEvaluated )
         Evaluate();
     }
 
+    static bool wasCompiled = false;
     static bool wasEvaluated = false;
 
     static Dictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
@@ -272,45 +301,64 @@ namespace _051
     static public void Evaluate ()
     {
       wasEvaluated = true;
-      using ( TextWriter wri = new StreamWriter( Path.Combine( EvalOptions.options.outDir, EvalOptions.options.outputFileName ), false, Encoding.UTF8 ) )
+      try
       {
-        string part;
-
-        // compile all source files:
-        Options.Log( null );
-        CompileSources( EvalOptions.options.sourceFiles );
-
-        // HTML file header:
-        if ( Util.ReadTextFile( EvalOptions.options.headerFile, out part ) )
-          wri.Write( part );
-
-        wri.WriteLine( "<table>" );
-        wri.WriteLine( "<tr><th>Name</th><th>Time</th><th>Image / colors</th></tr>" );
-
-        foreach ( var imageFn in EvalOptions.options.inputFiles )
+        using ( TextWriter wri = new StreamWriter( Path.Combine( EvalOptions.options.outDir, EvalOptions.options.outputFileName ), false, Encoding.UTF8 ) )
         {
-          wri.WriteLine( "<tr><td>&nbsp;</td></tr>" );
+          string part;
 
-          string relative = Util.MakeRelativePath( EvalOptions.options.outDir, imageFn );
-          wri.WriteLine( "<tr><td>&nbsp;</td><td>&nbsp;</td>" );
-          wri.WriteLine( "<td><img src=\"{0}\" width=\"{1}\"/></td>",
-                         relative, EvalOptions.options.imageWidth );
-          wri.WriteLine( "</tr>" );
+          // compile all source files:
+          if ( !wasCompiled )
+          {
+            Options.Log( null );
+            CompileSources( EvalOptions.options.sourceFiles );
+            wasCompiled = true;
+          }
+          int images = EvalOptions.options.inputFiles.Count;
+          Console.WriteLine( Options.LogFormat( "Configuration - assemblies: {0}, bans: {1}, best: {2}, images: {3}, output: '{4}'",
+                                                assemblies.Count, EvalOptions.options.bans.Count, EvalOptions.options.best.Count,
+                                                images, EvalOptions.options.outputFileName ) );
 
-          Bitmap image = (Bitmap)Image.FromFile( imageFn );
+          // HTML file header:
+          if ( Util.ReadTextFile( EvalOptions.options.headerFile, out part ) )
+            wri.Write( part );
 
-          List<string> names = new List<string>( assemblies.Keys );
-          names.Sort();
-          foreach ( var name in names )
-            EvaluateSolution( name, assemblies[ name ], image, wri );
+          wri.WriteLine( "<table>" );
+          wri.WriteLine( "<tr><th>Name</th><th>Time</th><th>Image / colors</th></tr>" );
 
-          image.Dispose();
+          int ord = 0;
+          foreach ( var imageFn in EvalOptions.options.inputFiles )
+          {
+            wri.WriteLine( "<tr><td>&nbsp;</td></tr>" );
+
+            string relative = Util.MakeRelativePath( EvalOptions.options.outDir, imageFn );
+            wri.WriteLine( "<tr><td>&nbsp;</td><td>&nbsp;</td>" );
+            wri.WriteLine( "<td><img src=\"{0}\" width=\"{1}\"/></td>",
+                           relative, EvalOptions.options.imageWidth );
+            wri.WriteLine( "</tr>" );
+
+            Bitmap image = (Bitmap)Image.FromFile( imageFn );
+
+            List<string> names = new List<string>( assemblies.Keys );
+            names.Sort();
+            foreach ( var name in names )
+              if ( !EvalOptions.options.bans.Contains( name ) )
+                EvaluateSolution( name, assemblies[ name ], image, wri );
+
+            image.Dispose();
+
+            Console.WriteLine( Options.LogFormat( "Finished image #{0}/{1} '{2}'", ++ord, images, relative ) );
+          }
+          wri.WriteLine( "</table>" );
+
+          // HTML file footer:
+          if ( Util.ReadTextFile( EvalOptions.options.footerFile, out part ) )
+            wri.Write( part );
         }
-        wri.WriteLine( "</table>" );
-
-        // HTML file footer:
-        if ( Util.ReadTextFile( EvalOptions.options.footerFile, out part ) )
-          wri.Write( part );
+      }
+      catch ( IOException e )
+      {
+        Console.WriteLine( Options.LogFormat( "I/O error: {0}", e.Message ) );
       }
     }
 
@@ -403,40 +451,70 @@ namespace _051
       colors = arguments[ 2 ] as Color[];
       double minS = EvalOptions.options.minS;
       double minV = EvalOptions.options.minV;
+      double maxV = EvalOptions.options.maxV;
 
       // report:
       if ( colors != null )
       {
-        wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}</td><td class=\"t r\">{1:f2}s</td>",
-                                  name, sw.ElapsedMilliseconds * 0.001 ) );
+        bool best = EvalOptions.options.best.Contains( name );
+        wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}{1}{2}</td><td class=\"t r\">{3:f2}s</td>",
+                                  best ? "<b>" : "", name, best ? "</b>" : "", sw.ElapsedMilliseconds * 0.001 ) );
 
         // color ordering:
         Array.Sort( colors, ( a, b ) =>
         {
           double aH, aS, aV;
           Arith.ColorToHSV( a, out aH, out aS, out aV );
+          double aMin = Math.Min( Math.Min( a.R, a.G ), a.B ) / 255.0;
+
+          int aSeg;
+          double aM;
+          if ( aV < minV )
+          {
+            aSeg = 0;
+            aM = aV;
+          }
+          else
+          if ( aMin > maxV ||
+               aS < minS )
+          {
+            aSeg = 1;
+            aM = aMin;
+          }
+          else
+          {
+            aSeg = 2;
+            aM = aH;
+          }
+
           double bH, bS, bV;
           Arith.ColorToHSV( b, out bH, out bS, out bV );
+          double bMin = Math.Min( Math.Min( b.R, b.G ), b.B ) / 255.0;
 
-          if ( aV < minV )
-            if ( bV < minV )
-              return aV.CompareTo( bV );
-            else
-              return -1;
+          int bSeg;
+          double bM;
+          if ( bV < minV )
+          {
+            bSeg = 0;
+            bM = bV;
+          }
           else
-            if ( bV < minV )
-              return 1;
-
-          if ( aS < minS )
-            if ( bS < minS )
-              return aS.CompareTo( bS );
-            else
-              return -1;
+          if ( bMin > maxV ||
+               bS < minS )
+          {
+            bSeg = 1;
+            bM = bMin;
+          }
           else
-            if ( bS < minS )
-              return 1;
+          {
+            bSeg = 2;
+            bM = bH;
+          }
 
-          return aH.CompareTo( bH );
+          if ( aSeg == bSeg )
+            return aM.CompareTo( bM );
+
+          return aSeg.CompareTo( bSeg );
         } );
 
         // SVG color visualization:

@@ -56,7 +56,7 @@ namespace MathSupport
       int min = Math.Min( color.R, Math.Min( color.G, color.B ) );
 
       hue = color.GetHue();
-      saturation = (max == 0) ? 0 : 1.0 - (1.0 * min / max);
+      saturation = (max == 0) ? 0.0 : 1.0 - min / (double)max;
       value = max / 255.0;
     }
 
