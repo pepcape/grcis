@@ -7,3 +7,9 @@ imageWidth = 600
 forfiles   = ./input/*.png, image={0}
 forfiles   = ./input/*.cs, source={0}
 library    = ../../common/MathSupport.cs
+
+minV = 0.3
+maxV = 0.8
+minS = 0.1
+
+include = eval051.txt

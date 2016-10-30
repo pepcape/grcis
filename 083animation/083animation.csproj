@@ -57,6 +57,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\082circles\Canvas.cs">
+      <Link>Canvas.cs</Link>
+    </Compile>
     <Compile Include="..\common\FormResolution.cs">
       <Link>FormResolution.cs</Link>
       <SubType>Form</SubType>
@@ -68,7 +71,6 @@
       <Link>Util.cs</Link>
     </Compile>
     <Compile Include="Animation.cs" />
-    <Compile Include="Canvas.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

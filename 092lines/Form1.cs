@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
-using CircleCanvas;
+using LineCanvas;
 
-namespace _082circles
+namespace _092lines
 {
   public partial class Form1 : Form
   {
@@ -23,12 +23,13 @@ namespace _082circles
       // custom init:
       int width, height;
       string param;
-      Circles.InitParams( out width, out height, out param );
+      string name;
+      Lines.InitParams( out width, out height, out param, out name );
       numericXres.Value = Math.Max( width, 10 );
       numericYres.Value = Math.Max( height, 10 );
       textParam.Text = param ?? "";
 
-      Text += " (rev: " + rev + ')';
+      Text += " (rev: " + rev + ") '" + name + '\'';
     }
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
@@ -50,7 +51,7 @@ namespace _082circles
       sw.Start();
 
       Canvas c = new Canvas( width, height );
-      Circles.Draw( c, textParam.Text );
+      Lines.Draw( c, textParam.Text );
       Bitmap newImage = c.Finish();
 
       sw.Stop();

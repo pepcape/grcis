@@ -1,8 +1,10 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Linq;
 
-namespace _083animation
+namespace LineCanvas
 {
   public class Canvas
   {
@@ -17,8 +19,6 @@ namespace _083animation
     protected float currPenWidth = 1.0f;
 
     protected Pen currPen = null;
-
-    protected SolidBrush currBrush = null;
 
     protected bool currAntiAlias = false;
 
@@ -73,10 +73,6 @@ namespace _083animation
       if ( currPen != null )
         currPen.Dispose();
       currPen = new Pen( Color.White, currPenWidth );
-
-      if ( currBrush != null )
-        currBrush.Dispose();
-      currBrush = new SolidBrush( Color.White );
     }
 
     /// <summary>
@@ -112,7 +108,6 @@ namespace _083animation
       if ( currColor.Equals( col ) ) return;
       currColor = col;
       currPen.Color = col;
-      currBrush.Color = col;
     }
 
     /// <summary>
@@ -126,25 +121,35 @@ namespace _083animation
     }
 
     /// <summary>
-    /// Fills the given disk with the current color.
+    /// Draws the line using the current color.
     /// </summary>
-    /// <param name="x">X-coordinate of the disk center.</param>
-    /// <param name="y">Y-coordinate of the disk center.</param>
-    /// <param name="r">Radius of the disk.</param>
-    public void FillDisk ( float x, float y, float r )
+    public void Line ( float x1, float y1, float x2, float y2 )
     {
-      gr.FillEllipse( currBrush, x - r, y - r, r + r, r + r );
+      gr.DrawLine( currPen, x1, y1, x2, y2 );
     }
 
     /// <summary>
-    /// Draws the circle using the current color.
+    /// Draws the line using the current color.
     /// </summary>
-    /// <param name="x">X-coordinate of the circle center.</param>
-    /// <param name="y">Y-coordinate of the circle center.</param>
-    /// <param name="r">Radius of the circle.</param>
-    public void DrawCircle ( float x, float y, float r )
+    public void Line ( double x1, double y1, double x2, double y2 )
     {
-      gr.DrawEllipse( currPen, x - r, y - r, r + r, r + r );
+      gr.DrawLine( currPen, (float)x1, (float)y1, (float)x2, (float)y2 );
+    }
+
+    /// <summary>
+    /// Draws the poly-line using the current color.
+    /// </summary>
+    public void PolyLine ( PointF[] arr )
+    {
+      gr.DrawLines( currPen, arr );
+    }
+
+    /// <summary>
+    /// Draws the poly-line using the current color.
+    /// </summary>
+    public void PolyLine ( IEnumerable<PointF> arr )
+    {
+      gr.DrawLines( currPen, arr.ToArray() );
     }
 
     /// <summary>
