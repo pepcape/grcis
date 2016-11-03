@@ -89,6 +89,68 @@ namespace MathSupport
       }
     }
 
+    public static void ColorToCIELab ( Color color, out double L, out double A, out double B )
+    {
+      // adopted from http://www.brucelindbloom.com
+
+      double fx, fy, fz, xr, yr, zr;
+      double eps = 216.0 / 24389.0;
+      double k = 24389.0 / 27.0;
+
+      double Xr = 0.964221;  // reference white D50
+      double Yr = 1.0;
+      double Zr = 0.825211;
+
+      // RGB to XYZ
+      double r = color.R / 255.0;
+      double g = color.G / 255.0;
+      double b = color.B / 255.0;
+
+      // assuming sRGB (D65)
+      if ( r <= 0.04045 )
+        r = r / 12;
+      else
+        r = Math.Pow( (r + 0.055) / 1.055, 2.4 );
+
+      if ( g <= 0.04045 )
+        g = g / 12;
+      else
+        g = Math.Pow( (g + 0.055) / 1.055, 2.4 );
+
+      if ( b <= 0.04045 )
+        b = b / 12;
+      else
+        b = (float)Math.Pow( (b + 0.055) / 1.055, 2.4 );
+
+      double X = 0.436052025 * r + 0.385081593 * g + 0.143087414 * b;
+      double Y = 0.222491598 * r + 0.71688606  * g + 0.060621486 * b;
+      double Z = 0.013929122 * r + 0.097097002 * g + 0.71418547  * b;
+
+      // XYZ to Lab
+      xr = X / Xr;
+      yr = Y / Yr;
+      zr = Z / Zr;
+
+      if ( xr > eps )
+        fx = Math.Pow( xr, 1.0 / 3.0 );
+      else
+        fx = (k * xr + 16.0) / 116.0;
+
+      if ( yr > eps )
+        fy = Math.Pow( yr, 1.0 / 3.0 );
+      else
+        fy = (k * yr + 16.0) / 116.0;
+
+      if ( zr > eps )
+        fz = Math.Pow( zr, 1.0 / 3.0 );
+      else
+        fz = (k * zr + 16.0) / 116.0;
+
+      L = (116.0 * fy) - 16.0;
+      A = 500.0 * (fx - fy);
+      B = 200.0 * (fy - fz);
+    }
+
     /// <summary>
     /// Ray vs. line segment intersection in 2D.
     /// </summary>

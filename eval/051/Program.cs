@@ -463,6 +463,11 @@ namespace _051
         // color ordering:
         Array.Sort( colors, ( a, b ) =>
         {
+          double La, Lb, A, B;
+          Arith.ColorToCIELab( a, out La, out A, out B );
+          Arith.ColorToCIELab( b, out Lb, out A, out B );
+          return La.CompareTo( Lb );
+#if false
           double aH, aS, aV;
           Arith.ColorToHSV( a, out aH, out aS, out aV );
           double aMin = Math.Min( Math.Min( a.R, a.G ), a.B ) / 255.0;
@@ -515,6 +520,7 @@ namespace _051
             return aM.CompareTo( bM );
 
           return aSeg.CompareTo( bSeg );
+#endif
         } );
 
         // SVG color visualization:
