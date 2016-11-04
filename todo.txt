@@ -18,6 +18,8 @@
 - IEntropyCodec .. mozna upravit API, PutBits/GetBits
 - licence: Apache licence? Nebo BSD?
 - jazyk na definici RT sceny (XML?), nacitani RT scen az za behu
+- FloatImage: refactor for HDR file-format, storing multiple-channel images, ..
+  (054colorreduction)
 
 ================================================================================
   DONE:

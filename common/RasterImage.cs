@@ -36,8 +36,14 @@ namespace Raster
 
     protected int border;
 
+    /// <summary>
+    /// Array stride in floats (indexes).
+    /// </summary>
     protected int stride;
 
+    /// <summary>
+    /// Origin of the image itself (skipping over the optional borders).
+    /// </summary>
     protected int origin;
 
     public FloatImage ( int wid, int hei, int bor =0 )
