@@ -115,31 +115,23 @@ namespace _054colorreduction
         SetImage( (Bitmap)bmp.Clone() );
 
         // Image differences:
-        FloatImage ar, ag, ab, br, bg, bb;
-        FloatImage.BitmapBands( inputImage, 1, out ar, out ag, out ab );
-        FloatImage.BitmapBands( bmp, 1, out br, out bg, out bb );
+        FloatImage a = new FloatImage( inputImage, 1 );
+        FloatImage b = new FloatImage( bmp, 1 );
 
         // Simple differences:
-        float dr = ar.MAD( br );
-        float dg = ag.MAD( bg );
-        float db = ab.MAD( bb );
+        float dr = a.MAD( b, 0 );
+        float dg = a.MAD( b, 1 );
+        float db = a.MAD( b, 2 );
         float diff = (dr + dg + db) / 3.0f;
         float diffw = (dr * Draw.RED_WEIGHT + dg * Draw.GREEN_WEIGHT + db * Draw.BLUE_WEIGHT) / Draw.WEIGHT_TOTAL;
 
         // Conical blur differences:
-        ar.Blur(); ar.Blur();
-        ag.Blur(); ag.Blur();
-        ab.Blur(); ab.Blur();
-        br.Blur(); br.Blur();
-        bg.Blur(); bg.Blur();
-        bb.Blur(); bb.Blur();
-        dr = ar.MAD( br );
-        dg = ag.MAD( bg );
-        db = ab.MAD( bb );
-        float diffg = (dr * Draw.RED_WEIGHT + dg * Draw.GREEN_WEIGHT + db * Draw.BLUE_WEIGHT) / Draw.WEIGHT_TOTAL;
+        a.Blur();
+        b.Blur();
+        dr = a.MAD( b );
 
-        MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Image: {5}x{6} ({7}){0}Time: {1:f3}s{0}plain MAD: {2:f5}{0}weighted MAD: {3:f5}{0}filtered weighted MAD: {4:f5}",
-                                        Environment.NewLine, elapsed, diff, diffw, diffg,
+        MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Image: {5}x{6} ({7}){0}Time: {1:f3}s{0}plain MAD: {2:f5}{0}weighted MAD: {3:f5}{0}filtered MAD: {4:f5}",
+                                        Environment.NewLine, elapsed, diff, diffw, dr,
                                         inputImage.Width, inputImage.Height, inputImage.PixelFormat.ToString() ), "MAE Difference" );
         bmp.Dispose();
       }
