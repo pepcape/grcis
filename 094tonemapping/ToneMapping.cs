@@ -23,6 +23,13 @@ namespace _094tonemapping
       name  = "pilot";
     }
 
+    /// <summary>
+    /// Tone-mapping of the input HDR image.
+    /// </summary>
+    /// <param name="input">Mandatory HDR image.</param>
+    /// <param name="result">Optional (pre-allocatied) output LDR image.</param>
+    /// <param name="param">Optional text parameters (from form's text-field).</param>
+    /// <returns></returns>
     public static unsafe Bitmap ToneMap ( FloatImage input, Bitmap result, string param )
     {
       if ( input == null )
@@ -30,6 +37,7 @@ namespace _094tonemapping
 
       // !!!{{ TODO: write your own tone-mapping reduction code here
 
+      // custom parameters from the text-field:
       Dictionary<string, string> p = Util.ParseKeyValueList( param );
       double g = 0.0;
       if ( p.Count > 0 )
@@ -46,6 +54,7 @@ namespace _094tonemapping
       int width  = input.Width;
       int height = input.Height;
 
+      // re-allocate the output image if necessary:
       if ( result == null ||
            result.Width != width ||
            result.Height != height ||
@@ -55,7 +64,7 @@ namespace _094tonemapping
       // input range:
       double minY, maxY;
       input.Contrast( out minY, out maxY );
-      double coef = 1.0 / maxY;
+      double coef = 1.0 / maxY;   // the whole range is mapped into (0.0,1.0>
 
       BitmapData dataOut = result.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb );
       fixed ( float* id = input.Data )
@@ -68,6 +77,7 @@ namespace _094tonemapping
         {
           iptr = id + input.Scan0 + y * input.Stride;
           optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+
           if ( g > 0.0 )
             for ( int x = 0; x++ < width; iptr += input.Channels, optr += dO )
             {

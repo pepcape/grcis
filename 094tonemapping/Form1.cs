@@ -41,6 +41,8 @@ namespace _094tonemapping
 
     protected double exposure = 1.0;
     protected volatile bool exposureDirty = false;
+    protected FloatImage origInputImage = null;
+    protected int subFactor = 1;
     protected FloatImage inputImage = null;
     protected Bitmap outputImage = null;
 
@@ -117,7 +119,8 @@ namespace _094tonemapping
 
     protected void LoadHDR ( string fn, string param )
     {
-      inputImage = RadianceHDRFormat.FromFile( fn );
+      inputImage = origInputImage = RadianceHDRFormat.FromFile( fn );
+      subFactor = 1;
       contrast = 0.0;
       if ( inputImage == null )
         return;
@@ -165,6 +168,25 @@ namespace _094tonemapping
         // exp=<float-number>
         // must not change the value if the 'exp' key is not present
         Util.TryParse( p, "exp", ref exposure );
+
+        // sub=<sub-factor>
+        if ( Util.TryParse( p, "sub", ref subFactor ) )
+        {
+          if ( subFactor < 1 )
+            subFactor = 1;
+
+          if ( subFactor == 1 )
+          {
+            if ( inputImage != origInputImage )
+              inputImage = origInputImage;
+          }
+          else
+            if ( inputImage.Width * subFactor != origInputImage.Width )
+            {
+              inputImage = new FloatImage( origInputImage );
+              inputImage.Resize( subFactor );
+            }
+        }
       }
 
       sw.Restart();
