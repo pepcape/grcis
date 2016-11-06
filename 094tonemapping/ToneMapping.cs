@@ -9,6 +9,15 @@ namespace _094tonemapping
 {
   class ToneMapping
   {
+    /// <summary>
+    /// Optional data initialization.
+    /// </summary>
+    public static void InitParams ( out string param, out string name )
+    {
+      param = "gamma=2.5";
+      name = "pilot";
+    }
+
     public static void Reduce ( Bitmap input, out Bitmap output, string param )
     {
       // !!!{{ TODO: write your own color reduction code here

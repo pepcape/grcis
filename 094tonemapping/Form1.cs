@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -6,6 +7,7 @@ using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
 using Raster;
+using Utilities;
 
 namespace _094tonemapping
 {
@@ -13,6 +15,27 @@ namespace _094tonemapping
   {
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
+    /// <summary>
+    /// Minimum Value of the non-black pixels of the current HDR image.
+    /// </summary>
+    protected double minY = 1.0;
+
+    protected double minLog2 = 0.0;
+
+    /// <summary>
+    /// Maximum Value of the non-black pixels of the current HDR image.
+    /// </summary>
+    protected double maxY = 128.0;
+
+    protected double maxLog2 = 7.0;
+
+    /// <summary>
+    /// Current image contrast (see minY, maxY) in log2 scale.
+    /// </summary>
+    protected double contrast = 7.0;
+
+    protected double exposure = 1.0;
+    protected volatile bool exposureDirty = false;
     protected FloatImage inputImage = null;
     protected Bitmap outputImage = null;
 
@@ -20,6 +43,12 @@ namespace _094tonemapping
     {
       InitializeComponent();
       Text += " (rev: " + rev + ')';
+
+      string param;
+      string name;
+      ToneMapping.InitParams( out param, out name );
+      textParam.Text = param ?? "";
+      Application.Idle += new EventHandler( Application_Idle );
     }
 
     protected Thread aThread = null;
@@ -29,6 +58,9 @@ namespace _094tonemapping
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
       pictureBox1.Image = newImage;
+      if ( bakImage == newImage )
+        return;
+
       if ( bakImage != null )
         bakImage.Dispose();
       bakImage = newImage;
@@ -52,10 +84,78 @@ namespace _094tonemapping
 
     void SetGUI ( bool enable )
     {
+      trackBarExp.Enabled  =
+      textParam.Enabled    =
       buttonRedraw.Enabled =
       buttonOpen.Enabled   =
       buttonSave.Enabled   = enable;
       buttonStop.Enabled   = !enable;
+    }
+
+    /// <summary>
+    /// Shared timer.
+    /// </summary>
+    static Stopwatch sw = new Stopwatch();
+
+    protected void LoadHDR ( string fn, string param )
+    {
+      inputImage = RadianceHDRFormat.FromFile( fn );
+      contrast = 0.0;
+      if ( inputImage == null )
+        return;
+
+      inputImage.Contrast( out minY, out maxY );
+      if ( minY > double.Epsilon )
+      {
+        minLog2 = Math.Log( minY ) / Math.Log( 2.0 );
+        maxLog2 = Math.Log( maxY ) / Math.Log( 2.0 );
+        contrast = maxLog2 - minLog2;
+
+        // GUI update:
+        labelMin.Text = string.Format( CultureInfo.InvariantCulture, "{0:f1} EV", minLog2 );
+        labelMax.Text = string.Format( CultureInfo.InvariantCulture, "{0:f1} EV", maxLog2 );
+        changeLabelExp();
+      }
+
+      Exposure( param );
+    }
+
+    /// <summary>
+    /// Function called whenever the main application is idle..
+    /// </summary>
+    void Application_Idle ( object sender, EventArgs e )
+    {
+      if ( exposureDirty )
+      {
+        exposureDirty = false;
+        Exposure( textParam.Text );
+      }
+    }
+
+    protected void Exposure ( string param )
+    {
+      if ( inputImage == null )
+        return;
+
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+      double gamma = 0.0;
+      if ( p.Count > 0 )
+      {
+        // gamma=<float-number>
+        Util.TryParse( p, "gamma", ref gamma );
+
+        // exp=<float-number>
+        // must not change the value if the 'exp' key is not present
+        Util.TryParse( p, "exp", ref exposure );
+      }
+
+      sw.Restart();
+      outputImage = inputImage.Exposure( outputImage, exposure, gamma );
+      sw.Stop();
+      labelStatus.Text = string.Format( CultureInfo.InvariantCulture, "{0:f1} EV, exp: {1} ms",
+                                        contrast, sw.ElapsedMilliseconds );
+
+      setImage( ref outputImage, outputImage );
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -72,12 +172,18 @@ namespace _094tonemapping
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      // ofd.FileName .. HDR file
-      inputImage = RadianceHDRFormat.FromFile( ofd.FileName );
-      if ( inputImage != null )
+      // Load HDR file
+      if ( ofd.FileName.EndsWith( ".hdr" ) ||
+           ofd.FileName.EndsWith( ".pic" ) )
       {
-        Bitmap newOut = inputImage.Exposure( null, 1.0, 2.5 );
-        setImage( ref outputImage, newOut );
+        LoadHDR( ofd.FileName, textParam.Text );
+        return;
+      }
+
+      // Load PFM file
+      if ( ofd.FileName.EndsWith( ".pfm" ) )
+      {
+        MessageBox.Show( string.Format( "PFM format is not implemented yet '{0}'", ofd.FileName ), "PFM load error" );
       }
     }
 
@@ -105,13 +211,12 @@ namespace _094tonemapping
       }
     }
 
-    private void reduce ()
+    private void tonemap ()
     {
       if ( inputImage != null )
       {
 #if false
-        Stopwatch sw = new Stopwatch();
-        sw.Start();
+        sw.Retart();
 
         Bitmap bmp;
         //ColorReduction.Reduce( inputImage, out bmp, textParam.Text );
@@ -154,7 +259,7 @@ namespace _094tonemapping
       SetGUI( false );
       cont = true;
 
-      aThread = new Thread( new ThreadStart( reduce ) );
+      aThread = new Thread( new ThreadStart( tonemap ) );
       aThread.Start();
     }
 
@@ -181,6 +286,39 @@ namespace _094tonemapping
     private void buttonStop_Click ( object sender, EventArgs e )
     {
       StopComputation();
+    }
+
+    private void changeLabelExp ()
+    {
+      // extended log2 scale
+      double contr = contrast + 8.0;
+      double aveLog2 = 0.5 * (minLog2 + maxLog2);
+      exposure = aveLog2 + contr * ( (trackBarExp.Value - trackBarExp.Minimum) / (double)(trackBarExp.Maximum - trackBarExp.Minimum) - 0.5 );
+      labelExpValue.Text = string.Format( CultureInfo.InvariantCulture, "{0:f1} EV", exposure );
+
+      // multiplication coefficient:
+      exposure = Math.Pow( 2.0, exposure - aveLog2 );
+    }
+
+    private void trackBarExp_ValueChanged ( object sender, EventArgs e )
+    {
+      changeLabelExp();
+      exposureDirty = true;
+    }
+
+    private void placeLabelExp ()
+    {
+      Point old = labelExpValue.Location;
+      int half = labelExpValue.Size.Width / 2;
+      int barLocCenter = trackBarExp.Location.X + trackBarExp.Size.Width / 2;
+      old.X = barLocCenter - half;
+      old.Y = trackBarExp.Location.Y + 30;
+      labelExpValue.Location = old;
+    }
+
+    private void Form1_SizeChanged ( object sender, EventArgs e )
+    {
+      placeLabelExp();
     }
   }
 }

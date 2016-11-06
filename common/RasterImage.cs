@@ -53,7 +53,7 @@ namespace Raster
     protected int border;
 
     /// <summary>
-    /// Array stride in floats (indexes).
+    /// Array stride in floats (indices).
     /// </summary>
     protected int stride;
 
@@ -84,7 +84,7 @@ namespace Raster
       init( wid, hei, ch, bor );
     }
 
-    public FloatImage ( Bitmap bmp, int bor = 0 )
+    public unsafe FloatImage ( Bitmap bmp, int bor = 0 )
     {
       int ch = 3;
       if ( bmp.PixelFormat == PixelFormat.Format16bppGrayScale )
@@ -96,34 +96,31 @@ namespace Raster
 
       const float inv255 = 1.0f / 255.0f;
       int i, j;
-      unsafe
+      fixed ( float* dt = data )
       {
-        fixed ( float* dt = data )
-        {
-          float* ptr = dt + origin;
-          if ( ch == 1 )
-            for ( j = 0; j < hei; j++, ptr += stride )
+        float* ptr = dt + origin;
+        if ( ch == 1 )
+          for ( j = 0; j < hei; j++, ptr += stride )
+          {
+            float* p = ptr;
+            for ( i = 0; i < wid; i++ )
             {
-              float* p = ptr;
-              for ( i = 0; i < wid; i++ )
-              {
-                Color c = bmp.GetPixel( i, j );
-                *p++ = c.R * inv255;
-              }
+              Color c = bmp.GetPixel( i, j );
+              *p++ = c.R * inv255;
             }
-          else
-            for ( j = 0; j < hei; j++, ptr += stride )
+          }
+        else
+          for ( j = 0; j < hei; j++, ptr += stride )
+          {
+            float* p = ptr;
+            for ( i = 0; i < wid; i++ )
             {
-              float* p = ptr;
-              for ( i = 0; i < wid; i++ )
-              {
-                Color c = bmp.GetPixel( i, j );
-                *p++ = c.R * inv255;
-                *p++ = c.G * inv255;
-                *p++ = c.B * inv255;
-              }
+              Color c = bmp.GetPixel( i, j );
+              *p++ = c.R * inv255;
+              *p++ = c.G * inv255;
+              *p++ = c.B * inv255;
             }
-        }
+          }
       }
 
       if ( border > 0 )
@@ -134,72 +131,69 @@ namespace Raster
     /// Sets the image border.
     /// </summary>
     /// <param name="type">Border type, ignored (only mirror border is implemented).</param>
-    protected void ComputeBorder ( int type = 0 )
+    protected unsafe void ComputeBorder ( int type = 0 )
     {
       if ( border == 0 )
         return;
 
       int j;
-      unsafe
+      fixed ( float* ptr = data )
       {
-        fixed ( float* ptr = data )
+        // upper border:
+        float* inside = ptr + origin;
+        float* outside = inside - stride;
+        float* pi;
+        float* po;
+        int b, i;
+        for ( b = 0; b < border; b++ )
         {
-          // upper border:
-          float* inside = ptr + origin;
-          float* outside = inside - stride;
-          float* pi;
-          float* po;
-          int b, i;
-          for ( b = 0; b < border; b++ )
+          inside += stride;
+          for ( i = 0, pi = inside, po = outside; i < widChannels; i++ )
+            *po++ = *pi++;
+          outside -= stride;
+        }
+
+        // lower border:
+        inside = ptr + origin + stride * (height - 1);
+        outside = inside + stride;
+        for ( b = 0; b < border; b++ )
+        {
+          inside -= stride;
+          for ( i = 0, pi = inside, po = outside; i < widChannels; i++ )
+            *po++ = *pi++;
+          outside += stride;
+        }
+
+        // left border:
+        inside = ptr + border * channels;
+        outside = inside - channels;
+        for ( b = 0; b < border; b++ )
+        {
+          inside += channels;
+          for ( i = height + 2 * border, pi = inside, po = outside; i-- > 0; )
           {
-            inside += stride;
-            for ( i = 0, pi = inside, po = outside; i < widChannels; i++ )
+            for ( j = 0; j++ < channels; )
               *po++ = *pi++;
-            outside -= stride;
+            po += stride - channels;
+            pi += stride - channels;
           }
+          outside -= channels;
+        }
 
-          // lower border:
-          inside = ptr + origin + stride * (height - 1);
-          outside = inside + stride;
-          for ( b = 0; b < border; b++ )
+        // right border:
+        outside = ptr + (border + width) * channels;
+        inside = outside - channels;
+        for ( b = 0; b < border; b++ )
+        {
+          inside -= channels;
+          for ( i = height + 2 * border, pi = inside, po = outside; i-- > 0; )
           {
-            inside -= stride;
-            for ( i = 0, pi = inside, po = outside; i < widChannels; i++ )
+            for ( j = 0; j++ < channels; )
               *po++ = *pi++;
-            outside += stride;
+            po += stride - channels;
+            pi += stride - channels;
           }
-
-          // left border:
-          inside = ptr + border * channels;
-          outside = inside - channels;
-          for ( b = 0; b < border; b++ )
-          {
-            inside += channels;
-            for ( i = height + 2 * border, pi = inside, po = outside; i-- > 0; )
-            {
-              for ( j = 0; j++ < channels; )
-                *po++ = *pi++;
-              po += stride - channels;
-              pi += stride - channels;
-            }
-            outside -= channels;
-          }
-
-          // right border:
-          outside = ptr + (border + width) * channels;
-          inside = outside - channels;
-          for ( b = 0; b < border; b++ )
-          {
-            inside -= channels;
-            for ( i = height + 2 * border, pi = inside, po = outside; i-- > 0; )
-            {
-              for ( j = 0; j++ < channels; )
-                *po++ = *pi++;
-              po += stride - channels;
-              pi += stride - channels;
-            }
-            outside += channels;
-          }
+          outside += channels;
         }
       }
     }
@@ -258,7 +252,7 @@ namespace Raster
     /// </summary>
     /// <param name="b">The other image.</param>
     /// <returns>Sum of absolute pixel differences divided by number of pixels.</returns>
-    public float MAD ( FloatImage b )
+    public unsafe float MAD ( FloatImage b )
     {
       if ( b.Width != Width ||
            b.Height != Height ||
@@ -266,23 +260,21 @@ namespace Raster
         return 2.0f;
 
       double sum = 0.0;
-      unsafe
+      fixed ( float* ad = data )
+      fixed ( float* bd = b.data )
       {
-        fixed ( float* ad = data )
-        fixed ( float* bd = b.data )
+        float* la = ad + origin;
+        float* lb = bd + b.origin;
+        int i, j;
+        for ( j = 0; j++ < height; la += stride, lb += b.stride )
         {
-          float* la = ad + origin;
-          float* lb = bd + b.origin;
-          int i, j;
-          for ( j = 0; j++ < height; la += stride, lb += b.stride )
-          {
-            float* pa = la;
-            float* pb = lb;
-            for ( i = 0; i++ < widChannels; )
-              sum += Math.Abs( *pa++ - *pb++ );
-          }
+          float* pa = la;
+          float* pb = lb;
+          for ( i = 0; i++ < widChannels; )
+            sum += Math.Abs( *pa++ - *pb++ );
         }
       }
+
       return ((float)(sum / (height * widChannels)));
     }
 
@@ -292,7 +284,7 @@ namespace Raster
     /// <param name="b">The other image.</param>
     /// <param name="ch">Channel number.</param>
     /// <returns>Sum of absolute pixel differences divided by number of pixels.</returns>
-    public float MAD ( FloatImage b, int ch )
+    public unsafe float MAD ( FloatImage b, int ch )
     {
       if ( b.Width != Width ||
            b.Height != Height ||
@@ -301,60 +293,87 @@ namespace Raster
         return 2.0f;
 
       double sum = 0.0;
-      unsafe
+      fixed ( float* ad = data )
+      fixed ( float* bd = b.data )
       {
-        fixed ( float* ad = data )
-        fixed ( float* bd = b.data )
+        float* la = ad + origin;
+        float* lb = bd + b.origin;
+        int i, j;
+        for ( j = 0; j++ < height; la += stride, lb += b.stride )
         {
-          float* la = ad + origin;
-          float* lb = bd + b.origin;
-          int i, j;
-          for ( j = 0; j++ < height; la += stride, lb += b.stride )
-          {
-            float* pa = la;
-            float* pb = lb;
-            for ( i = 0; i++ < width; pa += channels, pb += channels )
-              sum += Math.Abs( pa[ ch ] - pb[ ch ] );
-          }
+          float* pa = la;
+          float* pb = lb;
+          for ( i = 0; i++ < width; pa += channels, pb += channels )
+            sum += Math.Abs( pa[ ch ] - pb[ ch ] );
         }
       }
+
       return ((float)(sum / (height * width)));
     }
 
     /// <summary>
     /// Uniform image blur.
     /// </summary>
-    public void Blur ()
+    public unsafe void Blur ()
     {
       if ( border < 1 )
         return;
 
       float[] ndata = new float[ data.Length ];
-      unsafe
+
+      fixed ( float* ad = data )
+      fixed ( float* nd = ndata )
       {
-        fixed ( float* ad = data )
-        fixed ( float* nd = ndata )
+        float* la = ad + origin;
+        float* ln = nd + origin;
+        int i, j;
+        for ( j = 0; j++ < height; la += stride, ln += stride )
         {
-          float* la = ad + origin;
-          float* ln = nd + origin;
-          int i, j;
-          for ( j = 0; j++ < height; la += stride, ln += stride )
+          float* pa = la;
+          float* pn = ln;
+          for ( i = 0; i++ < widChannels; pa++ )
           {
-            float* pa = la;
-            float* pn = ln;
-            for ( i = 0; i++ < widChannels; pa++ )
-            {
-              float sum = pa[ -stride - 1 ] + pa[ -stride ] + pa[ -stride + 1 ] +
-                           pa[ -1 ] + pa[ 0 ] + pa[ 1 ] +
-                           pa[ stride - 1 ] + pa[ stride ] + pa[ stride + 1 ];
-              *pn++ = sum / 9.0f;
-            }
+            float sum = pa[ -stride - 1 ] + pa[ -stride ] + pa[ -stride + 1 ] +
+                          pa[ -1 ] + pa[ 0 ] + pa[ 1 ] +
+                          pa[ stride - 1 ] + pa[ stride ] + pa[ stride + 1 ];
+            *pn++ = sum / 9.0f;
           }
         }
       }
 
       data = ndata;
       ComputeBorder();
+    }
+
+    public unsafe void Contrast ( out double minY, out double maxY )
+    {
+      float minf = float.MaxValue;
+      float maxf = float.MinValue;
+
+      fixed ( float* id = data )
+      {
+        float* iptr;
+
+        for ( int y = 0; y < height; y++ )
+        {
+          iptr = id + origin + y * stride;
+          for ( int x = 0; x++ < width; )
+          {
+            float Y = 0.0f;
+            for ( int ch = 0; ch++ < channels; )
+              Y = Math.Max( Y, *iptr++ );
+
+            if ( Y > float.Epsilon )
+            {
+              if ( Y < minf ) minf = Y;
+              if ( Y > maxf ) maxf = Y;
+            }
+          }
+        }
+      }
+
+      minY = minf;
+      maxY = maxf;
     }
 
     /// <summary>
@@ -364,7 +383,7 @@ namespace Raster
     /// <param name="exp">Exposure coefficient.</param>
     /// <param name="gamma">Optional target gammma (if zero, no pre-compensation is done).</param>
     /// <returns></returns>
-    public Bitmap Exposure ( Bitmap result, double exp, double gamma = 0.0 )
+    public unsafe Bitmap Exposure ( Bitmap result, double exp, double gamma =0.0 )
     {
       if ( channels < 3 )
         return null;
@@ -378,37 +397,34 @@ namespace Raster
       // gamma pre-compensation?
       double g = 0.0;
       if ( gamma > 0.001 &&
-           Math.Abs( gamma - 1.0 ) < 0.001 )
+           Math.Abs( gamma - 1.0 ) > 0.001 )
         g = 1.0 / gamma;
 
       BitmapData dataOut = result.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb );
-      unsafe
+      fixed ( float* id = data )
       {
-        fixed ( float* id = data )
-        {
-          float* iptr;
-          byte* optr;
-          int dO = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;    // BGR
+        float* iptr;
+        byte* optr;
+        int dO = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;    // BGR
 
-          for ( int y = 0; y < height; y++ )
-          {
-            iptr = id + origin + y * stride;
-            optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
-            if ( g > 0.0 )
-              for ( int x = 0; x++ < width; iptr += channels, optr += dO )
-              {
-                optr[ 2 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 0 ] * exp, g ), 0.0, 255.0 );
-                optr[ 1 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 1 ] * exp, g ), 0.0, 255.0 );
-                optr[ 0 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 2 ] * exp, g ), 0.0, 255.0 );
-              }
-            else
-              for ( int x = 0; x++ < width; iptr += channels, optr += dO )
-              {
-                optr[ 2 ] = (byte)Arith.Clamp( 255.999 * iptr[ 0 ] * exp, 0.0, 255.0 );
-                optr[ 1 ] = (byte)Arith.Clamp( 255.999 * iptr[ 1 ] * exp, 0.0, 255.0 );
-                optr[ 0 ] = (byte)Arith.Clamp( 255.999 * iptr[ 2 ] * exp, 0.0, 255.0 );
-              }
-          }
+        for ( int y = 0; y < height; y++ )
+        {
+          iptr = id + origin + y * stride;
+          optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+          if ( g > 0.0 )
+            for ( int x = 0; x++ < width; iptr += channels, optr += dO )
+            {
+              optr[ 2 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 0 ] * exp, g ), 0.0, 255.0 );
+              optr[ 1 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 1 ] * exp, g ), 0.0, 255.0 );
+              optr[ 0 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 2 ] * exp, g ), 0.0, 255.0 );
+            }
+          else
+            for ( int x = 0; x++ < width; iptr += channels, optr += dO )
+            {
+              optr[ 2 ] = (byte)Arith.Clamp( 255.999 * iptr[ 0 ] * exp, 0.0, 255.0 );
+              optr[ 1 ] = (byte)Arith.Clamp( 255.999 * iptr[ 1 ] * exp, 0.0, 255.0 );
+              optr[ 0 ] = (byte)Arith.Clamp( 255.999 * iptr[ 2 ] * exp, 0.0, 255.0 );
+            }
         }
       }
       result.UnlockBits( dataOut );
