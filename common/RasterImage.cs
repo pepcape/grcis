@@ -16,7 +16,7 @@ namespace Raster
   public class FloatImage
   {
     /// <summary>
-    /// Image data, with optional border.
+    /// Raw image data with optional border.
     /// </summary>
     protected float[] data;
 
@@ -33,6 +33,9 @@ namespace Raster
 
     protected int width;
 
+    /// <summary>
+    /// Image width in pixels.
+    /// </summary>
     public int Width
     {
       get
@@ -43,6 +46,9 @@ namespace Raster
 
     protected int height;
 
+    /// <summary>
+    /// Image height in pixels.
+    /// </summary>
     public int Height
     {
       get
@@ -53,6 +59,9 @@ namespace Raster
 
     protected int channels;
 
+    /// <summary>
+    /// Number of image channels (number of float numbers per pixel).
+    /// </summary>
     public int Channels
     {
       get
@@ -61,6 +70,9 @@ namespace Raster
       }
     }
 
+    /// <summary>
+    /// Internal image border allocated around the whole image.
+    /// </summary>
     protected int border;
 
     /// <summary>
@@ -97,27 +109,51 @@ namespace Raster
       }
     }
 
-    protected void init ( int wid, int hei, int ch = 1, int bor = 0 )
+    protected void init ( int wid, int hei, int ch =1, int bor =0, float[] d =null )
     {
-      border = Math.Max( bor, 0 );
-      width = wid;
-      height = hei;
-      channels = ch;
+      border   = Math.Max( bor, 0 );
+      width    = wid;
+      height   = hei;
+      channels = Math.Max( ch, 1 );
+
       widChannels = width * channels;
       if ( border > Math.Min( width, height ) )
         border = Math.Min( width, height );
+
+      // Support (accelerator) values:
       stride = channels * (width + 2 * border);
       origin = border * (stride + channels);
-      int alloc = stride * (height + 2 * border);
-      data = new float[ alloc ];
+
+      // The data array itself:
+      data = d ?? new float[ stride * (height + 2 * border) ];
     }
 
-    public FloatImage ( int wid, int hei, int ch = 1, int bor = 0 )
+    /// <summary>
+    /// Create a HDR image of required dimensions.
+    /// </summary>
+    /// <param name="wid">Image width in pixels.</param>
+    /// <param name="hei">Image height in pixels.</param>
+    /// <param name="ch">Number of channels.</param>
+    /// <param name="bor">Border width in pixels.</param>
+    public FloatImage ( int wid, int hei, int ch =1, int bor =0 )
     {
       init( wid, hei, ch, bor );
     }
 
-    public unsafe FloatImage ( Bitmap bmp, int bor = 0 )
+    public FloatImage ( FloatImage from )
+    {
+      if ( from == null )
+        init( 1, 1, 1, 0 );
+      else
+        init( from.Width, from.Height, from.channels, from.border, (float[])from.data.Clone() );
+    }
+
+    /// <summary>
+    /// Create a HDR image grom provided LDR Bitmap.
+    /// </summary>
+    /// <param name="bmp">Input LDR image.</param>
+    /// <param name="bor">Border width in pixels.</param>
+    public unsafe FloatImage ( Bitmap bmp, int bor =0 )
     {
       int ch = 3;
       if ( bmp.PixelFormat == PixelFormat.Format16bppGrayScale )
@@ -132,6 +168,7 @@ namespace Raster
       fixed ( float* dt = data )
       {
         float* ptr = dt + origin;
+
         if ( ch == 1 )
           for ( j = 0; j < hei; j++, ptr += stride )
           {
@@ -178,6 +215,7 @@ namespace Raster
         float* pi;
         float* po;
         int b, i;
+
         for ( b = 0; b < border; b++ )
         {
           inside += stride;
@@ -233,6 +271,13 @@ namespace Raster
 
     const int SIZEOF_FLOAT = sizeof( float );
 
+    /// <summary>
+    /// Reads one HDR color pixel.
+    /// </summary>
+    /// <param name="x">X-coordinate.</param>
+    /// <param name="y">Y-coordinate.</param>
+    /// <param name="pix">Pre-allocated output array.</param>
+    /// <returns>True if Ok.</returns>
     public bool GetPixel ( int x, int y, float[] pix )
     {
       if ( x < 0 || x >= width ||
@@ -245,11 +290,17 @@ namespace Raster
       return true;
     }
 
+    /// <summary>
+    /// Reads one grayscale pixel.
+    /// </summary>
+    /// <param name="x">X-coordinate.</param>
+    /// <param name="y">Y-coordinate.</param>
+    /// <returns>Gray value or -1.0f if out of range.</returns>
     public float GetGray ( int x, int y )
     {
       if ( x < 0 || x >= width ||
            y < 0 || y >= height )
-        return 0.0f;
+        return -1.0f;
 
       int i = origin + x * channels + y * stride;
       if ( channels >= 3 )
@@ -258,6 +309,12 @@ namespace Raster
       return data[ i ];
     }
 
+    /// <summary>
+    /// Sets the required pixel to a new value.
+    /// </summary>
+    /// <param name="x">X-coordinate.</param>
+    /// <param name="y">Y-coordinate.</param>
+    /// <param name="pix">New pixel value.</param>
     public void PutPixel ( int x, int y, float[] pix )
     {
       if ( x < 0 || x >= width ||
@@ -269,6 +326,12 @@ namespace Raster
       Buffer.BlockCopy( pix, 0, data, SIZEOF_FLOAT * (origin + x * channels + y * stride), SIZEOF_FLOAT * channels );
     }
 
+    /// <summary>
+    /// Sets the gray-value pixel.
+    /// </summary>
+    /// <param name="x">X-coordinate.</param>
+    /// <param name="y">Y-coordinate.</param>
+    /// <param name="val">New pixel value.</param>
     public void PutPixel ( int x, int y, float val )
     {
       if ( x < 0 || x >= width ||
@@ -345,9 +408,10 @@ namespace Raster
     }
 
     /// <summary>
-    /// Uniform image blur.
+    /// Image blur - Gaussian or uniform.
     /// </summary>
-    public unsafe void Blur ()
+    /// <param name="gauss">Use Gaussian filter? (3x3 window)</param>
+    public unsafe void Blur ( bool gauss =false )
     {
       if ( border < 1 )
         return;
@@ -364,13 +428,23 @@ namespace Raster
         {
           float* pa = la;
           float* pn = ln;
-          for ( i = 0; i++ < widChannels; pa++ )
-          {
-            float sum = pa[ -stride - 1 ] + pa[ -stride ] + pa[ -stride + 1 ] +
-                          pa[ -1 ] + pa[ 0 ] + pa[ 1 ] +
-                          pa[ stride - 1 ] + pa[ stride ] + pa[ stride + 1 ];
-            *pn++ = sum / 9.0f;
-          }
+
+          if ( gauss )
+            for ( i = 0; i++ < widChannels; pa++ )
+            {
+              float sum =        pa[ -stride - 1 ] + 2.0f * pa[ -stride ] +        pa[ -stride + 1 ] +
+                          2.0f * pa[ -1 ]          + 4.0f * pa[ 0 ]       + 2.0f * pa[ 1 ] +
+                                 pa[ stride - 1 ]  + 2.0f * pa[ stride ]  +        pa[ stride + 1 ];
+              *pn++ = sum / 16.0f;
+            }
+          else
+            for ( i = 0; i++ < widChannels; pa++ )
+            {
+              float sum = pa[ -stride - 1 ] + pa[ -stride ] + pa[ -stride + 1 ] +
+                          pa[ -1 ]          + pa[ 0 ]       + pa[ 1 ] +
+                          pa[ stride - 1 ]  + pa[ stride ]  + pa[ stride + 1 ];
+              *pn++ = sum / 9.0f;
+            }
         }
       }
 
@@ -378,6 +452,64 @@ namespace Raster
       ComputeBorder();
     }
 
+    /// <summary>
+    /// Image resize by an integral subsample factor.
+    /// </summary>
+    /// <param name="factor">Subsample factor.</param>
+    public unsafe void Resize ( int factor )
+    {
+      if ( factor < 2 )
+        return;
+
+      int newWidth  = width / factor;
+      int newHeight = height / factor;
+
+      if ( newWidth  < 1 ||
+           newHeight < 1 )
+        return;
+
+      int newStride      = channels * (newWidth + 2 * border);
+      int newOrigin      = border   * (newStride + channels);
+      float area = factor * factor;
+
+      // The data array itself:
+      float[] ndata = new float[ newStride * (newHeight + 2 * border) ];
+
+      fixed ( float* ad = data )
+      fixed ( float* nd = ndata )
+      {
+        float* ln = nd + newOrigin;
+        int i, j, ii, jj, ch;
+        for ( j = 0; j < newHeight; j++, ln += newStride )
+        {
+          float* pn = ln;
+
+          for ( i = 0; i < newWidth; i++ )
+            for ( ch = 0; ch < channels; ch++ )
+            {
+              float* la = ad + origin + factor * (j * stride + i * channels) + ch;
+
+              float sum = 0.0f;
+              for ( jj = 0; jj++ < factor; la += stride )
+              {
+                float* pa = la;
+                for ( ii = 0; ii++ < factor; pa += channels )
+                  sum += *pa;
+              }
+              *pn++ = sum / area;
+            }
+        }
+      }
+
+      init( newWidth, newHeight, channels, border, ndata );
+      ComputeBorder();
+    }
+
+    /// <summary>
+    /// Computes image range (min and max pixel values).
+    /// </summary>
+    /// <param name="minY">Output (nonzero) min value.</param>
+    /// <param name="maxY">Output max value.</param>
     public unsafe void Contrast ( out double minY, out double maxY )
     {
       float minf = float.MaxValue;
@@ -412,10 +544,10 @@ namespace Raster
     /// <summary>
     /// Computes simple exposure from HDR to LDR format. Optional gamma pre-compensation
     /// </summary>
-    /// <param name="result">Optional already allocated Bitmap.</param>
+    /// <param name="result">Optional pre-allocated Bitmap.</param>
     /// <param name="exp">Exposure coefficient.</param>
     /// <param name="gamma">Optional target gammma (if zero, no pre-compensation is done).</param>
-    /// <returns></returns>
+    /// <returns>Output LDR Bitbap.</returns>
     public unsafe Bitmap Exposure ( Bitmap result, double exp, double gamma =0.0 )
     {
       if ( channels < 3 )
@@ -466,6 +598,10 @@ namespace Raster
     }
   }
 
+  /// <summary>
+  /// Radiance HDR (PIC) file-format.
+  /// Can read/write RLE-encoded HDR files.
+  /// </summary>
   public class RadianceHDRFormat
   {
     class HDRInstance
@@ -584,7 +720,7 @@ namespace Raster
           return;
         }
 
-        int readLen = (scanline[ 3 ] & 0xff) +
+        int readLen =   (scanline[ 3 ] & 0xff) +
                        ((scanline[ 2 ] & 0x7f) << 8);
         if ( readLen != len )                 // header lenght mismatch => error
           throw new IOException( "Error in HDR scanline" );
@@ -721,8 +857,6 @@ namespace Raster
        * Common load code.
        *
        * @param  stream Opened input bit-stream.
-       * @param  g Checked raster-graphics object.
-       * @throws IOException
        */
       public FloatImage commonLoad ( Stream stream )
       {
@@ -733,7 +867,7 @@ namespace Raster
         // "#?RADIANCE ... 0x0a, 0x0a {+|-}Y <height> {+|-}X <width>"
         bool bottomUp = false;
         bool leftToRight = true;
-        int width = 0;
+        int width  = 0;
         int height = 0;
 
         int last;
@@ -836,8 +970,7 @@ namespace Raster
        * Common save code.
        *
        * @param  stream Opened output bit-stream.
-       * @param  g Checked raster-graphics object.
-       * @throws IOException
+       * @param  im Floating-point raster image.
        */
       public void commonSave ( Stream stream, FloatImage im )
       {
@@ -845,7 +978,7 @@ namespace Raster
           throw new FileNotFoundException();
 
         // write HDR header:
-        int width = im.Width;
+        int width  = im.Width;
         int height = im.Height;
 
         // "#?RADIANCE ... 0x0a, 0x0a -Y <height> +X <width>"
@@ -874,6 +1007,10 @@ namespace Raster
       }
     }
 
+    /// <summary>
+    /// Read HDR image from the given disk file.
+    /// </summary>
+    /// <returns>Result or 'null' in case of failure.</returns>
     public static FloatImage FromFile ( string fileName )
     {
       try
