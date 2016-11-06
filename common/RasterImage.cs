@@ -20,6 +20,17 @@ namespace Raster
     /// </summary>
     protected float[] data;
 
+    /// <summary>
+    /// Raw data array (use Scan0 and Stride).
+    /// </summary>
+    public float[] Data
+    {
+      get
+      {
+        return data;
+      }
+    }
+
     protected int width;
 
     public int Width
@@ -63,6 +74,28 @@ namespace Raster
     /// Origin of the image itself (skipping over the optional borders).
     /// </summary>
     protected int origin;
+
+    /// <summary>
+    /// Offset of the upper-left image corner from the array origin (in array indices).
+    /// </summary>
+    public int Scan0
+    {
+      get
+      {
+        return origin;
+      }
+    }
+
+    /// <summary>
+    /// Image stride in array indices.
+    /// </summary>
+    public int Stride
+    {
+      get
+      {
+        return stride;
+      }
+    }
 
     protected void init ( int wid, int hei, int ch = 1, int bor = 0 )
     {

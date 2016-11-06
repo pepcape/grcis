@@ -1,9 +1,12 @@
 ﻿// Author: Josef Pelikan
 
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using MathSupport;
 using Raster;
+using Utilities;
 
 namespace _094tonemapping
 {
@@ -12,63 +15,80 @@ namespace _094tonemapping
     /// <summary>
     /// Optional data initialization.
     /// </summary>
+    /// <param name="param">Optinal text parameter from the form's text-field.</param>
+    /// <param name="name">Your first-name and last-name.</param>
     public static void InitParams ( out string param, out string name )
     {
       param = "gamma=2.5";
-      name = "pilot";
+      name  = "pilot";
     }
 
-    public static void Reduce ( Bitmap input, out Bitmap output, string param )
+    public static unsafe Bitmap ToneMap ( FloatImage input, Bitmap result, string param )
     {
-      // !!!{{ TODO: write your own color reduction code here
+      if ( input == null )
+        return null;
 
-      // text parameter = use dithering palette?
-      int dit = 0;
-      if ( param.Length > 0 )
-        int.TryParse( param, out dit );
+      // !!!{{ TODO: write your own tone-mapping reduction code here
+
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+      double g = 0.0;
+      if ( p.Count > 0 )
+      {
+        // gamma=<float-number>
+        if ( Util.TryParse( p, "gamma", ref g ) &&
+             g > 0.001 &&
+             Math.Abs( g - 1.0 ) > 0.001 )
+          g = 1.0 / g;
+        else
+          g = 0.0;
+      }
 
       int width  = input.Width;
       int height = input.Height;
-      output = new Bitmap( width, height, PixelFormat.Format8bppIndexed );
 
-      // set the palette (3-3-2 by default):
-      ColorPalette pal = output.Palette;
-      Draw.Palette332( pal, dit > 0 );
-      output.Palette = pal;
+      if ( result == null ||
+           result.Width != width ||
+           result.Height != height ||
+           result.PixelFormat != PixelFormat.Format24bppRgb )
+        result = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
-      // convert pixel data (fast memory-mapped code):
-      PixelFormat iFormat = input.PixelFormat;
-      if ( !PixelFormat.Format24bppRgb.Equals( iFormat ) &&
-           !PixelFormat.Format32bppArgb.Equals( iFormat ) &&
-           !PixelFormat.Format32bppPArgb.Equals( iFormat ) &&
-           !PixelFormat.Format32bppRgb.Equals( iFormat ) )
-        iFormat = PixelFormat.Format24bppRgb;
+      // input range:
+      double minY, maxY;
+      input.Contrast( out minY, out maxY );
+      double coef = 1.0 / maxY;
 
-      BitmapData dataIn = input.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, iFormat );
-      BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, PixelFormat.Format8bppIndexed );
-      unsafe
+      BitmapData dataOut = result.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb );
+      fixed ( float* id = input.Data )
       {
-        byte* iptr, optr;
-        int r, g, b;
-        int dI = Image.GetPixelFormatSize( iFormat ) / 8;
+        float* iptr;
+        byte* optr;
+        int dO = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;    // BGR
+
         for ( int y = 0; y < height; y++ )
         {
-          if ( !Form1.cont ) break;
-          iptr = (byte*)dataIn.Scan0 + y * dataIn.Stride;
+          iptr = id + input.Scan0 + y * input.Stride;
           optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
-          for ( int x = 0; x < width; x++, iptr += dI )
-          {
-            b = (int)iptr[0] >> 6;
-            g = (int)iptr[1] >> 5;
-            r = (int)iptr[2] >> 5;
-            *optr++ = (byte)((r << 5) + (g << 2) + b);
-          }
+          if ( g > 0.0 )
+            for ( int x = 0; x++ < width; iptr += input.Channels, optr += dO )
+            {
+              optr[ 2 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 0 ] * coef, g ), 0.0, 255.0 );
+              optr[ 1 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 1 ] * coef, g ), 0.0, 255.0 );
+              optr[ 0 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 2 ] * coef, g ), 0.0, 255.0 );
+            }
+          else
+            for ( int x = 0; x++ < width; iptr += input.Channels, optr += dO )
+            {
+              optr[ 2 ] = (byte)Arith.Clamp( 255.999 * iptr[ 0 ] * coef, 0.0, 255.0 );
+              optr[ 1 ] = (byte)Arith.Clamp( 255.999 * iptr[ 1 ] * coef, 0.0, 255.0 );
+              optr[ 0 ] = (byte)Arith.Clamp( 255.999 * iptr[ 2 ] * coef, 0.0, 255.0 );
+            }
         }
       }
-      output.UnlockBits( dataOut );
-      input.UnlockBits( dataIn );
+      result.UnlockBits( dataOut );
 
       // !!!}}
+
+      return result;
     }
   }
 }

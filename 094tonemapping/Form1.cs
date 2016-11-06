@@ -16,6 +16,11 @@ namespace _094tonemapping
     static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
 
     /// <summary>
+    /// Log2 contrast extension.
+    /// </summary>
+    const double EXTENDED_CONTRAST = 8.0;
+
+    /// <summary>
     /// Minimum Value of the non-black pixels of the current HDR image.
     /// </summary>
     protected double minY = 1.0;
@@ -80,6 +85,19 @@ namespace _094tonemapping
         setImage( ref outputImage, newImage );
         pictureBox1.Invalidate();
       }
+    }
+
+    delegate void SetTextCallback ( string text );
+
+    protected void SetText ( string text )
+    {
+      if ( labelStatus.InvokeRequired )
+      {
+        SetTextCallback st = new SetTextCallback( SetText );
+        BeginInvoke( st, new object[] { text } );
+      }
+      else
+        labelStatus.Text = text;
     }
 
     void SetGUI ( bool enable )
@@ -215,37 +233,15 @@ namespace _094tonemapping
     {
       if ( inputImage != null )
       {
-#if false
-        sw.Retart();
+        Stopwatch swt = new Stopwatch();
+        swt.Start();
 
-        Bitmap bmp;
-        //ColorReduction.Reduce( inputImage, out bmp, textParam.Text );
+        Bitmap newImage = ToneMapping.ToneMap( inputImage, outputImage, textParam.Text );
 
-        sw.Stop();
-        float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
-        SetImage( (Bitmap)bmp.Clone() );
-
-        // Image differences:
-        FloatImage a = new FloatImage( inputImage, 1 );
-        FloatImage b = new FloatImage( bmp, 1 );
-
-        // Simple differences:
-        float dr = a.MAD( b, 0 );
-        float dg = a.MAD( b, 1 );
-        float db = a.MAD( b, 2 );
-        float diff = (dr + dg + db) / 3.0f;
-        float diffw = (dr * Draw.RED_WEIGHT + dg * Draw.GREEN_WEIGHT + db * Draw.BLUE_WEIGHT) / Draw.WEIGHT_TOTAL;
-
-        // Conical blur differences:
-        a.Blur();
-        b.Blur();
-        dr = a.MAD( b );
-
-        MessageBox.Show( string.Format( CultureInfo.InvariantCulture, "Image: {5}x{6} ({7}){0}Time: {1:f3}s{0}plain MAD: {2:f5}{0}weighted MAD: {3:f5}{0}filtered MAD: {4:f5}",
-                                        Environment.NewLine, elapsed, diff, diffw, dr,
-                                        inputImage.Width, inputImage.Height, inputImage.PixelFormat.ToString() ), "MAE Difference" );
-        bmp.Dispose();
-#endif
+        swt.Stop();
+        SetText( string.Format( CultureInfo.InvariantCulture, "tonemap: {0} ms",
+                                swt.ElapsedMilliseconds ) );
+        SetImage( newImage );
       }
 
       StopComputation();
@@ -291,9 +287,8 @@ namespace _094tonemapping
     private void changeLabelExp ()
     {
       // extended log2 scale
-      double contr = contrast + 8.0;
       double aveLog2 = 0.5 * (minLog2 + maxLog2);
-      exposure = aveLog2 + contr * ( (trackBarExp.Value - trackBarExp.Minimum) / (double)(trackBarExp.Maximum - trackBarExp.Minimum) - 0.5 );
+      exposure = aveLog2 + (contrast + EXTENDED_CONTRAST) * ( (trackBarExp.Value - trackBarExp.Minimum) / (double)(trackBarExp.Maximum - trackBarExp.Minimum) - 0.5 );
       labelExpValue.Text = string.Format( CultureInfo.InvariantCulture, "{0:f1} EV", exposure );
 
       // multiplication coefficient:
