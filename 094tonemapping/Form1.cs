@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using MathSupport;
 using Raster;
 using Utilities;
 
@@ -45,11 +47,12 @@ namespace _094tonemapping
     protected int subFactor = 1;
     protected FloatImage inputImage = null;
     protected Bitmap outputImage = null;
+    protected string winTitle;
 
     public Form1 ()
     {
       InitializeComponent();
-      Text += " (rev: " + rev + ')';
+      winTitle = (Text += " (rev: " + rev + ')');
 
       string param;
       string name;
@@ -110,6 +113,47 @@ namespace _094tonemapping
       buttonOpen.Enabled   =
       buttonSave.Enabled   = enable;
       buttonStop.Enabled   = !enable;
+    }
+
+    void setWindowTitle ( string suffix )
+    {
+      if ( string.IsNullOrEmpty( suffix ) )
+        Text = winTitle;
+      else
+        Text = winTitle + ' ' + suffix;
+    }
+
+    /// <summary>
+    /// Shows data of the given pixel (and of the HDR & LDR images).
+    /// </summary>
+    /// <param name="x">X-coordinate inside the raster image.</param>
+    /// <param name="y">Y-coordinate inside the raster image.</param>
+    private void showPixel ( int x, int y )
+    {
+      if ( inputImage == null )
+      {
+        setWindowTitle( null );
+        return;
+      }
+
+      StringBuilder sb = new StringBuilder();
+      sb.AppendFormat( " {0} x {1}", inputImage.Width, inputImage.Height );
+      if ( x >= 0 && x < inputImage.Width &&
+           y >= 0 && y < inputImage.Height )
+      {
+        sb.AppendFormat( ": [{0},{1}] ->", x, y );
+        float[] pix = new float[ 3 ];
+        if ( inputImage.GetPixel( x, y, pix ) )
+          sb.AppendFormat( CultureInfo.InvariantCulture, " [{0},{1},{2}]", pix[ 0 ], pix[ 1 ], pix[ 2 ] );
+        if ( outputImage != null &&
+             outputImage.Width == inputImage.Width &&
+             outputImage.Height == inputImage.Height )
+        {
+          Color c = outputImage.GetPixel( x, y );
+          sb.AppendFormat( " [{0},{1},{2}]", c.R, c.G, c.B );
+        }
+      }
+      setWindowTitle( sb.ToString() );
     }
 
     /// <summary>
@@ -336,6 +380,18 @@ namespace _094tonemapping
     private void Form1_SizeChanged ( object sender, EventArgs e )
     {
       placeLabelExp();
+    }
+
+    private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
+    {
+      if ( aThread == null && e.Button == MouseButtons.Left )
+        showPixel( e.X, e.Y );
+    }
+
+    private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
+    {
+      if ( aThread == null && e.Button == MouseButtons.Left )
+        showPixel( e.X, e.Y );
     }
   }
 }
