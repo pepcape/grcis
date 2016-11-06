@@ -4,9 +4,15 @@ using System.Linq;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
+using MathSupport;
+using System.IO;
 
 namespace Raster
 {
+  /// <summary>
+  /// Multi-channel float raster image.
+  /// Can compute mirrored borders.
+  /// </summary>
   public class FloatImage
   {
     /// <summary>
@@ -58,7 +64,7 @@ namespace Raster
     /// </summary>
     protected int origin;
 
-    protected void init ( int wid, int hei, int ch = 1, int bor =0 )
+    protected void init ( int wid, int hei, int ch = 1, int bor = 0 )
     {
       border = Math.Max( bor, 0 );
       width = wid;
@@ -73,12 +79,12 @@ namespace Raster
       data = new float[ alloc ];
     }
 
-    public FloatImage ( int wid, int hei, int ch =1, int bor =0 )
+    public FloatImage ( int wid, int hei, int ch = 1, int bor = 0 )
     {
       init( wid, hei, ch, bor );
     }
 
-    public FloatImage ( Bitmap bmp, int bor =0 )
+    public FloatImage ( Bitmap bmp, int bor = 0 )
     {
       int ch = 3;
       if ( bmp.PixelFormat == PixelFormat.Format16bppGrayScale )
@@ -128,7 +134,7 @@ namespace Raster
     /// Sets the image border.
     /// </summary>
     /// <param name="type">Border type, ignored (only mirror border is implemented).</param>
-    protected void ComputeBorder ( int type =0 )
+    protected void ComputeBorder ( int type = 0 )
     {
       if ( border == 0 )
         return;
@@ -136,7 +142,7 @@ namespace Raster
       int j;
       unsafe
       {
-        fixed ( float *ptr = data )
+        fixed ( float* ptr = data )
         {
           // upper border:
           float* inside = ptr + origin;
@@ -198,15 +204,17 @@ namespace Raster
       }
     }
 
+    const int SIZEOF_FLOAT = sizeof( float );
+
     public bool GetPixel ( int x, int y, float[] pix )
     {
-      if ( x < 0 || x >= width  ||
+      if ( x < 0 || x >= width ||
            y < 0 || y >= height ||
            pix == null ||
            pix.Length < channels )
         return false;
 
-      Buffer.BlockCopy( data, origin + x * channels + y * stride, pix, 0, channels );
+      Buffer.BlockCopy( data, SIZEOF_FLOAT * (origin + x * channels + y * stride), pix, 0, SIZEOF_FLOAT * channels );
       return true;
     }
 
@@ -231,7 +239,7 @@ namespace Raster
            pix.Length < channels )
         return;
 
-      Buffer.BlockCopy( pix, 0, data, origin + x * channels + y * stride, channels );
+      Buffer.BlockCopy( pix, 0, data, SIZEOF_FLOAT * (origin + x * channels + y * stride), SIZEOF_FLOAT * channels );
     }
 
     public void PutPixel ( int x, int y, float val )
@@ -252,7 +260,7 @@ namespace Raster
     /// <returns>Sum of absolute pixel differences divided by number of pixels.</returns>
     public float MAD ( FloatImage b )
     {
-      if ( b.Width  != Width ||
+      if ( b.Width != Width ||
            b.Height != Height ||
            b.Channels != Channels )
         return 2.0f;
@@ -270,12 +278,12 @@ namespace Raster
           {
             float* pa = la;
             float* pb = lb;
-            for ( i = 0; i++ < widChannels;  )
+            for ( i = 0; i++ < widChannels; )
               sum += Math.Abs( *pa++ - *pb++ );
           }
         }
       }
-      return( (float)(sum / (height * widChannels)) );
+      return ((float)(sum / (height * widChannels)));
     }
 
     /// <summary>
@@ -286,7 +294,7 @@ namespace Raster
     /// <returns>Sum of absolute pixel differences divided by number of pixels.</returns>
     public float MAD ( FloatImage b, int ch )
     {
-      if ( b.Width  != Width ||
+      if ( b.Width != Width ||
            b.Height != Height ||
            ch >= Channels ||
            ch >= b.Channels )
@@ -336,9 +344,9 @@ namespace Raster
             float* pn = ln;
             for ( i = 0; i++ < widChannels; pa++ )
             {
-              float sum  = pa[ -stride - 1 ] + pa[ -stride ] + pa[ -stride + 1 ] +
-                           pa[ -1 ]          + pa[ 0 ]       + pa[ 1 ] +
-                           pa[ stride - 1 ]  + pa[ stride ]  + pa[ stride + 1 ];
+              float sum = pa[ -stride - 1 ] + pa[ -stride ] + pa[ -stride + 1 ] +
+                           pa[ -1 ] + pa[ 0 ] + pa[ 1 ] +
+                           pa[ stride - 1 ] + pa[ stride ] + pa[ stride + 1 ];
               *pn++ = sum / 9.0f;
             }
           }
@@ -347,6 +355,490 @@ namespace Raster
 
       data = ndata;
       ComputeBorder();
+    }
+
+    /// <summary>
+    /// Computes simple exposure from HDR to LDR format. Optional gamma pre-compensation
+    /// </summary>
+    /// <param name="result">Optional already allocated Bitmap.</param>
+    /// <param name="exp">Exposure coefficient.</param>
+    /// <param name="gamma">Optional target gammma (if zero, no pre-compensation is done).</param>
+    /// <returns></returns>
+    public Bitmap Exposure ( Bitmap result, double exp, double gamma = 0.0 )
+    {
+      if ( channels < 3 )
+        return null;
+
+      if ( result == null ||
+           result.Width != width ||
+           result.Height != height ||
+           result.PixelFormat != PixelFormat.Format24bppRgb )
+        result = new Bitmap( width, height, PixelFormat.Format24bppRgb );
+
+      // gamma pre-compensation?
+      double g = 0.0;
+      if ( gamma > 0.001 &&
+           Math.Abs( gamma - 1.0 ) < 0.001 )
+        g = 1.0 / gamma;
+
+      BitmapData dataOut = result.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb );
+      unsafe
+      {
+        fixed ( float* id = data )
+        {
+          float* iptr;
+          byte* optr;
+          int dO = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;    // BGR
+
+          for ( int y = 0; y < height; y++ )
+          {
+            iptr = id + origin + y * stride;
+            optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+            if ( g > 0.0 )
+              for ( int x = 0; x++ < width; iptr += channels, optr += dO )
+              {
+                optr[ 2 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 0 ] * exp, g ), 0.0, 255.0 );
+                optr[ 1 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 1 ] * exp, g ), 0.0, 255.0 );
+                optr[ 0 ] = (byte)Arith.Clamp( 255.999 * Math.Pow( iptr[ 2 ] * exp, g ), 0.0, 255.0 );
+              }
+            else
+              for ( int x = 0; x++ < width; iptr += channels, optr += dO )
+              {
+                optr[ 2 ] = (byte)Arith.Clamp( 255.999 * iptr[ 0 ] * exp, 0.0, 255.0 );
+                optr[ 1 ] = (byte)Arith.Clamp( 255.999 * iptr[ 1 ] * exp, 0.0, 255.0 );
+                optr[ 0 ] = (byte)Arith.Clamp( 255.999 * iptr[ 2 ] * exp, 0.0, 255.0 );
+              }
+          }
+        }
+      }
+      result.UnlockBits( dataOut );
+
+      return result;
+    }
+  }
+
+  public class RadianceHDRFormat
+  {
+    class HDRInstance
+    {
+      //==========================================================================
+      //  Data:
+
+      /** Binary file header. */
+      static readonly byte[] HEADER = new byte[]
+      {
+        // Radiance header
+        (byte)'#', (byte)'?', (byte)'R', (byte)'A',
+        (byte)'D', (byte)'I', (byte)'A', (byte)'N',
+        (byte)'C', (byte)'E'
+      };
+
+      /** RGBe scanline, byte order: <tt>[ Red, Green, Blue, Exp ]</tt>. */
+      protected byte[] scanline = null;
+
+      /** Minimum scanline length for encoding. */
+      const int MIN_ELEN = 8;
+
+      /** Maximum scanline length for encoding. */
+      const int MAX_ELEN = 0x7fff;
+
+      /** Minimum run length. */
+      const int MIN_RUN = 4;
+
+      //--------------------------------------------------------------------------
+      //  Support routines:
+
+      /** Asserts minimum length of the {@link #scanline} array (in pixels). */
+      protected void assertScanline ( int width )
+      {
+        int len = width << 2;
+        if ( scanline != null &&
+             scanline.Length >= len ) return;
+
+        scanline = new byte[ len ];
+      }
+
+      /**
+       * Reads data from the old binary format into the {@link #scanline} array.
+       *
+       * @param  start Starting index into the {@link #scanline} array (not pixel index!).
+       * @param  len Length to read (in pixels).
+       * @param  iss Binary stream to read from.
+       * @param  unget First byte read before calling this method (or <tt>-1</tt> if none was).
+       */
+      protected void oldReadScanline ( int start, int len, Stream iss, int unget )
+      {
+        int repShift = 0;                     // LSB/MSB RLE repeat attribute
+        int i;
+        int readBunch = (unget < 0) ? 4 : 3;
+        if ( unget >= 0 )
+          scanline[ start++ ] = (byte)unget;
+
+        while ( len-- > 0 )                   // read one quadruple
+        {
+          iss.Read( scanline, start, readBunch );
+          start += readBunch;
+
+          if ( scanline[ start - 2 ] == 1 &&
+               scanline[ start - 3 ] == 1 &&
+               scanline[ start - 4 ] == 1 )       // RLE packet
+          {
+            start -= 4;
+            i = scanline[ start + 3 ] << repShift;
+            // number of pixels to repeat
+            len -= (i - 1);                 // one item was counted before
+            i <<= 2;                       // number of bytes
+
+            while ( i-- > 0 )
+            {
+              scanline[ start ] = scanline[ start - 4 ];
+              start++;
+            }
+
+            repShift += 8;                    // next RLE packet would contain MSB repeat count
+          }
+
+          else                                // regular pixel
+            repShift = 0;
+
+          readBunch = 4;
+        }
+      }
+
+      /** Reads data in new RLE format (band-ordered) into the {@link #scanline} array. */
+      protected void readScanline ( int len, Stream iss )
+      {
+        assertScanline( len );
+
+        if ( len < MIN_ELEN ||
+             len > MAX_ELEN )                 // use old scanline format
+        {
+          oldReadScanline( 0, len, iss, -1 );
+          return;
+        }
+
+        int b = iss.ReadByte();
+        if ( b != 2 )                         // use old scanline format
+        {
+          oldReadScanline( 0, len, iss, b );
+          return;
+        }
+
+        // check scanline header - should be [ 2, 2, hi(len), lo(len) ]:
+        scanline[ 0 ] = (byte)b;
+        iss.Read( scanline, 1, 3 );
+
+        if ( scanline[ 1 ] != 2 ||
+             (scanline[ 2 ] & 0x80) > 0 )       // header mismatch => use the old format
+        {
+          oldReadScanline( 4, len - 1, iss, -1 );
+          return;
+        }
+
+        int readLen = (scanline[ 3 ] & 0xff) +
+                       ((scanline[ 2 ] & 0x7f) << 8);
+        if ( readLen != len )                 // header lenght mismatch => error
+          throw new IOException( "Error in HDR scanline" );
+
+        // read regular scanline data:
+        int band;                             // band number (0 for Red, .. 3 for Exp)
+        int rep;                              // repeat value (for RLE)
+        for ( band = 0; band < 4; band++ )
+        {
+          b = band;                           // index into scanline array
+          int i = 0;
+          while ( i < len )                   // read one component
+          {
+            rep = iss.ReadByte();
+            if ( rep > 128 )                  // RLE packet
+            {
+              rep &= 0x7f;
+              byte val = (byte)iss.ReadByte();
+              while ( rep-- > 0 )
+              {
+                scanline[ b ] = val;
+                b += 4;
+                i++;
+              }
+            }
+            else                              // raw packet
+              while ( rep-- > 0 )
+              {
+                scanline[ b ] = (byte)iss.ReadByte();
+                b += 4;
+                i++;
+              }
+          }
+        }
+      }
+
+      protected void writeScanline ( int len, Stream oss )
+      {
+        if ( len < MIN_ELEN ||
+             len > MAX_ELEN )                 // use old scanline format
+        {
+          oss.Write( scanline, 0, len << 2 );
+          return;
+        }
+
+        oss.WriteByte( 2 );
+        oss.WriteByte( 2 );
+        oss.WriteByte( (byte)(len >> 8) );
+        oss.WriteByte( (byte)(len & 0x7f) );
+
+        // put 4 components separately:
+        len <<= 2;
+        int b, band;
+        for ( band = 0; band < 4; band++ )
+        {
+          b = band;                           // index into scanline array
+          do                                  // encode at least one packet: [raw] [run]
+          {
+            // looking for RLE packet starting at 'b'
+            int run = 0;
+            int brun = b + 4;
+            while ( brun < len )
+            {
+              if ( scanline[ brun ] == scanline[ brun - 4 ] )
+              {
+                if ( ++run >= MIN_RUN - 1 ) break; // found the run!
+              }
+              else
+                run = 0;
+
+              brun += 4;
+            }
+
+            brun -= (run << 2);               // start of the run
+            int rawLen = (brun - b) >> 2;
+
+            // now write out raw packets:
+            while ( rawLen > 0 )
+            {
+              int rl = Math.Min( 128, rawLen );
+
+              // write raw packet of size 'rl' starting at 'b':
+              oss.WriteByte( (byte)rl );
+              rawLen -= rl;
+              do
+              {
+                oss.WriteByte( scanline[ b ] );
+                b += 4;
+              }
+              while ( --rl > 0 );
+            }
+
+            if ( run >= MIN_RUN - 1 )           // write one run
+            {
+              brun = scanline[ b ];             // value to repeat
+              run = 1;
+              while ( (b += 4) < len &&
+                      scanline[ b ] == brun &&
+                      ++run < 127 ) ;
+              if ( run == 127 ) b += 4;
+
+              oss.WriteByte( (byte)(run + 128) );
+              oss.WriteByte( (byte)brun );
+            }
+          }
+          while ( b < len );
+        }
+      }
+
+      /**
+       * Read character token delimited by an white-space.
+       * Skips initial white-spaces.
+       */
+      public static string readToken ( Stream iss )
+      {
+        int ch;
+        do
+          ch = iss.ReadByte();
+        while ( ch >= 0 && char.IsWhiteSpace( (char)ch ) );
+
+        if ( ch < 0 ) return null;
+
+        StringBuilder sb = new StringBuilder();
+        while ( ch >= 0 && !char.IsWhiteSpace( (char)ch ) )
+        {
+          sb.Append( (char)ch );
+          ch = iss.ReadByte();
+        }
+
+        return sb.ToString();
+      }
+
+      /**
+       * Common load code.
+       *
+       * @param  stream Opened input bit-stream.
+       * @param  g Checked raster-graphics object.
+       * @throws IOException
+       */
+      public FloatImage commonLoad ( Stream stream )
+      {
+        if ( stream == null )
+          throw new FileNotFoundException();
+
+        // decode HDR file into raster image:
+        // "#?RADIANCE ... 0x0a, 0x0a {+|-}Y <height> {+|-}X <width>"
+        bool bottomUp = false;
+        bool leftToRight = true;
+        int width = 0;
+        int height = 0;
+
+        int last;
+        int act = stream.ReadByte();
+        do
+        {
+          last = act;
+          act = stream.ReadByte();
+        }
+        while ( act >= 0 && (last != 0x0a || act != 0x0a) );
+
+        if ( act < 0 )
+          throw new IOException( "Error in HDR header" );
+
+        string axis1 = readToken( stream );
+        int dim1;
+        int.TryParse( readToken( stream ), out dim1 );
+        string axis2 = readToken( stream );
+        int dim2;
+        int.TryParse( readToken( stream ), out dim2 );
+
+        if ( axis1 == null || axis1.Length != 2 ||
+             axis1 == null || axis1.Length != 2 )
+          throw new IOException( "Error in HDR header" );
+
+        if ( char.ToLower( axis1[ 1 ] ) == 'x' )
+        {
+          width = dim1;
+          leftToRight = (axis1[ 0 ] == '+');
+        }
+        else
+        if ( char.ToLower( axis1[ 1 ] ) == 'y' )
+        {
+          height = dim1;
+          bottomUp = (axis1[ 0 ] == '+');
+        }
+        else
+          throw new IOException( "Error in HDR header" );
+
+        if ( char.ToLower( axis2[ 1 ] ) == 'x' )
+        {
+          width = dim2;
+          leftToRight = (axis2[ 0 ] == '+');
+        }
+        else
+        if ( char.ToLower( axis2[ 1 ] ) == 'y' )
+        {
+          height = dim2;
+          bottomUp = (axis2[ 0 ] == '+');
+        }
+        else
+          throw new IOException( "Error in HDR header" );
+
+        if ( width <= 0 ||
+             height <= 0 )
+          throw new IOException( "Error in HDR header" );
+
+        // init memory bitmap ..
+        FloatImage im = new FloatImage( width, height, 3 );
+
+        // .. and finally read the binary data into it:
+        int x, y, dy, i;
+        float[] pix = new float[ 3 ];
+        if ( bottomUp )
+        {
+          y = height - 1;
+          dy = -1;
+        }
+        else
+        {
+          y = 0;
+          dy = 1;
+        }
+
+        while ( y >= 0 && y < height )        // read one scanline
+        {
+          readScanline( width, stream );
+
+          // convert RGBe pixels into float[3] RGB:
+          if ( leftToRight )
+            for ( x = i = 0; x < width; x++, i += 4 )
+            {
+              Arith.RGBeToRGB( scanline, i, pix, 0 );
+              im.PutPixel( x, y, pix );
+            }
+          else
+            for ( x = width, i = 0; --x >= 0; i += 4 )
+            {
+              Arith.RGBeToRGB( scanline, i, pix, 0 );
+              im.PutPixel( x, y, pix );
+            }
+
+          y += dy;
+        }
+
+        return im;
+      }
+
+      /**
+       * Common save code.
+       *
+       * @param  stream Opened output bit-stream.
+       * @param  g Checked raster-graphics object.
+       * @throws IOException
+       */
+      public void commonSave ( Stream stream, FloatImage im )
+      {
+        if ( stream == null )
+          throw new FileNotFoundException();
+
+        // write HDR header:
+        int width = im.Width;
+        int height = im.Height;
+
+        // "#?RADIANCE ... 0x0a, 0x0a -Y <height> +X <width>"
+        StringBuilder sb = new StringBuilder( "#?RADIANCE\nFORMAT=32-bit_rle_rgbe\n\n-Y " );
+        sb.Append( height ).Append( " +X " ).Append( width ).Append( '\n' );
+
+        int x, y, i;
+        foreach ( char c in sb.ToString() )
+          stream.WriteByte( (byte)c );
+
+        // write the bitmap:
+        float[] pix = new float[ 3 ];
+        assertScanline( width );
+
+        for ( y = 0; y < height; y++ )        // encode one scanline
+        {
+          // read the scanline & convert it to RGBe format:
+          for ( x = i = 0; x < width; x++, i += 4 )
+          {
+            im.GetPixel( x, y, pix );
+            Arith.RGBToRGBe( scanline, i, pix[ 0 ], pix[ 1 ], pix[ 2 ] );
+          }
+
+          writeScanline( width, stream );
+        }
+      }
+    }
+
+    public static FloatImage FromFile ( string fileName )
+    {
+      try
+      {
+        using ( FileStream fs = new FileStream( fileName, FileMode.Open ) )
+        {
+          HDRInstance hi = new HDRInstance();
+          return hi.commonLoad( fs );
+        }
+      }
+      catch ( IOException )
+      {
+        return null;
+      }
     }
   }
 }

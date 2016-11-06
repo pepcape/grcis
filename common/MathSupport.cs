@@ -152,6 +152,68 @@ namespace MathSupport
     }
 
     /// <summary>
+    /// Conversion from Radiance's RGBe 32-bit format into HDR floating-point RGB format. 
+    /// </summary>
+    public static void RGBeToRGB ( byte[] rgbe, int startRgbe, float[] rgb, int startRgb )
+    {
+      if ( rgbe == null || startRgbe + 4 > rgbe.Length ||
+           rgb == null  || startRgb + 3 > rgb.Length )
+        return;
+
+      if ( rgbe[ startRgbe + 3 ] == 0 )
+        rgb[ startRgb     ] =
+        rgb[ startRgb + 1 ] =
+        rgb[ startRgb + 2 ] = 0.0f;
+      else
+      {
+        double f = Pow( 2.0, rgbe[ startRgbe + 3 ] - 136 );
+        rgb[ startRgb ]     = (float)((rgbe[ startRgbe     ] + 0.5) * f);
+        rgb[ startRgb + 1 ] = (float)((rgbe[ startRgbe + 1 ] + 0.5) * f);
+        rgb[ startRgb + 2 ] = (float)((rgbe[ startRgbe + 2 ] + 0.5) * f);
+      }
+    }
+
+    /// <summary>
+    /// Conversion from HDR floating-point RGB format to Radiance's RGBe 32-bit format.
+    /// </summary>
+    public static void RGBToRGBe ( byte[] rgbe, int startRgbe, double R, double G, double B )
+    {
+      if ( rgbe == null ||
+           startRgbe + 4 > rgbe.Length )
+        return;
+
+      double m = Math.Max( Math.Max( R, G ), B );
+
+      if ( m < 1.0e-32 )
+        rgbe[ startRgbe     ] =
+        rgbe[ startRgbe + 1 ] =
+        rgbe[ startRgbe + 2 ] =
+        rgbe[ startRgbe + 3 ] = 0;
+      else
+      {
+        int exp = 128;
+        double mul = 255.9999;
+        while ( m < 0.5 )
+        {
+          mul *= 2.0;
+          m *= 2.0;
+          exp--;
+        }
+        while ( m >= 1.0 )
+        {
+          mul *= 0.5;
+          m *= 0.5;
+          exp++;
+        }
+
+        rgbe[ startRgbe     ] = (byte)(R * mul);
+        rgbe[ startRgbe + 1 ] = (byte)(G * mul);
+        rgbe[ startRgbe + 2 ] = (byte)(B * mul);
+        rgbe[ startRgbe + 3 ] = (byte)exp;
+      }
+    }
+
+    /// <summary>
     /// Ray vs. line segment intersection in 2D.
     /// </summary>
     /// <param name="ox">Ray origin - x-coordinate.</param>
