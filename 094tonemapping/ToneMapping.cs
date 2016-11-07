@@ -29,7 +29,7 @@ namespace _094tonemapping
     /// <param name="input">Mandatory HDR image.</param>
     /// <param name="result">Optional (pre-allocatied) output LDR image.</param>
     /// <param name="param">Optional text parameters (from form's text-field).</param>
-    /// <returns></returns>
+    /// <returns>Output LDR image (use pre-allocated 'result' if possible).</returns>
     public static unsafe Bitmap ToneMap ( FloatImage input, Bitmap result, string param )
     {
       if ( input == null )
