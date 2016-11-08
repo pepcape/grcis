@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
+using Microsoft.CodeDom.Providers.DotNetCompilerPlatform;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -123,7 +124,7 @@ namespace _051
           if ( File.Exists( baseDir + value ) )
             inputFiles.Add( baseDir + value );
           else
-            Console.WriteLine( "Warning: ignoring nonexistent image '{0}' ({1})", value, FileLineNo() );
+            Console.WriteLine( $"Warning: ignoring nonexistent image '{value}' ({FileLineNo()})" );
           break;
 
         case "source":
@@ -133,21 +134,21 @@ namespace _051
           if ( File.Exists( baseDir + value ) )
             sourceFiles.Add( baseDir + value );
           else
-            Console.WriteLine( "Warning: ignoring nonexistent source '{0}' ({1})", value, FileLineNo() );
+            Console.WriteLine( $"Warning: ignoring nonexistent source '{value}' ({FileLineNo()})" );
           break;
 
         case "headerFile":
           if ( File.Exists( value ) )
             headerFile = value;
           else
-            Console.WriteLine( "Warning: ignoring nonexistent file '{0}' ({1})", value, FileLineNo() );
+            Console.WriteLine( $"Warning: ignoring nonexistent file '{value}' ({FileLineNo()})" );
           break;
 
         case "footerFile":
           if ( File.Exists( value ) )
             footerFile = value;
           else
-            Console.WriteLine( "Warning: ignoring nonexistent file '{0}' ({1})", value, FileLineNo() );
+            Console.WriteLine( $"Warning: ignoring nonexistent file '{value}' ({FileLineNo()})" );
           break;
 
         case "reference":
@@ -283,7 +284,7 @@ namespace _051
             }
             else
               if ( !EvalOptions.options.ParseOption( args, ref i ) )
-                Console.WriteLine( "Warning: invalid option '{0}'!", opt );
+                Console.WriteLine( $"Warning: invalid option '{opt}'!" );
           }
 
       //--- do the job ---
@@ -338,6 +339,7 @@ namespace _051
             wri.WriteLine( "</tr>" );
 
             Bitmap image = (Bitmap)Image.FromFile( imageFn );
+            Options.LogFormatMode( "debug", "Input image '{0}':", imageFn );
 
             List<string> names = new List<string>( assemblies.Keys );
             names.Sort();
@@ -366,7 +368,7 @@ namespace _051
     {
       sw.Restart();
 
-      CodeDomProvider P = CodeDomProvider.CreateProvider( "C#" );
+      CodeDomProvider P = new CSharpCodeProvider();
       CompilerParameters Opt = new CompilerParameters();
       Opt.GenerateInMemory = true;
       foreach ( string refName in EvalOptions.options.references )
@@ -443,6 +445,7 @@ namespace _051
     {
       Color[] colors = null;
       object[] arguments = new object[] { image, 10, colors };
+      Options.LogFormatMode( "debug", "Evaluating '{0}'", name );
 
       sw.Restart();
       ass.GetType( "cmap" + name + ".Colormap" ).GetMethod( "Generate" ).Invoke( null, arguments );
