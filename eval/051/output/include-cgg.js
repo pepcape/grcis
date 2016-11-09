@@ -8,6 +8,12 @@
   color: black;
 }
 
+table.nb th,
+table.nb td
+{
+  border-style: none;
+}
+
 td.l, th.l
 {
   text-align: left;

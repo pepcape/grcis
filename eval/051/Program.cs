@@ -324,7 +324,7 @@ namespace _051
           if ( Util.ReadTextFile( EvalOptions.options.headerFile, out part ) )
             wri.Write( part );
 
-          wri.WriteLine( "<table>" );
+          wri.WriteLine( "<table class=\"nb\">" );
           wri.WriteLine( "<tr><th>Name</th><th>Time</th><th>Image / colors</th></tr>" );
 
           int ord = 0;
