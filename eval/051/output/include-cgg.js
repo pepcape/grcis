@@ -1,37 +1,31 @@
 <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <style>
 
-.crop1, .crop2, .crop3, .crop4, .crop5
+.rgb
 {
-  width: 200px;
-  height: 180px;
-  overflow: hidden;
-  margin-bottom: 0.4em;
+  font-size: 8pt;
+  font-weight: bolder;
+  color: black;
 }
 
-.crop1 img
+td.l, th.l
 {
-  margin: -200px 0 0 -160px;
+  text-align: left;
 }
 
-.crop2 img
+td.r, th.r
 {
-  margin: -40px 0 0 -70px;
+  text-align: right;
 }
 
-.crop3 img
+td.c, th.c
 {
-  margin: -20px 0 0 -70px;
+  text-align: center;
 }
 
-.crop4 img
+td.t, th.t
 {
-  margin: -100px 0 0 -350px;
-}
-
-.crop5 img
-{
-  margin: -36px 0 0 -110px;
+  vertical-align: top;
 }
 
 .tbl

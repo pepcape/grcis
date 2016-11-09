@@ -445,10 +445,23 @@ namespace _051
     {
       Color[] colors = null;
       object[] arguments = new object[] { image, 10, colors };
-      Options.LogFormatMode( "debug", "Evaluating '{0}'", name );
 
-      sw.Restart();
-      ass.GetType( "cmap" + name + ".Colormap" ).GetMethod( "Generate" ).Invoke( null, arguments );
+      // memory cleanup and report:
+      long memOccupied = GC.GetTotalMemory( true );
+      Process procObj = Process.GetCurrentProcess();
+      Options.LogFormatMode( "debug", $"Evaluating '{name}' [{(memOccupied >> 20)}M - {(procObj.PrivateMemorySize64 >> 20)}M - {(procObj.VirtualMemorySize64 >> 20)}M - {(procObj.WorkingSet64 >> 20)}M - {(procObj.PagedMemorySize64 >> 20)}M - {(procObj.PagedSystemMemorySize64 >> 10)}K - {(procObj.NonpagedSystemMemorySize64 >> 10)}K]" );
+      string msg = null;
+
+      // running the solution function:
+      try
+      {
+        sw.Restart();
+        ass.GetType( "cmap" + name + ".Colormap" ).GetMethod( "Generate" ).Invoke( null, arguments );
+      }
+      catch ( Exception e )
+      {
+        msg = (e.InnerException ?? e).Message;
+      }
       sw.Stop();
 
       colors = arguments[ 2 ] as Color[];
@@ -457,94 +470,101 @@ namespace _051
       double maxV = EvalOptions.options.maxV;
 
       // report:
-      if ( colors != null )
+      bool best = EvalOptions.options.best.Contains( name );
+      wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}{1}{2}</td><td class=\"t r\">{3:f2}s</td>",
+                                best ? "<b>" : "", name, best ? "</b>" : "", sw.ElapsedMilliseconds * 0.001 ) );
+
+      if ( !string.IsNullOrEmpty( msg ) ||
+           colors == null ||
+           colors.Length == 0 )
       {
-        bool best = EvalOptions.options.best.Contains( name );
-        wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}{1}{2}</td><td class=\"t r\">{3:f2}s</td>",
-                                  best ? "<b>" : "", name, best ? "</b>" : "", sw.ElapsedMilliseconds * 0.001 ) );
-
-        // color ordering:
-        Array.Sort( colors, ( a, b ) =>
-        {
-          double La, Lb, A, B;
-          Arith.ColorToCIELab( a, out La, out A, out B );
-          Arith.ColorToCIELab( b, out Lb, out A, out B );
-          return La.CompareTo( Lb );
-#if false
-          double aH, aS, aV;
-          Arith.ColorToHSV( a, out aH, out aS, out aV );
-          double aMin = Math.Min( Math.Min( a.R, a.G ), a.B ) / 255.0;
-
-          int aSeg;
-          double aM;
-          if ( aV < minV )
-          {
-            aSeg = 0;
-            aM = aV;
-          }
-          else
-          if ( aMin > maxV ||
-               aS < minS )
-          {
-            aSeg = 1;
-            aM = aMin;
-          }
-          else
-          {
-            aSeg = 2;
-            aM = aH;
-          }
-
-          double bH, bS, bV;
-          Arith.ColorToHSV( b, out bH, out bS, out bV );
-          double bMin = Math.Min( Math.Min( b.R, b.G ), b.B ) / 255.0;
-
-          int bSeg;
-          double bM;
-          if ( bV < minV )
-          {
-            bSeg = 0;
-            bM = bV;
-          }
-          else
-          if ( bMin > maxV ||
-               bS < minS )
-          {
-            bSeg = 1;
-            bM = bMin;
-          }
-          else
-          {
-            bSeg = 2;
-            bM = bH;
-          }
-
-          if ( aSeg == bSeg )
-            return aM.CompareTo( bM );
-
-          return aSeg.CompareTo( bSeg );
-#endif
-        } );
-
-        // SVG color visualization:
-        int width = EvalOptions.options.imageWidth;
-        int widthBin = width / 10;
-        int height = 50;
-        int border = 2;
-        wri.WriteLine( "<td><svg width=\"{0}\" height=\"{1}\">", width, height );
-        int x = 0;
-        foreach ( var col in colors )
-        {
-          string rgb = string.Format( "#{0:X2}{1:X2}{2:X2}", col.R, col.G, col.B );
-          wri.WriteLine( "<rect x=\"{0}\" y=\"{1}\" width=\"{2}\" height=\"{3}\" fill=\"{4}\" />",
-                         x + border, border, widthBin - 2 * border, height - 2 * border - 14, rgb );
-          wri.WriteLine( "<text x=\"{0}\" y=\"{1}\" class=\"rgb\" text-anchor=\"middle\">{2}</text>",
-                         x + widthBin / 2, height - border, rgb );
-          x += widthBin;
-        }
-        wri.WriteLine( "</svg></td>" );
+        Util.Log( $"Error: '{msg}" );
+        wri.WriteLine( $"<td>Error: {msg}</td>" );
         wri.WriteLine( "</tr>" );
+        return;
       }
+
+      // color ordering:
+      Array.Sort( colors, ( a, b ) =>
+      {
+        double La, Lb, A, B;
+        Arith.ColorToCIELab( a, out La, out A, out B );
+        Arith.ColorToCIELab( b, out Lb, out A, out B );
+        return La.CompareTo( Lb );
+#if false
+        double aH, aS, aV;
+        Arith.ColorToHSV( a, out aH, out aS, out aV );
+        double aMin = Math.Min( Math.Min( a.R, a.G ), a.B ) / 255.0;
+
+        int aSeg;
+        double aM;
+        if ( aV < minV )
+        {
+          aSeg = 0;
+          aM = aV;
+        }
+        else
+        if ( aMin > maxV ||
+              aS < minS )
+        {
+          aSeg = 1;
+          aM = aMin;
+        }
+        else
+        {
+          aSeg = 2;
+          aM = aH;
+        }
+
+        double bH, bS, bV;
+        Arith.ColorToHSV( b, out bH, out bS, out bV );
+        double bMin = Math.Min( Math.Min( b.R, b.G ), b.B ) / 255.0;
+
+        int bSeg;
+        double bM;
+        if ( bV < minV )
+        {
+          bSeg = 0;
+          bM = bV;
+        }
+        else
+        if ( bMin > maxV ||
+              bS < minS )
+        {
+          bSeg = 1;
+          bM = bMin;
+        }
+        else
+        {
+          bSeg = 2;
+          bM = bH;
+        }
+
+        if ( aSeg == bSeg )
+          return aM.CompareTo( bM );
+
+        return aSeg.CompareTo( bSeg );
+#endif
+      } );
+
+      // SVG color visualization:
+      int width = EvalOptions.options.imageWidth;
+      int widthBin = width / 10;
+      int height = 50;
+      int border = 2;
+      wri.WriteLine( $"<td><svg width=\"{width}\" height=\"{height}\">" );
+      int x = 0;
+      foreach ( var col in colors )
+      {
+        string rgb = string.Format( "#{0:X2}{1:X2}{2:X2}", col.R, col.G, col.B );
+        wri.WriteLine( "<rect x=\"{0}\" y=\"{1}\" width=\"{2}\" height=\"{3}\" fill=\"{4}\" />",
+                        x + border, border, widthBin - 2 * border, height - 2 * border - 14, rgb );
+        wri.WriteLine( "<text x=\"{0}\" y=\"{1}\" class=\"rgb\" text-anchor=\"middle\">{2}</text>",
+                        x + widthBin / 2, height - border, rgb );
+        x += widthBin;
+      }
+      wri.WriteLine( "</svg></td>" );
+      wri.WriteLine( "</tr>" );
     }
   }
 }
