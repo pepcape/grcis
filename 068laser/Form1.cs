@@ -10,13 +10,19 @@ namespace _068laser
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     protected Image inputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+
+      string param;
+      string name;
+      Dither.InitParams( out param, out name );
+      textParam.Text = param ?? "";
+      Text += " (rev: " + rev + ") '" + name + '\'';
 
       newImage( (Image)null );
     }
