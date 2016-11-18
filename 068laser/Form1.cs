@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
 using Raster;
+using Utilities;
 
 namespace _068laser
 {
@@ -14,13 +15,19 @@ namespace _068laser
 
     protected Image inputImage = null;
 
+    protected string tooltip = "";
+    protected ToolTip tt;
+
     public Form1 ()
     {
       InitializeComponent();
+      tt = new ToolTip();
+      tt.InitialDelay = 0;
 
+      Draw.SetPens( 15 );
       string param;
       string name;
-      Dither.InitParams( out param, out name );
+      Dither.InitParams( out param, out tooltip, out name );
       textParam.Text = param ?? "";
       Text += " (rev: " + rev + ") '" + name + '\'';
 
@@ -146,7 +153,7 @@ namespace _068laser
         Stopwatch sw = new Stopwatch();
         sw.Start();
 
-        Dither.TransformImage( ibmp, out bmp, ibmp.Width, ibmp.Height, textParam.Text );
+        long dots = Dither.TransformImage( ibmp, out bmp, ibmp.Width, ibmp.Height, textParam.Text );
 
         sw.Stop();
         float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
@@ -154,7 +161,8 @@ namespace _068laser
         bmp.SetResolution( 1200, 1200 );
         SetImage( bmp );
 
-        SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s", elapsed ) );
+        SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s, dots: {1}",
+                                elapsed, Util.kmg( dots ) ) );
       }
 
       StopComputation();
@@ -210,6 +218,25 @@ namespace _068laser
     {
       if ( e.Data.GetDataPresent( DataFormats.FileDrop ) )
         e.Effect = DragDropEffects.Copy;
+    }
+
+    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        recompute();
+      }
+    }
+
+    private void textParam_MouseEnter ( object sender, EventArgs e )
+    {
+      tt.Show( tooltip, (TextBox)sender, 10, -25, 2000 );
+    }
+
+    private void textParam_MouseLeave ( object sender, EventArgs e )
+    {
+      tt.Hide( (TextBox)sender );
     }
   }
 }

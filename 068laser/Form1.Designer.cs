@@ -51,14 +51,14 @@
       this.panel1.Controls.Add(this.pictureBox1);
       this.panel1.Location = new System.Drawing.Point(13, 13);
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(722, 380);
+      this.panel1.Size = new System.Drawing.Size(758, 380);
       this.panel1.TabIndex = 0;
       // 
       // pictureBox1
       // 
       this.pictureBox1.Location = new System.Drawing.Point(0, 0);
       this.pictureBox1.Name = "pictureBox1";
-      this.pictureBox1.Size = new System.Drawing.Size(720, 380);
+      this.pictureBox1.Size = new System.Drawing.Size(758, 380);
       this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
       this.pictureBox1.TabIndex = 2;
       this.pictureBox1.TabStop = false;
@@ -68,7 +68,7 @@
       this.buttonOpen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonOpen.Location = new System.Drawing.Point(13, 408);
       this.buttonOpen.Name = "buttonOpen";
-      this.buttonOpen.Size = new System.Drawing.Size(96, 23);
+      this.buttonOpen.Size = new System.Drawing.Size(87, 23);
       this.buttonOpen.TabIndex = 1;
       this.buttonOpen.Text = "Load image";
       this.buttonOpen.UseVisualStyleBackColor = true;
@@ -77,9 +77,9 @@
       // buttonSave
       // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonSave.Location = new System.Drawing.Point(644, 408);
+      this.buttonSave.Location = new System.Drawing.Point(683, 408);
       this.buttonSave.Name = "buttonSave";
-      this.buttonSave.Size = new System.Drawing.Size(91, 23);
+      this.buttonSave.Size = new System.Drawing.Size(87, 23);
       this.buttonSave.TabIndex = 3;
       this.buttonSave.Text = "Save image";
       this.buttonSave.UseVisualStyleBackColor = true;
@@ -89,7 +89,7 @@
       // 
       this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point(122, 413);
+      this.label1.Location = new System.Drawing.Point(109, 413);
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size(40, 13);
       this.label1.TabIndex = 5;
@@ -97,8 +97,8 @@
       // 
       // buttonRedraw
       // 
-      this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonRedraw.Location = new System.Drawing.Point(350, 408);
+      this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonRedraw.Location = new System.Drawing.Point(347, 409);
       this.buttonRedraw.Name = "buttonRedraw";
       this.buttonRedraw.Size = new System.Drawing.Size(84, 23);
       this.buttonRedraw.TabIndex = 6;
@@ -108,19 +108,23 @@
       // 
       // textParam
       // 
-      this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.textParam.Location = new System.Drawing.Point(173, 410);
+      this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.textParam.Location = new System.Drawing.Point(156, 410);
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(160, 20);
+      this.textParam.Size = new System.Drawing.Size(176, 20);
       this.textParam.TabIndex = 7;
+      this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
+      this.textParam.MouseEnter += new System.EventHandler(this.textParam_MouseEnter);
+      this.textParam.MouseLeave += new System.EventHandler(this.textParam_MouseLeave);
       // 
       // buttonStop
       // 
-      this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.buttonStop.Enabled = false;
-      this.buttonStop.Location = new System.Drawing.Point(450, 408);
+      this.buttonStop.Location = new System.Drawing.Point(443, 409);
       this.buttonStop.Name = "buttonStop";
-      this.buttonStop.Size = new System.Drawing.Size(64, 23);
+      this.buttonStop.Size = new System.Drawing.Size(52, 23);
       this.buttonStop.TabIndex = 8;
       this.buttonStop.Text = "Stop";
       this.buttonStop.UseVisualStyleBackColor = true;
@@ -128,9 +132,9 @@
       // 
       // labelElapsed
       // 
-      this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelElapsed.AutoSize = true;
-      this.labelElapsed.Location = new System.Drawing.Point(530, 413);
+      this.labelElapsed.Location = new System.Drawing.Point(507, 414);
       this.labelElapsed.Name = "labelElapsed";
       this.labelElapsed.Size = new System.Drawing.Size(48, 13);
       this.labelElapsed.TabIndex = 9;
@@ -141,7 +145,7 @@
       this.AllowDrop = true;
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(752, 443);
+      this.ClientSize = new System.Drawing.Size(784, 443);
       this.Controls.Add(this.labelElapsed);
       this.Controls.Add(this.buttonStop);
       this.Controls.Add(this.textParam);
@@ -150,7 +154,7 @@
       this.Controls.Add(this.buttonSave);
       this.Controls.Add(this.buttonOpen);
       this.Controls.Add(this.panel1);
-      this.MinimumSize = new System.Drawing.Size(760, 200);
+      this.MinimumSize = new System.Drawing.Size(800, 200);
       this.Name = "Form1";
       this.Text = "068 laser";
       this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Form1_DragDrop);

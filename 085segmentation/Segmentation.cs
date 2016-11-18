@@ -218,10 +218,10 @@ namespace _085segmentation
           *((byte*)dataOut.Scan0 + y0 * dataOut.Stride + x0 * depth) = col;
 
         if ( traceSize > 1.0 )
-          for ( int peni = 1; peni < Draw.squares.Length && Draw.squares[ peni ] <= traceSize; peni++ )
+          for ( int pi = 1; pi < Draw.squares.Length && Draw.squares[ pi ] <= traceSize; pi++ )
           {
-            int pix = x0 + Draw.penPixels[ peni, 0 ];
-            int piy = y0 + Draw.penPixels[ peni, 1 ];
+            int pix = x0 + Draw.penPixels[ pi ].Item1;
+            int piy = y0 + Draw.penPixels[ pi ].Item2;
             if ( pix < 0 || pix >= wWid ||
                  piy < 0 || piy >= wHei )
               continue;

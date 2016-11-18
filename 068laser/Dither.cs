@@ -15,12 +15,14 @@ namespace _068laser
     /// <summary>
     /// Optional data initialization.
     /// </summary>
-    /// <param name="param">Optinal text parameter from the form's text-field.</param>
+    /// <param name="param">Initial value for the 'Params' text-field.</param>
+    /// <param name="tooltip">Tooltip for the text-field.</param>
     /// <param name="name">Your first-name and last-name.</param>
-    public static void InitParams ( out string param, out string name )
+    public static void InitParams ( out string param, out string tooltip, out string name )
     {
-      param = "scale=2.0";
-      name = "pilot";
+      param   = "scale=2.0";
+      tooltip = "scale, gamma, rnd, dot";
+      name    = "pilot";
     }
 
     /// <summary>
@@ -64,10 +66,10 @@ namespace _068laser
     /// Draws a black (color=0) dot into 1bpp raster image.
     /// The image must be locked.
     /// </summary>
-    /// <param name="x"></param>
-    /// <param name="y"></param>
-    /// <param name="size"></param>
-    /// <param name="dataOut"></param>
+    /// <param name="x">X-coordinate of dot center.</param>
+    /// <param name="y">Y-coordinate of dot center.</param>
+    /// <param name="size">Dot size in pixels.</param>
+    /// <param name="dataOut">Memory-mapped 1bpp output image.</param>
     protected unsafe static void Dot1bpp ( int x, int y, double size, BitmapData dataOut )
     {
       int wid = dataOut.Width;
@@ -76,10 +78,10 @@ namespace _068laser
       if ( x < 0 || x >= wid ||
            y < 0 || y >= hei ) return;
 
-      for ( int peni = 0; peni < Draw.squares.Length && Draw.squares[ peni ] <= size; peni++ )
+      for ( int pi = 0; pi < Draw.squares.Length && Draw.squares[ pi ] <= size; pi++ )
       {
-        int pix = x + Draw.penPixels[ peni, 0 ];
-        int piy = y + Draw.penPixels[ peni, 1 ];
+        int pix = x + Draw.penPixels[ pi ].Item1;
+        int piy = y + Draw.penPixels[ pi ].Item2;
         if ( pix < 0 || pix >= wid ||
              piy < 0 || piy >= hei )
           continue;
@@ -90,16 +92,27 @@ namespace _068laser
       }
     }
 
-    public static void TransformImage ( Bitmap input, out Bitmap output, int oWidth, int oHeight, string param )
+    /// <summary>
+    /// Converts the given image into B/W (1bpp) output suitable for high-resolution printer.
+    /// </summary>
+    /// <param name="input">Input image.</param>
+    /// <param name="output">Output (1bpp) image.</param>
+    /// <param name="oWidth">Default output image width in pixels.</param>
+    /// <param name="oHeight">Default output image height in pixels.</param>
+    /// <param name="param">Set of optional text parameters.</param>
+    /// <returns>Number of dots printed.</returns>
+    public static long TransformImage ( Bitmap input, out Bitmap output, int oWidth, int oHeight, string param )
     {
       // !!!{{ TODO: write your own image dithering code here
 
       int iWidth  = input.Width;
       int iHeight = input.Height;
+      long dots = 0L;
 
       // custom parameters from the text-field:
       double randomness = 0.0;
       double dot = 0.0;
+      double gamma = 0.0;
       Dictionary<string, string> p = Util.ParseKeyValueList( param );
       if ( p.Count > 0 )
       {
@@ -120,6 +133,10 @@ namespace _068laser
         // dot=<float-number>
         if ( Util.TryParse( p, "dot", ref dot ) )
           dot = Math.Max( dot, 0.0 );
+
+        // gamma=<float-number>
+        if ( Util.TryParse( p, "gamma", ref gamma ) )
+          gamma = Math.Max( gamma, 0.0 );
       }
 
       output = new Bitmap( oWidth, oHeight, PixelFormat.Format1bppIndexed );
@@ -164,9 +181,15 @@ namespace _068laser
             for ( x = 0, fx = 0.0f; x < oWidth; x++, fx += dx )
             {
               float gray = GetGray( fx, fy, dataIn, dI );
+              if ( gamma > 0.0 )
+                gray = (float)Math.Pow( gray, gamma );
+
               float threshold = (float)(0.5 - randomness * (rnd.NextDouble() - 0.5));
-              if ( gray > threshold )
+              if ( gray < threshold )
+              {
+                dots++;
                 Dot1bpp( x, y, dot, dataOut );
+              }
             }
           }
         }
@@ -187,9 +210,15 @@ namespace _068laser
             for ( x = 0, fx = 0.0f; x < oWidth; fx += dx )
             {
               float gray = GetGray( fx, fy, dataIn, dI );
+              if ( gamma > 0.0 )
+                gray = (float)Math.Pow( gray, gamma );
+
               float threshold = (float)(0.5 - randomness * (rnd.NextDouble() - 0.5));
               buffer += buffer;
-              if ( gray > threshold ) buffer++;
+              if ( gray >= threshold )
+                buffer++;
+              else
+                dots++;
 
               if ( (++x & 7) == 0 )
               {
@@ -211,6 +240,7 @@ namespace _068laser
       output.UnlockBits( dataOut );
       input.UnlockBits( dataIn );
 
+      return dots;
       // !!!}}
     }
   }
