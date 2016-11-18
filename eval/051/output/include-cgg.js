@@ -34,6 +34,12 @@ td.t, th.t
   vertical-align: top;
 }
 
+td.p, th.p
+{
+  padding-left: 6pt;
+  padding-right: 6pt;
+}
+
 .tbl
 {
   display: table;

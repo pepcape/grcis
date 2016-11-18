@@ -299,6 +299,16 @@ namespace _051
 
     static Stopwatch sw = new Stopwatch();
 
+    /// <summary>
+    /// Statistics of computing-time in seconds.
+    /// </summary>
+    static Quantiles<double> qtime = new Quantiles<double>();
+
+    /// <summary>
+    /// Statistics of color-variance in CIE La*b* color difference.
+    /// </summary>
+    static Quantiles<double> qvariance = new Quantiles<double>();
+
     static public void Evaluate ()
     {
       wasEvaluated = true;
@@ -325,7 +335,7 @@ namespace _051
             wri.Write( part );
 
           wri.WriteLine( "<table class=\"nb\">" );
-          wri.WriteLine( "<tr><th>Name</th><th>Time</th><th>Image / colors</th></tr>" );
+          wri.WriteLine( "<tr><th>Name</th><th>Time</th><th>Var</th><th>Image / colors</th></tr>" );
 
           int ord = 0;
           foreach ( var imageFn in EvalOptions.options.inputFiles )
@@ -333,13 +343,15 @@ namespace _051
             wri.WriteLine( "<tr><td>&nbsp;</td></tr>" );
 
             string relative = Util.MakeRelativePath( EvalOptions.options.outDir, imageFn );
-            wri.WriteLine( "<tr><td>&nbsp;</td><td>&nbsp;</td>" );
-            wri.WriteLine( "<td><img src=\"{0}\" width=\"{1}\"/></td>",
-                           relative, EvalOptions.options.imageWidth );
+            wri.WriteLine( "<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>" );
+            wri.WriteLine( $"<td><img src=\"{relative}\" width=\"{EvalOptions.options.imageWidth}\"/></td>" );
             wri.WriteLine( "</tr>" );
 
             Bitmap image = (Bitmap)Image.FromFile( imageFn );
             Options.LogFormatMode( "debug", "Input image '{0}':", imageFn );
+
+            qtime.Clear();
+            qvariance.Clear();
 
             List<string> names = new List<string>( assemblies.Keys );
             names.Sort();
@@ -348,6 +360,16 @@ namespace _051
                 EvaluateSolution( name, assemblies[ name ], image, wri );
 
             image.Dispose();
+
+            wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><th class=\"l\">Time [s]</th><td class=\"p t r\">{0:f2}s</td><td class=\"p t r\">{1:f2}</td>",
+                                      qtime.Mean, qtime.Variance ) );
+            wri.WriteLine( string.Format( CultureInfo.InvariantCulture, "<td class=\"p\">{0:f2} - {1:f2} - {2:f2} - {3:f2} - {4:f2}</td></tr>",
+                                          qtime.Min, qtime.Quartile( 1 ), qtime.Median, qtime.Quartile( 3 ), qtime.Max ) );
+
+            wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><th class=\"l\">Variance [La*b*]</th><td class=\"p t r\">{0:f1}</td><td class=\"p t r\">{1:f1}</td>",
+                                      qvariance.Mean, qvariance.Variance ) );
+            wri.WriteLine( string.Format( CultureInfo.InvariantCulture, "<td class=\"p\">{0:f1} - {1:f1} - {2:f1} - {3:f1} - {4:f1}</td></tr>",
+                                          qvariance.Min, qvariance.Quartile( 1 ), qvariance.Median, qvariance.Quartile( 3 ), qvariance.Max ) );
 
             Console.WriteLine( Options.LogFormat( "Finished image #{0}/{1} '{2}'", ++ord, images, relative ) );
           }
@@ -453,9 +475,9 @@ namespace _051
       string msg = null;
 
       // running the solution function:
+      sw.Restart();
       try
       {
-        sw.Restart();
         ass.GetType( "cmap" + name + ".Colormap" ).GetMethod( "Generate" ).Invoke( null, arguments );
       }
       catch ( Exception e )
@@ -469,10 +491,35 @@ namespace _051
       double minV = EvalOptions.options.minV;
       double maxV = EvalOptions.options.maxV;
 
+      // quantile statistics for elapsed time and color variance
+      double elapsed = sw.ElapsedMilliseconds * 0.001;
+
+      double sumVar = 0.0;
+      int N = 1;
+      if ( colors != null &&
+           colors.Length > 1 )
+      {
+        qtime.Add( elapsed );
+        N = 0;
+
+        for ( int i = 0; i < colors.Length - 1; i++ )
+          for ( int j = i + 1; j < colors.Length; j++ )
+          {
+            N++;
+            double La, Lb, Aa, Ab, Ba, Bb;
+            Arith.ColorToCIELab( colors[ i ], out La, out Aa, out Ba );
+            Arith.ColorToCIELab( colors[ j ], out Lb, out Ab, out Bb );
+            La -= Lb; Aa -= Ab; Ba -= Bb;
+            sumVar += Math.Sqrt( La * La + Aa * Aa + Ba * Ba );
+          }
+        qvariance.Add( sumVar / N );
+      }
+
       // report:
       bool best = EvalOptions.options.best.Contains( name );
-      wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}{1}{2}</td><td class=\"t r\">{3:f2}s</td>",
-                                best ? "<b>" : "", name, best ? "</b>" : "", sw.ElapsedMilliseconds * 0.001 ) );
+      wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}{1}{2}</td><td class=\"p t r\">{3:f2}s</td><td class=\"p t r\">{4:f1}</td>",
+                                best ? "<b>" : "", name, best ? "</b>" : "",
+                                elapsed, sumVar / N ) );
 
       if ( !string.IsNullOrEmpty( msg ) ||
            colors == null ||
@@ -491,60 +538,6 @@ namespace _051
         Arith.ColorToCIELab( a, out La, out A, out B );
         Arith.ColorToCIELab( b, out Lb, out A, out B );
         return La.CompareTo( Lb );
-#if false
-        double aH, aS, aV;
-        Arith.ColorToHSV( a, out aH, out aS, out aV );
-        double aMin = Math.Min( Math.Min( a.R, a.G ), a.B ) / 255.0;
-
-        int aSeg;
-        double aM;
-        if ( aV < minV )
-        {
-          aSeg = 0;
-          aM = aV;
-        }
-        else
-        if ( aMin > maxV ||
-              aS < minS )
-        {
-          aSeg = 1;
-          aM = aMin;
-        }
-        else
-        {
-          aSeg = 2;
-          aM = aH;
-        }
-
-        double bH, bS, bV;
-        Arith.ColorToHSV( b, out bH, out bS, out bV );
-        double bMin = Math.Min( Math.Min( b.R, b.G ), b.B ) / 255.0;
-
-        int bSeg;
-        double bM;
-        if ( bV < minV )
-        {
-          bSeg = 0;
-          bM = bV;
-        }
-        else
-        if ( bMin > maxV ||
-              bS < minS )
-        {
-          bSeg = 1;
-          bM = bMin;
-        }
-        else
-        {
-          bSeg = 2;
-          bM = bH;
-        }
-
-        if ( aSeg == bSeg )
-          return aM.CompareTo( bM );
-
-        return aSeg.CompareTo( bSeg );
-#endif
       } );
 
       // SVG color visualization:
