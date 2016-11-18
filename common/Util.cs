@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -1068,6 +1069,243 @@ namespace Utilities
         o.WriteLine( "{0,20}: {1,10}", kvp.Key * BinSize, kvp.Value );
         if ( --limit <= 0 ) break;
       }
+    }
+  }
+
+  /// <summary>
+  /// Class for simple statistical analysis of numeric scalar quantity.
+  /// Mean value and variance is implemented, optional Quantiles.
+  /// </summary>
+  /// <typeparam name="T">Numeric base type.</typeparam>
+  public class Quantiles<T> : List<T>
+  {
+    /// <summary>
+    /// If true, individual values are stored and Quantiles will be able to compute.
+    /// </summary>
+    protected bool storeValues;
+
+    /// <summary>
+    /// Number of inserted values.
+    /// If 'storeValues', it has to be equal to base.Count.
+    /// </summary>
+    protected int N;
+
+    /// <summary>
+    /// Sum of inserted values.
+    /// </summary>
+    protected double Sx;
+
+    /// <summary>
+    /// Sum of squares of inserted values.
+    /// </summary>
+    protected double Sxx;
+
+    /// <summary>
+    /// True if the array needs sorting.
+    /// </summary>
+    protected bool dirty;
+
+    /// <summary>
+    /// Sole constructor.
+    /// </summary>
+    /// <param name="quantiles">If positive, quantiles can be computed.
+    /// If negative, only mean value and variance will be provided.</param>
+    /// <param name="capacity">Initial array capacity.</param>
+    public Quantiles ( bool quantiles =true, int capacity =0 )
+      : base( quantiles ? Math.Max( capacity, 0 ) : 0 )
+    {
+      storeValues = quantiles;
+      N = 0;
+      Sx = Sxx = 0.0;
+    }
+
+    public new void Clear ()
+    {
+      base.Clear();
+      N = 0;
+      Sx = Sxx = 0.0;
+    }
+
+    protected void AddStat ( T x )
+    {
+      double val = Convert.ToDouble( x );
+      N++;
+      Sx  += val;
+      Sxx += val * val;
+      dirty = true;
+    }
+
+    protected void RemoveStat ( T x )
+    {
+      double val = Convert.ToDouble( x );
+      N--;
+      Sx  -= val;
+      Sxx -= val * val;
+      dirty = true;
+    }
+
+    /// <summary>
+    /// Mean (average) value of inserted values.
+    /// </summary>
+    public double Mean
+    {
+      get
+      {
+        return (N > 0) ? Sx / N : double.NaN;
+      }
+    }
+
+    /// <summary>
+    /// Variance of the set of inserted values (for sample from a larger population use <see cref="VarianceBessel"/>).
+    /// </summary>
+    public double Variance
+    {
+      get
+      {
+        return (N > 0) ? Math.Sqrt( (Sxx - Sx * Sx / N) / N ) : double.NaN;
+      }
+    }
+
+    /// <summary>
+    /// Bessel's correction: if our set of values is actually a sample from larger population, we should use this formula.
+    /// </summary>
+    public double VarianceBessel
+    {
+      get
+      {
+        return (N > 1) ? Math.Sqrt( (Sxx - Sx * Sx / N) / (N - 1.0) ) : double.NaN;
+      }
+    }
+
+    /// <summary>
+    /// <![CDATA[Computes the i-th q-quantile (0 <= i <= q).]]>
+    /// </summary>
+    /// <param name="q">Number of quantiles (1 for min/max, 2 for median, 4 for quartiles, 10 for deciles..).</param>
+    /// <param name="i">Index of the quantile (0 .. min, q .. max).</param>
+    /// <returns>Quantile value.</returns>
+    public double Quantile ( int q, int i )
+    {
+      if ( !storeValues )
+        return double.NaN;
+
+      if ( dirty )
+      {
+        Debug.Assert( N == Count );
+        if ( N > 0 )
+          Sort();
+        dirty = false;
+      }
+
+      if ( N <= 0 )
+        return double.NaN;
+
+      if ( N == 1 ||
+           i <= 0 )
+        return Convert.ToDouble( base[ 0 ] );
+
+      if ( i >= q )
+        return Convert.ToDouble( base[ N - 1 ] );
+
+      double di = ((N - 1.0) * i) / q;
+      int i0 = (int)Math.Floor( di );
+      di -= i0;
+
+      return (1.0 - di) * Convert.ToDouble( base[ i0 ] ) + di * Convert.ToDouble( base[ i0 + 1 ] );
+    }
+
+    public double Min
+    {
+      get
+      {
+        return Quantile( 1, 0 );
+      }
+    }
+
+    public double Max
+    {
+      get
+      {
+        return Quantile( 1, 1 );
+      }
+    }
+
+    public double Median
+    {
+      get
+      {
+        return Quantile( 2, 1 );
+      }
+    }
+
+    public double Quartile ( int i )
+    {
+      return Quantile( 4, i );
+    }
+
+    //--- all the boring stuff is below this line: we have to implement (override) all meaningful methods of List<T> ---
+
+    public new void Add ( T x )
+    {
+      if ( storeValues )
+        base.Add( x );
+
+      AddStat( x );
+    }
+
+    public new void AddRange ( IEnumerable<T> collection )
+    {
+      foreach ( T val in collection )
+        Add( val );
+    }
+
+    public new void Insert ( int index, T x )
+    {
+      if ( storeValues )
+        base.Insert( index, x );
+
+      AddStat( x );
+    }
+
+    public new void InsertRange ( int index, IEnumerable<T> collection )
+    {
+      AddRange( collection );
+    }
+
+    public new void Remove ( T x )
+    {
+      if ( storeValues )
+        base.Remove( x );
+
+      RemoveStat( x );
+    }
+
+    public new void RemoveAt ( int index )
+    {
+      if ( !storeValues ||
+           index < 0 ||
+           index >= Count )
+        return;
+
+      RemoveStat( base[ index ] );
+      base.RemoveAt( index );
+    }
+
+    public new void RemoveRange ( int start, int count )
+    {
+      while ( count-- > 0 )
+        RemoveAt( start );
+    }
+
+    public new void RemoveAll ( Predicate<T> match )
+    {
+      if ( !storeValues )
+        return;
+
+      foreach ( T val in this )
+        if ( match( val ) )
+          RemoveStat( val );
+
+      base.RemoveAll( match );
     }
   }
 }
