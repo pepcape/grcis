@@ -153,10 +153,10 @@ namespace Raster
 
       img.SetPixel( x, y, color );
       if ( penSize > 1.0 )
-        for ( int peni = 1; peni < squares.Length && squares[ peni ] <= penSize; peni++ )
+        for ( int pi = 1; pi < squares.Length && squares[ pi ] <= penSize; pi++ )
         {
-          int pix = x + penPixels[ peni, 0 ];
-          int piy = y + penPixels[ peni, 1 ];
+          int pix = x + penPixels[ pi ].Item1;
+          int piy = y + penPixels[ pi ].Item2;
           if ( pix < 0 || pix >= wid ||
                piy < 0 || piy >= hei )
             continue;
@@ -570,41 +570,42 @@ namespace Raster
     /// <summary>
     /// Support for fractional pen sizes.
     /// </summary>
-    public static int[ , ] penPixels;
+    public static List<Tuple<int, int>> penPixels;
+
+    public static void SetPens ( int n )
+    {
+      if ( (n |= 1) < 3 )
+        n = 3;
+      penPixels = new List<Tuple<int, int>>( n * n );
+      squares = new double[ n * n ];
+
+      for ( int i = 0; i < n * n; i++ )
+        squares[ i ] = Math.Sqrt( i + 1.0 );
+
+      int c = n / 2;
+      for ( int y = 0; y < n; y++ )
+        for ( int x = 0; x < n; x++ )
+          penPixels.Add( new Tuple<int, int>( x - c, y - c ) );
+
+      const float CX = 0.05f;
+      const float CY = 0.91f;
+      penPixels.Sort( ( a, b ) =>
+      {
+        float x = a.Item1 - CX;
+        float y = a.Item2 - CY;
+        float da = x * x + y * y;
+        x = b.Item1 - CX;
+        y = b.Item2 - CY;
+        float db = x * x + y * y;
+        if ( da == db )
+          return a.Item1.CompareTo( b.Item1 );
+        return da.CompareTo( db );
+      } );
+    }
 
     static Draw ()
     {
-      squares = new double[ 25 ];
-      for ( int i = 0; i < 25; i++ )
-        squares[ i ] = Math.Sqrt( i + 1.0 );
-      penPixels = new int[ , ]
-      {
-        {  0,  0 },
-        { -1,  0 },
-        {  0, -1 },
-        {  1,  0 },
-        {  0,  1 },
-        { -1, -1 },
-        {  1,  1 },
-        {  1, -1 },
-        { -1,  1 },
-        {  0, -2 },
-        { -2,  0 },
-        {  0,  2 },
-        {  2,  0 },
-        { -1, -2 },
-        {  1,  2 },
-        {  2,  1 },
-        { -2,  1 },
-        {  1, -2 },
-        { -1,  2 },
-        {  2, -1 },
-        { -2, -1 },
-        {  2,  2 },
-        { -2, -2 },
-        { -2,  2 },
-        {  2, -2 }
-      };
+      SetPens( 7 );
     }
   }
 }
