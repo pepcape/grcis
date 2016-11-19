@@ -195,6 +195,42 @@ namespace Raster
         ComputeBorder();
     }
 
+    public FloatImage GrayImage ( bool inv =false, double gamma =0.0 )
+    {
+      FloatImage ni = new FloatImage( width, height, 1, border );
+      int i;
+      int len = (width + 2 * border) * (height + 2 * border);
+      double val;
+      unsafe
+      {
+        fixed ( float* pii = data )
+        fixed ( float* poi = ni.data )
+        {
+          float* pi = pii;
+          float* po = poi;
+          if ( channels >= 3 )
+            for ( i = 0; i++ < len; pi += channels )
+            {
+              val = (pi[ 0 ] * Draw.RED_WEIGHT + pi[ 1 ] * Draw.GREEN_WEIGHT + pi[ 2 ] * Draw.BLUE_WEIGHT) / Draw.WEIGHT_TOTAL;
+              if ( inv ) val = 1.0 - val;
+              if ( gamma > 0.0 )
+                val = Math.Pow( val, gamma );
+              *po++ = (float)val;
+            }
+          else
+            for ( i = 0; i++ < len; pi += channels )
+            {
+              val = *pi;
+              if ( inv ) val = 1.0 - val;
+              if ( gamma > 0.0 )
+                val = Math.Pow( val, gamma );
+              *po++ = (float)val;
+            }
+        }
+      }
+      return ni;
+    }
+
     /// <summary>
     /// Sets the image border.
     /// </summary>
@@ -537,6 +573,87 @@ namespace Raster
 
       minY = minf;
       maxY = maxf;
+    }
+
+    /// <summary>
+    /// Cummulative distribution function in discrete form.
+    /// Support data structure for efficient sampling.
+    /// If allocated, it should have 'image resolution' + 1 values.
+    /// </summary>
+    protected double[] cdf = null;
+
+    /// <summary>
+    /// Prepare support cdf array.
+    /// </summary>
+    /// <param name="ch">Optional channel index.</param>
+    public void PrepareCdf ( int ch =0 )
+    {
+      ch = Arith.Clamp( ch, 0, Channels - 1 );
+      int cdfRes = width * height + 1;
+      cdf = new double[ cdfRes ];
+      double acc = 0.0;
+      int oi = 1;
+      for ( int y = 0; y < height; y++ )
+      {
+        int ii = Scan0 + y * Stride + ch;
+        for ( int x = 0; x++ < width; ii += Channels )
+        {
+          acc += data[ ii ];
+          cdf[ oi++ ] = acc;
+        }
+      }
+      double k = 1.0 / acc;
+      for ( oi = 1; oi < cdfRes; )
+        cdf[ oi++ ] *= k;
+    }
+
+    /// <summary>
+    /// CDF-based sampling.
+    /// </summary>
+    /// <param name="x">Output horizontal coordinate from the [0.0,width) range.</param>
+    /// <param name="y">Output vertical coordinate from the [0.0,height) range.</param>
+    /// <param name="random">[0,1] uniform random value.</param>
+    /// <param name="rnd">Optional random generator instance. If provided, internal randomization is possible.</param>
+    public void GetSample ( out double x, out double y, double random, RandomJames rnd =null )
+    {
+      if ( cdf == null )
+        PrepareCdf();
+
+      // CDF-based importance sampling:
+      int ia = 0;
+      int ib = width * height;
+      double a = 0.0;
+      double b = 1.0;
+      do
+      {
+        int ip = (ia + ib) >> 1;
+        double p = cdf[ ip ];
+        if ( p < random )
+        {
+          ia = ip;
+          a = p;
+        }
+        else
+        {
+          ib = ip;
+          b = p;
+        }
+      }
+      while ( ia + 1 < ib );
+
+      y = ia / width;
+      x = ia % width;
+
+      if ( rnd != null )
+      {
+        x += rnd.UniformNumber();
+        y += rnd.UniformNumber();
+      }
+      else
+      {
+        x += 0.5;
+        y += 0.5;
+      }
     }
 
     /// <summary>
