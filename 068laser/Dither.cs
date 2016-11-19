@@ -21,7 +21,7 @@ namespace _068laser
     public static void InitParams ( out string param, out string tooltip, out string name )
     {
       param   = "scale=2.0";
-      tooltip = "scale, gamma, rnd, dot";
+      tooltip = "scale, gamma, rnd, dot, sampling";
       name    = "pilot";
     }
 
@@ -105,7 +105,7 @@ namespace _068laser
     {
       // !!!{{ TODO: write your own image dithering code here
 
-      int iWidth  = input.Width;
+      int iWidth = input.Width;
       int iHeight = input.Height;
       long dots = 0L;
 
@@ -113,6 +113,7 @@ namespace _068laser
       double randomness = 0.0;
       double dot = 0.0;
       double gamma = 0.0;
+      bool sampling = false;
       Dictionary<string, string> p = Util.ParseKeyValueList( param );
       if ( p.Count > 0 )
       {
@@ -122,7 +123,7 @@ namespace _068laser
         if ( Util.TryParse( p, "scale", ref scale ) &&
              scale > 0.01 )
         {
-          oWidth =  (int)(iWidth * scale);
+          oWidth = (int)(iWidth * scale);
           oHeight = (int)(iHeight * scale);
         }
 
@@ -137,6 +138,9 @@ namespace _068laser
         // gamma=<float-number>
         if ( Util.TryParse( p, "gamma", ref gamma ) )
           gamma = Math.Max( gamma, 0.0 );
+
+        // sampling=<bool>
+        Util.TryParse( p, "sampling", ref sampling );
       }
 
       output = new Bitmap( oWidth, oHeight, PixelFormat.Format1bppIndexed );
@@ -151,7 +155,7 @@ namespace _068laser
 
       int x, y;
       float fx, fy;
-      Random rnd = new Random();
+      RandomJames rnd = new RandomJames();
 
       // convert pixel data (fast memory-mapped code):
       PixelFormat iFormat = input.PixelFormat;
@@ -161,84 +165,114 @@ namespace _068laser
            !PixelFormat.Format32bppRgb.Equals( iFormat ) )
         iFormat = PixelFormat.Format24bppRgb;
 
-      BitmapData dataIn = input.LockBits( new Rectangle( 0, 0, iWidth, iHeight ), ImageLockMode.ReadOnly, iFormat );
       BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, oWidth, oHeight ), ImageLockMode.WriteOnly, output.PixelFormat );
 
-      if ( dot > 0.0 )
-        unsafe
+      unsafe
+      {
+        byte* optr;
+
+        if ( sampling )
         {
+          dot = Math.Max( dot, 1.0 );
+
           // clear output image:
-          byte* optr = (byte*)dataOut.Scan0;
+          optr = (byte*)dataOut.Scan0;
           for ( x = 0; x++ < oHeight * ((oWidth + 7) / 8); )
             *optr++ = 255;
 
-          int dI = Image.GetPixelFormatSize( iFormat ) / 8;
+          // create grayscale image able to sample points from itself:
+          FloatImage fi = new FloatImage( input );
+          fi = fi.GrayImage( true, gamma );
+          fi.PrepareCdf();
 
-          for ( y = 0, fy = 0.0f; y < oHeight; y++, fy += dy )
+          // sample 'dots' random dots:
+          dots = (long)(1.2 * oWidth * oHeight / (dot * dot));
+          double xx, yy;
+          for ( long i = 0; i++ < dots; )
           {
-            if ( !Form1.cont ) break;
-
-            for ( x = 0, fx = 0.0f; x < oWidth; x++, fx += dx )
-            {
-              float gray = GetGray( fx, fy, dataIn, dI );
-              if ( gamma > 0.0 )
-                gray = (float)Math.Pow( gray, gamma );
-
-              float threshold = (float)(0.5 - randomness * (rnd.NextDouble() - 0.5));
-              if ( gray < threshold )
-              {
-                dots++;
-                Dot1bpp( x, y, dot, dataOut );
-              }
-            }
+            fi.GetSample( out xx, out yy, rnd.UniformNumber(), rnd );
+            xx = oWidth * (xx / iWidth);
+            yy = oHeight * (yy / iHeight);
+            Dot1bpp( (int)xx, (int)yy, dot, dataOut );
           }
         }
-      else
-        unsafe
+        else
         {
-          byte* optr;
-          int buffer;
-          int dI = Image.GetPixelFormatSize( iFormat ) / 8;
-
-          for ( y = 0, fy = 0.0f; y < oHeight; y++, fy += dy )
+          BitmapData dataIn = input.LockBits( new Rectangle( 0, 0, iWidth, iHeight ), ImageLockMode.ReadOnly, iFormat );
+          if ( dot > 0.0 )
           {
-            if ( !Form1.cont ) break;
+            // clear output image:
+            optr = (byte*)dataOut.Scan0;
+            for ( x = 0; x++ < oHeight * ((oWidth + 7) / 8); )
+              *optr++ = 255;
 
-            optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
-            buffer = 0;
+            int dI = Image.GetPixelFormatSize( iFormat ) / 8;
 
-            for ( x = 0, fx = 0.0f; x < oWidth; fx += dx )
+            for ( y = 0, fy = 0.0f; y < oHeight; y++, fy += dy )
             {
-              float gray = GetGray( fx, fy, dataIn, dI );
-              if ( gamma > 0.0 )
-                gray = (float)Math.Pow( gray, gamma );
+              if ( !Form1.cont ) break;
 
-              float threshold = (float)(0.5 - randomness * (rnd.NextDouble() - 0.5));
-              buffer += buffer;
-              if ( gray >= threshold )
-                buffer++;
-              else
-                dots++;
-
-              if ( (++x & 7) == 0 )
+              for ( x = 0, fx = 0.0f; x < oWidth; x++, fx += dx )
               {
-                *optr++ = (byte)buffer;
-                buffer = 0;
+                float gray = GetGray( fx, fy, dataIn, dI );
+                if ( gamma > 0.0 )
+                  gray = (float)Math.Pow( gray, gamma );
+
+                float threshold = (float)(0.5 - randomness * (rnd.UniformNumber() - 0.5));
+                if ( gray < threshold )
+                {
+                  dots++;
+                  Dot1bpp( x, y, dot, dataOut );
+                }
               }
             }
+          }
+          else
+          {
+            int buffer;
+            int dI = Image.GetPixelFormatSize( iFormat ) / 8;
 
-            // finish the last byte of the scanline:
-            if ( (x & 7) != 0 )
+            for ( y = 0, fy = 0.0f; y < oHeight; y++, fy += dy )
             {
-              while ( (x++ & 7) != 0 )
+              if ( !Form1.cont ) break;
+
+              optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+              buffer = 0;
+
+              for ( x = 0, fx = 0.0f; x < oWidth; fx += dx )
+              {
+                float gray = GetGray( fx, fy, dataIn, dI );
+                if ( gamma > 0.0 )
+                  gray = (float)Math.Pow( gray, gamma );
+
+                float threshold = (float)(0.5 - randomness * (rnd.UniformNumber() - 0.5));
                 buffer += buffer;
-              *optr = (byte)buffer;
+                if ( gray >= threshold )
+                  buffer++;
+                else
+                  dots++;
+
+                if ( (++x & 7) == 0 )
+                {
+                  *optr++ = (byte)buffer;
+                  buffer = 0;
+                }
+              }
+
+              // finish the last byte of the scanline:
+              if ( (x & 7) != 0 )
+              {
+                while ( (x++ & 7) != 0 )
+                  buffer += buffer;
+                *optr = (byte)buffer;
+              }
             }
           }
+          input.UnlockBits( dataIn );
         }
 
-      output.UnlockBits( dataOut );
-      input.UnlockBits( dataIn );
+        output.UnlockBits( dataOut );
+      }
 
       return dots;
       // !!!}}
