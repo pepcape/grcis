@@ -84,6 +84,12 @@ namespace _051
 
     public HashSet<string> best = new HashSet<string>();
 
+    public bool bestOnly = false;
+
+    public Dictionary<string, string[]> imageInfo = new Dictionary<string, string[]>();
+
+    public bool imageLocal = false;
+
     /// <summary>
     /// Specific data cleanup.
     /// </summary>
@@ -125,6 +131,26 @@ namespace _051
             inputFiles.Add( baseDir + value );
           else
             Console.WriteLine( $"Warning: ignoring nonexistent image '{value}' ({FileLineNo()})" );
+          break;
+
+        case "imageInfo":
+          {
+            string[] info = Util.ParseList( value );
+            if ( info.Length > 1 )
+            {
+              List<string> l = new List<string>( info );
+              l.RemoveAt( 0 );
+              imageInfo[ info[ 0 ] ] = l.ToArray();
+            }
+          }
+          break;
+
+        case "imageLocal":
+          imageLocal = Util.positive( value );
+          break;
+
+        case "bestOnly":
+          bestOnly = Util.positive( value );
           break;
 
         case "source":
@@ -342,8 +368,13 @@ namespace _051
           {
             wri.WriteLine( "<tr><td>&nbsp;</td></tr>" );
 
-            string relative = Util.MakeRelativePath( EvalOptions.options.outDir, imageFn );
-            wri.WriteLine( "<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>" );
+            string relative = EvalOptions.options.imageLocal ?
+                                Path.GetFileName( imageFn ) :
+                                Util.MakeRelativePath( EvalOptions.options.outDir, imageFn );
+            string[] desctiption;
+            EvalOptions.options.imageInfo.TryGetValue( Path.GetFileName( imageFn ), out desctiption );
+            wri.WriteLine( "<tr><td colspan=\"3\" class=\"b p r\">{0}</td>",
+                           (desctiption == null) ? "&nbsp;" : string.Join( ", ", desctiption ) );
             wri.WriteLine( $"<td><img src=\"{relative}\" width=\"{EvalOptions.options.imageWidth}\"/></td>" );
             wri.WriteLine( "</tr>" );
 
@@ -356,7 +387,8 @@ namespace _051
             List<string> names = new List<string>( assemblies.Keys );
             names.Sort();
             foreach ( var name in names )
-              if ( !EvalOptions.options.bans.Contains( name ) )
+              if ( !EvalOptions.options.bans.Contains( name ) &&
+                   (!EvalOptions.options.bestOnly || EvalOptions.options.best.Contains( name )) )
                 EvaluateSolution( name, assemblies[ name ], image, wri );
 
             image.Dispose();

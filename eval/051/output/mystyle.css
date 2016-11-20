@@ -43,6 +43,11 @@ td.t, th.t
   vertical-align: top;
 }
 
+td.b, th.b
+{
+  vertical-align: bottom;
+}
+
 td.p, th.p
 {
   padding-left: 6pt;

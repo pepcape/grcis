@@ -13,3 +13,4 @@ maxV = 0.8
 minS = 0.1
 
 include = eval051.txt
+include = info051.txt
