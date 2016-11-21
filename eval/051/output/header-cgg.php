@@ -15,3 +15,6 @@
 <?php require PAGE_TEMPLATE_PATH.'/pre_content.php'; ?>
 
 <h1>051 evaluation</h1>
+<p>
+Link to the assignment: <a href="/~pepca/lectures/cv/051colormap.cz.php">051colormap</a>
+</p>
