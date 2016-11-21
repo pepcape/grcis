@@ -143,6 +143,7 @@ namespace _068laser
         Util.TryParse( p, "sampling", ref sampling );
       }
 
+      // create output 1bpp Bitmap
       output = new Bitmap( oWidth, oHeight, PixelFormat.Format1bppIndexed );
       float dx = (iWidth - 1.0f) / (oWidth - 1.0f);
       float dy = (iHeight - 1.0f) / (oHeight - 1.0f);
@@ -166,11 +167,11 @@ namespace _068laser
         iFormat = PixelFormat.Format24bppRgb;
 
       BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, oWidth, oHeight ), ImageLockMode.WriteOnly, output.PixelFormat );
-
       unsafe
       {
         byte* optr;
 
+        // A. placing reasonable number of random dots on the paper
         if ( sampling )
         {
           dot = Math.Max( dot, 1.0 );
@@ -199,6 +200,8 @@ namespace _068laser
         else
         {
           BitmapData dataIn = input.LockBits( new Rectangle( 0, 0, iWidth, iHeight ), ImageLockMode.ReadOnly, iFormat );
+
+          // B. random screen using dots bigger than 1px
           if ( dot > 0.0 )
           {
             // clear output image:
@@ -228,6 +231,8 @@ namespace _068laser
             }
           }
           else
+
+          // C. random screen using individual pixels
           {
             int buffer;
             int dI = Image.GetPixelFormatSize( iFormat ) / 8;
@@ -275,6 +280,7 @@ namespace _068laser
       }
 
       return dots;
+
       // !!!}}
     }
   }
