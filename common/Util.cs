@@ -536,6 +536,21 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Parses list of doubles from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref List<double> val )
+    {
+      string sval;
+      if ( rec == null ||
+           !rec.TryGetValue( key, out sval ) )
+        return false;
+
+      val = ParseDoubleList( sval );
+      return true;
+    }
+
+    /// <summary>
     /// Returns first defined value (for the given keys) or null.
     /// </summary>
     public static string FirstDefined ( Dictionary<string, string> rec, string[] keys )
