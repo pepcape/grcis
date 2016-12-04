@@ -107,6 +107,12 @@ namespace Raster
       }
     }
 
+    protected void setAccelerators ()
+    {
+      stride = channels * (width + 2 * border);
+      origin = border   * (stride + channels);
+    }
+
     protected void init ( int wid, int hei, int ch =1, int bor =0, float[] d =null )
     {
       border   = Math.Max( bor, 0 );
@@ -119,8 +125,7 @@ namespace Raster
         border = Math.Min( width, height );
 
       // Support (accelerator) values:
-      stride = channels * (width + 2 * border);
-      origin = border * (stride + channels);
+      setAccelerators();
 
       // The data array itself:
       data = d ?? new float[ stride * (height + 2 * border) ];
@@ -147,7 +152,7 @@ namespace Raster
     }
 
     /// <summary>
-    /// Create a HDR image grom provided LDR Bitmap.
+    /// Create a HDR image from provided LDR Bitmap.
     /// </summary>
     /// <param name="bmp">Input LDR image.</param>
     /// <param name="bor">Border width in pixels.</param>
@@ -232,10 +237,62 @@ namespace Raster
     }
 
     /// <summary>
-    /// Sets the image border.
+    /// Sets the required border size (exactly).
+    /// Does not compute the border pixels yet!
+    /// </summary>
+    /// <param name="newBorder">Required border size in pixels. Zero value means 'no border'.</param>
+    public void SetBorder ( int newBorder )
+    {
+      if ( newBorder < 0 ||
+           newBorder == border )
+        return;
+
+      int newStride = channels * (width + 2 * newBorder);
+      int newOrigin = newBorder * (newStride + channels);
+      float[] newData = new float[ newStride * (height + 2 * newBorder) ];
+      int len = width * channels;
+
+      unsafe
+      {
+        fixed ( float* pii = data )
+        fixed ( float* poi = newData )
+        {
+          for ( int y = 0; y < width; y++ )
+          {
+            float* pi = pii + origin    + y * stride;
+            float* po = poi + newOrigin + y * newStride;
+            int n = len;
+            while ( n-- > 0 )
+              *po++ = *pi++;
+          }
+        }
+      }
+
+      data   = newData;
+      border = newBorder;
+      stride = newStride;
+      origin = newOrigin;
+    }
+
+    /// <summary>
+    /// Asserts minimal border value.
+    /// Computes actual border pixels.
+    /// </summary>
+    /// <param name="minBorder">Minimal border size needed.</param>
+    public void AssertMinBorder ( int minBorder )
+    {
+      if ( border >= minBorder )
+        return;
+
+      SetBorder( minBorder );
+      ComputeBorder();
+    }
+
+    /// <summary>
+    /// Computes the image border.
     /// </summary>
     /// <param name="type">Border type, ignored (only mirror border is implemented).</param>
-    protected unsafe void ComputeBorder ( int type = 0 )
+    protected unsafe void ComputeBorder ( int type =0 )
     {
       if ( border == 0 )
         return;
