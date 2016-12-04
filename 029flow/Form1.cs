@@ -106,7 +106,7 @@ namespace _029flow
         if ( so == null )
           return;
 
-        f.SetText( String.Format( CultureInfo.InvariantCulture, "Sync {0:f1}s: sim {1:f1}s, spawned {2}",
+        f.SetText( string.Format( CultureInfo.InvariantCulture, "Sync {0:f1}s: sim {1:f1}s, spawned {2}",
                                   1.0e-3 * lastSync, so.simTime, Util.kmg( so.totalSpawned ) ) );
         Bitmap nb;
         lock ( so.bmp )

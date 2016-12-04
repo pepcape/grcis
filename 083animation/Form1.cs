@@ -87,7 +87,7 @@ namespace _083animation
 
       sw.Stop();
 
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
       setImage( newImage );
 
@@ -405,7 +405,7 @@ namespace _083animation
 
         // GUI progress indication:
         frames++;
-        SetText( String.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1} ({2:f1}%), {3:f1}s",
+        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1} ({2:f1}%), {3:f1}s",
                                 threads, frames, Util.percent( frames, totalFrames + 1 ),
                                 1.0e-3 * sw.ElapsedMilliseconds ) );
         if ( r.frameNumber > lastDisplayedFrame &&
@@ -417,7 +417,7 @@ namespace _083animation
         }
 
         // save the image file:
-        string fileName = String.Format( "out{0:0000}.png", r.frameNumber );
+        string fileName = string.Format( "out{0:0000}.png", r.frameNumber );
         r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
         r.Dispose();
       }

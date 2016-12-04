@@ -86,7 +86,7 @@ namespace _025contours
       Contours.ComputeContours( this, newImage );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f}s",
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f}s",
                                          1.0e-3 * sw.ElapsedMilliseconds );
 
       setImage( ref outputImage, newImage );
@@ -106,7 +106,7 @@ namespace _025contours
         double dx = (x - origin.X) * scale;
         double dy = (y - origin.Y) * scale;
         double val = f( dx, dy );
-        labelSample.Text = String.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}], [{2:f},{3:f}] = {4:f}",
+        labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}], [{2:f},{3:f}] = {4:f}",
                                           x, y, dx, dy, val );
       }
     }

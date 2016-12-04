@@ -26,7 +26,7 @@ namespace _016videoslow
     {
       this.WindowState = FormWindowState.Minimized;
       ScreenCapture sc = new ScreenCapture();
-      string fn = String.Format( textInputMask.Text, 0 );
+      string fn = string.Format( textInputMask.Text, 0 );
       string dir = Path.GetDirectoryName( fn );
       Directory.CreateDirectory( dir );
       dir += @"\capturelog.txt";
@@ -45,7 +45,7 @@ namespace _016videoslow
       do
       {
         im = sc.CaptureScreen();
-        fn = String.Format( textInputMask.Text, frameNo++ );
+        fn = string.Format( textInputMask.Text, frameNo++ );
         im.Save( fn, ImageFormat.Png );
         msCurrent = (long)(frameNo * 1000.0 / (double)numericFps.Value);
         long msSleep = msCurrent - sw.ElapsedMilliseconds;
@@ -58,7 +58,7 @@ namespace _016videoslow
           log.WriteLine( "Frame {0:0000}: busy! ({1} ms)", frameNo, msSleep );
       }
       while ( sw.ElapsedMilliseconds < msTotal );
-      labelSpeed.Text = String.Format( "Captured {0} frames in {1:f} s!", frameNo, (float)(sw.ElapsedMilliseconds * 0.001) );
+      labelSpeed.Text = string.Format( "Captured {0} frames in {1:f} s!", frameNo, (float)(sw.ElapsedMilliseconds * 0.001) );
       log.Close();
       sw.Stop();
 
@@ -67,7 +67,7 @@ namespace _016videoslow
 
     private void buttonEncode_Click ( object sender, EventArgs e )
     {
-      string fn = String.Format( textInputMask.Text, 0 );
+      string fn = string.Format( textInputMask.Text, 0 );
       if ( !File.Exists( fn ) )
       {
         MessageBox.Show( "Invalid input files!" );
@@ -102,7 +102,7 @@ namespace _016videoslow
         frameImage = null;
 
         // next frame:
-        fn = String.Format( textInputMask.Text, ++i );
+        fn = string.Format( textInputMask.Text, ++i );
         if ( !File.Exists( fn ) ) break;
         frameImage = (Bitmap)Image.FromFile( fn );
       }
@@ -111,14 +111,14 @@ namespace _016videoslow
       if ( frameImage != null )
         frameImage.Dispose();
       s.Close();
-      labelSpeed.Text = String.Format( "Encoded {0} frames in {1:f} s!", i, (float)(sw.ElapsedMilliseconds * 0.001) );
+      labelSpeed.Text = string.Format( "Encoded {0} frames in {1:f} s!", i, (float)(sw.ElapsedMilliseconds * 0.001) );
       sw.Stop();
       fs.Close();
     }
 
     private void buttonDecode_Click ( object sender, EventArgs e )
     {
-      string fn = String.Format( textOutputMask.Text, 0 );
+      string fn = string.Format( textOutputMask.Text, 0 );
       string dir = Path.GetDirectoryName( fn );
       Directory.CreateDirectory( dir );
 
@@ -143,11 +143,11 @@ namespace _016videoslow
             {
               s.Close();
               fs.Close();
-              labelSpeed.Text = String.Format( "Decoded {0} frames in {1:f} s!", i, (float)(sw.ElapsedMilliseconds * 0.001) );
+              labelSpeed.Text = string.Format( "Decoded {0} frames in {1:f} s!", i, (float)(sw.ElapsedMilliseconds * 0.001) );
               sw.Stop();
               return;
             }
-            fn = String.Format( textOutputMask.Text, i++ );
+            fn = string.Format( textOutputMask.Text, i++ );
             fi.Save( fn, ImageFormat.Png );
           }
         }

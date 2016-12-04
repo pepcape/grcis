@@ -111,7 +111,7 @@ namespace _010quadtree
       long fileSize = fs.Position;
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f}s, {1}kb",
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Enc: {0:f}s, {1}kb",
                                          1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
 
       // 3. quad-tree re-read (disk file)
@@ -127,7 +127,7 @@ namespace _010quadtree
         // 5. comparison
         diffImage = new Bitmap( inputImage.Width, inputImage.Height, PixelFormat.Format24bppRgb );
         long diffHash = Draw.ImageCompare( inputImage, outputImage, diffImage );
-        labelResult.Text = String.Format( "Errs: {0}", diffHash );
+        labelResult.Text = string.Format( "Errs: {0}", diffHash );
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
       }
       else

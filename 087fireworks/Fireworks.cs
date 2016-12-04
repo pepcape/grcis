@@ -818,14 +818,14 @@ namespace _087fireworks
           primitiveCounter = 0L;
 
           if ( lastPps < 5.0e5 )
-            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Pps: {1:f1}k",
+            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Pps: {1:f1}k",
                                            lastFps, (lastPps * 1.0e-3) );
           else
-            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Pps: {1:f1}m",
+            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Pps: {1:f1}m",
                                            lastFps, (lastPps * 1.0e-6) );
 
           if ( fw != null )
-            labelStat.Text = String.Format( CultureInfo.InvariantCulture, "time: {0:f1}s, fr: {1}{2}, laun: {3}, part: {4}",
+            labelStat.Text = string.Format( CultureInfo.InvariantCulture, "time: {0:f1}s, fr: {1}{2}, laun: {3}, part: {4}",
                                             fw.Time, fw.Frames,
                                             (screencast != null) ? (" (" + screencast.Queue + ')') : "",
                                             fw.Launchers, fw.Particles );

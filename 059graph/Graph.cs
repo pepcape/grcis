@@ -37,10 +37,10 @@ namespace _059graph
         triangleCounter = 0L;
 
         if ( lastTps < 5.0e5 )
-          labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f0}k",
+          labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f0}k",
                                          lastFps, (lastTps * 1.0e-3) );
         else
-          labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f1}m",
+          labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f1}m",
                                          lastFps, (lastTps * 1.0e-6) );
       }
     }

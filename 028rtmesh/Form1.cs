@@ -195,7 +195,7 @@ namespace _028rtmesh
       objReader.MirrorConversion = false;
       int faces = objReader.ReadBrep( ofd.FileName, brepScene );
       brepScene.BuildCornerTable();
-      labelSample.Text = String.Format( "{0} faces", faces );
+      labelSample.Text = string.Format( "{0} faces", faces );
 
       imf = null;  // reset the scene object (to be sure)
       rend = null; // reset the renderer as well..

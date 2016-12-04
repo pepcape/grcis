@@ -130,7 +130,7 @@ namespace _070subdivision
       cn = new Subdivision();
       points = cn.Subdivide( scene, (float)numericSubdivision.Value * diameter, checkNormals.Checked, checkColors.Checked, false, 0.0f, textParam.Text );
 
-      labelFile.Text = String.Format( "{0}: {1} f, {2} pts", ofd.SafeFileName, faces, points );
+      labelFile.Text = string.Format( "{0}: {1} f, {2} pts", ofd.SafeFileName, faces, points );
 
       PrepareDataBuffers();
       glControl1.Invalidate();
@@ -199,7 +199,7 @@ namespace _070subdivision
 
       points = cn.Subdivide( scene, (float)numericSubdivision.Value * diameter, checkNormals.Checked, checkColors.Checked, false, 0.0f, textParam.Text );
 
-      labelFile.Text = String.Format( "{0} v, {1} f, {2} pts", scene.Vertices, scene.Triangles, points );
+      labelFile.Text = string.Format( "{0} v, {1} f, {2} pts", scene.Vertices, scene.Triangles, points );
 
       PrepareDataBuffers();
       glControl1.Invalidate();

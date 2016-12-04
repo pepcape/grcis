@@ -150,10 +150,10 @@ namespace _037floodfill
              q.Count == 0 )
         {
           SetImage( new Bitmap( working ) );
-          SetText( String.Format( "Queue: {0} (Max = {1})", q.Count, maxQ ) );
+          SetText( string.Format( "Queue: {0} (Max = {1})", q.Count, maxQ ) );
           if ( checkSnap.Checked )
           {
-            string fileName = String.Format( "out{0:0000}.png", frameNo++ );
+            string fileName = string.Format( "out{0:0000}.png", frameNo++ );
             Bitmap s = new Bitmap( working );
             s.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
           }

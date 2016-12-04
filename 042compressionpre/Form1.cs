@@ -81,7 +81,7 @@ namespace _042compressionpre
       long fileSize = fs.Position;
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f3}s, {1:f1}kb", 1.0e-3 * sw.ElapsedMilliseconds, fileSize / 1024.0 );
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Enc: {0:f3}s, {1:f1}kb", 1.0e-3 * sw.ElapsedMilliseconds, fileSize / 1024.0 );
 
       // 3. image decoding
       fs.Seek( 0L, SeekOrigin.Begin );
@@ -93,7 +93,7 @@ namespace _042compressionpre
       {
         diffImage = new Bitmap( inputImage.Width, inputImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
         long diffHash = Draw.ImageCompare( inputImage, outputImage, diffImage );
-        labelResult.Text = String.Format( CultureInfo.InvariantCulture, "Errs: {0}", diffHash );
+        labelResult.Text = string.Format( CultureInfo.InvariantCulture, "Errs: {0}", diffHash );
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
       }
       else

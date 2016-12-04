@@ -52,12 +52,13 @@ namespace _094tonemapping
     public Form1 ()
     {
       InitializeComponent();
-      winTitle = (Text += " (rev: " + rev + ')');
 
       string param;
       string name;
       ToneMapping.InitParams( out param, out name );
       textParam.Text = param ?? "";
+      winTitle = (Text += " (rev: " + rev + ") '" + name + '\'');
+
       Application.Idle += new EventHandler( Application_Idle );
     }
 

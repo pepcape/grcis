@@ -22,10 +22,11 @@ namespace _057scene
       InitializeComponent();
 
       string param;
-      Construction.InitParams( out param );
+      string name;
+      Construction.InitParams( out param, out name );
       textParam.Text = param ?? "";
 
-      Text += " (rev: " + rev + ')';
+      Text += " (rev: " + rev + ") '" + name + '\'';
     }
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
@@ -62,7 +63,7 @@ namespace _057scene
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
 
-      labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      labelFaces.Text = string.Format( "{0} faces, {1} errors", faces, errors );
       redraw();
     }
 
@@ -113,7 +114,7 @@ namespace _057scene
 
       Cursor.Current = Cursors.Default;
 
-      labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      labelFaces.Text = string.Format( "{0} faces, {1} errors", faces, errors );
       redraw();
     }
 

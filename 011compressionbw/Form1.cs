@@ -88,7 +88,7 @@ namespace _011compressionbw
       long fileSize = fs.Position;
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f2}s, {1}b ({2}x{3})",
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Enc: {0:f2}s, {1}b ({2}x{3})",
                                          1.0e-3 * sw.ElapsedMilliseconds, fileSize,
                                          inputImage.Width, inputImage.Height );
 
@@ -102,7 +102,7 @@ namespace _011compressionbw
       {
         diffImage = new Bitmap( inputImage.Width, inputImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
         long diffHash = Draw.ImageCompareBW( inputImage, outputImage, diffImage );
-        labelResult.Text = String.Format( "Errs: {0}", diffHash );
+        labelResult.Text = string.Format( "Errs: {0}", diffHash );
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
 #if LOG
         // log results:

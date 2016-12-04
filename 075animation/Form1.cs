@@ -82,7 +82,7 @@ namespace _075animation
       outputImage = c.Finish();
       sw.Stop();
 
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
       pictureBox1.Image = outputImage;
 
@@ -159,7 +159,7 @@ namespace _075animation
     public Form1 ()
     {
       InitializeComponent();
-      String []tok = "$Rev$".Split( ' ' );
+      string []tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[1] + ')';
 
       // Init rendering params:
@@ -390,7 +390,7 @@ namespace _075animation
         }
 
         // GUI progress indication:
-        SetText( String.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
+        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
                                 threads, ++frames, 1.0e-3 * sw.ElapsedMilliseconds ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
@@ -401,7 +401,7 @@ namespace _075animation
         }
 
         // save the image file:
-        string fileName = String.Format( "out{0:0000}.png", r.frameNumber );
+        string fileName = string.Format( "out{0:0000}.png", r.frameNumber );
         r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
         r.Dispose();
       }

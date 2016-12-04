@@ -15,7 +15,7 @@ namespace _059graph
     public Form1 ()
     {
       InitializeComponent();
-      String[] tok = "$Rev$".Split( ' ' );
+      string[] tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[ 1 ] + ')';
     }
 

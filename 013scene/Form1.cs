@@ -49,7 +49,7 @@ namespace _013scene
       scene.BuildCornerTable();
       int errors = scene.CheckCornerTable( null );
 
-      labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      labelFaces.Text = string.Format( "{0} faces, {1} errors", faces, errors );
       redraw();
     }
 
@@ -66,7 +66,7 @@ namespace _013scene
 
       Cursor.Current = Cursors.Default;
 
-      labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      labelFaces.Text = string.Format( "{0} faces, {1} errors", faces, errors );
       redraw();
     }
 

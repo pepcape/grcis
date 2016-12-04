@@ -59,10 +59,10 @@ namespace _009floodfill
       }
 
       sw.Stop();
-      labelElapsed.Text = String.Format( "Elapsed: {0:f} s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = string.Format( "Elapsed: {0:f} s", 1.0e-3 * sw.ElapsedMilliseconds );
 
       long hash = Draw.Hash( output );
-      labelHash.Text = String.Format( "{0:X}", hash );
+      labelHash.Text = string.Format( "{0:X}", hash );
 
       setImage( ref outputImage, output );
 

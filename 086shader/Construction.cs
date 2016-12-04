@@ -14,9 +14,10 @@ namespace Scene3D
     /// <summary>
     /// Optional data initialization.
     /// </summary>
-    public static void InitParams ( out string param )
+    public static void InitParams ( out string param, out string name )
     {
       param = "";
+      name  = "pilot";
     }
 
     #endregion

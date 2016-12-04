@@ -772,7 +772,7 @@ namespace Utilities
     public static int OccupiedString ( string s )
     {
       if ( s == null ||
-           String.IsInterned( s ) != null )
+           string.IsInterned( s ) != null )
         return 4;
 
       int occ = 8 + 4 + 2 + 2 * s.Length;
@@ -786,7 +786,7 @@ namespace Utilities
       int len = s.Length;
       result[ 0 ]++;
       result[ 1 ] += len;
-      if ( String.IsInterned( s ) != null )
+      if ( string.IsInterned( s ) != null )
       {
         result[ 2 ]++;
         result[ 3 ] += len;
