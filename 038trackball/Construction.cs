@@ -1,9 +1,9 @@
 // Author: Josef Pelikan
 
-using System.IO;
-using OpenTK;
-using MathSupport;
 using System;
+using System.IO;
+using MathSupport;
+using OpenTK;
 
 namespace Scene3D
 {
