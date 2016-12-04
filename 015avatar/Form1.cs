@@ -66,7 +66,7 @@ namespace _015avatar
       int errors = scene.CheckCornerTable( null );
       scene.GenerateColors( 12 );
 
-      labelFaces.Text = String.Format( "{0}: {1} faces, {2} errors", ofd.SafeFileName, faces, errors );
+      labelFaces.Text = string.Format( "{0}: {1} faces, {2} errors", ofd.SafeFileName, faces, errors );
       PrepareDataBuffers();
       glControl1.Invalidate();
     }
@@ -84,7 +84,7 @@ namespace _015avatar
 
       Cursor.Current = Cursors.Default;
 
-      labelFaces.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      labelFaces.Text = string.Format( "{0} faces, {1} errors", faces, errors );
       PrepareDataBuffers();
       glControl1.Invalidate();
     }

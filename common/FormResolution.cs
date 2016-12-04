@@ -24,14 +24,14 @@ namespace GuiSupport
       set;
     }
 
-    public static String GetLabel ( ref int width, ref int height )
+    public static string GetLabel ( ref int width, ref int height )
     {
       if ( width * (long)height > 500000000L )
         height = 500000000 / width;
       if ( width == 0 && height == 0 )
         return( "Resolution" );
 
-      return( String.Format( "{0} x {1}",
+      return( string.Format( "{0} x {1}",
                              (width == 0) ? "res" : width.ToString(),
                              (height == 0) ? "res" : height.ToString() ) );
     }

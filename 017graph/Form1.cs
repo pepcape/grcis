@@ -61,7 +61,7 @@ namespace _017graph
       renderer.Render( newImage, fun );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f2}s",
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f2}s",
                                          1.0e-3 * sw.ElapsedMilliseconds );
 
       setImage( ref outputImage, newImage );

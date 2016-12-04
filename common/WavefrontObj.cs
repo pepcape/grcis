@@ -56,7 +56,7 @@ namespace Scene3D
     /// <param name="fileName">File-name (ending by .gz for gzipped file)</param>
     /// <param name="scene">Scene to be modified</param>
     /// <returns>Number of faces read</returns>
-    public int ReadBrep ( String fileName, SceneBrep scene )
+    public int ReadBrep ( string fileName, SceneBrep scene )
     {
       if ( fileName == null ||
            fileName.Length == 0 )
@@ -252,7 +252,7 @@ namespace Scene3D
       for ( i = 0; i < scene.Vertices; i++ )
       {
         Vector3 v = scene.GetVertex( i );
-        writer.WriteLine( String.Format( CultureInfo.InvariantCulture, "{0} {1} {2} {3}", new object[] { VERTEX, v.X, v.Y, v.Z } ) );
+        writer.WriteLine( string.Format( CultureInfo.InvariantCulture, "{0} {1} {2} {3}", new object[] { VERTEX, v.X, v.Y, v.Z } ) );
       }
 
       bool hasNormals = scene.Normals > 0;
@@ -260,7 +260,7 @@ namespace Scene3D
         for ( i = 0; i < scene.Vertices; i++ )
         {
           Vector3 n = scene.GetNormal( i );
-          writer.WriteLine( String.Format( CultureInfo.InvariantCulture, "{0} {1} {2} {3}", new object[] { VERTEX_NORMAL, n.X, n.Y, n.Z } ) );
+          writer.WriteLine( string.Format( CultureInfo.InvariantCulture, "{0} {1} {2} {3}", new object[] { VERTEX_NORMAL, n.X, n.Y, n.Z } ) );
         }
 
       for ( i = 0; i < scene.Triangles; i++ )

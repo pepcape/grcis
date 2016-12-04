@@ -116,14 +116,14 @@ namespace OpenglSupport
     /// Saves GLControl snapshot synchronously.
     /// </summary>
     public static void SaveScreenshot ( GLControl glc, string fileNameTemplate ="out{0:00000}.png" )
-    { 
+    {
       Bitmap bmp = TakeScreenshot( glc );
       if ( bmp != null )
       {
         // save the image file:
         string fileName;
         lock ( frameLock )
-          fileName = String.Format( fileNameTemplate, frameCounter++ );
+          fileName = string.Format( fileNameTemplate, frameCounter++ );
         bmp.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
         bmp.Dispose();
       }
@@ -290,7 +290,7 @@ namespace OpenglSupport
         }
 
         // save the image file:
-        string fileName = String.Format( FileNameTemplate, r.frameNumber );
+        string fileName = string.Format( FileNameTemplate, r.frameNumber );
         r.image.RotateFlip( RotateFlipType.RotateNoneFlipY );
         r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
         r.Dispose();
@@ -346,7 +346,7 @@ namespace OpenglSupport
   public class GlShaderInfo
   {
     public ShaderType type;
-    
+
     public string sourceFile;
 
     /// <summary>
@@ -497,7 +497,7 @@ namespace OpenglSupport
 
       lock ( liveShaders )
         if ( liveShaders.Contains( Id ) )
-        { 
+        {
           GL.DeleteShader( Id );
           liveShaders.Remove( Id );
         }

@@ -131,12 +131,12 @@ namespace _035plasma
 
         float newFp = fps.Frame();
         if ( sim.Frame % 32 == 0 ) fp = newFp;
-        SetText( String.Format( CultureInfo.InvariantCulture, "Frame: {0} (FPS = {1:f1})",
+        SetText( string.Format( CultureInfo.InvariantCulture, "Frame: {0} (FPS = {1:f1})",
                                 sim.Frame, fp ) );
 
         if ( saveFrames )
         {
-          string fileName = String.Format( "out{0:0000}.png", sim.Frame );
+          string fileName = string.Format( "out{0:0000}.png", sim.Frame );
           using ( Bitmap bmp = (Bitmap)frame.Clone() )
           {
             bmp.Save( fileName, ImageFormat.Png );

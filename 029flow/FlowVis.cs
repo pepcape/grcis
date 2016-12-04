@@ -396,7 +396,7 @@ namespace _029flow
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      String msg = String.Format( CultureInfo.InvariantCulture,
+      string msg = string.Format( CultureInfo.InvariantCulture,
                                   "{0:f1}s  [ {1}x{2}, mt{3}, sim{4:f1}s, spawned{5} ]",
                                   1.0e-3 * elapsed, width, height, threads,
                                   SimTime, Util.kmg( TotalSpawned ) );
@@ -537,7 +537,7 @@ namespace _029flow
       }
 
       // show results:
-      return String.Format( CultureInfo.InvariantCulture, "State[{0},{1}]: particles={2}({3}), Mv=[{4:f4},{5:f4}], RMSpower={6:f4}",
+      return string.Format( CultureInfo.InvariantCulture, "State[{0},{1}]: particles={2}({3}), Mv=[{4:f4},{5:f4}], RMSpower={6:f4}",
                             x, y, cellLoc, Util.kmg( TotalSpawned ), Mvx, Mvy, RMSpower );
     }
 

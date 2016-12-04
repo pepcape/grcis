@@ -99,7 +99,7 @@ namespace _046cameranim
       rend.RenderRectangle( newImage, 0, 0, width, height, new RandomJames() );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s",
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s",
                                          1.0e-3 * sw.ElapsedMilliseconds );
 
       setImage( ref outputImage, newImage );
@@ -372,7 +372,7 @@ namespace _046cameranim
         }
 
         // GUI progress indication:
-        SetText( String.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
+        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
                                 threads, ++frames, 1.0e-3 * sw.ElapsedMilliseconds ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
@@ -383,7 +383,7 @@ namespace _046cameranim
         }
 
         // save the image file:
-        string fileName = String.Format( "out{0:0000}.png", r.frameNumber );
+        string fileName = string.Format( "out{0:0000}.png", r.frameNumber );
         r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
         r.image.Dispose();
       }

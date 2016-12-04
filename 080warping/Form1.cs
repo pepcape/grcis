@@ -13,7 +13,7 @@ namespace _080warping
     {
       InitializeComponent();
 
-      String[] tok = "$Rev$".Split( ' ' );
+      string[] tok = "$Rev$".Split( ' ' );
       Text += " (rev: " + tok[ 1 ] + ')';
     }
 

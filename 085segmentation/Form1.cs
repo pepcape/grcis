@@ -51,7 +51,7 @@ namespace _085segmentation
         inputImage.Dispose();
       inputImage = (Bitmap)Image.FromFile( ofd.FileName );
       inputImageName = Path.GetFileName( ofd.FileName );
-      labelElapsed.Text = String.Format( "Input: {0}", inputImageName ?? "" );
+      labelElapsed.Text = string.Format( "Input: {0}", inputImageName ?? "" );
 
       Reset();
     }
@@ -75,11 +75,11 @@ namespace _085segmentation
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
-      
+
       Bitmap newImage = pictureSource.segm.DoSegmentation( inputImage, checkBoxWhite.Checked );
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s ({1})",
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s ({1})",
                                          1.0e-3 * sw.ElapsedMilliseconds, inputImageName ?? "" );
 
       setImage( ref outputImage, newImage );

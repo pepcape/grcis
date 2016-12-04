@@ -82,7 +82,7 @@ namespace _014compressiontr
       long fileSize = fs.Position;
 
       sw.Stop();
-      labelElapsed.Text = String.Format( CultureInfo.InvariantCulture, "Enc: {0:f3}s, {1:f1}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Enc: {0:f3}s, {1:f1}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
 
       // 3. image decoding
       fs.Seek( 0L, SeekOrigin.Begin );
@@ -94,7 +94,7 @@ namespace _014compressiontr
       {
         diffImage = new Bitmap( inputImage.Width, inputImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
         float RMSE = Draw.ImageRMSE( inputImage, outputImage, diffImage );
-        labelResult.Text = String.Format( CultureInfo.InvariantCulture, "RMSE: {0:f2}", RMSE );
+        labelResult.Text = string.Format( CultureInfo.InvariantCulture, "RMSE: {0:f2}", RMSE );
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
       }
       else

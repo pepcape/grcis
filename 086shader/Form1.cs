@@ -45,9 +45,10 @@ namespace _086shader
       InitializeComponent();
 
       string param;
-      Construction.InitParams( out param );
+      string name;
+      Construction.InitParams( out param, out name );
       textParam.Text = param ?? "";
-      Text += " (rev: " + rev + ')';
+      Text += " (rev: " + rev + ") '" + name + '\'';
 
       // Trackball:
       tb = new Trackball( center, diameter );

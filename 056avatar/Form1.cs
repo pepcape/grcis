@@ -67,7 +67,7 @@ namespace _056avatar
       scene.GenerateColors( 12 );
       diameter = scene.GetDiameter( out center );
 
-      labelFaces.Text = String.Format( "{0}: {1} faces, {2} errors", ofd.SafeFileName, faces, errors );
+      labelFaces.Text = string.Format( "{0}: {1} faces, {2} errors", ofd.SafeFileName, faces, errors );
       PrepareDataBuffers();
       glControl1.Invalidate();
     }
@@ -97,7 +97,7 @@ namespace _056avatar
 
       Cursor.Current = Cursors.Default;
 
-      labelFaces.Text = String.Format( "{0}f (reported {1}), {2}v, 1st instance: {3}f, {4}v, {5} errors",
+      labelFaces.Text = string.Format( "{0}f (reported {1}), {2}v, 1st instance: {3}f, {4}v, {5} errors",
                                        scene.Triangles, faces, scene.Vertices, faces1, vertices1, errors );
       PrepareDataBuffers();
       glControl1.Invalidate();

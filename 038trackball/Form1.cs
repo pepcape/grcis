@@ -58,10 +58,11 @@ namespace _038trackball
       InitializeComponent();
 
       string param;
-      Construction.InitParams( out param );
+      string name;
+      Construction.InitParams( out param, out name );
       textParam.Text = param ?? "";
 
-      Text += " (rev: " + rev + ')';
+      Text += " (rev: " + rev + ") '" + name + '\'';
     }
 
     private void glControl1_Load ( object sender, EventArgs e )
@@ -125,7 +126,7 @@ namespace _038trackball
       scene.GenerateColors( 12 );
       ResetCamera();
 
-      labelFile.Text = String.Format( "{0}: {1} faces", ofd.SafeFileName, faces );
+      labelFile.Text = string.Format( "{0}: {1} faces", ofd.SafeFileName, faces );
       PrepareDataBuffers();
       glControl1.Invalidate();
     }
@@ -175,7 +176,7 @@ namespace _038trackball
       scene.GenerateColors( 12 );
       ResetCamera();
 
-      labelFile.Text = String.Format( "{0} faces, {1} errors", faces, errors );
+      labelFile.Text = string.Format( "{0} faces, {1} errors", faces, errors );
       PrepareDataBuffers();
       glControl1.Invalidate();
 

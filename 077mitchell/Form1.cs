@@ -265,7 +265,7 @@ namespace _077mitchell
       SetSampleSet( newSet );
 
       long[] stat = sampler.Stat;
-      String msg = string.Format( CultureInfo.InvariantCulture,
+      string msg = string.Format( CultureInfo.InvariantCulture,
                                   "{0} samples generated in {1:f2}s, seed={2}, hash={3:X}, stat={4}-{5}-{6}",
                                   number, 1.0e-3 * elapsed, seed,
                                   sampler.Hash, stat[0], stat[1], stat[2] );

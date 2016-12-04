@@ -792,14 +792,14 @@ namespace _058marbles
           primitiveCounter = 0L;
 
           if ( lastTps < 5.0e5 )
-            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Sps: {1:f1}, Tps: {2:f0}k",
+            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Sps: {1:f1}, Tps: {2:f0}k",
                                            lastFps, lastSps, (lastTps * 1.0e-3) );
           else
-            labelFps.Text = String.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Sps: {1:f1}, Tps: {2:f1}m",
+            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Sps: {1:f1}, Tps: {2:f1}m",
                                            lastFps, lastSps, (lastTps * 1.0e-6) );
 
           if ( world != null )
-            labelStat.Text = String.Format( CultureInfo.InvariantCulture, "T: {0:f1}s, fr: {1}{3}{4}, mrbl: {2}",
+            labelStat.Text = string.Format( CultureInfo.InvariantCulture, "T: {0:f1}s, fr: {1}{3}{4}, mrbl: {2}",
                                             world.Time, world.Frames, world.Marbles,
                                             (screencast != null) ? (" (" + screencast.Queue + ')') : "",
                                             (simThread == null) ? "" : " mt" );

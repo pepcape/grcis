@@ -14,9 +14,10 @@ namespace Scene3D
     /// <summary>
     /// Optional data initialization.
     /// </summary>
-    public static void InitParams ( out string param )
+    public static void InitParams ( out string param, out string name )
     {
       param = "";
+      name  = "pilot";
     }
 
     #endregion
@@ -75,7 +76,13 @@ namespace Scene3D
       scene.SetNormal( v[ 1 ], Vector3.TransformVector( B, m ).Normalized() );
       scene.SetNormal( v[ 2 ], Vector3.TransformVector( C, m ).Normalized() );
       scene.SetNormal( v[ 3 ], Vector3.TransformVector( D, m ).Normalized() );
-      
+
+      // texture coordinates:
+      scene.SetTxtCoord( v[ 0 ], new Vector2( 1.0f, 0.0f ) );
+      scene.SetTxtCoord( v[ 1 ], new Vector2( 0.0f, 0.0f ) );
+      scene.SetTxtCoord( v[ 2 ], new Vector2( 1.0f, 1.0f ) );
+      scene.SetTxtCoord( v[ 3 ], new Vector2( 0.0f, 1.0f ) );
+
       // colors:
       long seed = (long)Math.Min( long.MaxValue, (m.Row3.LengthSquared * 10000.0f) );
       seed = RandomStatic.numericRecipes( seed );
