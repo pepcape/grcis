@@ -84,7 +84,7 @@
       this.buttonReset.Name = "buttonReset";
       this.buttonReset.Size = new System.Drawing.Size(84, 23);
       this.buttonReset.TabIndex = 22;
-      this.buttonReset.Text = "Reset";
+      this.buttonReset.Text = "Reset cam";
       this.buttonReset.UseVisualStyleBackColor = true;
       this.buttonReset.Click += new System.EventHandler(this.buttonReset_Click);
       // 

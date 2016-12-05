@@ -51,6 +51,8 @@
       this.checkSpecular = new System.Windows.Forms.CheckBox();
       this.checkPhong = new System.Windows.Forms.CheckBox();
       this.buttonLoadTexture = new System.Windows.Forms.Button();
+      this.buttonExportPly = new System.Windows.Forms.Button();
+      this.checkOrientation = new System.Windows.Forms.CheckBox();
       ((System.ComponentModel.ISupportInitialize)(this.numericSensitivity)).BeginInit();
       this.SuspendLayout();
       // 
@@ -92,7 +94,7 @@
       this.buttonReset.Name = "buttonReset";
       this.buttonReset.Size = new System.Drawing.Size(84, 23);
       this.buttonReset.TabIndex = 22;
-      this.buttonReset.Text = "Reset";
+      this.buttonReset.Text = "Reset cam";
       this.buttonReset.UseVisualStyleBackColor = true;
       this.buttonReset.Click += new System.EventHandler(this.buttonReset_Click);
       // 
@@ -340,11 +342,35 @@
       this.buttonLoadTexture.UseVisualStyleBackColor = true;
       this.buttonLoadTexture.Click += new System.EventHandler(this.buttonLoadTexture_Click);
       // 
+      // buttonExportPly
+      // 
+      this.buttonExportPly.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonExportPly.Location = new System.Drawing.Point(741, 404);
+      this.buttonExportPly.Name = "buttonExportPly";
+      this.buttonExportPly.Size = new System.Drawing.Size(84, 23);
+      this.buttonExportPly.TabIndex = 43;
+      this.buttonExportPly.Text = "Export PLY";
+      this.buttonExportPly.UseVisualStyleBackColor = true;
+      this.buttonExportPly.Click += new System.EventHandler(this.buttonExportPly_Click);
+      // 
+      // checkOrientation
+      // 
+      this.checkOrientation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.checkOrientation.AutoSize = true;
+      this.checkOrientation.Location = new System.Drawing.Point(661, 408);
+      this.checkOrientation.Name = "checkOrientation";
+      this.checkOrientation.Size = new System.Drawing.Size(77, 17);
+      this.checkOrientation.TabIndex = 44;
+      this.checkOrientation.Text = "Orientation";
+      this.checkOrientation.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(844, 469);
+      this.Controls.Add(this.checkOrientation);
+      this.Controls.Add(this.buttonExportPly);
       this.Controls.Add(this.buttonLoadTexture);
       this.Controls.Add(this.checkPhong);
       this.Controls.Add(this.checkSpecular);
@@ -404,6 +430,8 @@
     private System.Windows.Forms.CheckBox checkSpecular;
     private System.Windows.Forms.CheckBox checkPhong;
     private System.Windows.Forms.Button buttonLoadTexture;
+    private System.Windows.Forms.Button buttonExportPly;
+    private System.Windows.Forms.CheckBox checkOrientation;
   }
 }
 
