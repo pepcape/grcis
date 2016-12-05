@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
@@ -265,6 +266,32 @@ namespace _086shader
     private void buttonReset_Click ( object sender, EventArgs e )
     {
       tb.Reset();
+    }
+
+    private void buttonExportPly_Click ( object sender, EventArgs e )
+    {
+      if ( scene == null ||
+           scene.Triangles < 1 ) return;
+
+      SaveFileDialog sfd = new SaveFileDialog();
+      sfd.Title = "Save PLY file";
+      sfd.Filter = "PLY Files|*.ply";
+      sfd.AddExtension = true;
+      sfd.FileName = "";
+      if ( sfd.ShowDialog() != DialogResult.OK )
+        return;
+
+      StanfordPly plyWriter   = new StanfordPly();
+      plyWriter.TextFormat    = true;
+      plyWriter.NativeNewLine = true;
+      plyWriter.Orientation   = checkOrientation.Checked;
+      //plyWriter.DoNormals     = false;
+      //plyWriter.DoTxtCoords   = false;
+      //plyWriter.DoColors      = false;
+      using ( StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) ) )
+      {
+        plyWriter.WriteBrep( writer, scene );
+      }
     }
   }
 }

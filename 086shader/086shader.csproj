@@ -86,6 +86,9 @@
     <Compile Include="..\common\RandomJames.cs">
       <Link>RandomJames.cs</Link>
     </Compile>
+    <Compile Include="..\common\StanfordPly.cs">
+      <Link>StanfordPly.cs</Link>
+    </Compile>
     <Compile Include="..\common\Trackball.cs">
       <Link>Trackball.cs</Link>
     </Compile>
