@@ -53,6 +53,7 @@
       this.buttonLoadTexture = new System.Windows.Forms.Button();
       this.buttonExportPly = new System.Windows.Forms.Button();
       this.checkOrientation = new System.Windows.Forms.CheckBox();
+      this.checkAxes = new System.Windows.Forms.CheckBox();
       ((System.ComponentModel.ISupportInitialize)(this.numericSensitivity)).BeginInit();
       this.SuspendLayout();
       // 
@@ -364,11 +365,23 @@
       this.checkOrientation.Text = "Orientation";
       this.checkOrientation.UseVisualStyleBackColor = true;
       // 
+      // checkAxes
+      // 
+      this.checkAxes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkAxes.AutoSize = true;
+      this.checkAxes.Location = new System.Drawing.Point(418, 408);
+      this.checkAxes.Name = "checkAxes";
+      this.checkAxes.Size = new System.Drawing.Size(49, 17);
+      this.checkAxes.TabIndex = 45;
+      this.checkAxes.Text = "Axes";
+      this.checkAxes.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(844, 469);
+      this.Controls.Add(this.checkAxes);
       this.Controls.Add(this.checkOrientation);
       this.Controls.Add(this.buttonExportPly);
       this.Controls.Add(this.buttonLoadTexture);
@@ -432,6 +445,7 @@
     private System.Windows.Forms.Button buttonLoadTexture;
     private System.Windows.Forms.Button buttonExportPly;
     private System.Windows.Forms.CheckBox checkOrientation;
+    private System.Windows.Forms.CheckBox checkAxes;
   }
 }
 

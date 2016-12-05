@@ -618,6 +618,27 @@ namespace _086shader
 
         triangleCounter += 12;
       }
+
+      if ( checkAxes.Checked )
+      {
+        // axes:
+        GL.LineWidth( 2.0f );
+        GL.Begin( PrimitiveType.Lines );
+
+        GL.Color3( 1.0f, 0.1f, 0.1f );
+        GL.Vertex3( center );
+        GL.Vertex3( center + new Vector3( 0.5f, 0.0f, 0.0f ) * diameter );
+
+        GL.Color3( 0.0f, 1.0f, 0.0f );
+        GL.Vertex3( center );
+        GL.Vertex3( center + new Vector3( 0.0f, 0.5f, 0.0f ) * diameter );
+
+        GL.Color3( 0.2f, 0.2f, 1.0f );
+        GL.Vertex3( center );
+        GL.Vertex3( center + new Vector3( 0.0f, 0.0f, 0.5f ) * diameter );
+
+        GL.End();
+      }
     }
   }
 }
