@@ -798,8 +798,9 @@ namespace Scene3D
     /// Based on code of Karel Hrkal, 2014.
     /// </summary>
     /// <param name="errors">Optional output stream for detailed error messages</param>
+    /// <param name="thorough">Do thorough checks? (might be too strict and too memory intensive in many cases)</param>
     /// <returns>Number of errors/inconsistencies (0 if everything is Ok)</returns>
-    public int CheckCornerTable ( StreamWriter errors )
+    public int CheckCornerTable ( StreamWriter errors, bool thorough =false )
     {
       if ( errors == null )
       {
@@ -862,71 +863,72 @@ namespace Scene3D
           }
       }
 
-#if false
-      // 3. now let's check that the cRight works properly
-      //    we will use cPrev(cOpposite(cPrev()))
-      //    also, this whole test assumes that neighbour triangles are facing the same way
-      //    if triangles have both faces (front and back) visible, this test doesn't make much sence
-      int[] temp = new int[ Triangles + 1 ]; // corners will be saved here
-
-      for ( int i = 0; i < Corners; i++ )
+      if ( thorough )
       {
-        temp[ 0 ] = i;
-        for ( int j = 0; j < Triangles; j++ )
+        // 3. now let's check that the cRight works properly
+        //    we will use cPrev(cOpposite(cPrev()))
+        //    also, this whole test assumes that neighbour triangles are facing the same way
+        //    if triangles have both faces (front and back) visible, this test doesn't make much sence
+        int[] temp = new int[ Triangles + 1 ]; // corners will be saved here
+
+        for ( int i = 0; i < Corners; i++ )
         {
-          int right = cOpposite( cPrev( temp[ j ] ) );
-          if ( right != NULL )
+          temp[ 0 ] = i;
+          for ( int j = 0; j < Triangles; j++ )
           {
-            right = cPrev( right );
-            temp[ j + 1 ] = right;
-          }
-
-          if ( right == i || right == NULL )
-          {
-            // test vertex equality
-            for ( int k = 0; k < j - 1; k++ )
-              if ( cVertex( temp[ k ] ) != cVertex( temp[ k + 1 ] ) )
-                log( "Traversing right corners from " + i + " resolved into differrent vertices at " + temp[ k ] );
-
-            break;
-          }
-
-          for ( int k = 0; k <= j; k++ )
-            if ( temp[ k ] == right )
+            int right = cOpposite( cPrev( temp[ j ] ) );
+            if ( right != NULL )
             {
-              log( "Starting in corner " + i + " we went right into corner " + right + " twice before returning to " + i );
-              j = Triangles;
+              right = cPrev( right );
+              temp[ j + 1 ] = right;
+            }
+
+            if ( right == i || right == NULL )
+            {
+              // test vertex equality
+              for ( int k = 0; k < j - 1; k++ )
+                if ( cVertex( temp[ k ] ) != cVertex( temp[ k + 1 ] ) )
+                  log( "Traversing right corners from " + i + " resolved into differrent vertices at " + temp[ k ] );
+
               break;
             }
+
+            for ( int k = 0; k <= j; k++ )
+              if ( temp[ k ] == right )
+              {
+                log( "Starting in corner " + i + " we went right into corner " + right + " twice before returning to " + i );
+                j = Triangles;
+                break;
+              }
+          }
         }
-      }
 
-      // 4. finally check if 2 triangles share the 2 vertices, then they have properly set opposite corners
-      //    moreover, at most 2 triangles can share an edge (2-manifold)
-      int[ , ] arr = new int[ Vertices, Vertices ];
-      // for edge i<j, at position [i,j] is which corner is first found opposite corner to this edge
-      // at position [j,i] is how many edges in triangles are there
+        // 4. finally check if 2 triangles share the 2 vertices, then they have properly set opposite corners
+        //    moreover, at most 2 triangles can share an edge (2-manifold)
+        int[,] arr = new int[ Vertices, Vertices ];
+        // for edge i<j, at position [i,j] is which corner is first found opposite corner to this edge
+        // at position [j,i] is how many edges in triangles are there
 
-      for ( int i = 0; i < Corners; i++ )
-      {
-        int a = cVertex( cNext( i ) );
-        int b = cVertex( cPrev( i ) );
-        // ensure a < b
-        if ( a > b )
+        for ( int i = 0; i < Corners; i++ )
         {
-          int tmp = a;
-          a = b;
-          b = tmp;
-        }
+          int a = cVertex( cNext( i ) );
+          int b = cVertex( cPrev( i ) );
+          // ensure a < b
+          if ( a > b )
+          {
+            int tmp = a;
+            a = b;
+            b = tmp;
+          }
 
-        if ( arr[ b, a ] == 0 )
-        {
-          // for the 1st time at this edge
-          arr[ a, b ] = i;
-          arr[ b, a ] = 1;
-        }
-        else
-          if ( arr[ b, a ] == 1 )
+          if ( arr[ b, a ] == 0 )
+          {
+            // for the 1st time at this edge
+            arr[ a, b ] = i;
+            arr[ b, a ] = 1;
+          }
+          else
+            if ( arr[ b, a ] == 1 )
           {
             // for the 2nd time at this edge
             if ( cOpposite( i ) != arr[ a, b ] )
@@ -936,8 +938,9 @@ namespace Scene3D
           else
             // broken 2-manifold
             log( "Corner " + i + " has an opposide side thas was already used at least twice, 2-manifold is broken!" );
+        }
       }
-#endif
+
       return errCount;
     }
 
