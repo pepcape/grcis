@@ -73,6 +73,7 @@ namespace Scene3D
     {
       return this.Clone();
     }
+
     public SceneBrep Clone ()
     {
       SceneBrep tmp = new SceneBrep();
@@ -99,6 +100,30 @@ namespace Scene3D
       txtCoords   = null;
       vertexPtr   = new List<int>( 256 );
       oppositePtr = null;
+    }
+
+    /// <summary>
+    /// Reserve space for additional vertices.
+    /// </summary>
+    /// <param name="additionalVertices">Number of new vertices going to be inserted.</param>
+    public void Reserve ( int additionalVertices )
+    {
+      if ( additionalVertices < 0 )
+        return;
+
+      int newReserve = geometry.Count + additionalVertices;
+      geometry.Capacity = newReserve;
+      if ( normals != null )
+        normals.Capacity = newReserve;
+      if ( colors != null )
+        colors.Capacity = newReserve;
+      if ( txtCoords != null )
+        txtCoords.Capacity = newReserve;
+
+      newReserve = vertexPtr.Count + additionalVertices * 3;
+      vertexPtr.Capacity = newReserve;
+      if ( oppositePtr != null )
+        oppositePtr.Capacity = newReserve;
     }
 
     /// <summary>
