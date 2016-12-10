@@ -59,7 +59,7 @@ namespace _070subdivision
     int frameCounter = 0;
     long pointCounter = 0L;
     double lastFps = 0.0;
-    double lastTps = 0.0;
+    double lastPps = 0.0;
 
     #endregion
 

@@ -22,17 +22,17 @@ namespace _070subdivision
         if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
         {
           lastFps = 0.5 * lastFps + 0.5 * (frameCounter * 1.0e7 / (now - lastFpsTime));
-          lastTps = 0.5 * lastTps + 0.5 * (triangleCounter * 1.0e7 / (now - lastFpsTime));
+          lastPps = 0.5 * lastPps + 0.5 * (pointCounter * 1.0e7 / (now - lastFpsTime));
           lastFpsTime = now;
           frameCounter = 0;
-          triangleCounter = 0L;
+          pointCounter = 0L;
 
-          if ( lastTps < 5.0e5 )
-            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f0}k",
-                                           lastFps, (lastTps * 1.0e-3) );
+          if ( lastPps < 5.0e5 )
+            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Pps: {1:f0}k",
+                                           lastFps, (lastPps * 1.0e-3) );
           else
-            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f1}m",
-                                           lastFps, (lastTps * 1.0e-6) );
+            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Pps: {1:f1}m",
+                                           lastFps, (lastPps * 1.0e-6) );
         }
       }
     }
@@ -84,12 +84,12 @@ namespace _070subdivision
 
         // engage!
         GL.PointSize( 1.0f );
-        GL.DrawArrays( BeginMode.Points, 0, points );
+        GL.DrawArrays( PrimitiveType.Points, 0, points );
         pointCounter += points;
       }
       else                              // color cube (JB)
       {
-        GL.Begin( BeginMode.Quads );
+        GL.Begin( PrimitiveType.Quads );
 
         GL.Color3( 0.0f, 1.0f, 0.0f );          // Set The Color To Green
         GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Right Of The Quad (Top)
