@@ -73,9 +73,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Subdivision.cs" />
-    <Compile Include="Trackball.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="Trackball.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
