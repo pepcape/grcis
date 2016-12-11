@@ -124,6 +124,7 @@
       this.labelElapsed.Size = new System.Drawing.Size(48, 13);
       this.labelElapsed.TabIndex = 8;
       this.labelElapsed.Text = "Elapsed:";
+      this.labelElapsed.MouseHover += new System.EventHandler(this.labelElapsed_MouseHover);
       // 
       // label3
       // 

@@ -34,10 +34,15 @@ namespace Utilities
     /// </summary>
     public static string RunningFramework = "";
 
-    public static void SetVersion ( string revision )
+    public static string SetVersion ( string revision )
     {
       GetFrameworkVersions( out TargetFramework, out RunningFramework );
-      ProgramVersion = revision.Replace( '$', ' ' ).Trim();
+      return ProgramVersion = revision.Replace( '$', ' ' ).Trim();
+    }
+
+    public static string AssemblyVersion ( Type t )
+    {
+      return Assembly.GetAssembly( t ).GetName().Version.ToString();
     }
 
     /// <summary>

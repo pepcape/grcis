@@ -19,6 +19,10 @@ namespace OpenglSupport
     /// <param name="ext">Print detailed list of extensions as well?</param>
     public static void LogGLProperties ( bool ext =false )
     {
+      // 0. .NET, OpenTK
+      Util.LogFormat( "{0} ({1}), OpenTK {2}",
+                      Util.TargetFramework, Util.RunningFramework, Util.AssemblyVersion( typeof( Vector3 ) ) );
+
       // 1. OpenGL version, vendor, ..
       string version = GL.GetString( StringName.Version );
       string vendor = GL.GetString( StringName.Vendor );

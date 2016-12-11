@@ -7,12 +7,13 @@ using MathSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Scene3D;
+using Utilities;
 
 namespace _086shader
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     /// <summary>
     /// Scene read from file.
@@ -41,6 +42,8 @@ namespace _086shader
     /// </summary>
     Trackball tb = null;
 
+    ToolTip tt = new ToolTip();
+
     public Form1 ()
     {
       InitializeComponent();
@@ -49,7 +52,7 @@ namespace _086shader
       string name;
       Construction.InitParams( out param, out name );
       textParam.Text = param ?? "";
-      Text += " (rev: " + rev + ") '" + name + '\'';
+      Text += " (" + rev + ") '" + name + '\'';
 
       // Trackball:
       tb = new Trackball( center, diameter );
@@ -292,6 +295,12 @@ namespace _086shader
       {
         plyWriter.WriteBrep( writer, scene );
       }
+    }
+
+    private void labelFile_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
+               (IWin32Window)sender, 10, -25, 4000 );
     }
   }
 }

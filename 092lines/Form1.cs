@@ -4,17 +4,20 @@ using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
 using LineCanvas;
+using Utilities;
 
 namespace _092lines
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     /// <summary>
     /// Current computed image.
     /// </summary>
-    protected Bitmap outputImage = null;
+    Bitmap outputImage = null;
+
+    ToolTip tt = new ToolTip();
 
     public Form1 ()
     {
@@ -29,7 +32,7 @@ namespace _092lines
       numericYres.Value = Math.Max( height, 10 );
       textParam.Text = param ?? "";
 
-      Text += " (rev: " + rev + ") '" + name + '\'';
+      Text += " (" + rev + ") '" + name + '\'';
     }
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
@@ -77,6 +80,12 @@ namespace _092lines
         return;
 
       outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+    }
+
+    private void labelElapsed_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + ')',
+               (IWin32Window)sender, 10, -25, 4000 );
     }
   }
 }

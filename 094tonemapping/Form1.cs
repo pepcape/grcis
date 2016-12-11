@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using MathSupport;
+using OpenTK;
 using Raster;
 using Utilities;
 
@@ -15,7 +16,7 @@ namespace _094tonemapping
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     /// <summary>
     /// Log2 contrast extension.
@@ -25,29 +26,32 @@ namespace _094tonemapping
     /// <summary>
     /// Minimum Value of the non-black pixels of the current HDR image.
     /// </summary>
-    protected double minY = 1.0;
+    double minY = 1.0;
 
-    protected double minLog2 = 0.0;
+    double minLog2 = 0.0;
 
     /// <summary>
     /// Maximum Value of the non-black pixels of the current HDR image.
     /// </summary>
-    protected double maxY = 128.0;
+    double maxY = 128.0;
 
-    protected double maxLog2 = 7.0;
+    double maxLog2 = 7.0;
 
     /// <summary>
     /// Current image contrast (see minY, maxY) in log2 scale.
     /// </summary>
-    protected double contrast = 7.0;
+    double contrast = 7.0;
 
-    protected double exposure = 1.0;
-    protected volatile bool exposureDirty = false;
-    protected FloatImage origInputImage = null;
-    protected int subFactor = 1;
-    protected FloatImage inputImage = null;
-    protected Bitmap outputImage = null;
-    protected string winTitle;
+    double exposure = 1.0;
+    volatile bool exposureDirty = false;
+    FloatImage origInputImage = null;
+    int subFactor = 1;
+
+    FloatImage inputImage = null;
+    Bitmap outputImage = null;
+
+    string winTitle;
+    ToolTip tt = new ToolTip();
 
     public Form1 ()
     {
@@ -57,7 +61,7 @@ namespace _094tonemapping
       string name;
       ToneMapping.InitParams( out param, out name );
       textParam.Text = param ?? "";
-      winTitle = (Text += " (rev: " + rev + ") '" + name + '\'');
+      winTitle = (Text += " (" + rev + ") '" + name + '\'');
 
       Application.Idle += new EventHandler( Application_Idle );
     }
@@ -393,6 +397,12 @@ namespace _094tonemapping
     {
       if ( aThread == null && e.Button == MouseButtons.Left )
         showPixel( e.X, e.Y );
+    }
+
+    private void labelStatus_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector2 ) ),
+               (IWin32Window)sender, 10, -25, 4000 );
     }
   }
 }

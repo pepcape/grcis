@@ -4,12 +4,13 @@ using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Scene3D;
+using Utilities;
 
 namespace _038trackball
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     /// <summary>
     /// Scene read from file.
@@ -35,6 +36,8 @@ namespace _038trackball
     /// Are we allowed to use VBO?
     /// </summary>
     bool useVBO = true;
+
+    ToolTip tt = new ToolTip();
 
     #region OpenGL globals
 
@@ -62,7 +65,7 @@ namespace _038trackball
       Construction.InitParams( out param, out name );
       textParam.Text = param ?? "";
 
-      Text += " (rev: " + rev + ") '" + name + '\'';
+      Text += " (" + rev + ") '" + name + '\'';
     }
 
     private void glControl1_Load ( object sender, EventArgs e )
@@ -236,6 +239,12 @@ namespace _038trackball
           GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
         }
       }
+    }
+
+    private void labelFile_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
+               (IWin32Window)sender, 10, -25, 4000 );
     }
   }
 }
