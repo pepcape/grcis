@@ -10,8 +10,11 @@ using System.Reflection;
 using System.Text;
 using MathSupport;
 using Utilities;
+using Raster;
+using System.Drawing.Imaging;
+using OpenTK;
 
-namespace _051
+namespace _094
 {
   public class EvalOptions : Options
   {
@@ -30,7 +33,7 @@ namespace _051
 
     static EvalOptions ()
     {
-      project = "eval051";
+      project = "eval094";
       TextPersistence.Register( new EvalOptions(), 0 );
 
       RegisterMsgModes( "debug" );
@@ -45,6 +48,8 @@ namespace _051
       references.Add( @"System.Core.dll" );
       references.Add( @"System.Linq.dll" );
       references.Add( @"System.Drawing.dll" );
+      references.Add( typeof( Vector3d ).Assembly.Location );
+      references.Add( typeof( Program ).Assembly.Location );
     }
 
     public static void Touch ()
@@ -68,12 +73,6 @@ namespace _051
     public string compilerOptions = "/optimize+ /unsafe";
 
     public int imageWidth = 400;
-
-    public double minV = 0.2;
-
-    public double maxV = 0.8;
-
-    public double minS =  0.1;
 
     /// <summary>
     /// List of source files.
@@ -115,7 +114,7 @@ namespace _051
         return true;
 
       int newInt = 0;
-      double newDouble = 0.0;
+      //double newDouble = 0.0;
 
       switch ( key )
       {
@@ -201,21 +200,6 @@ namespace _051
 
         case "compilerOptions":
           compilerOptions = value;
-          break;
-
-        case "minV":
-          if ( double.TryParse( value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble ) )
-            minV = newDouble;
-          break;
-
-        case "maxV":
-          if ( double.TryParse( value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble ) )
-            maxV = newDouble;
-          break;
-
-        case "minS":
-          if ( double.TryParse( value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble ) )
-            minS = newDouble;
           break;
 
         default:
@@ -330,11 +314,6 @@ namespace _051
     /// </summary>
     static Quantiles<double> qtime = new Quantiles<double>();
 
-    /// <summary>
-    /// Statistics of color-variance in CIE La*b* color difference.
-    /// </summary>
-    static Quantiles<double> qvariance = new Quantiles<double>();
-
     static public void Evaluate ()
     {
       wasEvaluated = true;
@@ -361,7 +340,7 @@ namespace _051
             wri.Write( part );
 
           wri.WriteLine( "<table class=\"nb\">" );
-          wri.WriteLine( "<tr><th>Name</th><th>Time</th><th>Var</th><th>Image / colors</th></tr>" );
+          wri.WriteLine( "<tr><th>Name</th><th>Time</th><th>Image</th></tr>" );
 
           int ord = 0;
           foreach ( var imageFn in EvalOptions.options.inputFiles )
@@ -371,37 +350,31 @@ namespace _051
             string relative = EvalOptions.options.imageLocal ?
                                 Path.GetFileName( imageFn ) :
                                 Util.MakeRelativePath( EvalOptions.options.outDir, imageFn );
+            string relativeLDR = relative.Replace( ".hdr", ".jpg" );
             string[] desctiption;
             EvalOptions.options.imageInfo.TryGetValue( Path.GetFileName( imageFn ), out desctiption );
-            wri.WriteLine( "<tr><td colspan=\"3\" class=\"b p r\">{0}</td>",
+            wri.WriteLine( "<tr><td colspan=\"2\" class=\"b p r\">{0}</td>",
                            (desctiption == null) ? "&nbsp;" : string.Join( ", ", desctiption ) );
-            wri.WriteLine( $"<td><img src=\"{relative}\" width=\"{EvalOptions.options.imageWidth}\"/></td>" );
+            wri.WriteLine( $"<td><a href=\"{relative}\"><img src=\"{relativeLDR}\" width=\"{EvalOptions.options.imageWidth}\" alt=\"input\" /></a></td>" );
             wri.WriteLine( "</tr>" );
 
-            Bitmap image = (Bitmap)Image.FromFile( imageFn );
+            FloatImage image = RadianceHDRFormat.FromFile( imageFn );
             Options.LogFormatMode( "debug", "Input image '{0}':", imageFn );
 
             qtime.Clear();
-            qvariance.Clear();
 
             List<string> names = new List<string>( assemblies.Keys );
             names.Sort();
+            string outBase = Path.Combine( EvalOptions.options.outDir, Path.GetFileNameWithoutExtension( imageFn ) );
             foreach ( var name in names )
               if ( !EvalOptions.options.bans.Contains( name ) &&
                    (!EvalOptions.options.bestOnly || EvalOptions.options.best.Contains( name )) )
-                EvaluateSolution( name, assemblies[ name ], image, wri );
+                EvaluateSolution( name, assemblies[ name ], image, outBase, wri );
 
-            image.Dispose();
-
-            wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><th class=\"l\">Time [s]</th><td class=\"p t r\">{0:f2}s</td><td class=\"p t r\">{1:f2}</td>",
-                                      qtime.Mean, qtime.Variance ) );
-            wri.WriteLine( string.Format( CultureInfo.InvariantCulture, "<td class=\"p\">{0:f2} - {1:f2} - {2:f2} - {3:f2} - {4:f2}</td></tr>",
-                                          qtime.Min, qtime.Quartile( 1 ), qtime.Median, qtime.Quartile( 3 ), qtime.Max ) );
-
-            wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><th class=\"l\">Variance [La*b*]</th><td class=\"p t r\">{0:f1}</td><td class=\"p t r\">{1:f1}</td>",
-                                      qvariance.Mean, qvariance.Variance ) );
-            wri.WriteLine( string.Format( CultureInfo.InvariantCulture, "<td class=\"p\">{0:f1} - {1:f1} - {2:f1} - {3:f1} - {4:f1}</td></tr>",
-                                          qvariance.Min, qvariance.Quartile( 1 ), qvariance.Median, qvariance.Quartile( 3 ), qvariance.Max ) );
+            wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><th class=\"l\">Time [s]</th><td class=\"p t r\">{0:f2}s</td>",
+                                      qtime.Mean ) );
+            wri.WriteLine( string.Format( CultureInfo.InvariantCulture, "<td class=\"p\">+-{0:f2}s, quartiles: {1:f2} - {2:f2} - {3:f2} - {4:f2} - {5:f2}</td></tr>",
+                                          qtime.Variance, qtime.Min, qtime.Quartile( 1 ), qtime.Median, qtime.Quartile( 3 ), qtime.Max ) );
 
             Console.WriteLine( Options.LogFormat( "Finished image #{0}/{1} '{2}'", ++ord, images, relative ) );
           }
@@ -471,9 +444,10 @@ namespace _051
         files++;
 
         // .. change its namespace ..
-        source = source.Replace( "_051colormap", "cmap" + name );
+        source = source.Replace( "_094tonemapping", "tmap" + name );
         List<string> localSources = new List<string>( globalSources );
         localSources.Add( source );
+        localSources.Add( "namespace tmap" + name + "{public class Form1{public static bool cont=true;}}\r\n" );
 
         // .. and finally compile it all:
         CompilerResults R = P.CompileAssemblyFromSource( Opt, localSources.ToArray() );
@@ -495,10 +469,11 @@ namespace _051
                                             files, sw.ElapsedMilliseconds * 0.001, errors ) );
     }
 
-    static void EvaluateSolution ( string name, Assembly ass, Bitmap image, TextWriter wri )
+    static void EvaluateSolution ( string name, Assembly ass, FloatImage image, string outBase, TextWriter wri )
     {
-      Color[] colors = null;
-      object[] arguments = new object[] { image, 10, colors };
+      string name2 = null;
+      string param = null;
+      Bitmap ldr   = null;
 
       // memory cleanup and report:
       long memOccupied = GC.GetTotalMemory( true );
@@ -510,7 +485,16 @@ namespace _051
       sw.Restart();
       try
       {
-        ass.GetType( "cmap" + name + ".Colormap" ).GetMethod( "Generate" ).Invoke( null, arguments );
+        // call #1: default params, name
+        object[] arguments1 = new object[] { null, null };
+        Type classType = ass.GetType( "tmap" + name + ".ToneMapping" );
+        classType.GetMethod( "InitParams" ).Invoke( null, arguments1 );
+        param = arguments1[ 0 ].ToString();
+        name2 = arguments1[ 1 ].ToString();
+
+        // call #2: the actual tone-mapping task
+        object[] arguments2 = new object[] { image, null, param ?? "" };
+        ldr = (Bitmap)classType.GetMethod( "ToneMap" ).Invoke( null, arguments2 );
       }
       catch ( Exception e )
       {
@@ -518,77 +502,36 @@ namespace _051
       }
       sw.Stop();
 
-      colors = arguments[ 2 ] as Color[];
-      double minS = EvalOptions.options.minS;
-      double minV = EvalOptions.options.minV;
-      double maxV = EvalOptions.options.maxV;
-
       // quantile statistics for elapsed time and color variance
       double elapsed = sw.ElapsedMilliseconds * 0.001;
 
-      double sumVar = 0.0;
-      int N = 1;
-      if ( colors != null &&
-           colors.Length > 1 )
-      {
-        qtime.Add( elapsed );
-        N = 0;
-
-        for ( int i = 0; i < colors.Length - 1; i++ )
-          for ( int j = i + 1; j < colors.Length; j++ )
-          {
-            N++;
-            double La, Lb, Aa, Ab, Ba, Bb;
-            Arith.ColorToCIELab( colors[ i ], out La, out Aa, out Ba );
-            Arith.ColorToCIELab( colors[ j ], out Lb, out Ab, out Bb );
-            La -= Lb; Aa -= Ab; Ba -= Bb;
-            sumVar += Math.Sqrt( La * La + Aa * Aa + Ba * Ba );
-          }
-        qvariance.Add( sumVar / N );
-      }
-
       // report:
+      if ( string.IsNullOrEmpty( name2 ) ||
+           name2.Equals( "pilot" ) )
+        name2 = name;
       bool best = EvalOptions.options.best.Contains( name );
-      wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}{1}{2}</td><td class=\"p t r\">{3:f2}s</td><td class=\"p t r\">{4:f1}</td>",
-                                best ? "<b>" : "", name, best ? "</b>" : "",
-                                elapsed, sumVar / N ) );
+      wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}{1}{2}</td><td class=\"p t r\">{3:f2}s</td>",
+                                best ? "<b>" : "", name2, best ? "</b>" : "",
+                                elapsed ) );
 
       if ( !string.IsNullOrEmpty( msg ) ||
-           colors == null ||
-           colors.Length == 0 )
+           ldr == null )
       {
-        Util.Log( $"Error: '{msg}'" );
-        wri.WriteLine( $"<td>Error: {msg}</td>" );
+        Util.Log( $"Error: '{msg ?? "no image"}'" );
+        wri.WriteLine( $"<td>Error: {msg ?? "no image"}</td>" );
         wri.WriteLine( "</tr>" );
+        if ( ldr != null )
+          ldr.Dispose();
         return;
       }
 
-      // color ordering:
-      Array.Sort( colors, ( a, b ) =>
-      {
-        double La, Lb, A, B;
-        Arith.ColorToCIELab( a, out La, out A, out B );
-        Arith.ColorToCIELab( b, out Lb, out A, out B );
-        return La.CompareTo( Lb );
-      } );
+      // output LDR image:
+      qtime.Add( elapsed );
+      string ldrName = outBase + name + ".png";
+      ldr.Save( ldrName, ImageFormat.Png );
+      ldr.Dispose();
 
-      // SVG color visualization:
-      int width = EvalOptions.options.imageWidth;
-      int widthBin = width / 10;
-      int height = 50;
-      int border = 2;
-      wri.WriteLine( $"<td><svg width=\"{width}\" height=\"{height}\">" );
-      int x = 0;
-      foreach ( var col in colors )
-      {
-        string rgb = string.Format( "#{0:X2}{1:X2}{2:X2}", col.R, col.G, col.B );
-        wri.WriteLine( "<rect x=\"{0}\" y=\"{1}\" width=\"{2}\" height=\"{3}\" fill=\"{4}\" />",
-                        x + border, border, widthBin - 2 * border, height - 2 * border - 14, rgb );
-        wri.WriteLine( "<text x=\"{0}\" y=\"{1}\" class=\"rgb\" text-anchor=\"middle\">{2}</text>",
-                        x + widthBin / 2, height - border, rgb );
-        x += widthBin;
-      }
-      wri.WriteLine( "</svg></td>" );
+      wri.WriteLine( $"<td><img src=\"{Path.GetFileName(ldrName)}\" width=\"{EvalOptions.options.imageWidth}\" alt=\"{name}\" /></td>" );
       wri.WriteLine( "</tr>" );
     }
   }
