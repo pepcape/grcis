@@ -619,6 +619,7 @@ namespace _086shader
         triangleCounter += 12;
       }
 
+      // Support: axes
       if ( checkAxes.Checked )
       {
         // axes:
@@ -638,6 +639,18 @@ namespace _086shader
         GL.Vertex3( center + new Vector3( 0.0f, 0.0f, 0.5f ) * diameter );
 
         GL.End();
+
+        // Support: spot
+        if ( spot != null )
+        {
+          GL.PointSize( 2.0f );
+          GL.Begin( PrimitiveType.Points );
+
+          GL.Color3( 1.0f, 1.0f, 0.0f );
+          GL.Vertex3( spot.Value );
+
+          GL.End();
+        }
       }
     }
   }

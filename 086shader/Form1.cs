@@ -18,19 +18,24 @@ namespace _086shader
     /// <summary>
     /// Scene read from file.
     /// </summary>
-    protected SceneBrep scene = new SceneBrep();
+    SceneBrep scene = new SceneBrep();
 
     /// <summary>
     /// Scene center point.
     /// </summary>
-    protected Vector3 center = Vector3.Zero;
+    Vector3 center = Vector3.Zero;
 
     /// <summary>
     /// Scene diameter.
     /// </summary>
-    protected float diameter = 4.0f;
+    float diameter = 4.0f;
 
     Vector3 light = new Vector3( -2, 1, 1 );
+
+    /// <summary>
+    /// Point in the 3D scene pointed out by an user, or null.
+    /// </summary>
+    Vector3? spot = null;
 
     /// <summary>
     /// GLControl guard flag.
@@ -238,7 +243,11 @@ namespace _086shader
 
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
-      tb.MouseDown( e );
+      if ( !tb.MouseDown( e ) )
+        if ( checkAxes.Checked )
+        {
+          // pointing to the scene:
+        }
     }
 
     private void glControl1_MouseUp ( object sender, MouseEventArgs e )
