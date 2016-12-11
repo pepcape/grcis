@@ -135,6 +135,15 @@ namespace MathSupport
       set;
     }
 
+    /// <summary>
+    /// Which mouse button is used for trackball movement?
+    /// </summary>
+    public MouseButtons Button
+    {
+      get;
+      set;
+    }
+
     public Trackball ( Vector3 cent, float diam =5.0f )
     {
       Center      =  cent;
@@ -144,6 +153,7 @@ namespace MathSupport
       Zoom        =  1.0f;
       Fov         =  1.0f;
       Perspective =  true;
+      Button      = MouseButtons.Left;
     }
 
     Matrix4 prevRotation = Matrix4.Identity;
@@ -300,50 +310,87 @@ namespace MathSupport
 
     //--- GUI interaction ---
 
-    public void MouseDown ( MouseEventArgs e )
+    /// <summary>
+    /// Handles mouse-button down.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool MouseDown ( MouseEventArgs e )
     {
+      if ( e.Button != Button )
+        return false;
+
       a = ellipse.IntersectionI( e.X, e.Y );
+      return true;
     }
 
-    public void MouseUp ( MouseEventArgs e )
+    /// <summary>
+    /// Handles mouse-button up.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool MouseUp ( MouseEventArgs e )
     {
+      if ( e.Button != Button )
+        return false;
+
       prevRotation *= rotation;
       rotation = Matrix4.Identity;
       a = null;
       b = null;
+      return true;
     }
 
-    public void MouseMove ( MouseEventArgs e )
+    /// <summary>
+    /// Handles mouse move.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool MouseMove ( MouseEventArgs e )
     {
-      if ( e.Button != MouseButtons.Left )
-        return;
-
+      if ( e.Button != Button )
+        return false;
        
       b = ellipse.IntersectionI( e.X, e.Y );
       rotation = calculateRotation( a, b, (Control.ModifierKeys & Keys.Shift) != Keys.None );
+      return true;
     }
 
-    public void MouseWheel ( MouseEventArgs e )
+    /// <summary>
+    /// Handles mouse-wheel change.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool MouseWheel ( MouseEventArgs e )
     {
       float dZoom = -e.Delta / 120.0f;
       Zoom *= (float)Math.Pow( 1.04, dZoom );
 
       // zoom bounds:
       Zoom = Arith.Clamp( Zoom, MinZoom, MaxZoom );
+      return true;
     }
 
-    public void KeyDown ( KeyEventArgs e )
+    /// <summary>
+    /// Handle keyboard-key down.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool KeyDown ( KeyEventArgs e )
     {
       // nothing yet
+      return false;
     }
 
-    public void KeyUp ( KeyEventArgs e )
+    /// <summary>
+    /// Handle keyboard-key up.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool KeyUp ( KeyEventArgs e )
     {
       if ( e.KeyCode == Keys.O )
       {
         e.Handled = true;
         GLtogglePerspective();
+        return true;
       }
+
+      return false;
     }
   }
 }
