@@ -4,12 +4,13 @@ using MathSupport;
 using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Utilities;
 
 namespace _087fireworks
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     /// <summary>
     /// GLControl guard flag.
@@ -26,6 +27,8 @@ namespace _087fireworks
     /// </summary>
     Trackball tb = null;
 
+    ToolTip tt = new ToolTip();
+
     public Form1 ()
     {
       InitializeComponent();
@@ -41,7 +44,7 @@ namespace _087fireworks
       checkNormals.Checked = useNormals;
       checkPointSize.Checked = usePtSize;
       textParam.Text = param ?? "";
-      Text += " (rev: " + rev + ')';
+      Text += " (" + rev + ')';
       SetLightEye( center, diameter );
 
       // Trackball:
@@ -164,6 +167,12 @@ namespace _087fireworks
     private void buttonReset_Click ( object sender, EventArgs e )
     {
       tb.Reset();
+    }
+
+    private void labelStat_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
+               (IWin32Window)sender, 10, -25, 4000 );
     }
   }
 }

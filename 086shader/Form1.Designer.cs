@@ -153,6 +153,7 @@
       this.labelFile.Size = new System.Drawing.Size(88, 13);
       this.labelFile.TabIndex = 26;
       this.labelFile.Text = "-- no file loaded --";
+      this.labelFile.MouseHover += new System.EventHandler(this.labelFile_MouseHover);
       // 
       // textParam
       // 

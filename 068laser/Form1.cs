@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
+using OpenTK;
 using Raster;
 using Utilities;
 
@@ -11,25 +12,23 @@ namespace _068laser
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
-    protected Image inputImage = null;
+    Image inputImage = null;
 
-    protected string tooltip = "";
-    protected ToolTip tt;
+    string tooltip = "";
+    ToolTip tt = new ToolTip();
 
     public Form1 ()
     {
       InitializeComponent();
-      tt = new ToolTip();
-      tt.InitialDelay = 0;
 
       Draw.SetPens( 15 );
       string param;
       string name;
       Dither.InitParams( out param, out tooltip, out name );
       textParam.Text = param ?? "";
-      Text += " (rev: " + rev + ") '" + name + '\'';
+      Text += " (" + rev + ") '" + name + '\'';
 
       newImage( (Image)null );
     }
@@ -220,7 +219,7 @@ namespace _068laser
         e.Effect = DragDropEffects.Copy;
     }
 
-    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    private void textParam_KeyPress ( object sender, System.Windows.Forms.KeyPressEventArgs e )
     {
       if ( e.KeyChar == (char)Keys.Enter )
       {
@@ -229,14 +228,15 @@ namespace _068laser
       }
     }
 
-    private void textParam_MouseEnter ( object sender, EventArgs e )
+    private void labelElapsed_MouseHover ( object sender, EventArgs e )
     {
-      tt.Show( tooltip, (TextBox)sender, 10, -25, 2000 );
+      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector2 ) ),
+               (IWin32Window)sender, 10, -25, 4000 );
     }
 
-    private void textParam_MouseLeave ( object sender, EventArgs e )
+    private void textParam_MouseHover ( object sender, EventArgs e )
     {
-      tt.Hide( (TextBox)sender );
+      tt.Show( tooltip, (IWin32Window)sender, 10, -25, 4000 );
     }
   }
 }

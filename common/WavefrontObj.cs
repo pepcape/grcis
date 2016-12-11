@@ -136,7 +136,7 @@ namespace Scene3D
 
             if ( MirrorConversion )
               coord.Z = -coord.Z;
-            lastVertex = scene.AddVertex( Vector3.Transform( coord, m ) );
+            lastVertex = scene.AddVertex( Vector3.TransformPosition( coord, m ) );
             break;
 
           case VERTEX_TEXTURE:

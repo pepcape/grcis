@@ -115,8 +115,7 @@
       this.textParam.Size = new System.Drawing.Size(176, 20);
       this.textParam.TabIndex = 7;
       this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
-      this.textParam.MouseEnter += new System.EventHandler(this.textParam_MouseEnter);
-      this.textParam.MouseLeave += new System.EventHandler(this.textParam_MouseLeave);
+      this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
       // 
       // buttonStop
       // 
@@ -139,6 +138,7 @@
       this.labelElapsed.Size = new System.Drawing.Size(48, 13);
       this.labelElapsed.TabIndex = 9;
       this.labelElapsed.Text = "Elapsed:";
+      this.labelElapsed.MouseHover += new System.EventHandler(this.labelElapsed_MouseHover);
       // 
       // Form1
       // 

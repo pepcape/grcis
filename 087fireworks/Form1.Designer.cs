@@ -107,6 +107,7 @@
       this.labelStat.Size = new System.Drawing.Size(86, 13);
       this.labelStat.TabIndex = 26;
       this.labelStat.Text = "-- no simulation --";
+      this.labelStat.MouseHover += new System.EventHandler(this.labelStat_MouseHover);
       // 
       // textParam
       // 
