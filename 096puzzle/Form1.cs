@@ -49,11 +49,6 @@ namespace _096puzzle
     bool loaded = false;
 
     /// <summary>
-    /// Async screencast object instance, null if not screencasting.
-    /// </summary>
-    public static Snapshots screencast = null;
-
-    /// <summary>
     /// Associated Trackball instance.
     /// </summary>
     Trackball tb = null;
@@ -73,34 +68,17 @@ namespace _096puzzle
 
       // Trackball:
       tb = new Trackball( center, diameter );
-      tb.Button = MouseButtons.Right;
+      //tb.Button = MouseButtons.Right;
     }
 
     private void glControl1_Load ( object sender, EventArgs e )
     {
       InitOpenGL();
-      InitSimulation();
+      InitSimulation( textParam.Text );
       tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
 
       loaded = true;
       Application.Idle += new EventHandler( Application_Idle );
-    }
-
-    public static void StartStopScreencast ( bool start )
-    {
-      if ( start == (screencast != null) )
-        return;
-
-      if ( start )
-      {
-        screencast = new Snapshots( true );
-        screencast.StartSaveThread();
-      }
-      else
-      {
-        screencast.StopSaveThread();
-        screencast = null;
-      }
     }
 
     private void glControl1_Resize ( object sender, EventArgs e )
@@ -219,7 +197,7 @@ namespace _096puzzle
 
     private void buttonResetSim_Click ( object sender, EventArgs e )
     {
-      ResetSimulation();
+      ResetSimulation( textParam.Text );
     }
 
     private void buttonUpdate_Click ( object sender, EventArgs e )
