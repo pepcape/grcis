@@ -179,9 +179,9 @@ namespace _056avatar
     private void Elevator ( ref Vector3 dir, ref Vector3 up, float angle )
     {
       Vector3 left = Vector3.Cross( up, dir );
-      Matrix4 rot = Matrix4.CreateFromAxisAngle( left, angle );
+      Matrix3 rot  = Matrix3.CreateFromAxisAngle( left, angle );
       dir = Vector3.Transform( dir, rot );
-      up = Vector3.Transform( up, rot );
+      up  = Vector3.Transform( up, rot );
     }
 
     /// <summary>
@@ -189,7 +189,7 @@ namespace _056avatar
     /// </summary>
     private void Rudder ( ref Vector3 dir, Vector3 up, float angle )
     {
-      Matrix4 rot = Matrix4.CreateFromAxisAngle( up, angle );
+      Matrix3 rot = Matrix3.CreateFromAxisAngle( up, angle );
       dir = Vector3.Transform( dir, rot );
     }
 
@@ -198,7 +198,7 @@ namespace _056avatar
     /// </summary>
     private void Rotation ( Vector3 dir, ref Vector3 up, float angle )
     {
-      Matrix4 rot = Matrix4.CreateFromAxisAngle( dir, angle );
+      Matrix3 rot = Matrix3.CreateFromAxisAngle( dir, angle );
       up = Vector3.Transform( up, rot );
     }
 

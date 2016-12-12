@@ -95,9 +95,14 @@ namespace _038trackball
     private float fov = 1.0f;
 
     /// <summary>
+    /// Camera's near point.
+    /// </summary>
+    private float near = 0.1f;
+
+    /// <summary>
     /// Camera's far point.
     /// </summary>
-    private float far = 200.0f;
+    private float far = 5.0f;
 
     #endregion
 
@@ -132,11 +137,11 @@ namespace _038trackball
       GL.Viewport( 0, 0, width, height );
 
       // 2. set projection matrix
-      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, (float)width / (float)height, 0.1f, far );
+      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( fov, width / (float)height, near, far );
       float minSize = 2.0f * Math.Min( width, height );
-      ortographicProjection = Matrix4.CreateOrthographic( diameter * width / minSize,
+      ortographicProjection = Matrix4.CreateOrthographic( diameter * width  / minSize,
                                                           diameter * height / minSize,
-                                                          0.1f, far );
+                                                          near, far );
       setProjection();
 
       setEllipse();

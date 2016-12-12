@@ -224,7 +224,7 @@ namespace MathSupport
     /// <param name="ay">A endpoint - y-coordinate.</param>
     /// <param name="bx">B endpoint - x-coordinate.</param>
     /// <param name="by">B endpoint - y-coordinate.</param>
-    /// <returns>Parameter coordinate of the intersection or Double.NegativeInfinity if none exists.</returns>
+    /// <returns>Parameter coordinate of the intersection or double.NegativeInfinity if none exists.</returns>
     public static double RaySegment2D ( double ox, double oy, double dx, double dy,
                                         double ax, double ay, double bx, double by )
     {

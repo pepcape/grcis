@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -30,12 +31,25 @@ namespace _086shader
     /// </summary>
     float diameter = 4.0f;
 
+    float near = 0.1f;
+    float far  = 5.0f;
+
     Vector3 light = new Vector3( -2, 1, 1 );
 
     /// <summary>
     /// Point in the 3D scene pointed out by an user, or null.
     /// </summary>
     Vector3? spot = null;
+
+    Vector3? pointOrigin = null;
+    Vector3 pointTarget;
+
+    bool pointDirty = false;
+
+    /// <summary>
+    /// Frustum vertices, 0 or 8 vertices
+    /// </summary>
+    List<Vector3> frustumFrame = new List<Vector3>();
 
     /// <summary>
     /// GLControl guard flag.
@@ -69,7 +83,7 @@ namespace _086shader
     {
       InitOpenGL();
       UpdateParams( textParam.Text );
-      tb.GLsetupViewport( glControl1.Width, glControl1.Height );
+      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
 
       loaded = true;
       Application.Idle += new EventHandler( Application_Idle );
@@ -79,7 +93,7 @@ namespace _086shader
     {
       if ( !loaded ) return;
 
-      tb.GLsetupViewport( glControl1.Width, glControl1.Height );
+      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       glControl1.Invalidate();
     }
 
@@ -247,6 +261,9 @@ namespace _086shader
         if ( checkAxes.Checked )
         {
           // pointing to the scene:
+          pointOrigin = convertScreenToWorldCoords( e.X, e.Y, 0.0f );
+          pointTarget = convertScreenToWorldCoords( e.X, e.Y, 1.0f );
+          pointDirty = true;
         }
     }
 
@@ -272,7 +289,28 @@ namespace _086shader
 
     private void glControl1_KeyUp ( object sender, KeyEventArgs e )
     {
-      tb.KeyUp( e );
+      if ( !tb.KeyUp( e ) )
+        if ( e.KeyCode == Keys.F )
+        {
+          e.Handled = true;
+          if ( frustumFrame.Count > 0 )
+            frustumFrame.Clear();
+          else
+          {
+            float N = 0.0f;
+            float F = 1.0f;
+            int R = glControl1.Width - 1;
+            int B = glControl1.Height - 1;
+            frustumFrame.Add( convertScreenToWorldCoords( 0, 0, N ) );
+            frustumFrame.Add( convertScreenToWorldCoords( R, 0, N ) );
+            frustumFrame.Add( convertScreenToWorldCoords( 0, B, N ) );
+            frustumFrame.Add( convertScreenToWorldCoords( R, B, N ) );
+            frustumFrame.Add( convertScreenToWorldCoords( 0, 0, F ) );
+            frustumFrame.Add( convertScreenToWorldCoords( R, 0, F ) );
+            frustumFrame.Add( convertScreenToWorldCoords( 0, B, F ) );
+            frustumFrame.Add( convertScreenToWorldCoords( R, B, F ) );
+          }
+        }
     }
 
     private void buttonReset_Click ( object sender, EventArgs e )
@@ -310,6 +348,47 @@ namespace _086shader
     {
       tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
                (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    // Unproject support functions:
+
+    public Vector3 convertScreenToWorldCoords ( int x, int y, float z =0.0f )
+    {
+      Matrix4 modelViewMatrix, projectionMatrix;
+      GL.GetFloat( GetPName.ModelviewMatrix,  out modelViewMatrix );
+      GL.GetFloat( GetPName.ProjectionMatrix, out projectionMatrix );
+
+      Vector2 mouse;
+      mouse.X = x;
+      mouse.Y = glControl1.Height - y;
+      Vector3 vector = UnProject( ref projectionMatrix, modelViewMatrix, new Size( glControl1.Width, glControl1.Height ), mouse, z );
+      return vector;
+    }
+
+    public static Vector3 UnProject ( ref Matrix4 projection, Matrix4 view, Size viewport, Vector2 mouse, float z =0.0f )
+    {
+      Vector4 vec;
+      vec.X = 2.0f * mouse.X / (float)viewport.Width  - 1;
+      vec.Y = 2.0f * mouse.Y / (float)viewport.Height - 1;
+      vec.Z = z;
+      vec.W = 1.0f;
+
+      Matrix4 viewInv = Matrix4.Invert( view );
+      Matrix4 projInv = Matrix4.Invert( projection );
+
+      Vector4.Transform( ref vec, ref projInv, out vec );
+      Vector4.Transform( ref vec, ref viewInv, out vec );
+
+      if ( vec.W > float.Epsilon ||
+           vec.W < float.Epsilon )
+      {
+        vec.X /= vec.W;
+        vec.Y /= vec.W;
+        vec.Z /= vec.W;
+        vec.W  = 1.0f;
+      }
+
+      return new Vector3( vec );
     }
   }
 }

@@ -86,6 +86,45 @@ namespace _086shader
             labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f1}m",
                                            lastFps, (lastTps * 1.0e-6) );
         }
+
+        // pointing:
+        if ( pointOrigin != null &&
+             pointDirty )
+        {
+          Vector3d p0 = new Vector3d( pointOrigin.Value.X, pointOrigin.Value.Y, pointOrigin.Value.Z );
+          Vector3d p1 = new Vector3d( pointTarget.X,       pointTarget.Y,       pointTarget.Z ) - p0;
+          Vector2d uv;
+          double nearest = double.PositiveInfinity;
+
+          if ( scene != null &&
+               scene.Triangles > 0 )
+          {
+            Vector3 A, B, C;
+            for ( int i = 0; i < scene.Triangles; i++ )
+            {
+              scene.GetTriangleVertices( i, out A, out B, out C );
+              double curr = Geometry.RayTriangleIntersection( ref p0, ref p1, ref A, ref B, ref C, out uv );
+              if ( !double.IsInfinity( curr ) &&
+                   curr < nearest )
+                nearest = curr;
+            }
+          }
+          else
+          {
+            Vector3d ul   = new Vector3d( -1.0, -1.0, -1.0 );
+            Vector3d size = new Vector3d(  2.0,  2.0,  2.0 );
+            if ( Geometry.RayBoxIntersection( ref p0, ref p1, ref ul, ref size, out uv ) )
+              nearest = uv.X;
+          }
+
+          if ( double.IsInfinity( nearest ) )
+            spot = null;
+          else
+            spot = new Vector3( (float)(p0.X + nearest * p1.X),
+                                (float)(p0.Y + nearest * p1.Y),
+                                (float)(p0.Z + nearest * p1.Z) );
+          pointDirty = false;
+        }
       }
     }
 
@@ -295,7 +334,7 @@ namespace _086shader
       if ( !Util.TryParse( p, "fov", ref fov ) )
       {
         tb.Fov = Arith.Clamp( fov, 0.1f, 2.0f );
-        tb.GLsetupViewport( glControl1.Width, glControl1.Height );
+        tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       }
 
       // shading: relative light position
@@ -622,6 +661,9 @@ namespace _086shader
       // Support: axes
       if ( checkAxes.Checked )
       {
+        float origWidth = GL.GetFloat( GetPName.LineWidth );
+        float origPoint = GL.GetFloat( GetPName.PointSize );
+
         // axes:
         GL.LineWidth( 2.0f );
         GL.Begin( PrimitiveType.Lines );
@@ -640,17 +682,70 @@ namespace _086shader
 
         GL.End();
 
-        // Support: spot
-        if ( spot != null )
+        // Support: pointing
+        if ( pointOrigin != null )
         {
-          GL.PointSize( 2.0f );
-          GL.Begin( PrimitiveType.Points );
-
+          GL.Begin( PrimitiveType.Lines );
           GL.Color3( 1.0f, 1.0f, 0.0f );
-          GL.Vertex3( spot.Value );
+          GL.Vertex3( pointOrigin.Value );
+          GL.Vertex3( pointTarget );
+          GL.End();
+
+          GL.PointSize( 4.0f );
+          GL.Begin( PrimitiveType.Points );
+          GL.Color3( 1.0f, 0.0f, 0.0f );
+          GL.Vertex3( pointOrigin.Value );
+          GL.Color3( 0.0f, 1.0f, 0.2f );
+          GL.Vertex3( pointTarget );
+          if ( spot != null )
+          {
+            GL.Color3( 1.0f, 1.0f, 1.0f );
+            GL.Vertex3( spot.Value );
+          }
+          GL.End();
+        }
+
+        // Support: frustum
+        if ( frustumFrame.Count >= 8 )
+        {
+          GL.LineWidth( 2.0f );
+          GL.Begin( PrimitiveType.Lines );
+
+          GL.Color3( 1.0f, 0.0f, 0.0f );
+          GL.Vertex3( frustumFrame[ 0 ] );
+          GL.Vertex3( frustumFrame[ 1 ] );
+          GL.Vertex3( frustumFrame[ 1 ] );
+          GL.Vertex3( frustumFrame[ 3 ] );
+          GL.Vertex3( frustumFrame[ 3 ] );
+          GL.Vertex3( frustumFrame[ 2 ] );
+          GL.Vertex3( frustumFrame[ 2 ] );
+          GL.Vertex3( frustumFrame[ 0 ] );
+
+          GL.Color3( 1.0f, 1.0f, 1.0f );
+          GL.Vertex3( frustumFrame[ 0 ] );
+          GL.Vertex3( frustumFrame[ 4 ] );
+          GL.Vertex3( frustumFrame[ 1 ] );
+          GL.Vertex3( frustumFrame[ 5 ] );
+          GL.Vertex3( frustumFrame[ 2 ] );
+          GL.Vertex3( frustumFrame[ 6 ] );
+          GL.Vertex3( frustumFrame[ 3 ] );
+          GL.Vertex3( frustumFrame[ 7 ] );
+
+          GL.Color3( 0.0f, 1.0f, 0.0f );
+          GL.Vertex3( frustumFrame[ 4 ] );
+          GL.Vertex3( frustumFrame[ 5 ] );
+          GL.Vertex3( frustumFrame[ 5 ] );
+          GL.Vertex3( frustumFrame[ 7 ] );
+          GL.Vertex3( frustumFrame[ 7 ] );
+          GL.Vertex3( frustumFrame[ 6 ] );
+          GL.Vertex3( frustumFrame[ 6 ] );
+          GL.Vertex3( frustumFrame[ 4 ] );
 
           GL.End();
         }
+
+        GL.LineWidth( origWidth );
+        GL.PointSize( origPoint );
       }
     }
   }

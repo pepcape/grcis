@@ -13,7 +13,7 @@ namespace MathSupport
   {
     public static bool IsZero ( double a )
     {
-      return( a <= Double.Epsilon && a >= -Double.Epsilon );
+      return( a <= double.Epsilon && a >= -double.Epsilon );
     }
 
     public static void SpecularReflection ( ref Vector3d normal, ref Vector3d input, out Vector3d output )
@@ -275,8 +275,8 @@ namespace MathSupport
     {
       result.X =
       result.Y = -1.0;
-      double tMin = Double.NegativeInfinity;
-      double tMax = Double.PositiveInfinity;
+      double tMin = double.NegativeInfinity;
+      double tMax = double.PositiveInfinity;
       double t1, t2, mul;
 
       // X axis:
@@ -375,12 +375,12 @@ namespace MathSupport
     {
       result.X =
       result.Y = -1.0;
-      double tMin = Double.NegativeInfinity;
-      double tMax = Double.PositiveInfinity;
+      double tMin = double.NegativeInfinity;
+      double tMax = double.PositiveInfinity;
       double t1, t2;
 
       // X axis:
-      if ( Double.IsInfinity( p1inv.X ) )
+      if ( double.IsInfinity( p1inv.X ) )
       {
         if ( p0.X <= ul.X ||
              p0.X >= ul.X + size.X )
@@ -407,7 +407,7 @@ namespace MathSupport
       }
 
       // Y axis:
-      if ( Double.IsInfinity( p1inv.Y ) )
+      if ( double.IsInfinity( p1inv.Y ) )
       {
         if ( p0.Y <= ul.Y ||
              p0.Y >= ul.Y + size.Y )
@@ -434,7 +434,7 @@ namespace MathSupport
       }
 
       // Z axis:
-      if ( Double.IsInfinity( p1inv.Z ) )
+      if ( double.IsInfinity( p1inv.Z ) )
       {
         if ( p0.Z <= ul.Z ||
              p0.Z >= ul.Z + size.Z )
@@ -475,12 +475,12 @@ namespace MathSupport
     {
       result.X =
       result.Y = -1.0;
-      double tMin = Double.NegativeInfinity;
-      double tMax = Double.PositiveInfinity;
+      double tMin = double.NegativeInfinity;
+      double tMax = double.PositiveInfinity;
       double t1, t2;
 
       // X axis:
-      if ( Double.IsInfinity( p1inv.X ) )
+      if ( double.IsInfinity( p1inv.X ) )
       {
         if ( p0.X <= ul.X ||
              p0.X >= ul.X + size.X )
@@ -507,7 +507,7 @@ namespace MathSupport
       }
 
       // Y axis:
-      if ( Double.IsInfinity( p1inv.Y ) )
+      if ( double.IsInfinity( p1inv.Y ) )
       {
         if ( p0.Y <= ul.Y ||
              p0.Y >= ul.Y + size.Y )
@@ -534,7 +534,7 @@ namespace MathSupport
       }
 
       // Z axis:
-      if ( Double.IsInfinity( p1inv.Z ) )
+      if ( double.IsInfinity( p1inv.Z ) )
       {
         if ( p0.Z <= ul.Z ||
              p0.Z >= ul.Z + size.Z )
@@ -576,7 +576,7 @@ namespace MathSupport
     /// <param name="b">Vertex B of the triangle.</param>
     /// <param name="c">Vertex C of the triangle.</param>
     /// <param name="uv">Barycentric coordinates of the intersection.</param>
-    /// <returns>Parametric coordinate on the ray if succeeded, Double.NegativeInfinity otherwise.</returns>
+    /// <returns>Parametric coordinate on the ray if succeeded, double.NegativeInfinity otherwise.</returns>
     public static double RayTriangleIntersection ( ref Vector3d p0, ref Vector3d p1,
                                                    ref Vector3d a, ref Vector3d b, ref Vector3d c,
                                                    out Vector2d uv )
@@ -588,19 +588,19 @@ namespace MathSupport
       double det;
       Vector3d.Dot( ref e1, ref pvec, out det );
       uv.X = uv.Y = 0.0;
-      if ( IsZero( det ) ) return Double.NegativeInfinity;
+      if ( IsZero( det ) ) return double.NegativeInfinity;
 
       double detInv = 1.0 / det;
       Vector3d tvec = p0 - a;
       Vector3d.Dot( ref tvec, ref pvec, out uv.X );
       uv.X *= detInv;
-      if ( uv.X < 0.0 || uv.X > 1.0 ) return Double.NegativeInfinity;
+      if ( uv.X < 0.0 || uv.X > 1.0 ) return double.NegativeInfinity;
 
       Vector3d qvec;
       Vector3d.Cross( ref tvec, ref e1, out qvec );
       Vector3d.Dot( ref p1, ref qvec, out uv.Y );
       uv.Y *= detInv;
-      if ( uv.Y < 0.0 || uv.X + uv.Y > 1.0 ) return Double.NegativeInfinity;
+      if ( uv.Y < 0.0 || uv.X + uv.Y > 1.0 ) return double.NegativeInfinity;
 
       Vector3d.Dot( ref e2, ref qvec, out det );
       return( detInv * det );
@@ -617,7 +617,7 @@ namespace MathSupport
     /// <param name="b">Vertex B of the triangle.</param>
     /// <param name="c">Vertex C of the triangle.</param>
     /// <param name="uv">Barycentric coordinates of the intersection.</param>
-    /// <returns>Parametric coordinate on the ray if succeeded, Double.NegativeInfinity otherwise.</returns>
+    /// <returns>Parametric coordinate on the ray if succeeded, double.NegativeInfinity otherwise.</returns>
     public static double RayTriangleIntersection ( ref Vector3d p0, ref Vector3d p1,
                                                    ref Vector3 a, ref Vector3 b, ref Vector3 c,
                                                    out Vector2d uv )
@@ -629,19 +629,19 @@ namespace MathSupport
       double det;
       Vector3d.Dot( ref e1, ref pvec, out det );
       uv.X = uv.Y = 0.0;
-      if ( IsZero( det ) ) return Double.NegativeInfinity;
+      if ( IsZero( det ) ) return double.NegativeInfinity;
 
       double detInv = 1.0 / det;
       Vector3d tvec = p0 - (Vector3d)a;
       Vector3d.Dot( ref tvec, ref pvec, out uv.X );
       uv.X *= detInv;
-      if ( uv.X < 0.0 || uv.X > 1.0 ) return Double.NegativeInfinity;
+      if ( uv.X < 0.0 || uv.X > 1.0 ) return double.NegativeInfinity;
 
       Vector3d qvec;
       Vector3d.Cross( ref tvec, ref e1, out qvec );
       Vector3d.Dot( ref p1, ref qvec, out uv.Y );
       uv.Y *= detInv;
-      if ( uv.Y < 0.0 || uv.X + uv.Y > 1.0 ) return Double.NegativeInfinity;
+      if ( uv.Y < 0.0 || uv.X + uv.Y > 1.0 ) return double.NegativeInfinity;
 
       Vector3d.Dot( ref e2, ref qvec, out det );
       return( detInv * det );
