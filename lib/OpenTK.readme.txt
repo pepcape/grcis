@@ -1,0 +1,10 @@
+OpenTK binaries were compiled from source files because of problems
+in official distribution.
+
+After the situation improves, I'm going to switch the system back to normal,
+probably to the NuGet packaging (I hope it will work for both OpenTK and
+OpenTK.GLControl).
+
+OpenTK.support.zip
+  contains additional optional files" XML documentation and debugging info.
+  You can unzip it if you want.

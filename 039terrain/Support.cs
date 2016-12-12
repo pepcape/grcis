@@ -103,8 +103,8 @@ namespace _039terrain
       Matrix4 rotateX = Matrix4.CreateRotationX( (float)-elevationAngle );
       Matrix4 rotateY = Matrix4.CreateRotationY( (float)azimuthAngle );
 
-      cameraPosition = Vector3.Transform( cameraPosition, rotateX );
-      cameraPosition = Vector3.Transform( cameraPosition, rotateY );
+      cameraPosition = Vector3.TransformPosition( cameraPosition, rotateX );
+      cameraPosition = Vector3.TransformPosition( cameraPosition, rotateY );
 
       GL.MatrixMode( MatrixMode.Modelview );
       Matrix4 lookAt = Matrix4.LookAt( cameraPosition, Vector3.Zero, up );

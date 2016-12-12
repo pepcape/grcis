@@ -213,17 +213,17 @@ namespace MathSupport
     /// <summary>
     /// Sets up a projective viewport
     /// </summary>
-    public void GLsetupViewport ( int width, int height )
+    public void GLsetupViewport ( int width, int height, float near =0.01f, float far =1000.0f )
     {
       // 1. set ViewPort transform:
       GL.Viewport( 0, 0, width, height );
 
       // 2. set projection matrix
-      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( Fov, width / (float)height, 0.01f, 1000.0f );
+      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( Fov, width / (float)height, near, far );
       float minSize = 2.0f * Math.Min( width, height );
       ortographicProjection = Matrix4.CreateOrthographic( diameter * width / minSize,
                                                           diameter * height / minSize,
-                                                          0.01f, 1000.0f );
+                                                          near, far );
       GLsetProjection();
       setEllipse( width, height );
     }
