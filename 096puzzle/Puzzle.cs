@@ -202,7 +202,7 @@ namespace _096puzzle
         Fill( ref ptr, ref n );
       if ( ptsize )
         *ptr++ = 1.0f;
-      Fill( ref ptr, ref corner );
+      Fill( ref ptr, Vector3d.TransformPosition( corner, objectMatrix ) );
 
       // upper right
       if ( txt )
@@ -213,7 +213,7 @@ namespace _096puzzle
         Fill( ref ptr, ref n );
       if ( ptsize )
         *ptr++ = 1.0f;
-      Fill( ref ptr, corner + side1 );
+      Fill( ref ptr, Vector3d.TransformPosition( corner + side1, objectMatrix ) );
 
       // lower left
       if ( txt )
@@ -224,7 +224,7 @@ namespace _096puzzle
         Fill( ref ptr, ref n );
       if ( ptsize )
         *ptr++ = 1.0f;
-      Fill( ref ptr, corner + side2 );
+      Fill( ref ptr, Vector3d.TransformPosition( corner + side2, objectMatrix ) );
 
       // lower right
       if ( txt )
@@ -235,7 +235,7 @@ namespace _096puzzle
         Fill( ref ptr, ref n );
       if ( ptsize )
         *ptr++ = 1.0f;
-      Fill( ref ptr, corner + side1 + side2 );
+      Fill( ref ptr, Vector3d.TransformPosition( corner + side1 + side2, objectMatrix ) );
     }
 
     /// <summary>
@@ -442,12 +442,6 @@ namespace _096puzzle
       if ( !Util.TryParse( p, "slow", ref slow ) ||
            slow < 1.0e-4 )
         slow = 0.25;
-
-      // global: screencast
-      bool recent = false;
-      if ( Util.TryParse( p, "screencast", ref recent ) &&
-           (Form1.screencast != null) != recent )
-        Form1.StartStopScreencast( recent );
     }
 
     /// <summary>
@@ -500,7 +494,7 @@ namespace _096puzzle
     static void InitParams ( out string param, out string tooltip, out string name, out Vector3 center, out float diameter )
     {
       param      = "speed=1.0,slow=0.25";
-      tooltip    = "speed,slow,screencast";
+      tooltip    = "speed,slow";
       name       = "pilot";
       center     = new Vector3( 0.0f, 0.0f, 0.0f );
       diameter   = 4.0f;
@@ -539,8 +533,9 @@ namespace _096puzzle
       while ( glControl1.IsIdle )
       {
         glControl1.MakeCurrent();
+
         Simulate();
-        Render( true );
+        Render();
 
         long now = DateTime.Now.Ticks;
         if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
@@ -559,9 +554,8 @@ namespace _096puzzle
                                            lastFps, (lastPps * 1.0e-6) );
 
           if ( puz != null )
-            labelStatus.Text = string.Format( CultureInfo.InvariantCulture, "time: {0:f1}s, fr: {1}{2}",
-                                              puz.Time, puz.Frames,
-                                              (screencast != null) ? (" (" + screencast.Queue + ')') : "" );
+            labelStatus.Text = string.Format( CultureInfo.InvariantCulture, "time: {0:f1}s, fr: {1}",
+                                              puz.Time, puz.Frames );
         }
 
         // pointing:
@@ -709,7 +703,7 @@ namespace _096puzzle
     {
       puz.Dirty = false;
 
-      // init data buffers for current simulation state (current number of launchers + max number of particles):
+      // init data buffers for current simulation state:
       // triangles: determine maximum stride, maximum vertices and indices
       float* ptr = null;
       uint* iptr = null;
@@ -755,23 +749,23 @@ namespace _096puzzle
     /// <summary>
     /// Prime simulation init.
     /// </summary>
-    private void InitSimulation ()
+    private void InitSimulation ( string param )
     {
       puz = new Puzzle();
-      ResetSimulation();
+      ResetSimulation( param );
     }
 
     /// <summary>
     /// [Re-]initialize the simulation.
     /// </summary>
-    private void ResetSimulation ()
+    private void ResetSimulation ( string param )
     {
       //Snapshots.ResetFrameNumber();
       if ( puz != null )
         lock ( puz )
         {
           ResetDataBuffers();
-          puz.Reset( textParam.Text );
+          puz.Reset( param );
           ticksLast = DateTime.Now.Ticks;
           timeLast = 0.0;
         }
@@ -822,7 +816,7 @@ namespace _096puzzle
     /// <summary>
     /// Render one frame.
     /// </summary>
-    private void Render ( bool snapshot =false )
+    private void Render ()
     {
       if ( !loaded )
         return;
@@ -841,13 +835,23 @@ namespace _096puzzle
       tb.GLsetCamera();
       RenderScene();
 
-      if ( snapshot &&
-           screencast != null &&
-           puz != null &&
-           puz.Running )
-        screencast.SaveScreenshotAsync( glControl1 );
-
       glControl1.SwapBuffers();
+    }
+
+    void EnableArrays ( bool useTexture )
+    {
+      GL.EnableClientState( ArrayCap.VertexArray );
+      if ( useTexture )
+        GL.EnableClientState( ArrayCap.TextureCoordArray );
+      else
+        GL.EnableClientState( ArrayCap.ColorArray );
+    }
+
+    void DisableArrays ()
+    {
+      GL.DisableClientState( ArrayCap.VertexArray );
+      GL.DisableClientState( ArrayCap.TextureCoordArray );
+      GL.DisableClientState( ArrayCap.ColorArray );
     }
 
     /// <summary>
@@ -865,12 +869,6 @@ namespace _096puzzle
         if ( VBOlen[ 0 ] > 0 ||
              VBOlen[ 1 ] > 0 )
         {
-          // Scene rendering from VBOs:
-          GL.EnableClientState( ArrayCap.VertexArray );
-          GL.EnableClientState( ArrayCap.TextureCoordArray );
-          GL.EnableClientState( ArrayCap.NormalArray );
-          GL.EnableClientState( ArrayCap.ColorArray );
-
           // texture handling:
           bool useTexture = checkTexture.Checked;
           if ( texName == 0 )
@@ -883,9 +881,12 @@ namespace _096puzzle
             GL.TexEnv( TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvMode, (int)TextureEnvMode.Replace );
           }
 
+          // Scene rendering from VBOs:
+          EnableArrays( useTexture );
+
           // uniforms:
-          Matrix4 modelView    = tb.ModelView;
-          Matrix4 projection   = tb.Projection;
+          Matrix4 modelView = tb.ModelView;
+          Matrix4 projection = tb.Projection;
 
           // [txt] [colors] [normals] [ptsize] vertices
           GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
@@ -933,7 +934,7 @@ namespace _096puzzle
           GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
 
           // engage!
-          GL.DrawElements( PrimitiveType.Triangles, (int)puz.cube.TriVertices, DrawElementsType.UnsignedInt, IntPtr.Zero );
+          GL.DrawElements( PrimitiveType.Triangles, indices, DrawElementsType.UnsignedInt, IntPtr.Zero );
           GlInfo.LogError( "draw-elements-ffp" );
 
           if ( useTexture )
@@ -945,53 +946,147 @@ namespace _096puzzle
           GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
           GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
 
-          return;
+          DisableArrays();
         }
       }
+      else
+      {
+        DisableArrays();
 
-      // default: draw trivial cube..
+        // default: draw trivial cube..
 
-      GL.Begin( PrimitiveType.Quads );
+        GL.Begin( PrimitiveType.Quads );
 
-      GL.Color3( 0.0f, 1.0f, 0.0f );          // Set The Color To Green
-      GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Right Of The Quad (Top)
-      GL.Vertex3( -1.0f, 1.0f, -1.0f );       // Top Left Of The Quad (Top)
-      GL.Vertex3( -1.0f, 1.0f, 1.0f );        // Bottom Left Of The Quad (Top)
-      GL.Vertex3( 1.0f, 1.0f, 1.0f );         // Bottom Right Of The Quad (Top)
+        GL.Color3( 0.0f, 1.0f, 0.0f );          // Set The Color To Green
+        GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Right Of The Quad (Top)
+        GL.Vertex3( -1.0f, 1.0f, -1.0f );       // Top Left Of The Quad (Top)
+        GL.Vertex3( -1.0f, 1.0f, 1.0f );        // Bottom Left Of The Quad (Top)
+        GL.Vertex3( 1.0f, 1.0f, 1.0f );         // Bottom Right Of The Quad (Top)
 
-      GL.Color3( 1.0f, 0.5f, 0.0f );          // Set The Color To Orange
-      GL.Vertex3( 1.0f, -1.0f, 1.0f );        // Top Right Of The Quad (Bottom)
-      GL.Vertex3( -1.0f, -1.0f, 1.0f );       // Top Left Of The Quad (Bottom)
-      GL.Vertex3( -1.0f, -1.0f, -1.0f );      // Bottom Left Of The Quad (Bottom)
-      GL.Vertex3( 1.0f, -1.0f, -1.0f );       // Bottom Right Of The Quad (Bottom)
+        GL.Color3( 1.0f, 0.5f, 0.0f );          // Set The Color To Orange
+        GL.Vertex3( 1.0f, -1.0f, 1.0f );        // Top Right Of The Quad (Bottom)
+        GL.Vertex3( -1.0f, -1.0f, 1.0f );       // Top Left Of The Quad (Bottom)
+        GL.Vertex3( -1.0f, -1.0f, -1.0f );      // Bottom Left Of The Quad (Bottom)
+        GL.Vertex3( 1.0f, -1.0f, -1.0f );       // Bottom Right Of The Quad (Bottom)
 
-      GL.Color3( 1.0f, 0.0f, 0.0f );          // Set The Color To Red
-      GL.Vertex3( 1.0f, 1.0f, 1.0f );         // Top Right Of The Quad (Front)
-      GL.Vertex3( -1.0f, 1.0f, 1.0f );        // Top Left Of The Quad (Front)
-      GL.Vertex3( -1.0f, -1.0f, 1.0f );       // Bottom Left Of The Quad (Front)
-      GL.Vertex3( 1.0f, -1.0f, 1.0f );        // Bottom Right Of The Quad (Front)
+        GL.Color3( 1.0f, 0.0f, 0.0f );          // Set The Color To Red
+        GL.Vertex3( 1.0f, 1.0f, 1.0f );         // Top Right Of The Quad (Front)
+        GL.Vertex3( -1.0f, 1.0f, 1.0f );        // Top Left Of The Quad (Front)
+        GL.Vertex3( -1.0f, -1.0f, 1.0f );       // Bottom Left Of The Quad (Front)
+        GL.Vertex3( 1.0f, -1.0f, 1.0f );        // Bottom Right Of The Quad (Front)
 
-      GL.Color3( 1.0f, 1.0f, 0.0f );          // Set The Color To Yellow
-      GL.Vertex3( 1.0f, -1.0f, -1.0f );       // Bottom Left Of The Quad (Back)
-      GL.Vertex3( -1.0f, -1.0f, -1.0f );      // Bottom Right Of The Quad (Back)
-      GL.Vertex3( -1.0f, 1.0f, -1.0f );       // Top Right Of The Quad (Back)
-      GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Left Of The Quad (Back)
+        GL.Color3( 1.0f, 1.0f, 0.0f );          // Set The Color To Yellow
+        GL.Vertex3( 1.0f, -1.0f, -1.0f );       // Bottom Left Of The Quad (Back)
+        GL.Vertex3( -1.0f, -1.0f, -1.0f );      // Bottom Right Of The Quad (Back)
+        GL.Vertex3( -1.0f, 1.0f, -1.0f );       // Top Right Of The Quad (Back)
+        GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Left Of The Quad (Back)
 
-      GL.Color3( 0.0f, 0.0f, 1.0f );          // Set The Color To Blue
-      GL.Vertex3( -1.0f, 1.0f, 1.0f );        // Top Right Of The Quad (Left)
-      GL.Vertex3( -1.0f, 1.0f, -1.0f );       // Top Left Of The Quad (Left)
-      GL.Vertex3( -1.0f, -1.0f, -1.0f );      // Bottom Left Of The Quad (Left)
-      GL.Vertex3( -1.0f, -1.0f, 1.0f );       // Bottom Right Of The Quad (Left)
+        GL.Color3( 0.0f, 0.0f, 1.0f );          // Set The Color To Blue
+        GL.Vertex3( -1.0f, 1.0f, 1.0f );        // Top Right Of The Quad (Left)
+        GL.Vertex3( -1.0f, 1.0f, -1.0f );       // Top Left Of The Quad (Left)
+        GL.Vertex3( -1.0f, -1.0f, -1.0f );      // Bottom Left Of The Quad (Left)
+        GL.Vertex3( -1.0f, -1.0f, 1.0f );       // Bottom Right Of The Quad (Left)
 
-      GL.Color3( 1.0f, 0.0f, 1.0f );          // Set The Color To Violet
-      GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Right Of The Quad (Right)
-      GL.Vertex3( 1.0f, 1.0f, 1.0f );         // Top Left Of The Quad (Right)
-      GL.Vertex3( 1.0f, -1.0f, 1.0f );        // Bottom Left Of The Quad (Right)
-      GL.Vertex3( 1.0f, -1.0f, -1.0f );       // Bottom Right Of The Quad (Right)
+        GL.Color3( 1.0f, 0.0f, 1.0f );          // Set The Color To Violet
+        GL.Vertex3( 1.0f, 1.0f, -1.0f );        // Top Right Of The Quad (Right)
+        GL.Vertex3( 1.0f, 1.0f, 1.0f );         // Top Left Of The Quad (Right)
+        GL.Vertex3( 1.0f, -1.0f, 1.0f );        // Bottom Left Of The Quad (Right)
+        GL.Vertex3( 1.0f, -1.0f, -1.0f );       // Bottom Right Of The Quad (Right)
 
-      GL.End();
+        GL.End();
 
-      primitiveCounter += 12;
+        primitiveCounter += 12;
+      }
+
+      // Support: axes
+      if ( checkDebug.Checked )
+      {
+        float origWidth = GL.GetFloat( GetPName.LineWidth );
+        float origPoint = GL.GetFloat( GetPName.PointSize );
+
+        // axes:
+        GL.LineWidth( 2.0f );
+        GL.Begin( PrimitiveType.Lines );
+
+        GL.Color3( 1.0f, 0.1f, 0.1f );
+        GL.Vertex3( center );
+        GL.Vertex3( center + new Vector3( 0.5f, 0.0f, 0.0f ) * diameter );
+
+        GL.Color3( 0.0f, 1.0f, 0.0f );
+        GL.Vertex3( center );
+        GL.Vertex3( center + new Vector3( 0.0f, 0.5f, 0.0f ) * diameter );
+
+        GL.Color3( 0.2f, 0.2f, 1.0f );
+        GL.Vertex3( center );
+        GL.Vertex3( center + new Vector3( 0.0f, 0.0f, 0.5f ) * diameter );
+
+        GL.End();
+
+        // Support: pointing
+        if ( pointOrigin != null )
+        {
+          GL.Begin( PrimitiveType.Lines );
+          GL.Color3( 1.0f, 1.0f, 0.0f );
+          GL.Vertex3( pointOrigin.Value );
+          GL.Vertex3( pointTarget );
+          GL.End();
+
+          GL.PointSize( 4.0f );
+          GL.Begin( PrimitiveType.Points );
+          GL.Color3( 1.0f, 0.0f, 0.0f );
+          GL.Vertex3( pointOrigin.Value );
+          GL.Color3( 0.0f, 1.0f, 0.2f );
+          GL.Vertex3( pointTarget );
+          if ( spot != null )
+          {
+            GL.Color3( 1.0f, 1.0f, 1.0f );
+            GL.Vertex3( spot.Value );
+          }
+          GL.End();
+        }
+
+        // Support: frustum
+        if ( frustumFrame.Count >= 8 )
+        {
+          GL.LineWidth( 2.0f );
+          GL.Begin( PrimitiveType.Lines );
+
+          GL.Color3( 1.0f, 0.0f, 0.0f );
+          GL.Vertex3( frustumFrame[ 0 ] );
+          GL.Vertex3( frustumFrame[ 1 ] );
+          GL.Vertex3( frustumFrame[ 1 ] );
+          GL.Vertex3( frustumFrame[ 3 ] );
+          GL.Vertex3( frustumFrame[ 3 ] );
+          GL.Vertex3( frustumFrame[ 2 ] );
+          GL.Vertex3( frustumFrame[ 2 ] );
+          GL.Vertex3( frustumFrame[ 0 ] );
+
+          GL.Color3( 1.0f, 1.0f, 1.0f );
+          GL.Vertex3( frustumFrame[ 0 ] );
+          GL.Vertex3( frustumFrame[ 4 ] );
+          GL.Vertex3( frustumFrame[ 1 ] );
+          GL.Vertex3( frustumFrame[ 5 ] );
+          GL.Vertex3( frustumFrame[ 2 ] );
+          GL.Vertex3( frustumFrame[ 6 ] );
+          GL.Vertex3( frustumFrame[ 3 ] );
+          GL.Vertex3( frustumFrame[ 7 ] );
+
+          GL.Color3( 0.0f, 1.0f, 0.0f );
+          GL.Vertex3( frustumFrame[ 4 ] );
+          GL.Vertex3( frustumFrame[ 5 ] );
+          GL.Vertex3( frustumFrame[ 5 ] );
+          GL.Vertex3( frustumFrame[ 7 ] );
+          GL.Vertex3( frustumFrame[ 7 ] );
+          GL.Vertex3( frustumFrame[ 6 ] );
+          GL.Vertex3( frustumFrame[ 6 ] );
+          GL.Vertex3( frustumFrame[ 4 ] );
+
+          GL.End();
+        }
+
+        GL.LineWidth( origWidth );
+        GL.PointSize( origPoint );
+      }
     }
 
     // Unproject support functions:
