@@ -131,16 +131,20 @@ namespace _096puzzle
           pointTarget = convertScreenToWorldCoords( e.X, e.Y, 1.0f );
           pointDirty = true;
         }
+        else
+          MouseButtonDown( e );
     }
 
     private void glControl1_MouseUp ( object sender, MouseEventArgs e )
     {
-      tb.MouseUp( e );
+      if ( !tb.MouseUp( e ) )
+        MouseButtonUp( e );
     }
 
     private void glControl1_MouseMove ( object sender, MouseEventArgs e )
     {
-      tb.MouseMove( e );
+      if ( !tb.MouseMove( e ) )
+        MousePointerMove( e );
     }
 
     private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
@@ -177,6 +181,8 @@ namespace _096puzzle
             frustumFrame.Add( convertScreenToWorldCoords( R, B, F ) );
           }
         }
+        else
+          KeyHandle( e );
     }
 
     private void buttonResetCam_Click ( object sender, EventArgs e )

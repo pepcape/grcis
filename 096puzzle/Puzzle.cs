@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.Windows.Forms;
 using MathSupport;
 using OpenglSupport;
 using OpenTK;
@@ -41,7 +42,7 @@ namespace _096puzzle
     /// <summary>
     /// Revolution in radians per second.
     /// </summary>
-    public double speed = 1.0;
+    public double speed = 0.5;
 
     /// <summary>
     /// Current rotation axis.
@@ -74,18 +75,18 @@ namespace _096puzzle
       if ( time <= simTime )
         return true;
 
-      if ( Math.Abs( angleLeft ) < 0.001 )
-        return true;
+      if ( Math.Abs( angleLeft ) > 1.0e-6 )
+      {
+        // rotate the whole cube:
+        double dt = time - simTime;
+        double dangle = Math.Min( Math.Abs( angleLeft ), dt * speed );
+        int sign = Math.Sign( angleLeft );
 
-      // fly the particle:
-      double dt = time - simTime;
-      double dangle = Math.Min( Math.Abs( angleLeft ), dt * speed );
-      int sign = Math.Sign( angleLeft );
+        Matrix4d dm = Matrix4d.Rotate( axis, dangle * sign );
+        objectMatrix *= dm;
 
-      Matrix4d dm = Matrix4d.Rotate( axis, dangle * sign );
-      objectMatrix *= dm;
-
-      angleLeft -= dangle * sign;
+        angleLeft -= dangle * sign;
+      }
 
       simTime = time;
 
@@ -105,12 +106,16 @@ namespace _096puzzle
       Vector2d uv;
       double nearest = double.PositiveInfinity;
       int inearest = 0;
+      uint ix;
 
       for ( int i = 0; i + 2 < ind.Length; i += 3 )
       {
-        A = Vector3d.TransformPosition( new Vector3d( vert[ ind[ i ] ], vert[ ind[ i ] + 1 ], vert[ ind[ i ] + 2 ] ), objectMatrix );
-        B = Vector3d.TransformPosition( new Vector3d( vert[ ind[ i + 1 ] ], vert[ ind[ i + 1 ] + 1 ], vert[ ind[ i + 1 ] + 2 ] ), objectMatrix );
-        C = Vector3d.TransformPosition( new Vector3d( vert[ ind[ i + 2 ] ], vert[ ind[ i + 2 ] + 1 ], vert[ ind[ i + 2 ] + 2 ] ), objectMatrix );
+        ix = ind[ i ] * 3;
+        A = Vector3d.TransformPosition( new Vector3d( vert[ ix ], vert[ ix + 1 ], vert[ ix + 2 ] ), objectMatrix );
+        ix = ind[ i + 1 ] * 3;
+        B = Vector3d.TransformPosition( new Vector3d( vert[ ix ], vert[ ix + 1 ], vert[ ix + 2 ] ), objectMatrix );
+        ix = ind[ i + 2 ] * 3;
+        C = Vector3d.TransformPosition( new Vector3d( vert[ ix ], vert[ ix + 1 ], vert[ ix + 2 ] ), objectMatrix );
         double curr = Geometry.RayTriangleIntersection( ref p0, ref p1, ref A, ref B, ref C, out uv );
         if ( !double.IsInfinity( curr ) &&
              curr < nearest )
@@ -122,19 +127,34 @@ namespace _096puzzle
 
       if ( action )
       {
-        inearest /= 3;   // face number
+        inearest /= 6;   // face number
+        double sign = 1.0;
 
         // rotation axis:
-        if ( inearest <= 1 )
-          axis = Vector3d.UnitX;
+        if ( inearest == 0 ||
+             inearest == 2 )
+        {
+          axis = Vector3d.UnitZ;
+          if ( inearest == 2 )
+            sign = -1.0;
+        }
         else
-          if ( inearest <= 3 )
-            axis = Vector3d.UnitZ;
-          else
-            axis = Vector3d.UnitY;
+        if ( inearest == 1 ||
+             inearest == 3 )
+        {
+          axis = Vector3d.UnitX;
+          if ( inearest == 3 )
+            sign = -1.0;
+        }
+        else
+        {
+          axis = Vector3d.UnitY;
+          if ( inearest == 5 )
+            sign = -1.0;
+        }
 
         // angle & orientation:
-        angleLeft = Math.PI * 0.5 * ((inearest & 1) > 0 ? 1.0 : -1.0);
+        angleLeft = Math.PI * 0.5 * sign;
       }
 
       return nearest;
@@ -500,15 +520,6 @@ namespace _096puzzle
       diameter   = 4.0f;
     }
 
-    /// <summary>
-    /// Set real-world coordinates of the camera/light source.
-    /// </summary>
-    void SetLightEye ( Vector3 center, float diameter )
-    {
-      diameter += diameter;
-      lightPosition = center + new Vector3( -2.0f * diameter, diameter, diameter );
-    }
-
     uint[] VBOid = null;  // vertex array VBO (colors, normals, coords), index array VBO
     int[] VBOlen = null;  // currently allocated lengths of VBOs
 
@@ -573,6 +584,7 @@ namespace _096puzzle
           }
           else
           {
+            // for test purposes only..
             Vector3d ul = new Vector3d( -1.0, -1.0, -1.0 );
             Vector3d size = new Vector3d( 2.0, 2.0, 2.0 );
             if ( Geometry.RayBoxIntersection( ref p0, ref p1, ref ul, ref size, out uv ) )
@@ -684,7 +696,8 @@ namespace _096puzzle
     /// </summary>
     void ResetDataBuffers ()
     {
-      VBOlen[ 0 ] = VBOlen[ 1 ] = 0;
+      VBOlen[ 0 ] =
+      VBOlen[ 1 ] = 0;
     }
 
     /// <summary>
@@ -814,6 +827,49 @@ namespace _096puzzle
     }
 
     /// <summary>
+    /// Handles mouse-button push.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    bool MouseButtonDown ( MouseEventArgs e )
+    {
+      // rotation of the whole cube by an axis defined by the intersected face
+      Vector3 pointO = convertScreenToWorldCoords( e.X, e.Y, 0.0f );
+      Vector3 pointT = convertScreenToWorldCoords( e.X, e.Y, 1.0f );
+      Vector3d p0 = new Vector3d( pointO.X, pointO.Y, pointO.Z );
+      Vector3d p1 = new Vector3d( pointT.X, pointT.Y, pointT.Z ) - p0;
+      puz.Intersect( ref p0, ref p1, true );
+
+      return true;
+    }
+
+    /// <summary>
+    /// Handles mouse-button release.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    bool MouseButtonUp ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles mouse move.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    bool MousePointerMove ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles keyboard key press.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    bool KeyHandle ( KeyEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
     /// Render one frame.
     /// </summary>
     private void Render ()
@@ -917,12 +973,6 @@ namespace _096puzzle
             GL.ColorPointer( 3, ColorPointerType.Float, stride, p );
             p += Vector3.SizeInBytes;
           }
-
-          //if ( useNormals )
-          //{
-          //  GL.NormalPointer( NormalPointerType.Float, stride, p );
-          //  p += Vector3.SizeInBytes;
-          //}
 
           GL.VertexPointer( 3, VertexPointerType.Float, stride, p );
 
@@ -1100,7 +1150,7 @@ namespace _096puzzle
       return vector;
     }
 
-    public static Vector3 UnProject ( ref Matrix4 projection, Matrix4 view, Size viewport, Vector2 mouse, float z = 0.0f )
+    public static Vector3 UnProject ( ref Matrix4 projection, Matrix4 view, Size viewport, Vector2 mouse, float z =0.0f )
     {
       Vector4 vec;
       vec.X = 2.0f * mouse.X / (float)viewport.Width - 1;
