@@ -148,7 +148,7 @@ namespace MathSupport
     {
       Center      =  cent;
       Diameter    =  diam;
-      MinZoom     =  0.2f;
+      MinZoom     =  0.1f;
       MaxZoom     = 20.0f;
       Zoom        =  1.0f;
       Fov         =  1.0f;

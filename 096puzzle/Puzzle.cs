@@ -833,8 +833,8 @@ namespace _096puzzle
     bool MouseButtonDown ( MouseEventArgs e )
     {
       // rotation of the whole cube by an axis defined by the intersected face
-      Vector3 pointO = convertScreenToWorldCoords( e.X, e.Y, 0.0f );
-      Vector3 pointT = convertScreenToWorldCoords( e.X, e.Y, 1.0f );
+      Vector3 pointO = screenToWorld( e.X, e.Y, 0.0f );
+      Vector3 pointT = screenToWorld( e.X, e.Y, 1.0f );
       Vector3d p0 = new Vector3d( pointO.X, pointO.Y, pointO.Z );
       Vector3d p1 = new Vector3d( pointT.X, pointT.Y, pointT.Z ) - p0;
       puz.Intersect( ref p0, ref p1, true );
@@ -1133,47 +1133,6 @@ namespace _096puzzle
         GL.LineWidth( origWidth );
         GL.PointSize( origPoint );
       }
-    }
-
-    // Unproject support functions:
-
-    public Vector3 convertScreenToWorldCoords ( int x, int y, float z =0.0f )
-    {
-      Matrix4 modelViewMatrix, projectionMatrix;
-      GL.GetFloat( GetPName.ModelviewMatrix, out modelViewMatrix );
-      GL.GetFloat( GetPName.ProjectionMatrix, out projectionMatrix );
-
-      Vector2 mouse;
-      mouse.X = x;
-      mouse.Y = glControl1.Height - y;
-      Vector3 vector = UnProject( ref projectionMatrix, modelViewMatrix, new Size( glControl1.Width, glControl1.Height ), mouse, z );
-      return vector;
-    }
-
-    public static Vector3 UnProject ( ref Matrix4 projection, Matrix4 view, Size viewport, Vector2 mouse, float z =0.0f )
-    {
-      Vector4 vec;
-      vec.X = 2.0f * mouse.X / (float)viewport.Width - 1;
-      vec.Y = 2.0f * mouse.Y / (float)viewport.Height - 1;
-      vec.Z = z;
-      vec.W = 1.0f;
-
-      Matrix4 viewInv = Matrix4.Invert( view );
-      Matrix4 projInv = Matrix4.Invert( projection );
-
-      Vector4.Transform( ref vec, ref projInv, out vec );
-      Vector4.Transform( ref vec, ref viewInv, out vec );
-
-      if ( vec.W > float.Epsilon ||
-           vec.W < float.Epsilon )
-      {
-        vec.X /= vec.W;
-        vec.Y /= vec.W;
-        vec.Z /= vec.W;
-        vec.W = 1.0f;
-      }
-
-      return new Vector3( vec );
     }
   }
 }

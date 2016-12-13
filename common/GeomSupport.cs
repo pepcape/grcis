@@ -265,6 +265,44 @@ namespace MathSupport
       return true;
     }
 
+
+    /// <summary>
+    /// gluUnproject substitution.
+    /// </summary>
+    /// <param name="projection">Projection matrix.</param>
+    /// <param name="view">View matrix.</param>
+    /// <param name="width">Viewport width in pixels.</param>
+    /// <param name="height">Viewport height in pixels.</param>
+    /// <param name="x">Pointing 2D screen coordinate - x.</param>
+    /// <param name="y">Pointing 2D screen coordinate - y.</param>
+    /// <param name="z">Supplemental z-coord (0.0 for a near point, 1.0 for a far point).</param>
+    /// <returns>Coordinate in the world-space.</returns>
+    public static Vector3 UnProject ( ref Matrix4 projection, ref Matrix4 view, int width, int height, float x, float y, float z =0.0f )
+    {
+      Vector4 vec;
+      vec.X = 2.0f * x / (float)width  - 1;
+      vec.Y = 2.0f * y / (float)height - 1;
+      vec.Z = z;
+      vec.W = 1.0f;
+
+      Matrix4 viewInv = Matrix4.Invert( view );
+      Matrix4 projInv = Matrix4.Invert( projection );
+
+      Vector4.Transform( ref vec, ref projInv, out vec );
+      Vector4.Transform( ref vec, ref viewInv, out vec );
+
+      if ( vec.W > float.Epsilon ||
+           vec.W < float.Epsilon )
+      {
+        vec.X /= vec.W;
+        vec.Y /= vec.W;
+        vec.Z /= vec.W;
+        vec.W = 1.0f;
+      }
+
+      return new Vector3( vec );
+    }
+
     /// <summary>
     /// Ray vs. AABB intersection, direction vector in regular form,
     /// box defined by lower-left corner and size.
