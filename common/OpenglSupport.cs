@@ -811,7 +811,7 @@ namespace OpenglSupport
     /// Triangles: returns vertex-array size (if ptr is null) or fills vertex array.
     /// </summary>
     /// <param name="ptr">Data pointer (null for determining buffer size).</param>
-    /// <param name="origin">Index number in the global vertex array.</param>
+    /// <param name="origin">Index number in the global vertex array. Will point after the used index-range after the call.</param>
     /// <param name="stride">Vertex size (stride) in bytes.</param>
     /// <param name="col">Use color attribute?</param>
     /// <param name="txt">Use txtCoord attribute?</param>
@@ -840,7 +840,7 @@ namespace OpenglSupport
     /// Lines: returns vertex-array size (if ptr is null) or fills vertex array.
     /// </summary>
     /// <param name="ptr">Data pointer (null for determining buffer size).</param>
-    /// <param name="origin">Index number in the global vertex array.</param>
+    /// <param name="origin">Index number in the global vertex array. Will point after the used index-range after the call.</param>
     /// <param name="stride">Vertex size (stride) in bytes.</param>
     /// <param name="col">Use color attribute?</param>
     /// <param name="txt">Use txtCoord attribute?</param>
@@ -869,7 +869,7 @@ namespace OpenglSupport
     /// Points: returns vertex-array size (if ptr is null) or fills vertex array.
     /// </summary>
     /// <param name="ptr">Data pointer (null for determining buffer size).</param>
-    /// <param name="origin">Index number in the global vertex array.</param>
+    /// <param name="origin">Index number in the global vertex array. Will point after the used index-range after the call.</param>
     /// <param name="stride">Vertex size (stride) in bytes.</param>
     /// <param name="col">Use color attribute?</param>
     /// <param name="txt">Use txtCoord attribute?</param>
