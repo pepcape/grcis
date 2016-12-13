@@ -255,14 +255,26 @@ namespace _086shader
       DestroyShaders();
     }
 
+    /// <summary>
+    /// Unproject support
+    /// </summary>
+    Vector3 screenToWorld ( int x, int y, float z =0.0f )
+    {
+      Matrix4 modelViewMatrix, projectionMatrix;
+      GL.GetFloat( GetPName.ModelviewMatrix,  out modelViewMatrix );
+      GL.GetFloat( GetPName.ProjectionMatrix, out projectionMatrix );
+
+      return Geometry.UnProject( ref projectionMatrix, ref modelViewMatrix, glControl1.Width, glControl1.Height, x, glControl1.Height - y, z );
+    }
+
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
       if ( !tb.MouseDown( e ) )
         if ( checkAxes.Checked )
         {
           // pointing to the scene:
-          pointOrigin = convertScreenToWorldCoords( e.X, e.Y, 0.0f );
-          pointTarget = convertScreenToWorldCoords( e.X, e.Y, 1.0f );
+          pointOrigin = screenToWorld( e.X, e.Y, 0.0f );
+          pointTarget = screenToWorld( e.X, e.Y, 1.0f );
           pointDirty = true;
         }
     }
@@ -301,14 +313,14 @@ namespace _086shader
             float F = 1.0f;
             int R = glControl1.Width - 1;
             int B = glControl1.Height - 1;
-            frustumFrame.Add( convertScreenToWorldCoords( 0, 0, N ) );
-            frustumFrame.Add( convertScreenToWorldCoords( R, 0, N ) );
-            frustumFrame.Add( convertScreenToWorldCoords( 0, B, N ) );
-            frustumFrame.Add( convertScreenToWorldCoords( R, B, N ) );
-            frustumFrame.Add( convertScreenToWorldCoords( 0, 0, F ) );
-            frustumFrame.Add( convertScreenToWorldCoords( R, 0, F ) );
-            frustumFrame.Add( convertScreenToWorldCoords( 0, B, F ) );
-            frustumFrame.Add( convertScreenToWorldCoords( R, B, F ) );
+            frustumFrame.Add( screenToWorld( 0, 0, N ) );
+            frustumFrame.Add( screenToWorld( R, 0, N ) );
+            frustumFrame.Add( screenToWorld( 0, B, N ) );
+            frustumFrame.Add( screenToWorld( R, B, N ) );
+            frustumFrame.Add( screenToWorld( 0, 0, F ) );
+            frustumFrame.Add( screenToWorld( R, 0, F ) );
+            frustumFrame.Add( screenToWorld( 0, B, F ) );
+            frustumFrame.Add( screenToWorld( R, B, F ) );
           }
         }
     }
@@ -348,47 +360,6 @@ namespace _086shader
     {
       tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
                (IWin32Window)sender, 10, -25, 4000 );
-    }
-
-    // Unproject support functions:
-
-    public Vector3 convertScreenToWorldCoords ( int x, int y, float z =0.0f )
-    {
-      Matrix4 modelViewMatrix, projectionMatrix;
-      GL.GetFloat( GetPName.ModelviewMatrix,  out modelViewMatrix );
-      GL.GetFloat( GetPName.ProjectionMatrix, out projectionMatrix );
-
-      Vector2 mouse;
-      mouse.X = x;
-      mouse.Y = glControl1.Height - y;
-      Vector3 vector = UnProject( ref projectionMatrix, modelViewMatrix, new Size( glControl1.Width, glControl1.Height ), mouse, z );
-      return vector;
-    }
-
-    public static Vector3 UnProject ( ref Matrix4 projection, Matrix4 view, Size viewport, Vector2 mouse, float z =0.0f )
-    {
-      Vector4 vec;
-      vec.X = 2.0f * mouse.X / (float)viewport.Width  - 1;
-      vec.Y = 2.0f * mouse.Y / (float)viewport.Height - 1;
-      vec.Z = z;
-      vec.W = 1.0f;
-
-      Matrix4 viewInv = Matrix4.Invert( view );
-      Matrix4 projInv = Matrix4.Invert( projection );
-
-      Vector4.Transform( ref vec, ref projInv, out vec );
-      Vector4.Transform( ref vec, ref viewInv, out vec );
-
-      if ( vec.W > float.Epsilon ||
-           vec.W < float.Epsilon )
-      {
-        vec.X /= vec.W;
-        vec.Y /= vec.W;
-        vec.Z /= vec.W;
-        vec.W  = 1.0f;
-      }
-
-      return new Vector3( vec );
     }
   }
 }

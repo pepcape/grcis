@@ -121,14 +121,26 @@ namespace _096puzzle
       }
     }
 
+    /// <summary>
+    /// Unproject support
+    /// </summary>
+    Vector3 screenToWorld ( int x, int y, float z =0.0f )
+    {
+      Matrix4 modelViewMatrix, projectionMatrix;
+      GL.GetFloat( GetPName.ModelviewMatrix,  out modelViewMatrix );
+      GL.GetFloat( GetPName.ProjectionMatrix, out projectionMatrix );
+
+      return Geometry.UnProject( ref projectionMatrix, ref modelViewMatrix, glControl1.Width, glControl1.Height, x, glControl1.Height - y, z );
+    }
+
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
       if ( !tb.MouseDown( e ) )
         if ( checkDebug.Checked )
         {
           // pointing to the scene:
-          pointOrigin = convertScreenToWorldCoords( e.X, e.Y, 0.0f );
-          pointTarget = convertScreenToWorldCoords( e.X, e.Y, 1.0f );
+          pointOrigin = screenToWorld( e.X, e.Y, 0.0f );
+          pointTarget = screenToWorld( e.X, e.Y, 1.0f );
           pointDirty = true;
         }
         else
@@ -171,14 +183,14 @@ namespace _096puzzle
             float F = 1.0f;
             int R = glControl1.Width - 1;
             int B = glControl1.Height - 1;
-            frustumFrame.Add( convertScreenToWorldCoords( 0, 0, N ) );
-            frustumFrame.Add( convertScreenToWorldCoords( R, 0, N ) );
-            frustumFrame.Add( convertScreenToWorldCoords( 0, B, N ) );
-            frustumFrame.Add( convertScreenToWorldCoords( R, B, N ) );
-            frustumFrame.Add( convertScreenToWorldCoords( 0, 0, F ) );
-            frustumFrame.Add( convertScreenToWorldCoords( R, 0, F ) );
-            frustumFrame.Add( convertScreenToWorldCoords( 0, B, F ) );
-            frustumFrame.Add( convertScreenToWorldCoords( R, B, F ) );
+            frustumFrame.Add( screenToWorld( 0, 0, N ) );
+            frustumFrame.Add( screenToWorld( R, 0, N ) );
+            frustumFrame.Add( screenToWorld( 0, B, N ) );
+            frustumFrame.Add( screenToWorld( R, B, N ) );
+            frustumFrame.Add( screenToWorld( 0, 0, F ) );
+            frustumFrame.Add( screenToWorld( R, 0, F ) );
+            frustumFrame.Add( screenToWorld( 0, B, F ) );
+            frustumFrame.Add( screenToWorld( R, B, F ) );
           }
         }
         else
