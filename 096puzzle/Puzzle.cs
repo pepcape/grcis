@@ -297,7 +297,7 @@ namespace _096puzzle
       side1 = Vector3d.UnitX * size;
       side2 = Vector3d.UnitZ * -size;
       n = -Vector3d.UnitY;
-      color = Vector3.UnitX + Vector3.UnitY; // orange
+      color = Vector3.UnitX + Vector3.UnitY; // yellow
       FaceVertices( ref ptr, ref corner, ref side1, ref side2, ref n, ref color, txt, col, normal, ptsize );
 
       return total;
@@ -327,7 +327,7 @@ namespace _096puzzle
         }
       }
 
-      return 24 * sizeof( uint );
+      return 36 * sizeof( uint );
     }
   }
 
@@ -718,7 +718,7 @@ namespace _096puzzle
       // index-buffer size:
       int maxIB;
       maxIB =  Align( puz.cube.TriangleIndices( ref iptr, 0 ) );
-      // maxIB contains maximal index-buffer size for all launchers
+      // maxIB contains maximal index-buffer size for all batches
 
       VBOlen[ 0 ] = maxVB;
       VBOlen[ 1 ] = maxIB;
@@ -861,8 +861,8 @@ namespace _096puzzle
     {
       if ( puz != null )
       {
-        if ( (VBOlen[ 0 ] == 0 &&
-              VBOlen[ 1 ] == 0) ||
+        if ( VBOlen[ 0 ] == 0 ||
+             VBOlen[ 1 ] == 0 ||
              puz.Dirty )
           InitDataBuffers();
 
@@ -883,10 +883,6 @@ namespace _096puzzle
 
           // Scene rendering from VBOs:
           EnableArrays( useTexture );
-
-          // uniforms:
-          Matrix4 modelView = tb.ModelView;
-          Matrix4 projection = tb.Projection;
 
           // [txt] [colors] [normals] [ptsize] vertices
           GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
