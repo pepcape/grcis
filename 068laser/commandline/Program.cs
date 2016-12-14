@@ -33,7 +33,7 @@ namespace _068laser
     public CmdOptions ()
     {
       // default values of structured members:
-      baseDir = @".\input\";
+      baseDir = @"./input/";
     }
 
     public static void Touch ()
@@ -44,7 +44,7 @@ namespace _068laser
 
     //--- project-specific options ---
 
-    public string outDir = @".\output\";
+    public string outDir = @"./output/";
 
     public string param = "";
 
