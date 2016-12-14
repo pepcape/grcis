@@ -222,5 +222,10 @@ namespace _096puzzle
     {
       UpdateSimulation();
     }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( tooltip, (IWin32Window)sender, 10, -25, 4000 );
+    }
   }
 }
