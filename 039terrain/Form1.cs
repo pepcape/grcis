@@ -68,14 +68,6 @@ namespace _039terrain
       glControl1.Invalidate();
     }
 
-    private void glControl1_Paint ( object sender, PaintEventArgs e )
-    {
-      if ( checkAnim.Checked )
-        Simulate( DateTime.Now.Ticks * 1.0e-7 );
-
-      Render();
-    }
-
     private void upDownIterations_ValueChanged ( object sender, EventArgs e )
     {
       if ( !loaded ) return;

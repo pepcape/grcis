@@ -202,6 +202,14 @@ namespace _039terrain
       simTime = nowTicks* 1.0e-7;
     }
 
+    private void glControl1_Paint ( object sender, PaintEventArgs e )
+    {
+      if ( checkAnim.Checked )
+        Simulate( DateTime.Now.Ticks * 1.0e-7 );
+
+      Render();
+    }
+
     /// <summary>
     /// One step of animation / hovercraft simulation.
     /// </summary>
