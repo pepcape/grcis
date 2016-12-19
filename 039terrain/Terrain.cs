@@ -1,4 +1,5 @@
-﻿// Author: Jan Benes, Josef Pelikan
+﻿// Author: 
+// Original authors: Jan Benes, Josef Pelikan
 
 using System;
 using System.Diagnostics;
@@ -6,6 +7,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
 using MathSupport;
+using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using TexLib;
@@ -14,11 +16,6 @@ namespace _039terrain
 {
   public partial class Form1
   {
-    /// <summary>
-    /// Texture identifier (for one texture only, if you need more, extend the source code as needed)
-    /// </summary>
-    private int textureId = 0;
-
     /// <summary>
     /// Optional data initialization.
     /// </summary>
@@ -30,13 +27,33 @@ namespace _039terrain
       name       = "pilot";
     }
 
+    #region GPU data
+
+    /// <summary>
+    /// Texture identifier (for one texture only, extend the source code if necessary)
+    /// </summary>
+    private int textureId = 0;
+
+    private uint[] VBOid = new uint[ 2 ];   // [ 0 ] .. vertex array, [ 1 ] .. index buffer
+
+    // vertex-buffer offsets:
+    private int textureCoordOffset = 0;
+    private int colorOffset        = 0;
+    private int normalOffset       = 0;
+    private int vertexOffset       = 0;
+    private int stride             = 0;
+
+    #endregion
+
+    #region Lighting data
+
     // light:
     float[] ambientColor = { 0.1f, 0.1f, 0.1f };
     float[] diffuseColor = { 1.0f, 1.0f, 1.0f };
     float[] lightPosition = { 1.0f, 1.0f, 0.0f, };
 
     // material:
-    float[] materialAmbient = { 0.1f, 0.3f, 0.1f };
+    float[] materialAmbient = { 0.1f, 0.2f, 0.2f };
     float[] materialDiffuse = { 1.0f, 1.0f, 1.0f };
 
     /// <summary>
@@ -49,13 +66,16 @@ namespace _039terrain
     /// </summary>
     double lightAngle = 0.0;
 
-    /// <summary>
-    /// last simulated time in seconds.
-    /// </summary>
-    double simTime = 0.0;
+    #endregion
 
-    private void glControl1_Load ( object sender, EventArgs e )
+    /// <summary>
+    /// OpenGL init code.
+    /// </summary>
+    void InitOpenGL ()
     {
+      // log OpenGL info just for curiosity:
+      GlInfo.LogGLProperties();
+
       // OpenGL init code:
       glControl1.VSync = true;
       GL.ClearColor( Color.DarkBlue );
@@ -66,17 +86,25 @@ namespace _039terrain
       if ( GL.GetError() != ErrorCode.NoError )
         throw new Exception( "Couldn't create VBOs" );
 
-      // setup the viewport
-      SetupViewport();
-
       GL.Light( LightName.Light0, LightParameter.Ambient, ambientColor );
       GL.Light( LightName.Light0, LightParameter.Diffuse, diffuseColor );
+    }
 
-      // initialize the  scene
-      int iterations = (int)upDownIterations.Value;
+    private void glControl1_Load ( object sender, EventArgs e )
+    {
+      // cold start
+      InitOpenGL();
+
+      // warm start
+      SetupViewport();
+
+      // initialize the scene
+      int iterations  = (int)upDownIterations.Value;
       float roughness = (float)upDownRoughness.Value;
       Regenerate( iterations, roughness, textParam.Text );
       labelStatus.Text = "Triangles: " + scene.Triangles;
+
+      // initialize the simulation
       InitSimulation( true );
 
       loaded = true;
@@ -99,9 +127,9 @@ namespace _039terrain
       // notice that your terrain is supposed to be placed
       // in the XZ plane (elevation increases along the positive Y axis)
       scene.AddVertex( new Vector3( -0.5f, roughness, -0.5f ) );   // 0
-      scene.AddVertex( new Vector3( -0.5f, 0.0f, +0.5f ) );   // 1
-      scene.AddVertex( new Vector3( +0.5f, 0.0f, -0.5f ) );   // 2
-      scene.AddVertex( new Vector3( +0.5f, 0.0f, +0.5f ) );   // 3
+      scene.AddVertex( new Vector3( -0.5f, 0.0f, +0.5f ) );        // 1
+      scene.AddVertex( new Vector3( +0.5f, 0.0f, -0.5f ) );        // 2
+      scene.AddVertex( new Vector3( +0.5f, 0.0f, +0.5f ) );        // 3
 
       scene.SetNormal( 0, (Vector3.UnitY + roughness * (Vector3.UnitX + Vector3.UnitZ)).Normalized() );
       scene.SetNormal( 1, (Vector3.UnitY + roughness * 0.5f * (Vector3.UnitX + Vector3.UnitZ)).Normalized() );
@@ -109,24 +137,23 @@ namespace _039terrain
       scene.SetNormal( 3, Vector3.UnitY );
 
       float txtExtreme = 1.0f + iterations;
-      scene.SetTxtCoord( 0, new Vector2( txtExtreme, 0.0f ) );
-      scene.SetTxtCoord( 1, new Vector2( txtExtreme, txtExtreme ) );
-      scene.SetTxtCoord( 2, new Vector2( 0.0f, 0.0f ) );
-      scene.SetTxtCoord( 3, new Vector2( 0.0f, txtExtreme ) );
+      scene.SetTxtCoord( 0, new Vector2( 0.0f, 0.0f ) );
+      scene.SetTxtCoord( 1, new Vector2( 0.0f, txtExtreme ) );
+      scene.SetTxtCoord( 2, new Vector2( txtExtreme, 0.0f ) );
+      scene.SetTxtCoord( 3, new Vector2( txtExtreme, txtExtreme ) );
 
-      scene.SetColor( 0, Vector3.UnitX );
-      scene.SetColor( 1, Vector3.UnitY );
-      scene.SetColor( 2, Vector3.UnitZ );
-      scene.SetColor( 3, new Vector3( 1.0f, 1.0f, 1.0f ) );
+      scene.SetColor( 0, Vector3.UnitX );                    // red
+      scene.SetColor( 1, Vector3.UnitY );                    // green
+      scene.SetColor( 2, Vector3.UnitZ );                    // blue
+      scene.SetColor( 3, new Vector3( 1.0f, 1.0f, 1.0f ) );  // white
 
-      scene.AddTriangle( 1, 2, 0 );
-      scene.AddTriangle( 2, 1, 3 );
+      scene.AddTriangle( 1, 2, 0 );                          // last vertex is red
+      scene.AddTriangle( 2, 1, 3 );                          // last vertex is white
 
       // this function uploads the data to the graphics card
       PrepareData();
 
       // load a texture
-      //TexUtil.InitTexturing();
       if ( textureId > 0 )
       {
         GL.DeleteTexture( textureId );
@@ -134,12 +161,21 @@ namespace _039terrain
       }
       textureId = TexUtil.CreateTextureFromFile( "cgg256.png", "../../cgg256.png" );
 
-      // simulation, hovecraft [re]initialization?
+      // simulation / hovercraft [re]initialization?
       InitSimulation( false );
 
       // !!!}}
     }
 
+    /// <summary>
+    /// last simulated time in seconds.
+    /// </summary>
+    double simTime = 0.0;
+
+    /// <summary>
+    /// Init of animation / hovercraft simulation, ...
+    /// </summary>
+    /// <param name="cold">True for global reset (including light-source/vehicle position..)</param>
     private void InitSimulation ( bool cold )
     {
       if ( cold )
@@ -152,10 +188,13 @@ namespace _039terrain
       simTime = nowTicks* 1.0e-7;
     }
 
+    /// <summary>
+    /// one step of animation / hovercraft simulation.
+    /// </summary>
+    /// <param name="time"></param>
     private void Simulate ( double time )
     {
       if ( !loaded ||
-           !checkAnim.Checked ||
            time <= simTime )
         return;
 
@@ -177,26 +216,29 @@ namespace _039terrain
       if ( !loaded ) return;
 
       frameCounter++;
+
+      // frame init:
       GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
       GL.ShadeModel( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
       GL.PolygonMode( MaterialFace.FrontAndBack,
                       checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
 
-      // OpenGL light:
+      // camera:
+      SetCamera();
+
+      // OpenGL lighting:
       GL.MatrixMode( MatrixMode.Modelview );
       GL.Light( LightName.Light0, LightParameter.Position, lightPos );
       GL.Enable( EnableCap.Light0 );
       GL.Enable( EnableCap.Lighting );
 
-      SetCamera();
-
+      // texturing:
       bool useTexture = scene.HasTxtCoords() &&
                         checkTexture.Checked &&
                         textureId > 0;
-
       if ( useTexture )
       {
-        // set up texture
+        // set up the texture:
         GL.BindTexture( TextureTarget.Texture2D, textureId );
         GL.Enable( EnableCap.Texture2D );
       }
@@ -210,12 +252,11 @@ namespace _039terrain
 
         GL.ColorMaterial( MaterialFace.Front, ColorMaterialParameter.Diffuse );
         GL.Enable( EnableCap.ColorMaterial );
-        GL.ColorMaterial( MaterialFace.Front, ColorMaterialParameter.Diffuse );
       }
 
       // scene -> vertex buffer & index buffer
 
-      // bind the vertex buffer
+      // bind the vertex buffer:
       GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
 
       // tell OGL what sort of data we have and where in the buffer they could be found
@@ -231,32 +272,28 @@ namespace _039terrain
 
       GL.VertexPointer( 3, VertexPointerType.Float, stride, vertexOffset );
 
-      // bind the index buffer
+      // bind the index buffer:
       GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
 
-      // draw the geometry
+      // draw the geometry:
       triangleCounter += scene.Triangles;
       GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, 0 );
 
       if ( useTexture )
-      {
         GL.BindTexture( TextureTarget.Texture2D, 0 );
-      }
       else
-      {
         GL.Disable( EnableCap.ColorMaterial );
-      }
       GL.Disable( EnableCap.Light0 );
       GL.Disable( EnableCap.Lighting );
 
-      // light-source rendering:
+      // light-source rendering (small white rectangle):
       GL.PointSize( 3.0f );
       GL.Begin( PrimitiveType.Points );
       GL.Color3( 1.0f, 1.0f, 1.0f );
       GL.Vertex4( lightPos );
       GL.End();
 
-      // swap buffers
+      // swap buffers:
       glControl1.SwapBuffers();
     }
 
@@ -299,18 +336,6 @@ namespace _039terrain
 
     #endregion
 
-    #region OpenGL globals
-
-    private uint[] VBOid = new uint[ 2 ];
-
-    private int textureCoordOffset = 0;
-    private int colorOffset = 0;
-    private int normalOffset = 0;
-    private int vertexOffset = 0;
-    private int stride = 0;
-
-    #endregion
-
     /// <summary>
     /// Function called whenever the main application is idle..
     /// </summary>
@@ -318,7 +343,7 @@ namespace _039terrain
     {
       while ( glControl1.IsIdle )
       {
-        glControl1.Invalidate();
+        glControl1.Invalidate();                // causes the GLcontrol 'repaint'
 
         long now = DateTime.Now.Ticks;
         if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
@@ -344,7 +369,7 @@ namespace _039terrain
     /// </summary>
     private void SetupViewport ()
     {
-      int width = glControl1.Width;
+      int width  = glControl1.Width;
       int height = glControl1.Height;
 
       // 1. set ViewPort transform:
@@ -384,6 +409,7 @@ namespace _039terrain
 
     /// <summary>
     /// Prepare VBO content and upload it to the GPU.
+    /// You probably don't need to change this function..
     /// </summary>
     private void PrepareData ()
     {
@@ -522,14 +548,6 @@ namespace _039terrain
         float change = e.Delta / 120.0f;
         zoom = Arith.Clamp( zoom * Math.Pow( 1.05, change ), 0.5, 100.0 );
       }
-    }
-
-    private void buttonRegenerate_Click ( object sender, EventArgs e )
-    {
-      int iterations = (int)upDownIterations.Value;
-      float roughness = (float)upDownRoughness.Value;
-      Regenerate( iterations, roughness, textParam.Text );
-      labelStatus.Text = "Triangles: " + scene.Triangles;
     }
   }
 }

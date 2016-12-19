@@ -9,7 +9,7 @@ namespace _039terrain
   {
     static readonly string rev = Util.SetVersion( "$Rev$" );
 
-    protected SceneBrep scene = new SceneBrep();
+    SceneBrep scene = new SceneBrep();
 
     /// <summary>
     /// GLControl guard flag.
@@ -67,7 +67,9 @@ namespace _039terrain
 
     private void glControl1_Paint ( object sender, PaintEventArgs e )
     {
-      Simulate( DateTime.Now.Ticks * 1.0e-7 );
+      if ( checkAnim.Checked )
+        Simulate( DateTime.Now.Ticks * 1.0e-7 );
+
       Render();
     }
 
@@ -95,6 +97,14 @@ namespace _039terrain
     {
       if ( checkAnim.Checked )
         InitSimulation( false );
+    }
+
+    private void buttonRegenerate_Click ( object sender, EventArgs e )
+    {
+      int iterations = (int)upDownIterations.Value;
+      float roughness = (float)upDownRoughness.Value;
+      Regenerate( iterations, roughness, textParam.Text );
+      labelStatus.Text = "Triangles: " + scene.Triangles;
     }
   }
 }
