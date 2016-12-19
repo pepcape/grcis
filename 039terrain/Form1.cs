@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using OpenTK;
 using Scene3D;
 using Utilities;
 
@@ -15,6 +16,8 @@ namespace _039terrain
     /// GLControl guard flag.
     /// </summary>
     bool loaded = false;
+
+    ToolTip tt = new ToolTip();
 
     #region FPS counter
 
@@ -44,8 +47,7 @@ namespace _039terrain
 
     private void buttonSave_Click ( object sender, EventArgs e )
     {
-      //if ( outputImage == null ) return;
-
+#if false
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";
       sfd.Filter = "PNG Files|*.png";
@@ -54,7 +56,8 @@ namespace _039terrain
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      //outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+#endif
     }
 
     private void glControl1_Resize ( object sender, EventArgs e )
@@ -105,6 +108,12 @@ namespace _039terrain
       float roughness = (float)upDownRoughness.Value;
       Regenerate( iterations, roughness, textParam.Text );
       labelStatus.Text = "Triangles: " + scene.Triangles;
+    }
+
+    private void labelStatus_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
+               (IWin32Window)sender, 10, -25, 4000 );
     }
   }
 }

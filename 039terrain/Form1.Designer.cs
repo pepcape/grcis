@@ -128,6 +128,7 @@
       this.labelStatus.Size = new System.Drawing.Size(35, 13);
       this.labelStatus.TabIndex = 22;
       this.labelStatus.Text = "status";
+      this.labelStatus.MouseHover += new System.EventHandler(this.labelStatus_MouseHover);
       // 
       // label2
       // 
