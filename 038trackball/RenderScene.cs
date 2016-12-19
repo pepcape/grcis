@@ -26,7 +26,7 @@ namespace _038trackball
         long now = DateTime.Now.Ticks;
         if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
         {
-          lastFps = 0.5 * lastFps + 0.5 * (frameCounter * 1.0e7 / (now - lastFpsTime));
+          lastFps = 0.5 * lastFps + 0.5 * (frameCounter    * 1.0e7 / (now - lastFpsTime));
           lastTps = 0.5 * lastTps + 0.5 * (triangleCounter * 1.0e7 / (now - lastFpsTime));
           lastFpsTime = now;
           frameCounter = 0;
