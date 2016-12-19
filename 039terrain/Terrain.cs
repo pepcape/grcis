@@ -48,13 +48,16 @@ namespace _039terrain
     #region Lighting data
 
     // light:
-    float[] ambientColor = { 0.1f, 0.1f, 0.1f };
-    float[] diffuseColor = { 1.0f, 1.0f, 1.0f };
+    float[] ambientColor  = { 0.1f, 0.1f, 0.1f };
+    float[] diffuseColor  = { 1.0f, 1.0f, 1.0f };
+    float[] specularColor = { 1.0f, 1.0f, 1.0f };
     float[] lightPosition = { 1.0f, 1.0f, 0.0f, };
 
     // material:
-    float[] materialAmbient = { 0.1f, 0.2f, 0.2f };
-    float[] materialDiffuse = { 1.0f, 1.0f, 1.0f };
+    float[] materialAmbient  = { 0.1f, 0.1f, 0.1f };
+    float[] materialDiffuse  = { 0.8f, 0.8f, 0.8f };
+    float[] materialSpecular = { 0.5f, 0.5f, 0.5f };
+    float  materialShininess = 60.0f;
 
     /// <summary>
     /// Current light position.
@@ -86,8 +89,9 @@ namespace _039terrain
       if ( GL.GetError() != ErrorCode.NoError )
         throw new Exception( "Couldn't create VBOs" );
 
-      GL.Light( LightName.Light0, LightParameter.Ambient, ambientColor );
-      GL.Light( LightName.Light0, LightParameter.Diffuse, diffuseColor );
+      GL.Light( LightName.Light0, LightParameter.Ambient,  ambientColor );
+      GL.Light( LightName.Light0, LightParameter.Diffuse,  diffuseColor );
+      GL.Light( LightName.Light0, LightParameter.Specular, specularColor );
     }
 
     private void glControl1_Load ( object sender, EventArgs e )
@@ -173,16 +177,26 @@ namespace _039terrain
     double simTime = 0.0;
 
     /// <summary>
+    /// Are we doing the terrain-flyover?
+    /// </summary>
+    bool hovercraft = false;
+
+    /// <summary>
     /// Init of animation / hovercraft simulation, ...
     /// </summary>
     /// <param name="cold">True for global reset (including light-source/vehicle position..)</param>
     private void InitSimulation ( bool cold )
     {
-      if ( cold )
+      if ( hovercraft )
       {
-        lightPos = new Vector4( lightPosition[ 0 ], lightPosition[ 1 ], lightPosition[ 2 ], 1.0f );
-        lightAngle = 0.0;
+        // !!! TODO: hovercraft init
       }
+      else
+        if ( cold )
+        {
+          lightPos = new Vector4( lightPosition[ 0 ], lightPosition[ 1 ], lightPosition[ 2 ], 1.0f );
+          lightAngle = 0.0;
+        }
 
       long nowTicks = DateTime.Now.Ticks;
       simTime = nowTicks* 1.0e-7;
@@ -246,13 +260,15 @@ namespace _039terrain
       {
         GL.Disable( EnableCap.Texture2D );
 
-        // use constant color:
-        GL.Material( MaterialFace.Front, MaterialParameter.Ambient, materialAmbient );
-        GL.Material( MaterialFace.Front, MaterialParameter.Diffuse, materialDiffuse );
-
-        GL.ColorMaterial( MaterialFace.Front, ColorMaterialParameter.Diffuse );
+        GL.ColorMaterial( MaterialFace.Front, ColorMaterialParameter.AmbientAndDiffuse );
         GL.Enable( EnableCap.ColorMaterial );
       }
+
+      // common lighting colors/parameters:
+      GL.Material( MaterialFace.Front, MaterialParameter.Ambient,   materialAmbient );
+      GL.Material( MaterialFace.Front, MaterialParameter.Diffuse,   materialDiffuse );
+      GL.Material( MaterialFace.Front, MaterialParameter.Specular,  materialSpecular );
+      GL.Material( MaterialFace.Front, MaterialParameter.Shininess, materialShininess );
 
       // scene -> vertex buffer & index buffer
 
@@ -343,7 +359,7 @@ namespace _039terrain
     {
       while ( glControl1.IsIdle )
       {
-        glControl1.Invalidate();                // causes the GLcontrol 'repaint'
+        glControl1.Invalidate();                // causes the GLcontrol 'repaint' action
 
         long now = DateTime.Now.Ticks;
         if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
@@ -393,18 +409,25 @@ namespace _039terrain
     /// </summary>
     private void SetCamera ()
     {
-      Vector3 cameraPosition = new Vector3( 0.0f, 0, (float)zoom );
+      if ( hovercraft )
+      {
+        // !!! TODO: hovercraft camera
+      }
+      else
+      {
+        Vector3 cameraPosition = new Vector3( 0.0f, 0, (float)zoom );
 
-      Matrix4 rotateX = Matrix4.CreateRotationX( (float)-elevationAngle );
-      Matrix4 rotateY = Matrix4.CreateRotationY( (float)azimuthAngle );
+        Matrix4 rotateX = Matrix4.CreateRotationX( (float)-elevationAngle );
+        Matrix4 rotateY = Matrix4.CreateRotationY( (float)azimuthAngle );
 
-      cameraPosition = Vector3.TransformPosition( cameraPosition, rotateX );
-      cameraPosition = Vector3.TransformPosition( cameraPosition, rotateY );
+        cameraPosition = Vector3.TransformPosition( cameraPosition, rotateX );
+        cameraPosition = Vector3.TransformPosition( cameraPosition, rotateY );
 
-      GL.MatrixMode( MatrixMode.Modelview );
-      Matrix4 lookAt = Matrix4.LookAt( cameraPosition, Vector3.Zero, up );
+        GL.MatrixMode( MatrixMode.Modelview );
+        Matrix4 lookAt = Matrix4.LookAt( cameraPosition, Vector3.Zero, up );
 
-      GL.LoadMatrix( ref lookAt );
+        GL.LoadMatrix( ref lookAt );
+      }
     }
 
     /// <summary>
@@ -510,44 +533,70 @@ namespace _039terrain
 
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
-      dragFromX = e.X;
-      dragFromY = e.Y;
-      dragging = true;
+      if ( hovercraft )
+      {
+        // !!! TODO: hovercraft
+      }
+      else
+      {
+        dragFromX = e.X;
+        dragFromY = e.Y;
+        dragging = true;
+      }
     }
 
     private void glControl1_MouseUp ( object sender, MouseEventArgs e )
     {
-      dragging = false;
+      if ( hovercraft )
+      {
+        // !!! TODO: hovercraft
+      }
+      else
+      {
+        dragging = false;
+      }
     }
 
     private void glControl1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( !dragging ) return;
-
-      int delta;
-      if ( e.X != dragFromX )       // change the azimuth angle
+      if ( hovercraft )
       {
-        delta = e.X - dragFromX;
-        dragFromX = e.X;
-        azimuthAngle -= delta * 4.0 / glControl1.Width;
+        // !!! TODO: hovercraft
       }
-
-      if ( e.Y != dragFromY )       // change the elevation angle
+      else
       {
-        delta = e.Y - dragFromY;
-        dragFromY = e.Y;
-        elevationAngle += delta * 2.0 / glControl1.Height;
-        elevationAngle = Arith.Clamp( elevationAngle, -1.0, 1.5 );
+        if ( !dragging ) return;
+
+        int delta;
+        if ( e.X != dragFromX )       // change the azimuth angle
+        {
+          delta = e.X - dragFromX;
+          dragFromX = e.X;
+          azimuthAngle -= delta * 4.0 / glControl1.Width;
+        }
+
+        if ( e.Y != dragFromY )       // change the elevation angle
+        {
+          delta = e.Y - dragFromY;
+          dragFromY = e.Y;
+          elevationAngle += delta * 2.0 / glControl1.Height;
+          elevationAngle = Arith.Clamp( elevationAngle, -1.0, 1.5 );
+        }
       }
     }
 
     private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
     {
       if ( e.Delta != 0 )
-      {
-        float change = e.Delta / 120.0f;
-        zoom = Arith.Clamp( zoom * Math.Pow( 1.05, change ), 0.5, 100.0 );
-      }
+        if ( hovercraft )
+        {
+          // !!! TODO: hovercraft
+        }
+        else
+        {
+          float change = e.Delta / 120.0f;
+          zoom = Arith.Clamp( zoom * Math.Pow( 1.05, change ), 0.5, 100.0 );
+        }
     }
   }
 }
