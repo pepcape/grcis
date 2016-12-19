@@ -203,7 +203,7 @@ namespace _039terrain
     }
 
     /// <summary>
-    /// one step of animation / hovercraft simulation.
+    /// One step of animation / hovercraft simulation.
     /// </summary>
     /// <param name="time"></param>
     private void Simulate ( double time )
@@ -213,6 +213,11 @@ namespace _039terrain
         return;
 
       double dt = time - simTime;   // delta-time in seconds
+
+      if ( hovercraft )
+      {
+        // !!! TODO: hovercraft simulation
+      }
 
       lightAngle += dt;             // one radian per second..
       Matrix4 m;
