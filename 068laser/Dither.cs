@@ -178,7 +178,7 @@ namespace _068laser
 
           // clear output image:
           optr = (byte*)dataOut.Scan0;
-          for ( x = 0; x++ < oHeight * ((oWidth + 7) / 8); )
+          for ( x = 0; x++ < oHeight * dataOut.Stride; )
             *optr++ = 255;
 
           // create grayscale image able to sample points from itself:
@@ -206,7 +206,7 @@ namespace _068laser
           {
             // clear output image:
             optr = (byte*)dataOut.Scan0;
-            for ( x = 0; x++ < oHeight * ((oWidth + 7) / 8); )
+            for ( x = 0; x++ < oHeight * dataOut.Stride; )
               *optr++ = 255;
 
             int dI = Image.GetPixelFormatSize( iFormat ) / 8;
