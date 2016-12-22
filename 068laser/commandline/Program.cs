@@ -197,8 +197,8 @@ namespace _068laser
 
         bmp.SetResolution( 1200, 1200 );
 
-        Util.LogFormat( "Name: '{0}', input: '{1}', elapsed: {2:f3}s, dots: {3}",
-                        CmdOptions.options.name, imageFn, elapsed, Util.kmg( dots ) );
+        Util.LogFormat( "Name: '{0}', input: '{1}', elapsed: {2:f3}s, dots: {3}, dps: {4}",
+                        CmdOptions.options.name, imageFn, elapsed, Util.kmg( dots ), Util.kmg( (long)( dots / elapsed ) ) );
 
         string outFn = Path.Combine( CmdOptions.options.outDir, Path.GetFileName( imageFn ) );
         string ext = Path.GetExtension( outFn );
