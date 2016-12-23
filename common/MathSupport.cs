@@ -791,27 +791,193 @@ namespace MathSupport
 
     protected void CheckDown ( int i )
     {
-      int s = i + i + 1;
-      if ( s >= arr.Count )
-        return;
-      if ( s + 1 < arr.Count &&
-           arr[ s ].CompareTo( arr[ s + 1 ] ) > 0 )
-        s++;
-      if ( arr[ i ].CompareTo( arr[ s ] ) > 0 )
+      do
       {
+        int s = i + i + 1;
+        if ( s >= arr.Count )
+          return;
+
+        if ( s + 1 < arr.Count &&
+             arr[ s ].CompareTo( arr[ s + 1 ] ) > 0 )
+          s++;
+
+        if ( arr[ i ].CompareTo( arr[ s ] ) <= 0 )
+          return;
+
         Swap( i, s );
-        CheckDown( s );
+        i = s;
       }
+      while ( true );
     }
 
     protected void CheckUp ( int i )
     {
-      int p = (i - 1) / 2;
-      if ( arr[ p ].CompareTo( arr[ i ] ) > 0 )
+      while ( i > 0 )
       {
+        int p = (i - 1) / 2;
+        if ( arr[ p ].CompareTo( arr[ i ] ) <= 0 )
+          return;
+
         Swap( p, i );
-        if ( p > 0 )
-          CheckUp( p );
+        i = p;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Generic Heap data structure with fast GetTop(), RemoveTop(), SwapTop() and Add() operations.
+  /// </summary>
+  /// <typeparam name="T">Object type to be stored in the heap.</typeparam>
+  public class HeapTop<T> : IEnumerable<T>
+  {
+    protected List<T> arr;
+
+    /// <summary>
+    /// Top = minimum (according to this comparer).
+    /// </summary>
+    public IComparer<T> Comp
+    {
+      get;
+      set;
+    }
+
+    public T this[ int index ]
+    {
+      get { return arr[ index ]; }
+      set { arr[ index ] = value; }
+    }
+
+    public IEnumerator<T> GetEnumerator ()
+    {
+      return arr.GetEnumerator();
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator ()
+    {
+      return GetEnumerator();
+    }
+
+    public int Count
+    {
+      get
+      {
+        return arr.Count;
+      }
+    }
+
+    public HeapTop ( IComparer<T> co =null )
+    {
+      arr = new List<T>();
+      Comp = co;
+    }
+
+    public HeapTop ( ICollection<T> c, IComparer<T> co =null )
+      : this( co )
+    {
+      foreach ( T i in c )
+        Add( i );
+    }
+
+    public void Add ( T t )
+    {
+      arr.Add( t );
+      if ( arr.Count > 1 )
+        CheckUp( arr.Count - 1 );
+    }
+
+    public T GetTop ()
+    {
+      if ( arr.Count > 0 )
+        return arr[ 0 ];
+      else
+        return default( T );
+    }
+
+    public T RemoveTop ()
+    {
+      if ( arr.Count == 0 )
+        return default( T );
+
+      T top = arr[ 0 ];
+      arr[ 0 ] = arr[ arr.Count - 1 ];
+      arr.RemoveAt( arr.Count - 1 );
+      if ( arr.Count > 1 )
+        CheckDown( 0 );
+
+      return top;
+    }
+
+    public T SwapTop ( T t )
+    {
+      if ( arr.Count == 0 )
+      {
+        Add( t );
+        return default( T );
+      }
+
+      T top = arr[ 0 ];
+      arr[ 0 ] = t;
+      if ( arr.Count > 1 )
+        CheckDown( 0 );
+
+      return top;
+    }
+
+    public void Clear ()
+    {
+      arr.Clear();
+    }
+
+    public void Sort ()
+    {
+      if ( arr.Count < 2 )
+        return;
+
+      for ( int i = 1; i < arr.Count; i++ )
+        CheckUp( i );
+    }
+
+    protected void Swap ( int i, int j )
+    {
+      T ti = arr[ i ];
+      arr[ i ] = arr[ j ];
+      arr[ j ] = ti;
+    }
+
+    public void CheckDown ( int i )
+    {
+      Debug.Assert( Comp != null );
+      do
+      {
+        int s = i + i + 1;
+        if ( s >= arr.Count )
+          return;
+
+        if ( s + 1 < arr.Count &&
+             Comp.Compare( arr[ s ], arr[ s + 1 ] ) > 0 )
+          s++;
+
+        if ( Comp.Compare( arr[ i ], arr[ s ] ) <= 0 )
+          return;
+
+        Swap( i, s );
+        i = s;
+      }
+      while ( true );
+    }
+
+    protected void CheckUp ( int i )
+    {
+      Debug.Assert( Comp != null );
+
+      while ( i > 0 )
+      {
+        int p = (i - 1) / 2;
+        if ( Comp.Compare( arr[ p ], arr[ i ] ) <= 0 )
+          return;
+
+        Swap( p, i );
+        i = p;
       }
     }
   }
