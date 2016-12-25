@@ -23,7 +23,7 @@ namespace _068laser
     {
       InitializeComponent();
 
-      Draw.SetPens( 15 );
+      Draw.SetPens( 100 );
       string param;
       string name;
       Dither.InitParams( out param, out tooltip, out name );
