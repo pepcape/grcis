@@ -574,6 +574,11 @@ namespace Raster
     {
       if ( (n |= 1) < 3 )
         n = 3;
+
+      if ( squares != null &&
+           squares.Length >= n * n )
+        return;
+
       penPixels = new List<Tuple<int, int>>( n * n );
       squares = new double[ n * n ];
 

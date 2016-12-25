@@ -149,6 +149,7 @@ namespace _068laser
       CmdOptions.Touch();
       string tooltip;
       Dither.InitParams( out CmdOptions.options.param, out tooltip, out CmdOptions.options.name );
+      Draw.SetPens( 100 );
 
       if ( args.Length < 1 )
         Console.WriteLine( "Warning: no command-line options, using default values!" );
@@ -197,6 +198,7 @@ namespace _068laser
 
         bmp.SetResolution( 1200, 1200 );
 
+        Util.Log( CmdOptions.options.param );
         Util.LogFormat( "Name: '{0}', input: '{1}', elapsed: {2:f3}s, dots: {3}, dps: {4}",
                         CmdOptions.options.name, imageFn, elapsed, Util.kmg( dots ), Util.kmg( (long)( dots / elapsed ) ) );
 
