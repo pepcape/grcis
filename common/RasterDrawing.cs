@@ -286,7 +286,6 @@ namespace Raster
       int height = img.Height;
 
       PixelFormat fmt = img.PixelFormat;
-      int pixelSize = Image.GetPixelFormatSize( fmt ) / 8;
 
       long result = 0L;
       BitmapData data = img.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, fmt );
@@ -298,7 +297,7 @@ namespace Raster
         {
           ptr = (byte*)data.Scan0 + y * data.Stride;
 
-          for ( int x = width * pixelSize; x-- > 0 ; ptr++ )
+          for ( int x = data.Stride; x-- > 0 ; ptr++ )
             result = result * 101L + 147L * ptr[ 0 ];
         }
       }
