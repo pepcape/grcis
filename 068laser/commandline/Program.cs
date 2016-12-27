@@ -199,16 +199,22 @@ namespace _068laser
         bmp.SetResolution( 1200, 1200 );
 
         Util.Log( CmdOptions.options.param );
-        Util.LogFormat( "Name: '{0}', input: '{1}', elapsed: {2:f3}s, dots: {3}, dps: {4}",
-                        CmdOptions.options.name, imageFn, elapsed, Util.kmg( dots ), Util.kmg( (long)( dots / elapsed ) ) );
+        Util.LogFormat( "Name: '{0}', input: '{1}', elapsed: {2:f3}s, dots: {3}, dps: {4}, hash: {5:X16}",
+                        CmdOptions.options.name, imageFn, elapsed, Util.kmg( dots ), Util.kmg( (long)(dots / elapsed) ),
+                        Draw.Hash( bmp ) );
 
-        string outFn = Path.Combine( CmdOptions.options.outDir, Path.GetFileName( imageFn ) );
+        string fileName = CmdOptions.options.outputFileName;
+        if ( string.IsNullOrEmpty( fileName ) )
+          fileName = Path.GetFileName( imageFn );
+        string outFn = Path.Combine( CmdOptions.options.outDir, fileName );
         string ext = Path.GetExtension( outFn );
         if ( !ext.ToLower().Equals( ".png" ) )
           outFn = outFn.Substring( 0, outFn.Length - ext.Length ) + ".png";
         bmp.Save( outFn, System.Drawing.Imaging.ImageFormat.Png );
 
-        Util.LogFormat( "Output: '{0}' .. saved", outFn );
+        Util.LogFormat( "Output: '{0} ({1}x{2}px, {3:f1}x{4:f1}cm)' .. saved",
+                        outFn, bmp.Width, bmp.Height,
+                        bmp.Width * 2.54 / 1200.0, bmp.Height * 2.54 / 1200.0 );
         inp.Dispose();
         bmp.Dispose();
       }
