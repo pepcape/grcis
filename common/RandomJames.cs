@@ -10,7 +10,8 @@ namespace MathSupport
   /// This random number generator originally appeared in "Toward a Universal
   /// Random Number Generator" by George Marsaglia and Arif Zaman.
   /// Florida State University Report: FSU-SCRI-87-50 (1987)
-  ///
+  /// https://www.researchgate.net/publication/23636505_Toward_a_Universal_Random_Number_Generator
+  /// 
   /// It was later modified by F. James and published in "A Review of Pseudo-random Number Generators"
   ///
   /// Converted from FORTRAN to C by Phil Linttell, James F. Hickling
@@ -186,10 +187,10 @@ namespace MathSupport
     }
 
     /// <summary>
-    /// Uniform random number generator from [0,1].
+    /// Uniform random number generator from [0,1).
     /// Not synchronized, use lock() if you need mt-safety.
     /// </summary>
-    /// <returns>Number from [0,1].</returns>
+    /// <returns>Number from [0,1).</returns>
     public double UniformNumber ()
     {
       if ( !Ok ) return 0.0;
@@ -206,7 +207,7 @@ namespace MathSupport
     }
 
     /// <summary>
-    /// Vector of uniform random numbers (from [0,1]).
+    /// Vector of uniform random numbers (from [0,1)).
     /// </summary>
     /// <param name="vec"></param>
     public void UniformNumbers ( double[] vec )
@@ -215,7 +216,7 @@ namespace MathSupport
     }
 
     /// <summary>
-    /// Vector of uniform random numbers (from [0,1]).
+    /// Vector of uniform random numbers (from [0,1)).
     /// </summary>
     /// <param name="vec">Array to write to.</param>
     /// <param name="from">Starting index.</param>
@@ -298,7 +299,7 @@ namespace MathSupport
     {
       if ( min >= max ) return min;
 
-      return( min + (int)((max + 1.0 - min) * UniformNumber()) );
+      return( (int)(min + Math.Floor((max + 1.0 - min) * UniformNumber())) );
     }
 
     /// <summary>
