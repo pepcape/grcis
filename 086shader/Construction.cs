@@ -50,6 +50,9 @@ namespace Scene3D
     {
       // !!!{{ TODO: put your Mesh-construction code here
 
+      // if there will be large number of new vertices, reserve space for them to save time:
+      scene.Reserve( 4 );
+
       return CreateTetrahedron( scene, m, Vector3.Zero, 1.0f );
 
       // !!!}}

@@ -181,6 +181,8 @@ namespace _086shader
     {
       Cursor.Current = Cursors.WaitCursor;
 
+      bool doCheck = false;
+
       scene.Reset();
       Construction cn = new Construction();
 
@@ -217,7 +219,7 @@ namespace _086shader
       }
 
       scene.BuildCornerTable();
-      int errors = scene.CheckCornerTable( null );
+      int errors = doCheck ? scene.CheckCornerTable( null ) : 0;
       scene.GenerateColors( 12 );
       UpdateParams( textParam.Text );
       tb.Center   = center;
