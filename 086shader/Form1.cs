@@ -351,7 +351,7 @@ namespace _086shader
       plyWriter.Orientation   = checkOrientation.Checked;
       //plyWriter.DoNormals     = false;
       //plyWriter.DoTxtCoords   = false;
-      //plyWriter.DoColors      = false;
+      plyWriter.DoColors      = false;
       using ( StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) ) )
       {
         plyWriter.WriteBrep( writer, scene );

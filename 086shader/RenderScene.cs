@@ -337,6 +337,16 @@ namespace _086shader
         tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       }
 
+      // rendering: background color
+      Vector3 col = Vector3.Zero;
+      if ( Geometry.TryParse( p, "backgr", ref col ) )
+        GL.ClearColor( col.X, col.Y, col.Z, 1.0f );
+
+      // rendering: line width
+      fov = 1.0f;
+      if ( Util.TryParse( p, "line", ref fov ) )
+        GL.LineWidth( Math.Max( 0.0f, fov ) );
+
       // shading: relative light position
       if ( Geometry.TryParse( p, "light", ref light ) )
       {
@@ -348,6 +358,11 @@ namespace _086shader
       // shading: global material color
       if ( Geometry.TryParse( p, "color", ref matAmbient ) )
         matDiffuse = matAmbient;
+
+      // shading: global ambient coeff
+      fov = 0.2f;
+      if ( Util.TryParse( p, "Ka", ref fov ) )
+        globalAmbient.X = globalAmbient.Y = globalAmbient.Z = Util.Clamp( fov, 0.0f, 1.0f );
 
       // shading: shininess
       if ( !Util.TryParse( p, "shininess", ref matShininess ) )
