@@ -482,7 +482,9 @@ namespace Utilities
           if ( firstLine[ 0 ] == separator )
             break;
 
-          Console.WriteLine( "Invalid SYT config line {0} ({1})", FileLineNo(), firstLine );
+          if ( !HandleCommand( firstLine ) )
+            Console.WriteLine( "Warning: ignoring SYT config line: {0} ({1})", FileLineNo(), firstLine );
+
           firstLine = null;
           continue;
         }
