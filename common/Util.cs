@@ -1367,14 +1367,29 @@ namespace Utilities
     /// Parses list of doubles from the dictionary.
     /// </summary>
     /// <returns>True if everything went well, keeps the original value otherwise.</returns>
-    public static bool TryParse ( Dictionary<string, string> rec, string key, ref List<double> val )
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref List<double> val, char sep =COMMA )
     {
       string sval;
       if ( rec == null ||
            !rec.TryGetValue( key, out sval ) )
         return false;
 
-      val = ParseDoubleList( sval );
+      val = ParseDoubleList( sval, sep );
+      return true;
+    }
+
+    /// <summary>
+    /// Parses list of integers from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
+    public static bool TryParse ( Dictionary<string, string> rec, string key, ref List<int> val, char sep =COMMA )
+    {
+      string sval;
+      if ( rec == null ||
+           !rec.TryGetValue( key, out sval ) )
+        return false;
+
+      val = ParseIntList( sval, sep );
       return true;
     }
 

@@ -2,8 +2,11 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using System.Drawing.Imaging;
+using Utilities;
 
 namespace _084filter
 {
@@ -14,6 +17,8 @@ namespace _084filter
     protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
 
+    protected string titlePrefix = null;
+
     public Form1 ()
     {
       InitializeComponent();
@@ -21,12 +26,20 @@ namespace _084filter
       Filter.InitParams( out par );
       textParam.Text = par;
 
-      Text += " (rev: " + rev + ')';
+      titlePrefix = (Text += " (rev: " + rev + ')');
     }
 
     protected Thread aThread = null;
 
+    /// <summary>
+    /// User-break variable.
+    /// </summary>
     volatile public static bool cont = true;
+
+    /// <summary>
+    /// Picture-box background color (for alpha-images).
+    /// </summary>
+    public static Color imageBoxBackground = Color.White;
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
@@ -47,6 +60,7 @@ namespace _084filter
       else
       {
         pictureBox1.Image = newImage;
+        pictureBox1.BackColor = imageBoxBackground;
         setImage( ref outputImage, newImage );
       }
     }
@@ -62,6 +76,27 @@ namespace _084filter
       }
       else
         labelElapsed.Text = text;
+    }
+
+    private void imageProbe ( int x, int y )
+    {
+      if ( outputImage == null )
+        return;
+
+      x = Util.Clamp( x, 0, outputImage.Width - 1 );
+      y = Util.Clamp( y, 0, outputImage.Height - 1 );
+
+      Color c = outputImage.GetPixel( x, y );
+      StringBuilder sb = new StringBuilder( titlePrefix );
+      sb.AppendFormat( " image[{0},{1}] = ", x, y );
+      if ( outputImage.PixelFormat == PixelFormat.Format32bppArgb ||
+           outputImage.PixelFormat == PixelFormat.Format64bppArgb ||
+           outputImage.PixelFormat == PixelFormat.Format16bppArgb1555 )
+        sb.AppendFormat( "[{0},{1},{2},{3}] = #{0:X02}{1:X02}{2:X02}{3:X02}", c.R, c.G, c.B, c.A );
+      else
+        sb.AppendFormat( "[{0},{1},{2}] = #{0:X02}{1:X02}{2:X02}", c.R, c.G, c.B );
+
+      Text = sb.ToString();
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -155,7 +190,7 @@ namespace _084filter
       float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
 
       SetImage( bmp );
-      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s ({1})", elapsed, inputImage.PixelFormat.ToString() ) );
+      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s ({1})", elapsed, bmp.PixelFormat.ToString() ) );
 
       StopComputation();
     }
@@ -214,6 +249,18 @@ namespace _084filter
     private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
     {
       StopComputation();
+    }
+
+    private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
+    {
+      if ( aThread == null && e.Button == MouseButtons.Left )
+        imageProbe( e.X, e.Y );
+    }
+
+    private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
+    {
+      if ( aThread == null && e.Button == MouseButtons.Left )
+        imageProbe( e.X, e.Y );
     }
   }
 }
