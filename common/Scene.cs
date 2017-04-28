@@ -675,6 +675,41 @@ namespace Scene3D
         colors.Add( new Vector3( (float)rnd.NextDouble(), (float)rnd.NextDouble(), (float)rnd.NextDouble() ) );
     }
 
+    /// <summary>
+    /// Recompute all normals by averaging incident triangles' normals.
+    /// Corner table must be valid (BuildCornerTable()).
+    /// </summary>
+    public void ComputeNormals ()
+    {
+      if ( vertexPtr == null ) return;
+
+      normals = new List<Vector3>( new Vector3[ geometry.Count ] );
+      int[] n = new int[ geometry.Count ];
+      int ai, bi, ci;
+
+      for ( int i = 0; i < vertexPtr.Count; i += 3 )               // process one triangle
+      {
+        Vector3 A = geometry[ ai = cVertex( i ) ];
+        Vector3 c = geometry[ bi = cVertex( i + 1 ) ] - A;
+        Vector3 b = geometry[ ci = cVertex( i + 2 ) ] - A;
+        A = Vector3.Cross( c, b ).Normalized();
+        normals[ ai ] += A;
+        n[ ai ]++;
+        normals[ bi ] += A;
+        n[ bi ]++;
+        normals[ ci ] += A;
+        n[ ci ]++;
+      }
+
+      // average the normals:
+      for ( int i = 0; i < geometry.Count; i++ )
+        if ( n[ i ] > 0 )
+        {
+          normals[ i ] /= n[ i ];
+          normals[ i ].Normalize();
+        }
+    }
+
     #endregion
 
     #region Corner-table API

@@ -122,19 +122,24 @@ namespace _086shader
 
       WavefrontObj objReader = new WavefrontObj();
       objReader.MirrorConversion = false;
-
-      int faces = objReader.ReadBrep( ofd.FileName, scene );
+      objReader.TextureUpsideDown = checkOrientation.Checked;
+      objReader.ReadBrep( ofd.FileName, scene );
 
       scene.BuildCornerTable();
       diameter = scene.GetDiameter( out center );
       scene.GenerateColors( 12 );
+      scene.ComputeNormals();
+
       UpdateParams( textParam.Text );
       tb.Center   = center;
       tb.Diameter = diameter;
       SetLight( diameter, ref light );
       tb.Reset();
 
-      labelFile.Text = string.Format( "{0}: {1} faces", ofd.SafeFileName, faces );
+      labelFile.Text = string.Format( "{0}: {1}v, {2}e({3}), {4}f",
+                                      ofd.SafeFileName, scene.Vertices,
+                                      scene.statEdges, scene.statShared,
+                                      scene.Triangles );
       PrepareDataBuffers();
       glControl1.Invalidate();
     }
