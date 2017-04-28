@@ -36,6 +36,8 @@ namespace Scene3D
 
     public bool MirrorConversion { get; set; }
 
+    public bool TextureUpsideDown { get; set; }
+
     #endregion
 
     #region Construction
@@ -43,6 +45,7 @@ namespace Scene3D
     public WavefrontObj ()
     {
       MirrorConversion = false;
+      TextureUpsideDown = false;
     }
 
     #endregion
@@ -146,6 +149,9 @@ namespace Scene3D
             if ( !float.TryParse( tokens[1], NumberStyles.Float, CultureInfo.InvariantCulture, out txtCoord.X ) ||
                  !float.TryParse( tokens[2], NumberStyles.Float, CultureInfo.InvariantCulture, out txtCoord.Y ) )
               continue;
+
+            if ( TextureUpsideDown )
+              txtCoord.Y = 1.0f - txtCoord.Y;
 
             txtCoords.Add( txtCoord );
             lastTxtCoord++;
