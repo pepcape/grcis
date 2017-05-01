@@ -207,6 +207,13 @@ namespace _086shader
             data[ i ] += colShade;
           if ( ((x + 1) % TEX_CHECKER_SIZE) == 0 || ((y + 1) % TEX_CHECKER_SIZE) == 0 )
             data[ i ] -= colShade;
+          // add top-half texture markers:
+          if ( y < TEX_SIZE / 2 )
+          {
+            if ( x % TEX_CHECKER_SIZE == TEX_CHECKER_SIZE / 2 &&
+                 y % TEX_CHECKER_SIZE == TEX_CHECKER_SIZE / 2 )
+              data[ i ] -= colShade;
+          }
         }
 
       GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, TEX_SIZE, TEX_SIZE, 0, PixelFormat.Rgb, PixelType.Float, data );
