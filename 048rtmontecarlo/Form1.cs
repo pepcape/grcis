@@ -34,14 +34,15 @@ namespace _048rtmontecarlo
     protected volatile int selectedScene = 0;
 
     /// <summary>
-    /// Ray-based renderer in form of image function.
+    /// If positive, new scene & image-function & renderer has to be created..
     /// </summary>
-    protected IImageFunction imf = null;
+    protected bool dirty = true;
 
     /// <summary>
-    /// Image synthesizer used to compute raster images.
+    /// Ray-based renderer in form of image function.
+    /// For single sample computing only.
     /// </summary>
-    protected IRenderer rend = null;
+    protected IImageFunction imfs = null;
 
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
@@ -187,11 +188,14 @@ namespace _048rtmontecarlo
 
       public Bitmap image;
 
+      public IRenderer rend;
+
       public int width;
       public int height;
 
-      public WorkerThreadInit ( Bitmap im, int wid, int hei, int rank, int total )
+      public WorkerThreadInit ( IRenderer r, Bitmap im, int wid, int hei, int rank, int total )
       {
+        rend   = r;
         image  = im;
         id     = rank;
         width  = wid;
@@ -209,8 +213,43 @@ namespace _048rtmontecarlo
     {
       WorkerThreadInit init = spec as WorkerThreadInit;
       if ( init != null )
-        rend.RenderRectangle( init.image, 0, 0, init.width, init.height,
-                              init.sel, new RandomJames( Thread.CurrentThread.GetHashCode() ) );
+        init.rend.RenderRectangle( init.image, 0, 0, init.width, init.height,
+                                   init.sel, new RandomJames( Thread.CurrentThread.GetHashCode() ) );
+    }
+
+    private IImageFunction getImageFunction ( IRayScene sc, int width, int height )
+    {
+      IImageFunction imf = FormSupport.getImageFunction( sc );
+      imf.Width  = width;
+      imf.Height = height;
+
+      RayTracing rt = imf as RayTracing;
+      if ( rt != null )
+      {
+        rt.DoShadows     = checkShadows.Checked;
+        rt.DoReflections = checkReflections.Checked;
+        rt.DoRefractions = checkRefractions.Checked;
+      }
+
+      return imf;
+    }
+
+    private IRenderer getRenderer ( IImageFunction imf, int width, int height )
+    {
+      IRenderer rend = FormSupport.getRenderer( imf );
+      rend.Width        = width;
+      rend.Height       = height;
+      rend.Adaptive     = 8;
+      rend.ProgressData = progress;
+
+      SupersamplingImageSynthesizer ss = rend as SupersamplingImageSynthesizer;
+      if ( ss != null )
+      {
+        ss.Supersampling = (int)numericSupersampling.Value;
+        ss.Jittering = checkJitter.Checked ? 1.0 : 0.0;
+      }
+
+      return rend;
     }
 
     /// <summary>
@@ -228,34 +267,24 @@ namespace _048rtmontecarlo
 
       Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
-      if ( imf == null )
-      {
-        imf = FormSupport.getImageFunction( FormSupport.getScene() );
-        rend = null;
-      }
-      imf.Width  = width;
-      imf.Height = height;
-      RayTracing rt = imf as RayTracing;
-      if ( rt != null )
-      {
-        rt.DoShadows = checkShadows.Checked;
-        rt.DoReflections = checkReflections.Checked;
-        rt.DoRefractions = checkRefractions.Checked;
-      }
+      int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
+      int t;    // thread ordinal number
 
-      if ( rend == null )
-        rend = FormSupport.getRenderer( imf );
-      rend.Width  = width;
-      rend.Height = height;
-      rend.Adaptive = 8;
-      rend.ProgressData = progress;
+      IRenderer[] rend = new IRenderer[ threads ];
+      IRayScene sc = FormSupport.getScene();
+      ITimeDependent sct = sc as ITimeDependent;
 
-      SupersamplingImageSynthesizer ss = rend as SupersamplingImageSynthesizer;
-      if ( ss != null )
-      {
-        ss.Supersampling = (int)numericSupersampling.Value;
-        ss.Jittering = checkJitter.Checked ? 1.0 : 0.0;
-      }
+      IImageFunction imf = getImageFunction( sc, width, height );
+      rend[ 0 ] = getRenderer( imf, width, height );
+
+      if ( threads > 1 )
+        if ( sct != null )
+          for ( t = 1; t < threads; t++ )
+            rend[ t ] = getRenderer( getImageFunction( (IRayScene)sct.Clone(), width, height ), width, height );
+        else
+          for ( t = 1; t < threads; t++ )
+            rend[ t ] = rend[ 0 ];
+
       progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 30000L : 10000L;
       progress.Reset();
       CSGInnerNode.ResetStatistics();
@@ -266,23 +295,22 @@ namespace _048rtmontecarlo
         sw.Start();
       }
 
-      if ( checkMultithreading.Checked && Environment.ProcessorCount > 1 )
+      if ( threads > 1 )
       {
-        Thread[] pool = new Thread[ Environment.ProcessorCount ];
-        int t;
-        for ( t = 0; t < pool.Length; t++ )
+        Thread[] pool = new Thread[ threads ];
+        for ( t = 0; t < threads; t++ )
           pool[ t ] = new Thread( new ParameterizedThreadStart( this.RenderWorker ) );
-        for ( t = pool.Length; --t >= 0; )
-          pool[ t ].Start( new WorkerThreadInit( newImage, width, height, t, pool.Length ) );
+        for ( t = threads; --t >= 0; )
+          pool[ t ].Start( new WorkerThreadInit( rend[ t ], newImage, width, height, t, threads ) );
 
-        for ( t = 0; t < pool.Length; t++ )
+        for ( t = 0; t < threads; t++ )
         {
           pool[ t ].Join();
           pool[ t ] = null;
         }
       }
       else
-        rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
+        rend[ 0 ].RenderRectangle( newImage, 0, 0, width, height, rnd );
 
       long elapsed;
       lock ( sw )
@@ -292,7 +320,7 @@ namespace _048rtmontecarlo
       }
 
       string msg = string.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
-                                  1.0e-3 * elapsed, width, height, checkMultithreading.Checked ? Environment.ProcessorCount : 1,
+                                  1.0e-3 * elapsed, width, height, threads,
                                   (Intersection.countRays + 500L) / 1000L,
                                   (Intersection.countIntersections + 500L) / 1000L,
                                   (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
@@ -381,30 +409,20 @@ namespace _048rtmontecarlo
     /// <param name="y">Y-coordinate inside the raster image.</param>
     private void singleSample ( int x, int y )
     {
-      if ( imf == null )
-      {
-        imf = FormSupport.getImageFunction( FormSupport.getScene() );
-        rend = null;
-      }
-
       // determine output image size:
       int width = ImageWidth;
       if ( width <= 0 ) width = panel1.Width;
       int height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
-      imf.Width = width;
-      imf.Height = height;
 
-      RayTracing rt = imf as RayTracing;
-      if ( rt != null )
+      if ( dirty || imfs == null )
       {
-        rt.DoShadows = checkShadows.Checked;
-        rt.DoReflections = checkReflections.Checked;
-        rt.DoRefractions = checkRefractions.Checked;
+        imfs  = getImageFunction( FormSupport.getScene(), width, height );
+        dirty = false;
       }
 
       double[] color = new double[ 3 ];
-      long hash = imf.GetSample( x + 0.5, y + 0.5, color );
+      long hash = imfs.GetSample( x + 0.5, y + 0.5, color );
       labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
@@ -470,12 +488,12 @@ namespace _048rtmontecarlo
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
       selectedScene = comboScene.SelectedIndex;
-      imf = null;
+      dirty = true;
     }
 
     private void textParam_TextChanged ( object sender, EventArgs e )
     {
-      imf = null;
+      dirty = true;
     }
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
