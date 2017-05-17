@@ -108,7 +108,7 @@ namespace _090opencl
     public string UpdateRadius ( double coeff )
     {
       // check radius bounds:
-      radius = Arith.Clamp( radius * (float)coeff, 1.0e-5f, 4.0f );
+      radius = Arith.Clamp( radius * coeff, 1.0e-8, 4.0 );
 
       return CurrentParam();
     }
@@ -230,36 +230,8 @@ namespace _090opencl
       if ( form.clImage == null )
         useInterop = false;
 
-      // output buffer: GL texture or OpenCL buffer
-      List<ComputeMemory> images = null;
-      if ( useInterop )
-      {
-        images = new List<ComputeMemory>() { form.clImage };
-        form.clCommands.AcquireGLObjects( images, null );
-        form.clKernel.SetMemoryArgument( 0, form.clImage );
-        /* Cloo.InvalidMemoryObjectComputeException was unhandled
-        HResult = -2146232832
-  Message = OpenCL error code detected: InvalidMemoryObject.
-    Source = Cloo
-  StackTrace:
-        at Cloo.ComputeException.ThrowOnError( ComputeErrorCode errorCode )
-       at Cloo.ComputeKernel.SetArgument( Int32 index, IntPtr dataSize, IntPtr dataAddr )
-       at Cloo.ComputeKernel.SetValueArgument[ T ]( Int32 index, T data )
-       at Cloo.ComputeKernel.SetMemoryArgument( Int32 index, ComputeMemory memObj )
-       at _090opencl.Mandelbrot.ComputeCL( ComputeContext clContext, Int32 texName, Int32 width, Int32 height, Byte[] colormap, Boolean useDouble, Boolean useInterop ) in D:\svn\grcis\trunk\090opencl\Mandelbrot.cs:line 239
-       at _090opencl.Form1.ComputeRender() in D:\svn\grcis\trunk\090opencl\Mandelbrot.cs:line 724
-       at _090opencl.Form1.glControl1_Paint( Object sender, PaintEventArgs e ) in D:\svn\grcis\trunk\090opencl\Form1.cs:line 99
-       at System.Windows.Forms.Control.OnPaint( PaintEventArgs e )
-       at OpenTK.GLControl.OnPaint( PaintEventArgs e )
-       at System.Windows.Forms.Control.PaintWithErrorHandling( PaintEventArgs e, Int16 layer )
-       at System.Windows.Forms.Control.WmPaint( Message & m )
-       at System.Windows.Forms.Control.WndProc( Message & m )
-       at System.Windows.Forms.NativeWindow.DebuggableCallback( IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam )
-  InnerException:
-  */
-      }
-      else
-        form.clKernel.SetMemoryArgument( 0, form.result );
+      // output buffer: OpenCL buffer (direct data write to GL texture was failing so I gave up)
+      form.clKernel.SetMemoryArgument( 0, form.result );
 
       form.clKernel.SetValueArgument(  1, width );
       form.clKernel.SetValueArgument(  2, height );
@@ -285,15 +257,32 @@ namespace _090opencl
                                null );
       if ( useInterop )
       {
-        form.clCommands.Finish();
+        // with (limited) OpenGL interop:
+
+        // 1. acquire ownership of GL texture for OpenCL image
+        List<ComputeMemory> images = new List<ComputeMemory>() { form.clImage };
+        form.clCommands.AcquireGLObjects( images, null );
+
+        // 2. copy data from the result buffer to the texture
+        form.clCommands.CopyBufferToImage( form.result, (ComputeImage)form.clImage, null );
+
+        // 3. release ownership of the texture
         form.clCommands.ReleaseGLObjects( images, null );
+
+        // 4. force pending CL commands to get executed
+        form.clCommands.Finish();
       }
       else
       {
-        // w/o OpenCL - OpenGL interop:
+        // w/o OpenGL interop:
+
+        // 1. read data from GPU
         form.clCommands.ReadFromBuffer( form.result, ref swBuffer, false, null );
+
+        // 2. force pending CL commands to get executed
         form.clCommands.Finish();
 
+        // 3. write data back to OpenGL texture
         GL.BindTexture( TextureTarget.Texture2D, texName );
         GL.TexSubImage2D( TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, swBuffer );
         Debug.Assert( GL.GetError() == ErrorCode.NoError, "glTexSubImage2D" );
@@ -536,7 +525,8 @@ namespace _090opencl
       if ( clContext == null )
         SetupClContext();
 
-      GL.BindTexture( TextureTarget.Texture2D, 0 );    // was: texName
+      GL.BindTexture( TextureTarget.Texture2D, 0 );
+      GL.Finish();
       try
       {
         // OpenCL C source:
@@ -553,11 +543,13 @@ namespace _090opencl
         globalHeight = (texHeight + groupSize - 1) & -groupSize;
 
         // buffers:
+        // 1. colormap array
         cmap = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.ReadOnly | ComputeMemoryFlags.CopyHostPointer, colormap );
 
         bool interopOk = checkInterop.Checked;
         if ( interopOk )
         {
+          // 2. CL image for OpenGL interop
           clImage = ComputeImage2D.CreateFromGLTexture2D( clContext, ComputeMemoryFlags.ReadWrite, (int)TextureTarget.Texture2D, 0, texName );
           if ( clImage == null )
           {
@@ -566,10 +558,8 @@ namespace _090opencl
           }
         }
 
-        if ( !interopOk )
-        {
-          result = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.WriteOnly, texWidth * texHeight * 4 );
-        }
+        // 3. CL output array
+        result = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.ReadWrite, texWidth * texHeight * 4 );
 
         // synced..
         clDirty = false;
@@ -674,7 +664,7 @@ namespace _090opencl
 
     private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
     {
-      float dZoom = e.Delta / 120.0f;
+      float dZoom = -e.Delta / 120.0f;
 
       textParam.Text = mandel.UpdateRadius( Math.Pow( 1.05, dZoom ) );
     }
