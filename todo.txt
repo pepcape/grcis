@@ -120,3 +120,4 @@ x 093animation: animation based on line drawing (shared Canvas with 092)
 x FloatImage: HDR format persistence
 x 094: HDR tone-mapping project
 x 048, 049: concurrent computing was improved (support for ITimeDependent)
+x 090opencl: fixed OpenGL interop (at least clEnqueueCopyBufferToImage() approach is functional)
