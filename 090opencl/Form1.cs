@@ -4,6 +4,7 @@ using Cloo;
 using OpenTK.Graphics;
 using OpenclSupport;
 using Utilities;
+using System.Collections.Generic;
 
 namespace _090opencl
 {
@@ -143,7 +144,8 @@ namespace _090opencl
         ComputeContextPropertyList properties = new ComputeContextPropertyList( clPlatform );
         IGraphicsContextInternal ctx = (IGraphicsContextInternal)GraphicsContext.CurrentContext;
         properties.Add( new ComputeContextProperty( ComputeContextPropertyName.CL_GL_CONTEXT_KHR, ctx.Context.Handle ) );
-        properties.Add( new ComputeContextProperty( ComputeContextPropertyName.CL_WGL_HDC_KHR, OpenGL.wglGetCurrentDC() ) );
+        properties.Add( new ComputeContextProperty( ComputeContextPropertyName.CL_WGL_HDC_KHR,    OpenGL.wglGetCurrentDC() ) );
+        properties.Add( new ComputeContextProperty( ComputeContextPropertyName.Platform,          clPlatform.Handle.Value ) );
         clContext = new ComputeContext( new ComputeDevice[] { clDevice }, properties, null, IntPtr.Zero );
 
         // check the double-extension:

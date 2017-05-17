@@ -227,6 +227,9 @@ namespace _090opencl
       if ( form.clDirty )
         return;               // something went wrong..
 
+      if ( form.clImage == null )
+        useInterop = false;
+
       // output buffer: GL texture or OpenCL buffer
       List<ComputeMemory> images = null;
       if ( useInterop )
@@ -234,6 +237,26 @@ namespace _090opencl
         images = new List<ComputeMemory>() { form.clImage };
         form.clCommands.AcquireGLObjects( images, null );
         form.clKernel.SetMemoryArgument( 0, form.clImage );
+        /* Cloo.InvalidMemoryObjectComputeException was unhandled
+        HResult = -2146232832
+  Message = OpenCL error code detected: InvalidMemoryObject.
+    Source = Cloo
+  StackTrace:
+        at Cloo.ComputeException.ThrowOnError( ComputeErrorCode errorCode )
+       at Cloo.ComputeKernel.SetArgument( Int32 index, IntPtr dataSize, IntPtr dataAddr )
+       at Cloo.ComputeKernel.SetValueArgument[ T ]( Int32 index, T data )
+       at Cloo.ComputeKernel.SetMemoryArgument( Int32 index, ComputeMemory memObj )
+       at _090opencl.Mandelbrot.ComputeCL( ComputeContext clContext, Int32 texName, Int32 width, Int32 height, Byte[] colormap, Boolean useDouble, Boolean useInterop ) in D:\svn\grcis\trunk\090opencl\Mandelbrot.cs:line 239
+       at _090opencl.Form1.ComputeRender() in D:\svn\grcis\trunk\090opencl\Mandelbrot.cs:line 724
+       at _090opencl.Form1.glControl1_Paint( Object sender, PaintEventArgs e ) in D:\svn\grcis\trunk\090opencl\Form1.cs:line 99
+       at System.Windows.Forms.Control.OnPaint( PaintEventArgs e )
+       at OpenTK.GLControl.OnPaint( PaintEventArgs e )
+       at System.Windows.Forms.Control.PaintWithErrorHandling( PaintEventArgs e, Int16 layer )
+       at System.Windows.Forms.Control.WmPaint( Message & m )
+       at System.Windows.Forms.Control.WndProc( Message & m )
+       at System.Windows.Forms.NativeWindow.DebuggableCallback( IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam )
+  InnerException:
+  */
       }
       else
         form.clKernel.SetMemoryArgument( 0, form.result );
@@ -371,7 +394,7 @@ namespace _090opencl
           computeCounter = 0.0;
 
           bool isDouble = checkDouble.Checked && (!checkOpenCL.Checked || CanUseDouble);
-          bool isInterop = checkInterop.Checked && CanUseInterop;
+          bool isInterop = checkInterop.Checked && CanUseInterop && (clImage != null);
           labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, pps: {1:f1} MPx/s ({2}{3}), compute: {4:f2} ms",
                                          lastFps, (lastPps * 1.0e-6), isDouble ? "double" : "single",
                                          isInterop ? ",gl" : "", (lastCompute * 1000.0) );
@@ -513,7 +536,7 @@ namespace _090opencl
       if ( clContext == null )
         SetupClContext();
 
-      //GL.BindTexture( TextureTarget.Texture2D, texName );
+      GL.BindTexture( TextureTarget.Texture2D, 0 );    // was: texName
       try
       {
         // OpenCL C source:
@@ -532,11 +555,18 @@ namespace _090opencl
         // buffers:
         cmap = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.ReadOnly | ComputeMemoryFlags.CopyHostPointer, colormap );
 
-        if ( checkInterop.Checked )
+        bool interopOk = checkInterop.Checked;
+        if ( interopOk )
         {
-          clImage = ComputeImage2D.CreateFromGLTexture2D( clContext, ComputeMemoryFlags.WriteOnly, (int)TextureTarget.Texture2D, 0, texName );
+          clImage = ComputeImage2D.CreateFromGLTexture2D( clContext, ComputeMemoryFlags.ReadWrite, (int)TextureTarget.Texture2D, 0, texName );
+          if ( clImage == null )
+          {
+            Util.Log( "OpenCL cannot reference OpenGL texture!" );
+            interopOk = false;
+          }
         }
-        else
+
+        if ( !interopOk )
         {
           result = new ComputeBuffer<byte>( clContext, ComputeMemoryFlags.WriteOnly, texWidth * texHeight * 4 );
         }
