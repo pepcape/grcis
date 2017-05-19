@@ -313,6 +313,15 @@ namespace Rendering
       attributes = null;
       ObjectRoot = false;
     }
+
+    public void ShareCloneChildren ( DefaultSceneNode n )
+    {
+      foreach ( var child in children )
+      {
+        ITimeDependent cha = child as ITimeDependent;
+        n.InsertChild( (cha == null) ? child : (ISceneNode)cha.Clone(), child.ToParent );
+      }
+    }
   }
 
   /// <summary>
@@ -323,12 +332,12 @@ namespace Rendering
     /// <summary>
     /// Delegate function for boolean operations
     /// </summary>
-    delegate bool BooleanOperation ( bool x, bool y );
+    protected delegate bool BooleanOperation ( bool x, bool y );
 
     /// <summary>
     /// Current boolean operation.
     /// </summary>
-    BooleanOperation bop;
+    protected BooleanOperation bop;
 
     /// <summary>
     /// Does empty left operand kill the result?
@@ -378,6 +387,15 @@ namespace Rendering
           bop = ( x, y ) => x || y;
           break;
       }
+
+      // set accelerator flags:
+      shortCurcuit = !(bop( false, false ) || bop( false, true ));   // does empty left operand kill the result?
+      trivial = bop( true, false ) && !bop( false, false );          // empty right operand doesn't change anything..
+    }
+
+    protected CSGInnerNode ( BooleanOperation _bop )
+    {
+      bop = _bop;
 
       // set accelerator flags:
       shortCurcuit = !(bop( false, false ) || bop( false, true ));   // does empty left operand kill the result?
