@@ -398,9 +398,8 @@ namespace _062animation
     protected void RenderWorker ()
     {
       // thread-specific data:
-      ITimeDependent mySceneTD = scene as ITimeDependent;
-      IRayScene myScene = (mySceneTD == null) ? scene : (IRayScene)mySceneTD.Clone();
-      mySceneTD = myScene as ITimeDependent;
+      IRayScene myScene = getScene();
+      ITimeDependent mySceneTD = myScene as ITimeDependent;
       RandomJames rnd = new RandomJames();
 
       IImageFunction imf = getImageFunction( myScene );
