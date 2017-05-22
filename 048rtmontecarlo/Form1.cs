@@ -271,19 +271,10 @@ namespace _048rtmontecarlo
       int t;    // thread ordinal number
 
       IRenderer[] rend = new IRenderer[ threads ];
-      IRayScene sc = FormSupport.getScene();
-      ITimeDependent sct = sc as ITimeDependent;
 
-      IImageFunction imf = getImageFunction( sc, width, height );
-      rend[ 0 ] = getRenderer( imf, width, height );
-
-      if ( threads > 1 )
-        if ( sct != null )
-          for ( t = 1; t < threads; t++ )
-            rend[ t ] = getRenderer( getImageFunction( (IRayScene)sct.Clone(), width, height ), width, height );
-        else
-          for ( t = 1; t < threads; t++ )
-            rend[ t ] = rend[ 0 ];
+      // separate renderer, image function and the scene for each thread (safety precaution)
+      for ( t = 0; t < threads; t++ )
+        rend[ t ] = getRenderer( getImageFunction( FormSupport.getScene(), width, height ), width, height );
 
       progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 30000L : 10000L;
       progress.Reset();
@@ -299,7 +290,7 @@ namespace _048rtmontecarlo
       {
         Thread[] pool = new Thread[ threads ];
         for ( t = 0; t < threads; t++ )
-          pool[ t ] = new Thread( new ParameterizedThreadStart( this.RenderWorker ) );
+          pool[ t ] = new Thread( new ParameterizedThreadStart( RenderWorker ) );
         for ( t = threads; --t >= 0; )
           pool[ t ].Start( new WorkerThreadInit( rend[ t ], newImage, width, height, t, threads ) );
 
