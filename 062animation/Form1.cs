@@ -8,6 +8,7 @@ using GuiSupport;
 using MathSupport;
 using Rendering;
 using System.Globalization;
+using Utilities;
 
 namespace _062animation
 {
@@ -315,6 +316,39 @@ namespace _062animation
     }
 
     /// <summary>
+    /// Worker-thread-specific data.
+    /// </summary>
+    protected class WorkerThreadInit
+    {
+      /// <summary>
+      /// Animated scene object or null if not animated.
+      /// </summary>
+      public ITimeDependent scene;
+
+      /// <summary>
+      /// Animated image function or null if not animated.
+      /// </summary>
+      public ITimeDependent imfunc;
+
+      /// <summary>
+      /// Actual rendering object.
+      /// </summary>
+      public IRenderer rend;
+
+      public int width;
+      public int height;
+
+      public WorkerThreadInit ( IRenderer r, ITimeDependent sc, ITimeDependent imf, int wid, int hei )
+      {
+        scene  = sc;
+        imfunc = imf;
+        rend   = r;
+        width  = wid;
+        height = hei;
+      }
+    }
+
+    /// <summary>
     /// Main animation rendering thread.
     /// Initializes worker threads and collects the results.
     /// </summary>
@@ -323,17 +357,35 @@ namespace _062animation
       Cursor.Current = Cursors.WaitCursor;
 
       int threads = Environment.ProcessorCount;
+      int t;    // thread ordinal number
+
+      WorkerThreadInit[] wti = new WorkerThreadInit[ threads ];
+
+      for ( t = 0; t < threads; t++ )
+      {
+        IRayScene sc = getScene();    //  (sct != null) ? (IRayScene)sct.Clone() : scene;
+        IImageFunction imf = getImageFunction( sc );
+        imf.Width  = width;
+        imf.Height = height;
+
+        IRenderer r = getRenderer( imf );
+        r.Width        = width;
+        r.Height       = height;
+        r.Adaptive     = 0;           // turn off adaptive bitmap synthesis completely (interactive preview not needed)
+        r.ProgressData = progress;
+
+        wti[ t ] = new WorkerThreadInit( r, sc as ITimeDependent, imf as ITimeDependent, width, height );
+      }
+
       initQueue();
       sem = new Semaphore( 0, 10 * threads );
 
       // pool of working threads:
       Thread[] pool = new Thread[ threads ];
-      int t;
       for ( t = 0; t < threads; t++ )
-      {
-        pool[ t ] = new Thread( new ThreadStart( RenderWorker ) );
-        pool[ t ].Start();
-      }
+        pool[ t ] = new Thread( new ParameterizedThreadStart( RenderWorker ) );
+      for ( t = threads; --t >= 0; )
+        pool[ t ].Start( wti[ t ] );
 
       // loop for collection of computed frames:
       int frames = 0;
@@ -395,27 +447,20 @@ namespace _062animation
     /// <summary>
     /// Worker thread (picks up individual frames and renders them one by one).
     /// </summary>
-    protected void RenderWorker ()
+    protected void RenderWorker ( object spec )
     {
       // thread-specific data:
-      IRayScene myScene = getScene();
-      ITimeDependent mySceneTD = myScene as ITimeDependent;
+      WorkerThreadInit init = spec as WorkerThreadInit;
+      if ( init == null )
+        return;
+
       RandomJames rnd = new RandomJames();
-
-      IImageFunction imf = getImageFunction( myScene );
-      imf.Width = width;
-      imf.Height = height;
-
-      IRenderer rend = getRenderer( imf );
-      rend.Width = width;
-      rend.Height = height;
-      rend.Adaptive = 0;                    // turn off adaptive bitmap synthesis completely (interactive preview not needed)
-      rend.ProgressData = progress;
 
       // worker loop:
       while ( true )
       {
         double myTime;
+        double myEndTime;
         int myFrameNumber;
 
         lock ( progress )
@@ -429,21 +474,34 @@ namespace _062animation
 
           // got a frame to compute:
           myTime = time;
-          time += dt;
+          myEndTime = (time += dt);
           myFrameNumber = frameNumber++;
         }
 
         // set up the new result record:
         Result r = new Result();
-        r.image = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+        r.image = new Bitmap( init.width, init.height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
         r.frameNumber = myFrameNumber;
 
         // set specific time to my scene:
-        if ( mySceneTD != null )
-          mySceneTD.Time = myTime;
+        if ( init.scene != null )
+          init.scene.Time = myTime;
+
+        ITimeDependent anim = init.rend as ITimeDependent;
+        if ( anim != null )
+        {
+          anim.Start = myTime;
+          anim.End   = myEndTime;
+        }
+
+        if ( init.imfunc != null )
+        {
+          init.imfunc.Start = myTime;
+          init.imfunc.End   = myEndTime;
+        }
 
         // render the whole frame:
-        rend.RenderRectangle( r.image, 0, 0, width, height, rnd );
+        init.rend.RenderRectangle( r.image, 0, 0, init.width, init.height, rnd );
 
         // ... and put the result into the output queue:
         lock ( queue )
