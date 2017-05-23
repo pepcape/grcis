@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTK;
 using MathSupport;
+using Utilities;
 
 // Interfaces and objects for ray-based rendering.
 namespace Rendering
@@ -320,6 +321,26 @@ namespace Rendering
       {
         ITimeDependent cha = child as ITimeDependent;
         n.InsertChild( (cha == null) ? child : (ISceneNode)cha.Clone(), child.ToParent );
+      }
+    }
+
+    public void ShareCloneAttributes ( DefaultSceneNode n )
+    {
+      if ( attributes == null ||
+           attributes.Count == 0 )
+        n.attributes = null;
+      else
+      {
+        n.attributes = new Dictionary<string, object>();
+        foreach ( var kvp in attributes )
+        {
+          ICloneable vala = kvp.Value as ICloneable;
+          n.attributes.Add( kvp.Key, (vala == null) ? kvp.Value : vala.Clone() );
+#if DEBUG
+          if ( vala != null )
+            Util.Log( "Clone Attribute: " + kvp.Key );
+#endif
+        }
       }
     }
   }
@@ -645,6 +666,9 @@ namespace Rendering
     /// <returns></returns>
     public virtual object Clone ()
     {
+#if DEBUG
+      Util.Log( "Clone: AnimatedRayScene" );
+#endif
       AnimatedRayScene sc = new AnimatedRayScene();
 
       ITimeDependent intersectable = Intersectable as ITimeDependent;

@@ -188,13 +188,28 @@ namespace _048rtmontecarlo
 
       public Bitmap image;
 
+      /// <summary>
+      /// Animated scene object or null if not animated.
+      /// </summary>
+      public ITimeDependent scene;
+
+      /// <summary>
+      /// Animated image function or null if not animated.
+      /// </summary>
+      public ITimeDependent imfunc;
+
+      /// <summary>
+      /// Actual rendering object.
+      /// </summary>
       public IRenderer rend;
 
       public int width;
       public int height;
 
-      public WorkerThreadInit ( IRenderer r, Bitmap im, int wid, int hei, int rank, int total )
+      public WorkerThreadInit ( IRenderer r, ITimeDependent sc, ITimeDependent imf, Bitmap im, int wid, int hei, int rank, int total )
       {
+        scene  = sc;
+        imfunc = imf;
         rend   = r;
         image  = im;
         id     = rank;
@@ -246,7 +261,7 @@ namespace _048rtmontecarlo
       if ( ss != null )
       {
         ss.Supersampling = (int)numericSupersampling.Value;
-        ss.Jittering = checkJitter.Checked ? 1.0 : 0.0;
+        ss.Jittering     = checkJitter.Checked ? 1.0 : 0.0;
       }
 
       return rend;
@@ -270,11 +285,16 @@ namespace _048rtmontecarlo
       int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
       int t;    // thread ordinal number
 
-      IRenderer[] rend = new IRenderer[ threads ];
+      WorkerThreadInit[] wti = new WorkerThreadInit[ threads ];
 
       // separate renderer, image function and the scene for each thread (safety precaution)
       for ( t = 0; t < threads; t++ )
-        rend[ t ] = getRenderer( getImageFunction( FormSupport.getScene(), width, height ), width, height );
+      {
+        IRayScene sc = FormSupport.getScene();
+        IImageFunction imf = getImageFunction( sc, width, height );
+        IRenderer r = getRenderer( imf, width, height );
+        wti[ t ] = new WorkerThreadInit( r, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t, threads );
+      }
 
       progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 30000L : 10000L;
       progress.Reset();
@@ -292,7 +312,7 @@ namespace _048rtmontecarlo
         for ( t = 0; t < threads; t++ )
           pool[ t ] = new Thread( new ParameterizedThreadStart( RenderWorker ) );
         for ( t = threads; --t >= 0; )
-          pool[ t ].Start( new WorkerThreadInit( rend[ t ], newImage, width, height, t, threads ) );
+          pool[ t ].Start( wti[ t ] );
 
         for ( t = 0; t < threads; t++ )
         {
@@ -301,7 +321,7 @@ namespace _048rtmontecarlo
         }
       }
       else
-        rend[ 0 ].RenderRectangle( newImage, 0, 0, width, height, rnd );
+        wti[ 0 ].rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
 
       long elapsed;
       lock ( sw )
