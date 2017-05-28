@@ -679,11 +679,9 @@ namespace Utilities
           }
 
           string value = line.Substring( pos + 1 ).Trim();
-          if ( value.Length == 0 )
-          {
-            HandleEmptyValue( key );
+          if ( value.Length == 0 &&
+               HandleEmptyValue( key ) )
             continue;
-          }
 
           switch ( key )
           {
@@ -821,10 +819,14 @@ namespace Utilities
            string.IsNullOrEmpty( args[ i ] ) )
         return false;
 
+      // <command>
+
       if ( args[ i ][ 0 ] != '-' )
         return HandleCommand( args[ i ] );
 
       string opt = args[ i ].Substring( 1 );
+
+      // -c <config-file>
 
       if ( opt == "c" &&
            i + 1 < args.Length )
@@ -840,6 +842,8 @@ namespace Utilities
         return true;
       }
 
+      // -o <output-file>
+
       if ( opt == "o" &&
            i + 1 < args.Length )       // priority output file-name
       {
@@ -851,6 +855,8 @@ namespace Utilities
 
         return true;
       }
+
+      // -l <log-file>
 
       if ( opt == "l" &&
            i + 1 < args.Length )       // log file-name
@@ -864,6 +870,8 @@ namespace Utilities
         return true;
       }
 
+      // -<command>
+
       int pos = opt.IndexOf( '=' );
       if ( pos < 0 )
         return HandleCommand( opt );
@@ -872,9 +880,13 @@ namespace Utilities
       if ( key.Length < 1 )
         return false;
 
+      // -<option>=
+
       string value = opt.Substring( pos + 1 ).Trim();
       if ( value.Length == 0 )
         return HandleEmptyValue( key );
+
+      // -<option>=<value>
 
       return AdditionalKey( key, value, args[ i ] );
     }
