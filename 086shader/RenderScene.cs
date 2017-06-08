@@ -711,6 +711,9 @@ namespace _086shader
           GL.Color3( 1.0f, 1.0f, 0.0f );
           GL.Vertex3( pointOrigin.Value );
           GL.Vertex3( pointTarget );
+          GL.Color3( 1.0f, 0.0f, 0.0f );
+          GL.Vertex3( pointOrigin.Value );
+          GL.Vertex3( eye );
           GL.End();
 
           GL.PointSize( 4.0f );
@@ -719,11 +722,10 @@ namespace _086shader
           GL.Vertex3( pointOrigin.Value );
           GL.Color3( 0.0f, 1.0f, 0.2f );
           GL.Vertex3( pointTarget );
+          GL.Color3( 1.0f, 1.0f, 1.0f );
           if ( spot != null )
-          {
-            GL.Color3( 1.0f, 1.0f, 1.0f );
             GL.Vertex3( spot.Value );
-          }
+          GL.Vertex3( eye );
           GL.End();
         }
 
