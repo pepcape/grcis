@@ -43,6 +43,7 @@ namespace _086shader
 
     Vector3? pointOrigin = null;
     Vector3 pointTarget;
+    Vector3 eye;
 
     bool pointDirty = false;
 
@@ -282,7 +283,8 @@ namespace _086shader
           // pointing to the scene:
           pointOrigin = screenToWorld( e.X, e.Y, 0.0f );
           pointTarget = screenToWorld( e.X, e.Y, 1.0f );
-          pointDirty = true;
+          eye         = tb.Eye;
+          pointDirty  = true;
         }
     }
 

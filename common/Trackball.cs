@@ -97,14 +97,8 @@ namespace MathSupport
       set
       {
         diameter = value;
-        eye0 = Center + new Vector3( 0.0f, 0.0f, 2.0f * diameter );
       }
     }
-
-    /// <summary>
-    /// Inital camera position (world coords).
-    /// </summary>
-    private Vector3 eye0 = new Vector3( 0.0f, 0.0f, 10.0f );
 
     /// <summary>
     /// Current camera position (world coords).
@@ -113,7 +107,7 @@ namespace MathSupport
     {
       get
       {
-        return Vector3.TransformVector( eye0, ModelViewInv );
+        return Vector3.TransformPosition( Vector3.Zero, ModelViewInv );
       }
     }
 
