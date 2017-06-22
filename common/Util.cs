@@ -1004,7 +1004,7 @@ namespace Utilities
     /// One or more string values in comma-separated list.
     /// </summary>
     /// <param name="quotes">True to remove quotes.</param>
-    public static HashSet<string> ParseStringList ( string value, bool quotes = false )
+    public static HashSet<string> ParseStringList ( string value, bool quotes =false )
     {
       if ( value == null || value.Length < 1 )
         return null;
@@ -1098,7 +1098,7 @@ namespace Utilities
         list = ParseList( value.Substring( 1, value.Length - 2 ), sep );
       else
       if ( value.Contains( "" + sep ) )
-        list = ParseList( value );
+        list = ParseList( value, sep );
       else
         list = new string[] { value.Trim() };
 
@@ -1132,7 +1132,7 @@ namespace Utilities
         list = ParseList( value.Substring( 1, value.Length - 2 ), sep );
       else
       if ( value.Contains( "" + sep ) )
-        list = ParseList( value );
+        list = ParseList( value, sep );
       else
         list = new string[] { value.Trim() };
 
