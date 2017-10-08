@@ -16,7 +16,9 @@ namespace _051colormap
     public Form1 ()
     {
       InitializeComponent();
-      Text += " (rev: " + rev + ')';
+      string author;
+      Colormap.InitForm( out author );
+      Text += " (rev: " + rev + ") '" + author + '\'';
 
       colors = new Color[ 6 ];
       colors[ 0 ] = Color.FromArgb(   0, 100, 127 );
