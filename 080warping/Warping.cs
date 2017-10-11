@@ -1,11 +1,6 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
 
 namespace _080warping
@@ -13,7 +8,16 @@ namespace _080warping
   public class Warping
   {
     /// <summary>
-    /// Tri-mesh vertices. They are shared between adjacent triangles.
+    /// Form data initialization.
+    /// </summary>
+    public static void InitForm ( out string author, out int grid )
+    {
+      author = "Josef Pelikán";
+      grid = 6;
+    }
+
+    /// <summary>
+    /// Tri-mesh vertices. They are shared among adjacent triangles.
     /// </summary>
     protected List<PointF> vertices = new List<PointF>();
 

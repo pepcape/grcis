@@ -6,15 +6,19 @@ namespace _080warping
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+
     protected Image inputImage  = null;
     protected Image outputImage = null;
 
     public Form1 ()
     {
       InitializeComponent();
-
-      string[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+      string author;
+      int grid;
+      Warping.InitForm( out author, out grid );
+      Text += " (rev: " + rev + ") '" + author + '\'';
+      numericParam.Value = grid;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
