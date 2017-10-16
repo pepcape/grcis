@@ -87,7 +87,7 @@ namespace _098svg
     public long seed = 0L;
 
     /// <summary>
-    /// Generate HTML5 file?
+    /// Generate HTML5 file? (else - direct SVG format)
     /// </summary>
     public bool html = false;
 
@@ -247,9 +247,11 @@ namespace _098svg
     {
       wasGenerated = true;
 
+      // !!!{{ TODO - generate and draw maze in SVG format
+
       string fileName = CmdOptions.options.outputFileName;
       if ( string.IsNullOrEmpty( fileName ) )
-        fileName = "out.svg";
+        fileName = CmdOptions.options.html ? "out.html" : "out.svg";
       string outFn = Path.Combine( CmdOptions.options.outDir, fileName );
 
       // SVG output:
@@ -281,6 +283,8 @@ namespace _098svg
         drawCurve( wri, workList, 0, 0, string.Format( "#{0:X2}{0:X2}{0:X2}", 0 ) );
 
         wri.WriteLine( "</svg>" );
+
+        // !!!}}
       }
     }
   }
