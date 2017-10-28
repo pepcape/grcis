@@ -1,14 +1,21 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.Linq;
 
 namespace LineCanvas
 {
   public class Canvas
   {
     #region Status&Support
+
+    public const int DIRECTION_RIGHT = -1;
+    public const int DIRECTION_LEFT  = -2;
+    public const int DIRECTION_KEEP  = -3;
+
+    public const int DIRECTION_NORTH =  0;
+    public const int DIRECTION_WEST  =  1;
+    public const int DIRECTION_SOUTH =  2;
+    public const int DIRECTION_EAST  =  3;
 
     protected Bitmap bmp = null;
 
@@ -21,6 +28,12 @@ namespace LineCanvas
     protected Pen currPen = null;
 
     protected bool currAntiAlias = false;
+
+    protected float currX = 0.0f;
+
+    protected float currY = 0.0f;
+
+    protected int currDir = DIRECTION_EAST;
 
     protected void InitializeBitmap ()
     {
@@ -121,35 +134,163 @@ namespace LineCanvas
     }
 
     /// <summary>
-    /// Draws the line using the current color.
+    /// Sets the current direction, absolutely or relatively.
     /// </summary>
-    public void Line ( float x1, float y1, float x2, float y2 )
+    private void direction ( int dir )
     {
-      gr.DrawLine( currPen, x1, y1, x2, y2 );
+      switch ( dir )
+      {
+        case DIRECTION_KEEP:
+        default:
+          break;
+
+        case DIRECTION_NORTH:
+        case DIRECTION_SOUTH:
+        case DIRECTION_WEST:
+        case DIRECTION_EAST:
+          currDir = dir;
+          break;
+
+        case DIRECTION_LEFT:
+          if ( ++currDir > DIRECTION_EAST )
+            currDir = DIRECTION_NORTH;
+          break;
+
+        case DIRECTION_RIGHT:
+          if ( --currDir < DIRECTION_NORTH )
+            currDir = DIRECTION_EAST;
+          break;
+      }
     }
 
     /// <summary>
-    /// Draws the line using the current color.
+    /// Turns the pen to the left.
     /// </summary>
-    public void Line ( double x1, double y1, double x2, double y2 )
+    public void Left ()
     {
-      gr.DrawLine( currPen, (float)x1, (float)y1, (float)x2, (float)y2 );
+      direction( DIRECTION_LEFT );
     }
 
     /// <summary>
-    /// Draws the poly-line using the current color.
+    /// Turns the pen to the right.
     /// </summary>
-    public void PolyLine ( PointF[] arr )
+    public void Right ()
     {
-      gr.DrawLines( currPen, arr );
+      direction( DIRECTION_RIGHT );
     }
 
     /// <summary>
-    /// Draws the poly-line using the current color.
+    /// Moves the current position (absolutely) and optionally changes the current direction.
     /// </summary>
-    public void PolyLine ( IEnumerable<PointF> arr )
+    public void MoveTo ( float x, float y, int dir =DIRECTION_KEEP )
     {
-      gr.DrawLines( currPen, arr.ToArray() );
+      currX = x;
+      currY = y;
+      direction( dir );
+    }
+
+    /// <summary>
+    /// Moves the current position (relatively) and optionally changes the current direction.
+    /// </summary>
+    public void MoveRel ( float dx, float dy, int dir =DIRECTION_KEEP )
+    {
+      currX += dx;
+      currY += dy;
+      direction( dir );
+    }
+
+    /// <summary>
+    /// Current X-coordinate (horizontal).
+    /// </summary>
+    public float CurrentX
+    {
+      get
+      {
+        return currX;
+      }
+    }
+
+    /// <summary>
+    /// Current Y-coordinate (vertical).
+    /// </summary>
+    public float CurrentY
+    {
+      get
+      {
+        return currY;
+      }
+    }
+
+    /// <summary>
+    /// Draws the horizontal line (absolute).
+    /// </summary>
+    public void HLineTo ( float x )
+    {
+      gr.DrawLine( currPen, currX, currY, x, currY );
+      currX = x;
+    }
+
+    /// <summary>
+    /// Draws the horizontal line (relative).
+    /// </summary>
+    public void HLineRel ( float dx )
+    {
+      gr.DrawLine( currPen, currX, currY, currX + dx, currY );
+      currX += dx;
+    }
+
+    /// <summary>
+    /// Draws the vertical line (absolute).
+    /// </summary>
+    public void VLineTo ( float y )
+    {
+      gr.DrawLine( currPen, currX, currY, currX, y );
+      currY = y;
+    }
+
+    /// <summary>
+    /// Draws the vertical line (relative).
+    /// </summary>
+    public void VLineRel ( float dy )
+    {
+      gr.DrawLine( currPen, currX, currY, currX, currY + dy );
+      currY += dy;
+    }
+
+    /// <summary>
+    /// Draws the forward line.
+    /// </summary>
+    public void Draw ( float d )
+    {
+      float oldX = currX;
+      float oldY = currY;
+      Skip( d );
+      gr.DrawLine( currPen, oldX, oldY, currX, currY );
+    }
+
+    /// <summary>
+    /// Skips the given distance.
+    /// </summary>
+    public void Skip ( float d )
+    {
+      switch ( currDir )
+      {
+        case DIRECTION_NORTH:
+          currY -= d;
+          break;
+
+        case DIRECTION_SOUTH:
+          currY += d;
+          break;
+
+        case DIRECTION_EAST:
+          currX += d;
+          break;
+
+        case DIRECTION_WEST:
+          currX -= d;
+          break;
+      }
     }
 
     /// <summary>
