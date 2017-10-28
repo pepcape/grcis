@@ -34,8 +34,8 @@ Detailed lab-pages and manual pages:
 What will you need
 ------------------
 Windows:
- Microsoft Visual Studio Professional (preferably 2015)
- or Microsoft Visual Studio Community 2015
+ Microsoft Visual Studio Professional (preferably 2015+)
+ or Microsoft Visual Studio Community 2015+
 
 Linux:
  Mono installation
