@@ -25,8 +25,7 @@ namespace _099lines
 
       // custom init:
       int width, height;
-      string param;
-      string name;
+      string param, name;
       Lines.InitParams( out width, out height, out param, out name );
       numericXres.Value = Math.Max( width, 10 );
       numericYres.Value = Math.Max( height, 10 );
