@@ -18,5 +18,3 @@ imageInfo = 051-tron2.png,           &copy; Walt Disney Pictures
 imageInfo = 051-tron3.png,           &copy; Walt Disney Pictures
 imageInfo = 051-tron4.png,           &copy; Walt Disney Pictures
 imageInfo = 051-ultron.png,          &copy; Marvel Studios
-imageInfo = 051-egsr1.png,           &copy; Josef Pelikan
-imageInfo = 051-faceArrow.png,       &copy; Josef Pelikan

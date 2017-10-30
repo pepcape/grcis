@@ -1,0 +1,16 @@
+base       = ./input.2016/
+outDir     = ./output.2016/
+
+output     = test.html
+imageWidth = 600
+
+forfiles   = ./input.2016/*.png, image={0}
+forfiles   = ./input.2016/*.cs, source={0}
+library    = ../../common/MathSupport.cs
+
+minV = 0.3
+maxV = 0.8
+minS = 0.1
+
+include = eval051.2016.txt
+include = info051.2016.txt
