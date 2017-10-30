@@ -69,6 +69,8 @@ namespace _051
 
     public int imageWidth = 400;
 
+    public bool sortColors = true;
+
     public double minV = 0.2;
 
     public double maxV = 0.8;
@@ -201,6 +203,10 @@ namespace _051
 
         case "compilerOptions":
           compilerOptions = value;
+          break;
+
+        case "sortColors":
+          sortColors = Util.positive( value );
           break;
 
         case "minV":
@@ -563,14 +569,15 @@ namespace _051
         return;
       }
 
-      // color ordering:
-      Array.Sort( colors, ( a, b ) =>
-      {
-        double La, Lb, A, B;
-        Arith.ColorToCIELab( a, out La, out A, out B );
-        Arith.ColorToCIELab( b, out Lb, out A, out B );
-        return La.CompareTo( Lb );
-      } );
+      // optional color ordering:
+      if ( EvalOptions.options.sortColors )
+        Array.Sort( colors, ( a, b ) =>
+        {
+          double La, Lb, A, B;
+          Arith.ColorToCIELab( a, out La, out A, out B );
+          Arith.ColorToCIELab( b, out Lb, out A, out B );
+          return La.CompareTo( Lb );
+        } );
 
       // SVG color visualization:
       int width = EvalOptions.options.imageWidth;
