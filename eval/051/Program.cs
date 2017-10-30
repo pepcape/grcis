@@ -69,6 +69,8 @@ namespace _051
 
     public int imageWidth = 400;
 
+    public bool uniqueColors = false;
+
     public bool sortColors = true;
 
     public double minV = 0.2;
@@ -203,6 +205,10 @@ namespace _051
 
         case "compilerOptions":
           compilerOptions = value;
+          break;
+
+        case "uniqueColors":
+          uniqueColors = Util.positive( value );
           break;
 
         case "sortColors":
@@ -567,6 +573,25 @@ namespace _051
         wri.WriteLine( $"<td>Error: {msg}</td>" );
         wri.WriteLine( "</tr>" );
         return;
+      }
+
+      // optional color unification:
+      if ( EvalOptions.options.uniqueColors )
+      {
+        List<Color> nc = new List<Color>();
+        foreach ( Color c in colors )
+        {
+          bool isNew = true;
+          foreach ( Color oc in nc )
+            if ( oc.Equals( c ) )
+            {
+              isNew = false;
+              break;
+            }
+          if ( isNew )
+            nc.Add( c );
+        }
+        colors = nc.ToArray();
       }
 
       // optional color ordering:
