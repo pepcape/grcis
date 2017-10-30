@@ -15,7 +15,7 @@ namespace _099lines
     {
       wid   = 800;
       hei   = 520;
-      param = "width=1.0,anti=true,objects=200.prob=0.95";
+      param = "width=1.0,anti=true,objects=200,prob=0.95";
       name  = "Josef Pelikán";
     }
 
