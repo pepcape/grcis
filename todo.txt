@@ -53,6 +53,7 @@
 109 -
 ----
 110animation (h/v lines only animation, 2017)
+111tree (spatial tree for 2D kNN, 2017)
 
 ================================================================================
   DONE:
