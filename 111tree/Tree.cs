@@ -81,7 +81,7 @@ namespace _111tree
     /// <param name="k">Maximum result size (only the k closest points are requested).</param>
     /// <param name="result">Pre-allocated array to hold result-point IDs.</param>
     /// <returns>Actual number of points returned (should be less or equal to k).</returns>
-    public int FindNearest ( float cx, float cy, int k, int[] result )
+    public int FindNearest ( double cx, double cy, int k, int[] result )
     {
       // !!!{{ TODO: add the nearest lookup code here
 
@@ -147,7 +147,7 @@ namespace _111tree
     public static double PointBoxDistanceSquared ( double cx, double cy,
                                                    double minx, double miny, double maxx, double maxy )
     {
-      double sum2  = 0.0;
+      double sum2 = 0.0;
 
       if ( cx < minx )
         sum2 += (minx - cx) * (minx - cx);

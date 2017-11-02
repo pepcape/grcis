@@ -159,8 +159,8 @@ namespace _111tree
       // Query loop:
       for ( int i = 0; i++ < size; )
       {
-        float x0 = (float)(1.0 + (SIZE - 2.0) * rnd.NextDouble());
-        float y0 = (float)(1.0 + (SIZE - 2.0) * rnd.NextDouble());
+        double x0 = (1.0 + (SIZE - 2.0) * rnd.NextDouble());
+        double y0 = (1.0 + (SIZE - 2.0) * rnd.NextDouble());
 
         int n = tree.FindNearest( x0, y0, K, result );
         if ( n == 0 ) continue;
@@ -173,7 +173,7 @@ namespace _111tree
           double dist = (x0 - points[ result[ j ] ].X) * (x0 - points[ result[ j ] ].X) +
                         (y0 - points[ result[ j ] ].Y) * (y0 - points[ result[ j ] ].Y);
           if ( dist < last )
-            throw new Exception( "Error in result ordering" );
+            throw new Exception( $"Error in result ordering: [{i},{j}]" );
           last = dist;
 
           // the point is valid:
