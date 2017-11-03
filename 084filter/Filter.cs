@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-
-using System.Drawing;
+﻿using System.Drawing;
 using MathSupport;
 using System.Drawing.Imaging;
 using System;
@@ -12,9 +10,10 @@ namespace _084filter
     /// <summary>
     /// Optional data initialization.
     /// </summary>
-    public static void InitParams ( out string param )
+    public static void InitParams ( out string param, out string name )
     {
       param = "";
+      name = "Josef Pelikán";
     }
 
     /// <summary>

@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-//
-// Alpha-channel experiments
+﻿// Alpha-channel experiments
 
 using System;
 using System.Collections.Generic;
@@ -15,9 +13,10 @@ namespace _084filter
     /// <summary>
     /// Optional data initialization.
     /// </summary>
-    public static void InitParams ( out string param )
+    public static void InitParams ( out string param, out string name )
     {
       param = "mode=b,showbg=[255;255;255]";
+      name = "Josef Pelikán";
     }
 
     /// <summary>

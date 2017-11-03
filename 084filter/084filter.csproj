@@ -63,7 +63,7 @@
     <Compile Include="..\common\Util.cs">
       <Link>Util.cs</Link>
     </Compile>
-    <Compile Include="FilterAlpha.cs" />
+    <Compile Include="Filter.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

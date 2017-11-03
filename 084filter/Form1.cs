@@ -12,7 +12,7 @@ namespace _084filter
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
@@ -22,11 +22,12 @@ namespace _084filter
     public Form1 ()
     {
       InitializeComponent();
-      string par;
-      Filter.InitParams( out par );
+
+      string par, name;
+      Filter.InitParams( out par, out name );
       textParam.Text = par;
 
-      titlePrefix = (Text += " (rev: " + rev + ')');
+      Text += " (" + rev + ") '" + name + '\'';
     }
 
     protected Thread aThread = null;
