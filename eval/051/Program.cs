@@ -309,7 +309,7 @@ namespace _051
           {
             // sample custom command-line option:
             string opt = args[ i ];
-            if ( opt.Equals( "-x" ) &&
+            if ( opt == "-x" &&
                  i + 1 < args.Length )
             {
               if ( !string.IsNullOrEmpty( args[ ++i ] ) ) // potentially valid file-name
@@ -583,7 +583,7 @@ namespace _051
         {
           bool isNew = true;
           foreach ( Color oc in nc )
-            if ( oc.Equals( c ) )
+            if ( oc == c )
             {
               isNew = false;
               break;

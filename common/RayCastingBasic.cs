@@ -848,7 +848,7 @@ namespace Rendering
       bool viewOut = Vector3d.Dot( output, normal ) > 0.0;
       double coef;
 
-      if ( input.Equals( Vector3d.Zero ) )    // ambient term only..
+      if ( input == Vector3d.Zero )    // ambient term only..
       {
         // dim ambient light if viewer is inside
         coef = viewOut ? mat.Ka : (mat.Ka * mat.Kt);

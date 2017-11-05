@@ -208,7 +208,7 @@ namespace _068laser
           fileName = Path.GetFileName( imageFn );
         string outFn = Path.Combine( CmdOptions.options.outDir, fileName );
         string ext = Path.GetExtension( outFn );
-        if ( !ext.ToLower().Equals( ".png" ) )
+        if ( ext.ToLower() != ".png" )
           outFn = outFn.Substring( 0, outFn.Length - ext.Length ) + ".png";
         bmp.Save( outFn, System.Drawing.Imaging.ImageFormat.Png );
 

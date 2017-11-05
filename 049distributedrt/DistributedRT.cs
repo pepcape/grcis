@@ -200,7 +200,7 @@ namespace Rendering
           double[] intensity = source.GetIntensity( i, rank, total, rnd, out dir );
           if ( intensity != null )
           {
-            if ( DoShadows && !dir.Equals( Vector3d.Zero ) )
+            if ( DoShadows && dir != Vector3d.Zero )
             {
               intersections = scene.Intersectable.Intersect( i.CoordWorld, dir );
               Intersection.countRays++;

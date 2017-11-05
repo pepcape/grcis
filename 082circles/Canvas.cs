@@ -109,7 +109,7 @@ namespace CircleCanvas
     /// <param name="col">New drawing color.</param>
     public void SetColor ( Color col )
     {
-      if ( currColor.Equals( col ) ) return;
+      if ( currColor == col ) return;
       currColor = col;
       currPen.Color = col;
       currBrush.Color = col;

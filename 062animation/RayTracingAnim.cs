@@ -97,7 +97,7 @@ namespace Rendering
     /// </summary>
     protected virtual void setTime ( double newTime )
     {
-      Debug.Assert( !Double.Equals( Start, End ) );
+      Debug.Assert( Start != End );
 
       time = newTime;    // Here Start & End define a periodicity, not bounds!
 
