@@ -583,7 +583,9 @@ namespace _051
         {
           bool isNew = true;
           foreach ( Color oc in nc )
-            if ( oc == c )
+            if ( oc.R == c.R &&       // ignoring the 'alpha' channel
+                 oc.G == c.G &&
+                 oc.B == c.B )
             {
               isNew = false;
               break;
