@@ -598,7 +598,7 @@ namespace _077mitchell
       string fileOnly = System.IO.Path.GetFileName( fullPath );
       string directory = System.IO.Path.GetDirectoryName( fullPath );
       string currentDir = Environment.CurrentDirectory;
-      densityFile = directory.Equals( currentDir ) ? fileOnly : fullPath;
+      densityFile = (directory == currentDir) ? fileOnly : fullPath;
 
       buttonDensityFile.Text = fileOnly;
     }

@@ -20,14 +20,14 @@ namespace Raster
       if ( y >= height ) y = height - 1;
 
       Color orig = img.GetPixel( x, y );
-      if ( orig.Equals( color ) ) return;
+      if ( orig ==color ) return;
 
       do
       {
         img.SetPixel( x, y, color );
         if ( ++x >= width ) break;
       }
-      while ( orig.Equals( img.GetPixel( x, y ) ) );
+      while ( orig == img.GetPixel( x, y ) );
 
       // !!!}}
     }

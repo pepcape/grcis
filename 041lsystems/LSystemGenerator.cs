@@ -41,7 +41,7 @@ namespace _041lsystems
       rightSide.rule = aRuleRightSide;
       rightSide.left = mLeft;
       foreach ( RuleRightSide r in mRightSides )
-        if ( r.rule.Equals( aRuleRightSide ) )
+        if ( r.rule == aRuleRightSide )
           return false;
       mWeightSum += aWeight;
       mRightSides.Add( rightSide );

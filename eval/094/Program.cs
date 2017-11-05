@@ -281,7 +281,7 @@ namespace _094
           {
             // sample custom command-line option:
             string opt = args[ i ];
-            if ( opt.Equals( "-x" ) &&
+            if ( opt == "-x" &&
                  i + 1 < args.Length )
             {
               if ( !string.IsNullOrEmpty( args[ ++i ] ) ) // potentially valid file-name
@@ -507,7 +507,7 @@ namespace _094
 
       // report:
       if ( string.IsNullOrEmpty( name2 ) ||
-           name2.Equals( "pilot" ) )
+           name2 == "pilot" )
         name2 = name;
       bool best = EvalOptions.options.best.Contains( name );
       wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}{1}{2}</td><td class=\"p t r\">{3:f2}s</td>",

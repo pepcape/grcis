@@ -109,7 +109,7 @@ namespace _063animation
     /// </summary>
     protected virtual void setTime ( double newTime )
     {
-      Debug.Assert( !Double.Equals( Start, End ) );
+      Debug.Assert( Start != End );
 
       time = newTime;
 

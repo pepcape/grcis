@@ -107,7 +107,7 @@ namespace _010quadtree
       width = height = 0;
 
       if ( header.Length < 3 ||
-           !header[ 0 ].Equals( "QTREE" ) ||
+           header[ 0 ] != "QTREE" ||
            !int.TryParse( header[ 1 ], out width ) ||
            !int.TryParse( header[ 2 ], out height ) )
         return false;
@@ -149,7 +149,7 @@ namespace _010quadtree
       string[] line = ln.Split( ' ' );
       if ( line.Length < 1 ) return null;
 
-      if ( line[ 0 ].Equals( "R" ) )   // inner node
+      if ( line[ 0 ] == "R" )   // inner node
       {
         QTNode inner = new QTNode();
         inner.ul = ReadNode( r );

@@ -106,7 +106,7 @@ namespace _075animation
     /// <param name="col">New drawing color.</param>
     public void SetColor ( Color col )
     {
-      if ( currColor.Equals( col ) ) return;
+      if ( currColor == col ) return;
       currColor = col;
       currBrush.Color = col;
     }

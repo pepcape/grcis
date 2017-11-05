@@ -81,7 +81,7 @@ namespace Rendering
     /// </summary>
     protected virtual void setTime ( double newTime )
     {
-      Debug.Assert( !Double.Equals( Start, End ) );
+      Debug.Assert( Start != End );
 
       // !!!{{ TODO: put your camera time-dependency code here
 

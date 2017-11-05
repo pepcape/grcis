@@ -101,7 +101,7 @@ namespace _037floodfill
 
       Color fill = Color.FromArgb( 255, 0, 0 );
       Color orig = working.GetPixel( x, y );
-      if ( orig.Equals( fill ) )
+      if ( orig == fill )
       {
         SetText( "Queue: 0 (Max = 0)" );
         StopFill();
@@ -120,25 +120,25 @@ namespace _037floodfill
         x = p.X;
         y = p.Y;
 
-        if ( x > 0 && working.GetPixel( x - 1, y ).Equals( orig ) )
+        if ( x > 0 && working.GetPixel( x - 1, y ) == orig )
         {
           working.SetPixel( x - 1, y, fill );
           q.Enqueue( new Point( x - 1, y ) );
         }
 
-        if ( x < wid && working.GetPixel( x + 1, y ).Equals( orig ) )
+        if ( x < wid && working.GetPixel( x + 1, y ) == orig )
         {
           working.SetPixel( x + 1, y, fill );
           q.Enqueue( new Point( x + 1, y ) );
         }
 
-        if ( y > 0 && working.GetPixel( x, y - 1 ).Equals( orig ) )
+        if ( y > 0 && working.GetPixel( x, y - 1 ) == orig )
         {
           working.SetPixel( x, y - 1, fill );
           q.Enqueue( new Point( x, y - 1 ) );
         }
 
-        if ( y < hei && working.GetPixel( x, y + 1 ).Equals( orig ) )
+        if ( y < hei && working.GetPixel( x, y + 1 ) == orig )
         {
           working.SetPixel( x, y + 1, fill );
           q.Enqueue( new Point( x, y + 1 ) );

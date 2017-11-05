@@ -500,7 +500,7 @@ namespace Utilities
       BitArrayTrim( ba, granularity );
 #if false
       if ( Options.options.MsgMode( "verbose" ) )
-        if ( !s.Equals( BitArrayToString( ba ) ) )
+        if ( s != BitArrayToString( ba ) )
           LogFormat( "BitArray persistence error: {0}-{1}", s, BitArrayToString( ba ) );
 #endif
 
@@ -1196,10 +1196,10 @@ namespace Utilities
       if ( long.TryParse( b, out bi ) )
         return 1;
 
-      if ( "-".Equals( a ) )
+      if ( "-" == a )
         return 1;
 
-      if ( "-".Equals( b ) )
+      if ( "-" == b )
         return -1;
 
       return string.Compare( a, b );
@@ -2494,7 +2494,7 @@ namespace Utilities
 
         if ( i0 == i1 &&
              i0 > 0 &&
-             tokens[ 0 ].Substring( 0, i0 ).Equals( tokens[ 1 ].Substring( 0, i0 ) ) )
+             tokens[ 0 ].Substring( 0, i0 ) == tokens[ 1 ].Substring( 0, i0 ) )
           prefix = tokens[ 0 ].Substring( 0, i0 );
 
         long mi, ma;
@@ -3216,7 +3216,7 @@ namespace Utilities
           if ( kvp.Value.Count != orValues.Count )
             return false;
           for ( int i = 0; i < orValues.Count; i++ )
-            if ( !kvp.Value[ i ].Equals( orValues[ i ] ) )
+            if ( kvp.Value[ i ] != orValues[ i ] )
               return false;
         }
       }

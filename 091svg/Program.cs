@@ -131,7 +131,7 @@ namespace _091svg
     /// <returns>True if handled.</returns>
     static bool handleCommand ( string command )
     {
-      if ( command.Equals( "draw" ) )
+      if ( command == "draw" )
       {
         Draw();
         drawWasExecuted = true;
@@ -220,7 +220,7 @@ namespace _091svg
         for ( int i = 0; i < args.Length; i++ )
           if ( !string.IsNullOrEmpty( args[ i ] ) )
           {
-            if ( args[ i ].Equals( "-c" ) )     // process the config file
+            if ( args[ i ] == "-c" )     // process the config file
             {
               if ( ++i < args.Length &&
                    args[ i ] != null &&
@@ -234,7 +234,7 @@ namespace _091svg
                   Console.WriteLine( "Warning: config-file '{0}' doesn't exist!", args[ i ] );
             }
             else
-              if ( args[ i ].Equals( "-a" ) )   // additional key=value list
+              if ( args[ i ] == "-a" )   // additional key=value list
               {
                 if ( ++i < args.Length &&
                      args[ i ] != null )
