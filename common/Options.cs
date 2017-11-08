@@ -64,6 +64,11 @@ namespace Utilities
     /// </summary>
     public static HashSet<string> knownMsgModes = new HashSet<string>();
 
+    /// <summary>
+    /// Registers (recognized) message modes.
+    /// </summary>
+    /// <param name="modes">List of all recognized modes to be added.</param>
+
     public static void RegisterMsgModes ( params string[] modes )
     {
       if ( modes == null ||
@@ -147,6 +152,10 @@ namespace Utilities
 
       return change;
     }
+
+    /// <summary>
+    /// Returns if the given message-mode is set.
+    /// </summary>
 
     public bool SingleMsgMode ( string mode )
     {
