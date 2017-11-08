@@ -819,10 +819,18 @@ namespace Utilities
            string.IsNullOrEmpty( args[ i ] ) )
         return false;
 
-      // <command>
+      // <command> or <config-file>
 
       if ( args[ i ][ 0 ] != '-' )
+      {
+        if ( File.Exists( args[ i ] ) )
+        {
+          configFile = Path.GetFullPath( args[ i ] );
+          ParseConfig( configFile );
+          return true;
+        }
         return HandleCommand( args[ i ] );
+      }
 
       string opt = args[ i ].Substring( 1 );
 

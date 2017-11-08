@@ -279,6 +279,9 @@ namespace MathSupport
       if ( !a.HasValue || !b.HasValue )
         return rotation;
 
+      if ( a.Value == b.Value )
+        return Matrix4.Identity;
+
       Vector3 axis = Vector3.Cross( a.Value, b.Value );
       float angle = Vector3.CalculateAngle( a.Value, b.Value );
       if ( sensitive )
