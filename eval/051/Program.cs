@@ -69,6 +69,8 @@ namespace _051
 
     public int imageWidth = 400;
 
+    public int colormapSize = 10;
+
     public bool uniqueColors = false;
 
     public bool sortColors = true;
@@ -201,6 +203,12 @@ namespace _051
           if ( int.TryParse( value, out newInt ) &&
                newInt > 10 )
             imageWidth = newInt;
+          break;
+
+        case "colormapSize":
+          if ( int.TryParse( value, out newInt ) &&
+               newInt > 0 && newInt <= 10 )
+            colormapSize = newInt;
           break;
 
         case "compilerOptions":
@@ -401,7 +409,7 @@ namespace _051
             foreach ( var name in names )
               if ( !EvalOptions.options.bans.Contains( name ) &&
                    (!EvalOptions.options.bestOnly || EvalOptions.options.best.Contains( name )) )
-                EvaluateSolution( name, assemblies[ name ], image, wri );
+                EvaluateSolution( name, assemblies[ name ], image, EvalOptions.options.colormapSize, wri );
 
             image.Dispose();
 
@@ -507,10 +515,10 @@ namespace _051
                                             files, sw.ElapsedMilliseconds * 0.001, errors ) );
     }
 
-    static void EvaluateSolution ( string name, Assembly ass, Bitmap image, TextWriter wri )
+    static void EvaluateSolution ( string name, Assembly ass, Bitmap image, int colormapSize, TextWriter wri )
     {
       Color[] colors = null;
-      object[] arguments = new object[] { image, 10, colors };
+      object[] arguments = new object[] { image, colormapSize, colors };
 
       // memory cleanup and report:
       long memOccupied = GC.GetTotalMemory( true );
@@ -608,7 +616,7 @@ namespace _051
 
       // SVG color visualization:
       int width = EvalOptions.options.imageWidth;
-      int widthBin = width / 10;
+      int widthBin = width / Math.Max( 6, colormapSize );
       int height = 50;
       int border = 2;
       wri.WriteLine( $"<td><svg width=\"{width}\" height=\"{height}\">" );
