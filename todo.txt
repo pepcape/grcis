@@ -54,6 +54,7 @@
 ----
 110animation (h/v lines only animation, 2017)
 111tree (spatial tree for 2D kNN, 2017)
+112dials (special segment display assembled from analog dials, 2017)
 
 ================================================================================
   DONE:
