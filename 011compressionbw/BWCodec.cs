@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-
-using System.Drawing;
+﻿using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using Support;
@@ -9,6 +7,14 @@ namespace _011compressionbw
 {
   class BWCodec
   {
+    /// <summary>
+    /// Data initialization.
+    /// </summary>
+    public static void InitParams ( out string name )
+    {
+      name = "Josef Pelikán";
+    }
+
     #region protected data
 
     protected const uint MAGIC = 0xff12fe45;
@@ -142,7 +148,5 @@ namespace _011compressionbw
     }
 
     #endregion
-
   }
-
 }
