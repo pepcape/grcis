@@ -13,7 +13,7 @@ namespace _011compressionbw
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
@@ -22,7 +22,10 @@ namespace _011compressionbw
     public Form1 ()
     {
       InitializeComponent();
-      Text += " (rev: " + rev + ')';
+
+      string name;
+      BWCodec.InitParams( out name );
+      Text += " (" + rev + ") '" + name + '\'';
     }
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
