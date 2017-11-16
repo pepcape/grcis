@@ -87,7 +87,8 @@ namespace _112dials
 
     protected void StopSimulation ()
     {
-      if ( sim == null || aThread == null ) return;
+      if ( sim == null ||
+           aThread == null ) return;
 
       if ( buttonStart.InvokeRequired )
       {
@@ -128,7 +129,7 @@ namespace _112dials
       if ( sim == null ||
            sim.Width != width ||
            sim.Height != height )
-        sim = new Simulation( width, height );
+        sim = new Simulation( width, height, textParam.Text );
 
       fps.Start();
       float fp = 0.0f;
@@ -138,6 +139,7 @@ namespace _112dials
         sim.Simulate();
         Bitmap frame = sim.Visualize();
         SetImage( frame );
+        Thread.Sleep( 1 );
 
         float newFp = fps.Frame();
         if ( sim.Frame % 32 == 0 ) fp = newFp;
@@ -182,10 +184,12 @@ namespace _112dials
 
     private void buttonReset_Click ( object sender, EventArgs e )
     {
-      if ( sim == null || aThread != null )
+      if ( sim == null ||
+           aThread != null )
         return;
 
-      sim.Reset();
+      sim.Reset( textParam.Text );
+      SetImage( sim.Visualize() );
       SetText( "Frame: 0 (FPS = 0.0)" );
     }
 
@@ -196,23 +200,39 @@ namespace _112dials
 
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( sim != null && e.Button == MouseButtons.Left )
-        if ( sim.MouseMove( e.Location ) && aThread == null )
+      if ( sim != null &&
+           e.Button == MouseButtons.Left )
+        if ( sim.MouseMove( e.Location ) &&
+             aThread == null )
           SetImage( sim.Visualize() );
     }
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( sim != null && e.Button == MouseButtons.Left )
-        if ( sim.MouseDown( e.Location ) && aThread == null )
+      if ( sim != null &&
+           e.Button == MouseButtons.Left )
+        if ( sim.MouseDown( e.Location ) &&
+             aThread == null )
           SetImage( sim.Visualize() );
     }
 
     private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
     {
-      if ( sim != null && e.Button == MouseButtons.Left )
-        if ( sim.MouseUp( e.Location ) && aThread == null )
+      if ( sim != null &&
+           e.Button == MouseButtons.Left )
+        if ( sim.MouseUp( e.Location ) &&
+             aThread == null )
           SetImage( sim.Visualize() );
+    }
+
+    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    {
+      if ( sim != null &&
+           e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        sim.Update( textParam.Text );
+      }
     }
   }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using Utilities;
 
 namespace _112dials
 {
@@ -22,12 +24,11 @@ namespace _112dials
     /// </summary>
     /// <param name="width">Visualization bitmap width.</param>
     /// <param name="height">Visualization bitmap height.</param>
-    public Simulation ( int width, int height )
+    public Simulation ( int width, int height, string param )
     {
       Width  = width;
       Height = height;
-      Radius = 3;
-      Reset();
+      Reset( param );
     }
 
     /// <summary>
@@ -58,125 +59,91 @@ namespace _112dials
     }
 
     /// <summary>
+    /// Test variable: dial frequency.
+    /// </summary>
+    protected double freq;
+
+    /// <summary>
+    /// Current simulated time.
+    /// </summary>
+    protected double time;
+
+    /// <summary>
     /// Simulation reset.
     /// Can be called at any time after instance construction.
     /// </summary>
-    public void Reset ()
+    public void Reset ( string param )
     {
       // !!!{{ TODO: put your simulation-reset code here
 
-      Frame     = 0;
-      simWidth  = Width;     /* might be a fraction of rendering size.. */
-      simHeight = Height;    /* might be a fraction of rendering size.. */
-      s = new float[ simHeight, simWidth ];
-      rnd = new Random();    /* add seed-initialization here? */
-
-      // !!!}}
-    }
-
-    /// <summary>
-    /// Drawing tool radius in pixels.
-    /// </summary>
-    public int Radius
-    {
-      get;
-      set;
-    }
-
-    /// <summary>
-    /// Support draw function (feel free to override/remove it).
-    /// </summary>
-    /// <param name="location">Mouse pointer location.</param>
-    protected void Draw ( Point location )
-    {
-      // !!!{{ TODO: put your drawing code here
-
-      int x = location.X;                /* do proper coordinate-transform here! */
-      int y = location.Y;                /* do proper coordinate-transform here! */
-      if ( x < Radius )
-        x = Radius;
-      if ( x > simWidth - Radius )
-        x = simWidth - Radius;
-      if ( y < Radius )
-        y = Radius;
-      if ( y > simHeight - Radius )
-        y = simHeight - Radius;
-
-      for ( int i = y - Radius; i < y + Radius; i++ )
-        for ( int j = x - Radius; j < x + Radius; j++ )
-          s[ i, j ] = 1.0f;              /* permanent white color .. 1.0f .. see Simulate() */
+      Frame = 0;
+      freq  = 1.0;
+      time  = 0.0;
+      Update( param );
 
       // !!!}}
     }
 
     /// <summary>
     /// Mouse-down response.
-    /// Draws permanent 1.0f rectangle in pilot implementation.
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
     /// <returns>True if the visualization bitmap was altered.</returns>
     public bool MouseDown ( Point location )
     {
-      // !!!{{ TODO: put your drawing logic here
+      // !!!{{ TODO: put your editing / drawing logic here
 
-      Draw( location );
-      return true;
+      freq *= 4.0;
+
+      return false;
 
       // !!!}}
     }
 
     /// <summary>
     /// Mouse-up response.
-    /// Draws permanent 1.0f rectangle in pilot implementation.
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
     /// <returns>True if the visualization bitmap was altered.</returns>
     public bool MouseUp ( Point location )
     {
-      // !!!{{ TODO: put your drawing logic here
+      // !!!{{ TODO: put your editing / drawing logic here
 
-      Draw( location );
-      return true;
+      freq *= 0.25;
+
+      return false;
 
       // !!!}}
     }
 
     /// <summary>
     /// Mouse-move response.
-    /// Draws permanent 1.0f rectangle in pilot implementation.
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
     /// <returns>True if the visualization bitmap was altered.</returns>
     public bool MouseMove ( Point location )
     {
-      // !!!{{ TODO: put your drawing logic here
+      // !!!{{ TODO: put your editing / drawing logic here
 
-      Draw( location );
-      return true;
+      return false;
 
       // !!!}}
     }
 
-    /// <summary>
-    /// Width of the simulation array.
-    /// </summary>
-    protected int simWidth;
+    public void Update ( string param )
+    {
+      // input params:
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+      if ( p.Count == 0 )
+        return;
 
-    /// <summary>
-    /// Height of the simulation array.
-    /// </summary>
-    protected int simHeight;
-
-    /// <summary>
-    /// The simulation array itself.
-    /// Rewrite this declaration if you want to use multi-band simulation..
-    /// </summary>
-    protected float[ , ] s;
-
-    /// <summary>
-    /// Globally allocated (shared) random generator.
-    /// </summary>
-    protected Random rnd;
+      // launchers: frequency
+      if ( Util.TryParse( p, "freq", ref freq ) )
+      {
+        if ( freq < 0.0 )
+          freq = 0.01;
+      }
+    }
 
     /// <summary>
     /// Simulation of a single timestep.
@@ -185,12 +152,8 @@ namespace _112dials
     {
       // !!!{{ TODO: put your simulation code here
 
-      for ( int i = 0; i < simHeight; i++ )
-        for ( int j = 0; j < simWidth; j++ )
-          if ( s[ i, j ] != 1.0f )       /* permanent white color */
-            s[ i, j ] = (float)rnd.NextDouble();
-
       Frame++;
+      time += freq;
 
       // !!!}}
     }
@@ -203,28 +166,22 @@ namespace _112dials
     {
       // !!!{{ TODO: put your visualization code here
 
-      PixelFormat fmt = PixelFormat.Format24bppRgb;
-      int dO = Image.GetPixelFormatSize( fmt ) / 8;
-      Bitmap result = new Bitmap( Width, Height, fmt );
-
-      BitmapData data = result.LockBits( new Rectangle( 0, 0, Width, Height ), ImageLockMode.ReadOnly, fmt );
-      unsafe
+      Bitmap result = new Bitmap( Width, Height, PixelFormat.Format24bppRgb );
+      using ( Graphics gr = Graphics.FromImage( result ) )
       {
-        byte* ptr;
-
-        for ( int y = 0; y < Height; y++ )
-        {
-          ptr = (byte*)data.Scan0 + y * data.Stride;
-
-          for ( int x = 0; x < Width; x++ )
-          {
-            byte c = (byte)(255.0f * s[ y % simHeight, x % simWidth ]);
-            ptr[ 0 ] = ptr[ 1 ] = ptr[ 2 ] = c;
-            ptr += dO;
-          }
-        }
+        gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        gr.Clear( Color.LightGray );
+        float cx = Width * 0.5f;
+        float cy = Height * 0.5f;
+        float rad = 0.8f * Math.Min( cx, cy );
+        Pen penw = new Pen( Color.White, 4.0f );
+        gr.DrawEllipse( penw, cx - rad, cy - rad, 2.0f * rad, 2.0f * rad );
+        Pen penb = new Pen( Color.Black, 3.0f );
+        double alpha = time * 0.002;
+        gr.DrawLine( penb, cx, cy, cx + (float)Math.Sin( alpha ) * rad * 0.9f, cy - (float)Math.Cos( alpha ) * rad * 0.9f );
+        alpha /= 12.0;
+        gr.DrawLine( penb, cx, cy, cx + (float)Math.Sin( alpha ) * rad * 0.8f, cy - (float)Math.Cos( alpha ) * rad * 0.8f );
       }
-      result.UnlockBits( data );
 
       return result;
 

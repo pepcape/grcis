@@ -190,6 +190,7 @@
       this.textParam.Name = "textParam";
       this.textParam.Size = new System.Drawing.Size(301, 20);
       this.textParam.TabIndex = 16;
+      this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
       // 
       // Form1
       // 
