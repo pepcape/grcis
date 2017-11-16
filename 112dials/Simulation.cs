@@ -24,6 +24,7 @@ namespace _112dials
     /// </summary>
     /// <param name="width">Visualization bitmap width.</param>
     /// <param name="height">Visualization bitmap height.</param>
+    /// <param name="param">String representation of the initial state.</param>
     public Simulation ( int width, int height, string param )
     {
       Width  = width;
@@ -72,6 +73,7 @@ namespace _112dials
     /// Simulation reset.
     /// Can be called at any time after instance construction.
     /// </summary>
+    /// <param name="param">String representation of the initial state.</param>
     public void Reset ( string param )
     {
       // !!!{{ TODO: put your simulation-reset code here
@@ -130,6 +132,11 @@ namespace _112dials
       // !!!}}
     }
 
+    /// <summary>
+    /// Update of the animation state (speed, target state, ..).
+    /// Can be called anytime.
+    /// </summary>
+    /// <param name="param">String representation of the required state.</param>
     public void Update ( string param )
     {
       // input params:
@@ -161,7 +168,7 @@ namespace _112dials
     /// <summary>
     /// Visualization of the current state.
     /// </summary>
-    /// <returns>Visualization bitmap.</returns>
+    /// <returns>Result bitmap. Creates a new Bitmap instance every time.</returns>
     public Bitmap Visualize ()
     {
       // !!!{{ TODO: put your visualization code here
