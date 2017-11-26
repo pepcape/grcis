@@ -142,7 +142,9 @@ namespace _111tree
 
       // hash accumulator:
       long hash = 0L;
+      int equals = 0;
       int[] result = new int[ K ];
+      SortedSet<int> resultSet = new SortedSet<int>();
       double colorMul = 1.0 / K;
 
       // reset the picture:
@@ -172,12 +174,13 @@ namespace _111tree
         {
           double dist = (x0 - points[ result[ j ] ].X) * (x0 - points[ result[ j ] ].X) +
                         (y0 - points[ result[ j ] ].Y) * (y0 - points[ result[ j ] ].Y);
+
           if ( dist < last )
             throw new Exception( $"Error in result ordering: [{i},{j}]" );
-          last = dist;
+          if ( dist == last )
+            equals++;
 
-          // the point is valid:
-          hash = hash * 348937L + result[ j ] * 8999L + 4831L;
+          last = dist;
 
           // eventually draw the found point in nice color:
           if ( visual )
@@ -185,9 +188,15 @@ namespace _111tree
                       (int)points[ result[ j ] ].X, (int)points[ result[ j ] ].Y, PEN_SIZE, 
                       Draw.ColorRamp( 1.0 - colorMul * j ) );
         }
+
+        resultSet.Clear();
+        for ( int j = 0; j < n; j++ )
+          resultSet.Add( result[ j ] );
+        foreach ( int id in resultSet )
+          hash = hash * 348937L + id * 8999L + 4831L;
+
 #if LOG
-        StringBuilder sb = new StringBuilder( "Result[" );
-        sb.Append( i ).Append( "]:" );
+        StringBuilder sb = new StringBuilder( $"Result[{i}]:" );
         for ( int j = 0; j < n; j++ )
           sb.Append( ' ' ).Append( result[ j ] );
         Util.Log( sb.ToString() );
@@ -198,9 +207,9 @@ namespace _111tree
 
       // Query-phase statistics:
       tree.GetStatistics( out pointStat, out boxStat, out heapStat );
-      string stat1 = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f} s [{1:D}-{2:D}-{3:D}]",
+      string stat1 = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f} s [{1:D}-{2:D}-{3:D}-{4:D}]",
                                     1.0e-3 * sw.ElapsedMilliseconds,
-                                    pointStat, boxStat, heapStat );
+                                    pointStat, boxStat, heapStat, equals );
       labelStat.Text = stat1;
       string stat2 = string.Format( "{0:X}", hash );
       labelHash.Text = stat2;
