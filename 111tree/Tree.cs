@@ -96,7 +96,7 @@ namespace _111tree
         pointCounter++;
         res.Add( dist, i );
         if ( res.Count > k )
-          res.RemoveAt( k - 1 );
+          res.RemoveAt( k );
       }
 
       int n = Math.Min( k, res.Count );
