@@ -29,12 +29,12 @@ namespace _066histogram
 
     private void HistogramForm_Paint ( object sender, PaintEventArgs e )
     {
-      if ( backBuffer == null || parent.dirty )
+      if ( backBuffer == null || Form1.dirty )
       {
         if ( backBuffer == null )
           backBuffer = new Bitmap( ClientSize.Width, ClientSize.Height, PixelFormat.Format24bppRgb );
 
-        parent.ComputeHistogram( (Bitmap)parent.inputImage, backBuffer, parent.param );
+        ImageHistogram.ComputeHistogram( parent.inputImage, backBuffer, parent.param );
       }
 
       e.Graphics.DrawImageUnscaled( backBuffer, 0, 0 );

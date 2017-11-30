@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using Utilities;
 
 namespace _066histogram
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = Util.SetVersion( "$Rev$" );
+
     /// <summary>
     /// Source image.
     /// </summary>
-    public Image inputImage = null;
+    public Bitmap inputImage = null;
 
     /// <summary>
     /// Input file-name.
@@ -26,11 +29,19 @@ namespace _066histogram
     /// </summary>
     public HistogramForm histogramForm = null;
 
+    /// <summary>
+    /// Has the source image changed?
+    /// </summary>
+    public static bool dirty = false;
+
     public Form1 ()
     {
       InitializeComponent();
-      string[] tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[ 1 ] + ')';
+
+      string name, param;
+      ImageHistogram.InitParams( out param, out name );
+      textParam.Text = param;
+      Text += " (" + rev + ") '" + name + '\'';
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -63,7 +74,7 @@ namespace _066histogram
       inputImage = null;
       try
       {
-        inputImage = Image.FromFile( fn );
+        inputImage = (Bitmap)Image.FromFile( fn );
       }
       catch ( Exception )
       {
@@ -71,7 +82,7 @@ namespace _066histogram
       }
       fileName = fn;
 
-      recompute();
+      recomputeHistogram();
 
       return true;
     }
@@ -79,12 +90,12 @@ namespace _066histogram
     /// <summary>
     /// Recomputes the histogram window (forces input image pass).
     /// </summary>
-    private void recompute ()
+    private void recomputeHistogram ()
     {
       if ( inputImage == null ) return;
 
       dirty = true;
-      pictureBox1.Image = (Bitmap)inputImage;
+      pictureBox1.Image = inputImage;
       param = textParam.Text;
 
       if ( histogramForm == null )
@@ -100,7 +111,7 @@ namespace _066histogram
 
     private void buttonHistogram_Click ( object sender, EventArgs e )
     {
-      recompute();
+      recomputeHistogram();
     }
 
     private void Form1_DragDrop ( object sender, DragEventArgs e )
@@ -120,7 +131,7 @@ namespace _066histogram
       if ( e.KeyChar == (char)Keys.Enter )
       {
         e.Handled = true;
-        recompute();
+        recomputeHistogram();
       }
     }
   }
