@@ -1,22 +1,24 @@
 ﻿using System.Drawing;
-using System.Windows.Forms;
 using MathSupport;
 using Raster;
-using System;
 
 namespace _066histogram
 {
-  public partial class Form1 : Form
+  public class ImageHistogram
   {
     /// <summary>
-    /// Has the source image changed?
+    /// Data initialization.
     /// </summary>
-    public bool dirty = false;
+    public static void InitParams ( out string param, out string name )
+    {
+      param = "gray";
+      name  = "Josef Pelikán";
+    }
 
     /// <summary>
     /// Cached histogram data.
     /// </summary>
-    protected int[] histArray = null;
+    protected static int[] histArray = null;
 
     /// <summary>
     /// Recomputes image histogram and draws the result in the given raster image.
@@ -24,16 +26,20 @@ namespace _066histogram
     /// <param name="input">Input image.</param>
     /// <param name="graph">Result image (for the graph).</param>
     /// <param name="param">Textual parameter.</param>
-    public void ComputeHistogram ( Bitmap input, Bitmap graph, string param )
+    public static void ComputeHistogram ( Bitmap input, Bitmap graph, string param )
     {
       // !!!{{ TODO: write your own histogram computation and drawing code here
 
       // Text parameters:
       param = param.ToLower().Trim();
       // Histogram mode (0 .. red, 1 .. green, 2 .. blue, 3 .. gray)
-      int mode = 0;
-      if ( param.IndexOf( "gray" ) >= 0 )
-        mode = 3;
+      int mode = 3;
+      if ( param.IndexOf( "red" ) >= 0 )
+        mode = 0;
+      if ( param.IndexOf( "green" ) >= 0 )
+        mode = 1;
+      if ( param.IndexOf( "blue" ) >= 0 )
+        mode = 2;
 
       // Graph appearance:
       bool alt = param.IndexOf( "alt" ) >= 0;
@@ -41,9 +47,9 @@ namespace _066histogram
       int x, y;
 
       // 1. Histogram recomputation:
-      if ( dirty )
+      if ( Form1.dirty )
       {
-        dirty = false;
+        Form1.dirty = false;
 
         // recompute histogram data:
         histArray = new int[ 256 ];
@@ -54,13 +60,12 @@ namespace _066histogram
           for ( x = 0; x < width; x++ )
           {
             Color col = input.GetPixel( x, y );
-
-            //int Y = Draw.RgbToGray( col.R, col.G, col.B );
+            int Y = Draw.RgbToGray( col.R, col.G, col.B );
 
             //double H, S, V;
             //Arith.ColorToHSV( col, out H, out S, out V );
 
-            histArray[ col.R ]++;
+            histArray[ mode == 0 ? col.R : (mode == 1 ? col.G : (mode == 2 ? col.B : Y)) ]++;
           }
       }
 
@@ -79,8 +84,9 @@ namespace _066histogram
       float ky = -graph.Height * 0.9f / max;
 
       // Pens:
-      Pen graphPen = new Pen( Color.Red );
-      Brush graphBrush = new SolidBrush( Color.Red );
+      Color c = (mode == 0 ? Color.Red : (mode == 1 ? Color.DarkGreen : (mode == 2 ? Color.Blue : Color.Gray)));
+      Pen graphPen = new Pen( c );
+      Brush graphBrush = new SolidBrush( c );
       Pen axisPen = new Pen( Color.Black );
 
       // Histogram:
