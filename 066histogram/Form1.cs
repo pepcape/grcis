@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
+using Compression;
 using Utilities;
 
 namespace _066histogram
@@ -107,6 +109,7 @@ namespace _066histogram
         histogramForm.Invalidate();
 
       histogramForm.Text = "Histogram (" + fileName + ", " + inputImage.PixelFormat.ToString() + ')';
+      labelStatus.Text = Path.GetFileName( fileName );
     }
 
     private void buttonHistogram_Click ( object sender, EventArgs e )
@@ -133,6 +136,18 @@ namespace _066histogram
         e.Handled = true;
         recomputeHistogram();
       }
+    }
+
+    private void buttonPCM_Click ( object sender, EventArgs e )
+    {
+      if ( inputImage != null )
+        labelStatus.Text = Path.GetFileName( fileName ) + ", PCM code = " + Compress.PCM( inputImage, textParam.Text ) + 'b';
+    }
+
+    private void buttonDPCM_Click ( object sender, EventArgs e )
+    {
+      if ( inputImage != null )
+        labelStatus.Text = Path.GetFileName( fileName ) + ", DPCM code = " + Compress.DPCM( inputImage, textParam.Text ) + 'b';
     }
   }
 }
