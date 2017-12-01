@@ -1,6 +1,8 @@
-﻿using System.Drawing;
+using System.Drawing;
 using MathSupport;
 using Raster;
+using System;
+using Utilities;
 
 namespace _066histogram
 {
@@ -41,6 +43,9 @@ namespace _066histogram
       if ( param.IndexOf( "blue" ) >= 0 )
         mode = 2;
 
+      // Sorted histogram:
+      bool sort = param.IndexOf( "sort" ) >= 0;
+
       // Graph appearance:
       bool alt = param.IndexOf( "alt" ) >= 0;
 
@@ -70,6 +75,9 @@ namespace _066histogram
       }
 
       // 2. Graph drawing:
+      if ( sort )
+        Array.Sort( histArray, new ReverseComparer<int>().Compare );
+
       float max = 0.0f;
       foreach ( var f in histArray )
         if ( f > max ) max = f;
