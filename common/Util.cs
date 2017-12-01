@@ -131,7 +131,7 @@ namespace Utilities
     /// </summary>
     public static bool positive ( string val )
     {
-      if ( val == null ) return false;
+      if ( string.IsNullOrEmpty( val ) ) return false;
 
       int i;
       if ( int.TryParse( val, out i ) )
@@ -146,8 +146,7 @@ namespace Utilities
     /// </summary>
     public static bool positiveStrict ( string val )
     {
-      if ( val == null )
-        return false;
+      if ( string.IsNullOrEmpty( val ) ) return false;
 
       val = val.ToLower();
       return (val == "1" || val == "yes" || val == "true" || val == "ano");
@@ -1359,7 +1358,8 @@ namespace Utilities
            !rec.TryGetValue( key, out sval ) )
         return false;
 
-      val = positive( sval );
+      val = string.IsNullOrEmpty( sval ) ||
+            positive( sval );
       return true;
     }
 
