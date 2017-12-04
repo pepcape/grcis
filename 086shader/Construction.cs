@@ -1,5 +1,3 @@
-// Author: Josef Pelikan
-
 using System;
 using System.IO;
 using MathSupport;
@@ -17,7 +15,7 @@ namespace Scene3D
     public static void InitParams ( out string param, out string name )
     {
       param = "";
-      name  = "pilot";
+      name  = "Josef Pelikán";
     }
 
     #endregion
