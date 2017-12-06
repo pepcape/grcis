@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿//#define OPEN
+
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 
@@ -10,15 +12,27 @@ namespace CircleCanvas
 
     protected Bitmap bmp = null;
 
+#if OPEN
+
+    public Graphics gr = null;
+
+    public Pen currPen = null;
+
+    public SolidBrush currBrush = null;
+
+#else
+
     protected Graphics gr = null;
-
-    protected Color currColor = Color.White;
-
-    protected float currPenWidth = 1.0f;
 
     protected Pen currPen = null;
 
     protected SolidBrush currBrush = null;
+
+#endif
+
+    protected Color currColor = Color.White;
+
+    protected float currPenWidth = 1.0f;
 
     protected bool currAntiAlias = false;
 
