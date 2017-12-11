@@ -472,7 +472,7 @@ namespace _113graph
 
     private void textExpression_MouseHover ( object sender, EventArgs e )
     {
-      tt.Show( "Enter expression y( x, z )", (IWin32Window)sender, 10, -25, 4000 );
+      tt.Show( "Enter expression f(x,y) or f(x,z)", (IWin32Window)sender, 10, -25, 4000 );
     }
 
     private void labelStatus_MouseHover ( object sender, EventArgs e )

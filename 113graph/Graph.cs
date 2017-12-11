@@ -153,6 +153,7 @@ namespace _113graph
       {
         e = new Expression( expr );
         e.Parameters[ "x" ] = x;
+        e.Parameters[ "y" ] = z;
         e.Parameters[ "z" ] = z;
         result = (double)e.Evaluate();
       }
