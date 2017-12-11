@@ -1,6 +1,9 @@
-﻿using System;
+﻿#define USE_INVALIDATE
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
@@ -13,6 +16,8 @@ namespace _113graph
   {
     static readonly string rev = Util.SetVersion( "$Rev$" );
 
+    public static Form1 form = null;
+
     /// <summary>    /// <summary>
     /// Scene center point.
     /// </summary>
@@ -23,8 +28,9 @@ namespace _113graph
     /// </summary>
     float diameter = 4.0f;
 
-    float near = 0.1f;
-    float far = 5.0f;
+    float near =  0.1f;
+
+    float far  = 20.0f;
 
     Vector3 light = new Vector3( -2, 1, 1 );
 
@@ -35,6 +41,7 @@ namespace _113graph
 
     Vector3? pointOrigin = null;
     Vector3 pointTarget;
+    Vector3 eye;
 
     bool pointDirty = false;
 
@@ -47,6 +54,11 @@ namespace _113graph
     /// GLControl guard flag.
     /// </summary>
     bool loaded = false;
+
+    /// <summary>
+    /// False until the 'Regenerate' button is pressed for the first time..
+    /// </summary>
+    public bool drawGraph = false;
 
     /// <summary>
     /// Associated Trackball instance.
@@ -70,6 +82,7 @@ namespace _113graph
     public Form1 ()
     {
       InitializeComponent();
+      form = this;
 
       string param;
       string name;
@@ -102,8 +115,201 @@ namespace _113graph
     {
       if ( !loaded ) return;
 
-      SetupViewport( false );
+      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       glControl1.Invalidate();
+    }
+
+    /// <summary>
+    /// Function called whenever the main application is idle..
+    /// It actually contains the redraw-loop.
+    /// </summary>
+    void Application_Idle ( object sender, EventArgs e )
+    {
+      while ( glControl1.IsIdle )
+      {
+#if USE_INVALIDATE
+        glControl1.Invalidate();
+#else
+        glControl1.MakeCurrent();
+        Render();
+#endif
+
+        long now = DateTime.Now.Ticks;
+        if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
+        {
+          lastFps = 0.5 * lastFps + 0.5 * (frameCounter     * 1.0e7 / (now - lastFpsTime));
+          lastPps = 0.5 * lastPps + 0.5 * (primitiveCounter * 1.0e7 / (now - lastFpsTime));
+          lastFpsTime = now;
+          frameCounter = 0;
+          primitiveCounter = 0L;
+
+          if ( lastPps < 5.0e5 )
+            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Pps: {1:f0}k",
+                                           lastFps, (lastPps * 1.0e-3) );
+          else
+            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, Fps: {1:f1}m",
+                                           lastFps, (lastPps * 1.0e-6) );
+        }
+
+        // pointing:
+        if ( pointOrigin != null &&
+             pointDirty )
+        {
+          Vector3d p0 = new Vector3d( pointOrigin.Value.X, pointOrigin.Value.Y, pointOrigin.Value.Z );
+          Vector3d p1 = new Vector3d( pointTarget.X,       pointTarget.Y,       pointTarget.Z ) - p0;
+          double nearest = double.PositiveInfinity;
+
+          if ( gr != null )
+            gr.Intersect( ref p0, ref p1, ref nearest );
+
+          if ( double.IsInfinity( nearest ) )
+            spot = null;
+          else
+            spot = new Vector3( (float)(p0.X + nearest * p1.X),
+                                (float)(p0.Y + nearest * p1.Y),
+                                (float)(p0.Z + nearest * p1.Z) );
+          pointDirty = false;
+        }
+      }
+    }
+
+    delegate void SetTextCallback ( string text );
+
+    public void SetStatus ( string text )
+    {
+      if ( labelStatus.InvokeRequired )
+      {
+        SetTextCallback st = new SetTextCallback( SetStatus );
+        BeginInvoke( st, new object[] { text } );
+      }
+      else
+        labelStatus.Text = text;
+    }
+
+    void SetModelGeometry ( Vector3 cen, float diam, float n, float f )
+    {
+    }
+
+    /// <summary>
+    /// Render one frame.
+    /// </summary>
+    private void Render ()
+    {
+      if ( !loaded )
+        return;
+
+      frameCounter++;
+
+      GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
+      GL.ShadeModel( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
+      GL.PolygonMode( checkTwosided.Checked ? MaterialFace.FrontAndBack : MaterialFace.Front,
+                      checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
+      if ( checkTwosided.Checked )
+        GL.Disable( EnableCap.CullFace );
+      else
+        GL.Enable( EnableCap.CullFace );
+
+      tb.GLsetCamera();
+      if ( gr != null )
+        gr.RenderScene( ref primitiveCounter );
+      Decorate();
+
+      glControl1.SwapBuffers();
+    }
+
+    private void Decorate ()
+    {
+      if ( !checkDebug.Checked )
+        return;
+
+      // Support: axes
+      float origWidth = GL.GetFloat( GetPName.LineWidth );
+      float origPoint = GL.GetFloat( GetPName.PointSize );
+
+      // axes:
+      GL.LineWidth( 2.0f );
+      GL.Begin( PrimitiveType.Lines );
+
+      GL.Color3( 1.0f, 0.1f, 0.1f );
+      GL.Vertex3( center );
+      GL.Vertex3( center + new Vector3( 0.5f, 0.0f, 0.0f ) * diameter );
+
+      GL.Color3( 0.0f, 1.0f, 0.0f );
+      GL.Vertex3( center );
+      GL.Vertex3( center + new Vector3( 0.0f, 0.5f, 0.0f ) * diameter );
+
+      GL.Color3( 0.2f, 0.2f, 1.0f );
+      GL.Vertex3( center );
+      GL.Vertex3( center + new Vector3( 0.0f, 0.0f, 0.5f ) * diameter );
+
+      GL.End();
+
+      // Support: pointing
+      if ( pointOrigin != null )
+      {
+        GL.Begin( PrimitiveType.Lines );
+        GL.Color3( 1.0f, 1.0f, 0.0f );
+        GL.Vertex3( pointOrigin.Value );
+        GL.Vertex3( pointTarget );
+        GL.Color3( 1.0f, 0.0f, 0.0f );
+        GL.Vertex3( pointOrigin.Value );
+        GL.Vertex3( eye );
+        GL.End();
+
+        GL.PointSize( 4.0f );
+        GL.Begin( PrimitiveType.Points );
+        GL.Color3( 1.0f, 0.0f, 0.0f );
+        GL.Vertex3( pointOrigin.Value );
+        GL.Color3( 0.0f, 1.0f, 0.2f );
+        GL.Vertex3( pointTarget );
+        GL.Color3( 1.0f, 1.0f, 1.0f );
+        if ( spot != null )
+          GL.Vertex3( spot.Value );
+        GL.Vertex3( eye );
+        GL.End();
+      }
+
+      // Support: frustum
+      if ( frustumFrame.Count >= 8 )
+      {
+        GL.LineWidth( 2.0f );
+        GL.Begin( PrimitiveType.Lines );
+
+        GL.Color3( 1.0f, 0.0f, 0.0f );
+        GL.Vertex3( frustumFrame[ 0 ] );
+        GL.Vertex3( frustumFrame[ 1 ] );
+        GL.Vertex3( frustumFrame[ 1 ] );
+        GL.Vertex3( frustumFrame[ 3 ] );
+        GL.Vertex3( frustumFrame[ 3 ] );
+        GL.Vertex3( frustumFrame[ 2 ] );
+        GL.Vertex3( frustumFrame[ 2 ] );
+        GL.Vertex3( frustumFrame[ 0 ] );
+
+        GL.Color3( 1.0f, 1.0f, 1.0f );
+        GL.Vertex3( frustumFrame[ 0 ] );
+        GL.Vertex3( frustumFrame[ 4 ] );
+        GL.Vertex3( frustumFrame[ 1 ] );
+        GL.Vertex3( frustumFrame[ 5 ] );
+        GL.Vertex3( frustumFrame[ 2 ] );
+        GL.Vertex3( frustumFrame[ 6 ] );
+        GL.Vertex3( frustumFrame[ 3 ] );
+        GL.Vertex3( frustumFrame[ 7 ] );
+
+        GL.Color3( 0.0f, 1.0f, 0.0f );
+        GL.Vertex3( frustumFrame[ 4 ] );
+        GL.Vertex3( frustumFrame[ 5 ] );
+        GL.Vertex3( frustumFrame[ 5 ] );
+        GL.Vertex3( frustumFrame[ 7 ] );
+        GL.Vertex3( frustumFrame[ 7 ] );
+        GL.Vertex3( frustumFrame[ 6 ] );
+        GL.Vertex3( frustumFrame[ 6 ] );
+        GL.Vertex3( frustumFrame[ 4 ] );
+
+        GL.End();
+      }
+
+      GL.LineWidth( origWidth );
+      GL.PointSize( origPoint );
     }
 
     private void glControl1_Paint ( object sender, PaintEventArgs e )
@@ -134,28 +340,29 @@ namespace _113graph
 
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( !tb.MouseDown( e ) )
-        if ( checkDebug.Checked )
-        {
-          // pointing to the scene:
-          pointOrigin = screenToWorld( e.X, e.Y, 0.0f );
-          pointTarget = screenToWorld( e.X, e.Y, 1.0f );
-          pointDirty = true;
-        }
-        else
-          MouseButtonDown( e );
+      if ( !tb.MouseDown( e ) &&
+           (gr == null || !gr.MouseButtonDown( e )) )
+      {
+        // pointing to the scene:
+        pointOrigin = screenToWorld( e.X, e.Y, 0.0f );
+        pointTarget = screenToWorld( e.X, e.Y, 1.0f );
+        eye         = tb.Eye;
+        pointDirty  = true;
+      }
     }
 
     private void glControl1_MouseUp ( object sender, MouseEventArgs e )
     {
-      if ( !tb.MouseUp( e ) )
-        MouseButtonUp( e );
+      if ( !tb.MouseUp( e ) &&
+           gr != null )
+        gr.MouseButtonUp( e );
     }
 
     private void glControl1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( !tb.MouseMove( e ) )
-        MousePointerMove( e );
+      if ( !tb.MouseMove( e ) &&
+           gr != null )
+        gr.MousePointerMove( e );
     }
 
     private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
@@ -170,7 +377,8 @@ namespace _113graph
 
     private void glControl1_KeyUp ( object sender, KeyEventArgs e )
     {
-      if ( !tb.KeyUp( e ) )
+      if ( !tb.KeyUp( e ) &&
+           (gr == null || !gr.KeyHandle( e )) )
         if ( e.KeyCode == Keys.F )
         {
           e.Handled = true;
@@ -180,7 +388,7 @@ namespace _113graph
           {
             float N = 0.0f;
             float F = 1.0f;
-            int R = glControl1.Width - 1;
+            int R = glControl1.Width  - 1;
             int B = glControl1.Height - 1;
             frustumFrame.Add( screenToWorld( 0, 0, N ) );
             frustumFrame.Add( screenToWorld( R, 0, N ) );
@@ -193,63 +401,100 @@ namespace _113graph
           }
         }
         else
-          KeyHandle( e );
+          if ( e.KeyCode == Keys.R )
+          {
+            e.Handled = true;
+            tb.Reset();
+          }
     }
 
-    /// <summary>
-    /// Prepare VBO content and upload it to the GPU.
-    /// </summary>
-    private void PrepareDataBuffers ()
+    private void checkVsync_CheckedChanged ( object sender, EventArgs e )
     {
-      if ( useVBO &&
-           scene != null &&
-           scene.Triangles > 0 )
+      glControl1.VSync = checkVsync.Checked;
+    }
+
+    private void Regenerate ()
+    {
+      if ( gr == null )
+        return;
+
+      drawGraph = true;
+      Cursor.Current = Cursors.WaitCursor;
+      string expr = textExpression.Text;
+      string param = textParam.Text;
+
+      // re-generate the graph..
+      string err = gr.RegenerateGraph( param, expr );
+      Cursor.Current = Cursors.Default;
+
+      if ( !string.IsNullOrEmpty( err ) )
       {
-        GL.EnableClientState( ArrayCap.VertexArray );
-        if ( scene.HasNormals() )
-          GL.EnableClientState( ArrayCap.NormalArray );
-        if ( scene.HasColors() )
-          GL.EnableClientState( ArrayCap.ColorArray );
-
-        // Vertex array: [color] [normal] coord
-        GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-        int vertexBufferSize = scene.VertexBufferSize( true, false, true, true );
-        GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
-        IntPtr videoMemoryPtr = GL.MapBuffer( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
-        unsafe
-        {
-          stride = scene.FillVertexBuffer( (float*)videoMemoryPtr.ToPointer(), true, false, true, true );
-        }
-        GL.UnmapBuffer( BufferTarget.ArrayBuffer );
-        GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
-
-        // Index buffer
-        GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)(scene.Triangles * 3 * sizeof( uint )), IntPtr.Zero, BufferUsageHint.StaticDraw );
-        videoMemoryPtr = GL.MapBuffer( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
-        unsafe
-        {
-          scene.FillIndexBuffer( (uint*)videoMemoryPtr.ToPointer() );
-        }
-        GL.UnmapBuffer( BufferTarget.ElementArrayBuffer );
-        GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
+        SetStatus( "Err: " + err );
+        return;
       }
-      else
+
+      // Update model dimensions (Trackball):
+      tb.Center   = center   = gr.center;
+      tb.Diameter = diameter = gr.diameter;
+      if ( gr.near != near ||
+           gr.far  != far )
       {
-        GL.DisableClientState( ArrayCap.VertexArray );
-        GL.DisableClientState( ArrayCap.NormalArray );
-        GL.DisableClientState( ArrayCap.ColorArray );
-
-        if ( useVBO )
-        {
-          GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-          GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
-          GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
-          GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-          GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)0, IntPtr.Zero, BufferUsageHint.StaticDraw );
-          GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
-        }
+        near = gr.near;
+        far  = gr.far;
+        tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       }
+
+      glControl1.Invalidate();
+    }
+
+    private void textParam_KeyPress ( object sender, System.Windows.Forms.KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        Regenerate();
+      }
+    }
+
+    private void textExpression_KeyPress ( object sender, System.Windows.Forms.KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        Regenerate();
+      }
+    }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( tooltip, (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    private void textExpression_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( "Enter expression y( x, z )", (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    private void labelStatus_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( labelStatus.Text, (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    private void labelFps_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
+               (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    private void buttonRegenerate_Click ( object sender, EventArgs e )
+    {
+      Regenerate();
+    }
+
+    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    {
+      if ( gr != null )
+        gr.Destroy();
     }
   }
 }

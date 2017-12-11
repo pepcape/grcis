@@ -28,9 +28,7 @@ namespace _113graph
     /// </summary>
     private void InitializeComponent ()
     {
-      this.buttonOpen = new System.Windows.Forms.Button();
-      this.labelFaces = new System.Windows.Forms.Label();
-      this.buttonGenerate = new System.Windows.Forms.Button();
+      this.labelStatus = new System.Windows.Forms.Label();
       this.label3 = new System.Windows.Forms.Label();
       this.glControl1 = new OpenTK.GLControl();
       this.labelFps = new System.Windows.Forms.Label();
@@ -40,43 +38,27 @@ namespace _113graph
       this.checkTwosided = new System.Windows.Forms.CheckBox();
       this.checkDebug = new System.Windows.Forms.CheckBox();
       this.checkVsync = new System.Windows.Forms.CheckBox();
+      this.textExpression = new System.Windows.Forms.TextBox();
+      this.label1 = new System.Windows.Forms.Label();
+      this.buttonRegenerate = new System.Windows.Forms.Button();
       this.SuspendLayout();
       // 
-      // buttonOpen
+      // labelStatus
       // 
-      this.buttonOpen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonOpen.Location = new System.Drawing.Point(13, 377);
-      this.buttonOpen.Name = "buttonOpen";
-      this.buttonOpen.Size = new System.Drawing.Size(108, 23);
-      this.buttonOpen.TabIndex = 1;
-      this.buttonOpen.Text = "Load scene";
-      this.buttonOpen.UseVisualStyleBackColor = true;
-      // 
-      // labelFaces
-      // 
-      this.labelFaces.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.labelFaces.AutoSize = true;
-      this.labelFaces.Location = new System.Drawing.Point(452, 383);
-      this.labelFaces.Name = "labelFaces";
-      this.labelFaces.Size = new System.Drawing.Size(33, 13);
-      this.labelFaces.TabIndex = 6;
-      this.labelFaces.Text = "faces";
-      // 
-      // buttonGenerate
-      // 
-      this.buttonGenerate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonGenerate.Location = new System.Drawing.Point(13, 410);
-      this.buttonGenerate.Name = "buttonGenerate";
-      this.buttonGenerate.Size = new System.Drawing.Size(108, 23);
-      this.buttonGenerate.TabIndex = 11;
-      this.buttonGenerate.Text = "Generate";
-      this.buttonGenerate.UseVisualStyleBackColor = true;
+      this.labelStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.labelStatus.AutoSize = true;
+      this.labelStatus.Location = new System.Drawing.Point(636, 397);
+      this.labelStatus.Name = "labelStatus";
+      this.labelStatus.Size = new System.Drawing.Size(37, 13);
+      this.labelStatus.TabIndex = 6;
+      this.labelStatus.Text = "Status";
+      this.labelStatus.MouseHover += new System.EventHandler(this.labelStatus_MouseHover);
       // 
       // label3
       // 
       this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label3.AutoSize = true;
-      this.label3.Location = new System.Drawing.Point(132, 416);
+      this.label3.Location = new System.Drawing.Point(319, 398);
       this.label3.Name = "label3";
       this.label3.Size = new System.Drawing.Size(40, 13);
       this.label3.TabIndex = 13;
@@ -91,7 +73,7 @@ namespace _113graph
       this.glControl1.BackColor = System.Drawing.Color.Black;
       this.glControl1.Location = new System.Drawing.Point(13, 12);
       this.glControl1.Name = "glControl1";
-      this.glControl1.Size = new System.Drawing.Size(680, 350);
+      this.glControl1.Size = new System.Drawing.Size(762, 365);
       this.glControl1.TabIndex = 17;
       this.glControl1.VSync = false;
       this.glControl1.Load += new System.EventHandler(this.glControl1_Load);
@@ -107,19 +89,20 @@ namespace _113graph
       // 
       // labelFps
       // 
-      this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelFps.AutoSize = true;
-      this.labelFps.Location = new System.Drawing.Point(529, 417);
+      this.labelFps.Location = new System.Drawing.Point(636, 430);
       this.labelFps.Name = "labelFps";
       this.labelFps.Size = new System.Drawing.Size(27, 13);
       this.labelFps.TabIndex = 18;
       this.labelFps.Text = "Fps:";
+      this.labelFps.MouseHover += new System.EventHandler(this.labelFps_MouseHover);
       // 
       // checkSmooth
       // 
       this.checkSmooth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkSmooth.AutoSize = true;
-      this.checkSmooth.Location = new System.Drawing.Point(137, 382);
+      this.checkSmooth.Location = new System.Drawing.Point(13, 396);
       this.checkSmooth.Name = "checkSmooth";
       this.checkSmooth.Size = new System.Drawing.Size(62, 17);
       this.checkSmooth.TabIndex = 21;
@@ -131,7 +114,7 @@ namespace _113graph
       // 
       this.checkWireframe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkWireframe.AutoSize = true;
-      this.checkWireframe.Location = new System.Drawing.Point(206, 382);
+      this.checkWireframe.Location = new System.Drawing.Point(80, 396);
       this.checkWireframe.Name = "checkWireframe";
       this.checkWireframe.Size = new System.Drawing.Size(48, 17);
       this.checkWireframe.TabIndex = 22;
@@ -140,11 +123,14 @@ namespace _113graph
       // 
       // textParam
       // 
-      this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.textParam.Location = new System.Drawing.Point(179, 412);
+      this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.textParam.Location = new System.Drawing.Point(361, 394);
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(205, 20);
+      this.textParam.Size = new System.Drawing.Size(265, 20);
       this.textParam.TabIndex = 23;
+      this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
+      this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
       // 
       // checkTwosided
       // 
@@ -152,7 +138,7 @@ namespace _113graph
       this.checkTwosided.AutoSize = true;
       this.checkTwosided.Checked = true;
       this.checkTwosided.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkTwosided.Location = new System.Drawing.Point(262, 382);
+      this.checkTwosided.Location = new System.Drawing.Point(133, 396);
       this.checkTwosided.Name = "checkTwosided";
       this.checkTwosided.Size = new System.Drawing.Size(57, 17);
       this.checkTwosided.TabIndex = 24;
@@ -163,7 +149,7 @@ namespace _113graph
       // 
       this.checkDebug.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkDebug.AutoSize = true;
-      this.checkDebug.Location = new System.Drawing.Point(390, 382);
+      this.checkDebug.Location = new System.Drawing.Point(257, 396);
       this.checkDebug.Name = "checkDebug";
       this.checkDebug.Size = new System.Drawing.Size(58, 17);
       this.checkDebug.TabIndex = 47;
@@ -176,18 +162,54 @@ namespace _113graph
       this.checkVsync.AutoSize = true;
       this.checkVsync.Checked = true;
       this.checkVsync.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkVsync.Location = new System.Drawing.Point(327, 382);
+      this.checkVsync.Location = new System.Drawing.Point(195, 396);
       this.checkVsync.Name = "checkVsync";
       this.checkVsync.Size = new System.Drawing.Size(57, 17);
       this.checkVsync.TabIndex = 46;
       this.checkVsync.Text = "VSync";
       this.checkVsync.UseVisualStyleBackColor = true;
+      this.checkVsync.CheckedChanged += new System.EventHandler(this.checkVsync_CheckedChanged);
+      // 
+      // textExpression
+      // 
+      this.textExpression.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.textExpression.Location = new System.Drawing.Point(150, 426);
+      this.textExpression.Name = "textExpression";
+      this.textExpression.Size = new System.Drawing.Size(476, 20);
+      this.textExpression.TabIndex = 48;
+      this.textExpression.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textExpression_KeyPress);
+      this.textExpression.MouseHover += new System.EventHandler(this.textExpression_MouseHover);
+      // 
+      // label1
+      // 
+      this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.label1.AutoSize = true;
+      this.label1.Location = new System.Drawing.Point(116, 430);
+      this.label1.Name = "label1";
+      this.label1.Size = new System.Drawing.Size(31, 13);
+      this.label1.TabIndex = 49;
+      this.label1.Text = "Expr:";
+      // 
+      // buttonRegenerate
+      // 
+      this.buttonRegenerate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonRegenerate.Location = new System.Drawing.Point(13, 425);
+      this.buttonRegenerate.Name = "buttonRegenerate";
+      this.buttonRegenerate.Size = new System.Drawing.Size(94, 23);
+      this.buttonRegenerate.TabIndex = 50;
+      this.buttonRegenerate.Text = "Regenerate";
+      this.buttonRegenerate.UseVisualStyleBackColor = true;
+      this.buttonRegenerate.Click += new System.EventHandler(this.buttonRegenerate_Click);
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(712, 446);
+      this.ClientSize = new System.Drawing.Size(794, 461);
+      this.Controls.Add(this.buttonRegenerate);
+      this.Controls.Add(this.label1);
+      this.Controls.Add(this.textExpression);
       this.Controls.Add(this.checkDebug);
       this.Controls.Add(this.checkVsync);
       this.Controls.Add(this.checkTwosided);
@@ -197,22 +219,18 @@ namespace _113graph
       this.Controls.Add(this.labelFps);
       this.Controls.Add(this.glControl1);
       this.Controls.Add(this.label3);
-      this.Controls.Add(this.buttonGenerate);
-      this.Controls.Add(this.labelFaces);
-      this.Controls.Add(this.buttonOpen);
-      this.MinimumSize = new System.Drawing.Size(680, 200);
+      this.Controls.Add(this.labelStatus);
+      this.MinimumSize = new System.Drawing.Size(740, 400);
       this.Name = "Form1";
       this.Text = "113 graph";
+      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
       this.ResumeLayout(false);
       this.PerformLayout();
 
     }
 
     #endregion
-
-    private System.Windows.Forms.Button buttonOpen;
-    private System.Windows.Forms.Label labelFaces;
-    private System.Windows.Forms.Button buttonGenerate;
+    private System.Windows.Forms.Label labelStatus;
     private System.Windows.Forms.Label label3;
     private OpenTK.GLControl glControl1;
     private System.Windows.Forms.Label labelFps;
@@ -222,6 +240,9 @@ namespace _113graph
     private System.Windows.Forms.CheckBox checkTwosided;
     private System.Windows.Forms.CheckBox checkDebug;
     private System.Windows.Forms.CheckBox checkVsync;
+    private System.Windows.Forms.TextBox textExpression;
+    private System.Windows.Forms.Label label1;
+    private System.Windows.Forms.Button buttonRegenerate;
   }
 }
 

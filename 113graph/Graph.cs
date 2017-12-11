@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
+using MathSupport;
 using NCalc;
 using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Utilities;
 
 namespace _113graph
 {
@@ -22,30 +25,38 @@ namespace _113graph
       expr = "1.0";
       trackballButton = MouseButtons.Left;
 
-      name = "josef Pelikán";
+      name = "Josef Pelikán";
     }
 
     /// <summary>
-    /// Vertex array (colors, normals, coords), index array
+    /// Vertex array ([color] [normal] coord), index array
     /// </summary>
     uint[] VBOid = null;
 
     /// <summary>
-    /// Currently allocated lengths of VBOs
+    /// Currently allocated lengths of VBOs (in bytes)
     /// </summary>
-    int[] VBOlen = null;
+    long[] VBOlen = null;
 
     /// <summary>
-    /// Stride for vertex-array.
+    /// Stride for vertex-array (in bytes).
     /// </summary>
     int stride = 0;
 
     /// <summary>
-    /// Number of vertices to draw..
+    /// Number of vertices (indices) to draw..
     /// </summary>
     int vertices = 0;
 
-    // !!!{{ TODO: add more graph data representation here..
+    /// <summary>
+    /// Use vertex colors for rendering.
+    /// </summary>
+    bool useColors = true;
+
+    /// <summary>
+    /// Use normal vectors for rendering.
+    /// </summary>
+    bool useNormals = false;
 
     /// <summary>
     /// Cached expression.
@@ -57,7 +68,25 @@ namespace _113graph
     /// </summary>
     string param = "";
 
-    // !!!}}
+    /// <summary>
+    /// Current model's center point.
+    /// </summary>
+    public Vector3 center = Vector3.Zero;
+
+    /// <summary>
+    /// Current model's diameter.
+    /// </summary>
+    public float diameter = 4.0f;
+
+    /// <summary>
+    /// Near point for the current model.
+    /// </summary>
+    public float near = 0.1f;
+
+    /// <summary>
+    /// Far point for the current model.
+    /// </summary>
+    public float far = 20.0f;
 
     public void InitOpenGL ( GLControl glc )
     {
@@ -75,15 +104,23 @@ namespace _113graph
       VBOid = new uint[ 2 ];           // one big buffer for vertex data, another buffer for tri/line indices
       GL.GenBuffers( 2, VBOid );
       GlInfo.LogError( "VBO init" );
+      VBOlen = new long[ 2 ];
+    }
+
+    public void InitSimulation ( string par, string expr )
+    {
+      param = "";
+      expression = "";
+      RegenerateGraph( par, expr );
     }
 
     /// <summary>
     /// Recompute the graph, prepare VBO content and upload it to the GPU...
     /// </summary>
+    /// <param name="param">New param string.</param>
     /// <param name="expr">New expression string.</param>
-    /// <param name="par">New param string.</param>
     /// <returns>null if OK, error message otherwise.</returns>
-    string RegenerateGraph ( string expr, string par )
+    public string RegenerateGraph ( string par, string expr )
     {
       // !!!{{ TODO: add graph data regeneration code here
 
@@ -91,22 +128,21 @@ namespace _113graph
            par == param )
         return null;                // nothing to do..
 
-      // Parse 'intervals'
       double xMin = -1.0, xMax = 1.0, yMin = -1.0, yMax = 1.0;
-      string[] limits = interv.Split( ' ' );
-      if ( limits.Length > 0 )
+
+      // input params:
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+
+      // domain: [xMin;xMax;yMin;yMax]
+      List<double> dom = null;
+      if ( Util.TryParse( p, "domain", ref dom, ';' ) &&
+           dom != null &&
+           dom.Count >= 4 )
       {
-        double.TryParse( limits[ 0 ], NumberStyles.Float, CultureInfo.InvariantCulture, out xMin );
-        if ( limits.Length > 1 )
-        {
-          double.TryParse( limits[ 1 ], NumberStyles.Float, CultureInfo.InvariantCulture, out xMax );
-          if ( limits.Length > 2 )
-          {
-            double.TryParse( limits[ 2 ], NumberStyles.Float, CultureInfo.InvariantCulture, out yMin );
-            if ( limits.Length > 3 )
-              double.TryParse( limits[ 3 ], NumberStyles.Float, CultureInfo.InvariantCulture, out yMax );
-          }
-        }
+        xMin = dom[ 0 ];
+        xMax = Math.Max( xMin + 1.0e-6, dom[ 1 ] );
+        yMin = dom[ 2 ];
+        yMax = Math.Max( yMin + 1.0e-6, dom[ 3 ] );
       }
 
       // Expression evaluation (THIS HAS TO BE CHANGED):
@@ -127,63 +163,73 @@ namespace _113graph
 
       // Everything seems to be OK:
       expression = expr;
-      param = par;
-      Vector3 v = new Vector3( (float)x, (float)result, (float)z );
+      param      = par;
+      Vector3  v = new Vector3( (float)x, (float)result, (float)z );
 
       // Data for VBO:
-      stride = Vector3.SizeInBytes * 2;
-      long newVboSize = stride * 3;   // pilot => one triangle
-      long newIndexSize = sizeof( uint ) * 3;
-      vertices = 3;
+      useColors = true;
+      useNormals = false;
+      stride = Vector3.SizeInBytes * (1 + (useColors ? 1 : 0) + (useNormals ? 1 : 0));
+      long newVboSize = stride * 3;     // pilot .. three vertices
+      vertices = 3;                     // pilot .. three indices
+      long newIndexSize = sizeof( uint ) * vertices;
 
       // OpenGL stuff
       GL.EnableClientState( ArrayCap.VertexArray );
-      // GL.EnableClientState( ArrayCap.NormalArray );   // uncomment this if necessary
-      GL.EnableClientState( ArrayCap.ColorArray );
+      if ( useColors )
+        GL.EnableClientState( ArrayCap.ColorArray );
+      if ( useNormals )
+        GL.EnableClientState( ArrayCap.NormalArray );
 
-      // Vertex array: color [normal] coord
+      // Vertex array: [color] [normal] coordinate
       GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
-      if ( newVboSize != vboSize )
+      if ( newVboSize != VBOlen[ 0 ] )
       {
-        vboSize = newVboSize;
-        GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw );
+        VBOlen[ 0 ] = newVboSize;
+        GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)VBOlen[ 0 ], IntPtr.Zero, BufferUsageHint.DynamicDraw );
       }
+
       IntPtr videoMemoryPtr = GL.MapBuffer( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
       unsafe
       {
         float* ptr = (float*)videoMemoryPtr.ToPointer();
+        // !!! TODO: you need to change this part (only one triangle is defined here) !!!
         float r = 0.1f;
         float g = 0.9f;
         float b = 0.5f;
+
         *ptr++ = r;
         *ptr++ = g;
         *ptr++ = b;
         *ptr++ = v.X;
         *ptr++ = v.Y;
         *ptr++ = v.Z;
+
         *ptr++ = r;
         *ptr++ = g;
         *ptr++ = b;
         *ptr++ = v.X + 1.0f;
         *ptr++ = v.Y;
         *ptr++ = v.Z;
+
         *ptr++ = r;
         *ptr++ = g;
         *ptr++ = b;
         *ptr++ = v.X;
-        *ptr++ = v.Y + 1.0f;
-        *ptr++ = v.Z;
+        *ptr++ = v.Y;
+        *ptr++ = v.Z + 1.0f;
       }
       GL.UnmapBuffer( BufferTarget.ArrayBuffer );
       GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
 
       // Index buffer
       GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-      if ( newIndexSize != indexSize )
+      if ( newIndexSize != VBOlen[ 0 ] )
       {
-        indexSize = newIndexSize;
-        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)indexSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
+        VBOlen[ 0 ] = newIndexSize;
+        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)VBOlen[ 0 ], IntPtr.Zero, BufferUsageHint.StaticDraw );
       }
+
       videoMemoryPtr = GL.MapBuffer( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
       unsafe
       {
@@ -194,26 +240,35 @@ namespace _113graph
       GL.UnmapBuffer( BufferTarget.ElementArrayBuffer );
       GL.BindBuffer( BufferTarget.ElementArrayBuffer, 0 );
 
+      // Change the graph dimension:
+      center   =     v;
+      diameter =  2.0f;
+      near     =  0.1f;
+      far      = 20.0f;
+
+      Form1.form.SetStatus( $"Tri: {vertices / 3}" );
+
       return null;
     }
 
     /// <summary>
     /// Rendering code itself (separated for clarity).
     /// </summary>
-    private void RenderScene ()
+    public void RenderScene ( ref long primitiveCounter )
     {
       // Scene rendering:
-      if ( indexSize > 0 )        // buffers are nonempty => render
+      if ( Form1.form.drawGraph &&
+           VBOlen[ 0 ] > 0L )        // buffers are nonempty => render
       {
-        // colors [normals] vertices
+        // [color] [normal] coordinate
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
         IntPtr p = IntPtr.Zero;
-        if ( true )               // colors are always here..
+        if ( useColors )             // are colors present?
         {
           GL.ColorPointer( 3, ColorPointerType.Float, stride, p );
           p += Vector3.SizeInBytes;
         }
-        if ( false )              // no normals yet
+        if ( useNormals )            // are normals present?
         {
           GL.NormalPointer( NormalPointerType.Float, stride, p );
           p += Vector3.SizeInBytes;
@@ -226,9 +281,9 @@ namespace _113graph
         // Multiple instancing of the scene:
         GL.DrawElements( PrimitiveType.Triangles, vertices, DrawElementsType.UnsignedInt, IntPtr.Zero );
 
-        triangleCounter += 1;
+        primitiveCounter += vertices / 3;
       }
-      else                              // color cube (JB)
+      else                           // color cube
       {
         GL.Begin( PrimitiveType.Quads );
 
@@ -270,7 +325,83 @@ namespace _113graph
 
         GL.End();
 
-        triangleCounter += 12;
+        primitiveCounter += 12;
+      }
+    }
+
+    public void Intersect ( ref Vector3d p0, ref Vector3d p1, ref double nearest )
+    {
+      // Compute intersection of the given ray (p0, p1) with the scene,
+      // act upon that (i.e. set status string, ..)
+      Vector2d uv;
+
+#if false
+
+      Vector3 A, B, C;
+      double curr = Geometry.RayTriangleIntersection( ref p0, ref p1, ref A, ref B, ref C, out uv );
+      if ( !double.IsInfinity( curr ) &&
+           curr < nearest )
+        nearest = curr;
+
+#else
+
+      Vector3d ul   = new Vector3d( -1.0, -1.0, -1.0 );
+      Vector3d size = new Vector3d( 2.0, 2.0, 2.0 );
+      if ( Geometry.RayBoxIntersection( ref p0, ref p1, ref ul, ref size, out uv ) )
+      {
+        nearest = uv.X;
+        Form1.form.SetStatus( string.Format( CultureInfo.InvariantCulture, "[{0:f2},{1:f2},{2:f2}]",
+                                             p0.X + nearest * p1.X,
+                                             p0.Y + nearest * p1.Y,
+                                             p0.Z + nearest * p1.Z ) );
+      }
+
+#endif
+    }
+
+    /// <summary>
+    /// Handles mouse-button push.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool MouseButtonDown ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles mouse-button release.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool MouseButtonUp ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles mouse move.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool MousePointerMove ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles keyboard key press.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool KeyHandle ( KeyEventArgs e )
+    {
+      return false;
+    }
+
+    public void Destroy ()
+    {
+      if ( VBOid != null &&
+           VBOid[ 0 ] != 0 )
+      {
+        GL.DeleteBuffers( 2, VBOid );
+        VBOid = null;
       }
     }
   }
