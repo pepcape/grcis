@@ -1,16 +1,19 @@
-﻿using System;
+﻿#define LOG
+
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 using Raster;
+using Utilities;
 
 namespace _014compressiontr
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
@@ -19,7 +22,10 @@ namespace _014compressiontr
     public Form1 ()
     {
       InitializeComponent();
-      Text += " (rev: " + rev + ')';
+
+      string name;
+      TRCodec.InitParams( out name );
+      Text += " (" + rev + ") '" + name + '\'';
     }
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
@@ -59,6 +65,10 @@ namespace _014compressiontr
       resetImage( ref diffImage );
     }
 
+#if LOG
+    static long totalLen = 0L;
+#endif
+
     private void buttonRecode_Click ( object sender, EventArgs e )
     {
       if ( inputImage == null ) return;
@@ -82,7 +92,9 @@ namespace _014compressiontr
       long fileSize = fs.Position;
 
       sw.Stop();
-      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Enc: {0:f3}s, {1:f1}kb", 1.0e-3 * sw.ElapsedMilliseconds, (fileSize + 1023L) >> 10 );
+      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Enc: {0:f3}s, {1}b ({2}x{3})",
+                                         1.0e-3 * sw.ElapsedMilliseconds, fileSize,
+                                         inputImage.Width, inputImage.Height );
 
       // 3. image decoding
       fs.Seek( 0L, SeekOrigin.Begin );
@@ -96,6 +108,12 @@ namespace _014compressiontr
         float RMSE = Draw.ImageRMSE( inputImage, outputImage, diffImage );
         labelResult.Text = string.Format( CultureInfo.InvariantCulture, "RMSE: {0:f2}", RMSE );
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
+#if LOG
+        // log results:
+        Util.LogFormat( "Recoding finished - RMSE: {0:f2}, codeSize: {1}, total: {2} (image res: {3}x{4})",
+                        RMSE, fileSize, (totalLen += fileSize),
+                        inputImage.Width, inputImage.Height );
+#endif
       }
       else
       {
