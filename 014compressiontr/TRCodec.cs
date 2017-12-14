@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
@@ -11,6 +9,14 @@ namespace _014compressiontr
 {
   class TRCodec
   {
+    /// <summary>
+    /// Data initialization.
+    /// </summary>
+    public static void InitParams ( out string name )
+    {
+      name = "Josef Pelikán";
+    }
+
     #region protected data
 
     protected const uint MAGIC = 0x5d21028a;
