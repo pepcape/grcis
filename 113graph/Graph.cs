@@ -156,6 +156,8 @@ namespace _113graph
         e.Parameters[ "y" ] = z;
         e.Parameters[ "z" ] = z;
         result = (double)e.Evaluate();
+        if ( double.IsNaN( result ) )
+          throw new Exception( "NCalc: NaN" );
       }
       catch ( Exception ex )
       {
