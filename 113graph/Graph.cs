@@ -225,10 +225,10 @@ namespace _113graph
 
       // Index buffer
       GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-      if ( newIndexSize != VBOlen[ 0 ] )
+      if ( newIndexSize != VBOlen[ 1 ] )
       {
-        VBOlen[ 0 ] = newIndexSize;
-        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)VBOlen[ 0 ], IntPtr.Zero, BufferUsageHint.StaticDraw );
+        VBOlen[ 1 ] = newIndexSize;
+        GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)VBOlen[ 1 ], IntPtr.Zero, BufferUsageHint.StaticDraw );
       }
 
       videoMemoryPtr = GL.MapBuffer( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
