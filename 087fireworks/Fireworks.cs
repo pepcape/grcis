@@ -1,9 +1,8 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.Windows.Forms;
 using MathSupport;
 using OpenglSupport;
 using OpenTK;
@@ -735,6 +734,42 @@ namespace _087fireworks
 
       return (int)origin;
     }
+
+    /// <summary>
+    /// Handles mouse-button push.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool MouseButtonDown ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles mouse-button release.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool MouseButtonUp ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles mouse move.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool MousePointerMove ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles keyboard key press.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public bool KeyHandle ( KeyEventArgs e )
+    {
+      return false;
+    }
   }
 
   public partial class Form1
@@ -742,16 +777,20 @@ namespace _087fireworks
     /// <summary>
     /// Form-data initialization.
     /// </summary>
-    static void InitParams ( out string param, out Vector3 center, out float diameter,
+    static void InitParams ( out string param, out string tooltip, out string name, out MouseButtons trackballButton, out Vector3 center, out float diameter,
                              out bool useTexture, out bool globalColor, out bool useNormals, out bool usePtSize )
     {
       param = "freq=4000.0,max=60000,slow=0.25,dynamic=1,variance=0.1,ticks=0";
+      tooltip = "freq,max,slow,dynamic,variance,ticks,screencast";
+      trackballButton = MouseButtons.Left;
       center = new Vector3( 0.0f, 1.0f, 0.0f );
       diameter = 5.0f;
       useTexture = false;
       globalColor = false;
       useNormals = false;
       usePtSize = true;
+
+      name = "Josef Pelikán";
     }
 
     /// <summary>

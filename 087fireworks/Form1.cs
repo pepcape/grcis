@@ -27,6 +27,7 @@ namespace _087fireworks
     /// </summary>
     Trackball tb = null;
 
+    string tooltip;
     ToolTip tt = new ToolTip();
 
     public Form1 ()
@@ -38,17 +39,21 @@ namespace _087fireworks
       bool useTexture, globalColor, useNormals, usePtSize;
       Vector3 center;
       float diameter;
-      InitParams( out param, out center, out diameter, out useTexture, out globalColor, out useNormals, out usePtSize );
+      string name;
+      MouseButtons trackballButton;
+      InitParams( out param, out tooltip, out name, out trackballButton,
+                  out center, out diameter, out useTexture, out globalColor, out useNormals, out usePtSize );
       checkTexture.Checked = useTexture;
       checkGlobalColor.Checked = globalColor;
       checkNormals.Checked = useNormals;
       checkPointSize.Checked = usePtSize;
       textParam.Text = param ?? "";
-      Text += " (" + rev + ')';
+      Text += " (" + rev + ") '" + name + '\'';
       SetLightEye( center, diameter );
 
       // Trackball:
       tb = new Trackball( center, diameter );
+      tb.Button = trackballButton;
 
       InitShaderRepository();
     }
@@ -136,17 +141,23 @@ namespace _087fireworks
 
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
-      tb.MouseDown( e );
+      if ( !tb.MouseDown( e ) &&
+           fw != null )
+        fw.MouseButtonDown( e );
     }
 
     private void glControl1_MouseUp ( object sender, MouseEventArgs e )
     {
-      tb.MouseUp( e );
+      if ( !tb.MouseUp( e ) &&
+           fw != null )
+        fw.MouseButtonUp( e );
     }
 
     private void glControl1_MouseMove ( object sender, MouseEventArgs e )
     {
-      tb.MouseMove( e );
+      if ( !tb.MouseMove( e ) &&
+           fw != null )
+        fw.MousePointerMove( e );
     }
 
     private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
@@ -161,7 +172,9 @@ namespace _087fireworks
 
     private void glControl1_KeyUp ( object sender, KeyEventArgs e )
     {
-      tb.KeyUp( e );
+      if ( !tb.KeyUp( e ) &&
+           fw != null )
+        fw.KeyHandle( e );
     }
 
     private void buttonReset_Click ( object sender, EventArgs e )
@@ -173,6 +186,20 @@ namespace _087fireworks
     {
       tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
                (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( tooltip, (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    private void glControl1_PreviewKeyDown ( object sender, PreviewKeyDownEventArgs e )
+    {
+      if ( e.KeyCode == Keys.Up ||
+           e.KeyCode == Keys.Down ||
+           e.KeyCode == Keys.Left ||
+           e.KeyCode == Keys.Right )
+        e.IsInputKey = true;
     }
   }
 }
