@@ -64,6 +64,7 @@
       this.glControl1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseDown);
       this.glControl1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseMove);
       this.glControl1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseUp);
+      this.glControl1.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.glControl1_PreviewKeyDown);
       this.glControl1.Resize += new System.EventHandler(this.glControl1_Resize);
       // 
       // labelFps
@@ -118,6 +119,7 @@
       this.textParam.Size = new System.Drawing.Size(461, 20);
       this.textParam.TabIndex = 29;
       this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
+      this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
       // 
       // label3
       // 
