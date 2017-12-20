@@ -1,10 +1,8 @@
 OpenTK binaries were compiled from source files because of problems
 in official distribution.
 
-After the situation improves, I'm going to switch the system back to normal,
-probably to the NuGet packaging (I hope it will work for both OpenTK and
-OpenTK.GLControl).
+Pre-release version 3.0.0 is used (commit 19f81ef as of 20. 12. 2017).
 
 OpenTK.support.zip
-  contains additional optional files" XML documentation and debugging info.
+  contains additional optional files: XML documentation and debugging info.
   You can unzip it if you want.
