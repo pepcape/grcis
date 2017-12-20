@@ -13,19 +13,19 @@
             </summary>
         </member>
         <member name="F:OpenTK.GLControl.components">
-            <summary> 
+            <summary>
             Required designer variable.
             </summary>
         </member>
         <member name="M:OpenTK.GLControl.Dispose(System.Boolean)">
-            <summary> 
+            <summary>
             Clean up any resources being used.
             </summary>
             <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         </member>
         <member name="M:OpenTK.GLControl.InitializeComponent">
-            <summary> 
-            Required method for Designer support - do not modify 
+            <summary>
+            Required method for Designer support - do not modify
             the contents of this method with the code editor.
             </summary>
         </member>
@@ -155,19 +155,6 @@
             <summary>
             Gets the <see cref="T:OpenTK.Platform.IWindowInfo"/> for this instance.
             </summary>
-        </member>
-        <member name="M:OpenTK.GLControl.GrabScreenshot">
-            <summary>
-            Grabs a screenshot of the frontbuffer contents.
-            When using multiple <c>GLControl</c>s, ensure that  <see cref="P:OpenTK.GLControl.Context"/>
-            is current before accessing this property.
-            <seealso cref="P:OpenTK.GLControl.Context"/>
-            <seealso cref="M:OpenTK.GLControl.MakeCurrent"/>
-            </summary>
-            <returns>A System.Drawing.Bitmap, containing the contents of the frontbuffer.</returns>
-            <exception cref="T:OpenTK.Graphics.GraphicsContextException">
-            Occurs when no OpenTK.Graphics.GraphicsContext is current in the calling thread.
-            </exception>
         </member>
         <member name="M:OpenTK.Platform.MacOS.Agl.aglChoosePixelFormat(System.IntPtr,System.Int32,System.Int32[])">
             <summary>

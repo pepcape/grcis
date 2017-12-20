@@ -685,7 +685,6 @@ namespace OpenglSupport
       GL.GetProgram( Id, GetProgramParameterName.ActiveUniforms, out uniformCount );
 
       int i, len;
-      StringBuilder name = new StringBuilder();
 
       // attributes:
       attributes.Clear();
@@ -693,10 +692,8 @@ namespace OpenglSupport
       {
         AttributeInfo info = new AttributeInfo();
         len = 0;
-        name.Clear();
 
-        GL.GetActiveAttrib( Id, i, 256, out len, out info.Size, out info.Type, name );
-        info.Name = name.ToString();
+        GL.GetActiveAttrib( Id, i, 256, out len, out info.Size, out info.Type, out info.Name );
         info.Address = GL.GetAttribLocation( Id, info.Name );
         attributes.Add( info.Name, info );
       }
@@ -707,10 +704,8 @@ namespace OpenglSupport
       {
         UniformInfo info = new UniformInfo();
         len = 0;
-        name.Clear();
 
-        GL.GetActiveUniform( Id, i, 256, out len, out info.Size, out info.Type, name );
-        info.Name = name.ToString();
+        GL.GetActiveUniform( Id, i, 256, out len, out info.Size, out info.Type, out info.Name );
         info.Address = GL.GetUniformLocation( Id, info.Name );
         uniforms.Add( info.Name, info );
       }
