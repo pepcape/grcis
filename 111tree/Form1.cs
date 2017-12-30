@@ -16,12 +16,13 @@ namespace _111tree
   {
     static readonly string rev = Util.SetVersion( "$Rev$" );
 
+    static string name;
+
     public Form1 ()
     {
       InitializeComponent();
 
       int setSize, querySize, K, seed;
-      string name;
       Tree.InitParams( out setSize, out querySize, out K, out seed, out name );
       numericSize.Value  = setSize;
       numericQuery.Value = querySize;
@@ -118,6 +119,7 @@ namespace _111tree
                                     1.0e-3 * sw.ElapsedMilliseconds,
                                     pointStat, boxStat, heapStat );
       labelStat.Text = stat1;
+      Util.Log( name + ':' );
       Util.LogFormat( "Build[ {0}, {1} ]: {2}", size, seed, stat1 );
 
       if ( output != null )
