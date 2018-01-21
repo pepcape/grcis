@@ -19,11 +19,13 @@ namespace _011compressionbw
     protected Bitmap outputImage = null;
     protected Bitmap diffImage = null;
 
+    string name;
+    string fileName;
+
     public Form1 ()
     {
       InitializeComponent();
 
-      string name;
       BWCodec.InitParams( out name );
       Text += " (" + rev + ") '" + name + '\'';
     }
@@ -63,6 +65,8 @@ namespace _011compressionbw
       setImage( ref inputImage, (Bitmap)Image.FromFile( ofd.FileName ) );
       resetImage( ref outputImage );
       resetImage( ref diffImage );
+
+      fileName = Path.GetFileNameWithoutExtension( ofd.FileName );
     }
 
 #if LOG
@@ -109,9 +113,9 @@ namespace _011compressionbw
         pictureBox1.Image = checkDiff.Checked ? diffImage : outputImage;
 #if LOG
         // log results:
-        Util.LogFormat( "Recoding finished - err: {0}, codeSize: {1}, total: {2} (image res: {3}x{4})",
+        Util.LogFormat( "Recoding finished - err: {0}, codeSize: {1}, total: {2} (image '{3}', res: {4}x{5}), name: '{6}'",
                         diffHash, fileSize, (totalLen += fileSize),
-                        inputImage.Width, inputImage.Height );
+                        fileName, inputImage.Width, inputImage.Height, name );
 #endif
       }
       else
