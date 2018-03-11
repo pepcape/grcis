@@ -1,0 +1,8 @@
+OpenTK binaries were compiled from source files because of problems
+in official distribution.
+
+Pre-release version 3.0.0 is used (commit 19f81ef as of 20. 12. 2017).
+
+OpenTK.support.zip
+  contains additional optional files: XML documentation and debugging info.
+  You can unzip it if you want.

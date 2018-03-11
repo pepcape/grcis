@@ -1,0 +1,165 @@
+================================================================================
+  TODO - urgent, bugs:
+================================================================================
+  ($Rev$ $Date$)
+================================================================================
+- 016videoslow: zkontrolovat Bitmap.Dispose()
+- zkontrolovat po zmenach 12. 11. 2015:
+  059-080  (setImage(), resetImage()..)
+
+- IImageFunction-s pro testy vzorkovani: sachovnice, soustredne krouzky..
+- textury nacitane z rastroveho obrazku "new Bitmap( Bitmap.FromFile( path1 ) )"
+- numericke chyby v Torusu (stinovaci paprsky?)
+- dopocitavat chybejici normaly u tri-mesh (po propojeni corner table)
+
+================================================================================
+  Long term:
+================================================================================
+- IEntropyCodec .. mozna upravit API, PutBits/GetBits
+- licence: Apache licence? Nebo BSD?
+- jazyk na definici RT sceny (XML?), nacitani RT scen az za behu
+- FloatImage: refactor for HDR file-format, storing multiple-channel images, ..
+  (054colorreduction)
+
+================================================================================
+  Directory:
+================================================================================
+001colormap (color-map scheme, 2010-)
+...
+004hdr (HDR image acquisition, 2010-2017)
+...
+051colormap (color-map derived from an image, 2012-2017)
+...
+057scene (procedural 3D scene, 2010-2017)
+...
+084filter (artistic image filter, 2015-2017)
+...
+087fireworks (3D fireworks simulation, 2015-2017)
+...
+092lines (lines only, 2016)
+093animation (lines only animation, 2016)
+094tonemapping (2016)
+095
+096puzzle (2016)
+097
+098svg (maze, 2017)
+099lines (horizontal/vertical lines only, 2017)
+----
+100-109 reserved for private projects:
+----
+100cirrus (point-cloud visualization, Josef Pelikan, 2016-?)
+101meshEditor (Gabriela Dvorakova, 2016)
+102meshVis (Katerina Bokova, 2016)
+103clrt (realtime RT in OpenCL, Josef Pelikan, 2016-?)
+104 -
+105 -
+106 -
+107 -
+108 -
+109 -
+----
+110animation (h/v lines only animation, 2017)
+111tree (spatial tree for 2D kNN, 2017)
+112dials (special segment display assembled from analog dials, 2017)
+113graph (R2->R graph in 3D using OpenGL, 2017)
+
+================================================================================
+  DONE:
+================================================================================
+x pridat par dalsich teles: Cube, Plane, Cylinder, Torus
+x pridat nejlepsi studentske sceny z ulohy 018: Hedgehog, Flags
+x gamma pre-compensation (gamma encoding) do SimpleImageSynthesizer
+x Progress objekt: prijemce informaci o prubehu renderingu
+x SVN revision number into Window title
+x RT vypocet umistit do separatniho vlakna, abort mechanismus
+x vylepsit SimpleImageSynthesizer, aby pocital adaptivne (viz JaGrLib)
+x statistiky poctu zpracovavanych pruseciku v CSG
+x vyber sceny pomoci combo-boxu
+x zkracene vyhodnocovani CSG
+x telesa presunout RayCastingBasic -> RayCastingSolids
+x asi je neco spatne s normalami u Cube
+x dalsi optimalizace CSG operaci (reuse seznamu, odstraneni zbytecneho new)
+x korektni vrzene stiny
+x super-sampling do RT (pravidelny i jittering)
+x zapinat jednotlive komponenty ray-tracingu (check-boxes)
+x vicevlaknovy vypocet RT (kazde vlakno svuj Rnd generator, sdileni zamykane bitmapy
+  s vysledkem, rozdeleni prace pres modulo)
+x testovaci scena pro Bezierovy plochy
+x animace kamerou v RT (uloha 046 - pilotni animovana kamera krouzici kolem
+  jednoho bodu)
+x Bezierova plocha: implementace s mikropolygony na konci subdivision
+  (neoptimalizovano na rychlost /R-tree/, to jeste prijde)
+x R-tree pro Bezierovy platy, pridany relevantni citace (statistika)
+x pridan citac paprsku (vsechny paprsky vrzene do sceny)
+x zadavani libovolneho rozliseni RT obrazku pomoci tlacitka a custom dialogu
+  (otestovano na max. rozliseni 20k x 20k pix)
+x vsude k "rank, total" pridat jeste "rnd", sdileni bude zalozeno na
+  "one-instance-per-thread"
+x prezentace zadaneho rozliseni na tlacitku "Resolution"
+x plosny svetelny zdroj + test Distr-RT rizeneho anti-aliasingem
+x OBJ musi umet cist polygony vetsi nez trojuhelniky
+x OBJ musi umet cist relativni indexy (zaporna cisla) a prokladane definice
+  vrcholu a sten
+x vyzkouset SAH heuristiku pri stavbe R-tree (optimal bucket size = 3)
+x OBJ umi cist .gz soubory
+x pridat lom svetla do RT (zatim bez ucasti osvetlovaciho modelu)
+x zkontrolovano: 002warping, 003colortransform, 005denoise, 006warping,
+  007bluenoise, 008kdtree, 009floodfill, 010quadtree, 011compressionbw,
+  013scene, 014compressiontr, 015avatar, 017graph, 018raycasting,
+  019raytracing, 025contours
+x Util.percent() - hledat "100.0"
+x 085: Reset button, pen-size, save/load mask, negative?
+x 068, 081: LockBits() input format fix
+x System.Globalization: needed for FPS counting
+x setImage improvement: 002warping, 003colortransform, 005denoise,
+  006warping, 007bluenoise, 008kdtree, 009floodfill, 010quadtree,
+  11compressionbw, 012animation, 013scene, 014compressiontr,
+  015avatar, 017graph, 018raycasting, 019raytracing, 025contours,
+  028rtmesh, 029flow, 033colormap, 034ascii, 035plasma, 036circles,
+  037floodfill, 038trackball, 039terrain, 040morph3d, 041lsystems,
+  042compressionpre, 46cameranim, 048montecarlo, 049distributedrt,
+  050rtmesh, 051, 052, 053, 054, 055, 056, 057, 058
+  081fullcolor, 082circles, 083animation, 084filter, 085segmentation
+x CheckCornerTable into the library
+x konstrukce ctyrstenu do Construction.cs
+x prvni verze projektu OpenGL + GLSL
+x stinovani do 070subdivision (?)
+x pouziti shaderu: 086shader
+
+    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+      Text += " (rev: " + rev + ')';
+
+    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    {
+      pictureBox1.Image = newImage;
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = newImage;
+    }
+
+    private void resetImage ( ref Bitmap bakImage )
+    {
+      if ( bakImage != null )
+        bakImage.Dispose();
+      bakImage = null;
+    }
+
+x vyzkouset GLSL shadery (upgrade OpenTK?)
+x OpenCL integration test (using Cloo)
+x ignore: .vs (temporary Visual Studio 2015 files)
+x 090opencl: project template (Mandelbrot demo in CPU/OpenCL)
+x 090opencl: 1st version of OpenCL kernel works!
+x 090opencl: OpenCL optimization.
+x StaticCamera fix (thx to Petr Houska)
+x Sphere flake test scene (checking CSGInnerNode relative transforms)
+x text field for more specific RayScene definitions (048montecarlo &
+  049 so far)
+x RT update: 018, 019, 046, 050, 062
+x 091svg: project template (SVG generated by a console application, config
+  system /key=value/, command-line parsing)
+x 092lines: canvas capable only of [poly-]line drawing
+x 093animation: animation based on line drawing (shared Canvas with 092)
+x FloatImage: HDR format persistence
+x 094: HDR tone-mapping project
+x 048, 049: concurrent computing was improved (support for ITimeDependent)
+x 090opencl: fixed OpenGL interop (at least clEnqueueCopyBufferToImage() approach is functional)

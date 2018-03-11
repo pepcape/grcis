@@ -1,0 +1,17 @@
+base       = ./input/
+outDir     = ./output/
+
+output     = test.html
+imageWidth = 600
+
+forfiles   = ./input/051-*.png, image={0}
+forfiles   = ./input/*.cs, source={0}
+library    = ../../common/MathSupport.cs
+
+sortColors = false
+minV = 0.3
+maxV = 0.8
+minS = 0.1
+
+include = eval051.txt
+include = info051.txt
