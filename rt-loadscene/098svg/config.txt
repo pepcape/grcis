@@ -1,9 +1,0 @@
-# sample configuration file
-#
-# run 098svg.exe application with command-line:
-# 098svg -c config.txt
-
-html   = 1
-
-output = out.html
-generate

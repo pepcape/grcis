@@ -1,4 +1,0 @@
-forfiles   = ./input/*.jpg, image={0}
-
-param = scale=4.0,rnd=1.0,dot=5,gamma=0.1
-name  = Test name
