@@ -45,7 +45,7 @@ namespace _048rtmontecarlo
       Form1 f = Form1.singleton;
 
       // 1. default scenes from RayCastingScenes
-      f.sceneRepository = new Dictionary<string, object>( Scenes.Repository );
+      f.sceneRepository = new Dictionary<string, object>( Scenes.staticRepository );
 
       // 2. optionally add custom scenes
       f.sceneRepository[ "Test scene" ] = new InitSceneDelegate( CustomScene.TestScene );
