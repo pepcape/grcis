@@ -31,25 +31,141 @@ namespace Rendering
   public class Scenes
   {
     /// <summary>
-    /// Scene repository.
-    /// InitSceneDelegate, InitSceneParamDelegate can be used.
+    /// Scene repository: sceneName -> {sceneDelegate | scriptFileContent}
     /// </summary>
-    public static Dictionary<string, object> Repository;
+    public static Dictionary<string, object> staticRepository;
 
     static Scenes ()
     {
-      Repository = new Dictionary<string, object>();
-      Repository[ "Five balls" ]           = new InitSceneDelegate( FiveBalls );
-      Repository[ "Hedgehog in the cage" ] = new InitSceneDelegate( HedgehogInTheCage );
-      Repository[ "Flags" ]                = new InitSceneDelegate( Flags );
-      Repository[ "Sphere on the plane" ]  = new InitSceneDelegate( SpherePlane );
-      Repository[ "Two spheres" ]          = new InitSceneParamDelegate( TwoSpheres );
-      Repository[ "Sphere flake" ]         = new InitSceneParamDelegate( SphereFlake );
-      Repository[ "Cubes" ]                = new InitSceneParamDelegate( Cubes );
-      Repository[ "Cylinders" ]            = new InitSceneDelegate( Cylinders );
-      Repository[ "Circus" ]               = new InitSceneDelegate( Circus );
-      Repository[ "Toroids" ]              = new InitSceneDelegate( Toroids );
-      Repository[ "Bezier" ]               = new InitSceneDelegate( Bezier );
+      staticRepository = new Dictionary<string, object>();
+      staticRepository[ "Five balls" ]           = new InitSceneDelegate( FiveBalls );
+      staticRepository[ "Hedgehog in the cage" ] = new InitSceneDelegate( HedgehogInTheCage );
+      staticRepository[ "Flags" ]                = new InitSceneDelegate( Flags );
+      staticRepository[ "Sphere on the plane" ]  = new InitSceneDelegate( SpherePlane );
+      staticRepository[ "Two spheres" ]          = new InitSceneParamDelegate( TwoSpheres );
+      staticRepository[ "Sphere flake" ]         = new InitSceneParamDelegate( SphereFlake );
+      staticRepository[ "Cubes" ]                = new InitSceneParamDelegate( Cubes );
+      staticRepository[ "Cylinders" ]            = new InitSceneDelegate( Cylinders );
+      staticRepository[ "Circus" ]               = new InitSceneDelegate( Circus );
+      staticRepository[ "Toroids" ]              = new InitSceneDelegate( Toroids );
+      staticRepository[ "Bezier" ]               = new InitSceneDelegate( Bezier );
+    }
+
+    /// <summary>
+    /// Reads additional scenes defined in a command-line arguments.
+    /// </summary>
+    /// <param name="args">Command-line arguments.</param>
+    /// <param name="repo">Existing scene repository to be modified (sceneName -&gt; sceneDelegate | scriptFileName).</param>
+    /// <returns>How many scenes were found.</returns>
+    public static int ReadFromConfig ( string[] args, Dictionary<string, object> repo )
+    {
+      // <sceneFile.cs>
+      // -scene <sceneFile>
+      // -mask <sceneFile-mask>
+      // -dir <directory>
+      // more options to add? (super-sampling factor, output image file-name, output resolution, rendering flags, ..)
+
+      int count = 0;
+      for ( int i = 0; i < args.Length; i++ )
+      {
+        if ( string.IsNullOrEmpty( args[ i ] ) )
+          continue;
+
+        string fileName = null;   // file-name or file-mask
+        string dir = null;        // directory
+
+        if ( args[ i ][ 0 ] != '-' )
+        {
+          if ( File.Exists( args[ i ] ) )
+            fileName = Path.GetFullPath( args[ i ] );
+        }
+        else
+        {
+          string opt = args[ i ].Substring( 1 );
+          if ( opt == "scene" && i + 1 < args.Length )
+          {
+            if ( File.Exists( args[ ++i ] ) )
+              fileName = Path.GetFullPath( args[ i ] );
+          }
+          else if ( opt == "dir" && i + 1 < args.Length )
+          {
+            if ( Directory.Exists( args[ ++i ] ) )
+            {
+              dir = Path.GetFullPath( args[ i ] );
+              fileName = "*.cs";
+            }
+          }
+          else if ( opt == "mask" && i + 1 < args.Length )
+          {
+            dir = Path.GetFullPath( args[ ++i ] );
+            fileName = Path.GetFileName( dir );
+            dir = Path.GetDirectoryName( dir );
+          }
+
+          // Here new commands will be handled..
+          // else if ( opt == 'xxx' ..
+        }
+
+        if ( !string.IsNullOrEmpty( dir ) )
+        {
+          if ( !string.IsNullOrEmpty( fileName ) )
+          {
+            // valid dir & file-mask:
+            try
+            {
+              string[] search = Directory.GetFiles( dir, fileName );
+              foreach ( string fn in search )
+              {
+                string path = Path.GetFullPath( fn );
+                if ( File.Exists( path ) )
+                {
+                  string key = Path.GetFileName( path );
+                  if ( key.EndsWith( ".cs" ) )
+                    key = key.Substring( 0, key.Length - 3 );
+
+                  repo[ "* " + key ] = path;
+                  count++;
+                }
+              }
+            }
+            catch ( IOException )
+            {
+              Console.WriteLine( $"Warning: I/O error in dir/mask command: '{dir}'/'{fileName}'" );
+            }
+            catch ( UnauthorizedAccessException )
+            {
+              Console.WriteLine( $"Warning: access error in dir/mask command: '{dir}'/'{fileName}'" );
+            }
+          }
+        }
+        else if ( !string.IsNullOrEmpty( fileName ) )
+        {
+          // single scene file:
+          try
+          {
+            string path = Path.GetFullPath( fileName );
+            if ( File.Exists( path ) )
+            {
+              string key = Path.GetFileName( path );
+              if ( key.EndsWith( ".cs" ) )
+                key = key.Substring( 0, key.Length - 3 );
+
+              repo[ "* " + key ] = path;
+              count++;
+            }
+          }
+          catch ( IOException )
+          {
+            Console.WriteLine( $"Warning: I/O error in scene command: '{fileName}'" );
+          }
+          catch ( UnauthorizedAccessException )
+          {
+            Console.WriteLine( $"Warning: access error in scene command: '{fileName}'" );
+          }
+        }
+      }
+
+      return count;
     }
 
     /// <summary>
@@ -548,7 +664,7 @@ namespace Rendering
     /// <summary>
     /// Infinite plane with limited transparent sphereflake on it
     /// </summary>
-    public static void SphereFlake ( IRayScene sc, string param =null )
+    public static void SphereFlake ( IRayScene sc, string param = null )
     {
       Debug.Assert( sc != null );
 
@@ -562,8 +678,8 @@ namespace Rendering
       sc.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
 
       // Camera:
-      sc.Camera = new StaticCamera( new Vector3d(  1.6,  2.2, -7.0 ),
-                                    new Vector3d( -0.12, -0.3,  1.0 ),
+      sc.Camera = new StaticCamera( new Vector3d( 1.6, 2.2, -7.0 ),
+                                    new Vector3d( -0.12, -0.3, 1.0 ),
                                     50.0 );
 
       // Light sources:
@@ -606,7 +722,7 @@ namespace Rendering
         }
 
       // Sphere flake - recursive definition:
-      ISceneNode sf  = flake( depth, coef );
+      ISceneNode sf = flake( depth, coef );
       sf.SetAttribute( PropertyName.MATERIAL, pm );
       root.InsertChild( sf, Matrix4d.Identity );
 
@@ -1149,41 +1265,41 @@ namespace Rendering
           result[ i ] = "";
         else
           if ( names[ i ].Contains( @"\" ) )
-            result[ i ] = names[ i ];
-          else
-            try
+          result[ i ] = names[ i ];
+        else
+          try
+          {
+            string[] search = Directory.GetFiles( ".", names[ i ], SearchOption.AllDirectories );
+            if ( search.Length > 0 )
             {
-              string[] search = Directory.GetFiles( ".", names[ i ], SearchOption.AllDirectories );
-              if ( search.Length > 0 )
-              {
-                result[ i ] = search[ 0 ];
-                continue;
-              }
-              search = Directory.GetFiles( "..", names[ i ], SearchOption.AllDirectories );
-              if ( search.Length > 0 )
-              {
-                result[ i ] = search[ 0 ];
-                continue;
-              }
-              search = Directory.GetFiles( @"..\..", names[ i ], SearchOption.AllDirectories );
-              if ( search.Length > 0 )
-              {
-                result[ i ] = search[ 0 ];
-                continue;
-              }
-              search = Directory.GetFiles( @"..\..\..", names[ i ], SearchOption.AllDirectories );
-              if ( search.Length > 0 )
-              {
-                result[ i ] = search[ 0 ];
-                continue;
-              }
+              result[ i ] = search[ 0 ];
+              continue;
             }
-            catch ( IOException )
+            search = Directory.GetFiles( "..", names[ i ], SearchOption.AllDirectories );
+            if ( search.Length > 0 )
             {
+              result[ i ] = search[ 0 ];
+              continue;
             }
-            catch ( UnauthorizedAccessException )
+            search = Directory.GetFiles( @"..\..", names[ i ], SearchOption.AllDirectories );
+            if ( search.Length > 0 )
             {
+              result[ i ] = search[ 0 ];
+              continue;
             }
+            search = Directory.GetFiles( @"..\..\..", names[ i ], SearchOption.AllDirectories );
+            if ( search.Length > 0 )
+            {
+              result[ i ] = search[ 0 ];
+              continue;
+            }
+          }
+          catch ( IOException )
+          {
+          }
+          catch ( UnauthorizedAccessException )
+          {
+          }
 
       return result;
     }
@@ -1291,6 +1407,5 @@ namespace Rendering
     {
       return SceneObj( sc, new Vector3d( -0.7, -0.25, 0.7 ), 70.0, 0.9, "toyplane.obj", names, new double[] { 0.2, 0.8, 0.0 } );
     }
-
   }
 }

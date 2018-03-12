@@ -13,7 +13,7 @@ namespace Utilities
   /// <summary>
   /// Assorted utilities.
   /// </summary>
-  class Util
+  public class Util
   {
     static Util ()
     {
