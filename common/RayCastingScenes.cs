@@ -82,7 +82,9 @@ namespace Rendering
         else
         {
           string opt = args[ i ].Substring( 1 );
-          if ( opt == "scene" && i + 1 < args.Length )
+          if ( opt == "nodefault" )
+            repo.Clear();
+          else if ( opt == "scene" && i + 1 < args.Length )
           {
             if ( File.Exists( args[ ++i ] ) )
               fileName = Path.GetFullPath( args[ i ] );
@@ -929,7 +931,7 @@ namespace Rendering
       root.InsertChild( test2Spheres( SetOperation.Intersection ), Matrix4d.CreateTranslation( 4, -1.5, 0 ) );
     }
 
-    protected static CSGInnerNode head ()
+    public static CSGInnerNode head ()
     {
       CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
 
@@ -1026,7 +1028,7 @@ namespace Rendering
       return root;
     }
 
-    protected static CSGInnerNode testWithCylindersXor ()
+    public static CSGInnerNode testWithCylindersXor ()
     {
       CSGInnerNode root = new CSGInnerNode( SetOperation.Difference );
       root.InsertChild( testWithCylinders( SetOperation.Union ), Matrix4d.Identity );
@@ -1035,7 +1037,7 @@ namespace Rendering
       return root;
     }
 
-    protected static CSGInnerNode testWithCylinders ( SetOperation op )
+    public static CSGInnerNode testWithCylinders ( SetOperation op )
     {
       // scene:
       CSGInnerNode root = new CSGInnerNode( op );
@@ -1052,7 +1054,7 @@ namespace Rendering
       return root;
     }
 
-    protected static CSGInnerNode test2Spheres ( SetOperation op )
+    public static CSGInnerNode test2Spheres ( SetOperation op )
     {
       // scene:
       CSGInnerNode root = new CSGInnerNode( op );
@@ -1068,7 +1070,7 @@ namespace Rendering
       return root;
     }
 
-    protected static CSGInnerNode test6Spheres ( SetOperation op )
+    public static CSGInnerNode test6Spheres ( SetOperation op )
     {
       // scene:
       CSGInnerNode root = new CSGInnerNode( op );
@@ -1100,7 +1102,7 @@ namespace Rendering
       return root;
     }
 
-    protected static CSGInnerNode testXor2 ()
+    public static CSGInnerNode testXor2 ()
     {
       // testovani probiha podle vzoru (a union b) - (a xor b) = (a and b)
       // takze udelame levou stranu rovnice a to nam da intersection

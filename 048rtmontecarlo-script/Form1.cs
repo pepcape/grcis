@@ -168,15 +168,19 @@ namespace _048rtmontecarlo
           List<Assembly> assemblies = new List<Assembly>();
           assemblies.Add( Assembly.GetExecutingAssembly() );
           foreach ( var assemblyName in assemblyNames )
-          {
             assemblies.Add( Assembly.Load( assemblyName ) );
-          }
+
+          List<string> imports = new List<string>();
+          imports.Add( "System.Collections.Generic" );
+          imports.Add( "OpenTK" );
+          imports.Add( "Rendering" );
+          imports.Add( "Utilities" );
 
           bool ok = true;
           Globals globals = new Globals { sc = sc, param = textParam.Text };
           try
           {
-            var task = CSharpScript.RunAsync( scriptSource, globals: globals, options: ScriptOptions.Default.WithReferences( assemblies ) );
+            var task = CSharpScript.RunAsync( scriptSource, globals: globals, options: ScriptOptions.Default.WithReferences( assemblies ).AddImports( imports ) );
             Task.WaitAll( task );
           }
           catch ( CompilationErrorException e )
@@ -187,7 +191,7 @@ namespace _048rtmontecarlo
 
           if ( ok )
           {
-            SetText( "Script ok.." );
+            SetText( "Script finished ok." );
             return globals.sc;
           }
         }
