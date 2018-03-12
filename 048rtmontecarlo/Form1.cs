@@ -24,7 +24,7 @@ namespace _048rtmontecarlo
     protected Bitmap outputImage = null;
 
     /// <summary>
-    /// Scenes for the listbox.
+    /// Scenes for the listbox: sceneName -> {sceneDelegate | scriptFileName}
     /// </summary>
     public Dictionary<string,object> sceneRepository = null;
 
@@ -112,21 +112,22 @@ namespace _048rtmontecarlo
 
     /// <summary>
     /// Default behavior - create scene selected in the combo-box.
+    /// Can handle InitSceneDelegate and InitSceneParamDelegate.
     /// </summary>
     public IRayScene SceneByComboBox ()
     {
       DefaultRayScene sc = new DefaultRayScene();
       string sceneName = (string)comboScene.Items[ selectedScene ];
 
-      object initFunction;
+      object definition;
       InitSceneDelegate isd = null;
       InitSceneParamDelegate ispd = null;
-      sceneRepository.TryGetValue( sceneName, out initFunction );
-      isd = initFunction as InitSceneDelegate;
-      ispd = initFunction as InitSceneParamDelegate;
+      sceneRepository.TryGetValue( sceneName, out definition );
+      isd = definition as InitSceneDelegate;
+      ispd = definition as InitSceneParamDelegate;
       if ( isd == null &&
            ispd == null )
-        isd = Scenes.Repository[ "Sphere on the plane" ] as InitSceneDelegate;
+        isd = Scenes.staticRepository[ "Sphere on the plane" ] as InitSceneDelegate;
 
       if ( isd != null )
         isd( sc );
