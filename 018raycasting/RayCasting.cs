@@ -1,10 +1,5 @@
 ﻿// Author: Josef Pelikan
 
-using System.Collections.Generic;
-using System.Diagnostics;
-using OpenTK;
-using Rendering;
-
 namespace Rendering
 {
   public class FormSupport

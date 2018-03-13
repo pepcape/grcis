@@ -9,12 +9,13 @@ using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Rendering;
+using Utilities;
 
 namespace _019raytracing
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     public static Form1 singleton = null;
 
@@ -125,13 +126,14 @@ namespace _019raytracing
       ispd = initFunction as InitSceneParamDelegate;
       if ( isd == null &&
            ispd == null )
-        isd = Scenes.Repository[ "Sphere on the plane" ] as InitSceneDelegate;
+        return Scenes.DefaultScene( sc );
 
       if ( isd != null )
         isd( sc );
       else
         ispd?.Invoke( sc, textParam.Text );
 
+      SetText( $"Rendering '{sceneName}'.." );
       return sc;
     }
 
