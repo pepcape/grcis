@@ -2,20 +2,20 @@
 CSGInnerNode root = new CSGInnerNode(SetOperation.Union);
 root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
 root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.7, 0.2, 16));
-sc.Intersectable = root;
+scene.Intersectable = root;
 
 // Background color:
-sc.BackgroundColor = new double[] { 0.0, 0.15, 0.2 };
+scene.BackgroundColor = new double[] { 0.0, 0.15, 0.2 };
 
 // Camera:
-sc.Camera = new StaticCamera(new Vector3d(0.0, 0.0, -10.0),
-                             new Vector3d(0.0, -0.04, 1.0),
-                             60.0);
+scene.Camera = new StaticCamera(new Vector3d(0.0, 0.0, -10.0),
+                                new Vector3d(0.0, -0.04, 1.0),
+                                60.0);
 
 // Light sources:
-sc.Sources = new System.Collections.Generic.LinkedList<ILightSource>();
-sc.Sources.Add(new AmbientLightSource(1.8));
-sc.Sources.Add(new PointLightSource(new Vector3d(-5.0, 3.0, -3.0), 2.0));
+scene.Sources = new System.Collections.Generic.LinkedList<ILightSource>();
+scene.Sources.Add(new AmbientLightSource(1.8));
+scene.Sources.Add(new PointLightSource(new Vector3d(-5.0, 3.0, -3.0), 2.0));
 
 // --- NODE DEFINITIONS ----------------------------------------------------
 

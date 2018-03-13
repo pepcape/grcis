@@ -22,7 +22,7 @@ namespace _048rtmontecarlo
       f.sceneRepository = new Dictionary<string, object>( Scenes.staticRepository );
 
       // 2. scenes read from the command-line:
-      int rd = Scenes.ReadFromConfig( args, f.sceneRepository );
+      int rd = Scripts.ReadFromConfig( args, f.sceneRepository );
       if ( rd > 0 )
         f.SetText( $"{rd} scene scripts found" );
       else
