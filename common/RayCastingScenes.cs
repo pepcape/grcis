@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using OpenTK;
 using Scene3D;
 using Utilities;
@@ -52,122 +51,14 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Reads additional scenes defined in a command-line arguments.
+    /// Something very simple.
     /// </summary>
-    /// <param name="args">Command-line arguments.</param>
-    /// <param name="repo">Existing scene repository to be modified (sceneName -&gt; sceneDelegate | scriptFileName).</param>
-    /// <returns>How many scenes were found.</returns>
-    public static int ReadFromConfig ( string[] args, Dictionary<string, object> repo )
+    public static IRayScene DefaultScene ( IRayScene sc =null )
     {
-      // <sceneFile.cs>
-      // -scene <sceneFile>
-      // -mask <sceneFile-mask>
-      // -dir <directory>
-      // more options to add? (super-sampling factor, output image file-name, output resolution, rendering flags, ..)
-
-      int count = 0;
-      for ( int i = 0; i < args.Length; i++ )
-      {
-        if ( string.IsNullOrEmpty( args[ i ] ) )
-          continue;
-
-        string fileName = null;   // file-name or file-mask
-        string dir = null;        // directory
-
-        if ( args[ i ][ 0 ] != '-' )
-        {
-          if ( File.Exists( args[ i ] ) )
-            fileName = Path.GetFullPath( args[ i ] );
-        }
-        else
-        {
-          string opt = args[ i ].Substring( 1 );
-          if ( opt == "nodefault" )
-            repo.Clear();
-          else if ( opt == "scene" && i + 1 < args.Length )
-          {
-            if ( File.Exists( args[ ++i ] ) )
-              fileName = Path.GetFullPath( args[ i ] );
-          }
-          else if ( opt == "dir" && i + 1 < args.Length )
-          {
-            if ( Directory.Exists( args[ ++i ] ) )
-            {
-              dir = Path.GetFullPath( args[ i ] );
-              fileName = "*.cs";
-            }
-          }
-          else if ( opt == "mask" && i + 1 < args.Length )
-          {
-            dir = Path.GetFullPath( args[ ++i ] );
-            fileName = Path.GetFileName( dir );
-            dir = Path.GetDirectoryName( dir );
-          }
-
-          // Here new commands will be handled..
-          // else if ( opt == 'xxx' ..
-        }
-
-        if ( !string.IsNullOrEmpty( dir ) )
-        {
-          if ( !string.IsNullOrEmpty( fileName ) )
-          {
-            // valid dir & file-mask:
-            try
-            {
-              string[] search = Directory.GetFiles( dir, fileName );
-              foreach ( string fn in search )
-              {
-                string path = Path.GetFullPath( fn );
-                if ( File.Exists( path ) )
-                {
-                  string key = Path.GetFileName( path );
-                  if ( key.EndsWith( ".cs" ) )
-                    key = key.Substring( 0, key.Length - 3 );
-
-                  repo[ "* " + key ] = path;
-                  count++;
-                }
-              }
-            }
-            catch ( IOException )
-            {
-              Console.WriteLine( $"Warning: I/O error in dir/mask command: '{dir}'/'{fileName}'" );
-            }
-            catch ( UnauthorizedAccessException )
-            {
-              Console.WriteLine( $"Warning: access error in dir/mask command: '{dir}'/'{fileName}'" );
-            }
-          }
-        }
-        else if ( !string.IsNullOrEmpty( fileName ) )
-        {
-          // single scene file:
-          try
-          {
-            string path = Path.GetFullPath( fileName );
-            if ( File.Exists( path ) )
-            {
-              string key = Path.GetFileName( path );
-              if ( key.EndsWith( ".cs" ) )
-                key = key.Substring( 0, key.Length - 3 );
-
-              repo[ "* " + key ] = path;
-              count++;
-            }
-          }
-          catch ( IOException )
-          {
-            Console.WriteLine( $"Warning: I/O error in scene command: '{fileName}'" );
-          }
-          catch ( UnauthorizedAccessException )
-          {
-            Console.WriteLine( $"Warning: access error in scene command: '{fileName}'" );
-          }
-        }
-      }
-
-      return count;
+      if ( sc == null )
+        sc = new DefaultRayScene();
+      SpherePlane( sc );
+      return sc;
     }
 
     /// <summary>
