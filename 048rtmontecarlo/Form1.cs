@@ -127,13 +127,14 @@ namespace _048rtmontecarlo
       ispd = definition as InitSceneParamDelegate;
       if ( isd == null &&
            ispd == null )
-        isd = Scenes.staticRepository[ "Sphere on the plane" ] as InitSceneDelegate;
+        return Scenes.DefaultScene( sc );
 
       if ( isd != null )
         isd( sc );
       else
         ispd?.Invoke( sc, textParam.Text );
 
+      SetText( $"Rendering '{sceneName}'.." );
       return sc;
     }
 
@@ -439,15 +440,17 @@ namespace _048rtmontecarlo
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 
-    public Form1 ()
+    public Form1 ( string[] args )
     {
       singleton = this;
       InitializeComponent();
-      Text += " (rev: " + rev + ')';
       progress = new RenderingProgress( this );
 
       // Init scenes etc.
-      FormSupport.InitializeScenes();
+      string name;
+      FormSupport.InitializeScenes( args, out name );
+      Text += " (rev: " + rev + ") '" + name + '\'';
+
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 

@@ -4,17 +4,12 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
-using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Rendering;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Scripting;
 using Utilities;
-using System.IO;
 
 namespace _048rtmontecarlo
 {
@@ -34,7 +29,7 @@ namespace _048rtmontecarlo
     /// </summary>
     public Dictionary<string, object> sceneRepository = null;
 
-    public Scenes MyScenes;
+    public Scripts MyScenes;
 
     /// <summary>
     /// Index of the current (selected) scene.
@@ -118,94 +113,20 @@ namespace _048rtmontecarlo
     /// </summary>
     protected RenderingProgress progress = null;
 
-    public class Globals
-    {
-      public IRayScene sc;
-      public string param;
-    }
-
     /// <summary>
     /// Default behavior - create scene selected in the combo-box.
     /// Can handle InitSceneDelegate, InitSceneParamDelegate or CSscript file-name
     /// </summary>
     public IRayScene SceneByComboBox ()
     {
-      DefaultRayScene sc = new DefaultRayScene();
       string sceneName = (string)comboScene.Items[ selectedScene ];
 
       object definition;
-      sceneRepository.TryGetValue( sceneName, out definition );
-      InitSceneDelegate isd = definition as InitSceneDelegate;
-      InitSceneParamDelegate ispd = definition as InitSceneParamDelegate;
-      string scriptFileName = definition as string;
-      string scriptSource = null;
+      if ( sceneRepository.TryGetValue( sceneName, out definition ) )
+        return Scripts.SceneFromObject( sceneName, definition, textParam.Text, str => SetText( str ) );
 
-      if ( !string.IsNullOrEmpty( scriptFileName ) &&
-           File.Exists( scriptFileName ) )
-      {
-        try
-        {
-          scriptSource = File.ReadAllText( scriptFileName );
-        }
-        catch ( IOException )
-        {
-          Console.WriteLine( $"Warning: I/O error in scene read: '{scriptFileName}'" );
-          scriptSource = null;
-        }
-        catch ( UnauthorizedAccessException )
-        {
-          Console.WriteLine( $"Warning: access error in scene read: '{scriptFileName}'" );
-          scriptSource = null;
-        }
-
-        if ( !string.IsNullOrEmpty( scriptSource ) )
-        {
-          SetText( "Compiling and running scene script.." );
-
-          // interpret the CS-script defining the scene:
-          var assemblyNames = Assembly.GetExecutingAssembly().GetReferencedAssemblies();
-
-          List<Assembly> assemblies = new List<Assembly>();
-          assemblies.Add( Assembly.GetExecutingAssembly() );
-          foreach ( var assemblyName in assemblyNames )
-            assemblies.Add( Assembly.Load( assemblyName ) );
-
-          List<string> imports = new List<string>();
-          imports.Add( "System.Collections.Generic" );
-          imports.Add( "OpenTK" );
-          imports.Add( "Rendering" );
-          imports.Add( "Utilities" );
-
-          bool ok = true;
-          Globals globals = new Globals { sc = sc, param = textParam.Text };
-          try
-          {
-            var task = CSharpScript.RunAsync( scriptSource, globals: globals, options: ScriptOptions.Default.WithReferences( assemblies ).AddImports( imports ) );
-            Task.WaitAll( task );
-          }
-          catch ( CompilationErrorException e )
-          {
-            MessageBox.Show( $"Error compiling scene script: {e.Message}, using default scene", "CSscript Error" );
-            ok = false;
-          }
-
-          if ( ok )
-          {
-            SetText( "Script finished ok." );
-            return globals.sc;
-          }
-        }
-
-        SetText( "Using default scene.." );
-        isd = Scenes.staticRepository[ "Sphere on the plane" ] as InitSceneDelegate;
-      }
-
-      if ( isd != null )
-        isd( sc );
-      else
-        ispd?.Invoke( sc, textParam.Text );
-
-      return sc;
+      // fallback to a default scene;
+      return Scenes.DefaultScene();
     }
 
     public ComboBox ComboScene

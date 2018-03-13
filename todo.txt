@@ -17,7 +17,6 @@
 ================================================================================
 - IEntropyCodec .. mozna upravit API, PutBits/GetBits
 - licence: Apache licence? Nebo BSD?
-- jazyk na definici RT sceny (XML?), nacitani RT scen az za behu
 - FloatImage: refactor for HDR file-format, storing multiple-channel images, ..
   (054colorreduction)
 
@@ -163,3 +162,5 @@ x FloatImage: HDR format persistence
 x 094: HDR tone-mapping project
 x 048, 049: concurrent computing was improved (support for ITimeDependent)
 x 090opencl: fixed OpenGL interop (at least clEnqueueCopyBufferToImage() approach is functional)
+x jazyk na definici RT sceny (XML?), nacitani RT scen az za behu (048rtmontecarlo-scripts),
+  RayCastingScripts.cs
