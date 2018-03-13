@@ -2,23 +2,23 @@
 CSGInnerNode flags = new CSGInnerNode(SetOperation.Union);
 flags.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
 flags.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.7, 0.1, 16));
-sc.Intersectable = flags;
+scene.Intersectable = flags;
 Sphere s;
 Cube c;
 
 // Background color:
-sc.BackgroundColor = new double[] { 0.0, 0.05, 0.05 };
+scene.BackgroundColor = new double[] { 0.0, 0.05, 0.05 };
 
 // Camera:
-sc.Camera = new StaticCamera(new Vector3d(0.0, 0.0, -10.0),
-                             new Vector3d(0.0, 0.0, 1.0),
-                             60.0);
+scene.Camera = new StaticCamera(new Vector3d(0.0, 0.0, -10.0),
+                                new Vector3d(0.0, 0.0, 1.0),
+                                60.0);
 
 // Light sources:
-sc.Sources = new System.Collections.Generic.LinkedList<ILightSource>();
-sc.Sources.Add(new AmbientLightSource(0.8));
-sc.Sources.Add(new PointLightSource(new Vector3d(-5.0, 3.0, -3.0), 1.0));
-sc.Sources.Add(new PointLightSource(new Vector3d(5.0, 3.0, -3.0), 1.0));
+scene.Sources = new System.Collections.Generic.LinkedList<ILightSource>();
+scene.Sources.Add(new AmbientLightSource(0.8));
+scene.Sources.Add(new PointLightSource(new Vector3d(-5.0, 3.0, -3.0), 1.0));
+scene.Sources.Add(new PointLightSource(new Vector3d(5.0, 3.0, -3.0), 1.0));
 
 // --- NODE DEFINITIONS ----------------------------------------------------
 
