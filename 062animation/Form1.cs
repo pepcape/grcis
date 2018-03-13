@@ -14,7 +14,9 @@ namespace _062animation
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
+
+    public static Form1 singleton = null;
 
     /// <summary>
     /// Output raster image.
@@ -41,12 +43,12 @@ namespace _062animation
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageWidth = 640;
+    public int ImageWidth = 640;
 
     /// <summary>
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageHeight = 480;
+    public int ImageHeight = 480;
 
     /// <summary>
     /// Redraws the whole image.
@@ -67,13 +69,13 @@ namespace _062animation
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       if ( scene == null )
-        scene = getScene();                 // scene prototype
+        scene = FormSupport.getScene();                 // scene prototype
 
-      IImageFunction imf = getImageFunction( scene );
+      IImageFunction imf = FormSupport.getImageFunction( scene );
       imf.Width  = width;
       imf.Height = height;
 
-      IRenderer rend = getRenderer( imf );
+      IRenderer rend = FormSupport.getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 0;
@@ -162,11 +164,14 @@ namespace _062animation
 
     public Form1 ()
     {
+      singleton = this;
       InitializeComponent();
-      Text += " (rev: " + rev + ')';
 
       // Init rendering params:
-      InitializeParams();
+      string name;
+      FormSupport.InitializeParams( out name );
+      Text += " (rev: " + rev + ") '" + name + '\'';
+
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
@@ -226,7 +231,7 @@ namespace _062animation
     /// <summary>
     /// Supersampling factor.
     /// </summary>
-    protected int superSampling;
+    public int superSampling;
 
     //============================================================
     //   Variable data ("progress" is used as "input data lock"):
@@ -308,7 +313,7 @@ namespace _062animation
       superSampling = (int)numericSupersampling.Value;
 
       if ( scene == null )
-        scene = getScene();                 // scene prototype
+        scene = FormSupport.getScene();                 // scene prototype
 
       // Start main rendering thread:
       aThread = new Thread( new ThreadStart( RenderAnimation ) );
@@ -363,12 +368,12 @@ namespace _062animation
 
       for ( t = 0; t < threads; t++ )
       {
-        IRayScene sc = getScene();    //  (sct != null) ? (IRayScene)sct.Clone() : scene;
-        IImageFunction imf = getImageFunction( sc );
+        IRayScene sc = FormSupport.getScene();    //  (sct != null) ? (IRayScene)sct.Clone() : scene;
+        IImageFunction imf = FormSupport.getImageFunction( sc );
         imf.Width  = width;
         imf.Height = height;
 
-        IRenderer r = getRenderer( imf );
+        IRenderer r = FormSupport.getRenderer( imf );
         r.Width        = width;
         r.Height       = height;
         r.Adaptive     = 0;           // turn off adaptive bitmap synthesis completely (interactive preview not needed)

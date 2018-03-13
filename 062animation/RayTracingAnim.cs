@@ -1,20 +1,36 @@
-﻿// Author: Josef Pelikan
-
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Windows.Forms;
 using OpenTK;
 using Rendering;
 
 namespace _062animation
 {
-  public partial class Form1 : Form
+  public class FormSupport
   {
+    /// <summary>
+    /// Initialize rendering parameters.
+    /// </summary>
+    public static void InitializeParams ( out string name )
+    {
+      name = "Josef Pelikán";
+
+      Form1 f = Form1.singleton;
+
+      // single frame:
+      f.ImageWidth = 320;
+      f.ImageHeight = 180;
+      f.numericSupersampling.Value = 1;
+
+      // animation:
+      f.numFrom.Value = (decimal)0.0;
+      f.numTo.Value = (decimal)20.0;
+      f.numFps.Value = (decimal)25.0;
+    }
+
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    private IRayScene getScene ()
+    public static IRayScene getScene ()
     {
       return new AnimatedScene();
     }
@@ -22,7 +38,7 @@ namespace _062animation
     /// <summary>
     /// Initialize ray-scene and image function (good enough for simple samples).
     /// </summary>
-    private IImageFunction getImageFunction ( IRayScene scene )
+    public static IImageFunction getImageFunction ( IRayScene scene )
     {
       return new RayTracing( scene );
     }
@@ -30,35 +46,22 @@ namespace _062animation
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    private IRenderer getRenderer ( IImageFunction imf )
+    public static IRenderer getRenderer ( IImageFunction imf )
     {
-      if ( superSampling > 1 )
+      Form1 f = Form1.singleton;
+
+      if ( f.superSampling > 1 )
       {
         SupersamplingImageSynthesizer sis = new SupersamplingImageSynthesizer();
         sis.ImageFunction = imf;
-        sis.Supersampling = superSampling;
+        sis.Supersampling = f.superSampling;
         sis.Jittering = 1.0;
         return sis;
       }
+
       SimpleImageSynthesizer s = new SimpleImageSynthesizer();
       s.ImageFunction = imf;
       return s;
-    }
-
-    /// <summary>
-    /// Initialize rendering parameters.
-    /// </summary>
-    private void InitializeParams ()
-    {
-      // single frame:
-      ImageWidth  = 320;
-      ImageHeight = 180;
-      numericSupersampling.Value = 1;
-
-      // animation:
-      numFrom.Value = (decimal)0.0;
-      numTo.Value   = (decimal)20.0;
-      numFps.Value  = (decimal)25.0;
     }
   }
 }
