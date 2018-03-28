@@ -1,20 +1,36 @@
-﻿// Author: Josef Pelikan
-
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.Windows.Forms;
 using Rendering;
 using MathSupport;
 
 namespace _063animation
 {
-  public partial class Form1 : Form
+  public class FormSupport
   {
+    /// <summary>
+    /// Initialize animation parameters.
+    /// </summary>
+    public static void InitializeParams ( out string name )
+    {
+      name = "Josef Pelikán";
+
+      Form1 f = Form1.singleton;
+
+      // single frame:
+      f.ImageWidth = 640;
+      f.ImageHeight = 480;
+      f.numericSupersampling.Value = 4;
+
+      // animation:
+      f.numFrom.Value = (decimal)0.0;
+      f.numTo.Value = (decimal)10.0;
+      f.numFps.Value = (decimal)25.0;
+    }
+
     /// <summary>
     /// Initialize (optional) animation data.
     /// </summary>
-    private object getData ()
+    public static object getData ()
     {
       return new AnimationData();
     }
@@ -22,7 +38,7 @@ namespace _063animation
     /// <summary>
     /// Initialize image function.
     /// </summary>
-    private IImageFunction getImageFunction ( object data )
+    public static IImageFunction getImageFunction ( object data )
     {
       return new Animation( data );
     }
@@ -30,35 +46,21 @@ namespace _063animation
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    private IRenderer getRenderer ( IImageFunction imf )
+    public static IRenderer getRenderer ( IImageFunction imf )
     {
-      if ( superSampling > 1 )
+      Form1 f = Form1.singleton;
+
+      if ( f.superSampling > 1 )
       {
         SupersamplingImageSynthesizer sis = new SupersamplingImageSynthesizer();
         sis.ImageFunction = imf;
-        sis.Supersampling = superSampling;
+        sis.Supersampling = f.superSampling;
         sis.Jittering = 1.0;
         return sis;
       }
       SimpleImageSynthesizer s = new SimpleImageSynthesizer();
       s.ImageFunction = imf;
       return s;
-    }
-
-    /// <summary>
-    /// Initialize animation parameters.
-    /// </summary>
-    private void InitializeParams ()
-    {
-      // single frame:
-      ImageWidth  = 640;
-      ImageHeight = 480;
-      numericSupersampling.Value = 4;
-
-      // animation:
-      numFrom.Value = (decimal)0.0;
-      numTo.Value   = (decimal)10.0;
-      numFps.Value  = (decimal)25.0;
     }
   }
 
