@@ -4,16 +4,20 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
-//using GuiSupport;
 using MathSupport;
 using Rendering;
 using System.Globalization;
 using GuiSupport;
+using Utilities;
 
 namespace _063animation
 {
   public partial class Form1 : Form
   {
+    static readonly string rev = Util.SetVersion( "$Rev$" );
+
+    public static Form1 singleton = null;
+
     /// <summary>
     /// Output raster image.
     /// </summary>
@@ -39,12 +43,12 @@ namespace _063animation
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageWidth = 640;
+    public int ImageWidth = 640;
 
     /// <summary>
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageHeight = 480;
+    public int ImageHeight = 480;
 
     /// <summary>
     /// Redraws the whole image.
@@ -65,13 +69,13 @@ namespace _063animation
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
       if ( data == null )
-        data = getData();                 // animation data
+        data = FormSupport.getData();                 // animation data
 
-      IImageFunction imf = getImageFunction( data );
+      IImageFunction imf = FormSupport.getImageFunction( data );
       imf.Width  = width;
       imf.Height = height;
 
-      IRenderer rend = getRenderer( imf );
+      IRenderer rend = FormSupport.getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 0;
@@ -160,12 +164,14 @@ namespace _063animation
 
     public Form1 ()
     {
+      singleton = this;
       InitializeComponent();
-      string []tok = "$Rev$".Split( ' ' );
-      Text += " (rev: " + tok[1] + ')';
 
       // Init rendering params:
-      InitializeParams();
+      string name;
+      FormSupport.InitializeParams( out name );
+      Text += " (rev: " + rev + ") '" + name + '\'';
+
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
@@ -225,7 +231,7 @@ namespace _063animation
     /// <summary>
     /// Supersampling factor.
     /// </summary>
-    protected int superSampling;
+    public int superSampling;
 
     //============================================================
     //   Variable data ("progress" is used as "input data lock"):
@@ -307,7 +313,7 @@ namespace _063animation
       superSampling = (int)numericSupersampling.Value;
 
       if ( data == null )
-        data = getData();               // animation data
+        data = FormSupport.getData();               // animation data
 
       // Start main rendering thread:
       aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
@@ -402,12 +408,12 @@ namespace _063animation
       object myData = (datatd == null) ? data : datatd.Clone();
       RandomJames rnd = new RandomJames();
 
-      IImageFunction imf = getImageFunction( myData );
+      IImageFunction imf = FormSupport.getImageFunction( myData );
       imf.Width  = width;
       imf.Height = height;
       ITimeDependent imftd = imf as ITimeDependent;
 
-      IRenderer rend = getRenderer( imf );
+      IRenderer rend = FormSupport.getRenderer( imf );
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 0;                    // turn off adaptive bitmap synthesis completely (interactive preview not needed)
