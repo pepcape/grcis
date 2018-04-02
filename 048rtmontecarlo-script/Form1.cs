@@ -558,5 +558,18 @@ namespace _048rtmontecarlo
     {
       StopRendering();
     }
+
+    private void button1_Click(object sender, EventArgs e)
+    {
+      if ( Form2.singleton != null )
+      {
+        Form2.singleton.Activate();
+
+        return;   //only one instance of Form2 can exist at the time
+      }
+
+      Form2 detailedForm = new Form2();
+      detailedForm.Show ();
+    }
   }
 }
