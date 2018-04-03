@@ -3,6 +3,7 @@
 ================================================================================
   ($Rev$ $Date$)
 ================================================================================
+- int rank, int total into the MT thread-local class?
 - 016videoslow: zkontrolovat Bitmap.Dispose()
 - zkontrolovat po zmenach 12. 11. 2015:
   059-080  (setImage(), resetImage()..)
@@ -164,3 +165,4 @@ x 048, 049: concurrent computing was improved (support for ITimeDependent)
 x 090opencl: fixed OpenGL interop (at least clEnqueueCopyBufferToImage() approach is functional)
 x jazyk na definici RT sceny (XML?), nacitani RT scen az za behu (048rtmontecarlo-scripts),
   RayCastingScripts.cs
+x MT: Thread-local data container, RandomJames rnd argument is no more needed!

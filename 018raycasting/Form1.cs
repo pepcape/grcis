@@ -34,11 +34,6 @@ namespace _018raycasting
     /// </summary>
     protected IRenderer rend = null;
 
-    /// <summary>
-    /// Global instance of a random generator.
-    /// </summary>
-    private static RandomJames rnd = new RandomJames();
-
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
       pictureBox1.Image = newImage;
@@ -70,10 +65,11 @@ namespace _018raycasting
       rend.Height = height;
       rend.Adaptive = 0;
 
+      MT.InitThreadData();
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
+      rend.RenderRectangle( newImage, 0, 0, width, height );
 
       sw.Stop();
       labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f2}s",

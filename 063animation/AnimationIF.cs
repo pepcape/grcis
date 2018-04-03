@@ -2,6 +2,9 @@
 using System.Diagnostics;
 using Rendering;
 using MathSupport;
+using System.Collections.Generic;
+using Utilities;
+using OpenTK;
 
 namespace _063animation
 {
@@ -15,6 +18,8 @@ namespace _063animation
       name = "Josef Pelikán";
 
       Form1 f = Form1.singleton;
+
+      f.textParam.Text = "slant=true,prefix=out,bg=[0.05;0.0;0.0],fg=[1.0;1.0;0.8]";
 
       // single frame:
       f.ImageWidth = 640;
@@ -30,23 +35,23 @@ namespace _063animation
     /// <summary>
     /// Initialize (optional) animation data.
     /// </summary>
-    public static object getData ()
+    public static object getData ( string param )
     {
-      return new AnimationData();
+      return new AnimationData( param );
     }
 
     /// <summary>
     /// Initialize image function.
     /// </summary>
-    public static IImageFunction getImageFunction ( object data )
+    public static IImageFunction getImageFunction ( string param, object data )
     {
-      return new Animation( data );
+      return new Animation( param, data );
     }
 
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    public static IRenderer getRenderer ( IImageFunction imf )
+    public static IRenderer getRenderer ( string param, IImageFunction imf )
     {
       Form1 f = Form1.singleton;
 
@@ -168,9 +173,29 @@ namespace _063animation
       }
     }
 
+    /// <summary>
+    /// Support object (optional).
+    /// </summary>
     protected object data = null;
 
+    /// <summary>
+    /// Cached text param.
+    /// </summary>
+    protected string param = null;
+
+    /// <summary>
+    /// Slanted checkerboard?
+    /// </summary>
+    protected bool slant = false;
+
+    /// <summary>
+    /// Background color.
+    /// </summary>
     protected double[] bg = new double[] { 0.0, 0.0, 0.0 };
+
+    /// <summary>
+    /// Foreground color.
+    /// </summary>
     protected double[] fg = new double[] { 1.0, 1.0, 1.0 };
 
     /// <summary>
@@ -182,7 +207,7 @@ namespace _063animation
     /// <returns>Hash-value used for adaptive subsampling.</returns>
     public virtual long GetSample ( double x, double y, double[] color )
     {
-      return GetSample( x, y, 0, 0, null, color );
+      return GetSample( x, y, 0, 0, color );
     }
 
     /// <summary>
@@ -192,23 +217,19 @@ namespace _063animation
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="color">Computed sample color.</param>
     /// <returns>Hash-value used for adaptive subsampling.</returns>
-    public virtual long GetSample ( double x, double y, int rank, int total, RandomJames rnd, double[] color )
+    public virtual long GetSample ( double x, double y, int rank, int total, double[] color )
     {
       long ord = 0L;
       if ( !Geometry.IsZero( y ) )
-        ord = (long)(Math.Round( mul * (x - center) / y ) + Math.Round( frequency / y ));
-#if false
-      double u = 0.0, v = 0.0;
-      if ( !Geometry.IsZero( y ) )
       {
-        u   = mul * (x - center) / y;
-        v   = frequency / y;
-        ord = (long)(Math.Round( u + v ) + Math.Round( u - v ));
+        double u = mul * (x - center) / y;
+        double v = frequency / y;
+        ord = slant ? (long)(Math.Round( u + v ) + Math.Round( u - v )) :
+                      (long)(Math.Round( u )     + Math.Round( v ));
       }
-#endif
+
       Array.Copy( (ord & 1L) == 0 ? fg : bg, color, fg.Length );
       return ord;
     }
@@ -220,16 +241,19 @@ namespace _063animation
     public virtual object Clone ()
     {
       ITimeDependent datatd = data as ITimeDependent;
-      Animation c = new Animation( (datatd == null) ? data : datatd.Clone() );
+      Animation c = new Animation( param, (datatd == null) ? data : datatd.Clone() );
       c.Start  = Start;
       c.End    = End;
       c.Time   = Time;
       c.Width  = width;
       c.Height = height;
+      c.bg     = bg;
+      c.fg     = fg;
+      c.slant  = slant;
       return c;
     }
 
-    public Animation ( object d =null )
+    public Animation ( string par, object d =null )
     {
       data   = d;
       Start  = 0.0;
@@ -237,6 +261,31 @@ namespace _063animation
       time   = 0.0;
       Width  = 1.0;
       Height = 1.0;
+      SetParams( par );
+    }
+
+    /// <summary>
+    /// Update animation parameters.
+    /// </summary>
+    /// <param name="param">User-provided parameter string.</param>
+    void SetParams ( string par )
+    {
+      // input params:
+      Dictionary<string, string> p = Util.ParseKeyValueList( param = par );
+      if ( p.Count == 0 )
+        return;
+
+      // slant version of the checkerboard:
+      Util.TryParse( p, "slant", ref slant );
+
+      // background color:
+      Vector3 col = Vector3.Zero;
+      if ( Geometry.TryParse( p, "bg", ref col ) )
+        bg = new double[] { col.X, col.Y, col.Z };
+
+      // foreground color:
+      if ( Geometry.TryParse( p, "fg", ref col ) )
+        fg = new double[] { col.X, col.Y, col.Z };
     }
   }
 
@@ -245,7 +294,7 @@ namespace _063animation
   /// </summary>
   public class AnimationData    // : ITimeDependent
   {
-    public AnimationData ()
+    public AnimationData ( string param )
     {
       // !!!{{ TODO: initialize the animation data
 

@@ -86,8 +86,7 @@ namespace Rendering
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="color">Computed pixel color.</param>
-    /// <param name="rnd">Shared random generator.</param>
-    public virtual void RenderPixel ( int x, int y, double[] color, RandomJames rnd )
+    public virtual void RenderPixel ( int x, int y, double[] color )
     {
       ImageFunction.GetSample( x + 0.5, y + 0.5, color );
 
@@ -105,10 +104,9 @@ namespace Rendering
     /// Renders the given rectangle into the given raster image.
     /// </summary>
     /// <param name="image">Pre-initialized raster image.</param>
-    /// <param name="rnd">Shared random generator.</param>
-    public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, RandomJames rnd )
+    public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 )
     {
-      RenderRectangle( image, x1, y1, x2, y2, ( n ) => true, rnd );
+      RenderRectangle( image, x1, y1, x2, y2, ( n ) => true );
     }
 
     /// <summary>
@@ -117,8 +115,7 @@ namespace Rendering
     /// </summary>
     /// <param name="image">Pre-initialized raster image.</param>
     /// <param name="sel">Selector for this working thread.</param>
-    /// <param name="rnd">Thread-specific random generator.</param>
-    public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel, RandomJames rnd )
+    public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel )
     {
       bool lead = sel( 0L );
       if ( lead &&
@@ -160,7 +157,7 @@ namespace Rendering
                 continue;
 
               // determine sample color ..
-              RenderPixel( x, y, color, rnd );
+              RenderPixel( x, y, color );
 
               if ( Gamma <= 0.001 )
                 for ( int b = 0; b < color.Length; b++ )
@@ -259,11 +256,10 @@ namespace Rendering
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="color">Computed pixel color.</param>
-    /// <param name="rnd">Shared random generator.</param>
-    public override void RenderPixel ( int x, int y, double[] color, RandomJames rnd )
+    public override void RenderPixel ( int x, int y, double[] color )
     {
       Debug.Assert( color != null );
-      Debug.Assert( rnd != null );
+      Debug.Assert( MT.rnd != null );
 
       int bands = color.Length;
       int b;
@@ -278,9 +274,9 @@ namespace Rendering
       for ( j = ord = 0, y0 = y + origin; j++ < superXY; y0 += step )
         for ( i = 0, x0 = x + origin; i++ < superXY; x0 += step )
         {
-          ImageFunction.GetSample( x0 + amplitude * rnd.UniformNumber(),
-                                   y0 + amplitude * rnd.UniformNumber(),
-                                   ord++, Supersampling, rnd, tmp );
+          ImageFunction.GetSample( x0 + amplitude * MT.rnd.UniformNumber(),
+                                   y0 + amplitude * MT.rnd.UniformNumber(),
+                                   ord++, Supersampling, tmp );
           for ( b = 0; b < bands; b++ )
             color[ b ] += tmp[ b ];
         }
@@ -435,11 +431,10 @@ namespace Rendering
     /// <param name="y">Origin position within a viewport (vertical coordinate).</param>
     /// <param name="rank">Rank of this ray, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of rays (for integration).</param>
-    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>True if the ray (viewport position) is valid.</returns>
-    public bool GetRay ( double x, double y, int rank, int total, RandomJames rnd, out Vector3d p0, out Vector3d p1 )
+    public bool GetRay ( double x, double y, int rank, int total, out Vector3d p0, out Vector3d p1 )
     {
       return GetRay( x, y, out p0, out p1 );
     }
@@ -501,10 +496,9 @@ namespace Rendering
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    public virtual double[] GetIntensity ( Intersection intersection, int rank, int total, RandomJames rnd, out Vector3d dir )
+    public virtual double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir )
     {
       return GetIntensity( intersection, out dir );
     }
@@ -542,10 +536,9 @@ namespace Rendering
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source).</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    public double[] GetIntensity ( Intersection intersection, int rank, int total, RandomJames rnd, out Vector3d dir )
+    public double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir )
     {
       return GetIntensity( intersection, out dir );
     }
@@ -587,17 +580,15 @@ namespace Rendering
       protected int rank;
       protected int total;
 
-      protected RandomJames rnd;
       protected RandomJames.Permutation permU;
       protected RandomJames.Permutation permV;
 
       protected double u, v;
       public Vector3d sample;
 
-      public SamplingState ( RectangleLightSource src, RandomJames _rnd )
+      public SamplingState ( RectangleLightSource src )
       {
         source = src;
-        rnd = _rnd;
         permU = new RandomJames.Permutation();
         permV = new RandomJames.Permutation();
         rank = total = 0;
@@ -615,25 +606,25 @@ namespace Rendering
           if ( t != total || r < rank )       // [re-]initialization
           {
             total = t;
-            uCell = rnd.PermutationFirst( total, ref permU );
-            vCell = rnd.PermutationFirst( total, ref permV );
+            uCell = MT.rnd.PermutationFirst( total, ref permU );
+            vCell = MT.rnd.PermutationFirst( total, ref permV );
           }
           else
           {
-            uCell = Math.Max( rnd.PermutationNext( ref permU ), 0 );
-            vCell = Math.Max( rnd.PermutationNext( ref permV ), 0 );
+            uCell = Math.Max( MT.rnd.PermutationNext( ref permU ), 0 );
+            vCell = Math.Max( MT.rnd.PermutationNext( ref permV ), 0 );
           }
 
           rank = r;
 
           // point sample will be placed into [ uCell, vCell ] cell:
-          u = (uCell + rnd.UniformNumber()) / total;
-          v = (vCell + rnd.UniformNumber()) / total;
+          u = (uCell + MT.rnd.UniformNumber()) / total;
+          v = (vCell + MT.rnd.UniformNumber()) / total;
         }
         else
         {
-          u = rnd.UniformNumber();
-          v = rnd.UniformNumber();
+          u = MT.rnd.UniformNumber();
+          v = MT.rnd.UniformNumber();
         }
 
         // TODO: do something like:
@@ -675,21 +666,21 @@ namespace Rendering
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    public override double[] GetIntensity ( Intersection intersection, int rank, int total, RandomJames rnd, out Vector3d dir )
+    public override double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir )
     {
-      if ( rnd == null )
+      if ( MT.rnd == null )
         return GetIntensity( intersection, out dir );
 
       SamplingState ss;
       lock ( states )
       {
-        if ( !states.TryGetValue( rnd.GetHashCode(), out ss ) )
+        if ( !states.TryGetValue( MT.rnd.GetHashCode(), out ss ) )
         {
-          ss = new SamplingState( this, rnd );
-          states.Add( rnd.GetHashCode(), ss );
+          ss = new SamplingState( this );
+          states.Add( MT.rnd.GetHashCode(), ss );
+          // !!! TODO: check the states ???
         }
       }
 
@@ -959,9 +950,8 @@ namespace Rendering
     /// <param name="inter">Data object to modify.</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <returns>Hash value (texture signature) for adaptive subsampling.</returns>
-    public long Apply ( Intersection inter, int rank, int total, RandomJames rnd )
+    public long Apply ( Intersection inter, int rank, int total )
     {
       return Apply( inter );
     }

@@ -86,11 +86,12 @@ namespace _028rtmesh
       rend.Width  = width;
       rend.Height = height;
       CSGInnerNode.ResetStatistics();
+      MT.InitThreadData();
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
+      rend.RenderRectangle( newImage, 0, 0, width, height );
 
       sw.Stop();
       labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, r{3:#,#}k, i{4:#,#}k, bb{5:#,#}k, t{6:#,#}k ]",

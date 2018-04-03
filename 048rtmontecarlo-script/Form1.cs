@@ -221,8 +221,11 @@ namespace _048rtmontecarlo
     {
       WorkerThreadInit init = spec as WorkerThreadInit;
       if ( init != null )
+      {
+        MT.InitThreadData();
         init.rend.RenderRectangle( init.image, 0, 0, init.width, init.height,
-                                   init.sel, new RandomJames( Thread.CurrentThread.GetHashCode() ) );
+                                   init.sel );
+      }
     }
 
     private IImageFunction getImageFunction ( IRayScene sc, int width, int height )
@@ -311,7 +314,10 @@ namespace _048rtmontecarlo
         }
       }
       else
-        wti[ 0 ].rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
+      {
+        wti[ 0 ].rend.RenderRectangle( newImage, 0, 0, width, height );
+        MT.InitThreadData();
+      }
 
       long elapsed;
       lock ( sw )

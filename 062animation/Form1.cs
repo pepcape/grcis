@@ -87,10 +87,11 @@ namespace _062animation
       if ( sc != null )
         sc.Time = (double)numTime.Value;
 
+      MT.InitThreadData();
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height, new RandomJames() );
+      rend.RenderRectangle( outputImage, 0, 0, width, height );
 
       sw.Stop();
       labelElapsed.Text = string.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
@@ -459,7 +460,7 @@ namespace _062animation
       if ( init == null )
         return;
 
-      RandomJames rnd = new RandomJames();
+      MT.InitThreadData();
 
       // worker loop:
       while ( true )
@@ -506,7 +507,7 @@ namespace _062animation
         }
 
         // render the whole frame:
-        init.rend.RenderRectangle( r.image, 0, 0, init.width, init.height, rnd );
+        init.rend.RenderRectangle( r.image, 0, 0, init.width, init.height );
 
         // ... and put the result into the output queue:
         lock ( queue )

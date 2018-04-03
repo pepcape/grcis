@@ -55,11 +55,6 @@ namespace _019raytracing
     public int ImageHeight = 0;
 
     /// <summary>
-    /// Global instance of a random generator.
-    /// </summary>
-    public static RandomJames rnd = new RandomJames();
-
-    /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
     /// </summary>
     protected Stopwatch sw = new Stopwatch();
@@ -190,6 +185,7 @@ namespace _019raytracing
       progress.SyncInterval = 5000L;
       progress.Reset();
       CSGInnerNode.ResetStatistics();
+      MT.InitThreadData();
 
       lock ( sw )
       {
@@ -197,7 +193,7 @@ namespace _019raytracing
         sw.Start();
       }
 
-      rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
+      rend.RenderRectangle( newImage, 0, 0, width, height );
 
       long elapsed;
       lock ( sw )
