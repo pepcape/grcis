@@ -126,7 +126,7 @@ namespace _049distributedrt
       ispd = initFunction as InitSceneParamDelegate;
       if ( isd == null &&
            ispd == null )
-        isd = Scenes.Repository[ "Sphere on the plane" ] as InitSceneDelegate;
+        isd = Scenes.staticRepository[ "Sphere on the plane" ] as InitSceneDelegate;
 
       if ( isd != null )
         isd( sc );
@@ -213,8 +213,11 @@ namespace _049distributedrt
     {
       WorkerThreadInit init = spec as WorkerThreadInit;
       if ( init != null )
+      {
+        MT.InitThreadData();
         init.rend.RenderRectangle( init.image, 0, 0, init.width, init.height,
-                                   init.sel, new RandomJames( Thread.CurrentThread.GetHashCode() ) );
+                                   init.sel );
+      }
     }
 
     private IImageFunction getImageFunction ( IRayScene sc, int width, int height )
@@ -301,7 +304,10 @@ namespace _049distributedrt
         }
       }
       else
-        rend[ 0 ].RenderRectangle( newImage, 0, 0, width, height, rnd );
+      {
+        MT.InitThreadData();
+        rend[ 0 ].RenderRectangle( newImage, 0, 0, width, height );
+      }
 
       long elapsed;
       lock ( sw )

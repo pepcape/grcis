@@ -67,15 +67,16 @@ namespace _063animation
       if ( height <= 0 ) height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      MT.InitThreadData();
 
       if ( data == null )
-        data = FormSupport.getData();                 // animation data
+        data = FormSupport.getData( textParam.Text );                 // animation data
 
-      IImageFunction imf = FormSupport.getImageFunction( data );
+      IImageFunction imf = FormSupport.getImageFunction( textParam.Text, data );
       imf.Width  = width;
       imf.Height = height;
 
-      IRenderer rend = FormSupport.getRenderer( imf );
+      IRenderer rend = FormSupport.getRenderer( textParam.Text, imf );
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 0;
@@ -90,7 +91,7 @@ namespace _063animation
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height, new RandomJames() );
+      rend.RenderRectangle( outputImage, 0, 0, width, height );
 
       sw.Stop();
       labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
@@ -247,6 +248,11 @@ namespace _063animation
     protected double time;
 
     /// <summary>
+    /// Output file-name prefix.
+    /// </summary>
+    protected string prefix = "out";
+
+    /// <summary>
     /// One computed animation frame.
     /// </summary>
     public class Result
@@ -312,8 +318,17 @@ namespace _063animation
       if ( height <= 0 ) height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
 
+      // param string:
+      Dictionary<string, string> p = Util.ParseKeyValueList( textParam.Text );
+      if ( p.Count > 0 )
+      {
+        // output file-name prefix:
+        if ( !p.TryGetValue( "prefix", out prefix ) )
+          prefix = "out";
+      }
+
       if ( data == null )
-        data = FormSupport.getData();               // animation data
+        data = FormSupport.getData( textParam.Text );               // animation data
 
       // Start main rendering thread:
       aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
@@ -371,8 +386,10 @@ namespace _063animation
         }
 
         // GUI progress indication:
-        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
-                                threads, ++frames, 1.0e-3 * sw.ElapsedMilliseconds ) );
+        double seconds = 1.0e-3 * sw.ElapsedMilliseconds;
+        double fps = ++frames / seconds;
+        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f0} s, {3:f2} fps)",
+                                threads, frames, seconds, fps ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
         {
@@ -382,7 +399,7 @@ namespace _063animation
         }
 
         // save the image file:
-        string fileName = string.Format( "out{0:0000}.png", r.frameNumber );
+        string fileName = string.Format( "{0}{1:0000}.png", prefix, r.frameNumber );
         r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
         r.image.Dispose();
       }
@@ -406,14 +423,14 @@ namespace _063animation
       // thread-specific data:
       ITimeDependent datatd = data as ITimeDependent;
       object myData = (datatd == null) ? data : datatd.Clone();
-      RandomJames rnd = new RandomJames();
+      MT.InitThreadData();
 
-      IImageFunction imf = FormSupport.getImageFunction( myData );
+      IImageFunction imf = FormSupport.getImageFunction( textParam.Text, myData );
       imf.Width  = width;
       imf.Height = height;
       ITimeDependent imftd = imf as ITimeDependent;
 
-      IRenderer rend = FormSupport.getRenderer( imf );
+      IRenderer rend = FormSupport.getRenderer( textParam.Text, imf );
       rend.Width  = width;
       rend.Height = height;
       rend.Adaptive = 0;                    // turn off adaptive bitmap synthesis completely (interactive preview not needed)
@@ -450,7 +467,7 @@ namespace _063animation
           imftd.Time = myTime;
 
         // render the whole frame:
-        rend.RenderRectangle( r.image, 0, 0, width, height, rnd );
+        rend.RenderRectangle( r.image, 0, 0, width, height );
 
         // ... and put the result into the output queue:
         lock ( queue )

@@ -1,12 +1,8 @@
 ﻿// Author: Josef Pelikan
 
 using System.Diagnostics;
-using System.Windows.Forms;
-using MathSupport;
 using OpenTK;
 using Rendering;
-using System;
-using System.Collections.Generic;
 
 namespace _046cameranim
 {

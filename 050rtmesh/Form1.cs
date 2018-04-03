@@ -10,12 +10,13 @@ using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Rendering;
+using Utilities;
 
 namespace _050rtmesh
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     public static Form1 singleton = null;
 
@@ -196,8 +197,11 @@ namespace _050rtmesh
     {
       WorkerThreadInit init = spec as WorkerThreadInit;
       if ( init != null )
+      {
+        MT.InitThreadData();
         rend.RenderRectangle( init.image, 0, 0, init.width, init.height,
-                              init.sel, new RandomJames( Thread.CurrentThread.GetHashCode() ) );
+                              init.sel );
+      }
     }
 
     /// <summary>
@@ -269,7 +273,10 @@ namespace _050rtmesh
         }
       }
       else
-        rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
+      {
+        MT.InitThreadData();
+        rend.RenderRectangle( newImage, 0, 0, width, height );
+      }
 
       long elapsed;
       lock ( sw )
