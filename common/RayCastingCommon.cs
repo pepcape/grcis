@@ -49,10 +49,9 @@ namespace Rendering
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="color">Computed sample color.</param>
     /// <returns>Hash-value used for adaptive subsampling.</returns>
-    long GetSample ( double x, double y, int rank, int total, RandomJames rnd, double[] color );
+    long GetSample ( double x, double y, int rank, int total, double[] color );
   }
 
   /// <summary>
@@ -118,15 +117,13 @@ namespace Rendering
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="color">Computed pixel color.</param>
-    /// <param name="rnd">Shared random generator.</param>
-    void RenderPixel ( int x, int y, double[] color, RandomJames rnd );
+    void RenderPixel ( int x, int y, double[] color );
 
     /// <summary>
     /// Renders the given rectangle into the given raster image.
     /// </summary>
     /// <param name="image">Pre-initialized raster image.</param>
-    /// <param name="rnd">Shared random generator.</param>
-    void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, RandomJames rnd );
+    void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 );
 
     /// <summary>
     /// Renders the given rectangle into the given raster image.
@@ -134,8 +131,7 @@ namespace Rendering
     /// </summary>
     /// <param name="image">Pre-initialized raster image.</param>
     /// <param name="sel">Selector for this working thread.</param>
-    /// <param name="rnd">Thread-specific random generator.</param>
-    void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel, RandomJames rnd );
+    void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel );
   }
 
   /// <summary>
@@ -187,11 +183,10 @@ namespace Rendering
     /// <param name="y">Origin position within a viewport (vertical coordinate).</param>
     /// <param name="rank">Rank of this ray, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of rays (for integration).</param>
-    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>True if the ray (viewport position) is valid.</returns>
-    bool GetRay ( double x, double y, int rank, int total, RandomJames rnd, out Vector3d p0, out Vector3d p1 );
+    bool GetRay ( double x, double y, int rank, int total, out Vector3d p0, out Vector3d p1 );
   }
 
   /// <summary>
@@ -215,10 +210,9 @@ namespace Rendering
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    double[] GetIntensity ( Intersection intersection, int rank, int total, RandomJames rnd, out Vector3d dir );
+    double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir );
   }
 
   public enum ReflectionComponent
@@ -283,7 +277,7 @@ namespace Rendering
   public interface IIntersectable
   {
     /// <summary>
-    /// Computes the complete intersection of the given ray with the object. 
+    /// Computes the complete intersection of the given ray with the object.
     /// </summary>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
@@ -332,9 +326,8 @@ namespace Rendering
     /// <param name="inter">Data object to modify.</param>
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="rnd">Global (per-thread) instance of the random generator.</param>
     /// <returns>Hash value (texture signature) for adaptive subsampling.</returns>
-    long Apply ( Intersection inter, int rank, int total, RandomJames rnd );
+    long Apply ( Intersection inter, int rank, int total );
   }
 
   /// <summary>
@@ -614,6 +607,29 @@ namespace Rendering
     {
       Intersection i = (Intersection)obj;
       return T.CompareTo( i.T );
+    }
+  }
+
+  #endregion
+
+  #region multi-threading
+
+  /// <summary>
+  /// Multi-threading support class.
+  /// Contains ThreadStatic data.
+  /// </summary>
+  public class MT
+  {
+    [ThreadStatic] public static RandomJames rnd;
+
+    // Put more TLS data here..
+
+    public static void InitThreadData ()
+    {
+      if ( rnd == null )
+        rnd = new RandomJames();
+
+      // Put TLS data init here..
     }
   }
 

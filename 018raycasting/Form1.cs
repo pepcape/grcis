@@ -6,12 +6,13 @@ using System.Globalization;
 using System.Windows.Forms;
 using MathSupport;
 using Rendering;
+using Utilities;
 
 namespace _018raycasting
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     /// <summary>
     /// Output raster image.
@@ -32,11 +33,6 @@ namespace _018raycasting
     /// Image synthesizer used to compute raster images.
     /// </summary>
     protected IRenderer rend = null;
-
-    /// <summary>
-    /// Global instance of a random generator.
-    /// </summary>
-    private static RandomJames rnd = new RandomJames();
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
@@ -69,10 +65,11 @@ namespace _018raycasting
       rend.Height = height;
       rend.Adaptive = 0;
 
+      MT.InitThreadData();
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
+      rend.RenderRectangle( newImage, 0, 0, width, height );
 
       sw.Stop();
       labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f2}s",

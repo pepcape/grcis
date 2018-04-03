@@ -333,14 +333,14 @@
     private System.Windows.Forms.NumericUpDown numTime;
     private System.Windows.Forms.Label label1;
     private System.Windows.Forms.Label label2;
-    private System.Windows.Forms.NumericUpDown numFrom;
+    public System.Windows.Forms.NumericUpDown numFrom;
     private System.Windows.Forms.Label label3;
-    private System.Windows.Forms.NumericUpDown numTo;
+    public System.Windows.Forms.NumericUpDown numTo;
     private System.Windows.Forms.Label label4;
-    private System.Windows.Forms.NumericUpDown numFps;
+    public System.Windows.Forms.NumericUpDown numFps;
     private System.Windows.Forms.Button buttonStop;
     private System.Windows.Forms.Label label5;
-    private System.Windows.Forms.NumericUpDown numericSupersampling;
+    public System.Windows.Forms.NumericUpDown numericSupersampling;
     private System.Windows.Forms.Button buttonRes;
   }
 }
