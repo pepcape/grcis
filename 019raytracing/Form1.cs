@@ -9,12 +9,13 @@ using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Rendering;
+using Utilities;
 
 namespace _019raytracing
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     public static Form1 singleton = null;
 
@@ -52,11 +53,6 @@ namespace _019raytracing
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
     public int ImageHeight = 0;
-
-    /// <summary>
-    /// Global instance of a random generator.
-    /// </summary>
-    public static RandomJames rnd = new RandomJames();
 
     /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
@@ -125,13 +121,14 @@ namespace _019raytracing
       ispd = initFunction as InitSceneParamDelegate;
       if ( isd == null &&
            ispd == null )
-        isd = Scenes.Repository[ "Sphere on the plane" ] as InitSceneDelegate;
+        return Scenes.DefaultScene( sc );
 
       if ( isd != null )
         isd( sc );
       else
         ispd?.Invoke( sc, textParam.Text );
 
+      SetText( $"Rendering '{sceneName}'.." );
       return sc;
     }
 
@@ -188,6 +185,7 @@ namespace _019raytracing
       progress.SyncInterval = 5000L;
       progress.Reset();
       CSGInnerNode.ResetStatistics();
+      MT.InitThreadData();
 
       lock ( sw )
       {
@@ -195,7 +193,7 @@ namespace _019raytracing
         sw.Start();
       }
 
-      rend.RenderRectangle( newImage, 0, 0, width, height, rnd );
+      rend.RenderRectangle( newImage, 0, 0, width, height );
 
       long elapsed;
       lock ( sw )

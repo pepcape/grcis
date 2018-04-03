@@ -92,11 +92,12 @@ namespace _046cameranim
       ITimeDependent sc = scene as ITimeDependent;
       if ( sc != null )
         sc.Time = (double)numTime.Value;
+      MT.InitThreadData();
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( newImage, 0, 0, width, height, new RandomJames() );
+      rend.RenderRectangle( newImage, 0, 0, width, height );
 
       sw.Stop();
       labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s",
@@ -372,8 +373,10 @@ namespace _046cameranim
         }
 
         // GUI progress indication:
-        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
-                                threads, ++frames, 1.0e-3 * sw.ElapsedMilliseconds ) );
+        double seconds = 1.0e-3 * sw.ElapsedMilliseconds;
+        double fps = ++frames / seconds;
+        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f0} s, {3:f2} fps)",
+                                threads, frames, seconds, fps ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
         {
@@ -408,7 +411,7 @@ namespace _046cameranim
       ITimeDependent mySceneTD = scene as ITimeDependent;
       IRayScene myScene = (mySceneTD == null) ? scene : (IRayScene)mySceneTD.Clone();
       mySceneTD = myScene as ITimeDependent;
-      RandomJames rnd = new RandomJames();
+      MT.InitThreadData();
 
       IImageFunction imf = FormSupport.getImageFunction( myScene );
       imf.Width = width;
@@ -451,7 +454,7 @@ namespace _046cameranim
           mySceneTD.Time = myTime;
 
         // render the whole frame:
-        rend.RenderRectangle( r.image, 0, 0, width, height, rnd );
+        rend.RenderRectangle( r.image, 0, 0, width, height );
 
         // ... and put the result into the output queue:
         lock ( queue )

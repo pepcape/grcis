@@ -92,11 +92,10 @@ namespace Rendering
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="color">Computed pixel color.</param>
-    /// <param name="rnd">Shared random generator.</param>
-    public override void RenderPixel ( int x, int y, double[] color, RandomJames rnd )
+    public override void RenderPixel ( int x, int y, double[] color )
     {
       Debug.Assert( color != null );
-      Debug.Assert( rnd != null );
+      Debug.Assert( MT.rnd != null );
 
       // !!!{{ TODO: this is exactly the code inherited from static sampling - make it adaptive!
 
@@ -113,9 +112,9 @@ namespace Rendering
       for ( j = ord = 0, y0 = y + origin; j++ < superXY; y0 += step )
         for ( i = 0, x0 = x + origin; i++ < superXY; x0 += step )
         {
-          ImageFunction.GetSample( x0 + amplitude * rnd.UniformNumber(),
-                                   y0 + amplitude * rnd.UniformNumber(),
-                                   ord++, Supersampling, rnd, tmp );
+          ImageFunction.GetSample( x0 + amplitude * MT.rnd.UniformNumber(),
+                                   y0 + amplitude * MT.rnd.UniformNumber(),
+                                   ord++, Supersampling, tmp );
           for ( b = 0; b < bands; b++ )
             color[ b ] += tmp[ b ];
         }
