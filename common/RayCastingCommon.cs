@@ -51,7 +51,7 @@ namespace Rendering
     /// <param name="total">Total number of samples (for integration).</param>
     /// <param name="color">Computed sample color.</param>
     /// <returns>Hash-value used for adaptive subsampling.</returns>
-    long GetSample ( double x, double y, int rank, int total, double[] color );
+    //long GetSample ( double x, double y, int rank, int total, double[] color );
   }
 
   /// <summary>
@@ -186,7 +186,7 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>True if the ray (viewport position) is valid.</returns>
-    bool GetRay ( double x, double y, int rank, int total, out Vector3d p0, out Vector3d p1 );
+    //bool GetRay ( double x, double y, int rank, int total, out Vector3d p0, out Vector3d p1 );
   }
 
   /// <summary>
@@ -212,7 +212,7 @@ namespace Rendering
     /// <param name="total">Total number of samples (for integration).</param>
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir );
+    //double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir );
   }
 
   public enum ReflectionComponent
@@ -327,7 +327,7 @@ namespace Rendering
     /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
     /// <param name="total">Total number of samples (for integration).</param>
     /// <returns>Hash value (texture signature) for adaptive subsampling.</returns>
-    long Apply ( Intersection inter, int rank, int total );
+    //long Apply ( Intersection inter, int rank, int total );
   }
 
   /// <summary>
@@ -622,14 +622,44 @@ namespace Rendering
   {
     [ThreadStatic] public static RandomJames rnd;
 
+    [ThreadStatic] public static int x;
+    [ThreadStatic] public static int y;
+    [ThreadStatic] public static int rank;
+    [ThreadStatic] public static int total;
+
     // Put more TLS data here..
 
+    /// <summary>
+    /// Cold init of the thread data.
+    /// </summary>
     public static void InitThreadData ()
     {
       if ( rnd == null )
         rnd = new RandomJames();
 
       // Put TLS data init here..
+    }
+
+    /// <summary>
+    /// Pixel rendering start.
+    /// </summary>
+    /// <param name="_x">Horizontal pixel coordinate.</param>
+    /// <param name="_y">Vertical pixel coordnate.</param>
+    /// <param name="tot">Designed supersampling factor.</param>
+    public static void StartPixel ( int _x, int _y, int tot )
+    {
+      x = _x;
+      y = _y;
+      rank = 0;
+      total = tot;
+    }
+
+    /// <summary>
+    /// Start the next sample of the current pixel.
+    /// </summary>
+    public static void NextSample ()
+    {
+      rank++;
     }
   }
 
