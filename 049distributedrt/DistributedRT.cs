@@ -1,9 +1,6 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
 using Rendering;
@@ -12,6 +9,36 @@ namespace _049distributedrt
 {
   public class FormSupport
   {
+    /// <summary>
+    /// Prepare form data (e.g. combo-box with available scenes).
+    /// </summary>
+    public static void InitializeScenes ( string[] args, out string name )
+    {
+      name = "Josef Pelikán";
+
+      Form1 f = Form1.singleton;
+
+      // 1. default scenes from RayCastingScenes
+      f.sceneRepository = new Dictionary<string, object>( Scenes.staticRepository );
+
+      // 2. optionally add custom scenes
+      f.sceneRepository[ "Test scene" ] = new InitSceneDelegate( CustomScene.TestScene );
+
+      // 3. fill the combo-box
+      foreach ( string key in f.sceneRepository.Keys )
+        f.ComboScene.Items.Add( key );
+
+      // .. and set your favorite scene here:
+      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
+
+      // default image parameters?
+      f.ImageWidth = 800;
+      f.ImageHeight = 540;
+      f.NumericSupersampling.Value = 16;
+      f.CheckMultithreading.Checked = true;
+      f.TextParam.Text = "";
+    }
+
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
@@ -36,34 +63,6 @@ namespace _049distributedrt
       SupersamplingImageSynthesizer sis = new SupersamplingImageSynthesizer();
       sis.ImageFunction = imf;
       return sis;
-    }
-
-    /// <summary>
-    /// Prepare form data (e.g. combo-box with available scenes).
-    /// </summary>
-    public static void InitializeScenes ()
-    {
-      Form1 f = Form1.singleton;
-
-      // 1. default scenes from RayCastingScenes
-      f.sceneRepository = new Dictionary<string, object>( Scenes.staticRepository );
-
-      // 2. optionally add custom scenes
-      f.sceneRepository[ "Test scene" ] = new InitSceneDelegate( CustomScene.TestScene );
-
-      // 3. fill the combo-box
-      foreach ( string key in f.sceneRepository.Keys )
-        f.ComboScene.Items.Add( key );
-
-      // .. and set your favorite scene here:
-      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
-
-      // default image parameters?
-      f.ImageWidth = 800;
-      f.ImageHeight = 540;
-      f.NumericSupersampling.Value = 16;
-      f.CheckMultithreading.Checked = true;
-      f.TextParam.Text = "";
     }
   }
 }
@@ -150,12 +149,10 @@ namespace Rendering
     /// <param name="importance">Importance of the current ray.</param>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
-    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of samples (for integration).</param>
     /// <param name="color">Result color.</param>
     /// <returns>Hash-value (ray sub-signature) used for adaptive subsampling.</returns>
     protected override long shade ( int level, double importance, ref Vector3d p0, ref Vector3d p1,
-                                    int rank, int total, double[] color )
+                                    double[] color )
     {
       int bands = color.Length;
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect( p0, p1 );
@@ -178,7 +175,7 @@ namespace Rendering
       // apply all the textures fist..
       if ( i.Textures != null )
         foreach ( ITexture tex in i.Textures )
-          hash = hash * HASH_TEXTURE + tex.Apply( i, rank, total );
+          hash = hash * HASH_TEXTURE + tex.Apply( i );
 
       p1 = -p1;   // viewing vector
       p1.Normalize();
@@ -196,7 +193,7 @@ namespace Rendering
         foreach ( ILightSource source in scene.Sources )
         {
           Vector3d dir;
-          double[] intensity = source.GetIntensity( i, rank, total, out dir );
+          double[] intensity = source.GetIntensity( i, out dir );
           if ( intensity != null )
           {
             if ( DoShadows && dir != Vector3d.Zero )
@@ -247,7 +244,7 @@ namespace Rendering
           newImportance = importance * maxK;
           if ( newImportance >= MinImportance ) // do compute the reflected ray
           {
-            hash += HASH_REFLECT * shade( level, newImportance, ref i.CoordWorld, ref r, rank, total, comp );
+            hash += HASH_REFLECT * shade( level, newImportance, ref i.CoordWorld, ref r, comp );
             for ( b = 0; b < bands; b++ )
               color[ b ] += ks[ b ] * comp[ b ];
           }
@@ -268,7 +265,7 @@ namespace Rendering
         // !!!{{ TODO: tweak the refracted ray as well?
         // !!!}}
 
-        hash += HASH_REFRACT * shade( level, newImportance, ref i.CoordWorld, ref r, rank, total, comp );
+        hash += HASH_REFRACT * shade( level, newImportance, ref i.CoordWorld, ref r, comp );
         for ( b = 0; b < bands; b++ )
           color[ b ] += maxK * comp[ b ];
       }

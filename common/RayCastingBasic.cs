@@ -88,6 +88,7 @@ namespace Rendering
     /// <param name="color">Computed pixel color.</param>
     public virtual void RenderPixel ( int x, int y, double[] color )
     {
+      MT.StartPixel( x, y, 1 );
       ImageFunction.GetSample( x + 0.5, y + 0.5, color );
 
       // gamma-encoding:
@@ -97,7 +98,7 @@ namespace Rendering
         for ( int b = 0; b < color.Length; b++ )
           color[ b ] = Arith.Clamp( Math.Pow( color[ b ], g ), 0.0, 1.0 );
       }
-                                           // else: no gamma, no clamping (for HDRI)
+                                            // else: no gamma, no clamping (for HDRI)
     }
 
     /// <summary>
@@ -259,24 +260,26 @@ namespace Rendering
     public override void RenderPixel ( int x, int y, double[] color )
     {
       Debug.Assert( color != null );
-      Debug.Assert( MT.rnd != null );
 
       int bands = color.Length;
       int b;
       Array.Clear( color, 0, bands );
       double[] tmp = new double[ bands ];
 
-      int i, j, ord;
+      int i, j;
       double step = 1.0 / superXY;
       double amplitude = Jittering * step;
       double origin = 0.5 * (step - amplitude);
       double x0, y0;
-      for ( j = ord = 0, y0 = y + origin; j++ < superXY; y0 += step )
+      MT.StartPixel( x, y, Supersampling );
+
+      for ( j = 0, y0 = y + origin; j++ < superXY; y0 += step )
         for ( i = 0, x0 = x + origin; i++ < superXY; x0 += step )
         {
           ImageFunction.GetSample( x0 + amplitude * MT.rnd.UniformNumber(),
                                    y0 + amplitude * MT.rnd.UniformNumber(),
-                                   ord++, Supersampling, tmp );
+                                   tmp );
+          MT.NextSample();
           for ( b = 0; b < bands; b++ )
             color[ b ] += tmp[ b ];
         }
@@ -423,21 +426,6 @@ namespace Rendering
       p1.Normalize();
       return true;
     }
-
-    /// <summary>
-    /// Ray-generator. Internal integration support.
-    /// </summary>
-    /// <param name="x">Origin position within a viewport (horizontal coordinate).</param>
-    /// <param name="y">Origin position within a viewport (vertical coordinate).</param>
-    /// <param name="rank">Rank of this ray, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of rays (for integration).</param>
-    /// <param name="p0">Ray origin.</param>
-    /// <param name="p1">Ray direction vector.</param>
-    /// <returns>True if the ray (viewport position) is valid.</returns>
-    public bool GetRay ( double x, double y, int rank, int total, out Vector3d p0, out Vector3d p1 )
-    {
-      return GetRay( x, y, out p0, out p1 );
-    }
   }
 
   /// <summary>
@@ -488,20 +476,6 @@ namespace Rendering
 
       return intensity;
     }
-
-    /// <summary>
-    /// Returns intensity (incl. color) of the source contribution to the given scene point.
-    /// Internal integration support.
-    /// </summary>
-    /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
-    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
-    /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    public virtual double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir )
-    {
-      return GetIntensity( intersection, out dir );
-    }
   }
 
   /// <summary>
@@ -527,20 +501,6 @@ namespace Rendering
     {
       dir = Vector3d.Zero;
       return intensity;
-    }
-
-    /// <summary>
-    /// Returns intensity (incl. color) of the source contribution to the given scene point.
-    /// Internal integration support.
-    /// </summary>
-    /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
-    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source).</param>
-    /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    public double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir )
-    {
-      return GetIntensity( intersection, out dir );
     }
   }
 
@@ -577,8 +537,8 @@ namespace Rendering
     {
       protected RectangleLightSource source;
 
-      protected int rank;
-      protected int total;
+      protected int cachedRank;
+      protected int cachedTotal;
 
       protected RandomJames.Permutation permU;
       protected RandomJames.Permutation permV;
@@ -591,23 +551,23 @@ namespace Rendering
         source = src;
         permU = new RandomJames.Permutation();
         permV = new RandomJames.Permutation();
-        rank = total = 0;
+        cachedRank = cachedTotal = 0;
       }
 
-      public void generateSample ( int r, int t )
+      public void generateSample ()
       {
-        if ( t > 1 )
+        if ( MT.total > 1 )
         {
-          if ( r == rank &&
-               t == total )
+          if ( MT.rank == cachedRank &&
+               MT.total == cachedTotal )
             return;
 
           int uCell, vCell;
-          if ( t != total || r < rank )       // [re-]initialization
+          if ( MT.total != cachedTotal || MT.rank < cachedRank )       // [re-]initialization
           {
-            total = t;
-            uCell = MT.rnd.PermutationFirst( total, ref permU );
-            vCell = MT.rnd.PermutationFirst( total, ref permV );
+            cachedTotal = MT.total;
+            uCell = MT.rnd.PermutationFirst( cachedTotal, ref permU );
+            vCell = MT.rnd.PermutationFirst( cachedTotal, ref permV );
           }
           else
           {
@@ -615,11 +575,11 @@ namespace Rendering
             vCell = Math.Max( MT.rnd.PermutationNext( ref permV ), 0 );
           }
 
-          rank = r;
+          cachedRank = MT.rank;
 
           // point sample will be placed into [ uCell, vCell ] cell:
-          u = (uCell + MT.rnd.UniformNumber()) / total;
-          v = (vCell + MT.rnd.UniformNumber()) / total;
+          u = (uCell + MT.rnd.UniformNumber()) / cachedTotal;
+          v = (vCell + MT.rnd.UniformNumber()) / cachedTotal;
         }
         else
         {
@@ -664,11 +624,9 @@ namespace Rendering
     /// Internal integration support.
     /// </summary>
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
-    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of samples (for integration).</param>
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    public override double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir )
+    public override double[] GetIntensity ( Intersection intersection, out Vector3d dir )
     {
       if ( MT.rnd == null )
         return GetIntensity( intersection, out dir );
@@ -685,7 +643,7 @@ namespace Rendering
       }
 
       // generate a [new] sample:
-      ss.generateSample( rank, total );
+      ss.generateSample();
       dir = ss.sample - intersection.CoordWorld;
       if ( Vector3d.Dot( dir, intersection.Normal ) <= 0.0 )
         return null;
@@ -941,19 +899,6 @@ namespace Rendering
         Array.Copy( Color2, inter.SurfaceColor, Math.Min( Color2.Length, inter.SurfaceColor.Length ) );
 
       return (ui + RandomStatic.numericRecipes( vi ));
-    }
-
-    /// <summary>
-    /// Apply the relevant value-modulation in the given Intersection instance.
-    /// Internal integration support.
-    /// </summary>
-    /// <param name="inter">Data object to modify.</param>
-    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of samples (for integration).</param>
-    /// <returns>Hash value (texture signature) for adaptive subsampling.</returns>
-    public long Apply ( Intersection inter, int rank, int total )
-    {
-      return Apply( inter );
     }
   }
 }

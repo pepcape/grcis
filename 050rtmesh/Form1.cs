@@ -178,13 +178,13 @@ namespace _050rtmesh
       public int width;
       public int height;
 
-      public WorkerThreadInit ( Bitmap im, int wid, int hei, int rank, int total )
+      public WorkerThreadInit ( Bitmap im, int wid, int hei, int threadNo, int threads )
       {
         image  = im;
-        id     = rank;
+        id     = threadNo;
         width  = wid;
         height = hei;
-        sel = ( n ) => (n % total) == rank;
+        sel    = ( n ) => (n % threads) == threadNo;
       }
     }
 
