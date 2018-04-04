@@ -218,7 +218,7 @@ namespace _048rtmontecarlo
         id     = threadNo;
         width  = wid;
         height = hei;
-        sel = ( n ) => (n % threads) == threadNo;
+        sel    = ( n ) => (n % threads) == threadNo;
       }
     }
 
