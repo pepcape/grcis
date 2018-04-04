@@ -199,27 +199,13 @@ namespace _063animation
     protected double[] fg = new double[] { 1.0, 1.0, 1.0 };
 
     /// <summary>
-    /// Computes one image sample. Simple variant, w/o an integration support.
+    /// Computes one image sample. Internal integration support.
     /// </summary>
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="color">Computed sample color.</param>
     /// <returns>Hash-value used for adaptive subsampling.</returns>
     public virtual long GetSample ( double x, double y, double[] color )
-    {
-      return GetSample( x, y, 0, 0, color );
-    }
-
-    /// <summary>
-    /// Computes one image sample. Internal integration support.
-    /// </summary>
-    /// <param name="x">Horizontal coordinate.</param>
-    /// <param name="y">Vertical coordinate.</param>
-    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="color">Computed sample color.</param>
-    /// <returns>Hash-value used for adaptive subsampling.</returns>
-    public virtual long GetSample ( double x, double y, int rank, int total, double[] color )
     {
       long ord = 0L;
       if ( !Geometry.IsZero( y ) )

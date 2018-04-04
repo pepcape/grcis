@@ -9,12 +9,13 @@ using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Rendering;
+using Utilities;
 
 namespace _049distributedrt
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     public static Form1 singleton = null;
 
@@ -419,20 +420,23 @@ namespace _049distributedrt
       }
 
       double[] color = new double[ 3 ];
+      MT.InitThreadData();
       long hash = imfs.GetSample( x + 0.5, y + 0.5, color );
       labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
     }
 
-    public Form1 ()
+    public Form1 ( string[] args )
     {
       singleton = this;
       InitializeComponent();
-      Text += " (rev: " + rev + ')';
       progress = new RenderingProgress( this );
 
       // Init scenes etc.
-      FormSupport.InitializeScenes();
+      string name;
+      FormSupport.InitializeScenes( args, out name );
+      Text += " (rev: " + rev + ") '" + name + '\'';
+
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 

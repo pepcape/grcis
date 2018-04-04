@@ -1,9 +1,6 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
 using Rendering;
@@ -12,6 +9,36 @@ namespace _049distributedrt
 {
   public class FormSupport
   {
+    /// <summary>
+    /// Prepare form data (e.g. combo-box with available scenes).
+    /// </summary>
+    public static void InitializeScenes ( string[] args, out string name )
+    {
+      name = "Josef Pelikán";
+
+      Form1 f = Form1.singleton;
+
+      // 1. default scenes from RayCastingScenes
+      f.sceneRepository = new Dictionary<string, object>( Scenes.staticRepository );
+
+      // 2. optionally add custom scenes
+      f.sceneRepository[ "Test scene" ] = new InitSceneDelegate( CustomScene.TestScene );
+
+      // 3. fill the combo-box
+      foreach ( string key in f.sceneRepository.Keys )
+        f.ComboScene.Items.Add( key );
+
+      // .. and set your favorite scene here:
+      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
+
+      // default image parameters?
+      f.ImageWidth = 800;
+      f.ImageHeight = 540;
+      f.NumericSupersampling.Value = 16;
+      f.CheckMultithreading.Checked = true;
+      f.TextParam.Text = "";
+    }
+
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
@@ -36,34 +63,6 @@ namespace _049distributedrt
       SupersamplingImageSynthesizer sis = new SupersamplingImageSynthesizer();
       sis.ImageFunction = imf;
       return sis;
-    }
-
-    /// <summary>
-    /// Prepare form data (e.g. combo-box with available scenes).
-    /// </summary>
-    public static void InitializeScenes ()
-    {
-      Form1 f = Form1.singleton;
-
-      // 1. default scenes from RayCastingScenes
-      f.sceneRepository = new Dictionary<string, object>( Scenes.staticRepository );
-
-      // 2. optionally add custom scenes
-      f.sceneRepository[ "Test scene" ] = new InitSceneDelegate( CustomScene.TestScene );
-
-      // 3. fill the combo-box
-      foreach ( string key in f.sceneRepository.Keys )
-        f.ComboScene.Items.Add( key );
-
-      // .. and set your favorite scene here:
-      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
-
-      // default image parameters?
-      f.ImageWidth = 800;
-      f.ImageHeight = 540;
-      f.NumericSupersampling.Value = 16;
-      f.CheckMultithreading.Checked = true;
-      f.TextParam.Text = "";
     }
   }
 }
