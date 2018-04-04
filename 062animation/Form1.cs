@@ -423,8 +423,10 @@ namespace _062animation
         }
 
         // GUI progress indication:
-        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f1}s)",
-                                threads, ++frames, 1.0e-3 * sw.ElapsedMilliseconds ) );
+        double seconds = 1.0e-3 * sw.ElapsedMilliseconds;
+        double fps = ++frames / seconds;
+        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f0} s, {3:f2} fps)",
+                                threads, frames, seconds, fps ) );
         if ( r.frameNumber > lastDisplayedFrame &&
              sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
         {

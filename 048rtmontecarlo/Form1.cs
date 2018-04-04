@@ -9,12 +9,13 @@ using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Rendering;
+using Utilities;
 
 namespace _048rtmontecarlo
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     public static Form1 singleton = null;
 
@@ -26,7 +27,7 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Scenes for the listbox: sceneName -> {sceneDelegate | scriptFileName}
     /// </summary>
-    public Dictionary<string,object> sceneRepository = null;
+    public Dictionary<string, object> sceneRepository = null;
 
     /// <summary>
     /// Index of the current (selected) scene.
@@ -57,7 +58,7 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Global instance of a random generator.
     /// </summary>
-    public static RandomJames rnd = new RandomJames();
+    //public static RandomJames rnd = new RandomJames();
 
     /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
@@ -208,16 +209,16 @@ namespace _048rtmontecarlo
       public int width;
       public int height;
 
-      public WorkerThreadInit ( IRenderer r, ITimeDependent sc, ITimeDependent imf, Bitmap im, int wid, int hei, int rank, int total )
+      public WorkerThreadInit ( IRenderer r, ITimeDependent sc, ITimeDependent imf, Bitmap im, int wid, int hei, int threadNo, int threads )
       {
         scene  = sc;
         imfunc = imf;
         rend   = r;
         image  = im;
-        id     = rank;
+        id     = threadNo;
         width  = wid;
         height = hei;
-        sel = ( n ) => (n % total) == rank;
+        sel    = ( n ) => (n % threads) == threadNo;
       }
     }
 
@@ -441,6 +442,7 @@ namespace _048rtmontecarlo
       }
 
       double[] color = new double[ 3 ];
+      MT.InitThreadData();
       long hash = imfs.GetSample( x + 0.5, y + 0.5, color );
       labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );

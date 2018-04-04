@@ -352,7 +352,7 @@ namespace _063animation
       int t;
       for ( t = 0; t < threads; t++ )
       {
-        pool[ t ] = new Thread( new ThreadStart( this.RenderWorker ) );
+        pool[ t ] = new Thread( new ThreadStart( RenderWorker ) );
         pool[ t ].Start();
       }
 
@@ -423,6 +423,7 @@ namespace _063animation
       // thread-specific data:
       ITimeDependent datatd = data as ITimeDependent;
       object myData = (datatd == null) ? data : datatd.Clone();
+
       MT.InitThreadData();
 
       IImageFunction imf = FormSupport.getImageFunction( textParam.Text, myData );

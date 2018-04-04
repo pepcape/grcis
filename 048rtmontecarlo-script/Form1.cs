@@ -199,16 +199,16 @@ namespace _048rtmontecarlo
       public int width;
       public int height;
 
-      public WorkerThreadInit ( IRenderer r, ITimeDependent sc, ITimeDependent imf, Bitmap im, int wid, int hei, int rank, int total )
+      public WorkerThreadInit ( IRenderer r, ITimeDependent sc, ITimeDependent imf, Bitmap im, int wid, int hei, int threadNo, int threads )
       {
-        scene = sc;
+        scene  = sc;
         imfunc = imf;
-        rend = r;
-        image = im;
-        id = rank;
-        width = wid;
+        rend   = r;
+        image  = im;
+        id     = threadNo;
+        width  = wid;
         height = hei;
-        sel = ( n ) => (n % total) == rank;
+        sel    = ( n ) => (n % threads) == threadNo;
       }
     }
 
