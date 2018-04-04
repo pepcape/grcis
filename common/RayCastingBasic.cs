@@ -426,21 +426,6 @@ namespace Rendering
       p1.Normalize();
       return true;
     }
-
-    /// <summary>
-    /// Ray-generator. Internal integration support.
-    /// </summary>
-    /// <param name="x">Origin position within a viewport (horizontal coordinate).</param>
-    /// <param name="y">Origin position within a viewport (vertical coordinate).</param>
-    /// <param name="rank">Rank of this ray, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of rays (for integration).</param>
-    /// <param name="p0">Ray origin.</param>
-    /// <param name="p1">Ray direction vector.</param>
-    /// <returns>True if the ray (viewport position) is valid.</returns>
-    //public bool GetRay ( double x, double y, int rank, int total, out Vector3d p0, out Vector3d p1 )
-    //{
-    //  return GetRay( x, y, out p0, out p1 );
-    //}
   }
 
   /// <summary>
@@ -491,20 +476,6 @@ namespace Rendering
 
       return intensity;
     }
-
-    /// <summary>
-    /// Returns intensity (incl. color) of the source contribution to the given scene point.
-    /// Internal integration support.
-    /// </summary>
-    /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
-    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
-    /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    //public virtual double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir )
-    //{
-    //  return GetIntensity( intersection, out dir );
-    //}
   }
 
   /// <summary>
@@ -531,20 +502,6 @@ namespace Rendering
       dir = Vector3d.Zero;
       return intensity;
     }
-
-    /// <summary>
-    /// Returns intensity (incl. color) of the source contribution to the given scene point.
-    /// Internal integration support.
-    /// </summary>
-    /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
-    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of samples (for integration).</param>
-    /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source).</param>
-    /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    //public double[] GetIntensity ( Intersection intersection, int rank, int total, out Vector3d dir )
-    //{
-    //  return GetIntensity( intersection, out dir );
-    //}
   }
 
   /// <summary>
@@ -943,18 +900,5 @@ namespace Rendering
 
       return (ui + RandomStatic.numericRecipes( vi ));
     }
-
-    /// <summary>
-    /// Apply the relevant value-modulation in the given Intersection instance.
-    /// Internal integration support.
-    /// </summary>
-    /// <param name="inter">Data object to modify.</param>
-    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of samples (for integration).</param>
-    /// <returns>Hash value (texture signature) for adaptive subsampling.</returns>
-    //public long Apply ( Intersection inter, int rank, int total )
-    //{
-    //  return Apply( inter );
-    //}
   }
 }

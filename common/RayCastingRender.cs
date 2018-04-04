@@ -61,11 +61,9 @@ namespace Rendering
     /// </summary>
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
-    /// <param name="rank">Rank of this sample, 0 <= rank < total (for integration).</param>
-    /// <param name="total">Total number of samples (for integration).</param>
     /// <param name="color">Computed sample color.</param>
     /// <returns>Hash-value used for adaptive subsampling.</returns>
-    public virtual long GetSample ( double x, double y, /*int rank, int total,*/ double[] color )
+    public virtual long GetSample ( double x, double y, double[] color )
     {
       Vector3d p0, p1;
       int bands = color.Length;

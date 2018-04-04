@@ -152,7 +152,7 @@ namespace Rendering
     /// <param name="color">Result color.</param>
     /// <returns>Hash-value (ray sub-signature) used for adaptive subsampling.</returns>
     protected override long shade ( int level, double importance, ref Vector3d p0, ref Vector3d p1,
-                                    /*int rank, int total,*/ double[] color )
+                                    double[] color )
     {
       int bands = color.Length;
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect( p0, p1 );
