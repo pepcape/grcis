@@ -30,15 +30,20 @@
     {
       this.tabControl1 = new System.Windows.Forms.TabControl();
       this.tabPage1 = new System.Windows.Forms.TabPage();
-      this.SaveButton = new System.Windows.Forms.Button();
-      this.RenderButton = new System.Windows.Forms.Button();
-      this.pictureBox1 = new System.Windows.Forms.PictureBox();
+      this.SaveDepthMapButton = new System.Windows.Forms.Button();
+      this.RenderDepthMapButton = new System.Windows.Forms.Button();
+      this.DepthMapPictureBox = new System.Windows.Forms.PictureBox();
       this.tabPage2 = new System.Windows.Forms.TabPage();
+      this.SaveIntensityMapButton = new System.Windows.Forms.Button();
+      this.IntensityMapPictureBox = new System.Windows.Forms.PictureBox();
+      this.RenderIntensityMapButton = new System.Windows.Forms.Button();
       this.tabPage3 = new System.Windows.Forms.TabPage();
       this.tabPage4 = new System.Windows.Forms.TabPage();
       this.tabControl1.SuspendLayout();
       this.tabPage1.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.DepthMapPictureBox)).BeginInit();
+      this.tabPage2.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.IntensityMapPictureBox)).BeginInit();
       this.SuspendLayout();
       // 
       // tabControl1
@@ -56,9 +61,9 @@
       // 
       // tabPage1
       // 
-      this.tabPage1.Controls.Add(this.SaveButton);
-      this.tabPage1.Controls.Add(this.RenderButton);
-      this.tabPage1.Controls.Add(this.pictureBox1);
+      this.tabPage1.Controls.Add(this.SaveDepthMapButton);
+      this.tabPage1.Controls.Add(this.RenderDepthMapButton);
+      this.tabPage1.Controls.Add(this.DepthMapPictureBox);
       this.tabPage1.Location = new System.Drawing.Point(4, 22);
       this.tabPage1.Name = "tabPage1";
       this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
@@ -67,36 +72,39 @@
       this.tabPage1.Text = "Depth Map";
       this.tabPage1.UseVisualStyleBackColor = true;
       // 
-      // SaveButton
+      // SaveDepthMapButton
       // 
-      this.SaveButton.Location = new System.Drawing.Point(6, 353);
-      this.SaveButton.Name = "SaveButton";
-      this.SaveButton.Size = new System.Drawing.Size(97, 41);
-      this.SaveButton.TabIndex = 2;
-      this.SaveButton.Text = "Save Image";
-      this.SaveButton.UseVisualStyleBackColor = true;
-      this.SaveButton.Click += new System.EventHandler(this.SaveButton_Click);
+      this.SaveDepthMapButton.Location = new System.Drawing.Point(9, 353);
+      this.SaveDepthMapButton.Name = "SaveDepthMapButton";
+      this.SaveDepthMapButton.Size = new System.Drawing.Size(97, 41);
+      this.SaveDepthMapButton.TabIndex = 2;
+      this.SaveDepthMapButton.Text = "Save Image";
+      this.SaveDepthMapButton.UseVisualStyleBackColor = true;
+      this.SaveDepthMapButton.Click += new System.EventHandler(this.SaveDepthMapButton_Click);
       // 
-      // RenderButton
+      // RenderDepthMapButton
       // 
-      this.RenderButton.Location = new System.Drawing.Point(6, 6);
-      this.RenderButton.Name = "RenderButton";
-      this.RenderButton.Size = new System.Drawing.Size(97, 41);
-      this.RenderButton.TabIndex = 1;
-      this.RenderButton.Text = "Render";
-      this.RenderButton.UseVisualStyleBackColor = true;
-      this.RenderButton.Click += new System.EventHandler(this.RenderButton_Click);
+      this.RenderDepthMapButton.Location = new System.Drawing.Point(9, 6);
+      this.RenderDepthMapButton.Name = "RenderDepthMapButton";
+      this.RenderDepthMapButton.Size = new System.Drawing.Size(97, 41);
+      this.RenderDepthMapButton.TabIndex = 1;
+      this.RenderDepthMapButton.Text = "Render";
+      this.RenderDepthMapButton.UseVisualStyleBackColor = true;
+      this.RenderDepthMapButton.Click += new System.EventHandler(this.RenderDepthMapButton_Click);
       // 
-      // pictureBox1
+      // DepthMapPictureBox
       // 
-      this.pictureBox1.Location = new System.Drawing.Point(109, 6);
-      this.pictureBox1.Name = "pictureBox1";
-      this.pictureBox1.Size = new System.Drawing.Size(653, 388);
-      this.pictureBox1.TabIndex = 0;
-      this.pictureBox1.TabStop = false;
+      this.DepthMapPictureBox.Location = new System.Drawing.Point(112, 6);
+      this.DepthMapPictureBox.Name = "DepthMapPictureBox";
+      this.DepthMapPictureBox.Size = new System.Drawing.Size(650, 380);
+      this.DepthMapPictureBox.TabIndex = 0;
+      this.DepthMapPictureBox.TabStop = false;
       // 
       // tabPage2
       // 
+      this.tabPage2.Controls.Add(this.SaveIntensityMapButton);
+      this.tabPage2.Controls.Add(this.IntensityMapPictureBox);
+      this.tabPage2.Controls.Add(this.RenderIntensityMapButton);
       this.tabPage2.Location = new System.Drawing.Point(4, 22);
       this.tabPage2.Name = "tabPage2";
       this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
@@ -104,6 +112,34 @@
       this.tabPage2.TabIndex = 1;
       this.tabPage2.Text = "Normal Map";
       this.tabPage2.UseVisualStyleBackColor = true;
+      // 
+      // SaveIntensityMapButton
+      // 
+      this.SaveIntensityMapButton.Location = new System.Drawing.Point(9, 353);
+      this.SaveIntensityMapButton.Name = "SaveIntensityMapButton";
+      this.SaveIntensityMapButton.Size = new System.Drawing.Size(97, 41);
+      this.SaveIntensityMapButton.TabIndex = 5;
+      this.SaveIntensityMapButton.Text = "Save Image";
+      this.SaveIntensityMapButton.UseVisualStyleBackColor = true;
+      this.SaveIntensityMapButton.Click += new System.EventHandler(this.SaveIntensityMapButton_Click);
+      // 
+      // IntensityMapPictureBox
+      // 
+      this.IntensityMapPictureBox.Location = new System.Drawing.Point(112, 6);
+      this.IntensityMapPictureBox.Name = "IntensityMapPictureBox";
+      this.IntensityMapPictureBox.Size = new System.Drawing.Size(650, 380);
+      this.IntensityMapPictureBox.TabIndex = 3;
+      this.IntensityMapPictureBox.TabStop = false;
+      // 
+      // RenderIntensityMapButton
+      // 
+      this.RenderIntensityMapButton.Location = new System.Drawing.Point(9, 6);
+      this.RenderIntensityMapButton.Name = "RenderIntensityMapButton";
+      this.RenderIntensityMapButton.Size = new System.Drawing.Size(97, 41);
+      this.RenderIntensityMapButton.TabIndex = 4;
+      this.RenderIntensityMapButton.Text = "Render";
+      this.RenderIntensityMapButton.UseVisualStyleBackColor = true;
+      this.RenderIntensityMapButton.Click += new System.EventHandler(this.RenderIntensityMapButton_Click);
       // 
       // tabPage3
       // 
@@ -134,7 +170,9 @@
       this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form2_FormClosed);
       this.tabControl1.ResumeLayout(false);
       this.tabPage1.ResumeLayout(false);
-      ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.DepthMapPictureBox)).EndInit();
+      this.tabPage2.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.IntensityMapPictureBox)).EndInit();
       this.ResumeLayout(false);
 
     }
@@ -146,8 +184,11 @@
     private System.Windows.Forms.TabPage tabPage2;
     private System.Windows.Forms.TabPage tabPage3;
     private System.Windows.Forms.TabPage tabPage4;
-    internal System.Windows.Forms.PictureBox pictureBox1;
-    private System.Windows.Forms.Button SaveButton;
-    private System.Windows.Forms.Button RenderButton;
+    internal System.Windows.Forms.PictureBox DepthMapPictureBox;
+    private System.Windows.Forms.Button SaveDepthMapButton;
+    private System.Windows.Forms.Button RenderDepthMapButton;
+    private System.Windows.Forms.Button SaveIntensityMapButton;
+    internal System.Windows.Forms.PictureBox IntensityMapPictureBox;
+    private System.Windows.Forms.Button RenderIntensityMapButton;
   }
 }

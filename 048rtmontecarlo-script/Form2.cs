@@ -30,7 +30,7 @@ namespace _048rtmontecarlo
       Form2.singleton = null;
     }
 
-    private void SaveButton_Click(object sender, EventArgs e)
+    private void SaveDepthMapButton_Click(object sender, EventArgs e)
     {
       if (outputImage == null /*||
           aThread != null*/) return;
@@ -45,10 +45,23 @@ namespace _048rtmontecarlo
 
       outputImage.Save(sfd.FileName, System.Drawing.Imaging.ImageFormat.Png);
     }
-
-    private void RenderButton_Click(object sender, EventArgs e)
+    private void SaveIntensityMapButton_Click(object sender, EventArgs e)
     {
-      // Render
+
     }
+
+    private void RenderDepthMapButton_Click(object sender, EventArgs e)
+    {
+      AdvancedTools.DepthMap.RenderDepthMap ();
+
+      singleton.DepthMapPictureBox.Image = AdvancedTools.DepthMap.GetBitmap ();
+    }
+
+    private void RenderIntensityMapButton_Click(object sender, EventArgs e)
+    {
+      AdvancedTools.IntensityMap.RenderIntensityMap();
+
+      singleton.DepthMapPictureBox.Image = AdvancedTools.IntensityMap.GetBitmap();
+    }    
   }
 }

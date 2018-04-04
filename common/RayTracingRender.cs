@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using OpenTK;
 using MathSupport;
+using _048rtmontecarlo;
 
 namespace Rendering
 {
@@ -84,6 +85,9 @@ namespace Rendering
     /// <returns>Hash-value used for adaptive subsampling.</returns>
     public override long GetSample ( double x, double y, double[] color )
     {
+      MT.doubleX = x;
+      MT.doubleY = y;
+
       // initial color = black
       Array.Clear( color, 0, color.Length );
 
@@ -125,6 +129,8 @@ namespace Rendering
 
       // there was at least one intersection
       i.Complete();
+
+      AdvancedTools.Register ( level, p0, i );
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode();
