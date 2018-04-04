@@ -580,6 +580,10 @@ namespace Rendering
 
     [ThreadStatic] public static int x;
     [ThreadStatic] public static int y;
+
+    [ThreadStatic] public static double doubleX;
+    [ThreadStatic] public static double doubleY;
+
     [ThreadStatic] public static int rank;
     [ThreadStatic] public static int total;
 
