@@ -193,14 +193,14 @@ namespace _049distributedrt
       public int width;
       public int height;
 
-      public WorkerThreadInit ( IRenderer r, Bitmap im, int wid, int hei, int rank, int total )
+      public WorkerThreadInit ( IRenderer r, Bitmap im, int wid, int hei, int threadNo, int threads )
       {
         rend   = r;
         image  = im;
-        id     = rank;
+        id     = threadNo;
         width  = wid;
         height = hei;
-        sel = ( n ) => (n % total) == rank;
+        sel = ( n ) => (n % threads) == threadNo;
       }
     }
 
