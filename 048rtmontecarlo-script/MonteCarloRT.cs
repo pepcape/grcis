@@ -104,17 +104,20 @@ namespace Rendering
       Array.Clear( color, 0, bands );
       double[] tmp = new double[ bands ];
 
-      int i, j, ord;
+      int i, j;
       double step = 1.0 / superXY;
       double amplitude = Jittering * step;
       double origin = 0.5 * (step - amplitude);
       double x0, y0;
-      for ( j = ord = 0, y0 = y + origin; j++ < superXY; y0 += step )
+      MT.StartPixel( x, y, Supersampling );
+
+      for ( j = 0, y0 = y + origin; j++ < superXY; y0 += step )
         for ( i = 0, x0 = x + origin; i++ < superXY; x0 += step )
         {
           ImageFunction.GetSample( x0 + amplitude * MT.rnd.UniformNumber(),
                                    y0 + amplitude * MT.rnd.UniformNumber(),
-                                   ord++, Supersampling, tmp );
+                                   tmp );
+          MT.NextSample();
           for ( b = 0; b < bands; b++ )
             color[ b ] += tmp[ b ];
         }
