@@ -354,6 +354,7 @@ namespace _048rtmontecarlo
       comboScene.Enabled =
       textParam.Enabled =
       buttonRes.Enabled =
+      AdvancedToolsButton.Enabled =
       buttonSave.Enabled = enable;
       buttonStop.Enabled = !enable;
     }
@@ -499,11 +500,19 @@ namespace _048rtmontecarlo
         ImageWidth = form.ImageWidth;
         ImageHeight = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+
+        if ( Form2.singleton != null )
+        {
+          Form2.singleton.SetNewDimensions(form.ImageWidth, form.ImageHeight);
+        }      
       }
     }
 
     private void buttonRender_Click ( object sender, EventArgs e )
     {
+      Form2.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
+      AdvancedTools.NewRenderInitialization ();
+
       if ( aThread != null )
         return;
 

@@ -22,12 +22,16 @@ namespace _048rtmontecarlo
     {
       singleton = this;
 
+      Form1.singleton.AdvancedToolsButton.Enabled = false;
+
       InitializeComponent();
     }
 
     private void Form2_FormClosed(object sender, FormClosedEventArgs e)
     {
-      Form2.singleton = null;
+      Form1.singleton.AdvancedToolsButton.Enabled = true;
+
+      singleton = null;
     }
 
     private void SaveDepthMapButton_Click(object sender, EventArgs e)
@@ -61,7 +65,18 @@ namespace _048rtmontecarlo
     {
       AdvancedTools.IntensityMap.RenderIntensityMap();
 
-      singleton.DepthMapPictureBox.Image = AdvancedTools.IntensityMap.GetBitmap();
-    }    
+      singleton.IntensityMapPictureBox.Image = AdvancedTools.IntensityMap.GetBitmap();
+    }
+
+    public void SetNewDimensions ( int formImageWidth, int formImageHeight )
+    {
+      singleton.IntensityMapPictureBox.Width = formImageWidth;
+      singleton.IntensityMapPictureBox.Height = formImageHeight;
+
+      singleton.DepthMapPictureBox.Width = formImageWidth;
+      singleton.DepthMapPictureBox.Height = formImageHeight;
+
+      AdvancedTools.SetNewDimensions ();
+    }
   }
 }

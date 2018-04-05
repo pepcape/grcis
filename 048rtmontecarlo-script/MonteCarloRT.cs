@@ -39,11 +39,16 @@ namespace _048rtmontecarlo
       f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
 
       // default image parameters?
-      f.ImageWidth = 800;
-      f.ImageHeight = 540;
+      f.ImageWidth = 640;
+      f.ImageHeight = 480;
       f.NumericSupersampling.Value = 4;
       f.CheckMultithreading.Checked = true;
       f.TextParam.Text = "";
+
+      if ( Form2.singleton != null )
+      {
+        Form2.singleton.SetNewDimensions (f.ImageWidth, f.ImageHeight);
+      }
     }
 
     /// <summary>

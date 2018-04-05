@@ -55,7 +55,7 @@
       this.tabControl1.Location = new System.Drawing.Point(12, 12);
       this.tabControl1.Name = "tabControl1";
       this.tabControl1.SelectedIndex = 0;
-      this.tabControl1.Size = new System.Drawing.Size(776, 426);
+      this.tabControl1.Size = new System.Drawing.Size(805, 426);
       this.tabControl1.TabIndex = 0;
       this.tabControl1.Tag = "";
       // 
@@ -67,7 +67,7 @@
       this.tabPage1.Location = new System.Drawing.Point(4, 22);
       this.tabPage1.Name = "tabPage1";
       this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPage1.Size = new System.Drawing.Size(768, 400);
+      this.tabPage1.Size = new System.Drawing.Size(797, 400);
       this.tabPage1.TabIndex = 0;
       this.tabPage1.Text = "Depth Map";
       this.tabPage1.UseVisualStyleBackColor = true;
@@ -96,7 +96,7 @@
       // 
       this.DepthMapPictureBox.Location = new System.Drawing.Point(112, 6);
       this.DepthMapPictureBox.Name = "DepthMapPictureBox";
-      this.DepthMapPictureBox.Size = new System.Drawing.Size(650, 380);
+      this.DepthMapPictureBox.Size = new System.Drawing.Size(680, 360);
       this.DepthMapPictureBox.TabIndex = 0;
       this.DepthMapPictureBox.TabStop = false;
       // 
@@ -108,9 +108,9 @@
       this.tabPage2.Location = new System.Drawing.Point(4, 22);
       this.tabPage2.Name = "tabPage2";
       this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPage2.Size = new System.Drawing.Size(768, 400);
+      this.tabPage2.Size = new System.Drawing.Size(797, 400);
       this.tabPage2.TabIndex = 1;
-      this.tabPage2.Text = "Normal Map";
+      this.tabPage2.Text = "Intensity Map";
       this.tabPage2.UseVisualStyleBackColor = true;
       // 
       // SaveIntensityMapButton
@@ -127,7 +127,7 @@
       // 
       this.IntensityMapPictureBox.Location = new System.Drawing.Point(112, 6);
       this.IntensityMapPictureBox.Name = "IntensityMapPictureBox";
-      this.IntensityMapPictureBox.Size = new System.Drawing.Size(650, 380);
+      this.IntensityMapPictureBox.Size = new System.Drawing.Size(680, 360);
       this.IntensityMapPictureBox.TabIndex = 3;
       this.IntensityMapPictureBox.TabStop = false;
       // 
@@ -145,7 +145,7 @@
       // 
       this.tabPage3.Location = new System.Drawing.Point(4, 22);
       this.tabPage3.Name = "tabPage3";
-      this.tabPage3.Size = new System.Drawing.Size(768, 400);
+      this.tabPage3.Size = new System.Drawing.Size(797, 400);
       this.tabPage3.TabIndex = 2;
       this.tabPage3.Text = "tabPage3";
       this.tabPage3.UseVisualStyleBackColor = true;
@@ -154,7 +154,7 @@
       // 
       this.tabPage4.Location = new System.Drawing.Point(4, 22);
       this.tabPage4.Name = "tabPage4";
-      this.tabPage4.Size = new System.Drawing.Size(768, 400);
+      this.tabPage4.Size = new System.Drawing.Size(797, 400);
       this.tabPage4.TabIndex = 3;
       this.tabPage4.Text = "tabPage4";
       this.tabPage4.UseVisualStyleBackColor = true;
@@ -163,7 +163,7 @@
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(800, 450);
+      this.ClientSize = new System.Drawing.Size(837, 450);
       this.Controls.Add(this.tabControl1);
       this.Name = "Form2";
       this.Text = "Advanced view";

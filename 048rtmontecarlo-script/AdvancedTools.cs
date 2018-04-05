@@ -13,10 +13,19 @@ namespace _048rtmontecarlo
 {
   public static class AdvancedTools
   {
-    private static Form2 form2;
-
     public static void Register(int level, Vector3d rayOrigin, Intersection firstIntersection)
     {
+      if ( Form2.singleton == null )
+      {
+        return;
+      }
+
+      if ( DepthMap.depthMap == null )
+        DepthMap.Initialize ();
+
+      if (IntensityMap.intensityMap == null)
+        IntensityMap.Initialize ();
+
       double depth;
 
       if ( firstIntersection == null )
@@ -31,6 +40,8 @@ namespace _048rtmontecarlo
 
       if ( level == 0 )
       {
+
+        // register depth
         if ( IntensityMap.intensityMap[MT.x, MT.y] == 0)
         {
           DepthMap.depthMap[MT.x, MT.y] = depth;
@@ -40,6 +51,7 @@ namespace _048rtmontecarlo
           DepthMap.depthMap[MT.x, MT.y] = (DepthMap.depthMap[MT.x, MT.y] + depth) / 2;
         }
 
+        // register intensity
         IntensityMap.intensityMap[ MT.x, MT.y ]++;
       }
 
@@ -49,10 +61,10 @@ namespace _048rtmontecarlo
 
     public static class DepthMap
     {
-      static DepthMap ()
+      public static void Initialize()
       {
-        DepthMapImageWidth = form2.DepthMapPictureBox.Width;
-        DepthMapImageHeight = form2.DepthMapPictureBox.Height;
+        DepthMapImageWidth = Form2.singleton.DepthMapPictureBox.Width;
+        DepthMapImageHeight = Form2.singleton.DepthMapPictureBox.Height;
 
         depthMap = new double[DepthMapImageWidth, DepthMapImageHeight];
       }
@@ -84,10 +96,10 @@ namespace _048rtmontecarlo
 
     public static class IntensityMap
     {
-      static IntensityMap()
+      public static void Initialize()
       {
-        IntensityMapImageWidth = form2.IntensityMapPictureBox.Width;
-        IntensityMapImageHeight = form2.IntensityMapPictureBox.Height;
+        IntensityMapImageWidth = Form2.singleton.IntensityMapPictureBox.Width;
+        IntensityMapImageHeight = Form2.singleton.IntensityMapPictureBox.Height;
 
         intensityMap = new int[IntensityMapImageWidth, IntensityMapImageHeight];
       }
@@ -111,9 +123,15 @@ namespace _048rtmontecarlo
 
       public static void RenderIntensityMap()
       {
+        if ( IntensityMapImageWidth == 0 || IntensityMapImageHeight == 0)
+        {
+          Initialize ();
+        }
+
         int maxIntensity = 0;
         int minIntensity = int.MaxValue;
 
+        // get maximal and minimal intensity - later used to get appropriate color for each intensity
         for ( int x = 0; x < IntensityMapImageWidth; x++ )
         {
           for ( int y = 0; y < IntensityMapImageHeight; y++ )
@@ -132,24 +150,10 @@ namespace _048rtmontecarlo
         {
           for (int y = 0; y < IntensityMapImageHeight; y++)
           {
-            intensityMapBitmap.SetPixel ( x, y, GetAppropriateColor( x, y ));
+            intensityMapBitmap.SetPixel ( x, y, GetAppropriateColor( minIntensity, maxIntensity, intensityMap[ x,y ] ));
           }
-        }
-
-        Color GetAppropriateColor ( int x, int y )
-        {
-          double colorValue = (intensityMap[x, y] - minIntensity) / (maxIntensity - minIntensity) * 240;
-
-          if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))
-          {
-            colorValue = 0;
-          }
-
-          return Arith.HSVToColor(240 - colorValue, 1, 1);
-        }
-      }
-
-      
+        }              
+      }      
 
       public static Bitmap GetBitmap()
       {
@@ -160,6 +164,31 @@ namespace _048rtmontecarlo
 
         return intensityMapBitmap;
       }
+    }
+
+    private static Color GetAppropriateColor(double minValue, double maxValue, double newValue)
+    {
+      double colorValue = (newValue - minValue) / (maxValue - minValue) * 240;
+
+      if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))
+      {
+        colorValue = 0;
+      }
+
+      return Arith.HSVToColor(240 - colorValue, 1, 1);
+    }
+
+
+    public static void SetNewDimensions ()
+    {
+      DepthMap.Initialize ();
+      IntensityMap.Initialize ();
+    }
+
+    public static void NewRenderInitialization ()
+    {
+      DepthMap.depthMap = null;
+      IntensityMap.intensityMap = null;
     }
   }
 }
