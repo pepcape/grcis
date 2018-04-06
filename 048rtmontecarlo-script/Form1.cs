@@ -22,7 +22,7 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Current output raster image. Locked access.
     /// </summary>
-    protected Bitmap outputImage = null;
+    internal Bitmap outputImage = null;
 
     /// <summary>
     /// Scenes for the listbox: sceneName -> {sceneDelegate | scriptFileName}
