@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenTK;
+using Rendering;
 
 namespace _048rtmontecarlo
 {
@@ -18,72 +19,82 @@ namespace _048rtmontecarlo
 
     protected Bitmap outputImage = null;
 
-    public Form2()
+    public Form2 ()
     {
       singleton = this;
 
       Form1.singleton.AdvancedToolsButton.Enabled = false;
 
-      InitializeComponent();
+      InitializeComponent ();
 
       this.StartPosition = FormStartPosition.Manual;
 
       // Sets location of Form2 (Advanced Tools) to either right or left of Form1 (Main) 
       // depending on position of Form1 (whether it is close to right edge of primary screen)
       if ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width < Screen.PrimaryScreen.WorkingArea.Width ||
-           Form1.singleton.Location.X - this.Width < 0)
+           Form1.singleton.Location.X - this.Width < 0 )
       {
-        this.Location = new Point(Form1.singleton.Location.X + Form1.singleton.Width, Form1.singleton.Location.Y);        // place to the right of Form1
+        this.Location =
+          new Point ( Form1.singleton.Location.X + Form1.singleton.Width,
+                      Form1.singleton.Location.Y ); // place to the right of Form1
       }
       else
       {
-        this.Location = new Point(Form1.singleton.Location.X - this.Width, Form1.singleton.Location.Y);   // place to the left of Form1
+        this.Location =
+          new Point ( Form1.singleton.Location.X - this.Width,
+                      Form1.singleton.Location.Y ); // place to the left of Form1
       }
     }
 
-    private void Form2_FormClosed(object sender, FormClosedEventArgs e)
+    private void Form2_FormClosed ( object sender, FormClosedEventArgs e )
     {
       Form1.singleton.AdvancedToolsButton.Enabled = true;
 
       singleton = null;
     }
 
-    private void SaveDepthMapButton_Click(object sender, EventArgs e)
+    private void SaveDepthMapButton_Click ( object sender, EventArgs e )
     {
       SavePictureButton ( DepthMapPictureBox.Image, "DepthMap" );
     }
-    private void SaveIntensityMapButton_Click(object sender, EventArgs e)
+
+    private void SavePrimaryRaysMapButton_Click ( object sender, EventArgs e )
     {
-      SavePictureButton ( IntensityMapPictureBox.Image, "IntensityMap" );
+      SavePictureButton ( PrimaryRaysMapPictureBox.Image, "PrimaryRaysMap" );
+    }
+
+    private void SaveAllRaysMapButton_Click(object sender, EventArgs e)
+    {
+      SavePictureButton ( AllRaysMapPictureBox.Image, "AllRaysMap" );
     }
 
     /// <summary>
     /// Opens save file dialog for selected image (from pictureBox)
     /// Returns bool whether operation was successful
     /// </summary>
-    private bool SavePictureButton (Image image, string defaultName)
+    private bool SavePictureButton ( Image image, string defaultName )
     {
-      outputImage = (Bitmap)image;
+      outputImage = (Bitmap) image;
 
-      if (outputImage == null)
+      if ( outputImage == null )
         return false;
 
-      SaveFileDialog sfd = new SaveFileDialog();
+      SaveFileDialog sfd = new SaveFileDialog ();
       sfd.Title        = "Save PNG file";
       sfd.Filter       = "PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName     = defaultName + ".png";
-      if (sfd.ShowDialog() != DialogResult.OK)
+      if ( sfd.ShowDialog () != DialogResult.OK )
         return false;
 
-      outputImage.Save(sfd.FileName, System.Drawing.Imaging.ImageFormat.Png);
+      outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
 
       return true;
     }
 
-    private void RenderDepthMapButton_Click(object sender, EventArgs e)
+    private void RenderDepthMapButton_Click ( object sender, EventArgs e )
     {
-      if (Form1.singleton.outputImage == null)
+      if ( Form1.singleton.outputImage == null )
         return;
 
       AdvancedTools.DepthMap.RenderDepthMap ();
@@ -91,29 +102,87 @@ namespace _048rtmontecarlo
       DepthMapPictureBox.Image = AdvancedTools.DepthMap.GetBitmap ();
 
       SaveDepthMapButton.Enabled = true;
+
+      SetTotalAndAveragePrimaryRaysCount ( Intersection.countRays, DepthMapPictureBox.Image.Width, DepthMapPictureBox.Image.Height );
     }
 
-    private void RenderIntensityMapButton_Click(object sender, EventArgs e)
+    private void RenderPrimaryRaysMapButton_Click ( object sender, EventArgs e )
+    {
+      if ( Form1.singleton.outputImage == null )
+        return;
+
+      AdvancedTools.PrimaryRaysMap.RenderPrimaryRaysMap ();
+
+      PrimaryRaysMapPictureBox.Image = AdvancedTools.PrimaryRaysMap.GetBitmap ();
+
+      SavePrimaryRaysMapButton.Enabled = true;
+    }
+
+    private void RenderAllRaysMapButton_Click(object sender, EventArgs e)
     {
       if (Form1.singleton.outputImage == null)
         return;
 
-      AdvancedTools.IntensityMap.RenderIntensityMap();
+      AdvancedTools.PrimaryRaysMap.RenderPrimaryRaysMap();
 
-      IntensityMapPictureBox.Image = AdvancedTools.IntensityMap.GetBitmap();
+      PrimaryRaysMapPictureBox.Image = AdvancedTools.PrimaryRaysMap.GetBitmap();
 
-      SaveIntensityMapButton.Enabled = true;
+      SaveAllRaysMapButton.Enabled = true;
     }
 
     public void SetNewDimensions ( int formImageWidth, int formImageHeight )
     {
-      IntensityMapPictureBox.Width = formImageWidth;
-      IntensityMapPictureBox.Height = formImageHeight;
+      PrimaryRaysMapPictureBox.Width  = formImageWidth;
+      PrimaryRaysMapPictureBox.Height = formImageHeight;
 
-      DepthMapPictureBox.Width = formImageWidth;
+      DepthMapPictureBox.Width  = formImageWidth;
       DepthMapPictureBox.Height = formImageHeight;
 
       AdvancedTools.SetNewDimensions ();
+    }
+
+    private void DepthMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
+    {
+      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left )
+      {
+        Point coordinates = e.Location;
+
+        double depth = AdvancedTools.DepthMap.GetDepthAtLocation ( coordinates.X, coordinates.Y );
+
+        DepthMap_Coordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\nDepth:\r\n{2:0.00}",
+                                                    coordinates.X,
+                                                    coordinates.Y,
+                                                    depth );
+      }
+    }
+
+    private void PrimaryRaysMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
+    {
+      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left )
+      {
+        Point coordinates = e.Location;
+
+        int raysCount = AdvancedTools.PrimaryRaysMap.GetRaysCountAtLocation ( coordinates.X, coordinates.Y );
+
+        PrimaryRaysMapCoordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\nRays count:\r\n{2}",
+                                                        coordinates.X,
+                                                        coordinates.Y,
+                                                        raysCount );
+      }
+    }
+
+    public void SetTotalAndAveragePrimaryRaysCount ( long totalCount, int width, int height )
+    {
+      TotalPrimaryRaysCount.Text = String.Format ( "Total rays\r\ncount:\r\n{0}", totalCount );  //TODO: All rays, not only primary
+
+      AveragePrimaryRaysCount.Text = String.Format ( "Average rays\r\ncount\r\nper pixel:\r\n{0}", totalCount / ( width * height ) );
+    }
+
+    public void SetTotalAndAverageAllRaysCount(long totalCount, int width, int height)
+    {
+      TotalAllRaysCount.Text = String.Format("Total all\r\nrays count:\r\n{0}", totalCount);
+
+      AverageAllRaysCount.Text = String.Format("Average all\r\nray count\r\nper pixel:\r\n{0}", totalCount / (width * height));
     }
   }
 }
