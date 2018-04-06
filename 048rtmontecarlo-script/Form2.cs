@@ -25,6 +25,20 @@ namespace _048rtmontecarlo
       Form1.singleton.AdvancedToolsButton.Enabled = false;
 
       InitializeComponent();
+
+      this.StartPosition = FormStartPosition.Manual;
+
+      // Sets location of Form2 (Advanced Tools) to either right or left of Form1 (Main) 
+      // depending on position of Form1 (whether it is close to right edge of primary screen)
+      if ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width < Screen.PrimaryScreen.WorkingArea.Width ||
+           Form1.singleton.Location.X - this.Width < 0)
+      {
+        this.Location = new Point(Form1.singleton.Location.X + Form1.singleton.Width, Form1.singleton.Location.Y);        // place to the right of Form1
+      }
+      else
+      {
+        this.Location = new Point(Form1.singleton.Location.X - this.Width, Form1.singleton.Location.Y);   // place to the left of Form1
+      }
     }
 
     private void Form2_FormClosed(object sender, FormClosedEventArgs e)
@@ -36,45 +50,62 @@ namespace _048rtmontecarlo
 
     private void SaveDepthMapButton_Click(object sender, EventArgs e)
     {
-      if (outputImage == null /*||
-          aThread != null*/) return;
+      SavePictureButton ( DepthMapPictureBox.Image, "DepthMap" );
+    }
+    private void SaveIntensityMapButton_Click(object sender, EventArgs e)
+    {
+      SavePictureButton ( IntensityMapPictureBox.Image, "IntensityMap" );
+    }
+
+    /// <summary>
+    /// Opens save file dialog for selected image (from pictureBox)
+    /// Returns bool whether operation was successful
+    /// </summary>
+    private bool SavePictureButton (Image image, string defaultName)
+    {
+      outputImage = (Bitmap)image;
+
+      if (outputImage == null)
+        return false;
 
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title        = "Save PNG file";
       sfd.Filter       = "PNG Files|*.png";
       sfd.AddExtension = true;
-      sfd.FileName     = "DepthMap.png";
+      sfd.FileName     = defaultName + ".png";
       if (sfd.ShowDialog() != DialogResult.OK)
-        return;
+        return false;
 
       outputImage.Save(sfd.FileName, System.Drawing.Imaging.ImageFormat.Png);
-    }
-    private void SaveIntensityMapButton_Click(object sender, EventArgs e)
-    {
 
+      return true;
     }
 
     private void RenderDepthMapButton_Click(object sender, EventArgs e)
     {
       AdvancedTools.DepthMap.RenderDepthMap ();
 
-      singleton.DepthMapPictureBox.Image = AdvancedTools.DepthMap.GetBitmap ();
+      DepthMapPictureBox.Image = AdvancedTools.DepthMap.GetBitmap ();
+
+      SaveDepthMapButton.Enabled = true;
     }
 
     private void RenderIntensityMapButton_Click(object sender, EventArgs e)
     {
       AdvancedTools.IntensityMap.RenderIntensityMap();
 
-      singleton.IntensityMapPictureBox.Image = AdvancedTools.IntensityMap.GetBitmap();
+      IntensityMapPictureBox.Image = AdvancedTools.IntensityMap.GetBitmap();
+
+      SaveIntensityMapButton.Enabled = true;
     }
 
     public void SetNewDimensions ( int formImageWidth, int formImageHeight )
     {
-      singleton.IntensityMapPictureBox.Width = formImageWidth;
-      singleton.IntensityMapPictureBox.Height = formImageHeight;
+      IntensityMapPictureBox.Width = formImageWidth;
+      IntensityMapPictureBox.Height = formImageHeight;
 
-      singleton.DepthMapPictureBox.Width = formImageWidth;
-      singleton.DepthMapPictureBox.Height = formImageHeight;
+      DepthMapPictureBox.Width = formImageWidth;
+      DepthMapPictureBox.Height = formImageHeight;
 
       AdvancedTools.SetNewDimensions ();
     }

@@ -31,32 +31,29 @@ namespace _048rtmontecarlo
 
       if ( firstIntersection == null )
       {
-        depth = 1000; // CHANGE - placeholder for "infinity"
+        depth = 10000; // TODO: CHANGE - placeholder for "infinity"
       }
       else
       {
         depth = Vector3d.Distance(rayOrigin, firstIntersection.CoordWorld);
       }
-      
+     
 
       if ( level == 0 )
       {
-
         // register depth
-        if ( IntensityMap.intensityMap[MT.x, MT.y] == 0)
+        if ( IntensityMap.intensityMap[ MT.x, MT.y ] == 0 )
         {
-          DepthMap.depthMap[MT.x, MT.y] = depth;
+          DepthMap.depthMap[ MT.x, MT.y ] = depth;
         }
         else
         {
-          DepthMap.depthMap[MT.x, MT.y] = (DepthMap.depthMap[MT.x, MT.y] + depth) / 2;
+          DepthMap.depthMap[ MT.x, MT.y ] = ( DepthMap.depthMap[ MT.x, MT.y ] + depth ) / 2; // TODO: PROVE CORRECTNESS
         }
 
         // register intensity
         IntensityMap.intensityMap[ MT.x, MT.y ]++;
-      }
-
-
+      }      
     }
 
 
@@ -91,14 +88,25 @@ namespace _048rtmontecarlo
           Initialize();
         }
 
-        double maxDepth = Double.MinValue;
-        double minDepth = Double.MaxValue;
+        double maxDepth = double.MinValue;
+        double minDepth = double.MaxValue;
 
         GetMinimumAndMaximum(ref minDepth, ref maxDepth, depthMap);
 
         depthMapBitmap = new Bitmap(DepthMapImageWidth, DepthMapImageHeight, PixelFormat.Format24bppRgb);
 
-        MapAppropriateColors ( minDepth, maxDepth, depthMap, depthMapBitmap);
+        PopulateArray2D<double>(DepthMap.depthMap, maxDepth, 0, true);
+
+        minDepth = double.MaxValue;
+        GetMinimumAndMaximum(ref minDepth, ref maxDepth, depthMap); // TODO: New minimum after replacing all zeroes
+
+        for (int x = 0; x < DepthMapImageWidth; x++)
+        {
+          for (int y = 0; y < DepthMapImageHeight; y++)
+          {
+            depthMapBitmap.SetPixel ( x, y, GetAppropriateColorLogarithmicReversed ( minDepth, maxDepth, depthMap[ x, y ] ) );
+          }
+        }
       }
      
 
@@ -112,6 +120,7 @@ namespace _048rtmontecarlo
         return depthMapBitmap;
       }
     }
+
 
     public static class IntensityMap
     {
@@ -144,22 +153,20 @@ namespace _048rtmontecarlo
           Initialize ();
         }
 
-        int maxIntensity = Int32.MinValue;
-        int minIntensity = Int32.MaxValue;
+        int maxIntensity = int.MinValue;
+        int minIntensity = int.MaxValue;
 
         GetMinimumAndMaximum ( ref minIntensity, ref maxIntensity, intensityMap );
 
         intensityMapBitmap = new Bitmap(IntensityMapImageWidth, IntensityMapImageHeight, PixelFormat.Format24bppRgb);
 
-        MapAppropriateColors ( minIntensity, maxIntensity, intensityMap, intensityMapBitmap );
-
-        /*for (int x = 0; x < IntensityMapImageWidth; x++)
+        for (int x = 0; x < IntensityMapImageWidth; x++)
         {
           for (int y = 0; y < IntensityMapImageHeight; y++)
           {
-            intensityMapBitmap.SetPixel ( x, y, GetAppropriateColor( minIntensity, maxIntensity, intensityMap[ x,y ] ));
+            intensityMapBitmap.SetPixel ( x, y, GetAppropriateColorLinear( minIntensity, maxIntensity, intensityMap[ x,y ] ));
           }
-        }  */
+        }
       }      
 
       public static Bitmap GetBitmap()
@@ -191,7 +198,7 @@ namespace _048rtmontecarlo
           if ( map[ x, y ].CompareTo ( maxValue ) > 0 )
             maxValue = map[ x, y ];
 
-          if ( map[ x, y ].CompareTo ( maxValue ) < 0 )
+          if ( map[ x, y ].CompareTo ( minValue ) < 0 )
             minValue = map[ x, y ];
 
 
@@ -214,11 +221,9 @@ namespace _048rtmontecarlo
     /// <param name="maxValue">End of range (red color)</param>
     /// <param name="newValue">Value for which we want color</param>
     /// <returns></returns>
-    private static Color GetAppropriateColor<T> ( T minValue, T maxValue, T newValue )
+    private static Color GetAppropriateColorLinear ( double minValue, double maxValue, double newValue )
     {
-      dynamic colorValue = Divide ( Subtract ( newValue, minValue ), Subtract ( maxValue, minValue ) );
-      colorValue *= 240;
-      //double colorValue = (newValue - minValue) / (maxValue - minValue) * 240;
+      double colorValue = (newValue - minValue) / (maxValue - minValue) * 240;
 
       if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))
       {
@@ -228,33 +233,51 @@ namespace _048rtmontecarlo
       return Arith.HSVToColor(240 - colorValue, 1, 1);
     }
 
-    private static void MapAppropriateColors<T> ( T minValue, T maxValue, T[,] map, Bitmap bitmap )
+    private static Color GetAppropriateColorLogarithmicReversed ( double minValue, double maxValue, double newValue )
     {
-      for ( int x = 0; x < DepthMap.DepthMapImageWidth; x++ )
+      double colorValue = Math.Log ( ( newValue - minValue ), ( maxValue - minValue ) ) * 240;
+
+      if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))
       {
-        for ( int y = 0; y < DepthMap.DepthMapImageHeight; y++ )
+        colorValue = 0;
+      }
+
+      return Arith.HSVToColor(colorValue, 1, 1);
+    }
+
+    /// <summary>
+    /// Sets all values of 2D array to specific value
+    /// </summary>
+    /// <typeparam name="T">Type of array and value</typeparam>
+    /// <param name="array">Array to populate</param>
+    /// <param name="value">Desired value</param>
+    /// <param name="selectedValue">Only these values are replaced if selected is true</param>
+    /// <param name="selected">Switches between changing all values or only values equal to selectedValue</param>
+    private static void PopulateArray2D<T>(this T[,] array, T value, T selectedValue, bool selected)
+    {
+      if ( selected )
+      {
+        for (int i = 0; i < array.GetLength(0); i++)
         {
-          bitmap.SetPixel(x, y, GetAppropriateColor( minValue, maxValue, map[x, y]));
+          for (int j = 0; j < array.GetLength(1); j++)
+          {
+            if ( array[i, j].Equals( selectedValue ) )
+            {
+              array[i, j] = value;
+            }            
+          }
         }
       }
-    }
-
-    static T Subtract<T>(T a, T b)
-    {
-      ParameterExpression paramA = Expression.Parameter(typeof(T), "a"),
-                          paramB = Expression.Parameter(typeof(T), "b");
-      BinaryExpression body = Expression.Subtract(paramA, paramB);
-      Func<T, T, T> subtract = Expression.Lambda<Func<T, T, T>>(body, paramA, paramB).Compile();
-      return subtract(a, b);
-    }
-
-    static T Divide<T>(T a, T b)
-    {
-      ParameterExpression paramA = Expression.Parameter(typeof(T), "a"),
-                          paramB = Expression.Parameter(typeof(T), "b");
-      BinaryExpression body     = Expression.Divide(paramA, paramB);
-      Func<T, T, T> divide = Expression.Lambda<Func<T, T, T>>(body, paramA, paramB).Compile();
-      return divide(a, b);
+      else
+      {
+        for (int i = 0; i < array.GetLength(0); i++)
+        {
+          for (int j = 0; j < array.GetLength(1); j++)
+          {
+            array[i, j] = value;
+          }
+        }
+      }        
     }
 
     /// <summary>
