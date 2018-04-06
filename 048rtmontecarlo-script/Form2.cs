@@ -1,14 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using OpenTK;
 using Rendering;
 
 namespace _048rtmontecarlo
@@ -101,39 +93,42 @@ namespace _048rtmontecarlo
 
       DepthMapPictureBox.Image = AdvancedTools.DepthMap.GetBitmap ();
 
-      SaveDepthMapButton.Enabled = true;
-
-      SetTotalAndAveragePrimaryRaysCount ( Intersection.countRays, DepthMapPictureBox.Image.Width, DepthMapPictureBox.Image.Height );
+      SaveDepthMapButton.Enabled = true;    
     }
 
     private void RenderPrimaryRaysMapButton_Click ( object sender, EventArgs e )
     {
-      if ( Form1.singleton.outputImage == null )
-        return;
+      RenderRaysMap(AdvancedTools.PrimaryRaysMap, PrimaryRaysMapPictureBox, SavePrimaryRaysMapButton);
 
-      AdvancedTools.PrimaryRaysMap.RenderPrimaryRaysMap ();
-
-      PrimaryRaysMapPictureBox.Image = AdvancedTools.PrimaryRaysMap.GetBitmap ();
-
-      SavePrimaryRaysMapButton.Enabled = true;
+      SetTotalAndAveragePrimaryRaysCount ( Intersection.countRays, PrimaryRaysMapPictureBox.Image.Width, PrimaryRaysMapPictureBox.Image.Height );
     }
 
     private void RenderAllRaysMapButton_Click(object sender, EventArgs e)
     {
+      RenderRaysMap ( AdvancedTools.AllRaysMap, AllRaysMapPictureBox, SaveAllRaysMapButton );
+
+      SetTotalAndAverageAllRaysCount ( Intersection.countRays, AllRaysMapPictureBox.Image.Width, AllRaysMapPictureBox.Image.Height );
+    }
+
+    private void RenderRaysMap ( AdvancedTools.RaysMap raysMap, PictureBox pictureBox, Button saveButton )
+    {
       if (Form1.singleton.outputImage == null)
         return;
 
-      AdvancedTools.PrimaryRaysMap.RenderPrimaryRaysMap();
+      raysMap.RenderRaysMap();
 
-      PrimaryRaysMapPictureBox.Image = AdvancedTools.PrimaryRaysMap.GetBitmap();
+      pictureBox.Image = raysMap.GetBitmap();
 
-      SaveAllRaysMapButton.Enabled = true;
+      saveButton.Enabled = true;
     }
 
     public void SetNewDimensions ( int formImageWidth, int formImageHeight )
     {
       PrimaryRaysMapPictureBox.Width  = formImageWidth;
       PrimaryRaysMapPictureBox.Height = formImageHeight;
+
+      AllRaysMapPictureBox.Width  = formImageWidth;
+      AllRaysMapPictureBox.Height = formImageHeight;
 
       DepthMapPictureBox.Width  = formImageWidth;
       DepthMapPictureBox.Height = formImageHeight;
@@ -143,7 +138,7 @@ namespace _048rtmontecarlo
 
     private void DepthMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
     {
-      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left )
+      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left && DepthMapPictureBox.ClientRectangle.Contains(e.Location))
       {
         Point coordinates = e.Location;
 
@@ -158,17 +153,28 @@ namespace _048rtmontecarlo
 
     private void PrimaryRaysMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
     {
-      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left )
+      if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && PrimaryRaysMapPictureBox.ClientRectangle.Contains(e.Location))
       {
-        Point coordinates = e.Location;
-
-        int raysCount = AdvancedTools.PrimaryRaysMap.GetRaysCountAtLocation ( coordinates.X, coordinates.Y );
-
-        PrimaryRaysMapCoordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\nRays count:\r\n{2}",
-                                                        coordinates.X,
-                                                        coordinates.Y,
-                                                        raysCount );
+        RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.PrimaryRaysMap, PrimaryRaysMapCoordinates, e.Location );
       }
+    }
+
+    private void AllRaysMapPictureBox_MouseDownAndMouseMove(object sender, MouseEventArgs e)
+    {
+      if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && AllRaysMapPictureBox.ClientRectangle.Contains(e.Location))
+      {
+        RaysMapPictureBox_MouseDownAndMouseMove(AdvancedTools.AllRaysMap, AllRaysMapCoordinates, e.Location);
+      }
+    }
+
+    private void RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.RaysMap raysMap, Label label, Point coordinates )
+    {
+      int raysCount = raysMap.GetRaysCountAtLocation(coordinates.X, coordinates.Y);
+
+      label.Text = String.Format("X: {0}\r\nY: {1}\r\nRays count:\r\n{2}",
+                                 coordinates.X,
+                                 coordinates.Y,
+                                 raysCount);
     }
 
     public void SetTotalAndAveragePrimaryRaysCount ( long totalCount, int width, int height )
@@ -180,9 +186,14 @@ namespace _048rtmontecarlo
 
     public void SetTotalAndAverageAllRaysCount(long totalCount, int width, int height)
     {
-      TotalAllRaysCount.Text = String.Format("Total all\r\nrays count:\r\n{0}", totalCount);
+      TotalAllRaysCount.Text = String.Format ( "Total all\r\nrays count:\r\n{0}", totalCount );
 
-      AverageAllRaysCount.Text = String.Format("Average all\r\nray count\r\nper pixel:\r\n{0}", totalCount / (width * height));
+      AverageAllRaysCount.Text = String.Format ( "Average all\r\nray count\r\nper pixel:\r\n{0}", totalCount / ( width * height ) );
+    }
+
+    private void DepthMapPictureBox_MouseDownAndMouseMove(object sender, EventArgs e)
+    {
+
     }
   }
 }

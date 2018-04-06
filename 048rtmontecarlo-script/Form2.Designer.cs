@@ -41,9 +41,9 @@
       this.PrimaryRaysMapPanel = new System.Windows.Forms.Panel();
       this.AveragePrimaryRaysCount = new System.Windows.Forms.Label();
       this.PrimaryRaysMapPictureBox = new System.Windows.Forms.PictureBox();
+      this.TotalPrimaryRaysCount = new System.Windows.Forms.Label();
       this.PrimaryRaysMapCoordinates = new System.Windows.Forms.Label();
       this.tabPage3 = new System.Windows.Forms.TabPage();
-      this.tabPage4 = new System.Windows.Forms.TabPage();
       this.SaveAllRaysMapButton = new System.Windows.Forms.Button();
       this.RenderAllRaysMapButton = new System.Windows.Forms.Button();
       this.panel1 = new System.Windows.Forms.Panel();
@@ -51,7 +51,7 @@
       this.AllRaysMapPictureBox = new System.Windows.Forms.PictureBox();
       this.TotalAllRaysCount = new System.Windows.Forms.Label();
       this.AllRaysMapCoordinates = new System.Windows.Forms.Label();
-      this.TotalPrimaryRaysCount = new System.Windows.Forms.Label();
+      this.tabPage4 = new System.Windows.Forms.TabPage();
       this.tabControl1.SuspendLayout();
       this.tabPage1.SuspendLayout();
       this.DepthMapPanel.SuspendLayout();
@@ -222,6 +222,17 @@
       this.PrimaryRaysMapPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PrimaryRaysMapPictureBox_MouseDownAndMouseMove);
       this.PrimaryRaysMapPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.PrimaryRaysMapPictureBox_MouseDownAndMouseMove);
       // 
+      // TotalPrimaryRaysCount
+      // 
+      this.TotalPrimaryRaysCount.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.TotalPrimaryRaysCount.AutoSize = true;
+      this.TotalPrimaryRaysCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.TotalPrimaryRaysCount.Location = new System.Drawing.Point(6, 203);
+      this.TotalPrimaryRaysCount.Name = "TotalPrimaryRaysCount";
+      this.TotalPrimaryRaysCount.Size = new System.Drawing.Size(77, 40);
+      this.TotalPrimaryRaysCount.TabIndex = 10;
+      this.TotalPrimaryRaysCount.Text = "Total rays\r\ncount:";
+      // 
       // PrimaryRaysMapCoordinates
       // 
       this.PrimaryRaysMapCoordinates.AutoSize = true;
@@ -243,15 +254,6 @@
       this.tabPage3.TabIndex = 2;
       this.tabPage3.Text = "All Rays Map";
       this.tabPage3.UseVisualStyleBackColor = true;
-      // 
-      // tabPage4
-      // 
-      this.tabPage4.Location = new System.Drawing.Point(4, 22);
-      this.tabPage4.Name = "tabPage4";
-      this.tabPage4.Size = new System.Drawing.Size(811, 495);
-      this.tabPage4.TabIndex = 3;
-      this.tabPage4.Text = "tabPage4";
-      this.tabPage4.UseVisualStyleBackColor = true;
       // 
       // SaveAllRaysMapButton
       // 
@@ -309,6 +311,8 @@
       this.AllRaysMapPictureBox.Size = new System.Drawing.Size(680, 480);
       this.AllRaysMapPictureBox.TabIndex = 7;
       this.AllRaysMapPictureBox.TabStop = false;
+      this.AllRaysMapPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.AllRaysMapPictureBox_MouseDownAndMouseMove);
+      this.AllRaysMapPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.AllRaysMapPictureBox_MouseDownAndMouseMove);
       // 
       // TotalAllRaysCount
       // 
@@ -331,16 +335,14 @@
       this.AllRaysMapCoordinates.TabIndex = 8;
       this.AllRaysMapCoordinates.Text = "X: \r\nY: \r\nRays count:";
       // 
-      // TotalPrimaryRaysCount
+      // tabPage4
       // 
-      this.TotalPrimaryRaysCount.Anchor = System.Windows.Forms.AnchorStyles.Left;
-      this.TotalPrimaryRaysCount.AutoSize = true;
-      this.TotalPrimaryRaysCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.TotalPrimaryRaysCount.Location = new System.Drawing.Point(6, 203);
-      this.TotalPrimaryRaysCount.Name = "TotalPrimaryRaysCount";
-      this.TotalPrimaryRaysCount.Size = new System.Drawing.Size(77, 40);
-      this.TotalPrimaryRaysCount.TabIndex = 10;
-      this.TotalPrimaryRaysCount.Text = "Total rays\r\ncount:";
+      this.tabPage4.Location = new System.Drawing.Point(4, 22);
+      this.tabPage4.Name = "tabPage4";
+      this.tabPage4.Size = new System.Drawing.Size(811, 495);
+      this.tabPage4.TabIndex = 3;
+      this.tabPage4.Text = "tabPage4";
+      this.tabPage4.UseVisualStyleBackColor = true;
       // 
       // Form2
       // 
