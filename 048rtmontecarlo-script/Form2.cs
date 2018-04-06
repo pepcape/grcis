@@ -98,6 +98,9 @@ namespace _048rtmontecarlo
 
     private void RenderPrimaryRaysMapButton_Click ( object sender, EventArgs e )
     {
+      if (Form1.singleton.outputImage == null)
+        return;
+
       RenderRaysMap(AdvancedTools.PrimaryRaysMap, PrimaryRaysMapPictureBox, SavePrimaryRaysMapButton);
 
       SetTotalAndAveragePrimaryRaysCount ( Intersection.countRays, PrimaryRaysMapPictureBox.Image.Width, PrimaryRaysMapPictureBox.Image.Height );
@@ -105,6 +108,9 @@ namespace _048rtmontecarlo
 
     private void RenderAllRaysMapButton_Click(object sender, EventArgs e)
     {
+      if (Form1.singleton.outputImage == null)
+        return;
+
       RenderRaysMap ( AdvancedTools.AllRaysMap, AllRaysMapPictureBox, SaveAllRaysMapButton );
 
       SetTotalAndAverageAllRaysCount ( Intersection.countRays, AllRaysMapPictureBox.Image.Width, AllRaysMapPictureBox.Image.Height );
@@ -189,11 +195,6 @@ namespace _048rtmontecarlo
       TotalAllRaysCount.Text = String.Format ( "Total all\r\nrays count:\r\n{0}", totalCount );
 
       AverageAllRaysCount.Text = String.Format ( "Average all\r\nray count\r\nper pixel:\r\n{0}", totalCount / ( width * height ) );
-    }
-
-    private void DepthMapPictureBox_MouseDownAndMouseMove(object sender, EventArgs e)
-    {
-
     }
   }
 }

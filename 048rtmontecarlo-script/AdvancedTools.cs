@@ -76,6 +76,8 @@ namespace _048rtmontecarlo
         DepthMapImageHeight = Form2.singleton.DepthMapPictureBox.Height;
 
         depthMap = new double[DepthMapImageWidth, DepthMapImageHeight];
+
+        wasAveraged = false;
       }
 
       /// <summary>
@@ -99,39 +101,63 @@ namespace _048rtmontecarlo
       {
         if ( DepthMapImageWidth == 0 || DepthMapImageHeight == 0 )
         {
-          Initialize();
+          Initialize ();
+        }
+
+        AverageMap ();
+
+        maxDepth = double.MinValue;
+        minDepth = double.MaxValue;
+
+        GetMinimumAndMaximum ( ref minDepth, ref maxDepth, depthMap );
+
+        depthMapBitmap = new Bitmap ( DepthMapImageWidth, DepthMapImageHeight, PixelFormat.Format24bppRgb );
+
+        PopulateArray2D<double> ( depthMap, maxDepth, 0, true );
+
+        minDepth = double.MaxValue;
+        GetMinimumAndMaximum ( ref minDepth, ref maxDepth, depthMap ); // TODO: New minimum after replacing all zeroes
+
+        for ( int x = 0; x < DepthMapImageWidth; x++ )
+        {
+          for ( int y = 0; y < DepthMapImageHeight; y++ )
+          {
+            depthMapBitmap.SetPixel ( x, y, GetAppropriateColorLogarithmicReversed ( minDepth, maxDepth, depthMap[ x, y ] ) );
+          }
+        }
+      }
+
+      public static bool wasAveraged;
+
+      private static void AverageMap ()
+      {
+        if ( PrimaryRaysMap == null )
+        {
+          AdvancedTools.Initialize ();
+        }
+
+        if ( PrimaryRaysMap.raysMap == null )
+        {
+          PrimaryRaysMap.Initialize ();
+        }
+
+        if ( wasAveraged )
+        {
+          return;
         }
 
         for ( int i = 0; i < DepthMapImageWidth; i++ )
         {
           for ( int j = 0; j < DepthMapImageHeight; j++ )
           {
-            if ( PrimaryRaysMap.raysMap[i, j] != 0 )   // TODO: Fix 0 rays count
+            if ( PrimaryRaysMap.raysMap[ i, j ] != 0 ) // TODO: Fix 0 rays count
             {
-              depthMap[i, j] /= PrimaryRaysMap.raysMap[i, j];
+              depthMap[ i, j ] /= PrimaryRaysMap.raysMap[ i, j ];
             }
           }
         }
 
-        maxDepth = double.MinValue;
-        minDepth = double.MaxValue;
-
-        GetMinimumAndMaximum(ref minDepth, ref maxDepth, depthMap);
-
-        depthMapBitmap = new Bitmap(DepthMapImageWidth, DepthMapImageHeight, PixelFormat.Format24bppRgb);
-
-        PopulateArray2D<double>(DepthMap.depthMap, maxDepth, 0, true);
-
-        minDepth = double.MaxValue;
-        GetMinimumAndMaximum(ref minDepth, ref maxDepth, depthMap); // TODO: New minimum after replacing all zeroes
-
-        for (int x = 0; x < DepthMapImageWidth; x++)
-        {
-          for (int y = 0; y < DepthMapImageHeight; y++)
-          {
-            depthMapBitmap.SetPixel ( x, y, GetAppropriateColorLogarithmicReversed ( minDepth, maxDepth, depthMap[ x, y ] ) );
-          }
-        }
+        wasAveraged = true;
       }
 
       public static double GetDepthAtLocation ( int x, int y )
@@ -290,7 +316,7 @@ namespace _048rtmontecarlo
     /// <returns>Appropriate color</returns>
     private static Color GetAppropriateColorLogarithmicReversed ( double minValue, double maxValue, double newValue )
     {
-      double colorValue = Math.Log((newValue - minValue + 1), (maxValue - minValue)) * 240;
+      double colorValue = Math.Log((newValue - minValue + 1), (maxValue - minValue + 1)) * 240;
 
       if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))  // TODO: Needed or just throw exception?
       {
