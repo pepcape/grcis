@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using MathSupport;
 using OpenTK;
 using Rendering;
@@ -14,6 +9,15 @@ namespace _048rtmontecarlo
 {
   public static class AdvancedTools
   {
+    internal static RaysMap PrimaryRaysMap;
+    internal static RaysMap AllRaysMap;
+
+    private static void Initialize ()
+    {
+      PrimaryRaysMap = new RaysMap ();
+      AllRaysMap = new RaysMap ();
+    }
+
     public static void Register(int level, Vector3d rayOrigin, Intersection firstIntersection)
     {
       if ( Form2.singleton == null )
@@ -21,10 +25,21 @@ namespace _048rtmontecarlo
         return;
       }
 
+      if ( PrimaryRaysMap == null || AllRaysMap == null )
+      {
+        Initialize ();       
+      }
+
+      if (PrimaryRaysMap.raysMap == null || AllRaysMap.raysMap == null)
+      {
+        PrimaryRaysMap.Initialize ();
+        AllRaysMap.Initialize ();
+      }
+
       if ( DepthMap.depthMap == null )
         DepthMap.Initialize ();
 
-      if (PrimaryRaysMap.primaryRaysMap == null)
+      if (PrimaryRaysMap.raysMap == null)
         PrimaryRaysMap.Initialize ();
 
       double depth;
@@ -44,11 +59,12 @@ namespace _048rtmontecarlo
         // register depth
         DepthMap.depthMap[MT.x, MT.y] += depth;
 
-        // register intensity
-        PrimaryRaysMap.primaryRaysMap[MT.x, MT.y]++;
-        
+        // register primary rays
+        PrimaryRaysMap.raysMap[MT.x, MT.y]++;       
       }
-      // put registering of intensity here to count all rays
+
+      // register all rays
+      AllRaysMap.raysMap[ MT.x, MT.y ]++;
     }
 
 
@@ -90,9 +106,9 @@ namespace _048rtmontecarlo
         {
           for ( int j = 0; j < DepthMapImageHeight; j++ )
           {
-            if ( PrimaryRaysMap.primaryRaysMap[i, j] != 0 )   // TODO: Fix 0 rays count
+            if ( PrimaryRaysMap.raysMap[i, j] != 0 )   // TODO: Fix 0 rays count
             {
-              depthMap[i, j] /= PrimaryRaysMap.primaryRaysMap[i, j];
+              depthMap[i, j] /= PrimaryRaysMap.raysMap[i, j];
             }
           }
         }
@@ -141,97 +157,33 @@ namespace _048rtmontecarlo
       }
     }
 
-
-    public static class PrimaryRaysMap
+    public class RaysMap : IRaysMap
     {
-      public static void Initialize()
-      {
-        PrimaryRaysMapImageWidth = Form2.singleton.PrimaryRaysMapPictureBox.Width;
-        PrimaryRaysMapImageHeight = Form2.singleton.PrimaryRaysMapPictureBox.Height;
-
-        primaryRaysMap = new int[PrimaryRaysMapImageWidth, PrimaryRaysMapImageHeight];
-      }
-
       /// <summary>
       /// Image width in pixels, 0 for default value (according to panel size).
       /// </summary>
-      public static int PrimaryRaysMapImageWidth;
+      public int RaysMapImageWidth;
 
       /// <summary>
       /// Image height in pixels, 0 for default value (according to panel size).
       /// </summary>
-      public static int PrimaryRaysMapImageHeight;
+      public int RaysMapImageHeight;
 
-      internal static int[,] primaryRaysMap;
+      internal int[,] raysMap;
 
-      private static Bitmap primaryRaysMapBitmap;
+      private Bitmap raysMapBitmap;
 
-      public static void RenderPrimaryRaysMap()
+      public void Initialize ()
       {
-        if ( PrimaryRaysMapImageWidth == 0 || PrimaryRaysMapImageHeight == 0)
-        {
-          Initialize ();
-        }
+        RaysMapImageWidth = Form2.singleton.PrimaryRaysMapPictureBox.Width;   // TODO: can it be hard coded for PRIMARYraysMapPictureBox
+        RaysMapImageHeight = Form2.singleton.PrimaryRaysMapPictureBox.Height;
 
-        int maxValue = int.MinValue;
-        int minValue = int.MaxValue;
-
-        GetMinimumAndMaximum ( ref minValue, ref maxValue, primaryRaysMap );
-
-        primaryRaysMapBitmap = new Bitmap(PrimaryRaysMapImageWidth, PrimaryRaysMapImageHeight, PixelFormat.Format24bppRgb);
-
-        for (int x = 0; x < PrimaryRaysMapImageWidth; x++)
-        {
-          for (int y = 0; y < PrimaryRaysMapImageHeight; y++)
-          {
-            primaryRaysMapBitmap.SetPixel ( x, y, GetAppropriateColorLinear( minValue, maxValue, primaryRaysMap[ x,y ] ));
-          }
-        }
-      }      
-
-      public static Bitmap GetBitmap()
-      {
-        if ( primaryRaysMapBitmap == null )
-        {
-          RenderPrimaryRaysMap ();        
-        }
-
-        return primaryRaysMapBitmap;
+        raysMap = new int[RaysMapImageWidth, RaysMapImageHeight];
       }
 
-      public static int GetRaysCountAtLocation ( int x, int y )
+      public void RenderRaysMap ()
       {
-        return primaryRaysMap[ x, y ];
-      }
-    }
-
-    public static class AllRaysMap
-    {
-      public static void Initialize()
-      {
-        AllRaysMapImageWidth = Form2.singleton.AllRaysMapPictureBox.Width;
-        AllRaysMapImageHeight = Form2.singleton.AllRaysMapPictureBox.Height;
-
-        allRaysMap = new int[AllRaysMapImageWidth, AllRaysMapImageHeight];
-      }
-
-      /// <summary>
-      /// Image width in pixels, 0 for default value (according to panel size).
-      /// </summary>
-      public static int AllRaysMapImageWidth;
-
-      /// <summary>
-      /// Image height in pixels, 0 for default value (according to panel size).
-      /// </summary>
-      public static int AllRaysMapImageHeight;
-
-      internal static int[,] allRaysMap;
-
-      private static Bitmap allRaysMapBitmap;
-
-      public static void RenderAllRaysMap()
-      {
-        if (AllRaysMapImageWidth == 0 || AllRaysMapImageHeight == 0)
+        if (RaysMapImageWidth == 0 || RaysMapImageHeight == 0)
         {
           Initialize();
         }
@@ -239,32 +191,37 @@ namespace _048rtmontecarlo
         int maxValue = int.MinValue;
         int minValue = int.MaxValue;
 
-        GetMinimumAndMaximum(ref minValue, ref maxValue, allRaysMap);
+        GetMinimumAndMaximum(ref minValue, ref maxValue, raysMap);
 
-        allRaysMapBitmap = new Bitmap(AllRaysMapImageWidth, AllRaysMapImageHeight, PixelFormat.Format24bppRgb);
+        raysMapBitmap = new Bitmap(RaysMapImageWidth, RaysMapImageHeight, PixelFormat.Format24bppRgb);
 
-        for (int x = 0; x < AllRaysMapImageWidth; x++)
+        for (int x = 0; x < RaysMapImageWidth; x++)
         {
-          for (int y = 0; y < AllRaysMapImageHeight; y++)
+          for (int y = 0; y < RaysMapImageHeight; y++)
           {
-            allRaysMapBitmap.SetPixel(x, y, GetAppropriateColorLinear(minValue, maxValue, allRaysMap[x, y]));
+            raysMapBitmap.SetPixel(x, y, GetAppropriateColorLinear(minValue, maxValue, raysMap[x, y]));
           }
         }
       }
 
-      public static Bitmap GetBitmap()
+      public Bitmap GetBitmap ()
       {
-        if (allRaysMapBitmap == null)
+        if (raysMapBitmap == null)
         {
-          RenderAllRaysMap();
+          RenderRaysMap ();
         }
 
-        return allRaysMapBitmap;
+        return raysMapBitmap;
       }
 
-      public static int GetRaysCountAtLocation(int x, int y)
+      public int GetRaysCountAtLocation ( int x, int y )
       {
-        return allRaysMap[x, y];
+        if ( x < 0 || x >= RaysMapImageWidth || y < 0 || y >= RaysMapImageHeight )
+        {
+          return -1;
+        }
+
+        return raysMap[x, y];
       }
     }
 
@@ -383,8 +340,14 @@ namespace _048rtmontecarlo
     /// </summary>
     public static void SetNewDimensions ()
     {
+      if (PrimaryRaysMap == null || AllRaysMap == null)
+      {
+        Initialize();
+      }
+
       DepthMap.Initialize ();
       PrimaryRaysMap.Initialize ();
+      AllRaysMap.Initialize ();
     }
 
     /// <summary>
@@ -392,13 +355,25 @@ namespace _048rtmontecarlo
     /// </summary>
     public static void NewRenderInitialization ()
     {
+      if (PrimaryRaysMap != null)
+      {
+        PrimaryRaysMap.raysMap = null;
+      }
+
+      if (AllRaysMap != null)
+      {
+        AllRaysMap.raysMap = null;
+      }
+
       DepthMap.depthMap = null;
-      PrimaryRaysMap.primaryRaysMap = null;
     }
   }
 }
 
 
+/// <summary>
+/// Interface for maps based on rays count such as PrimaryRaysMap and AllRaysMap
+/// </summary>
 interface IRaysMap
 {
   void Initialize ();
