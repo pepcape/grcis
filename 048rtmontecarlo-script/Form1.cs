@@ -510,7 +510,10 @@ namespace _048rtmontecarlo
 
     private void buttonRender_Click ( object sender, EventArgs e )
     {
-      Form2.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
+      if (Form2.singleton != null )
+      {
+        Form2.singleton.SetNewDimensions(ImageWidth, ImageHeight);
+      }    
       AdvancedTools.NewRenderInitialization ();
 
       if ( aThread != null )

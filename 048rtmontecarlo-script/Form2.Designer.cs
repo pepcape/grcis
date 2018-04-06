@@ -74,6 +74,7 @@
       // 
       // SaveDepthMapButton
       // 
+      this.SaveDepthMapButton.Enabled = false;
       this.SaveDepthMapButton.Location = new System.Drawing.Point(9, 353);
       this.SaveDepthMapButton.Name = "SaveDepthMapButton";
       this.SaveDepthMapButton.Size = new System.Drawing.Size(97, 41);
@@ -115,6 +116,7 @@
       // 
       // SaveIntensityMapButton
       // 
+      this.SaveIntensityMapButton.Enabled = false;
       this.SaveIntensityMapButton.Location = new System.Drawing.Point(9, 353);
       this.SaveIntensityMapButton.Name = "SaveIntensityMapButton";
       this.SaveIntensityMapButton.Size = new System.Drawing.Size(97, 41);
@@ -166,7 +168,7 @@
       this.ClientSize = new System.Drawing.Size(837, 450);
       this.Controls.Add(this.tabControl1);
       this.Name = "Form2";
-      this.Text = "Advanced view";
+      this.Text = "Advanced tools";
       this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form2_FormClosed);
       this.tabControl1.ResumeLayout(false);
       this.tabPage1.ResumeLayout(false);
