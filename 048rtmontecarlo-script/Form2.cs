@@ -83,6 +83,9 @@ namespace _048rtmontecarlo
 
     private void RenderDepthMapButton_Click(object sender, EventArgs e)
     {
+      if (Form1.singleton.outputImage == null)
+        return;
+
       AdvancedTools.DepthMap.RenderDepthMap ();
 
       DepthMapPictureBox.Image = AdvancedTools.DepthMap.GetBitmap ();
@@ -92,6 +95,9 @@ namespace _048rtmontecarlo
 
     private void RenderIntensityMapButton_Click(object sender, EventArgs e)
     {
+      if (Form1.singleton.outputImage == null)
+        return;
+
       AdvancedTools.IntensityMap.RenderIntensityMap();
 
       IntensityMapPictureBox.Image = AdvancedTools.IntensityMap.GetBitmap();
