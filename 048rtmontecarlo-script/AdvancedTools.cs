@@ -24,8 +24,8 @@ namespace _048rtmontecarlo
       if ( DepthMap.depthMap == null )
         DepthMap.Initialize ();
 
-      if (IntensityMap.intensityMap == null)
-        IntensityMap.Initialize ();
+      if (PrimaryRaysMap.primaryRaysMap == null)
+        PrimaryRaysMap.Initialize ();
 
       double depth;
 
@@ -42,18 +42,13 @@ namespace _048rtmontecarlo
       if ( level == 0 )
       {
         // register depth
-        if ( IntensityMap.intensityMap[ MT.x, MT.y ] == 0 )
-        {
-          DepthMap.depthMap[ MT.x, MT.y ] = depth;
-        }
-        else
-        {
-          DepthMap.depthMap[ MT.x, MT.y ] = ( DepthMap.depthMap[ MT.x, MT.y ] + depth ) / 2; // TODO: PROVE CORRECTNESS
-        }
+        DepthMap.depthMap[MT.x, MT.y] += depth;
 
         // register intensity
-        IntensityMap.intensityMap[ MT.x, MT.y ]++;
-      }      
+        PrimaryRaysMap.primaryRaysMap[MT.x, MT.y]++;
+        
+      }
+      // put registering of intensity here to count all rays
     }
 
 
@@ -81,15 +76,29 @@ namespace _048rtmontecarlo
 
       private static Bitmap depthMapBitmap;
 
+      private static double maxDepth;
+      private static double minDepth;
+
       public static void RenderDepthMap()
       {
-        if (DepthMapImageWidth == 0 || DepthMapImageHeight == 0)
+        if ( DepthMapImageWidth == 0 || DepthMapImageHeight == 0 )
         {
           Initialize();
         }
 
-        double maxDepth = double.MinValue;
-        double minDepth = double.MaxValue;
+        for ( int i = 0; i < DepthMapImageWidth; i++ )
+        {
+          for ( int j = 0; j < DepthMapImageHeight; j++ )
+          {
+            if ( PrimaryRaysMap.primaryRaysMap[i, j] != 0 )   // TODO: Fix 0 rays count
+            {
+              depthMap[i, j] /= PrimaryRaysMap.primaryRaysMap[i, j];
+            }
+          }
+        }
+
+        maxDepth = double.MinValue;
+        minDepth = double.MaxValue;
 
         GetMinimumAndMaximum(ref minDepth, ref maxDepth, depthMap);
 
@@ -108,7 +117,18 @@ namespace _048rtmontecarlo
           }
         }
       }
-     
+
+      public static double GetDepthAtLocation ( int x, int y )
+      {
+        if ( depthMap[ x, y ] >= maxDepth ) // TODO: PositiveInfinity in depthMap?
+        {
+          return double.PositiveInfinity;
+        }
+        else
+        {
+          return depthMap[ x, y ];
+        }
+      }
 
       public static Bitmap GetBitmap ()
       {
@@ -122,61 +142,129 @@ namespace _048rtmontecarlo
     }
 
 
-    public static class IntensityMap
+    public static class PrimaryRaysMap
     {
       public static void Initialize()
       {
-        IntensityMapImageWidth = Form2.singleton.IntensityMapPictureBox.Width;
-        IntensityMapImageHeight = Form2.singleton.IntensityMapPictureBox.Height;
+        PrimaryRaysMapImageWidth = Form2.singleton.PrimaryRaysMapPictureBox.Width;
+        PrimaryRaysMapImageHeight = Form2.singleton.PrimaryRaysMapPictureBox.Height;
 
-        intensityMap = new int[IntensityMapImageWidth, IntensityMapImageHeight];
+        primaryRaysMap = new int[PrimaryRaysMapImageWidth, PrimaryRaysMapImageHeight];
       }
 
       /// <summary>
       /// Image width in pixels, 0 for default value (according to panel size).
       /// </summary>
-      public static int IntensityMapImageWidth;
+      public static int PrimaryRaysMapImageWidth;
 
       /// <summary>
       /// Image height in pixels, 0 for default value (according to panel size).
       /// </summary>
-      public static int IntensityMapImageHeight;
+      public static int PrimaryRaysMapImageHeight;
 
-      internal static int[,] intensityMap;
+      internal static int[,] primaryRaysMap;
 
-      private static Bitmap intensityMapBitmap;
+      private static Bitmap primaryRaysMapBitmap;
 
-      public static void RenderIntensityMap()
+      public static void RenderPrimaryRaysMap()
       {
-        if ( IntensityMapImageWidth == 0 || IntensityMapImageHeight == 0)
+        if ( PrimaryRaysMapImageWidth == 0 || PrimaryRaysMapImageHeight == 0)
         {
           Initialize ();
         }
 
-        int maxIntensity = int.MinValue;
-        int minIntensity = int.MaxValue;
+        int maxValue = int.MinValue;
+        int minValue = int.MaxValue;
 
-        GetMinimumAndMaximum ( ref minIntensity, ref maxIntensity, intensityMap );
+        GetMinimumAndMaximum ( ref minValue, ref maxValue, primaryRaysMap );
 
-        intensityMapBitmap = new Bitmap(IntensityMapImageWidth, IntensityMapImageHeight, PixelFormat.Format24bppRgb);
+        primaryRaysMapBitmap = new Bitmap(PrimaryRaysMapImageWidth, PrimaryRaysMapImageHeight, PixelFormat.Format24bppRgb);
 
-        for (int x = 0; x < IntensityMapImageWidth; x++)
+        for (int x = 0; x < PrimaryRaysMapImageWidth; x++)
         {
-          for (int y = 0; y < IntensityMapImageHeight; y++)
+          for (int y = 0; y < PrimaryRaysMapImageHeight; y++)
           {
-            intensityMapBitmap.SetPixel ( x, y, GetAppropriateColorLinear( minIntensity, maxIntensity, intensityMap[ x,y ] ));
+            primaryRaysMapBitmap.SetPixel ( x, y, GetAppropriateColorLinear( minValue, maxValue, primaryRaysMap[ x,y ] ));
           }
         }
       }      
 
       public static Bitmap GetBitmap()
       {
-        if ( intensityMapBitmap == null )
+        if ( primaryRaysMapBitmap == null )
         {
-          RenderIntensityMap ();        
+          RenderPrimaryRaysMap ();        
         }
 
-        return intensityMapBitmap;
+        return primaryRaysMapBitmap;
+      }
+
+      public static int GetRaysCountAtLocation ( int x, int y )
+      {
+        return primaryRaysMap[ x, y ];
+      }
+    }
+
+    public static class AllRaysMap
+    {
+      public static void Initialize()
+      {
+        AllRaysMapImageWidth = Form2.singleton.AllRaysMapPictureBox.Width;
+        AllRaysMapImageHeight = Form2.singleton.AllRaysMapPictureBox.Height;
+
+        allRaysMap = new int[AllRaysMapImageWidth, AllRaysMapImageHeight];
+      }
+
+      /// <summary>
+      /// Image width in pixels, 0 for default value (according to panel size).
+      /// </summary>
+      public static int AllRaysMapImageWidth;
+
+      /// <summary>
+      /// Image height in pixels, 0 for default value (according to panel size).
+      /// </summary>
+      public static int AllRaysMapImageHeight;
+
+      internal static int[,] allRaysMap;
+
+      private static Bitmap allRaysMapBitmap;
+
+      public static void RenderAllRaysMap()
+      {
+        if (AllRaysMapImageWidth == 0 || AllRaysMapImageHeight == 0)
+        {
+          Initialize();
+        }
+
+        int maxValue = int.MinValue;
+        int minValue = int.MaxValue;
+
+        GetMinimumAndMaximum(ref minValue, ref maxValue, allRaysMap);
+
+        allRaysMapBitmap = new Bitmap(AllRaysMapImageWidth, AllRaysMapImageHeight, PixelFormat.Format24bppRgb);
+
+        for (int x = 0; x < AllRaysMapImageWidth; x++)
+        {
+          for (int y = 0; y < AllRaysMapImageHeight; y++)
+          {
+            allRaysMapBitmap.SetPixel(x, y, GetAppropriateColorLinear(minValue, maxValue, allRaysMap[x, y]));
+          }
+        }
+      }
+
+      public static Bitmap GetBitmap()
+      {
+        if (allRaysMapBitmap == null)
+        {
+          RenderAllRaysMap();
+        }
+
+        return allRaysMapBitmap;
+      }
+
+      public static int GetRaysCountAtLocation(int x, int y)
+      {
+        return allRaysMap[x, y];
       }
     }
 
@@ -214,18 +302,18 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Returns color based on range
     /// Returned color is either dark blue (close to minValue) or red (close to maxValue)
-    /// Between than color is lineary transited changing value in HSV model
-    /// Dark blue -> light blue -> turquoise -> green -> yellow -> orange -> red (does not go to purple)
+    /// Between that color is lineary transited, changing value in HSV model
+    /// Dark blue -> light blue -> turquoise -> green -> yellow -> orange -> red (does not go to purple - reason for value 240 instead of 255)
     /// </summary>
     /// <param name="minValue">Start of range (dark blue color)</param>
     /// <param name="maxValue">End of range (red color)</param>
     /// <param name="newValue">Value for which we want color</param>
-    /// <returns></returns>
+    /// <returns>Appropriate color</returns>
     private static Color GetAppropriateColorLinear ( double minValue, double maxValue, double newValue )
     {
       double colorValue = (newValue - minValue) / (maxValue - minValue) * 240;
 
-      if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))
+      if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))  // TODO: Needed or just throw exception?
       {
         colorValue = 0;
       }
@@ -233,11 +321,21 @@ namespace _048rtmontecarlo
       return Arith.HSVToColor(240 - colorValue, 1, 1);
     }
 
+    /// <summary>
+    /// Returns color based on range
+    /// Returned color is either red (close to minValue) or dark blue (close to maxValue)
+    /// Between that color is logarithmically transited, changing value in HSV model
+    /// Red -> orange -> yellow -> green -> turquoise -> light blue -> dark blue (does not go to purple - reason for value 240 instead of 255)
+    /// </summary>
+    /// <param name="minValue">Start of range (red color)</param>
+    /// <param name="maxValue">End of range (dark blue color)</param>
+    /// <param name="newValue">Value for which we want color</param>
+    /// <returns>Appropriate color</returns>
     private static Color GetAppropriateColorLogarithmicReversed ( double minValue, double maxValue, double newValue )
     {
-      double colorValue = Math.Log ( ( newValue - minValue ), ( maxValue - minValue ) ) * 240;
+      double colorValue = Math.Log((newValue - minValue + 1), (maxValue - minValue)) * 240;
 
-      if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))
+      if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))  // TODO: Needed or just throw exception?
       {
         colorValue = 0;
       }
@@ -286,7 +384,7 @@ namespace _048rtmontecarlo
     public static void SetNewDimensions ()
     {
       DepthMap.Initialize ();
-      IntensityMap.Initialize ();
+      PrimaryRaysMap.Initialize ();
     }
 
     /// <summary>
@@ -295,7 +393,19 @@ namespace _048rtmontecarlo
     public static void NewRenderInitialization ()
     {
       DepthMap.depthMap = null;
-      IntensityMap.intensityMap = null;
+      PrimaryRaysMap.primaryRaysMap = null;
     }
   }
+}
+
+
+interface IRaysMap
+{
+  void Initialize ();
+
+  void RenderRaysMap ();
+
+  Bitmap GetBitmap ();
+
+  int GetRaysCountAtLocation ( int x, int y );
 }
