@@ -407,6 +407,7 @@ namespace _048rtmontecarlo
 
         // GUI stuff:
         SetGUI( true );
+        Form2.singleton.RenderButtonsEnabled ( true );
       }
     }
 
@@ -519,7 +520,10 @@ namespace _048rtmontecarlo
       if ( aThread != null )
         return;
 
+      // GUI stuff:
       SetGUI( false );
+      Form2.singleton.RenderButtonsEnabled ( false );
+
       lock ( progress )
         progress.Continue = true;
 

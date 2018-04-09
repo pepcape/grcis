@@ -196,5 +196,12 @@ namespace _048rtmontecarlo
 
       AverageAllRaysCount.Text = String.Format ( "Average all\r\nray count\r\nper pixel:\r\n{0}", totalCount / ( width * height ) );
     }
+
+    public void RenderButtonsEnabled ( bool newStatus )
+    {
+      RenderDepthMapButton.Enabled =
+      RenderAllRaysMapButton.Enabled =
+      RenderPrimaryRaysMapButton.Enabled = newStatus;
+    }
   }
 }
