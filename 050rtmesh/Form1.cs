@@ -408,11 +408,13 @@ namespace _050rtmesh
     {
       singleton = this;
       InitializeComponent();
-      Text += " (rev: " + rev + ')';
       progress = new RenderingProgress( this );
 
       // Init scenes etc.
-      FormSupport.InitializeScenes();
+      string name;
+      FormSupport.InitializeScenes( out name );
+      Text += " (rev: " + rev + ") '" + name + '\'';
+
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
