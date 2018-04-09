@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTK;
 using Rendering;
@@ -9,6 +7,34 @@ namespace _019raytracing
 {
   public class FormSupport
   {
+    /// <summary>
+    /// Prepare form data (e.g. combo-box with available scenes).
+    /// </summary>
+    public static void InitializeScenes ( string[] args, out string name )
+    {
+      name = "Josef Pelikán";
+
+      Form1 f = Form1.singleton;
+
+      // 1. default scenes from RayCastingScenes
+      f.sceneRepository = new Dictionary<string, object>( Scenes.staticRepository );
+
+      // 2. optionally add custom scenes
+      f.sceneRepository[ "Test scene" ] = new InitSceneParamDelegate( CustomScene.TestScene );
+
+      // 3. fill the combo-box
+      foreach ( string key in f.sceneRepository.Keys )
+        f.ComboScene.Items.Add( key );
+
+      // .. and set your favorite scene here:
+      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
+
+      // default image parameters?
+      f.ImageWidth = 800;
+      f.ImageHeight = 540;
+      f.TextParam.Text = "";
+    }
+
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
@@ -34,32 +60,6 @@ namespace _019raytracing
       sis.ImageFunction = imf;
       return sis;
     }
-
-    /// <summary>
-    /// Prepare combo-box of available scenes.
-    /// </summary>
-    public static void InitializeScenes ()
-    {
-      Form1 f = Form1.singleton;
-
-      // 1. default scenes from RayCastingScenes
-      f.sceneRepository = new Dictionary<string, object>( Scenes.staticRepository );
-
-      // 2. optionally add custom scenes
-      f.sceneRepository[ "Test scene" ] = new InitSceneDelegate( CustomScene.TestScene );
-
-      // 3. fill the combo-box
-      foreach ( string key in f.sceneRepository.Keys )
-        f.ComboScene.Items.Add( key );
-
-      // .. and set your favorite scene here:
-      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
-
-      // default image parameters?
-      f.ImageWidth  = 800;
-      f.ImageHeight = 540;
-      f.TextParam.Text = "";
-    }
   }
 }
 
@@ -70,7 +70,7 @@ namespace Rendering
   /// </summary>
   public class CustomScene
   {
-    public static void TestScene ( IRayScene sc )
+    public static void TestScene ( IRayScene sc, string param )
     {
       Debug.Assert( sc != null );
 
