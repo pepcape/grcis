@@ -316,8 +316,8 @@ namespace _048rtmontecarlo
       }
       else
       {
-        wti[ 0 ].rend.RenderRectangle( newImage, 0, 0, width, height );
         MT.InitThreadData();
+        wti[ 0 ].rend.RenderRectangle( newImage, 0, 0, width, height );
       }
 
       long elapsed;
