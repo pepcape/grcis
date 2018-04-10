@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
 
-namespace _019raytracing
+namespace _062animation
 {
   static class Program
   {

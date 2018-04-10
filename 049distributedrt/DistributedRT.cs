@@ -22,7 +22,7 @@ namespace _049distributedrt
       f.sceneRepository = new Dictionary<string, object>( Scenes.staticRepository );
 
       // 2. optionally add custom scenes
-      f.sceneRepository[ "Test scene" ] = new InitSceneDelegate( CustomScene.TestScene );
+      f.sceneRepository[ "Test scene" ] = new InitSceneParamDelegate( CustomScene.TestScene );
 
       // 3. fill the combo-box
       foreach ( string key in f.sceneRepository.Keys )
@@ -74,7 +74,7 @@ namespace Rendering
   /// </summary>
   public class CustomScene
   {
-    public static void TestScene ( IRayScene sc )
+    public static void TestScene ( IRayScene sc, string param )
     {
       Debug.Assert( sc != null );
 
