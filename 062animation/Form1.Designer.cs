@@ -45,6 +45,8 @@
       this.label5 = new System.Windows.Forms.Label();
       this.numericSupersampling = new System.Windows.Forms.NumericUpDown();
       this.buttonRes = new System.Windows.Forms.Button();
+      this.textParam = new System.Windows.Forms.TextBox();
+      this.label6 = new System.Windows.Forms.Label();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.numTime)).BeginInit();
@@ -64,14 +66,14 @@
       this.panel1.Controls.Add(this.pictureBox1);
       this.panel1.Location = new System.Drawing.Point(13, 13);
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(680, 350);
+      this.panel1.Size = new System.Drawing.Size(680, 320);
       this.panel1.TabIndex = 0;
       // 
       // pictureBox1
       // 
       this.pictureBox1.Location = new System.Drawing.Point(0, 0);
       this.pictureBox1.Name = "pictureBox1";
-      this.pictureBox1.Size = new System.Drawing.Size(680, 350);
+      this.pictureBox1.Size = new System.Drawing.Size(680, 320);
       this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
       this.pictureBox1.TabIndex = 2;
       this.pictureBox1.TabStop = false;
@@ -285,11 +287,32 @@
       this.buttonRes.UseVisualStyleBackColor = true;
       this.buttonRes.Click += new System.EventHandler(this.buttonRes_Click);
       // 
+      // textParam
+      // 
+      this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.textParam.Location = new System.Drawing.Point(57, 348);
+      this.textParam.Name = "textParam";
+      this.textParam.Size = new System.Drawing.Size(635, 20);
+      this.textParam.TabIndex = 48;
+      // 
+      // label6
+      // 
+      this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.label6.AutoSize = true;
+      this.label6.Location = new System.Drawing.Point(11, 352);
+      this.label6.Name = "label6";
+      this.label6.Size = new System.Drawing.Size(40, 13);
+      this.label6.TabIndex = 47;
+      this.label6.Text = "Param:";
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(712, 446);
+      this.Controls.Add(this.textParam);
+      this.Controls.Add(this.label6);
       this.Controls.Add(this.buttonRes);
       this.Controls.Add(this.numericSupersampling);
       this.Controls.Add(this.label5);
@@ -342,6 +365,8 @@
     private System.Windows.Forms.Label label5;
     public System.Windows.Forms.NumericUpDown numericSupersampling;
     private System.Windows.Forms.Button buttonRes;
+    public System.Windows.Forms.TextBox textParam;
+    private System.Windows.Forms.Label label6;
   }
 }
 

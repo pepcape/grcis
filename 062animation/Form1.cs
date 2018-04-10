@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Rendering;
-using System.Globalization;
 using Utilities;
 
 namespace _062animation
@@ -33,12 +33,6 @@ namespace _062animation
     /// Used also as input lock for MT animation computation.
     /// </summary>
     protected Progress progress = new Progress();
-
-    /// <summary>
-    /// Global prototype of a scene.
-    /// Working threads should clone it before setting specific times to it.
-    /// </summary>
-    protected IRayScene scene = null;
 
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
@@ -68,8 +62,7 @@ namespace _062animation
       superSampling = (int)numericSupersampling.Value;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
-      if ( scene == null )
-        scene = FormSupport.getScene();                 // scene prototype
+      IRayScene scene = FormSupport.getScene( textParam.Text );        // scene prototype
 
       IImageFunction imf = FormSupport.getImageFunction( scene );
       imf.Width  = width;
@@ -163,14 +156,14 @@ namespace _062animation
       }
     }
 
-    public Form1 ()
+    public Form1 ( string[] args )
     {
       singleton = this;
       InitializeComponent();
 
       // Init rendering params:
       string name;
-      FormSupport.InitializeParams( out name );
+      FormSupport.InitializeParams( args, out name );
       Text += " (rev: " + rev + ") '" + name + '\'';
 
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
@@ -313,9 +306,6 @@ namespace _062animation
       if ( height <= 0 ) height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
 
-      if ( scene == null )
-        scene = FormSupport.getScene();                 // scene prototype
-
       // Start main rendering thread:
       aThread = new Thread( new ThreadStart( RenderAnimation ) );
       aThread.Start();
@@ -369,7 +359,7 @@ namespace _062animation
 
       for ( t = 0; t < threads; t++ )
       {
-        IRayScene sc = FormSupport.getScene();    //  (sct != null) ? (IRayScene)sct.Clone() : scene;
+        IRayScene sc = FormSupport.getScene( textParam.Text );
         IImageFunction imf = FormSupport.getImageFunction( sc );
         imf.Width  = width;
         imf.Height = height;

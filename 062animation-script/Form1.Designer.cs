@@ -378,7 +378,7 @@
     private System.Windows.Forms.Label label5;
     public System.Windows.Forms.NumericUpDown numericSupersampling;
     private System.Windows.Forms.Button buttonRes;
-    private System.Windows.Forms.TextBox textParam;
+    public System.Windows.Forms.TextBox textParam;
     private System.Windows.Forms.Label label6;
     private System.Windows.Forms.Button buttonScene;
   }
