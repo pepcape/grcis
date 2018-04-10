@@ -16,6 +16,9 @@ namespace _062animation
 
       Form1 f = Form1.singleton;
 
+      // scene script (empty string for default scene):
+      f.sceneFileName = "../data/rtscenes/AnimatedScene.cs";
+
       // single frame:
       f.ImageWidth = 320;
       f.ImageHeight = 180;
@@ -32,7 +35,12 @@ namespace _062animation
     /// </summary>
     public static IRayScene getScene ()
     {
-      return new AnimatedScene();
+      IRayScene sc = Form1.singleton.SceneFromScript();
+      if ( sc != null )
+        return sc;
+
+      sc = new AnimatedRayScene();
+      return AnimatedScene.Init( sc );
     }
 
     /// <summary>
@@ -169,12 +177,12 @@ namespace Rendering
   /// <summary>
   /// Animated Ray-scene.
   /// </summary>
-  public class AnimatedScene : AnimatedRayScene
+  public class AnimatedScene
   {
     /// <summary>
     /// Creates default ray-rendering scene.
     /// </summary>
-    public AnimatedScene ()
+    public static IRayScene Init ( IRayScene sc )
     {
       // !!!{{ TODO: .. and use your time-dependent objects to construct the scene
 
@@ -184,27 +192,29 @@ namespace Rendering
       CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
       root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
       root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 1.0, 0.8, 0.1 }, 0.1, 0.6, 0.4, 128 ) );
-      Intersectable = root;
+      sc.Intersectable = root;
 
       // Background color:
-      BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
+      sc.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
 
       // Camera:
       AnimatedCamera cam = new AnimatedCamera( new Vector3d( 0.7, -0.4,  0.0 ),
                                                new Vector3d( 0.7,  0.8, -6.0 ),
                                                50.0 );
-      cam.End =             // one complete turn takes 20.0 seconds
-          End = 20.0;
-      Camera  = cam;
+      cam.End = 20.0;            // one complete turn takes 20.0 seconds
+      AnimatedRayScene asc = sc as AnimatedRayScene;
+      if ( asc != null )
+        asc.End = 20.0;
+      sc.Camera  = cam;
 
-      //Camera = new StaticCamera( new Vector3d( 0.7,  0.5, -5.0 ),
-      //                           new Vector3d( 0.0, -0.18, 1.0 ),
-      //                           50.0 );
+      //sc.Camera = new StaticCamera( new Vector3d( 0.7,  0.5, -5.0 ),
+      //                              new Vector3d( 0.0, -0.18, 1.0 ),
+      //                              50.0 );
 
       // Light sources:
-      Sources = new LinkedList<ILightSource>();
-      Sources.Add( new AmbientLightSource( 0.8 ) );
-      Sources.Add( new PointLightSource( new Vector3d( -5.0, 4.0, -3.0 ), 1.2 ) );
+      sc.Sources = new LinkedList<ILightSource>();
+      sc.Sources.Add( new AmbientLightSource( 0.8 ) );
+      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 4.0, -3.0 ), 1.2 ) );
 
       // --- NODE DEFINITIONS ----------------------------------------------------
 
@@ -228,6 +238,8 @@ namespace Rendering
       root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
 
       // !!!}}
+
+      return sc;
     }
   }
 }

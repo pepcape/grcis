@@ -9,6 +9,7 @@ using MathSupport;
 using Rendering;
 using System.Globalization;
 using Utilities;
+using System.IO;
 
 namespace _062animation
 {
@@ -35,10 +36,9 @@ namespace _062animation
     protected Progress progress = new Progress();
 
     /// <summary>
-    /// Global prototype of a scene.
-    /// Working threads should clone it before setting specific times to it.
+    /// Explicit CS-script scene-file-name.
     /// </summary>
-    protected IRayScene scene = null;
+    public string sceneFileName = "";
 
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
@@ -50,6 +50,48 @@ namespace _062animation
     /// </summary>
     public int ImageHeight = 480;
 
+    private void EnableRendering ( bool enable )
+    {
+      buttonRender.Enabled =
+      buttonRenderAnim.Enabled =
+      buttonScene.Enabled =
+      buttonRes.Enabled = enable;
+      buttonStop.Enabled = !enable;
+    }
+
+    /// <summary>
+    /// Create a scene from the defined CS-script file-name.
+    /// Returns null if failed.
+    /// </summary>
+    public IRayScene SceneFromScript ()
+    {
+      if ( string.IsNullOrEmpty( sceneFileName ) )
+        return null;
+
+      Dictionary<string, object> outParam = new Dictionary<string, object>();
+      outParam[ "Start" ] = 0.0;
+      outParam[ "End" ] = 20.0;
+      IRayScene scene = Scripts.SceneFromObject( new AnimatedRayScene(), Path.GetFileName( sceneFileName ), sceneFileName, textParam.Text,
+                                                 ( sc ) => AnimatedScene.Init( sc ), str => SetText( str ), outParam );
+      object to;
+      double td;
+      if ( outParam.TryGetValue( "Start", out to ) &&
+           to is Double )
+      {
+        td = (double)to;
+        numFrom.Value = (decimal)td;
+      }
+
+      if ( outParam.TryGetValue( "End", out to ) &&
+           to is Double )
+      {
+        td = (double)to;
+        numTo.Value = (decimal)td;
+      }
+
+      return scene;
+    }
+
     /// <summary>
     /// Redraws the whole image.
     /// </summary>
@@ -57,9 +99,7 @@ namespace _062animation
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      buttonRender.Enabled = false;
-      buttonRenderAnim.Enabled = false;
-      buttonRes.Enabled = false;
+      EnableRendering( false );
 
       width = ImageWidth;
       if ( width <= 0 ) width = panel1.Width;
@@ -68,8 +108,7 @@ namespace _062animation
       superSampling = (int)numericSupersampling.Value;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
-      if ( scene == null )
-        scene = FormSupport.getScene();                 // scene prototype
+      IRayScene scene = FormSupport.getScene();                 // scene prototype
 
       IImageFunction imf = FormSupport.getImageFunction( scene );
       imf.Width  = width;
@@ -98,9 +137,7 @@ namespace _062animation
 
       pictureBox1.Image = outputImage;
 
-      buttonRender.Enabled = true;
-      buttonRenderAnim.Enabled = true;
-      buttonRes.Enabled = true;
+      EnableRendering( true );
 
       Cursor.Current = Cursors.Default;
     }
@@ -156,10 +193,7 @@ namespace _062animation
         aThread = null;
 
         // GUI stuff:
-        buttonRenderAnim.Enabled = true;
-        buttonRender.Enabled = true;
-        buttonRes.Enabled = true;
-        buttonStop.Enabled = false;
+        EnableRendering( true );
       }
     }
 
@@ -171,6 +205,11 @@ namespace _062animation
       // Init rendering params:
       string name;
       FormSupport.InitializeParams( args, out name );
+      if ( !string.IsNullOrEmpty( sceneFileName ) )
+      {
+        sceneFileName = Path.GetFullPath( sceneFileName );
+        buttonScene.Text = sceneFileName;
+      }
       Text += " (rev: " + rev + ") '" + name + '\'';
 
       buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
@@ -288,10 +327,7 @@ namespace _062animation
       if ( aThread != null )
         return;
 
-      buttonRenderAnim.Enabled = false;
-      buttonRender.Enabled = false;
-      buttonRes.Enabled = false;
-      buttonStop.Enabled = true;
+      EnableRendering( false );
       lock ( progress )
       {
         progress.Continue = true;
@@ -312,9 +348,6 @@ namespace _062animation
       height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
-
-      if ( scene == null )
-        scene = FormSupport.getScene();                 // scene prototype
 
       // Start main rendering thread:
       aThread = new Thread( new ThreadStart( RenderAnimation ) );
@@ -518,6 +551,30 @@ namespace _062animation
         }
         sem.Release();                      // notify the main animation thread
       }
+    }
+
+    private void buttonScene_Click ( object sender, EventArgs e )
+    {
+      if ( aThread != null )
+        return;
+
+      OpenFileDialog ofd = new OpenFileDialog();
+
+      ofd.Title = "Open Scene Script";
+      ofd.Filter = "CS-script files|*.cs" +
+                   "|All files|*.*";
+
+      ofd.FilterIndex = 1;
+      ofd.FileName = "";
+      if ( ofd.ShowDialog() != DialogResult.OK )
+      {
+        buttonScene.Text = "Default scene";
+        sceneFileName = "";
+        return;
+      }
+
+      sceneFileName = ofd.FileName;
+      buttonScene.Text = sceneFileName;   // Path.GetFileName( sceneFileName );
     }
   }
 }
