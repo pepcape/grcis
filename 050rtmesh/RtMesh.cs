@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using MathSupport;
@@ -12,6 +10,35 @@ namespace _050rtmesh
 {
   public class FormSupport
   {
+    /// <summary>
+    /// Prepare form data (e.g. combo-box with available scenes).
+    /// </summary>
+    public static void InitializeScenes ( out string name )
+    {
+      name = "Josef Pelikán";
+
+      Form1 f = Form1.singleton;
+      f.sceneInitFunctions = new List<InitSceneStrDelegate>( Scenes.InitFunctionsStr );
+
+      // 1. default scenes from RayCastingScenes
+      foreach ( string n in Scenes.NamesStr )
+        f.ComboScene.Items.Add( n );
+
+      // 2. eventually add custom scenes
+      f.sceneInitFunctions.Add( new InitSceneStrDelegate( CustomScene.TestScene ) );
+      f.ComboScene.Items.Add( "Test scene" );
+
+      // .. and set your favorite scene here:
+      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
+
+      // default image parameters?
+      f.ImageWidth = 400;
+      f.ImageHeight = 300;
+      f.NumericSupersampling.Value = 1;
+      f.CheckJitter.Checked = false;
+      f.CheckMultithreading.Checked = true;
+    }
+
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
@@ -36,33 +63,6 @@ namespace _050rtmesh
       SupersamplingImageSynthesizer sis = new SupersamplingImageSynthesizer();
       sis.ImageFunction = imf;
       return sis;
-    }
-
-    /// <summary>
-    /// Prepare form data (e.g. combo-box with available scenes).
-    /// </summary>
-    public static void InitializeScenes ()
-    {
-      Form1 f = Form1.singleton;
-      f.sceneInitFunctions = new List<InitSceneStrDelegate>( Scenes.InitFunctionsStr );
-
-      // 1. default scenes from RayCastingScenes
-      foreach ( string name in Scenes.NamesStr )
-        f.ComboScene.Items.Add( name );
-
-      // 2. eventually add custom scenes
-      f.sceneInitFunctions.Add( new InitSceneStrDelegate( CustomScene.TestScene ) );
-      f.ComboScene.Items.Add( "Test scene" );
-
-      // .. and set your favorite scene here:
-      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
-
-      // default image parameters?
-      f.ImageWidth  = 400;
-      f.ImageHeight = 300;
-      f.NumericSupersampling.Value = 1;
-      f.CheckJitter.Checked = false;
-      f.CheckMultithreading.Checked = true;
     }
   }
 }

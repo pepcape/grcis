@@ -154,6 +154,11 @@ namespace Rendering
       /// Optional text parameter (usually from form's 'Params:' field).
       /// </summary>
       public string param;
+
+      /// <summary>
+      /// Parameter map defined by the script.
+      /// </summary>
+      public Dictionary<string, object> outParam;
     }
 
     protected static int count = 0;
@@ -166,10 +171,9 @@ namespace Rendering
     /// <param name="par">Text parameter (from form's text field..).</param>
     /// <param name="message">Message function</param>
     /// <returns>New initialized instance of a IRayScene object.</returns>
-    public static IRayScene SceneFromObject ( string name, object definition, string par, StringDelegate message =null )
+    public static IRayScene SceneFromObject ( DefaultRayScene sc, string name, object definition, string par,
+                                              InitSceneDelegate defaultScene, StringDelegate message =null, Dictionary<string, object> outPar =null )
     {
-      DefaultRayScene sc = new DefaultRayScene();
-
       InitSceneDelegate isd = definition as InitSceneDelegate;
       InitSceneParamDelegate ispd = definition as InitSceneParamDelegate;
       string scriptFileName = definition as string;
@@ -212,7 +216,7 @@ namespace Rendering
           imports.Add( "Utilities" );
 
           bool ok = true;
-          Globals globals = new Globals { sceneName = name, scene = sc, param = par };
+          Globals globals = new Globals { sceneName = name, scene = sc, param = par, outParam = outPar ?? new Dictionary<string, object>() };
           try
           {
             var task = CSharpScript.RunAsync( scriptSource, globals: globals, options: ScriptOptions.Default.WithReferences( assemblies ).AddImports( imports ) );
@@ -232,7 +236,8 @@ namespace Rendering
         }
 
         message?.Invoke( "Using default scene.." );
-        return Scenes.DefaultScene( sc );
+        defaultScene( sc );
+        return sc;
       }
 
       if ( isd != null )
