@@ -19,7 +19,7 @@ namespace _063animation
 
       Form1 f = Form1.singleton;
 
-      f.textParam.Text = "slant=true,prefix=out,bg=[0.05;0.0;0.0],fg=[1.0;1.0;0.8]";
+      f.textParam.Text = "slant=0.0,prefix=out,bg=[0.05;0.0;0.0],fg=[1.0;1.0;0.8]";
 
       // single frame:
       f.ImageWidth = 640;
@@ -185,8 +185,27 @@ namespace _063animation
 
     /// <summary>
     /// Slanted checkerboard?
+    /// 0.0 .. horizontal, 0.5 .. diagonal, 1.0 .. vertical, ..
     /// </summary>
-    protected bool slant = false;
+    protected double slant;
+
+    protected double uu, uv, vu, vv;
+
+    public void setSlant ( double sl )
+    {
+      slant = sl;
+      sl *= Math.PI * 0.5;    // angle in radians
+      vv = Math.Cos( sl );
+      uv = Math.Sin( sl );
+      sl += Math.PI * 0.5;
+      vu = Math.Cos( sl );
+      uu = Math.Sin( sl );
+    }
+
+    public Animation ()
+    {
+      setSlant( 0.0 );
+    }
 
     /// <summary>
     /// Background color.
@@ -212,8 +231,7 @@ namespace _063animation
       {
         double u = mul * (x - center) / y;
         double v = frequency / y;
-        ord = slant ? (long)(Math.Round( u + v ) + Math.Round( u - v )) :
-                      (long)(Math.Round( u )     + Math.Round( v ));
+        ord = (long)(Math.Round( vv * v + uv * u ) + Math.Round( vu * v + uu * u ));
       }
 
       Array.Copy( (ord & 1L) == 0 ? fg : bg, color, fg.Length );
@@ -235,7 +253,7 @@ namespace _063animation
       c.Height = height;
       c.bg     = bg;
       c.fg     = fg;
-      c.slant  = slant;
+      c.setSlant( slant );
       return c;
     }
 
@@ -262,7 +280,8 @@ namespace _063animation
         return;
 
       // slant version of the checkerboard:
-      Util.TryParse( p, "slant", ref slant );
+      if ( Util.TryParse( p, "slant", ref slant ) )
+        setSlant( slant );
 
       // background color:
       Vector3 col = Vector3.Zero;
