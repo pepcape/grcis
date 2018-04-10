@@ -19,6 +19,9 @@ namespace _062animation
       // scene script (empty string for default scene):
       f.sceneFileName = "../data/rtscenes/AnimatedScene.cs";
 
+      // Param string:
+      f.textParam.Text = "";
+
       // single frame:
       f.ImageWidth = 320;
       f.ImageHeight = 180;
@@ -33,14 +36,14 @@ namespace _062animation
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    public static IRayScene getScene ()
+    public static IRayScene getScene ( string param )
     {
       IRayScene sc = Form1.singleton.SceneFromScript();
       if ( sc != null )
         return sc;
 
       sc = new AnimatedRayScene();
-      return AnimatedScene.Init( sc );
+      return AnimatedScene.Init( sc, param );
     }
 
     /// <summary>
@@ -182,7 +185,7 @@ namespace Rendering
     /// <summary>
     /// Creates default ray-rendering scene.
     /// </summary>
-    public static IRayScene Init ( IRayScene sc )
+    public static IRayScene Init ( IRayScene sc, string param )
     {
       // !!!{{ TODO: .. and use your time-dependent objects to construct the scene
 

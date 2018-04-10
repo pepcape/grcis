@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using OpenTK;
 using Rendering;
+using Utilities;
 
 namespace _062animation
 {
@@ -10,11 +11,14 @@ namespace _062animation
     /// <summary>
     /// Initialize rendering parameters.
     /// </summary>
-    public static void InitializeParams ( out string name )
+    public static void InitializeParams ( string[] args, out string name )
     {
       name = "Josef Pelikán";
 
       Form1 f = Form1.singleton;
+
+      // Param string:
+      f.textParam.Text = "n=1.6";
 
       // single frame:
       f.ImageWidth = 320;
@@ -30,9 +34,10 @@ namespace _062animation
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    public static IRayScene getScene ()
+    public static IRayScene getScene ( string param )
     {
-      return new AnimatedScene();
+      IRayScene sc = new AnimatedRayScene();
+      return AnimatedScene.Init( sc, param );
     }
 
     /// <summary>
@@ -169,12 +174,12 @@ namespace Rendering
   /// <summary>
   /// Animated Ray-scene.
   /// </summary>
-  public class AnimatedScene : AnimatedRayScene
+  public class AnimatedScene
   {
     /// <summary>
     /// Creates default ray-rendering scene.
     /// </summary>
-    public AnimatedScene ()
+    public static IRayScene Init ( IRayScene sc, string param )
     {
       // !!!{{ TODO: .. and use your time-dependent objects to construct the scene
 
@@ -184,35 +189,44 @@ namespace Rendering
       CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
       root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
       root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 1.0, 0.8, 0.1 }, 0.1, 0.6, 0.4, 128 ) );
-      Intersectable = root;
+      sc.Intersectable = root;
 
       // Background color:
-      BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
+      sc.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
 
       // Camera:
-      AnimatedCamera cam = new AnimatedCamera( new Vector3d( 0.7, -0.4,  0.0 ),
-                                               new Vector3d( 0.7,  0.8, -6.0 ),
+      AnimatedCamera cam = new AnimatedCamera( new Vector3d( 0.7, -0.4, 0.0 ),
+                                               new Vector3d( 0.7, 0.8, -6.0 ),
                                                50.0 );
-      cam.End =             // one complete turn takes 20.0 seconds
-          End = 20.0;
-      Camera  = cam;
+      cam.End = 20.0;            // one complete turn takes 20.0 seconds
+      AnimatedRayScene asc = sc as AnimatedRayScene;
+      if ( asc != null )
+        asc.End = 20.0;
+      sc.Camera = cam;
 
-      //Camera = new StaticCamera( new Vector3d( 0.7,  0.5, -5.0 ),
-      //                           new Vector3d( 0.0, -0.18, 1.0 ),
-      //                           50.0 );
+      //sc.Camera = new StaticCamera( new Vector3d( 0.7,  0.5, -5.0 ),
+      //                              new Vector3d( 0.0, -0.18, 1.0 ),
+      //                              50.0 );
 
       // Light sources:
-      Sources = new LinkedList<ILightSource>();
-      Sources.Add( new AmbientLightSource( 0.8 ) );
-      Sources.Add( new PointLightSource( new Vector3d( -5.0, 4.0, -3.0 ), 1.2 ) );
+      sc.Sources = new LinkedList<ILightSource>();
+      sc.Sources.Add( new AmbientLightSource( 0.8 ) );
+      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 4.0, -3.0 ), 1.2 ) );
 
       // --- NODE DEFINITIONS ----------------------------------------------------
+
+      // Params dictionary:
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+
+      // n = <index-of-refraction>
+      double n = 1.6;
+      Util.TryParse( p, "n", ref n );
 
       // Transparent sphere:
       Sphere s;
       s = new Sphere();
       PhongMaterial pm = new PhongMaterial( new double[] { 0.0, 0.2, 0.1 }, 0.03, 0.03, 0.08, 128 );
-      pm.n  = 1.6;
+      pm.n = n;
       pm.Kt = 0.9;
       s.SetAttribute( PropertyName.MATERIAL, pm );
       root.InsertChild( s, Matrix4d.Identity );
@@ -228,6 +242,8 @@ namespace Rendering
       root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
 
       // !!!}}
+
+      return sc;
     }
   }
 }
