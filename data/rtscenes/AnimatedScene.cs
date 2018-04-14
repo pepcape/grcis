@@ -31,11 +31,18 @@ scene.Sources.Add( new PointLightSource( new Vector3d( -5.0, 4.0, -3.0 ), 1.2 ) 
 
 // --- NODE DEFINITIONS ----------------------------------------------------
 
+// Params dictionary:
+Dictionary<string, string> p = Util.ParseKeyValueList(param);
+
+// n = <index-of-refraction>
+double n = 1.6;
+Util.TryParse(p, "n", ref n);
+
 // Transparent sphere:
 Sphere s;
 s = new Sphere();
 PhongMaterial pm = new PhongMaterial( new double[] { 0.0, 0.2, 0.1 }, 0.03, 0.03, 0.08, 128 );
-pm.n  = 1.6;
+pm.n  = n;
 pm.Kt = 0.9;
 s.SetAttribute( PropertyName.MATERIAL, pm );
 root.InsertChild( s, Matrix4d.Identity );

@@ -230,14 +230,14 @@ namespace _048rtmontecarlo
 
     private IImageFunction getImageFunction ( IRayScene sc, int width, int height )
     {
-      IImageFunction imf = FormSupport.getImageFunction( sc );
-      imf.Width = width;
+      IImageFunction imf = FormSupport.getImageFunction( sc, TextParam.Text );
+      imf.Width  = width;
       imf.Height = height;
 
       RayTracing rt = imf as RayTracing;
       if ( rt != null )
       {
-        rt.DoShadows = checkShadows.Checked;
+        rt.DoShadows     = checkShadows.Checked;
         rt.DoReflections = checkReflections.Checked;
         rt.DoRefractions = checkRefractions.Checked;
       }
@@ -247,18 +247,11 @@ namespace _048rtmontecarlo
 
     private IRenderer getRenderer ( IImageFunction imf, int width, int height )
     {
-      IRenderer rend = FormSupport.getRenderer( imf );
-      rend.Width = width;
-      rend.Height = height;
-      rend.Adaptive = 8;
+      IRenderer rend = FormSupport.getRenderer( imf, (int)numericSupersampling.Value, checkJitter.Checked ? 1.0 : 0.0, TextParam.Text );
+      rend.Width        = width;
+      rend.Height       = height;
+      rend.Adaptive     = 8;
       rend.ProgressData = progress;
-
-      SupersamplingImageSynthesizer ss = rend as SupersamplingImageSynthesizer;
-      if ( ss != null )
-      {
-        ss.Supersampling = (int)numericSupersampling.Value;
-        ss.Jittering = checkJitter.Checked ? 1.0 : 0.0;
-      }
 
       return rend;
     }

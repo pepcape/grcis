@@ -130,7 +130,7 @@ namespace Rendering
       // there was at least one intersection
       i.Complete();
 
-      AdvancedTools.Register ( level, p0, i );
+      //AdvancedTools.Register ( level, p0, i );  // moved lower to also register rays for shadows
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode();
@@ -162,11 +162,13 @@ namespace Rendering
             if ( DoShadows && dir != Vector3d.Zero )
             {
               intersections = scene.Intersectable.Intersect( i.CoordWorld, dir );
-              Intersection.countRays++;
+              Intersection.countRays++;              
               Intersection si = Intersection.FirstIntersection( intersections, ref dir );
               // Better shadow testing: intersection between 0.0 and 1.0 kills the lighting
               if ( si != null && !si.Far( 1.0, ref dir ) ) continue;
             }
+
+            AdvancedTools.Register(level, p0, i);
 
             double[] reflection = i.ReflectanceModel.ColorReflection( i, dir, p1, ReflectionComponent.ALL );
             if ( reflection != null )

@@ -189,7 +189,7 @@ namespace _063animation
     /// </summary>
     protected double slant;
 
-    protected double uu, uv, vu, vv;
+    protected double uv, vv;
 
     public void setSlant ( double sl )
     {
@@ -197,9 +197,6 @@ namespace _063animation
       sl *= Math.PI * 0.5;    // angle in radians
       vv = Math.Cos( sl );
       uv = Math.Sin( sl );
-      sl += Math.PI * 0.5;
-      vu = Math.Cos( sl );
-      uu = Math.Sin( sl );
     }
 
     public Animation ()
@@ -231,7 +228,7 @@ namespace _063animation
       {
         double u = mul * (x - center) / y;
         double v = frequency / y;
-        ord = (long)(Math.Round( vv * v + uv * u ) + Math.Round( vu * v + uu * u ));
+        ord = (long)(Math.Round( vv * v + uv * u ) + Math.Round( uv * v - vv * u ));
       }
 
       Array.Copy( (ord & 1L) == 0 ? fg : bg, color, fg.Length );

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Threading;
 using MathSupport;
 using OpenTK;
 
@@ -577,16 +576,6 @@ namespace Rendering
   /// </summary>
   public class MT
   {
-    /// <summary>
-    /// Randomize thread-specific instances of random generators?
-    /// Set the value to 'false' for deterministic behavior (together
-    /// with disabling multiple threads).
-    /// </summary>
-    public static bool doRandomize = true;
-
-    /// <summary>
-    /// Thread-specific random generator instance.
-    /// </summary>
     [ThreadStatic] public static RandomJames rnd;
 
     [ThreadStatic] public static int x;
@@ -606,10 +595,7 @@ namespace Rendering
     public static void InitThreadData ()
     {
       if ( rnd == null )
-        if ( doRandomize )
-          rnd = new RandomJames( Thread.CurrentThread.GetHashCode() ^ DateTime.Now.Ticks );
-        else
-          rnd = new RandomJames();
+        rnd = new RandomJames();
 
       // Put TLS data init here..
     }
