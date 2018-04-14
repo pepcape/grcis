@@ -4,6 +4,7 @@ using System.Diagnostics;
 using MathSupport;
 using OpenTK;
 using Rendering;
+using Utilities;
 
 namespace _048rtmontecarlo
 {
@@ -29,7 +30,7 @@ namespace _048rtmontecarlo
         f.SetText( $"No scene scripts found, check your -dir/-scene cmdline argument.." );
 
       // 3. static 'Test scene' (in this source file)
-      f.sceneRepository[ "Test scene" ] = new InitSceneDelegate( CustomScene.TestScene );
+      f.sceneRepository[ "Test scene" ] = new InitSceneParamDelegate( CustomScene.TestScene );
 
       // 4. fill the combo-box
       foreach ( string key in f.sceneRepository.Keys )
@@ -43,7 +44,7 @@ namespace _048rtmontecarlo
       f.ImageHeight = 480;
       f.NumericSupersampling.Value = 4;
       f.CheckMultithreading.Checked = true;
-      f.TextParam.Text = "";
+      f.TextParam.Text = "sampling=adapt1";
 
       if ( Form2.singleton != null )
       {
@@ -62,7 +63,7 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Initialize ray-scene and image function (good enough for simple samples).
     /// </summary>
-    public static IImageFunction getImageFunction ( IRayScene scene )
+    public static IImageFunction getImageFunction ( IRayScene scene, string param )
     {
       return new RayTracing( scene );
     }
@@ -70,11 +71,45 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    public static IRenderer getRenderer ( IImageFunction imf )
+    public static IRenderer getRenderer ( IImageFunction imf, int superSampling, double jittering, string param )
     {
-      AdaptiveSupersamplingImageSynthesizer sis = new AdaptiveSupersamplingImageSynthesizer();
-      sis.ImageFunction = imf;
-      return sis;
+      Dictionary<string,string> p = Util.ParseKeyValueList( param );
+
+      string isType;
+      IRenderer r = null;
+      if ( p.TryGetValue( "sampling", out isType ) &&
+           superSampling > 1 )
+        switch ( isType )
+        {
+          case "adapt1":
+            double threshold = 0.004;
+            Util.TryParse( p, "threshold", ref threshold );
+            AdaptiveSupersamplingJR adis = new AdaptiveSupersamplingJR( threshold );
+            adis.ImageFunction = imf;
+            adis.Supersampling = superSampling;
+            adis.Jittering     = jittering;
+            r = adis;
+            break;
+
+          case "adapt2":
+            AdaptiveSupersampling sis = new AdaptiveSupersampling();
+            sis.ImageFunction = imf;
+            sis.Supersampling = superSampling;
+            sis.Jittering     = jittering;
+            r = sis;
+            break;
+        }
+
+      if ( r == null )
+      {
+        SupersamplingImageSynthesizer jit = new SupersamplingImageSynthesizer();
+        jit.ImageFunction = imf;
+        jit.Supersampling = superSampling;
+        jit.Jittering     = jittering;
+        r = jit;
+      }
+
+      return r;
     }
   }
 }
@@ -82,11 +117,11 @@ namespace _048rtmontecarlo
 namespace Rendering
 {
   /// <summary>
-  /// Super-samples only pixels which actually need it!
+  /// Super-samples only pixels/pixel parts which actually need it!
   /// </summary>
-  public class AdaptiveSupersamplingImageSynthesizer : SupersamplingImageSynthesizer
+  public class AdaptiveSupersampling : SupersamplingImageSynthesizer
   {
-    public AdaptiveSupersamplingImageSynthesizer ()
+    public AdaptiveSupersampling ()
       : base( 16 )
     {
     }
@@ -147,7 +182,7 @@ namespace Rendering
   /// </summary>
   public class CustomScene
   {
-    public static void TestScene ( IRayScene sc )
+    public static void TestScene ( IRayScene sc, string param )
     {
       Debug.Assert( sc != null );
 

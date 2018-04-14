@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Rendering;
-using System.Globalization;
 using Utilities;
-using System.IO;
 
 namespace _062animation
 {
@@ -72,7 +72,7 @@ namespace _062animation
       outParam[ "Start" ] = 0.0;
       outParam[ "End" ] = 20.0;
       IRayScene scene = Scripts.SceneFromObject( new AnimatedRayScene(), Path.GetFileName( sceneFileName ), sceneFileName, textParam.Text,
-                                                 ( sc ) => AnimatedScene.Init( sc ), str => SetText( str ), outParam );
+                                                 ( sc ) => AnimatedScene.Init( sc, textParam.Text ), str => SetText( str ), outParam );
       object to;
       double td;
       if ( outParam.TryGetValue( "Start", out to ) &&
@@ -108,7 +108,7 @@ namespace _062animation
       superSampling = (int)numericSupersampling.Value;
       outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
 
-      IRayScene scene = FormSupport.getScene();                 // scene prototype
+      IRayScene scene = FormSupport.getScene( textParam.Text );      // scene prototype
 
       IImageFunction imf = FormSupport.getImageFunction( scene );
       imf.Width  = width;
@@ -402,7 +402,7 @@ namespace _062animation
 
       for ( t = 0; t < threads; t++ )
       {
-        IRayScene sc = FormSupport.getScene();    //  (sct != null) ? (IRayScene)sct.Clone() : scene;
+        IRayScene sc = FormSupport.getScene( textParam.Text );
         IImageFunction imf = FormSupport.getImageFunction( sc );
         imf.Width  = width;
         imf.Height = height;
