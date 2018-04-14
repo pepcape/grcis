@@ -46,12 +46,18 @@
       this.tabPage3 = new System.Windows.Forms.TabPage();
       this.SaveAllRaysMapButton = new System.Windows.Forms.Button();
       this.RenderAllRaysMapButton = new System.Windows.Forms.Button();
-      this.panel1 = new System.Windows.Forms.Panel();
+      this.AllRaysMapPanel = new System.Windows.Forms.Panel();
       this.AverageAllRaysCount = new System.Windows.Forms.Label();
       this.AllRaysMapPictureBox = new System.Windows.Forms.PictureBox();
       this.TotalAllRaysCount = new System.Windows.Forms.Label();
       this.AllRaysMapCoordinates = new System.Windows.Forms.Label();
-      this.tabPage4 = new System.Windows.Forms.TabPage();
+      this.NormalMap = new System.Windows.Forms.TabPage();
+      this.tabPage5 = new System.Windows.Forms.TabPage();
+      this.NormalMapPanel = new System.Windows.Forms.Panel();
+      this.NormalMapPictureBox = new System.Windows.Forms.PictureBox();
+      this.NormalMapCoordinates = new System.Windows.Forms.Label();
+      this.SaveNormalMapButton = new System.Windows.Forms.Button();
+      this.RenderNormalMapButton = new System.Windows.Forms.Button();
       this.tabControl1.SuspendLayout();
       this.tabPage1.SuspendLayout();
       this.DepthMapPanel.SuspendLayout();
@@ -60,8 +66,11 @@
       this.PrimaryRaysMapPanel.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.PrimaryRaysMapPictureBox)).BeginInit();
       this.tabPage3.SuspendLayout();
-      this.panel1.SuspendLayout();
+      this.AllRaysMapPanel.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.AllRaysMapPictureBox)).BeginInit();
+      this.NormalMap.SuspendLayout();
+      this.NormalMapPanel.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.NormalMapPictureBox)).BeginInit();
       this.SuspendLayout();
       // 
       // tabControl1
@@ -72,11 +81,12 @@
       this.tabControl1.Controls.Add(this.tabPage1);
       this.tabControl1.Controls.Add(this.tabPage2);
       this.tabControl1.Controls.Add(this.tabPage3);
-      this.tabControl1.Controls.Add(this.tabPage4);
+      this.tabControl1.Controls.Add(this.NormalMap);
+      this.tabControl1.Controls.Add(this.tabPage5);
       this.tabControl1.Location = new System.Drawing.Point(12, 12);
       this.tabControl1.Name = "tabControl1";
       this.tabControl1.SelectedIndex = 0;
-      this.tabControl1.Size = new System.Drawing.Size(819, 521);
+      this.tabControl1.Size = new System.Drawing.Size(772, 537);
       this.tabControl1.TabIndex = 0;
       this.tabControl1.Tag = "";
       // 
@@ -86,7 +96,7 @@
       this.tabPage1.Location = new System.Drawing.Point(4, 22);
       this.tabPage1.Name = "tabPage1";
       this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPage1.Size = new System.Drawing.Size(811, 495);
+      this.tabPage1.Size = new System.Drawing.Size(764, 511);
       this.tabPage1.TabIndex = 0;
       this.tabPage1.Text = "Depth Map";
       this.tabPage1.UseVisualStyleBackColor = true;
@@ -104,7 +114,7 @@
       this.DepthMapPanel.Controls.Add(this.DepthMapPictureBox);
       this.DepthMapPanel.Location = new System.Drawing.Point(0, 0);
       this.DepthMapPanel.Name = "DepthMapPanel";
-      this.DepthMapPanel.Size = new System.Drawing.Size(811, 495);
+      this.DepthMapPanel.Size = new System.Drawing.Size(764, 511);
       this.DepthMapPanel.TabIndex = 3;
       // 
       // DepthMap_Coordinates
@@ -122,7 +132,7 @@
       // 
       this.SaveDepthMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.SaveDepthMapButton.Enabled = false;
-      this.SaveDepthMapButton.Location = new System.Drawing.Point(7, 448);
+      this.SaveDepthMapButton.Location = new System.Drawing.Point(6, 445);
       this.SaveDepthMapButton.Name = "SaveDepthMapButton";
       this.SaveDepthMapButton.Size = new System.Drawing.Size(97, 41);
       this.SaveDepthMapButton.TabIndex = 5;
@@ -152,13 +162,12 @@
       // 
       // tabPage2
       // 
-      this.tabPage2.Controls.Add(this.SavePrimaryRaysMapButton);
       this.tabPage2.Controls.Add(this.RenderPrimaryRaysMapButton);
       this.tabPage2.Controls.Add(this.PrimaryRaysMapPanel);
       this.tabPage2.Location = new System.Drawing.Point(4, 22);
       this.tabPage2.Name = "tabPage2";
       this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPage2.Size = new System.Drawing.Size(811, 495);
+      this.tabPage2.Size = new System.Drawing.Size(764, 511);
       this.tabPage2.TabIndex = 1;
       this.tabPage2.Text = "Primary Rays Map";
       this.tabPage2.UseVisualStyleBackColor = true;
@@ -167,7 +176,7 @@
       // 
       this.SavePrimaryRaysMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.SavePrimaryRaysMapButton.Enabled = false;
-      this.SavePrimaryRaysMapButton.Location = new System.Drawing.Point(7, 448);
+      this.SavePrimaryRaysMapButton.Location = new System.Drawing.Point(6, 445);
       this.SavePrimaryRaysMapButton.Name = "SavePrimaryRaysMapButton";
       this.SavePrimaryRaysMapButton.Size = new System.Drawing.Size(97, 41);
       this.SavePrimaryRaysMapButton.TabIndex = 9;
@@ -192,13 +201,14 @@
             | System.Windows.Forms.AnchorStyles.Right)));
       this.PrimaryRaysMapPanel.AutoScroll = true;
       this.PrimaryRaysMapPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+      this.PrimaryRaysMapPanel.Controls.Add(this.SavePrimaryRaysMapButton);
       this.PrimaryRaysMapPanel.Controls.Add(this.AveragePrimaryRaysCount);
       this.PrimaryRaysMapPanel.Controls.Add(this.PrimaryRaysMapPictureBox);
       this.PrimaryRaysMapPanel.Controls.Add(this.TotalPrimaryRaysCount);
       this.PrimaryRaysMapPanel.Controls.Add(this.PrimaryRaysMapCoordinates);
       this.PrimaryRaysMapPanel.Location = new System.Drawing.Point(0, 0);
       this.PrimaryRaysMapPanel.Name = "PrimaryRaysMapPanel";
-      this.PrimaryRaysMapPanel.Size = new System.Drawing.Size(811, 495);
+      this.PrimaryRaysMapPanel.Size = new System.Drawing.Size(764, 511);
       this.PrimaryRaysMapPanel.TabIndex = 6;
       // 
       // AveragePrimaryRaysCount
@@ -247,10 +257,10 @@
       // 
       this.tabPage3.Controls.Add(this.SaveAllRaysMapButton);
       this.tabPage3.Controls.Add(this.RenderAllRaysMapButton);
-      this.tabPage3.Controls.Add(this.panel1);
+      this.tabPage3.Controls.Add(this.AllRaysMapPanel);
       this.tabPage3.Location = new System.Drawing.Point(4, 22);
       this.tabPage3.Name = "tabPage3";
-      this.tabPage3.Size = new System.Drawing.Size(811, 495);
+      this.tabPage3.Size = new System.Drawing.Size(764, 511);
       this.tabPage3.TabIndex = 2;
       this.tabPage3.Text = "All Rays Map";
       this.tabPage3.UseVisualStyleBackColor = true;
@@ -259,7 +269,7 @@
       // 
       this.SaveAllRaysMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.SaveAllRaysMapButton.Enabled = false;
-      this.SaveAllRaysMapButton.Location = new System.Drawing.Point(7, 448);
+      this.SaveAllRaysMapButton.Location = new System.Drawing.Point(6, 445);
       this.SaveAllRaysMapButton.Name = "SaveAllRaysMapButton";
       this.SaveAllRaysMapButton.Size = new System.Drawing.Size(97, 41);
       this.SaveAllRaysMapButton.TabIndex = 12;
@@ -277,21 +287,21 @@
       this.RenderAllRaysMapButton.UseVisualStyleBackColor = true;
       this.RenderAllRaysMapButton.Click += new System.EventHandler(this.RenderAllRaysMapButton_Click);
       // 
-      // panel1
+      // AllRaysMapPanel
       // 
-      this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+      this.AllRaysMapPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.panel1.AutoScroll = true;
-      this.panel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-      this.panel1.Controls.Add(this.AverageAllRaysCount);
-      this.panel1.Controls.Add(this.AllRaysMapPictureBox);
-      this.panel1.Controls.Add(this.TotalAllRaysCount);
-      this.panel1.Controls.Add(this.AllRaysMapCoordinates);
-      this.panel1.Location = new System.Drawing.Point(0, 0);
-      this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(811, 495);
-      this.panel1.TabIndex = 10;
+      this.AllRaysMapPanel.AutoScroll = true;
+      this.AllRaysMapPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+      this.AllRaysMapPanel.Controls.Add(this.AverageAllRaysCount);
+      this.AllRaysMapPanel.Controls.Add(this.AllRaysMapPictureBox);
+      this.AllRaysMapPanel.Controls.Add(this.TotalAllRaysCount);
+      this.AllRaysMapPanel.Controls.Add(this.AllRaysMapCoordinates);
+      this.AllRaysMapPanel.Location = new System.Drawing.Point(0, 0);
+      this.AllRaysMapPanel.Name = "AllRaysMapPanel";
+      this.AllRaysMapPanel.Size = new System.Drawing.Size(764, 511);
+      this.AllRaysMapPanel.TabIndex = 10;
       // 
       // AverageAllRaysCount
       // 
@@ -335,21 +345,92 @@
       this.AllRaysMapCoordinates.TabIndex = 8;
       this.AllRaysMapCoordinates.Text = "X: \r\nY: \r\nRays count:";
       // 
-      // tabPage4
+      // NormalMap
       // 
-      this.tabPage4.Location = new System.Drawing.Point(4, 22);
-      this.tabPage4.Name = "tabPage4";
-      this.tabPage4.Size = new System.Drawing.Size(811, 495);
-      this.tabPage4.TabIndex = 3;
-      this.tabPage4.Text = "tabPage4";
-      this.tabPage4.UseVisualStyleBackColor = true;
+      this.NormalMap.Controls.Add(this.SaveNormalMapButton);
+      this.NormalMap.Controls.Add(this.RenderNormalMapButton);
+      this.NormalMap.Controls.Add(this.NormalMapPanel);
+      this.NormalMap.Location = new System.Drawing.Point(4, 22);
+      this.NormalMap.Name = "NormalMap";
+      this.NormalMap.Size = new System.Drawing.Size(764, 511);
+      this.NormalMap.TabIndex = 3;
+      this.NormalMap.Text = "Normal Map";
+      this.NormalMap.UseVisualStyleBackColor = true;
+      // 
+      // tabPage5
+      // 
+      this.tabPage5.Location = new System.Drawing.Point(4, 22);
+      this.tabPage5.Name = "tabPage5";
+      this.tabPage5.Size = new System.Drawing.Size(811, 495);
+      this.tabPage5.TabIndex = 4;
+      this.tabPage5.Text = "tabPage5";
+      this.tabPage5.UseVisualStyleBackColor = true;
+      // 
+      // NormalMapPanel
+      // 
+      this.NormalMapPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.NormalMapPanel.AutoScroll = true;
+      this.NormalMapPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+      this.NormalMapPanel.Controls.Add(this.NormalMapPictureBox);
+      this.NormalMapPanel.Controls.Add(this.NormalMapCoordinates);
+      this.NormalMapPanel.Location = new System.Drawing.Point(0, 0);
+      this.NormalMapPanel.Name = "NormalMapPanel";
+      this.NormalMapPanel.Size = new System.Drawing.Size(764, 511);
+      this.NormalMapPanel.TabIndex = 13;
+      // 
+      // NormalMapPictureBox
+      // 
+      this.NormalMapPictureBox.Location = new System.Drawing.Point(110, 6);
+      this.NormalMapPictureBox.Name = "NormalMapPictureBox";
+      this.NormalMapPictureBox.Size = new System.Drawing.Size(680, 480);
+      this.NormalMapPictureBox.TabIndex = 7;
+      this.NormalMapPictureBox.TabStop = false;
+      this.NormalMapPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
+      this.NormalMapPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
+      // 
+      // NormalMapCoordinates
+      // 
+      this.NormalMapCoordinates.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.NormalMapCoordinates.AutoSize = true;
+      this.NormalMapCoordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NormalMapCoordinates.Location = new System.Drawing.Point(3, 82);
+      this.NormalMapCoordinates.Name = "NormalMapCoordinates";
+      this.NormalMapCoordinates.Size = new System.Drawing.Size(108, 80);
+      this.NormalMapCoordinates.TabIndex = 8;
+      this.NormalMapCoordinates.Text = "X: \r\nY: \r\nAngle of \r\nnormal vector:\r\n";
+      // 
+      // SaveNormalMapButton
+      // 
+      this.SaveNormalMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.SaveNormalMapButton.Enabled = false;
+      this.SaveNormalMapButton.Location = new System.Drawing.Point(6, 445);
+      this.SaveNormalMapButton.Name = "SaveNormalMapButton";
+      this.SaveNormalMapButton.Size = new System.Drawing.Size(97, 41);
+      this.SaveNormalMapButton.TabIndex = 15;
+      this.SaveNormalMapButton.Text = "Save Image";
+      this.SaveNormalMapButton.UseVisualStyleBackColor = true;
+      this.SaveNormalMapButton.Click += new System.EventHandler(this.SaveNormalMapButton_Click);
+      // 
+      // RenderNormalMapButton
+      // 
+      this.RenderNormalMapButton.Location = new System.Drawing.Point(7, 6);
+      this.RenderNormalMapButton.Name = "RenderNormalMapButton";
+      this.RenderNormalMapButton.Size = new System.Drawing.Size(97, 41);
+      this.RenderNormalMapButton.TabIndex = 14;
+      this.RenderNormalMapButton.Text = "Render";
+      this.RenderNormalMapButton.UseVisualStyleBackColor = true;
+      this.RenderNormalMapButton.Click += new System.EventHandler(this.RenderNormalMapButton_Click);
       // 
       // Form2
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(851, 545);
+      this.ClientSize = new System.Drawing.Size(804, 561);
       this.Controls.Add(this.tabControl1);
+      this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+      this.MinimumSize = new System.Drawing.Size(350, 600);
       this.Name = "Form2";
       this.Text = "Advanced tools";
       this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form2_FormClosed);
@@ -363,9 +444,13 @@
       this.PrimaryRaysMapPanel.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.PrimaryRaysMapPictureBox)).EndInit();
       this.tabPage3.ResumeLayout(false);
-      this.panel1.ResumeLayout(false);
-      this.panel1.PerformLayout();
+      this.AllRaysMapPanel.ResumeLayout(false);
+      this.AllRaysMapPanel.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.AllRaysMapPictureBox)).EndInit();
+      this.NormalMap.ResumeLayout(false);
+      this.NormalMapPanel.ResumeLayout(false);
+      this.NormalMapPanel.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.NormalMapPictureBox)).EndInit();
       this.ResumeLayout(false);
 
     }
@@ -376,7 +461,7 @@
     private System.Windows.Forms.TabPage tabPage1;
     private System.Windows.Forms.TabPage tabPage2;
     private System.Windows.Forms.TabPage tabPage3;
-    private System.Windows.Forms.TabPage tabPage4;
+    private System.Windows.Forms.TabPage NormalMap;
     private System.Windows.Forms.Panel DepthMapPanel;
     private System.Windows.Forms.Button SaveDepthMapButton;
     private System.Windows.Forms.Button RenderDepthMapButton;
@@ -391,10 +476,16 @@
     private System.Windows.Forms.Label TotalPrimaryRaysCount;
     private System.Windows.Forms.Button SaveAllRaysMapButton;
     private System.Windows.Forms.Button RenderAllRaysMapButton;
-    private System.Windows.Forms.Panel panel1;
+    private System.Windows.Forms.Panel AllRaysMapPanel;
     private System.Windows.Forms.Label AverageAllRaysCount;
     internal System.Windows.Forms.PictureBox AllRaysMapPictureBox;
     private System.Windows.Forms.Label TotalAllRaysCount;
     private System.Windows.Forms.Label AllRaysMapCoordinates;
+    private System.Windows.Forms.TabPage tabPage5;
+    private System.Windows.Forms.Button SaveNormalMapButton;
+    private System.Windows.Forms.Button RenderNormalMapButton;
+    private System.Windows.Forms.Panel NormalMapPanel;
+    internal System.Windows.Forms.PictureBox NormalMapPictureBox;
+    private System.Windows.Forms.Label NormalMapCoordinates;
   }
 }

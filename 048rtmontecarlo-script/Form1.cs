@@ -123,8 +123,7 @@ namespace _048rtmontecarlo
 
       object definition;
       if ( sceneRepository.TryGetValue( sceneName, out definition ) )
-        return Scripts.SceneFromObject( new DefaultRayScene(), sceneName, definition, textParam.Text,
-                                        ( sc ) => Scenes.DefaultScene( sc ), str => SetText( str ) );
+        return Scripts.SceneFromObject( sceneName, definition, textParam.Text, str => SetText( str ) );
 
       // fallback to a default scene;
       return Scenes.DefaultScene();
@@ -316,8 +315,8 @@ namespace _048rtmontecarlo
       }
       else
       {
-        MT.InitThreadData();
         wti[ 0 ].rend.RenderRectangle( newImage, 0, 0, width, height );
+        MT.InitThreadData();
       }
 
       long elapsed;
