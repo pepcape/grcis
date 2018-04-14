@@ -255,9 +255,9 @@ namespace _048rtmontecarlo
       return imf;
     }
 
-    private IRenderer getRenderer ( IImageFunction imf, int width, int height, string param )
+    private IRenderer getRenderer ( IImageFunction imf, int width, int height )
     {
-      IRenderer rend = FormSupport.getRenderer( imf, (int)numericSupersampling.Value, checkJitter.Checked ? 1.0 : 0.0, param );
+      IRenderer rend = FormSupport.getRenderer( imf, (int)numericSupersampling.Value, checkJitter.Checked ? 1.0 : 0.0, TextParam.Text );
       rend.Width        = width;
       rend.Height       = height;
       rend.Adaptive     = 8;
@@ -291,7 +291,7 @@ namespace _048rtmontecarlo
       {
         IRayScene sc = FormSupport.getScene();
         IImageFunction imf = getImageFunction( sc, width, height );
-        IRenderer r = getRenderer( imf, width, height, textParam.Text );
+        IRenderer r = getRenderer( imf, width, height );
         wti[ t ] = new WorkerThreadInit( r, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t, threads );
       }
 
