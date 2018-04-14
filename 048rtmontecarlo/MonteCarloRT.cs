@@ -37,7 +37,7 @@ namespace _048rtmontecarlo
       f.ImageHeight = 540;
       f.NumericSupersampling.Value = 4;
       f.CheckMultithreading.Checked = true;
-      f.TextParam.Text = "";
+      f.TextParam.Text = "sampling=adapt1";
     }
 
     /// <summary>
@@ -65,7 +65,8 @@ namespace _048rtmontecarlo
 
       string isType;
       IRenderer r = null;
-      if ( p.TryGetValue( "sampling", out isType ) )
+      if ( p.TryGetValue( "sampling", out isType ) &&
+           superSampling > 1 )
         switch ( isType )
         {
           case "adapt1":
@@ -187,36 +188,28 @@ namespace Rendering
     /// </summary>
     class Node
     {
-      public Node ( double x, double y, double step, int level, int bands )
+      public double x;
+      public double y;
+      public double step;
+
+      public Node[] children;
+      public Result result;
+
+      public Node ( double x, double y, double step )
       {
         this.x = x;
         this.y = y;
         this.step = step;
-        this.level = level;
-        children = null;
-        result = new Result( bands );
       }
 
-      public Node addChild ( Node child, int index )
+      public void sample ( IImageFunction iif, int bands )
       {
-        if ( children == null )
-          children = new Node[ 4 ];
-
-        children[ index ] = child;
-        return child;
+        result = new Result( bands,
+                             x + step * MT.rnd.UniformNumber(),
+                             y + step * MT.rnd.UniformNumber() );
+        result.hash = iif.GetSample( result.x, result.y, result.color );
+        MT.NextSample();
       }
-
-      public void setResult ( Result res )
-      {
-        result = res;
-      }
-
-      public double x;
-      public double y;
-      public double step;
-      public int level;
-      public Node[] children;
-      public Result result;
     }
 
     /// <summary>
@@ -224,12 +217,15 @@ namespace Rendering
     /// </summary>
     class Result
     {
-      public Result ( int bands )
+      public Result ( int bands, double x, double y )
       {
         color = new double[ bands ];
+        this.x = x;
+        this.y = y;
         hash = 0L;
       }
 
+      public double x, y;
       public double[] color;
       public long hash;
     }
@@ -253,90 +249,85 @@ namespace Rendering
       return !similarColor( res1.color, res2.color );
     }
 
-    private void castRay ( double x0, double y0, double step, Result result )
-    {
-      result.hash = ImageFunction.GetSample( x0 + step * MT.rnd.UniformNumber(),
-                                             y0 + step * MT.rnd.UniformNumber(),
-                                             result.color );
-    }
-
     /// <summary>
     /// Subdivides the node into quadrants.
     /// </summary>
-    private void subdivide ( Node root, int maxDepth )
+    private void subdivide ( Node root, int division, int maxDivision )
     {
-      Result[] result = new Result[ 4 ];
-      for ( int i = 0; i < 4; )
-        result[ i++ ] = new Result( bands );
-
       double step = root.step * 0.5;
-      double x0 = root.x;
-      double y0 = root.y;
+      Node[] ch = new Node[ 4 ];
+      root.children = ch;
 
-      Vector2d[] pos = new Vector2d[ 4 ];
-      pos[ 0 ].X = x0;
-      pos[ 0 ].Y = y0;
-
-      pos[ 1 ].X = x0;
-      pos[ 1 ].Y = y0 + step;
-
-      pos[ 2 ].X = x0 + step;
-      pos[ 2 ].Y = y0 + step;
-
-      pos[ 3 ].X = x0 + step;
-      pos[ 3 ].Y = y0;
-
-      // one ray into each quadrant
-      for ( int i = 0; i < 4; i++ )
-        castRay( pos[ i ].X, pos[ i ].Y, step, result[ i ] );
-
-      // results are stored in the tree
-      for ( int i = 0; i < 4; i++ )
+      // child[ 0 ] .. root.x, root.y
+      ch[ 0 ] = new Node( root.x, root.y, step );
+      if ( root.result.x < root.x + step &&
+           root.result.y < root.y + step )
       {
-        Node node = new Node( pos[ i ].X, pos[ i ].Y, step, root.level + 1, bands );
-        node.setResult( result[ i ] );
-
-        root.addChild( node, i );
+        // use the old sample:
+        ch[ 0 ].result = root.result;
+        root.result = null;
       }
+      else
+        ch[ 0 ].sample( ImageFunction, bands );
 
-      // 2^(root.level + 1)
-      int depth = 1 << (root.level + 1);
+      // child[ 1 ] .. root.x, root.y + step
+      ch[ 1 ] = new Node( root.x, root.y + step, step );
+      if ( root.result != null &&
+           root.result.x < root.x + step )
+      {
+        // use the old sample:
+        ch[ 1 ].result = root.result;
+        root.result = null;
+      }
+      else
+        ch[ 1 ].sample( ImageFunction, bands );
+
+      // child[ 2 ] .. root.x + step, root.y
+      ch[ 2 ] = new Node( root.x + step, root.y, step );
+      if ( root.result != null &&
+           root.result.y < root.y + step )
+      {
+        // use the old sample:
+        ch[ 2 ].result = root.result;
+        root.result = null;
+      }
+      else
+        ch[ 2 ].sample( ImageFunction, bands );
+
+      // child[ 3 ] .. root.x + step, root.y + step
+      ch[ 3 ] = new Node( root.x + step, root.y + step, step );
+      if ( root.result != null )
+      {
+        // use the old sample:
+        ch[ 3 ].result = root.result;
+        root.result = null;
+      }
+      else
+        ch[ 3 ].sample( ImageFunction, bands );
 
       // tree-depth check
-      if ( depth >= maxDepth )
+      if ( (division += division) >= maxDivision )
         return;
 
       bool[] toSubdivide = new bool[ 4 ];
 
       // neighbour checks
-      if ( subdivisionNeeded( result[ 0 ], result[ 1 ] ) )
-      {
-        toSubdivide[ 0 ] = true;
-        toSubdivide[ 1 ] = true;
-      }
+      if ( subdivisionNeeded( ch[ 0 ].result, ch[ 1 ].result ) )
+        toSubdivide[ 0 ] = toSubdivide[ 1 ] = true;
 
-      if ( subdivisionNeeded( result[ 1 ], result[ 2 ] ) )
-      {
-        toSubdivide[ 1 ] = true;
-        toSubdivide[ 2 ] = true;
-      }
+      if ( subdivisionNeeded( ch[ 1 ].result, ch[ 3 ].result ) )
+        toSubdivide[ 1 ] = toSubdivide[ 3 ] = true;
 
-      if ( subdivisionNeeded( result[ 2 ], result[ 3 ] ) )
-      {
-        toSubdivide[ 2 ] = true;
-        toSubdivide[ 3 ] = true;
-      }
+      if ( subdivisionNeeded( ch[ 0 ].result, ch[ 2 ].result ) )
+        toSubdivide[ 0 ] = toSubdivide[ 2 ] = true;
 
-      if ( subdivisionNeeded( result[ 0 ], result[ 3 ] ) )
-      {
-        toSubdivide[ 0 ] = true;
-        toSubdivide[ 3 ] = true;
-      }
+      if ( subdivisionNeeded( ch[ 2 ].result, ch[ 3 ].result ) )
+        toSubdivide[ 2 ] = toSubdivide[ 3 ] = true;
 
       // divide and conquer:
       for ( int i = 0; i < 4; i++ )
         if ( toSubdivide[ i ] )
-          subdivide( root.children[ i ], maxDepth );
+          subdivide( ch[ i ], division, maxDivision );
     }
 
     /// <summary>
@@ -374,8 +365,10 @@ namespace Rendering
       Array.Clear( color, 0, bands );
 
       // we are starting from the whole pixel area = unit square
-      Node root = new Node( x, y, 1.0, 0, bands );
-      subdivide( root, superXY );
+      Node root = new Node( x, y, 1.0 );
+      root.sample( ImageFunction, bands );
+      if ( superXY > 1 )
+        subdivide( root, 1, superXY );
 
       // gather result color
       gatherColors( root, color );
