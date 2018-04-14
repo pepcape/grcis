@@ -240,7 +240,7 @@ namespace _048rtmontecarlo
 
     private IImageFunction getImageFunction ( IRayScene sc, int width, int height )
     {
-      IImageFunction imf = FormSupport.getImageFunction( sc );
+      IImageFunction imf = FormSupport.getImageFunction( sc, TextParam.Text );
       imf.Width  = width;
       imf.Height = height;
 
@@ -255,20 +255,13 @@ namespace _048rtmontecarlo
       return imf;
     }
 
-    private IRenderer getRenderer ( IImageFunction imf, int width, int height )
+    private IRenderer getRenderer ( IImageFunction imf, int width, int height, string param )
     {
-      IRenderer rend = FormSupport.getRenderer( imf );
+      IRenderer rend = FormSupport.getRenderer( imf, (int)numericSupersampling.Value, checkJitter.Checked ? 1.0 : 0.0, param );
       rend.Width        = width;
       rend.Height       = height;
       rend.Adaptive     = 8;
       rend.ProgressData = progress;
-
-      SupersamplingImageSynthesizer ss = rend as SupersamplingImageSynthesizer;
-      if ( ss != null )
-      {
-        ss.Supersampling = (int)numericSupersampling.Value;
-        ss.Jittering     = checkJitter.Checked ? 1.0 : 0.0;
-      }
 
       return rend;
     }
@@ -298,7 +291,7 @@ namespace _048rtmontecarlo
       {
         IRayScene sc = FormSupport.getScene();
         IImageFunction imf = getImageFunction( sc, width, height );
-        IRenderer r = getRenderer( imf, width, height );
+        IRenderer r = getRenderer( imf, width, height, textParam.Text );
         wti[ t ] = new WorkerThreadInit( r, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t, threads );
       }
 
