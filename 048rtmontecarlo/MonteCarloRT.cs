@@ -4,6 +4,7 @@ using System.Diagnostics;
 using MathSupport;
 using OpenTK;
 using Rendering;
+using Utilities;
 
 namespace _048rtmontecarlo
 {
@@ -50,7 +51,7 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Initialize ray-scene and image function (good enough for simple samples).
     /// </summary>
-    public static IImageFunction getImageFunction ( IRayScene scene )
+    public static IImageFunction getImageFunction ( IRayScene scene, string param )
     {
       return new RayTracing( scene );
     }
@@ -58,11 +59,44 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    public static IRenderer getRenderer ( IImageFunction imf )
+    public static IRenderer getRenderer ( IImageFunction imf, int superSampling, double jittering, string param )
     {
-      AdaptiveSupersamplingImageSynthesizer sis = new AdaptiveSupersamplingImageSynthesizer();
-      sis.ImageFunction = imf;
-      return sis;
+      Dictionary<string,string> p = Util.ParseKeyValueList( param );
+
+      string isType;
+      IRenderer r = null;
+      if ( p.TryGetValue( "sampling", out isType ) )
+        switch ( isType )
+        {
+          case "adapt1":
+            double threshold = 0.004;
+            Util.TryParse( p, "threshold", ref threshold );
+            AdaptiveSupersamplingJR adis = new AdaptiveSupersamplingJR( threshold );
+            adis.ImageFunction = imf;
+            adis.Supersampling = superSampling;
+            adis.Jittering     = jittering;
+            r = adis;
+            break;
+
+          case "adapt2":
+            AdaptiveSupersampling sis = new AdaptiveSupersampling();
+            sis.ImageFunction = imf;
+            sis.Supersampling = superSampling;
+            sis.Jittering     = jittering;
+            r = sis;
+            break;
+        }
+
+      if ( r == null )
+      {
+        SupersamplingImageSynthesizer jit = new SupersamplingImageSynthesizer();
+        jit.ImageFunction = imf;
+        jit.Supersampling = superSampling;
+        jit.Jittering     = jittering;
+        r = jit;
+      }
+
+      return r;
     }
   }
 }
@@ -70,11 +104,11 @@ namespace _048rtmontecarlo
 namespace Rendering
 {
   /// <summary>
-  /// Super-samples only pixels which actually need it!
+  /// Super-samples only pixels/pixel parts which actually need it!
   /// </summary>
-  public class AdaptiveSupersamplingImageSynthesizer : SupersamplingImageSynthesizer
+  public class AdaptiveSupersampling : SupersamplingImageSynthesizer
   {
-    public AdaptiveSupersamplingImageSynthesizer ()
+    public AdaptiveSupersampling ()
       : base( 16 )
     {
     }
@@ -127,6 +161,231 @@ namespace Rendering
           color[ b ] *= mul;
 
       // !!!}}
+    }
+  }
+
+  /// <summary>
+  /// Adaptive supersampling inspired by a quad-tree.
+  /// Original author: Jan Roztocil, 2012.
+  /// Update: Josef Pelikan, 2018.
+  /// </summary>
+  public class AdaptiveSupersamplingJR : SupersamplingImageSynthesizer
+  {
+    public AdaptiveSupersamplingJR ( double colThreshold =0.004 )
+      : base( 16 )
+    {
+      bands = 0;
+      colorThreshold = colThreshold;
+    }
+
+    protected int bands;
+
+    protected double colorThreshold;
+
+    /// <summary>
+    /// Ternary tree to sture sampling results.
+    /// </summary>
+    class Node
+    {
+      public Node ( double x, double y, double step, int level, int bands )
+      {
+        this.x = x;
+        this.y = y;
+        this.step = step;
+        this.level = level;
+        children = null;
+        result = new Result( bands );
+      }
+
+      public Node addChild ( Node child, int index )
+      {
+        if ( children == null )
+          children = new Node[ 4 ];
+
+        children[ index ] = child;
+        return child;
+      }
+
+      public void setResult ( Result res )
+      {
+        result = res;
+      }
+
+      public double x;
+      public double y;
+      public double step;
+      public int level;
+      public Node[] children;
+      public Result result;
+    }
+
+    /// <summary>
+    /// Intersection result stored together with color & hash.
+    /// </summary>
+    class Result
+    {
+      public Result ( int bands )
+      {
+        color = new double[ bands ];
+        hash = 0L;
+      }
+
+      public double[] color;
+      public long hash;
+    }
+
+    /// <summary>
+    /// Returns true if the two colors are similar
+    /// </summary>
+    private bool similarColor ( double[] col1, double[] col2 )
+    {
+      double r_diff = col1[ 0 ] - col2[ 0 ];
+      double g_diff = col1[ 1 ] - col2[ 1 ];
+      double b_diff = col1[ 2 ] - col2[ 2 ];
+      return Math.Sqrt( r_diff * r_diff + g_diff * g_diff + b_diff * b_diff ) < colorThreshold;
+    }
+
+    private bool subdivisionNeeded ( Result res1, Result res2 )
+    {
+      if ( res1.hash != res2.hash )
+        return true;   // two different objects were hit
+
+      return !similarColor( res1.color, res2.color );
+    }
+
+    private void castRay ( double x0, double y0, double step, Result result )
+    {
+      result.hash = ImageFunction.GetSample( x0 + step * MT.rnd.UniformNumber(),
+                                             y0 + step * MT.rnd.UniformNumber(),
+                                             result.color );
+    }
+
+    /// <summary>
+    /// Subdivides the node into quadrants.
+    /// </summary>
+    private void subdivide ( Node root, int maxDepth )
+    {
+      Result[] result = new Result[ 4 ];
+      for ( int i = 0; i < 4; )
+        result[ i++ ] = new Result( bands );
+
+      double step = root.step * 0.5;
+      double x0 = root.x;
+      double y0 = root.y;
+
+      Vector2d[] pos = new Vector2d[ 4 ];
+      pos[ 0 ].X = x0;
+      pos[ 0 ].Y = y0;
+
+      pos[ 1 ].X = x0;
+      pos[ 1 ].Y = y0 + step;
+
+      pos[ 2 ].X = x0 + step;
+      pos[ 2 ].Y = y0 + step;
+
+      pos[ 3 ].X = x0 + step;
+      pos[ 3 ].Y = y0;
+
+      // one ray into each quadrant
+      for ( int i = 0; i < 4; i++ )
+        castRay( pos[ i ].X, pos[ i ].Y, step, result[ i ] );
+
+      // results are stored in the tree
+      for ( int i = 0; i < 4; i++ )
+      {
+        Node node = new Node( pos[ i ].X, pos[ i ].Y, step, root.level + 1, bands );
+        node.setResult( result[ i ] );
+
+        root.addChild( node, i );
+      }
+
+      // 2^(root.level + 1)
+      int depth = 1 << (root.level + 1);
+
+      // tree-depth check
+      if ( depth >= maxDepth )
+        return;
+
+      bool[] toSubdivide = new bool[ 4 ];
+
+      // neighbour checks
+      if ( subdivisionNeeded( result[ 0 ], result[ 1 ] ) )
+      {
+        toSubdivide[ 0 ] = true;
+        toSubdivide[ 1 ] = true;
+      }
+
+      if ( subdivisionNeeded( result[ 1 ], result[ 2 ] ) )
+      {
+        toSubdivide[ 1 ] = true;
+        toSubdivide[ 2 ] = true;
+      }
+
+      if ( subdivisionNeeded( result[ 2 ], result[ 3 ] ) )
+      {
+        toSubdivide[ 2 ] = true;
+        toSubdivide[ 3 ] = true;
+      }
+
+      if ( subdivisionNeeded( result[ 0 ], result[ 3 ] ) )
+      {
+        toSubdivide[ 0 ] = true;
+        toSubdivide[ 3 ] = true;
+      }
+
+      // divide and conquer:
+      for ( int i = 0; i < 4; i++ )
+        if ( toSubdivide[ i ] )
+          subdivide( root.children[ i ], maxDepth );
+    }
+
+    /// <summary>
+    /// Final colour gathering.
+    /// </summary>
+    private void gatherColors ( Node node, double[] color )
+    {
+      if ( node.children != null )
+        // inner node
+        foreach ( Node child in node.children )
+          gatherColors( child, color );
+      else
+      {
+        // leaf node
+        double mult = node.step * node.step;
+        for ( int i = 0; i < bands; i++ )
+          color[ i ] += node.result.color[ i ] * mult;
+      }
+    }
+
+    /// <summary>
+    /// Renders the single pixel of an image (using required super-sampling).
+    /// </summary>
+    /// <param name="x">Horizontal coordinate.</param>
+    /// <param name="y">Vertical coordinate.</param>
+    /// <param name="color">Computed pixel color.</param>
+    public override void RenderPixel ( int x, int y, double[] color )
+    {
+      Debug.Assert( color != null );
+      Debug.Assert( MT.rnd != null );
+
+      MT.StartPixel( x, y, Supersampling );
+
+      bands = color.Length;
+      Array.Clear( color, 0, bands );
+
+      // we are starting from the whole pixel area = unit square
+      Node root = new Node( x, y, 1.0, 0, bands );
+      subdivide( root, superXY );
+
+      // gather result color
+      gatherColors( root, color );
+
+      if ( Gamma > 0.001 )
+      {                                     // gamma-encoding and clamping
+        double g = 1.0 / Gamma;
+        for ( int b = 0; b < bands; b++ )
+          color[ b ] = Arith.Clamp( Math.Pow( color[ b ], g ), 0.0, 1.0 );
+      }
     }
   }
 
