@@ -197,12 +197,12 @@ namespace _048rtmontecarlo
       {
         Point coordinates = e.Location;
 
-        double angle = AdvancedTools.NormalMap.GetNormalVectorAngleAtLocation(coordinates.X, coordinates.Y);
+        double angle = AdvancedTools.NormalMap.GetNormalVectorAngleAtLocation ( coordinates.X, coordinates.Y );
 
-        DepthMap_Coordinates.Text = String.Format("X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}°",
-                                                  coordinates.X,
-                                                  coordinates.Y,
-                                                  angle);
+        NormalMapCoordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}°",
+                                                    coordinates.X,
+                                                    coordinates.Y,
+                                                    angle );
       }
     }
 

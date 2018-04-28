@@ -41,7 +41,7 @@ namespace _048rtmontecarlo
       if ( DepthMap.mapArray == null )
         DepthMap.Initialize ();
 
-      if ( NormalMap.mapArray == null )
+      if ( NormalMap.mapArray == null || NormalMap.intersectionMapArray == null)
         NormalMap.Initialize ( rayOrigin );
 
       double depth;
@@ -67,19 +67,14 @@ namespace _048rtmontecarlo
         if ( firstIntersection != null )
         {
           // register normal vector
-          Vector3d normalVector = MoveVectorToOrigin ( firstIntersection.CoordWorld, firstIntersection.Normal );
-          NormalMap.coordWorldMapArray[ MT.x, MT.y ] += firstIntersection.CoordWorld;
+          Vector3d normalVector = firstIntersection.Normal - firstIntersection.CoordWorld;
+          NormalMap.intersectionMapArray[ MT.x, MT.y ] += firstIntersection.CoordWorld;
           NormalMap.mapArray[ MT.x, MT.y ] += normalVector;
         }       
       }
 
       // register all rays
       AllRaysMap.mapArray[ MT.x, MT.y ]++;
-    }
-
-    private static Vector3d MoveVectorToOrigin ( Vector3d start, Vector3d direction )
-    {
-      return direction - start;
     }
 
 
@@ -269,7 +264,7 @@ namespace _048rtmontecarlo
       public static int mapImageHeight;
 
       internal static Vector3d[,] mapArray;
-      internal static Vector3d[,] coordWorldMapArray;
+      internal static Vector3d[,] intersectionMapArray;
 
       private static Bitmap mapBitmap;
 
@@ -284,7 +279,7 @@ namespace _048rtmontecarlo
         mapImageHeight = Form2.singleton.PrimaryRaysMapPictureBox.Height;
 
         mapArray = new Vector3d[mapImageWidth, mapImageHeight];
-        coordWorldMapArray = new Vector3d[mapImageWidth, mapImageHeight];
+        intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
 
         rayOrigin = newRayOrigin;
       }
@@ -297,7 +292,7 @@ namespace _048rtmontecarlo
         }
 
         AverageMap ( mapArray );
-        AverageMap ( coordWorldMapArray );
+        AverageMap ( intersectionMapArray );
 
         //maxValue = double.MinValue;
         //minValue = double.MaxValue;
@@ -310,12 +305,12 @@ namespace _048rtmontecarlo
         {
           for (int y = 0; y < mapImageHeight; y++)
           {
-
-            mapBitmap.SetPixel ( x, y, GetAppropriateColorForNormalVector ( mapArray[ x, y ], coordWorldMapArray[x, y]) );
+            mapBitmap.SetPixel ( x, y, GetAppropriateColorForNormalVectorSimpleVersion( mapArray[ x, y ], intersectionMapArray[ x, y ] ) );
+            //mapBitmap.SetPixel ( x, y, GetAppropriateColorForNormalVector ( mapArray[ x, y ], intersectionMapArray[x, y]) );
           }
         }
 
-        throw new NotImplementedException();
+        //throw new NotImplementedException();
       }
 
       public static bool wasAveraged;
@@ -356,9 +351,9 @@ namespace _048rtmontecarlo
         return GetBitmapGeneral ( mapBitmap, RenderMap );
       }
 
-      public static int GetNormalVectorAngleAtLocation(int x, int y)
+      public static double GetNormalVectorAngleAtLocation(int x, int y)
       {
-        throw new NotImplementedException ();
+        return Vector3d.CalculateAngle ( mapArray[ x, y ], rayOrigin - intersectionMapArray[ x, y ] ) * 2 * Math.PI;
       }
 
       private static Color GetAppropriateColorForNormalVector ( Vector3d normalizedNormalVector, Vector3d intersectionVector)
@@ -368,6 +363,20 @@ namespace _048rtmontecarlo
         double angle = Vector3d.CalculateAngle ( normalVector, rayOrigin );
 
         throw new NotImplementedException();
+      }
+
+      private static Color GetAppropriateColorForNormalVectorSimpleVersion(Vector3d normalizedNormalVector, Vector3d intersectionVector)
+      {
+        double angle = Vector3d.CalculateAngle (normalizedNormalVector, rayOrigin - intersectionVector ) * 2 * Math.PI;
+
+        double colorValue = angle / 90 * 240;
+
+        if ( double.IsNaN( colorValue ) )
+        {
+          return Color.FromArgb ( 1, 1, 1, 1 );
+        }
+
+        return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
       }
     }
 
@@ -521,6 +530,9 @@ namespace _048rtmontecarlo
       }
 
       DepthMap.mapArray = null;
+
+      NormalMap.mapArray = null;
+      NormalMap.intersectionMapArray = null;
     }
   }
 }

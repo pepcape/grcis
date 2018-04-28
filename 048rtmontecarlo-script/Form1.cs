@@ -515,7 +515,10 @@ namespace _048rtmontecarlo
 
       // GUI stuff:
       SetGUI( false );
-      Form2.singleton.RenderButtonsEnabled ( false );
+      if (Form2.singleton != null)
+      {
+        Form2.singleton.RenderButtonsEnabled(false);
+      }    
 
       lock ( progress )
         progress.Continue = true;
