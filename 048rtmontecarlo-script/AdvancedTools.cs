@@ -19,11 +19,6 @@ namespace _048rtmontecarlo
     {
       PrimaryRaysMap = new RaysMap ();
       AllRaysMap = new RaysMap ();
-
-#if DEBUG
-      TextWriterTraceListener writer = new TextWriterTraceListener(System.Console.Out);
-      Debug.Listeners.Add(writer);
-#endif
     }
 
     public static void Register ( int level, Vector3d rayOrigin, Intersection firstIntersection )
@@ -47,7 +42,7 @@ namespace _048rtmontecarlo
       if ( DepthMap.mapArray == null )
         DepthMap.Initialize ();
 
-      if ( NormalMap.mapArray == null || NormalMap.intersectionMapArray == null)
+      if ( NormalMap.mapArray == null || NormalMap.intersectionMapArray == null || NormalMap.raysCountArray == null)
         NormalMap.Initialize ( rayOrigin );
 
       double depth;
@@ -77,6 +72,14 @@ namespace _048rtmontecarlo
           NormalMap.intersectionMapArray[ MT.x, MT.y ] += firstIntersection.CoordWorld;
           NormalMap.mapArray[ MT.x, MT.y ] += firstIntersection.Normal;
           NormalMap.raysCountArray[ MT.x, MT.y ]++;
+
+          if ( MT.x == 200 && MT.y == 200 )
+          {
+            Vector3d temp = firstIntersection.Normal;
+            temp.Normalize ();
+
+            Debug.WriteLine ( temp );
+          }
 
           if (Vector3d.CalculateAngle(rayOrigin - firstIntersection.CoordWorld, firstIntersection.Normal) * 180 / Math.PI > 90) // only for DEBUG
           {
@@ -306,23 +309,8 @@ namespace _048rtmontecarlo
         }
 
         AverageMap ( mapArray );
+        wasAveraged = false;
         AverageMap ( intersectionMapArray );
-
-        //maxValue = double.MinValue;
-        //minValue = double.MaxValue;
-
-        for ( int x = 0; x < mapImageWidth; x++ )
-        {
-          for ( int y = 0; y < mapImageHeight; y++ )
-          {
-            if ( Vector3d.CalculateAngle(rayOrigin - intersectionMapArray[x,y], mapArray[x,y]) * 180 / Math.PI > 90 ) // only for DEBUG
-            {
-              throw new Exception("Wrong angle detected!  " + Vector3d.CalculateAngle(rayOrigin - intersectionMapArray[x, y], mapArray[x, y]) * 180 / Math.PI);
-            }
-          }
-        }
-
-        //GetMinimumAndMaximum(ref minValue, ref maxValue, mapArray);
 
         mapBitmap = new Bitmap(mapImageWidth, mapImageHeight, PixelFormat.Format24bppRgb);
 
