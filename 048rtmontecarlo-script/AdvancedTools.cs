@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Diagnostics;
 using MathSupport;
 using OpenTK;
 using Rendering;
@@ -18,6 +19,11 @@ namespace _048rtmontecarlo
     {
       PrimaryRaysMap = new RaysMap ();
       AllRaysMap = new RaysMap ();
+
+#if DEBUG
+      TextWriterTraceListener writer = new TextWriterTraceListener(System.Console.Out);
+      Debug.Listeners.Add(writer);
+#endif
     }
 
     public static void Register ( int level, Vector3d rayOrigin, Intersection firstIntersection )
@@ -67,9 +73,15 @@ namespace _048rtmontecarlo
         if ( firstIntersection != null )
         {
           // register normal vector
-          Vector3d normalVector = firstIntersection.Normal - firstIntersection.CoordWorld;
+          //Vector3d normalVector = firstIntersection.Normal - firstIntersection.CoordWorld;
           NormalMap.intersectionMapArray[ MT.x, MT.y ] += firstIntersection.CoordWorld;
-          NormalMap.mapArray[ MT.x, MT.y ] += normalVector;
+          NormalMap.mapArray[ MT.x, MT.y ] += firstIntersection.Normal;
+          NormalMap.raysCountArray[ MT.x, MT.y ]++;
+
+          if (Vector3d.CalculateAngle(rayOrigin - firstIntersection.CoordWorld, firstIntersection.Normal) * 180 / Math.PI > 90) // only for DEBUG
+          {
+            throw new Exception ("Wrong angle detected!");
+          }         
         }       
       }
 
@@ -265,6 +277,7 @@ namespace _048rtmontecarlo
 
       internal static Vector3d[,] mapArray;
       internal static Vector3d[,] intersectionMapArray;
+      internal static int[,] raysCountArray;
 
       private static Bitmap mapBitmap;
 
@@ -280,6 +293,7 @@ namespace _048rtmontecarlo
 
         mapArray = new Vector3d[mapImageWidth, mapImageHeight];
         intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
+        raysCountArray = new int[mapImageWidth, mapImageHeight];
 
         rayOrigin = newRayOrigin;
       }
@@ -297,48 +311,47 @@ namespace _048rtmontecarlo
         //maxValue = double.MinValue;
         //minValue = double.MaxValue;
 
+        for ( int x = 0; x < mapImageWidth; x++ )
+        {
+          for ( int y = 0; y < mapImageHeight; y++ )
+          {
+            if ( Vector3d.CalculateAngle(rayOrigin - intersectionMapArray[x,y], mapArray[x,y]) * 180 / Math.PI > 90 ) // only for DEBUG
+            {
+              throw new Exception("Wrong angle detected!  " + Vector3d.CalculateAngle(rayOrigin - intersectionMapArray[x, y], mapArray[x, y]) * 180 / Math.PI);
+            }
+          }
+        }
+
         //GetMinimumAndMaximum(ref minValue, ref maxValue, mapArray);
 
         mapBitmap = new Bitmap(mapImageWidth, mapImageHeight, PixelFormat.Format24bppRgb);
 
-        for (int x = 0; x < mapImageWidth; x++)
+        for ( int x = 0; x < mapImageWidth; x++ )
         {
-          for (int y = 0; y < mapImageHeight; y++)
+          for ( int y = 0; y < mapImageHeight; y++ )
           {
             mapBitmap.SetPixel ( x, y, GetAppropriateColorForNormalVectorSimpleVersion( mapArray[ x, y ], intersectionMapArray[ x, y ] ) );
             //mapBitmap.SetPixel ( x, y, GetAppropriateColorForNormalVector ( mapArray[ x, y ], intersectionMapArray[x, y]) );
           }
         }
-
-        //throw new NotImplementedException();
       }
 
       public static bool wasAveraged;
 
-      private static void AverageMap ( Vector3d[,] map)
+      private static void AverageMap ( Vector3d[,] map )
       {
         if ( wasAveraged )
         {
           return;
-        }
-
-        if  ( PrimaryRaysMap == null )
-        {
-          AdvancedTools.Initialize();
-        }
-
-        if ( PrimaryRaysMap.mapArray == null )
-        {
-          PrimaryRaysMap.Initialize();
-        }        
+        }     
 
         for ( int i = 0; i < mapImageWidth; i++ )
         {
           for ( int j = 0; j < mapImageHeight; j++ )
           {
-            if ( PrimaryRaysMap.mapArray[ i, j ] != 0 ) // TODO: Fix 0 rays count
+            if ( raysCountArray[ i, j ] != 0 ) // TODO: Fix 0 rays count
             {
-              map[ i, j ] /= PrimaryRaysMap.mapArray[ i, j ];
+              map[ i, j ] /= raysCountArray[ i, j ];
             }
           }
         }
@@ -353,7 +366,7 @@ namespace _048rtmontecarlo
 
       public static double GetNormalVectorAngleAtLocation(int x, int y)
       {
-        return Vector3d.CalculateAngle ( mapArray[ x, y ], rayOrigin - intersectionMapArray[ x, y ] ) * 2 * Math.PI;
+        return Vector3d.CalculateAngle ( mapArray[ x, y ], rayOrigin - intersectionMapArray[ x, y ] ) * 180 / Math.PI;
       }
 
       private static Color GetAppropriateColorForNormalVector ( Vector3d normalizedNormalVector, Vector3d intersectionVector)
@@ -367,7 +380,7 @@ namespace _048rtmontecarlo
 
       private static Color GetAppropriateColorForNormalVectorSimpleVersion(Vector3d normalizedNormalVector, Vector3d intersectionVector)
       {
-        double angle = Vector3d.CalculateAngle (normalizedNormalVector, rayOrigin - intersectionVector ) * 2 * Math.PI;
+        double angle = Vector3d.CalculateAngle ( normalizedNormalVector, rayOrigin - intersectionVector ) * 180 / Math.PI;
 
         double colorValue = angle / 90 * 240;
 
@@ -388,7 +401,7 @@ namespace _048rtmontecarlo
 
     public static Bitmap GetBitmapGeneral ( Bitmap mapBitmap, RenderMap renderMapMethod )
     {
-      if (mapBitmap == null)
+      if ( mapBitmap == null )
       {
         renderMapMethod();
       }
@@ -407,9 +420,9 @@ namespace _048rtmontecarlo
     /// <param name="map">2D array of values</param>
     private static void GetMinimumAndMaximum<T> ( ref T minValue, ref T maxValue, T[,] map ) where T: IComparable
     {
-      for (int x = 0; x < DepthMap.mapImageWidth; x++)
+      for ( int x = 0; x < DepthMap.mapImageWidth; x++ )
       {
-        for (int y = 0; y < DepthMap.mapImageHeight; y++)
+        for ( int y = 0; y < DepthMap.mapImageHeight; y++ )
         {
           if ( map[ x, y ].CompareTo ( maxValue ) > 0 )
             maxValue = map[ x, y ];
@@ -432,14 +445,14 @@ namespace _048rtmontecarlo
     /// <returns>Appropriate color</returns>
     private static Color GetAppropriateColorLinear ( double minValue, double maxValue, double newValue )
     {
-      double colorValue = (newValue - minValue) / (maxValue - minValue) * 240;
+      double colorValue = ( newValue - minValue ) / ( maxValue - minValue ) * 240;
 
-      if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))  // TODO: Needed or just throw exception?
+      if ( double.IsNaN ( colorValue ) || double.IsInfinity ( colorValue ) )  // TODO: Needed or just throw exception?
       {
         colorValue = 0;
       }
 
-      return Arith.HSVToColor(240 - colorValue, 1, 1);
+      return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
     }
 
     /// <summary>
@@ -454,14 +467,14 @@ namespace _048rtmontecarlo
     /// <returns>Appropriate color</returns>
     private static Color GetAppropriateColorLogarithmicReversed ( double minValue, double maxValue, double newValue )
     {
-      double colorValue = Math.Log((newValue - minValue + 1), (maxValue - minValue + 1)) * 240;
+      double colorValue = Math.Log ( ( newValue - minValue + 1 ), ( maxValue - minValue + 1 ) ) * 240;
 
-      if (double.IsNaN(colorValue) || double.IsInfinity(colorValue))  // TODO: Needed or just throw exception?
+      if ( double.IsNaN ( colorValue ) || double.IsInfinity ( colorValue ) )  // TODO: Needed or just throw exception?
       {
         colorValue = 0;
       }
 
-      return Arith.HSVToColor(colorValue, 1, 1);
+      return Arith.HSVToColor ( colorValue, 1, 1 );
     }
 
     /// <summary>
@@ -472,13 +485,13 @@ namespace _048rtmontecarlo
     /// <param name="value">Desired value</param>
     /// <param name="selectedValue">Only these values are replaced if selected is true</param>
     /// <param name="selected">Switches between changing all values or only values equal to selectedValue</param>
-    private static void PopulateArray2D<T>(this T[,] array, T value, T selectedValue, bool selected)
+    private static void PopulateArray2D<T> ( this T[,] array, T value, T selectedValue, bool selected )
     {
       if ( selected )
       {
-        for (int i = 0; i < array.GetLength(0); i++)
+        for ( int i = 0; i < array.GetLength(0); i++ )
         {
-          for (int j = 0; j < array.GetLength(1); j++)
+          for ( int j = 0; j < array.GetLength(1); j++ )
           {
             if ( array[i, j].Equals( selectedValue ) )
             {
@@ -489,9 +502,9 @@ namespace _048rtmontecarlo
       }
       else
       {
-        for (int i = 0; i < array.GetLength(0); i++)
+        for ( int i = 0; i < array.GetLength(0); i++ )
         {
-          for (int j = 0; j < array.GetLength(1); j++)
+          for ( int j = 0; j < array.GetLength(1); j++ )
           {
             array[i, j] = value;
           }
@@ -504,7 +517,7 @@ namespace _048rtmontecarlo
     /// </summary>
     public static void SetNewDimensions ()
     {
-      if (PrimaryRaysMap == null || AllRaysMap == null)
+      if ( PrimaryRaysMap == null || AllRaysMap == null )
       {
         Initialize();
       }
@@ -519,12 +532,12 @@ namespace _048rtmontecarlo
     /// </summary>
     public static void NewRenderInitialization ()
     {
-      if (PrimaryRaysMap != null)
+      if ( PrimaryRaysMap != null )
       {
         PrimaryRaysMap.mapArray = null;
       }
 
-      if (AllRaysMap != null)
+      if ( AllRaysMap != null )
       {
         AllRaysMap.mapArray = null;
       }
