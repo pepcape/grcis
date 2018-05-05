@@ -208,7 +208,7 @@ namespace _048rtmontecarlo
 
     private void RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.RaysMap raysMap, Label label, Point coordinates )
     {
-      int raysCount = raysMap.GetRaysCountAtLocation(coordinates.X, coordinates.Y);
+      int raysCount = raysMap.GetValueAtCoordinates(coordinates.X, coordinates.Y);
 
       label.Text = String.Format("X: {0}\r\nY: {1}\r\nRays count:\r\n{2}",
                                  coordinates.X,

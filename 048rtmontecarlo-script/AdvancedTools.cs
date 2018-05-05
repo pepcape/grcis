@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Diagnostics;
+using System.Dynamic;
 using MathSupport;
 using OpenTK;
 using Rendering;
@@ -42,7 +43,7 @@ namespace _048rtmontecarlo
       if ( DepthMap.mapArray == null )
         DepthMap.Initialize ();
 
-      if ( NormalMap.mapArray == null || NormalMap.intersectionMapArray == null || NormalMap.raysCountArray == null)
+      if ( NormalMap.mapArray == null || NormalMap.intersectionMapArray == null)
         NormalMap.Initialize ( rayOrigin );
 
       double depth;
@@ -63,33 +64,18 @@ namespace _048rtmontecarlo
         DepthMap.mapArray[MT.x, MT.y] += depth;
 
         // register primary rays
-        PrimaryRaysMap.mapArray[MT.x, MT.y]++;
+        PrimaryRaysMap.mapArray[MT.x, MT.y] += 1;
 
         if ( firstIntersection != null )
         {
           // register normal vector
-          //Vector3d normalVector = firstIntersection.Normal - firstIntersection.CoordWorld;
           NormalMap.intersectionMapArray[ MT.x, MT.y ] += firstIntersection.CoordWorld;
-          NormalMap.mapArray[ MT.x, MT.y ] += firstIntersection.Normal;
-          NormalMap.raysCountArray[ MT.x, MT.y ]++;
-
-          if ( MT.x == 200 && MT.y == 200 )
-          {
-            Vector3d temp = firstIntersection.Normal;
-            temp.Normalize ();
-
-            Debug.WriteLine ( temp );
-          }
-
-          if (Vector3d.CalculateAngle(rayOrigin - firstIntersection.CoordWorld, firstIntersection.Normal) * 180 / Math.PI > 90) // only for DEBUG
-          {
-            throw new Exception ("Wrong angle detected!");
-          }         
-        }       
+          NormalMap.mapArray[ MT.x, MT.y ] += firstIntersection.Normal;       
+        }
       }
 
       // register all rays
-      AllRaysMap.mapArray[ MT.x, MT.y ]++;
+      AllRaysMap.mapArray[ MT.x, MT.y ] += 1;
     }
 
 
@@ -203,59 +189,25 @@ namespace _048rtmontecarlo
       }
     }
 
-    public class RaysMap : IRaysMap
+    public class RaysMap : Map<int>
     {
-      /// <summary>
-      /// Image width in pixels, 0 for default value (according to panel size).
-      /// </summary>
-      public int mapImageWidth;
-
-      /// <summary>
-      /// Image height in pixels, 0 for default value (according to panel size).
-      /// </summary>
-      public int mapImageHeight;
-
-      internal int[,] mapArray;
-
-      private Bitmap mapBitmap;
-
-      public void Initialize ()
+      public override void SetReferenceMinAndMaxValues ()
       {
-        mapImageWidth = Form2.singleton.PrimaryRaysMapPictureBox.Width;   // TODO: can it be hard coded for PRIMARYraysMapPictureBox
-        mapImageHeight = Form2.singleton.PrimaryRaysMapPictureBox.Height;
-
-        mapArray = new int[mapImageWidth, mapImageHeight];
+        maxValue = int.MinValue;
+        minValue = int.MaxValue;
       }
 
-      public void RenderMap ()
+      public override Color GetAppropriateColor ( dynamic mapArrayElement )
       {
-        if (mapImageWidth == 0 || mapImageHeight == 0)
-        {
-          Initialize();
-        }
-
-        int maxValue = int.MinValue;
-        int minValue = int.MaxValue;
-
-        GetMinimumAndMaximum(ref minValue, ref maxValue, mapArray);
-
-        mapBitmap = new Bitmap(mapImageWidth, mapImageHeight, PixelFormat.Format24bppRgb);
-
-        for (int x = 0; x < mapImageWidth; x++)
-        {
-          for (int y = 0; y < mapImageHeight; y++)
-          {
-            mapBitmap.SetPixel(x, y, GetAppropriateColorLinear(minValue, maxValue, mapArray[x, y]));
-          }
-        }
+        return GetAppropriateColorLinear ( minValue, maxValue, mapArrayElement );
       }
 
-      public Bitmap GetBitmap ()
+      public override void DivideArray ( int x, int y )
       {
-        return GetBitmapGeneral ( mapBitmap, this.RenderMap );
+        mapArray[x, y] /= PrimaryRaysMap.mapArray[ x, y ];
       }
 
-      public int GetRaysCountAtLocation ( int x, int y )
+      public override dynamic GetValueAtCoordinates ( int x, int y )
       {
         if ( x < 0 || x >= mapImageWidth || y < 0 || y >= mapImageHeight )
         {
@@ -280,12 +232,8 @@ namespace _048rtmontecarlo
 
       internal static Vector3d[,] mapArray;
       internal static Vector3d[,] intersectionMapArray;
-      internal static int[,] raysCountArray;
 
       private static Bitmap mapBitmap;
-
-      private static double maxValue;
-      private static double minValue;
 
       public static Vector3d rayOrigin;      
 
@@ -296,9 +244,10 @@ namespace _048rtmontecarlo
 
         mapArray = new Vector3d[mapImageWidth, mapImageHeight];
         intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
-        raysCountArray = new int[mapImageWidth, mapImageHeight];
 
         rayOrigin = newRayOrigin;
+
+        wasAveraged = false;
       }
 
       public static void RenderMap()
@@ -308,8 +257,6 @@ namespace _048rtmontecarlo
           Initialize ( rayOrigin );
         }
 
-        AverageMap ( mapArray );
-        wasAveraged = false;
         AverageMap ( intersectionMapArray );
 
         mapBitmap = new Bitmap(mapImageWidth, mapImageHeight, PixelFormat.Format24bppRgb);
@@ -337,9 +284,9 @@ namespace _048rtmontecarlo
         {
           for ( int j = 0; j < mapImageHeight; j++ )
           {
-            if ( raysCountArray[ i, j ] != 0 ) // TODO: Fix 0 rays count
+            if ( PrimaryRaysMap.mapArray[ i, j ] != 0 ) // TODO: Fix 0 rays count
             {
-              map[ i, j ] /= raysCountArray[ i, j ];
+              map[ i, j ] /= PrimaryRaysMap.mapArray[ i, j ];
             }
           }
         }
@@ -382,9 +329,132 @@ namespace _048rtmontecarlo
     }
 
 
-    public abstract class Map
+    public abstract class Map<T>: IMap where T : IComparable
     {
-      //TODO: change all maps to non-static?
+      /// <summary>
+      /// Image width in pixels, 0 for default value (according to panel size).
+      /// </summary>
+      public int mapImageWidth;
+
+      /// <summary>
+      /// Image height in pixels, 0 for default value (according to panel size).
+      /// </summary>
+      public int mapImageHeight;
+
+      private Bitmap mapBitmap;
+
+      internal T[,] mapArray;
+
+      internal T maxValue;
+      internal T minValue;
+
+      public void Initialize()
+      {
+        mapImageWidth  = Form2.singleton.PrimaryRaysMapPictureBox.Width; // TODO: can it be hard coded for PRIMARYraysMapPictureBox
+        mapImageHeight = Form2.singleton.PrimaryRaysMapPictureBox.Height;
+
+        mapArray = new T[mapImageWidth, mapImageHeight];      
+
+        wasAveraged = false;
+      }
+
+      public void RenderMap()
+      {
+        if (mapImageWidth == 0 || mapImageHeight == 0)
+        {
+          Initialize();
+        }
+
+        RemoveNullsFromArray ();
+
+        SetMinimumAndMaximum<T> ();
+
+        mapBitmap = new Bitmap ( mapImageWidth, mapImageHeight, PixelFormat.Format24bppRgb );
+
+        for ( int x = 0; x < mapImageWidth; x++ )
+        {
+          for ( int y = 0; y < mapImageHeight; y++ )
+          {
+            mapBitmap.SetPixel ( x, y, GetAppropriateColor ( mapArray[ x, y ] ) );
+          }
+        }
+      }
+
+      private void RemoveNullsFromArray ()
+      {
+        for (int i = 0; i < mapArray.GetLength(0); i++)
+        {
+          for (int j = 0; j < mapArray.GetLength(1); j++)
+          {
+            if (Object.ReferenceEquals(null, mapArray[i, j]))
+            {
+              mapArray[i, j] = default(T);
+            }           
+          }
+        }
+      }
+
+      public abstract void SetReferenceMinAndMaxValues ();
+
+      public abstract Color GetAppropriateColor ( dynamic mapArrayElement );
+
+      public bool wasAveraged;
+
+      private void AverageMap()
+      {
+        if ( wasAveraged )
+        {
+          return;
+        }
+
+        for ( int i = 0; i < mapImageWidth; i++ )
+        {
+          for ( int j = 0; j < mapImageHeight; j++ )
+          {
+            if ( PrimaryRaysMap.mapArray[i, j] != 0 ) // TODO: Fix 0 rays count
+            {
+              DivideArray(i, j);
+              //mapArray[ i, j ] /= PrimaryRaysMap.mapArray[ i, j ];
+            }
+          }
+        }
+
+        wasAveraged = true;
+      }
+
+      public abstract void DivideArray (int x, int y);
+
+      public Bitmap GetBitmap()
+      {
+        if ( mapBitmap == null )
+        {
+          RenderMap ();
+        }
+
+        return mapBitmap;
+      }
+
+      public abstract dynamic GetValueAtCoordinates ( int x, int y );
+
+      /// <summary>
+      /// Sets minimal and maximal values found in a mapArray
+      /// </summary>
+      /// <typeparam name="T">Type IComparable</typeparam>
+      private void SetMinimumAndMaximum<T> () where T : IComparable
+      {
+        SetReferenceMinAndMaxValues ();
+
+        for ( int x = 0; x < DepthMap.mapImageWidth; x++ )
+        {
+          for ( int y = 0; y < DepthMap.mapImageHeight; y++ )
+          {          
+            if ( (mapArray[ x, y ]).CompareTo ( maxValue ) > 0 )
+              maxValue = mapArray[ x, y ];
+            if ( mapArray[ x, y ].CompareTo ( minValue ) < 0 )
+              minValue = mapArray[ x, y ];
+          }
+        }
+      }
     }
 
     public static Bitmap GetBitmapGeneral ( Bitmap mapBitmap, RenderMap renderMapMethod )
@@ -540,15 +610,15 @@ namespace _048rtmontecarlo
 
 
 /// <summary>
-/// Interface for maps based on rays count such as PrimaryRaysMap and AllRaysMap
+/// Interface for all maps
 /// </summary>
-interface IRaysMap
+interface IMap
 {
-  void Initialize ();
+  void Initialize();
 
-  void RenderMap ();
+  void RenderMap();
 
   Bitmap GetBitmap ();
 
-  int GetRaysCountAtLocation ( int x, int y );
+  dynamic GetValueAtCoordinates ( int x, int y );
 }

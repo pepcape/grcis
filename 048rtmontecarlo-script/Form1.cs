@@ -400,7 +400,10 @@ namespace _048rtmontecarlo
 
         // GUI stuff:
         SetGUI( true );
-        Form2.singleton.RenderButtonsEnabled ( true );
+        if (Form2.singleton != null)
+        {
+          Form2.singleton.RenderButtonsEnabled(true);
+        }      
       }
     }
 
@@ -504,11 +507,12 @@ namespace _048rtmontecarlo
 
     private void buttonRender_Click ( object sender, EventArgs e )
     {
-      if (Form2.singleton != null )
+      if ( Form2.singleton != null )
       {
-        Form2.singleton.SetNewDimensions(ImageWidth, ImageHeight);
+        Form2.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
+        AdvancedTools.NewRenderInitialization ();
       }    
-      AdvancedTools.NewRenderInitialization ();
+      //AdvancedTools.NewRenderInitialization ();
 
       if ( aThread != null )
         return;
@@ -517,7 +521,7 @@ namespace _048rtmontecarlo
       SetGUI( false );
       if (Form2.singleton != null)
       {
-        Form2.singleton.RenderButtonsEnabled(false);
+        Form2.singleton.RenderButtonsEnabled ( false );
       }    
 
       lock ( progress )
