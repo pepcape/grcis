@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
+using System.Reflection;
 using Rendering;
 
 namespace _048rtmontecarlo
@@ -16,6 +18,7 @@ namespace _048rtmontecarlo
       singleton = this;
 
       Form1.singleton.AdvancedToolsButton.Enabled = false;
+      AdvancedTools.instance = new AdvancedTools ();
 
       InitializeComponent ();
 
@@ -45,103 +48,49 @@ namespace _048rtmontecarlo
       singleton = null;
     }
 
-    private void SaveDepthMapButton_Click ( object sender, EventArgs e )
+    private void SaveMapButton_Click ( object sender, EventArgs e )
     {
-      SavePictureButton ( DepthMapPictureBox.Image, "DepthMap" );
-    }
+      Panel panel = (sender as Button).Parent as Panel;
 
-    private void SavePrimaryRaysMapButton_Click ( object sender, EventArgs e )
-    {
-      SavePictureButton ( PrimaryRaysMapPictureBox.Image, "primaryRaysMap" );
-    }
+      string mapName = panel.Tag.ToString ();
 
-    private void SaveAllRaysMapButton_Click ( object sender, EventArgs e )
-    {
-      SavePictureButton ( AllRaysMapPictureBox.Image, "allRaysMap" );
-    }
+      PictureBox pictureBox = panel.Controls.Find(mapName + "PictureBox", true).FirstOrDefault() as PictureBox;
 
-    private void SaveNormalMapButton_Click ( object sender, EventArgs e )
-    {
-      SavePictureButton ( NormalMapPictureBox.Image, "NormalMap" );
-    }
+      outputImage = (Bitmap) pictureBox.Image;
 
-    /// <summary>
-    /// Opens save file dialog for selected image (from pictureBox)
-    /// Returns bool whether operation was successful
-    /// </summary>
-    private bool SavePictureButton ( Image image, string defaultName )
-    {
-      outputImage = (Bitmap) image;
+      if (outputImage == null)
+        return;
 
-      if ( outputImage == null )
-        return false;
-
-      SaveFileDialog sfd = new SaveFileDialog ();
+      SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title        = "Save PNG file";
       sfd.Filter       = "PNG Files|*.png";
       sfd.AddExtension = true;
-      sfd.FileName     = defaultName + ".png";
-      if ( sfd.ShowDialog () != DialogResult.OK )
-        return false;
+      sfd.FileName     = mapName + ".png";
+      if (sfd.ShowDialog() != DialogResult.OK)
+        return;
 
-      outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
-
-      return true;
+      outputImage.Save(sfd.FileName, System.Drawing.Imaging.ImageFormat.Png);
     }
 
-    private void RenderDepthMapButton_Click ( object sender, EventArgs e )
+    private void RenderMapButton_Click ( object sender, EventArgs e )
     {
       if ( Form1.singleton.outputImage == null )
         return;
 
-      AdvancedTools.depthMap.RenderMap ();
+      string fieldName = ( sender as Button ).Tag.ToString ();
 
-      DepthMapPictureBox.Image = AdvancedTools.depthMap.GetBitmap ();
+      var map = AdvancedTools.instance.GetType ().GetField (fieldName).GetValue (AdvancedTools.instance);
 
-      SaveDepthMapButton.Enabled = true;    
-    }
+      (map as IMap).RenderMap ();
 
-    private void RenderNormalMapButton_Click ( object sender, EventArgs e )
-    {
-      if ( Form1.singleton.outputImage == null )
-        return;
+      Panel panel = ( sender as Button ).Parent as Panel;
 
-      AdvancedTools.normalMap.RenderMap ();
+      string fieldNameCamelCase = Char.ToUpper ( fieldName[ 0 ] ) + fieldName.Substring ( 1 );
 
-      NormalMapPictureBox.Image = AdvancedTools.normalMap.GetBitmap ();
+      PictureBox pictureBox = panel.Controls.Find (fieldNameCamelCase + "PictureBox", true).FirstOrDefault() as PictureBox;
+      pictureBox.Image = (map as IMap).GetBitmap();
 
-      SaveNormalMapButton.Enabled = true;
-    }
-
-    private void RenderPrimaryRaysMapButton_Click ( object sender, EventArgs e )
-    {
-      if ( Form1.singleton.outputImage == null )
-        return;
-
-      RenderRaysMap ( AdvancedTools.primaryRaysMap, PrimaryRaysMapPictureBox, SavePrimaryRaysMapButton );
-
-      SetTotalAndAveragePrimaryRaysCount ( Intersection.countRays, PrimaryRaysMapPictureBox.Image.Width, PrimaryRaysMapPictureBox.Image.Height );
-    }
-
-    private void RenderAllRaysMapButton_Click ( object sender, EventArgs e )
-    {
-      if ( Form1.singleton.outputImage == null )
-        return;
-
-      RenderRaysMap ( AdvancedTools.allRaysMap, AllRaysMapPictureBox, SaveAllRaysMapButton );
-
-      SetTotalAndAverageAllRaysCount ( Intersection.countRays, AllRaysMapPictureBox.Image.Width, AllRaysMapPictureBox.Image.Height );
-    }
-
-    private void RenderRaysMap ( AdvancedTools.RaysMap raysMap, PictureBox pictureBox, Button saveButton )
-    {
-      if ( Form1.singleton.outputImage == null )
-        return;
-
-      raysMap.RenderMap ();
-
-      pictureBox.Image = raysMap.GetBitmap ();
-
+      Button saveButton = panel.Controls.Find("Save" + fieldNameCamelCase + "Button", true).FirstOrDefault() as Button;    
       saveButton.Enabled = true;
     }
 
@@ -157,7 +106,7 @@ namespace _048rtmontecarlo
       DepthMapPictureBox.Height =
       NormalMapPictureBox.Height = formImageHeight;
 
-      AdvancedTools.SetNewDimensions ();
+      AdvancedTools.instance.SetNewDimensions ();
     }
 
     private void DepthMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
@@ -166,7 +115,7 @@ namespace _048rtmontecarlo
       {
         Point coordinates = e.Location;
 
-        double depth = AdvancedTools.depthMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
+        double depth = AdvancedTools.instance.depthMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
 
         DepthMap_Coordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\nDepth:\r\n{2:0.00}",
                                                     coordinates.X,
@@ -179,7 +128,7 @@ namespace _048rtmontecarlo
     {
       if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
       {
-        RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.primaryRaysMap, PrimaryRaysMapCoordinates, e.Location );
+        RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.instance.primaryRaysMap, PrimaryRaysMapCoordinates, e.Location );
       }
     }
 
@@ -187,7 +136,7 @@ namespace _048rtmontecarlo
     {
       if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
       {
-        RaysMapPictureBox_MouseDownAndMouseMove(AdvancedTools.allRaysMap, AllRaysMapCoordinates, e.Location);
+        RaysMapPictureBox_MouseDownAndMouseMove(AdvancedTools.instance.allRaysMap, AllRaysMapCoordinates, e.Location);
       }
     }
 
@@ -197,7 +146,7 @@ namespace _048rtmontecarlo
       {
         Point coordinates = e.Location;
 
-        double angle = AdvancedTools.normalMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
+        double angle = AdvancedTools.instance.normalMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
 
         char degreesChar = '°';
         if ( double.IsInfinity(angle) || double.IsNaN(angle) )
@@ -241,7 +190,7 @@ namespace _048rtmontecarlo
     public void RenderButtonsEnabled ( bool newStatus )
     {
       RenderDepthMapButton.Enabled =
-      RenderAllRaysMapButton.Enabled =
+      RenderAllRaysMapButtona.Enabled =
       RenderPrimaryRaysMapButton.Enabled = 
       RenderNormalMapButton.Enabled = newStatus;
     }       
