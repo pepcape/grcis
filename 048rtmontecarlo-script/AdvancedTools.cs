@@ -9,16 +9,18 @@ using Rendering;
 
 namespace _048rtmontecarlo
 {
-  public static class AdvancedTools
+  public class AdvancedTools
   {
+    public static AdvancedTools instance;
+
     public delegate void RenderMap ();
 
-    internal static RaysMap primaryRaysMap;
-    internal static RaysMap allRaysMap;
-    internal static DepthMap depthMap;
-    internal static NormalMap normalMap;
+    public RaysMap primaryRaysMap;
+    public RaysMap allRaysMap;
+    public DepthMap depthMap;
+    public NormalMap normalMap;
 
-    private static void Initialize ()
+    private void Initialize ()
     {
       primaryRaysMap = new RaysMap ();
       allRaysMap = new RaysMap ();
@@ -26,7 +28,7 @@ namespace _048rtmontecarlo
       normalMap = new NormalMap ();
     }
 
-    public static void Register ( int level, Vector3d rayOrigin, Intersection firstIntersection )
+    public void Register ( int level, Vector3d rayOrigin, Intersection firstIntersection )
     {
       if ( Form2.singleton == null )
       {
@@ -98,14 +100,14 @@ namespace _048rtmontecarlo
 
         SetReferenceMinAndMaxValues ();
 
-        GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray );
+        instance.GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray );
 
         mapBitmap = new Bitmap ( mapImageWidth, mapImageHeight, PixelFormat.Format24bppRgb );
 
         PopulateArray2D<double> ( mapArray, maxValue, 0, true );
 
         minValue = double.MaxValue;
-        GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray ); // TODO: New minimum after replacing all zeroes
+        instance.GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray ); // TODO: New minimum after replacing all zeroes
 
         for ( int x = 0; x < mapImageWidth; x++ )
         {
@@ -129,7 +131,7 @@ namespace _048rtmontecarlo
 
       protected override void DivideArray ( int x, int y )
       {
-        mapArray[ x, y ] /= primaryRaysMap.mapArray[ x, y ];
+        mapArray[ x, y ] /= instance.primaryRaysMap.mapArray[ x, y ];
       }
 
       public override dynamic GetValueAtCoordinates( int x, int y )
@@ -160,7 +162,7 @@ namespace _048rtmontecarlo
 
       protected override void DivideArray ( int x, int y )
       {
-        mapArray[x, y] /= primaryRaysMap.mapArray[ x, y ];
+        mapArray[x, y] /= instance.primaryRaysMap.mapArray[ x, y ];
       }
 
       public override dynamic GetValueAtCoordinates ( int x, int y )
@@ -211,7 +213,7 @@ namespace _048rtmontecarlo
 
       protected override void DivideArray ( int x, int y )
       {
-        intersectionMapArray[ x, y ] /= primaryRaysMap.mapArray[ x, y ];
+        intersectionMapArray[ x, y ] /= instance.primaryRaysMap.mapArray[ x, y ];
       }
 
       public override dynamic GetValueAtCoordinates(int x, int y)
@@ -242,7 +244,7 @@ namespace _048rtmontecarlo
     }
 
 
-    public abstract class Map<T>: IMap<T>
+    public abstract class Map<T>: IMap
     {
       /// <summary>
       /// Image width in pixels, 0 for default value (according to panel size).
@@ -299,14 +301,14 @@ namespace _048rtmontecarlo
 
       protected void AverageMap()
       {
-        if ( primaryRaysMap == null )
+        if (instance.primaryRaysMap == null )
         {
-          AdvancedTools.Initialize();
+          instance.Initialize();
         }
 
-        if ( primaryRaysMap.mapArray == null )
+        if (instance.primaryRaysMap.mapArray == null )
         {
-          primaryRaysMap.Initialize();
+          instance.primaryRaysMap.Initialize();
         }
 
         if ( wasAveraged )
@@ -318,7 +320,7 @@ namespace _048rtmontecarlo
         {
           for ( int j = 0; j < mapImageHeight; j++ )
           {
-            if ( primaryRaysMap.mapArray[i, j] != 0 ) // TODO: Fix 0 rays count
+            if (instance.primaryRaysMap.mapArray[i, j] != 0 ) // TODO: Fix 0 rays count
             {
               DivideArray(i, j);
             }
@@ -350,9 +352,9 @@ namespace _048rtmontecarlo
       {
         SetReferenceMinAndMaxValues ();
 
-        for ( int x = 0; x < depthMap.mapImageWidth; x++ )
+        for ( int x = 0; x < instance.depthMap.mapImageWidth; x++ )
         {
-          for ( int y = 0; y < depthMap.mapImageHeight; y++ )
+          for ( int y = 0; y < instance.depthMap.mapImageHeight; y++ )
           {          
             if ( ( mapArray[ x, y ] as IComparable<T> ).CompareTo ( maxValue ) > 0 )
               maxValue = mapArray[ x, y ];
@@ -382,7 +384,7 @@ namespace _048rtmontecarlo
     /// <param name="minValue">Must be initially set to max value of corresponding type</param>
     /// <param name="maxValue">Must be initially set to min value of corresponding type</param>
     /// <param name="map">2D array of values</param>
-    private static void GetMinimumAndMaximum<T> ( ref T minValue, ref T maxValue, T[,] map ) where T: IComparable
+    private void GetMinimumAndMaximum<T> ( ref T minValue, ref T maxValue, T[,] map ) where T: IComparable
     {
       for ( int x = 0; x < depthMap.mapImageWidth; x++ )
       {
@@ -449,7 +451,7 @@ namespace _048rtmontecarlo
     /// <param name="value">Desired value</param>
     /// <param name="selectedValue">Only these values are replaced if selected is true</param>
     /// <param name="selected">Switches between changing all values or only values equal to selectedValue</param>
-    private static void PopulateArray2D<T> ( this T[,] array, T value, T selectedValue, bool selected )
+    private static void PopulateArray2D<T> ( T[,] array, T value, T selectedValue, bool selected )
     {
       if ( selected )
       {
@@ -479,7 +481,7 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Calls Initialize method of all subclasses in AdvancedTools
     /// </summary>
-    public static void SetNewDimensions ()
+    public void SetNewDimensions ()
     {
       if ( primaryRaysMap == null || allRaysMap == null || depthMap == null)
       {
@@ -489,12 +491,13 @@ namespace _048rtmontecarlo
       depthMap.Initialize ();
       primaryRaysMap.Initialize ();
       allRaysMap.Initialize ();
+      normalMap.Initialize ();
     }
 
     /// <summary>
     /// Removes all maps and unnecessary stuff
     /// </summary>
-    public static void NewRenderInitialization ()
+    public void NewRenderInitialization ()
     {
       if ( primaryRaysMap != null )
       {
@@ -518,7 +521,7 @@ namespace _048rtmontecarlo
 /// <summary>
 /// Interface for all maps
 /// </summary>
-interface IMap<T>
+interface IMap
 {
   void Initialize();
 

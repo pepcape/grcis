@@ -510,9 +510,13 @@ namespace _048rtmontecarlo
       if ( Form2.singleton != null )
       {
         Form2.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
-        AdvancedTools.NewRenderInitialization ();
-      }    
-      //AdvancedTools.NewRenderInitialization ();
+      }
+
+      if ( AdvancedTools.instance != null )
+      {
+        AdvancedTools.instance.NewRenderInitialization();
+      }
+
 
       if ( aThread != null )
         return;
