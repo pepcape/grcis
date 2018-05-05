@@ -52,15 +52,15 @@ namespace _048rtmontecarlo
 
     private void SavePrimaryRaysMapButton_Click ( object sender, EventArgs e )
     {
-      SavePictureButton ( PrimaryRaysMapPictureBox.Image, "PrimaryRaysMap" );
+      SavePictureButton ( PrimaryRaysMapPictureBox.Image, "primaryRaysMap" );
     }
 
-    private void SaveAllRaysMapButton_Click(object sender, EventArgs e)
+    private void SaveAllRaysMapButton_Click ( object sender, EventArgs e )
     {
-      SavePictureButton ( AllRaysMapPictureBox.Image, "AllRaysMap" );
+      SavePictureButton ( AllRaysMapPictureBox.Image, "allRaysMap" );
     }
 
-    private void SaveNormalMapButton_Click(object sender, EventArgs e)
+    private void SaveNormalMapButton_Click ( object sender, EventArgs e )
     {
       SavePictureButton ( NormalMapPictureBox.Image, "NormalMap" );
     }
@@ -94,53 +94,53 @@ namespace _048rtmontecarlo
       if ( Form1.singleton.outputImage == null )
         return;
 
-      AdvancedTools.DepthMap.RenderMap ();
+      AdvancedTools.depthMap.RenderMap ();
 
-      DepthMapPictureBox.Image = AdvancedTools.DepthMap.GetBitmap ();
+      DepthMapPictureBox.Image = AdvancedTools.depthMap.GetBitmap ();
 
       SaveDepthMapButton.Enabled = true;    
     }
 
-    private void RenderNormalMapButton_Click(object sender, EventArgs e)
+    private void RenderNormalMapButton_Click ( object sender, EventArgs e )
     {
-      if (Form1.singleton.outputImage == null)
+      if ( Form1.singleton.outputImage == null )
         return;
 
-      AdvancedTools.NormalMap.RenderMap();
+      AdvancedTools.normalMap.RenderMap ();
 
-      NormalMapPictureBox.Image = AdvancedTools.NormalMap.GetBitmap();
+      NormalMapPictureBox.Image = AdvancedTools.normalMap.GetBitmap ();
 
       SaveNormalMapButton.Enabled = true;
     }
 
     private void RenderPrimaryRaysMapButton_Click ( object sender, EventArgs e )
     {
-      if (Form1.singleton.outputImage == null)
+      if ( Form1.singleton.outputImage == null )
         return;
 
-      RenderRaysMap(AdvancedTools.PrimaryRaysMap, PrimaryRaysMapPictureBox, SavePrimaryRaysMapButton);
+      RenderRaysMap ( AdvancedTools.primaryRaysMap, PrimaryRaysMapPictureBox, SavePrimaryRaysMapButton );
 
       SetTotalAndAveragePrimaryRaysCount ( Intersection.countRays, PrimaryRaysMapPictureBox.Image.Width, PrimaryRaysMapPictureBox.Image.Height );
     }
 
-    private void RenderAllRaysMapButton_Click(object sender, EventArgs e)
+    private void RenderAllRaysMapButton_Click ( object sender, EventArgs e )
     {
-      if (Form1.singleton.outputImage == null)
+      if ( Form1.singleton.outputImage == null )
         return;
 
-      RenderRaysMap ( AdvancedTools.AllRaysMap, AllRaysMapPictureBox, SaveAllRaysMapButton );
+      RenderRaysMap ( AdvancedTools.allRaysMap, AllRaysMapPictureBox, SaveAllRaysMapButton );
 
       SetTotalAndAverageAllRaysCount ( Intersection.countRays, AllRaysMapPictureBox.Image.Width, AllRaysMapPictureBox.Image.Height );
     }
 
     private void RenderRaysMap ( AdvancedTools.RaysMap raysMap, PictureBox pictureBox, Button saveButton )
     {
-      if (Form1.singleton.outputImage == null)
+      if ( Form1.singleton.outputImage == null )
         return;
 
-      raysMap.RenderMap();
+      raysMap.RenderMap ();
 
-      pictureBox.Image = raysMap.GetBitmap();
+      pictureBox.Image = raysMap.GetBitmap ();
 
       saveButton.Enabled = true;
     }
@@ -166,7 +166,7 @@ namespace _048rtmontecarlo
       {
         Point coordinates = e.Location;
 
-        double depth = AdvancedTools.DepthMap.GetDepthAtLocation ( coordinates.X, coordinates.Y );
+        double depth = AdvancedTools.depthMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
 
         DepthMap_Coordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\nDepth:\r\n{2:0.00}",
                                                     coordinates.X,
@@ -179,7 +179,7 @@ namespace _048rtmontecarlo
     {
       if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
       {
-        RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.PrimaryRaysMap, PrimaryRaysMapCoordinates, e.Location );
+        RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.primaryRaysMap, PrimaryRaysMapCoordinates, e.Location );
       }
     }
 
@@ -187,7 +187,7 @@ namespace _048rtmontecarlo
     {
       if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
       {
-        RaysMapPictureBox_MouseDownAndMouseMove(AdvancedTools.AllRaysMap, AllRaysMapCoordinates, e.Location);
+        RaysMapPictureBox_MouseDownAndMouseMove(AdvancedTools.allRaysMap, AllRaysMapCoordinates, e.Location);
       }
     }
 
@@ -197,12 +197,19 @@ namespace _048rtmontecarlo
       {
         Point coordinates = e.Location;
 
-        double angle = AdvancedTools.NormalMap.GetNormalVectorAngleAtLocation ( coordinates.X, coordinates.Y );
+        double angle = AdvancedTools.normalMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
 
-        NormalMapCoordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}°",
+        char degreesChar = '°';
+        if ( double.IsInfinity(angle) || double.IsNaN(angle) )
+        {
+          degreesChar = '\0';
+        }
+
+        NormalMapCoordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}{3}",
                                                     coordinates.X,
                                                     coordinates.Y,
-                                                    angle );
+                                                    angle,
+                                                    degreesChar);
       }
     }
 
