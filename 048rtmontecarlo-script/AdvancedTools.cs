@@ -20,7 +20,7 @@ namespace _048rtmontecarlo
     public DepthMap depthMap;
     public NormalMap normalMap;
 
-    private void Initialize ()
+    internal void Initialize ()
     {
       primaryRaysMap = new RaysMap ();
       allRaysMap = new RaysMap ();
@@ -208,7 +208,7 @@ namespace _048rtmontecarlo
 
       protected override Color GetAppropriateColor (int x, int y)
       {
-        return GetAppropriateColorForNormalVectorSimpleVersion ( mapArray[ x, y ], intersectionMapArray[ x, y ] );
+        return GetAppropriateColorForNormalVectorAbsolute( mapArray[ x, y ], intersectionMapArray[ x, y ] );
       }
 
       protected override void DivideArray ( int x, int y )
@@ -221,11 +221,33 @@ namespace _048rtmontecarlo
         return Vector3d.CalculateAngle ( mapArray[ x, y ], rayOrigin - intersectionMapArray[ x, y ] ) * 180 / Math.PI;
       }
 
-      private Color GetAppropriateColorForNormalVector ( Vector3d normalVector, Vector3d intersectionVector)
+      private Color GetAppropriateColorForNormalVectorRelative ( Vector3d normalVector, Vector3d intersectionVector)
       {
-        double angle = Vector3d.CalculateAngle(normalVector, rayOrigin - intersectionVector) * 180 / Math.PI;
+        Vector3d relativeNormalVector = rayOrigin - intersectionVector - normalVector;
 
-        throw new NotImplementedException();
+        relativeNormalVector.Normalize ();
+
+        int red = (int) ( ( relativeNormalVector.X + 1 ) * 128 );
+        int green = (int) ( ( relativeNormalVector.Y + 1 ) * 128 );
+        int blue = (int) ( ( relativeNormalVector.Z + 1 ) * 128 );
+
+        return Color.FromArgb (red, green, blue);
+      }
+
+      private Color GetAppropriateColorForNormalVectorAbsolute ( Vector3d normalVector, Vector3d intersectionVector )
+      {
+        Vector3d relativeNormalVector = normalVector;
+
+        if ( relativeNormalVector != Vector3d.Zero )
+        {
+          relativeNormalVector.Normalize();
+        }      
+
+        int red   = (int) ( ( relativeNormalVector.X + 1 ) * 127.5 );
+        int green = (int) ( ( relativeNormalVector.Y + 1 ) * 127.5 );
+        int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 127.5 );
+
+        return Color.FromArgb ( red, green, blue );
       }
 
       private Color GetAppropriateColorForNormalVectorSimpleVersion(Vector3d normalVector, Vector3d intersectionVector)

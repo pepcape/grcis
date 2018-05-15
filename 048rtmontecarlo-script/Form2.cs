@@ -18,7 +18,11 @@ namespace _048rtmontecarlo
       singleton = this;
 
       Form1.singleton.AdvancedToolsButton.Enabled = false;
-      AdvancedTools.instance = new AdvancedTools ();
+
+      if (AdvancedTools.instance == null)
+      {
+        AdvancedTools.instance = new AdvancedTools();
+      }      
 
       InitializeComponent ();
 
@@ -79,7 +83,7 @@ namespace _048rtmontecarlo
 
       string fieldName = ( sender as Button ).Tag.ToString ();
 
-      var map = AdvancedTools.instance.GetType ().GetField (fieldName).GetValue (AdvancedTools.instance);
+      var map = AdvancedTools.instance.GetType ().GetField ( fieldName ).GetValue ( AdvancedTools.instance );
 
       (map as IMap).RenderMap ();
 
