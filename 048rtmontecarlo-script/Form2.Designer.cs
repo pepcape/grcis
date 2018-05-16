@@ -46,18 +46,23 @@
       this.tabPage3 = new System.Windows.Forms.TabPage();
       this.RenderAllRaysMapButtona = new System.Windows.Forms.Button();
       this.AllRaysMapPanel = new System.Windows.Forms.Panel();
+      this.SaveAllRaysMapButton = new System.Windows.Forms.Button();
       this.AverageAllRaysCount = new System.Windows.Forms.Label();
       this.AllRaysMapPictureBox = new System.Windows.Forms.PictureBox();
       this.TotalAllRaysCount = new System.Windows.Forms.Label();
       this.AllRaysMapCoordinates = new System.Windows.Forms.Label();
       this.NormalMap = new System.Windows.Forms.TabPage();
-      this.RenderNormalMapButton = new System.Windows.Forms.Button();
-      this.NormalMapPanel = new System.Windows.Forms.Panel();
-      this.NormalMapPictureBox = new System.Windows.Forms.PictureBox();
-      this.NormalMapCoordinates = new System.Windows.Forms.Label();
+      this.RenderNormalMapRelativeButton = new System.Windows.Forms.Button();
+      this.NormalMapRelativePanel = new System.Windows.Forms.Panel();
+      this.SaveNormalMapRelativeButton = new System.Windows.Forms.Button();
+      this.NormalMapRelativePictureBox = new System.Windows.Forms.PictureBox();
+      this.NormalMapRelativeCoordinates = new System.Windows.Forms.Label();
       this.tabPage5 = new System.Windows.Forms.TabPage();
-      this.SaveAllRaysMapButton = new System.Windows.Forms.Button();
-      this.SaveNormalMapButton = new System.Windows.Forms.Button();
+      this.RenderNormalMapAbsoluteButton = new System.Windows.Forms.Button();
+      this.NormalMapAbsolutePanel = new System.Windows.Forms.Panel();
+      this.SaveNormalMapAbsoluteButton = new System.Windows.Forms.Button();
+      this.NormalMapAbsolutePictureBox = new System.Windows.Forms.PictureBox();
+      this.NormalMapAbsoluteCoordinates = new System.Windows.Forms.Label();
       this.tabControl1.SuspendLayout();
       this.tabPage1.SuspendLayout();
       this.DepthMapPanel.SuspendLayout();
@@ -69,8 +74,11 @@
       this.AllRaysMapPanel.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.AllRaysMapPictureBox)).BeginInit();
       this.NormalMap.SuspendLayout();
-      this.NormalMapPanel.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.NormalMapPictureBox)).BeginInit();
+      this.NormalMapRelativePanel.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.NormalMapRelativePictureBox)).BeginInit();
+      this.tabPage5.SuspendLayout();
+      this.NormalMapAbsolutePanel.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.NormalMapAbsolutePictureBox)).BeginInit();
       this.SuspendLayout();
       // 
       // tabControl1
@@ -86,7 +94,7 @@
       this.tabControl1.Location = new System.Drawing.Point(12, 12);
       this.tabControl1.Name = "tabControl1";
       this.tabControl1.SelectedIndex = 0;
-      this.tabControl1.Size = new System.Drawing.Size(772, 537);
+      this.tabControl1.Size = new System.Drawing.Size(809, 537);
       this.tabControl1.TabIndex = 0;
       this.tabControl1.Tag = "";
       // 
@@ -96,7 +104,7 @@
       this.tabPage1.Location = new System.Drawing.Point(4, 22);
       this.tabPage1.Name = "tabPage1";
       this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPage1.Size = new System.Drawing.Size(764, 511);
+      this.tabPage1.Size = new System.Drawing.Size(801, 511);
       this.tabPage1.TabIndex = 0;
       this.tabPage1.Text = "Depth Map";
       this.tabPage1.UseVisualStyleBackColor = true;
@@ -114,7 +122,7 @@
       this.DepthMapPanel.Controls.Add(this.DepthMapPictureBox);
       this.DepthMapPanel.Location = new System.Drawing.Point(0, 0);
       this.DepthMapPanel.Name = "DepthMapPanel";
-      this.DepthMapPanel.Size = new System.Drawing.Size(764, 511);
+      this.DepthMapPanel.Size = new System.Drawing.Size(801, 511);
       this.DepthMapPanel.TabIndex = 3;
       this.DepthMapPanel.Tag = "DepthMap";
       // 
@@ -169,7 +177,7 @@
       this.tabPage2.Location = new System.Drawing.Point(4, 22);
       this.tabPage2.Name = "tabPage2";
       this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-      this.tabPage2.Size = new System.Drawing.Size(764, 511);
+      this.tabPage2.Size = new System.Drawing.Size(801, 511);
       this.tabPage2.TabIndex = 1;
       this.tabPage2.Text = "Primary Rays Map";
       this.tabPage2.UseVisualStyleBackColor = true;
@@ -199,7 +207,7 @@
       this.PrimaryRaysMapPanel.Controls.Add(this.PrimaryRaysMapCoordinates);
       this.PrimaryRaysMapPanel.Location = new System.Drawing.Point(0, 0);
       this.PrimaryRaysMapPanel.Name = "PrimaryRaysMapPanel";
-      this.PrimaryRaysMapPanel.Size = new System.Drawing.Size(764, 511);
+      this.PrimaryRaysMapPanel.Size = new System.Drawing.Size(801, 511);
       this.PrimaryRaysMapPanel.TabIndex = 6;
       this.PrimaryRaysMapPanel.Tag = "PrimaryRaysMap";
       // 
@@ -263,7 +271,7 @@
       this.tabPage3.Controls.Add(this.AllRaysMapPanel);
       this.tabPage3.Location = new System.Drawing.Point(4, 22);
       this.tabPage3.Name = "tabPage3";
-      this.tabPage3.Size = new System.Drawing.Size(764, 511);
+      this.tabPage3.Size = new System.Drawing.Size(801, 511);
       this.tabPage3.TabIndex = 2;
       this.tabPage3.Text = "All Rays Map";
       this.tabPage3.UseVisualStyleBackColor = true;
@@ -293,9 +301,21 @@
       this.AllRaysMapPanel.Controls.Add(this.AllRaysMapCoordinates);
       this.AllRaysMapPanel.Location = new System.Drawing.Point(0, 0);
       this.AllRaysMapPanel.Name = "AllRaysMapPanel";
-      this.AllRaysMapPanel.Size = new System.Drawing.Size(764, 511);
+      this.AllRaysMapPanel.Size = new System.Drawing.Size(801, 511);
       this.AllRaysMapPanel.TabIndex = 10;
       this.AllRaysMapPanel.Tag = "AllRaysMap";
+      // 
+      // SaveAllRaysMapButton
+      // 
+      this.SaveAllRaysMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.SaveAllRaysMapButton.Enabled = false;
+      this.SaveAllRaysMapButton.Location = new System.Drawing.Point(7, 445);
+      this.SaveAllRaysMapButton.Name = "SaveAllRaysMapButton";
+      this.SaveAllRaysMapButton.Size = new System.Drawing.Size(97, 41);
+      this.SaveAllRaysMapButton.TabIndex = 13;
+      this.SaveAllRaysMapButton.Text = "Save Image";
+      this.SaveAllRaysMapButton.UseVisualStyleBackColor = true;
+      this.SaveAllRaysMapButton.Click += new System.EventHandler(this.SaveMapButton_Click);
       // 
       // AverageAllRaysCount
       // 
@@ -341,101 +361,149 @@
       // 
       // NormalMap
       // 
-      this.NormalMap.Controls.Add(this.RenderNormalMapButton);
-      this.NormalMap.Controls.Add(this.NormalMapPanel);
+      this.NormalMap.Controls.Add(this.RenderNormalMapRelativeButton);
+      this.NormalMap.Controls.Add(this.NormalMapRelativePanel);
       this.NormalMap.Location = new System.Drawing.Point(4, 22);
       this.NormalMap.Name = "NormalMap";
-      this.NormalMap.Size = new System.Drawing.Size(764, 511);
+      this.NormalMap.Size = new System.Drawing.Size(801, 511);
       this.NormalMap.TabIndex = 3;
-      this.NormalMap.Text = "Normal Map";
+      this.NormalMap.Text = "Normal Map Relative";
       this.NormalMap.UseVisualStyleBackColor = true;
       // 
-      // RenderNormalMapButton
+      // RenderNormalMapRelativeButton
       // 
-      this.RenderNormalMapButton.Location = new System.Drawing.Point(7, 6);
-      this.RenderNormalMapButton.Name = "RenderNormalMapButton";
-      this.RenderNormalMapButton.Size = new System.Drawing.Size(97, 41);
-      this.RenderNormalMapButton.TabIndex = 14;
-      this.RenderNormalMapButton.Tag = "normalMap";
-      this.RenderNormalMapButton.Text = "Render";
-      this.RenderNormalMapButton.UseVisualStyleBackColor = true;
-      this.RenderNormalMapButton.Click += new System.EventHandler(this.RenderMapButton_Click);
+      this.RenderNormalMapRelativeButton.Location = new System.Drawing.Point(7, 6);
+      this.RenderNormalMapRelativeButton.Name = "RenderNormalMapRelativeButton";
+      this.RenderNormalMapRelativeButton.Size = new System.Drawing.Size(97, 41);
+      this.RenderNormalMapRelativeButton.TabIndex = 14;
+      this.RenderNormalMapRelativeButton.Tag = "normalMapRelative";
+      this.RenderNormalMapRelativeButton.Text = "Render";
+      this.RenderNormalMapRelativeButton.UseVisualStyleBackColor = true;
+      this.RenderNormalMapRelativeButton.Click += new System.EventHandler(this.RenderMapButton_Click);
       // 
-      // NormalMapPanel
+      // NormalMapRelativePanel
       // 
-      this.NormalMapPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+      this.NormalMapRelativePanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.NormalMapPanel.AutoScroll = true;
-      this.NormalMapPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-      this.NormalMapPanel.Controls.Add(this.SaveNormalMapButton);
-      this.NormalMapPanel.Controls.Add(this.NormalMapPictureBox);
-      this.NormalMapPanel.Controls.Add(this.NormalMapCoordinates);
-      this.NormalMapPanel.Location = new System.Drawing.Point(0, 0);
-      this.NormalMapPanel.Name = "NormalMapPanel";
-      this.NormalMapPanel.Size = new System.Drawing.Size(764, 511);
-      this.NormalMapPanel.TabIndex = 13;
-      this.NormalMapPanel.Tag = "NormalMap";
+      this.NormalMapRelativePanel.AutoScroll = true;
+      this.NormalMapRelativePanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+      this.NormalMapRelativePanel.Controls.Add(this.SaveNormalMapRelativeButton);
+      this.NormalMapRelativePanel.Controls.Add(this.NormalMapRelativePictureBox);
+      this.NormalMapRelativePanel.Controls.Add(this.NormalMapRelativeCoordinates);
+      this.NormalMapRelativePanel.Location = new System.Drawing.Point(0, 0);
+      this.NormalMapRelativePanel.Name = "NormalMapRelativePanel";
+      this.NormalMapRelativePanel.Size = new System.Drawing.Size(801, 511);
+      this.NormalMapRelativePanel.TabIndex = 13;
+      this.NormalMapRelativePanel.Tag = "NormalMapRelative";
       // 
-      // NormalMapPictureBox
+      // SaveNormalMapRelativeButton
       // 
-      this.NormalMapPictureBox.Location = new System.Drawing.Point(110, 6);
-      this.NormalMapPictureBox.Name = "NormalMapPictureBox";
-      this.NormalMapPictureBox.Size = new System.Drawing.Size(680, 480);
-      this.NormalMapPictureBox.TabIndex = 7;
-      this.NormalMapPictureBox.TabStop = false;
-      this.NormalMapPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
-      this.NormalMapPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
+      this.SaveNormalMapRelativeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.SaveNormalMapRelativeButton.Enabled = false;
+      this.SaveNormalMapRelativeButton.Location = new System.Drawing.Point(7, 445);
+      this.SaveNormalMapRelativeButton.Name = "SaveNormalMapRelativeButton";
+      this.SaveNormalMapRelativeButton.Size = new System.Drawing.Size(97, 41);
+      this.SaveNormalMapRelativeButton.TabIndex = 16;
+      this.SaveNormalMapRelativeButton.Text = "Save Image";
+      this.SaveNormalMapRelativeButton.UseVisualStyleBackColor = true;
+      this.SaveNormalMapRelativeButton.Click += new System.EventHandler(this.SaveMapButton_Click);
       // 
-      // NormalMapCoordinates
+      // NormalMapRelativePictureBox
       // 
-      this.NormalMapCoordinates.Anchor = System.Windows.Forms.AnchorStyles.Left;
-      this.NormalMapCoordinates.AutoSize = true;
-      this.NormalMapCoordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.NormalMapCoordinates.Location = new System.Drawing.Point(3, 58);
-      this.NormalMapCoordinates.Name = "NormalMapCoordinates";
-      this.NormalMapCoordinates.Size = new System.Drawing.Size(108, 80);
-      this.NormalMapCoordinates.TabIndex = 8;
-      this.NormalMapCoordinates.Text = "X: \r\nY: \r\nAngle of \r\nnormal vector:\r\n";
+      this.NormalMapRelativePictureBox.Location = new System.Drawing.Point(110, 6);
+      this.NormalMapRelativePictureBox.Name = "NormalMapRelativePictureBox";
+      this.NormalMapRelativePictureBox.Size = new System.Drawing.Size(680, 480);
+      this.NormalMapRelativePictureBox.TabIndex = 7;
+      this.NormalMapRelativePictureBox.TabStop = false;
+      this.NormalMapRelativePictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
+      this.NormalMapRelativePictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
+      // 
+      // NormalMapRelativeCoordinates
+      // 
+      this.NormalMapRelativeCoordinates.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.NormalMapRelativeCoordinates.AutoSize = true;
+      this.NormalMapRelativeCoordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NormalMapRelativeCoordinates.Location = new System.Drawing.Point(3, 58);
+      this.NormalMapRelativeCoordinates.Name = "NormalMapRelativeCoordinates";
+      this.NormalMapRelativeCoordinates.Size = new System.Drawing.Size(108, 80);
+      this.NormalMapRelativeCoordinates.TabIndex = 8;
+      this.NormalMapRelativeCoordinates.Text = "X: \r\nY: \r\nAngle of \r\nnormal vector:\r\n";
       // 
       // tabPage5
       // 
+      this.tabPage5.Controls.Add(this.RenderNormalMapAbsoluteButton);
+      this.tabPage5.Controls.Add(this.NormalMapAbsolutePanel);
       this.tabPage5.Location = new System.Drawing.Point(4, 22);
       this.tabPage5.Name = "tabPage5";
-      this.tabPage5.Size = new System.Drawing.Size(764, 511);
+      this.tabPage5.Size = new System.Drawing.Size(801, 511);
       this.tabPage5.TabIndex = 4;
-      this.tabPage5.Text = "tabPage5";
+      this.tabPage5.Text = "Normal Map Absolute";
       this.tabPage5.UseVisualStyleBackColor = true;
       // 
-      // SaveAllRaysMapButton
+      // RenderNormalMapAbsoluteButton
       // 
-      this.SaveAllRaysMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.SaveAllRaysMapButton.Enabled = false;
-      this.SaveAllRaysMapButton.Location = new System.Drawing.Point(7, 445);
-      this.SaveAllRaysMapButton.Name = "SaveAllRaysMapButton";
-      this.SaveAllRaysMapButton.Size = new System.Drawing.Size(97, 41);
-      this.SaveAllRaysMapButton.TabIndex = 13;
-      this.SaveAllRaysMapButton.Text = "Save Image";
-      this.SaveAllRaysMapButton.UseVisualStyleBackColor = true;
-      this.SaveAllRaysMapButton.Click += new System.EventHandler(this.SaveMapButton_Click);
+      this.RenderNormalMapAbsoluteButton.Location = new System.Drawing.Point(7, 6);
+      this.RenderNormalMapAbsoluteButton.Name = "RenderNormalMapAbsoluteButton";
+      this.RenderNormalMapAbsoluteButton.Size = new System.Drawing.Size(97, 41);
+      this.RenderNormalMapAbsoluteButton.TabIndex = 16;
+      this.RenderNormalMapAbsoluteButton.Tag = "normalMapAbsolute";
+      this.RenderNormalMapAbsoluteButton.Text = "Render";
+      this.RenderNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
+      this.RenderNormalMapAbsoluteButton.Click += new System.EventHandler(this.RenderMapButton_Click);
       // 
-      // SaveNormalMapButton
+      // NormalMapAbsolutePanel
       // 
-      this.SaveNormalMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.SaveNormalMapButton.Enabled = false;
-      this.SaveNormalMapButton.Location = new System.Drawing.Point(7, 445);
-      this.SaveNormalMapButton.Name = "SaveNormalMapButton";
-      this.SaveNormalMapButton.Size = new System.Drawing.Size(97, 41);
-      this.SaveNormalMapButton.TabIndex = 16;
-      this.SaveNormalMapButton.Text = "Save Image";
-      this.SaveNormalMapButton.UseVisualStyleBackColor = true;
-      this.SaveNormalMapButton.Click += new System.EventHandler(this.SaveMapButton_Click);
+      this.NormalMapAbsolutePanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.NormalMapAbsolutePanel.AutoScroll = true;
+      this.NormalMapAbsolutePanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+      this.NormalMapAbsolutePanel.Controls.Add(this.SaveNormalMapAbsoluteButton);
+      this.NormalMapAbsolutePanel.Controls.Add(this.NormalMapAbsolutePictureBox);
+      this.NormalMapAbsolutePanel.Controls.Add(this.NormalMapAbsoluteCoordinates);
+      this.NormalMapAbsolutePanel.Location = new System.Drawing.Point(0, 0);
+      this.NormalMapAbsolutePanel.Name = "NormalMapAbsolutePanel";
+      this.NormalMapAbsolutePanel.Size = new System.Drawing.Size(801, 511);
+      this.NormalMapAbsolutePanel.TabIndex = 15;
+      this.NormalMapAbsolutePanel.Tag = "NormalMapAbsolute";
+      // 
+      // SaveNormalMapAbsoluteButton
+      // 
+      this.SaveNormalMapAbsoluteButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.SaveNormalMapAbsoluteButton.Enabled = false;
+      this.SaveNormalMapAbsoluteButton.Location = new System.Drawing.Point(7, 445);
+      this.SaveNormalMapAbsoluteButton.Name = "SaveNormalMapAbsoluteButton";
+      this.SaveNormalMapAbsoluteButton.Size = new System.Drawing.Size(97, 41);
+      this.SaveNormalMapAbsoluteButton.TabIndex = 16;
+      this.SaveNormalMapAbsoluteButton.Text = "Save Image";
+      this.SaveNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
+      this.SaveNormalMapAbsoluteButton.Click += new System.EventHandler(this.SaveMapButton_Click);
+      // 
+      // NormalMapAbsolutePictureBox
+      // 
+      this.NormalMapAbsolutePictureBox.Location = new System.Drawing.Point(110, 6);
+      this.NormalMapAbsolutePictureBox.Name = "NormalMapAbsolutePictureBox";
+      this.NormalMapAbsolutePictureBox.Size = new System.Drawing.Size(680, 480);
+      this.NormalMapAbsolutePictureBox.TabIndex = 7;
+      this.NormalMapAbsolutePictureBox.TabStop = false;
+      // 
+      // NormalMapAbsoluteCoordinates
+      // 
+      this.NormalMapAbsoluteCoordinates.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.NormalMapAbsoluteCoordinates.AutoSize = true;
+      this.NormalMapAbsoluteCoordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NormalMapAbsoluteCoordinates.Location = new System.Drawing.Point(3, 58);
+      this.NormalMapAbsoluteCoordinates.Name = "NormalMapAbsoluteCoordinates";
+      this.NormalMapAbsoluteCoordinates.Size = new System.Drawing.Size(108, 80);
+      this.NormalMapAbsoluteCoordinates.TabIndex = 8;
+      this.NormalMapAbsoluteCoordinates.Text = "X: \r\nY: \r\nAngle of \r\nnormal vector:\r\n";
       // 
       // Form2
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(804, 561);
+      this.ClientSize = new System.Drawing.Size(841, 561);
       this.Controls.Add(this.tabControl1);
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
       this.MinimumSize = new System.Drawing.Size(350, 600);
@@ -456,9 +524,13 @@
       this.AllRaysMapPanel.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.AllRaysMapPictureBox)).EndInit();
       this.NormalMap.ResumeLayout(false);
-      this.NormalMapPanel.ResumeLayout(false);
-      this.NormalMapPanel.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.NormalMapPictureBox)).EndInit();
+      this.NormalMapRelativePanel.ResumeLayout(false);
+      this.NormalMapRelativePanel.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.NormalMapRelativePictureBox)).EndInit();
+      this.tabPage5.ResumeLayout(false);
+      this.NormalMapAbsolutePanel.ResumeLayout(false);
+      this.NormalMapAbsolutePanel.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.NormalMapAbsolutePictureBox)).EndInit();
       this.ResumeLayout(false);
 
     }
@@ -489,11 +561,16 @@
     private System.Windows.Forms.Label TotalAllRaysCount;
     private System.Windows.Forms.Label AllRaysMapCoordinates;
     private System.Windows.Forms.TabPage tabPage5;
-    private System.Windows.Forms.Button RenderNormalMapButton;
-    private System.Windows.Forms.Panel NormalMapPanel;
-    internal System.Windows.Forms.PictureBox NormalMapPictureBox;
-    private System.Windows.Forms.Label NormalMapCoordinates;
+    private System.Windows.Forms.Button RenderNormalMapRelativeButton;
+    private System.Windows.Forms.Panel NormalMapRelativePanel;
+    internal System.Windows.Forms.PictureBox NormalMapRelativePictureBox;
+    private System.Windows.Forms.Label NormalMapRelativeCoordinates;
     private System.Windows.Forms.Button SaveAllRaysMapButton;
-    private System.Windows.Forms.Button SaveNormalMapButton;
+    private System.Windows.Forms.Button SaveNormalMapRelativeButton;
+    private System.Windows.Forms.Button RenderNormalMapAbsoluteButton;
+    private System.Windows.Forms.Panel NormalMapAbsolutePanel;
+    private System.Windows.Forms.Button SaveNormalMapAbsoluteButton;
+    internal System.Windows.Forms.PictureBox NormalMapAbsolutePictureBox;
+    private System.Windows.Forms.Label NormalMapAbsoluteCoordinates;
   }
 }

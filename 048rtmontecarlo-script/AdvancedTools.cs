@@ -21,16 +21,18 @@ namespace _048rtmontecarlo
     public RaysMap primaryRaysMap;
     public RaysMap allRaysMap;
     public DepthMap depthMap;
-    public NormalMap normalMap;
+    public NormalMap normalMapRelative;
+    public NormalMap normalMapAbsolute;
 
     internal void Initialize ()
     {
       primaryRaysMap = new RaysMap ();
       allRaysMap = new RaysMap ();
       depthMap = new DepthMap ();
-      normalMap = new NormalMap ();
+      normalMapRelative = new NormalMap (relative: true);
+      normalMapAbsolute = new NormalMap (relative: false);
 
-      allMaps = new IMap[] { primaryRaysMap , allRaysMap , depthMap , normalMap };
+      allMaps = new IMap[] { primaryRaysMap , allRaysMap , depthMap , normalMapRelative , normalMapAbsolute };
     }
 
     /// <summary>
@@ -47,7 +49,7 @@ namespace _048rtmontecarlo
       }
 
       // Initial check for null references
-      if ( primaryRaysMap == null || allRaysMap == null || depthMap == null || normalMap == null)
+      if ( primaryRaysMap == null || allRaysMap == null || depthMap == null || normalMapRelative == null)
         Initialize ();       
 
       if ( primaryRaysMap.mapArray == null )
@@ -59,10 +61,10 @@ namespace _048rtmontecarlo
       if ( depthMap.mapArray == null )
         depthMap.Initialize ();
 
-      if ( normalMap.mapArray == null || normalMap.intersectionMapArray == null )
+      if (NormalMap.mapArray == null || NormalMap.intersectionMapArray == null )
       {
-        normalMap.Initialize();
-        normalMap.rayOrigin = rayOrigin;
+        normalMapRelative.Initialize();
+        normalMapRelative.rayOrigin = rayOrigin;
       }
         
 
@@ -84,14 +86,14 @@ namespace _048rtmontecarlo
         // register depth
         depthMap.mapArray[MT.x, MT.y] += depth;
 
-        // register primary rays
+        // register primary rays (those with level 0)
         primaryRaysMap.mapArray[MT.x, MT.y] += 1; // do not use ++ instead - causes problems with strong type T in Map<T>
 
         if ( firstIntersection != null )
         {
           // register normal vector
-          normalMap.intersectionMapArray[ MT.x, MT.y ] += firstIntersection.CoordWorld;
-          normalMap.mapArray[ MT.x, MT.y ] += firstIntersection.Normal;       
+          NormalMap.intersectionMapArray[ MT.x, MT.y ] += firstIntersection.CoordWorld;
+          NormalMap.mapArray[ MT.x, MT.y ] += firstIntersection.Normal;       
         }
       }
 
@@ -181,11 +183,27 @@ namespace _048rtmontecarlo
     {
       delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector ); //TODO: for refactor of Absolute and Relative GetAppropriateColor method
 
-      internal Vector3d[,] intersectionMapArray;
+      AppropriateColor appropriateColor;
+
+      internal new static Vector3d[,] mapArray;
+
+      internal static Vector3d[,] intersectionMapArray;
 
       public Vector3d rayOrigin;
 
-      public new void Initialize ( int formImageWidth = 0, int formImageHeight = 0 )
+      public NormalMap(bool relative = true)
+      {
+        if (relative)
+        {
+          appropriateColor = GetAppropriateColorRelative;
+        }
+        else
+        {
+          appropriateColor = GetAppropriateColorAbsolute;
+        }
+      }
+
+      public new void Initialize ( int formImageWidth = 0, int formImageHeight = 0)
       {
         base.Initialize ( formImageWidth, formImageHeight );
 
@@ -195,7 +213,8 @@ namespace _048rtmontecarlo
           mapImageHeight = formImageHeight;
         }
 
-        intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
+        mapArray = new Vector3d[mapImageWidth, mapImageHeight];
+        intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];              
       }
 
 
@@ -217,7 +236,7 @@ namespace _048rtmontecarlo
 
       protected override Color GetAppropriateColor (int x, int y)
       {
-        return GetAppropriateColorForNormalVectorAbsolute( mapArray[ x, y ], intersectionMapArray[ x, y ] );
+        return appropriateColor (mapArray[x, y], intersectionMapArray[x, y]);
       }
 
       protected override void DivideArray ( int x, int y )
@@ -230,20 +249,23 @@ namespace _048rtmontecarlo
         return Vector3d.CalculateAngle ( mapArray[ x, y ], rayOrigin - intersectionMapArray[ x, y ] ) * 180 / Math.PI;
       }
 
-      private Color GetAppropriateColorForNormalVectorRelative ( Vector3d normalVector, Vector3d intersectionVector )
+      private Color GetAppropriateColorRelative ( Vector3d normalVector, Vector3d intersectionVector )
       {
         Vector3d relativeNormalVector = rayOrigin - intersectionVector - normalVector;
 
-        relativeNormalVector.Normalize ();
+        if (relativeNormalVector != Vector3d.Zero)
+        {
+          relativeNormalVector.Normalize();
+        }
 
-        int red = (int) ( ( relativeNormalVector.X + 1 ) * 128 );
-        int green = (int) ( ( relativeNormalVector.Y + 1 ) * 128 );
-        int blue = (int) ( ( relativeNormalVector.Z + 1 ) * 128 );
+        int red   =       (int) ( ( relativeNormalVector.X + 1 ) * 127.5);
+        int green =       (int) ( ( relativeNormalVector.Y + 1 ) * 127.5);
+        int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 127.5);
 
         return Color.FromArgb (red, green, blue);
       }
 
-      private Color GetAppropriateColorForNormalVectorAbsolute ( Vector3d normalVector, Vector3d intersectionVector )
+      private Color GetAppropriateColorAbsolute ( Vector3d normalVector, Vector3d intersectionVector )
       {
         Vector3d relativeNormalVector = normalVector;
 
@@ -252,14 +274,14 @@ namespace _048rtmontecarlo
           relativeNormalVector.Normalize();
         }      
 
-        int red   = (int) ( ( relativeNormalVector.X + 1 ) * 127.5 );
-        int green = (int) ( ( relativeNormalVector.Y + 1 ) * 127.5 );
+        int red   =       (int) ( ( relativeNormalVector.X + 1 ) * 127.5 );
+        int green =       (int) ( ( relativeNormalVector.Y + 1 ) * 127.5 );
         int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 127.5 );
 
         return Color.FromArgb ( red, green, blue );
       }
 
-      private Color GetAppropriateColorForNormalVectorSimpleVersion(Vector3d normalVector, Vector3d intersectionVector)
+      private Color GetAppropriateColorSimple(Vector3d normalVector, Vector3d intersectionVector)
       {
         double angle = Vector3d.CalculateAngle ( normalVector, rayOrigin - intersectionVector ) * 180 / Math.PI;
 
@@ -280,6 +302,8 @@ namespace _048rtmontecarlo
         intersectionMapArray = null;
       }
     }
+
+
 
 
     public abstract class Map<T>: IMap
@@ -598,7 +622,7 @@ namespace _048rtmontecarlo
     /// </summary>
     public void NewRenderInitialization ()
     {    
-      foreach ( IMap map in allMaps ) //TODO: usable after refactor of Fields to Properties
+      foreach ( IMap map in allMaps )
       {
         if ( map != null )
         {
