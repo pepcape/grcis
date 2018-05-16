@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Diagnostics;
 using System.Dynamic;
+using System.Reflection;
 using MathSupport;
 using OpenTK;
 using Rendering;
@@ -11,9 +12,11 @@ namespace _048rtmontecarlo
 {
   public class AdvancedTools
   {
-    public static AdvancedTools instance;
+    public static AdvancedTools instance; //singleton
 
     public delegate void RenderMap ();
+
+    private IMap[] allMaps;
 
     public RaysMap primaryRaysMap;
     public RaysMap allRaysMap;
@@ -26,15 +29,24 @@ namespace _048rtmontecarlo
       allRaysMap = new RaysMap ();
       depthMap = new DepthMap ();
       normalMap = new NormalMap ();
+
+      allMaps = new IMap[] { primaryRaysMap , allRaysMap , depthMap , normalMap };
     }
 
+    /// <summary>
+    /// Registers one intersection of ray
+    /// </summary>
+    /// <param name="level">To differentiate between primary and all rays</param>
+    /// <param name="rayOrigin">Origin of ray / Centre of camera</param>
+    /// <param name="firstIntersection">First element of array of Intersections</param>
     public void Register ( int level, Vector3d rayOrigin, Intersection firstIntersection )
     {
-      if ( Form2.singleton == null )
+      if ( Form2.instance == null )
       {
         return;
       }
 
+      // Initial check for null references
       if ( primaryRaysMap == null || allRaysMap == null || depthMap == null || normalMap == null)
         Initialize ();       
 
@@ -66,13 +78,14 @@ namespace _048rtmontecarlo
       }
      
 
+      // actual registering - increasing/writing to desired arrays
       if ( level == 0 )
       {
         // register depth
         depthMap.mapArray[MT.x, MT.y] += depth;
 
         // register primary rays
-        primaryRaysMap.mapArray[MT.x, MT.y] += 1;
+        primaryRaysMap.mapArray[MT.x, MT.y] += 1; // do not use ++ instead - causes problems with strong type T in Map<T>
 
         if ( firstIntersection != null )
         {
@@ -118,12 +131,6 @@ namespace _048rtmontecarlo
         }
       }
 
-      protected override void SetReferenceMinAndMaxValues ()
-      {
-        maxValue = double.MinValue;
-        minValue = double.MaxValue;
-      }
-
       protected override Color GetAppropriateColor ( int x, int y )
       {
         return GetAppropriateColorLogarithmicReversed ( minValue, maxValue, mapArray[x, y]);
@@ -149,12 +156,6 @@ namespace _048rtmontecarlo
 
     public class RaysMap : Map<int>
     {
-      protected override void SetReferenceMinAndMaxValues ()
-      {
-        maxValue = int.MinValue;
-        minValue = int.MaxValue;
-      }
-
       protected override Color GetAppropriateColor ( int x, int y )
       {
         return GetAppropriateColorLinear ( minValue, maxValue, mapArray[ x, y ] );
@@ -178,13 +179,21 @@ namespace _048rtmontecarlo
 
     public class NormalMap : Map<Vector3d>
     {
+      delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector ); //TODO: for refactor of Absolute and Relative GetAppropriateColor method
+
       internal Vector3d[,] intersectionMapArray;
 
       public Vector3d rayOrigin;
 
-      public new void Initialize ()
+      public new void Initialize ( int formImageWidth = 0, int formImageHeight = 0 )
       {
-        base.Initialize ();    
+        base.Initialize ( formImageWidth, formImageHeight );
+
+        if (formImageWidth != 0)
+        {
+          mapImageWidth  = formImageWidth;
+          mapImageHeight = formImageHeight;
+        }
 
         intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
       }
@@ -202,7 +211,7 @@ namespace _048rtmontecarlo
         base.RenderMap ();
       }
 
-      protected override void SetReferenceMinAndMaxValues () {}
+      protected new void SetReferenceMinAndMaxValues () {}
 
       protected override void SetMinimumAndMaximum () {}
 
@@ -221,7 +230,7 @@ namespace _048rtmontecarlo
         return Vector3d.CalculateAngle ( mapArray[ x, y ], rayOrigin - intersectionMapArray[ x, y ] ) * 180 / Math.PI;
       }
 
-      private Color GetAppropriateColorForNormalVectorRelative ( Vector3d normalVector, Vector3d intersectionVector)
+      private Color GetAppropriateColorForNormalVectorRelative ( Vector3d normalVector, Vector3d intersectionVector )
       {
         Vector3d relativeNormalVector = rayOrigin - intersectionVector - normalVector;
 
@@ -263,38 +272,54 @@ namespace _048rtmontecarlo
 
         return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
       }
+
+      public new void Reset ()
+      {
+        base.Reset ();
+
+        intersectionMapArray = null;
+      }
     }
 
 
     public abstract class Map<T>: IMap
     {
-      /// <summary>
-      /// Image width in pixels, 0 for default value (according to panel size).
-      /// </summary>
+      // Image width and heightin pixels, 0 for default value (according to panel size)
+      // Based on dimensions of main image in Form1
       public int mapImageWidth;
-
-      /// <summary>
-      /// Image height in pixels, 0 for default value (according to panel size).
-      /// </summary>
       public int mapImageHeight;
 
+      // For displaying in PictureBox (and therefore also saving as file)
       internal Bitmap mapBitmap;
 
+      // Main array for counting
+      // Inherited classes may contain other helper arrays of same size
       internal T[,] mapArray;
 
+      // Used for getting appropriate color (based on linear/logarithmic color gradient)
       internal T maxValue;
       internal T minValue;
 
-      public void Initialize()
+      /// <summary>
+      /// Sets mapImageWidth and mapImageHeight according to dimensions of main image in Form1
+      /// Initializes mapArray and other
+      /// </summary>
+      public void Initialize( int formImageWidth = 0, int formImageHeight = 0 )
       {
-        mapImageWidth  = Form2.singleton.PrimaryRaysMapPictureBox.Width; // TODO: can it be hard coded for PRIMARYraysMapPictureBox
-        mapImageHeight = Form2.singleton.PrimaryRaysMapPictureBox.Height;
+        if ( formImageWidth != 0 )
+        {
+          mapImageWidth  = formImageWidth;
+          mapImageHeight = formImageHeight;
+        }        
 
         mapArray = new T[mapImageWidth, mapImageHeight];      
 
         wasAveraged = false;
       }
 
+      /// <summary>
+      /// Main method for creating mapBitmap from mapArray and other arrays using GetAppropriateColor for each pixel of mapBitmap
+      /// </summary>
       public virtual void RenderMap()
       {
         if (mapImageWidth == 0 || mapImageHeight == 0)
@@ -315,12 +340,48 @@ namespace _048rtmontecarlo
         }
       }
 
-      protected abstract void SetReferenceMinAndMaxValues ();
+      /// <summary>
+      /// Set MaxValue constant of T to local minValue variable and vice-versa
+      /// Done through reflection using ReadStaticField method
+      /// </summary>
+      protected void SetReferenceMinAndMaxValues ()
+      {
+        minValue = ReadStaticField ( "MaxValue" );
+        maxValue = ReadStaticField ( "MinValue" );
+      }
 
+      /// <summary>
+      /// Returns value of static field with given name
+      /// </summary>
+      /// <param name="name">Name of static field</param>
+      /// <returns></returns>
+      private static T ReadStaticField(string name)
+      {
+        FieldInfo field = typeof(T).GetField(name, BindingFlags.Public | BindingFlags.Static);
+
+        if (field == null)
+        {
+          throw new InvalidOperationException ("Invalid type argument for NumericUpDown<T>: " + typeof(T).Name);
+        }
+
+        return (T)field.GetValue(null);
+      }
+
+      /// <summary>
+      /// Used for later deciding for appropriate method to calculate color of specific pixel
+      /// Usually used with linear or logarithmic color gradient from red to dark blue (no purple and red again) by changing value in HSV model
+      /// </summary>
+      /// <param name="x">X coordinate of current pixel</param>
+      /// <param name="y">Y coordinate of current pixel</param>
+      /// <returns></returns>
       protected abstract Color GetAppropriateColor ( int x, int y );
 
+      // indication whether map is already averaged
       protected bool wasAveraged;
 
+      /// <summary>
+      /// Averages all elements in mapArray (standard arithmetic average)
+      /// </summary>
       protected void AverageMap()
       {
         if (instance.primaryRaysMap == null )
@@ -344,7 +405,7 @@ namespace _048rtmontecarlo
           {
             if (instance.primaryRaysMap.mapArray[i, j] != 0 ) // TODO: Fix 0 rays count
             {
-              DivideArray(i, j);
+              DivideArray(i, j);  // Separate method for division because of strongly typed T
             }
           }
         }
@@ -352,8 +413,15 @@ namespace _048rtmontecarlo
         wasAveraged = true;
       }
 
+      /// <summary>
+      /// Implementation of standard division operator (needed because of strongly typed T)
+      /// </summary>
       protected abstract void DivideArray (int x, int y);
 
+      /// <summary>
+      /// Returns mapBitmap usually to PictureBox to display it in Form2
+      /// </summary>
+      /// <returns></returns>
       public Bitmap GetBitmap()
       {
         if ( mapBitmap == null )
@@ -364,10 +432,16 @@ namespace _048rtmontecarlo
         return mapBitmap;
       }
 
+      /// <summary>
+      /// Used by Form2 to display info for mouse down and mouse move while mouse down
+      /// </summary>
+      /// <param name="x">X coordinate of cursor relative to bitmap/mapArray</param>
+      /// <param name="y">Y coordinate of cursor relative to bitmap/mapArray</param>
+      /// <returns>Returns dynamic because some map classes does not return their T type</returns>
       public abstract dynamic GetValueAtCoordinates ( int x, int y );
 
       /// <summary>
-      /// Sets minimal and maximal values found in a mapArray
+      /// Sets minimal and maximal values found in mapArray
       /// </summary>
       /// <typeparam name="T">Type IComparable</typeparam>
       protected virtual void SetMinimumAndMaximum()
@@ -385,18 +459,12 @@ namespace _048rtmontecarlo
           }
         }
       }
-    }
 
-    public static Bitmap GetBitmapGeneral ( Bitmap mapBitmap, RenderMap renderMapMethod )
-    {
-      if ( mapBitmap == null )
+      public void Reset ()
       {
-        renderMapMethod();
+        mapArray = null;
       }
-
-      return mapBitmap;
     }
-
 
     /// <summary>
     /// Returns minimal and maximal values found in a specific map
@@ -501,40 +569,42 @@ namespace _048rtmontecarlo
     }
 
     /// <summary>
-    /// Calls Initialize method of all subclasses in AdvancedTools
+    /// Calls Initialize method of all subclasses in AdvancedTools (from array allMaps)
     /// </summary>
-    public void SetNewDimensions ()
+    public void SetNewDimensions ( int formImageWidth, int formImageHeight )
     {
-      if ( primaryRaysMap == null || allRaysMap == null || depthMap == null)
+      if ( allMaps == null )
       {
         Initialize();
       }
 
-      depthMap.Initialize ();
-      primaryRaysMap.Initialize ();
-      allRaysMap.Initialize ();
-      normalMap.Initialize ();
+      foreach ( IMap map in allMaps )
+      {
+        if ( map == null )
+        {
+          Initialize();
+          break;
+        }
+      }
+
+      foreach ( IMap map in allMaps )
+      {
+        map.Initialize ( formImageWidth, formImageHeight );
+      }
     }
 
     /// <summary>
     /// Removes all maps and unnecessary stuff
     /// </summary>
     public void NewRenderInitialization ()
-    {
-      if ( primaryRaysMap != null )
+    {    
+      foreach ( IMap map in allMaps ) //TODO: usable after refactor of Fields to Properties
       {
-        primaryRaysMap.mapArray = null;
+        if ( map != null )
+        {
+          map.Reset ();
+        }
       }
-
-      if ( allRaysMap != null )
-      {
-        allRaysMap.mapArray = null;
-      }
-
-      depthMap.mapArray = null;
-
-      normalMap.mapArray = null;
-      normalMap.intersectionMapArray = null;
     }
   }
 }
@@ -545,11 +615,13 @@ namespace _048rtmontecarlo
 /// </summary>
 interface IMap
 {
-  void Initialize();
+  void Initialize(int formImageWidth = 0, int formImageHeight = 0);
 
   void RenderMap();
 
   Bitmap GetBitmap ();
 
   dynamic GetValueAtCoordinates ( int x, int y );
+
+  void Reset ();
 }

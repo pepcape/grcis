@@ -46,9 +46,9 @@ namespace _048rtmontecarlo
       f.CheckMultithreading.Checked = true;
       f.TextParam.Text = "sampling=adapt1";
 
-      if ( Form2.singleton != null )
+      if ( Form2.instance != null )
       {
-        Form2.singleton.SetNewDimensions (f.ImageWidth, f.ImageHeight);
+        Form2.instance.SetNewDimensions (f.ImageWidth, f.ImageHeight);
       }
     }
 

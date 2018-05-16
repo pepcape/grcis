@@ -130,7 +130,7 @@ namespace Rendering
       // there was at least one intersection
       i.Complete();
 
-      //AdvancedTools.Register ( level, p0, i );  // moved lower to also register rays for shadows
+      AdvancedTools.instance.Register ( level, p0, i );  // moved lower to also register rays for shadows
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode();
@@ -168,7 +168,7 @@ namespace Rendering
               if ( si != null && !si.Far( 1.0, ref dir ) ) continue;
             }
 
-            AdvancedTools.instance.Register(level, p0, i);
+            //AdvancedTools.instance.Register(level, p0, i);
 
             double[] reflection = i.ReflectanceModel.ColorReflection( i, dir, p1, ReflectionComponent.ALL );
             if ( reflection != null )

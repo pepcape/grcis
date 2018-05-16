@@ -9,13 +9,14 @@ namespace _048rtmontecarlo
 {
   public partial class Form2 : Form
   {
-    public static Form2 singleton = null;
+    public static Form2 instance; //singleton
 
-    protected Bitmap outputImage = null;
-
+    /// <summary>
+    /// Constructor which sets location of Form2 window and initializes AdvancedTools class
+    /// </summary>
     public Form2 ()
     {
-      singleton = this;
+      instance = this;
 
       Form1.singleton.AdvancedToolsButton.Enabled = false;
 
@@ -49,9 +50,15 @@ namespace _048rtmontecarlo
     {
       Form1.singleton.AdvancedToolsButton.Enabled = true;
 
-      singleton = null;
+      instance = null;
     }
 
+    /// <summary>
+    /// Universal method for saving maps to .png format
+    /// Image must be rendered (otherwise button is disabled)
+    /// </summary>
+    /// <param name="sender">Should be only SaveButton</param>
+    /// <param name="e"></param>
     private void SaveMapButton_Click ( object sender, EventArgs e )
     {
       Panel panel = (sender as Button).Parent as Panel;
@@ -60,7 +67,7 @@ namespace _048rtmontecarlo
 
       PictureBox pictureBox = panel.Controls.Find(mapName + "PictureBox", true).FirstOrDefault() as PictureBox;
 
-      outputImage = (Bitmap) pictureBox.Image;
+      Bitmap outputImage = (Bitmap) pictureBox.Image;
 
       if (outputImage == null)
         return;
@@ -76,6 +83,12 @@ namespace _048rtmontecarlo
       outputImage.Save(sfd.FileName, System.Drawing.Imaging.ImageFormat.Png);
     }
 
+    /// <summary>
+    /// Universal method for calling render method of map class
+    /// Correct map class is chosen via reflection - sender(render button) must have set Tag to name of class instance in AdvancedTools class
+    /// </summary>
+    /// <param name="sender">Should be only Render button</param>
+    /// <param name="e"></param>
     private void RenderMapButton_Click ( object sender, EventArgs e )
     {
       if ( Form1.singleton.outputImage == null )
@@ -98,6 +111,12 @@ namespace _048rtmontecarlo
       saveButton.Enabled = true;
     }
 
+    /// <summary>
+    /// Sets new dimensions for all PictureBoxes
+    /// Called after dimensions of main image in Form1 are changed
+    /// </summary>
+    /// <param name="formImageWidth"></param>
+    /// <param name="formImageHeight"></param>
     public void SetNewDimensions ( int formImageWidth, int formImageHeight )
     {
       PrimaryRaysMapPictureBox.Width =
@@ -110,9 +129,12 @@ namespace _048rtmontecarlo
       DepthMapPictureBox.Height =
       NormalMapPictureBox.Height = formImageHeight;
 
-      AdvancedTools.instance.SetNewDimensions ();
+      AdvancedTools.instance.SetNewDimensions (formImageWidth, formImageHeight); //makes all maps to initialize again
     }
 
+    /// <summary>
+    /// Displays depth in scene of selected pixel (clicked or hovered over while mouse down)
+    /// </summary>
     private void DepthMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
     {
       if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
@@ -128,6 +150,9 @@ namespace _048rtmontecarlo
       }
     }
 
+    /// <summary>
+    /// Displays number of primary rays sent to selected pixel (clicked or hovered over while mouse down)
+    /// </summary>
     private void PrimaryRaysMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
     {
       if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
@@ -136,6 +161,9 @@ namespace _048rtmontecarlo
       }
     }
 
+    /// <summary>
+    /// Displays number of all rays sent to selected pixel (clicked or hovered over while mouse down)
+    /// </summary>
     private void AllRaysMapPictureBox_MouseDownAndMouseMove(object sender, MouseEventArgs e)
     {
       if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
@@ -144,6 +172,10 @@ namespace _048rtmontecarlo
       }
     }
 
+    /// <summary>
+    /// Displays angle of rayOrigin-intersection and normal vector in place of intersection in selected pixel (clicked or hovered over while mouse down)
+    /// Intersections as well as normal vectors are averaged through all such vectors in selected pixel
+    /// </summary>
     private void NormalMapPictureBox_MouseDownAndMouseMove(object sender, MouseEventArgs e)
     {
       if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
@@ -166,7 +198,14 @@ namespace _048rtmontecarlo
       }
     }
 
+    /// <summary>
+    /// Called only from methods which choose raysMap (All/Primary rays)
+    /// </summary>
+    /// <param name="raysMap">AllRaysMap or PrimaryRaysMap</param>
+    /// <param name="label">UI element where to write info</param>
+    /// <param name="coordinates">Point where mouse was clicked / hovered over while held down</param>
     private void RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.RaysMap raysMap, Label label, Point coordinates )
+    //TODO: refactor to get rid of PrimaryRaysMapPictureBox_MouseDownAndMouseMove and AllRaysMapPictureBox_MouseDownAndMouseMove
     {
       int raysCount = raysMap.GetValueAtCoordinates(coordinates.X, coordinates.Y);
 
@@ -183,20 +222,38 @@ namespace _048rtmontecarlo
       AveragePrimaryRaysCount.Text = String.Format ( "Average rays\r\ncount\r\nper pixel:\r\n{0}", totalCount / ( width * height ) );
     }
 
-    public void SetTotalAndAverageAllRaysCount(long totalCount, int width, int height)
+    public void SetTotalAndAverageAllRaysCount( long totalCount, int width, int height )
     {
       TotalAllRaysCount.Text = String.Format ( "Total all\r\nrays count:\r\n{0}", totalCount );
 
       AverageAllRaysCount.Text = String.Format ( "Average all\r\nray count\r\nper pixel:\r\n{0}", totalCount / ( width * height ) );
     }
 
-    // Here should be all render buttons
-    public void RenderButtonsEnabled ( bool newStatus )
+    /// <summary>
+    /// Goes through all controls of root (initially Form2) and sets new status 
+    /// for Enabled property for all controls/buttons which has "Render" and "Button" in their name
+    /// </summary>
+    /// <param name="newStatus">Enabled/Disabled buttons</param>
+    /// <param name="root">Used for recursion</param>
+    public void RenderButtonsEnabled ( bool newStatus, Control root = null)
     {
-      RenderDepthMapButton.Enabled =
-      RenderAllRaysMapButtona.Enabled =
-      RenderPrimaryRaysMapButton.Enabled = 
-      RenderNormalMapButton.Enabled = newStatus;
-    }       
+      if ( root == null )
+      {
+        root = this;
+      }
+
+      foreach ( Control control in root.Controls)
+      {
+        if ( control.Name.Contains(@"Render") && control.Name.Contains(@"Button"))
+        {
+          control.Enabled = newStatus;
+        }
+
+        if ( control.Controls.Count != 0 )
+        {
+          RenderButtonsEnabled ( newStatus, control );
+        }
+      }
+    }
   }
 }
