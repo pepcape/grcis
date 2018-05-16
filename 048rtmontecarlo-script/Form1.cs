@@ -400,9 +400,9 @@ namespace _048rtmontecarlo
 
         // GUI stuff:
         SetGUI( true );
-        if (Form2.singleton != null)
+        if (Form2.instance != null)
         {
-          Form2.singleton.RenderButtonsEnabled(true);
+          Form2.instance.RenderButtonsEnabled(true);
         }      
       }
     }
@@ -498,18 +498,18 @@ namespace _048rtmontecarlo
         ImageHeight = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
 
-        if ( Form2.singleton != null )
+        if ( Form2.instance != null )
         {
-          Form2.singleton.SetNewDimensions(form.ImageWidth, form.ImageHeight);
+          Form2.instance.SetNewDimensions(form.ImageWidth, form.ImageHeight);
         }      
       }
     }
 
     private void buttonRender_Click ( object sender, EventArgs e )
     {
-      if ( Form2.singleton != null )
+      if ( Form2.instance != null )
       {
-        Form2.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
+        Form2.instance.SetNewDimensions ( ImageWidth, ImageHeight );
       }
 
       if ( AdvancedTools.instance != null )
@@ -523,9 +523,9 @@ namespace _048rtmontecarlo
 
       // GUI stuff:
       SetGUI( false );
-      if (Form2.singleton != null)
+      if (Form2.instance != null)
       {
-        Form2.singleton.RenderButtonsEnabled ( false );
+        Form2.instance.RenderButtonsEnabled ( false );
       }    
 
       lock ( progress )
@@ -587,9 +587,9 @@ namespace _048rtmontecarlo
 
     private void button1_Click(object sender, EventArgs e)
     {
-      if ( Form2.singleton != null )
+      if ( Form2.instance != null )
       {
-        Form2.singleton.Activate();
+        Form2.instance.Activate();
 
         return;   //only one instance of Form2 can exist at the time
       }
