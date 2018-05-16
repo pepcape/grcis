@@ -623,5 +623,14 @@ namespace Rendering
     }
   }
 
+
+  public class Statistics
+  {
+    public static int primaryRaysCount;
+
+    public static int allRaysCount;
+
+  }
+
   #endregion
 }

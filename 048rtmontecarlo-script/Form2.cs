@@ -122,12 +122,12 @@ namespace _048rtmontecarlo
       PrimaryRaysMapPictureBox.Width =
       AllRaysMapPictureBox.Width =
       DepthMapPictureBox.Width =
-      NormalMapPictureBox.Width = formImageWidth;
+      NormalMapRelativePictureBox.Width = formImageWidth;
 
       PrimaryRaysMapPictureBox.Height =
       AllRaysMapPictureBox.Height =
       DepthMapPictureBox.Height =
-      NormalMapPictureBox.Height = formImageHeight;
+      NormalMapRelativePictureBox.Height = formImageHeight;
 
       AdvancedTools.instance.SetNewDimensions (formImageWidth, formImageHeight); //makes all maps to initialize again
     }
@@ -182,7 +182,7 @@ namespace _048rtmontecarlo
       {
         Point coordinates = e.Location;
 
-        double angle = AdvancedTools.instance.normalMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
+        double angle = AdvancedTools.instance.normalMapRelative.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
 
         char degreesChar = '°';
         if ( double.IsInfinity(angle) || double.IsNaN(angle) )
@@ -190,7 +190,7 @@ namespace _048rtmontecarlo
           degreesChar = '\0';
         }
 
-        NormalMapCoordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}{3}",
+        NormalMapRelativeCoordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}{3}",
                                                     coordinates.X,
                                                     coordinates.Y,
                                                     angle,
