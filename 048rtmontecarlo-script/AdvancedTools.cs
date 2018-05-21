@@ -32,6 +32,9 @@ namespace _048rtmontecarlo
       normalMapRelative = new NormalMap (relative: true);
       normalMapAbsolute = new NormalMap (relative: false);
 
+      normalMapAbsolute.mapArray = normalMapRelative.mapArray;
+      normalMapAbsolute.intersectionMapArray = normalMapRelative.intersectionMapArray;
+
       allMaps = new IMap[] { primaryRaysMap , allRaysMap , depthMap , normalMapRelative , normalMapAbsolute };
     }
 
@@ -48,7 +51,7 @@ namespace _048rtmontecarlo
         return;
       }
 
-      // Initial check for null references
+      // Initial check for null references  // TODO: Needed?
       if ( primaryRaysMap == null || allRaysMap == null || depthMap == null || normalMapRelative == null)
         Initialize ();       
 
@@ -61,10 +64,13 @@ namespace _048rtmontecarlo
       if ( depthMap.mapArray == null )
         depthMap.Initialize ();
 
-      if (NormalMap.mapArray == null || NormalMap.intersectionMapArray == null )
+      if (normalMapRelative.mapArray == null || normalMapRelative.intersectionMapArray == null )
       {
         normalMapRelative.Initialize();
         normalMapRelative.rayOrigin = rayOrigin;
+
+        normalMapAbsolute.Initialize();
+        normalMapAbsolute.rayOrigin = rayOrigin;
       }
         
 
@@ -92,8 +98,8 @@ namespace _048rtmontecarlo
         if ( firstIntersection != null )
         {
           // register normal vector
-          NormalMap.intersectionMapArray[ MT.x, MT.y ] += firstIntersection.CoordWorld;
-          NormalMap.mapArray[ MT.x, MT.y ] += firstIntersection.Normal;       
+          normalMapRelative.intersectionMapArray[ MT.x, MT.y ] += firstIntersection.CoordWorld;
+          normalMapAbsolute.mapArray[ MT.x, MT.y ] += firstIntersection.Normal;       
         }
       }
 
@@ -183,11 +189,9 @@ namespace _048rtmontecarlo
     {
       delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector ); //TODO: for refactor of Absolute and Relative GetAppropriateColor method
 
-      AppropriateColor appropriateColor;
+      private AppropriateColor appropriateColor;
 
-      internal new static Vector3d[,] mapArray;
-
-      internal static Vector3d[,] intersectionMapArray;
+      internal Vector3d[,] intersectionMapArray;
 
       public Vector3d rayOrigin;
 
@@ -201,6 +205,9 @@ namespace _048rtmontecarlo
         {
           appropriateColor = GetAppropriateColorAbsolute;
         }
+
+        mapArray = new Vector3d[mapImageWidth, mapImageHeight];
+        intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
       }
 
       public new void Initialize ( int formImageWidth = 0, int formImageHeight = 0)
@@ -214,7 +221,10 @@ namespace _048rtmontecarlo
         }
 
         mapArray = new Vector3d[mapImageWidth, mapImageHeight];
-        intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];              
+        intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
+
+        instance.normalMapAbsolute.mapArray = instance.normalMapRelative.mapArray;
+        instance.normalMapAbsolute.intersectionMapArray = instance.normalMapRelative.intersectionMapArray;
       }
 
 
@@ -230,9 +240,9 @@ namespace _048rtmontecarlo
         base.RenderMap ();
       }
 
-      protected new void SetReferenceMinAndMaxValues () {}
+      protected new void SetReferenceMinAndMaxValues () { }  // intentionally left blank for speed-up
 
-      protected override void SetMinimumAndMaximum () {}
+      protected override void SetMinimumAndMaximum () { }  // intentionally left blank for speed-up
 
       protected override Color GetAppropriateColor (int x, int y)
       {
@@ -267,16 +277,14 @@ namespace _048rtmontecarlo
 
       private Color GetAppropriateColorAbsolute ( Vector3d normalVector, Vector3d intersectionVector )
       {
-        Vector3d relativeNormalVector = normalVector;
-
-        if ( relativeNormalVector != Vector3d.Zero )
+        if ( normalVector != Vector3d.Zero )
         {
-          relativeNormalVector.Normalize();
+          normalVector.Normalize();
         }      
 
-        int red   =       (int) ( ( relativeNormalVector.X + 1 ) * 127.5 );
-        int green =       (int) ( ( relativeNormalVector.Y + 1 ) * 127.5 );
-        int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 127.5 );
+        int red   =       (int) ( (normalVector.X + 1 ) * 127.5 );
+        int green =       (int) ( (normalVector.Y + 1 ) * 127.5 );
+        int blue  = 255 - (int) ( (normalVector.Z + 1 ) * 127.5 );
 
         return Color.FromArgb ( red, green, blue );
       }
