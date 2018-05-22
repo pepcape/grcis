@@ -44,12 +44,7 @@ namespace _048rtmontecarlo
       f.ImageHeight = 480;
       f.NumericSupersampling.Value = 4;
       f.CheckMultithreading.Checked = true;
-      f.TextParam.Text = "sampling=adapt1";
-
-      if ( Form2.instance != null )
-      {
-        Form2.instance.SetNewDimensions (f.ImageWidth, f.ImageHeight);
-      }
+      f.TextParam.Text = "sampling=adapt1";      
     }
 
     /// <summary>

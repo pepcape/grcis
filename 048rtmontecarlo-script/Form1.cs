@@ -400,10 +400,8 @@ namespace _048rtmontecarlo
 
         // GUI stuff:
         SetGUI( true );
-        if (Form2.instance != null)
-        {
-          Form2.instance.RenderButtonsEnabled(true);
-        }      
+
+        Form2.instance?.RenderButtonsEnabled(true); 
       }
     }
 
@@ -441,6 +439,9 @@ namespace _048rtmontecarlo
       // Init scenes etc.
       string name;
       FormSupport.InitializeScenes( args, out name );
+
+      Form2.instance?.SetNewDimensions(ImageWidth, ImageHeight);
+
       Text += " (rev: " + rev + ") '" + name + '\'';
 
       SetOptions( args );
@@ -498,24 +499,15 @@ namespace _048rtmontecarlo
         ImageHeight = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
 
-        if ( Form2.instance != null )
-        {
-          Form2.instance.SetNewDimensions(form.ImageWidth, form.ImageHeight);
-        }      
+        Form2.instance?.SetNewDimensions(form.ImageWidth, form.ImageHeight);
       }
     }
 
     private void buttonRender_Click ( object sender, EventArgs e )
     {
-      if ( Form2.instance != null )
-      {
-        Form2.instance.SetNewDimensions ( ImageWidth, ImageHeight );
-      }
+      Form2.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
 
-      if ( AdvancedTools.instance != null )
-      {
-        AdvancedTools.instance.NewRenderInitialization();
-      }
+      AdvancedTools.instance?.NewRenderInitialization();
 
 
       if ( aThread != null )
@@ -523,10 +515,8 @@ namespace _048rtmontecarlo
 
       // GUI stuff:
       SetGUI( false );
-      if (Form2.instance != null)
-      {
-        Form2.instance.RenderButtonsEnabled ( false );
-      }    
+
+      Form2.instance?.RenderButtonsEnabled ( false ); 
 
       lock ( progress )
         progress.Continue = true;

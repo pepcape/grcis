@@ -30,8 +30,16 @@ namespace _048rtmontecarlo
       this.StartPosition = FormStartPosition.Manual;
 
       // Sets location of Form2 (Advanced Tools) to either right or left of Form1 (Main) 
-      // depending on position of Form1 (whether it is close to right edge of primary screen)
-      if ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width < Screen.PrimaryScreen.WorkingArea.Width ||
+      // depending on position of Form1 (whether it is close to right edge of primary screen) //TODO: fix fullscreen/no more space on screen for Form2
+
+      if (( Form1.singleton.Location.X - this.Width < 0 ) && 
+          ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width > SystemInformation.VirtualScreen.Width ) )
+      {
+        this.Location =
+          new Point( Screen.PrimaryScreen.WorkingArea.Width / 2 - this.Width / 2,
+                     Screen.PrimaryScreen.WorkingArea.Height / 2 - this.Height / 2); // place in the middle of screen if no space around Form1 is available
+      }
+      else if ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width < Screen.PrimaryScreen.WorkingArea.Width ||
            Form1.singleton.Location.X - this.Width < 0 )
       {
         this.Location =
@@ -44,6 +52,8 @@ namespace _048rtmontecarlo
           new Point ( Form1.singleton.Location.X - this.Width,
                       Form1.singleton.Location.Y ); // place to the left of Form1
       }
+
+      RenderButtonsEnabled ( false );
     }
 
     private void Form2_FormClosed ( object sender, FormClosedEventArgs e )
@@ -190,7 +200,9 @@ namespace _048rtmontecarlo
           degreesChar = '\0';
         }
 
-        NormalMapRelativeCoordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}{3}",
+        NormalMapRelativeCoordinates.Text =
+        NormalMapAbsoluteCoordinates.Text =
+          String.Format ( "X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}{3}",
                                                     coordinates.X,
                                                     coordinates.Y,
                                                     angle,

@@ -130,7 +130,7 @@ namespace Rendering
       // there was at least one intersection
       i.Complete();
 
-      AdvancedTools.instance.Register ( level, p0, i );  // moved lower to also register rays for shadows
+      AdvancedTools.instance?.Register ( level, p0, i );  // moved lower to also register rays for shadows
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode();
