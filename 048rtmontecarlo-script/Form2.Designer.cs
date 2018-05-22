@@ -131,7 +131,7 @@
       this.DepthMap_Coordinates.Anchor = System.Windows.Forms.AnchorStyles.Left;
       this.DepthMap_Coordinates.AutoSize = true;
       this.DepthMap_Coordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.DepthMap_Coordinates.Location = new System.Drawing.Point(3, 58);
+      this.DepthMap_Coordinates.Location = new System.Drawing.Point(3, 82);
       this.DepthMap_Coordinates.Name = "DepthMap_Coordinates";
       this.DepthMap_Coordinates.Size = new System.Drawing.Size(61, 60);
       this.DepthMap_Coordinates.TabIndex = 7;
@@ -141,7 +141,7 @@
       // 
       this.SaveDepthMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.SaveDepthMapButton.Enabled = false;
-      this.SaveDepthMapButton.Location = new System.Drawing.Point(6, 394);
+      this.SaveDepthMapButton.Location = new System.Drawing.Point(7, 445);
       this.SaveDepthMapButton.Name = "SaveDepthMapButton";
       this.SaveDepthMapButton.Size = new System.Drawing.Size(97, 41);
       this.SaveDepthMapButton.TabIndex = 5;
@@ -215,7 +215,7 @@
       // 
       this.SavePrimaryRaysMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.SavePrimaryRaysMapButton.Enabled = false;
-      this.SavePrimaryRaysMapButton.Location = new System.Drawing.Point(6, 394);
+      this.SavePrimaryRaysMapButton.Location = new System.Drawing.Point(7, 445);
       this.SavePrimaryRaysMapButton.Name = "SavePrimaryRaysMapButton";
       this.SavePrimaryRaysMapButton.Size = new System.Drawing.Size(97, 41);
       this.SavePrimaryRaysMapButton.TabIndex = 9;
@@ -424,7 +424,7 @@
       this.NormalMapRelativeCoordinates.Anchor = System.Windows.Forms.AnchorStyles.Left;
       this.NormalMapRelativeCoordinates.AutoSize = true;
       this.NormalMapRelativeCoordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.NormalMapRelativeCoordinates.Location = new System.Drawing.Point(3, 58);
+      this.NormalMapRelativeCoordinates.Location = new System.Drawing.Point(3, 82);
       this.NormalMapRelativeCoordinates.Name = "NormalMapRelativeCoordinates";
       this.NormalMapRelativeCoordinates.Size = new System.Drawing.Size(108, 80);
       this.NormalMapRelativeCoordinates.TabIndex = 8;
@@ -487,13 +487,15 @@
       this.NormalMapAbsolutePictureBox.Size = new System.Drawing.Size(680, 480);
       this.NormalMapAbsolutePictureBox.TabIndex = 7;
       this.NormalMapAbsolutePictureBox.TabStop = false;
+      this.NormalMapAbsolutePictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
+      this.NormalMapAbsolutePictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
       // 
       // NormalMapAbsoluteCoordinates
       // 
       this.NormalMapAbsoluteCoordinates.Anchor = System.Windows.Forms.AnchorStyles.Left;
       this.NormalMapAbsoluteCoordinates.AutoSize = true;
       this.NormalMapAbsoluteCoordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.NormalMapAbsoluteCoordinates.Location = new System.Drawing.Point(3, 58);
+      this.NormalMapAbsoluteCoordinates.Location = new System.Drawing.Point(3, 82);
       this.NormalMapAbsoluteCoordinates.Name = "NormalMapAbsoluteCoordinates";
       this.NormalMapAbsoluteCoordinates.Size = new System.Drawing.Size(108, 80);
       this.NormalMapAbsoluteCoordinates.TabIndex = 8;

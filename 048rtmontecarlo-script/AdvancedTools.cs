@@ -47,9 +47,8 @@ namespace _048rtmontecarlo
     public void Register ( int level, Vector3d rayOrigin, Intersection firstIntersection )
     {
       if ( Form2.instance == null )
-      {
         return;
-      }
+
 
       // Initial check for null references  // TODO: Needed?
       if ( primaryRaysMap == null || allRaysMap == null || depthMap == null || normalMapRelative == null)
@@ -113,9 +112,7 @@ namespace _048rtmontecarlo
       public override void RenderMap()
       {
         if ( mapImageWidth == 0 || mapImageHeight == 0 )
-        {
           Initialize ();
-        }
 
         AverageMap ();
 
@@ -235,7 +232,13 @@ namespace _048rtmontecarlo
           Initialize ();
         }
 
-        AverageMap ();
+        if ( !wasAveraged )
+        {
+          AverageMap();
+
+          instance.normalMapAbsolute.wasAveraged = true;
+          instance.normalMapRelative.wasAveraged = true;
+        }
 
         base.RenderMap ();
       }
