@@ -30,7 +30,7 @@ namespace _048rtmontecarlo
       this.StartPosition = FormStartPosition.Manual;
 
       // Sets location of Form2 (Advanced Tools) to either right or left of Form1 (Main) 
-      // depending on position of Form1 (whether it is close to right edge of primary screen) //TODO: fix fullscreen/no more space on screen for Form2
+      // depending on position of Form1 (whether it is close to right edge of primary screen)
 
       if (( Form1.singleton.Location.X - this.Width < 0 ) && 
           ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width > SystemInformation.VirtualScreen.Width ) )
@@ -58,6 +58,8 @@ namespace _048rtmontecarlo
 
     private void Form2_FormClosed ( object sender, FormClosedEventArgs e )
     {
+      System.Threading.SpinWait.SpinUntil(() => !AdvancedTools.instance.isInMiddleOfRegistering); // waiting for completion of registering current ray to maps
+
       Form1.singleton.AdvancedToolsButton.Enabled = true;
 
       instance = null;

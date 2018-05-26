@@ -12,11 +12,13 @@ namespace _048rtmontecarlo
 {
   public class AdvancedTools
   {
-    public static AdvancedTools instance; //singleton
+    public static AdvancedTools instance;   //singleton
 
     public delegate void RenderMap ();
 
     private IMap[] allMaps;
+
+    internal bool isInMiddleOfRegistering;
 
     public RaysMap primaryRaysMap;
     public RaysMap allRaysMap;
@@ -50,7 +52,7 @@ namespace _048rtmontecarlo
         return;
 
 
-      // Initial check for null references  // TODO: Needed?
+      // Initial check for null references
       if ( primaryRaysMap == null || allRaysMap == null || depthMap == null || normalMapRelative == null)
         Initialize ();       
 
@@ -83,11 +85,13 @@ namespace _048rtmontecarlo
       {
         depth = Vector3d.Distance ( rayOrigin, firstIntersection.CoordWorld );
       }
-     
+
+
+      isInMiddleOfRegistering = true;
 
       // actual registering - increasing/writing to desired arrays
       if ( level == 0 )
-      {
+      {       
         // register depth
         depthMap.mapArray[MT.x, MT.y] += depth;
 
@@ -104,6 +108,8 @@ namespace _048rtmontecarlo
 
       // register all rays
       allRaysMap.mapArray[ MT.x, MT.y ] += 1;
+
+      isInMiddleOfRegistering = false;
     }
 
 
@@ -184,7 +190,7 @@ namespace _048rtmontecarlo
 
     public class NormalMap : Map<Vector3d>
     {
-      delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector ); //TODO: for refactor of Absolute and Relative GetAppropriateColor method
+      delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector );
 
       private AppropriateColor appropriateColor;
 
@@ -489,7 +495,7 @@ namespace _048rtmontecarlo
           {          
             if ( ( mapArray[ x, y ] as IComparable<T> ).CompareTo ( maxValue ) > 0 )
               maxValue = mapArray[ x, y ];
-            if ( ( mapArray[x, y] as IComparable<T> ).CompareTo ( minValue ) < 0 )
+            if ( ( mapArray[ x, y ] as IComparable<T> ).CompareTo ( minValue ) < 0 )
               minValue = mapArray[ x, y ];
           }
         }
