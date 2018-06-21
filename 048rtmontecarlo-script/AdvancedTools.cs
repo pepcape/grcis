@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Diagnostics;
-using System.Dynamic;
 using System.Reflection;
 using MathSupport;
 using OpenTK;
@@ -13,8 +11,6 @@ namespace _048rtmontecarlo
   public class AdvancedTools
   {
     public static AdvancedTools instance;   //singleton
-
-    public delegate void RenderMap ();
 
     private IMap[] allMaps;
 
@@ -137,14 +133,14 @@ namespace _048rtmontecarlo
         {
           for ( int y = 0; y < mapImageHeight; y++ )
           {
-            mapBitmap.SetPixel ( x, y, GetAppropriateColorLogarithmicReversed ( minValue, maxValue, mapArray[ x, y ] ) );
+            mapBitmap.SetPixel ( x, y, GetAppropriateColor ( x, y ) );
           }
         }
       }
 
       protected override Color GetAppropriateColor ( int x, int y )
       {
-        return GetAppropriateColorLogarithmicReversed ( minValue, maxValue, mapArray[x, y]);
+        return GetAppropriateColorBlackAndWhiteLogarithmic ( minValue, maxValue, mapArray[x, y]);
       }
 
       protected override void DivideArray ( int x, int y )
@@ -554,6 +550,27 @@ namespace _048rtmontecarlo
 
     /// <summary>
     /// Returns color based on range
+    /// Returned color is either white (close to minValue) or black (close to maxValue)
+    /// Between that color is logarithmically transited, changing all RGB values to the same to get appropriate shade of grey (there is more than 50 of them)
+    /// </summary>
+    /// <param name="minValue">Start of range (white color)</param>
+    /// <param name="maxValue">End of range (black color)</param>
+    /// <param name="newValue">Value for which we want color</param>
+    /// <returns>Appropriate color</returns>
+    private static Color GetAppropriateColorBlackAndWhiteLogarithmic ( double minValue, double maxValue, double newValue )
+    {
+      double colorValue = Math.Log ( ( newValue - minValue + 1 ), ( maxValue - minValue + 1 ) ) * 255;
+
+      if ( double.IsNaN ( colorValue ) || double.IsInfinity ( colorValue ) )  // TODO: Needed or just throw exception?
+      {
+        colorValue = 0;
+      }
+
+      return Color.FromArgb (255 - (int) colorValue, 255 - (int) colorValue, 255 - (int) colorValue);
+    }
+
+    /// <summary>
+    /// Returns color based on range
     /// Returned color is either red (close to minValue) or dark blue (close to maxValue)
     /// Between that color is logarithmically transited, changing value in HSV model
     /// Red -> orange -> yellow -> green -> turquoise -> light blue -> dark blue (does not go to purple - reason for value 240 instead of 255)
@@ -562,16 +579,16 @@ namespace _048rtmontecarlo
     /// <param name="maxValue">End of range (dark blue color)</param>
     /// <param name="newValue">Value for which we want color</param>
     /// <returns>Appropriate color</returns>
-    private static Color GetAppropriateColorLogarithmicReversed ( double minValue, double maxValue, double newValue )
+    private static Color GetAppropriateColorLogarithmicReversed ( double minValue, double maxValue,double newValue )
     {
-      double colorValue = Math.Log ( ( newValue - minValue + 1 ), ( maxValue - minValue + 1 ) ) * 240;
+      var colorValue = Math.Log ( newValue - minValue + 1, maxValue - minValue + 1 ) * 240;
 
-      if ( double.IsNaN ( colorValue ) || double.IsInfinity ( colorValue ) )  // TODO: Needed or just throw exception?
+      if ( double.IsNaN ( colorValue ) || double.IsInfinity ( colorValue ) ) // TODO: Needed or just throw exception?
       {
         colorValue = 0;
-      }
+      }    
 
-      return Arith.HSVToColor ( colorValue, 1, 1 );
+      return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
     }
 
     /// <summary>
