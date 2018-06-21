@@ -356,7 +356,7 @@ namespace MathSupport
     /// <returns>True if handled.</returns>
     public bool MouseWheel ( MouseEventArgs e )
     {
-      float dZoom = -e.Delta / 120.0f;
+      float dZoom = e.Delta / 120.0f;
       Zoom *= (float)Math.Pow( 1.04, dZoom );
 
       // zoom bounds:
