@@ -575,7 +575,7 @@ namespace _048rtmontecarlo
       StopRendering();
     }
 
-    private void button1_Click(object sender, EventArgs e)
+    private void AdvancedToolsButton_Click(object sender, EventArgs e)
     {
       if ( Form2.instance != null )
       {
@@ -584,8 +584,21 @@ namespace _048rtmontecarlo
         return;   //only one instance of Form2 can exist at the time
       }
 
-      Form2 detailedForm = new Form2();
-      detailedForm.Show ();
+      Form2 form2 = new Form2();
+      form2.Show ();
+    }
+
+    private void RayVisualiserButton_Click ( object sender, EventArgs e )
+    {
+      if ( Form3.instance != null )
+      {
+        Form3.instance.Activate ();
+
+        return; //only one instance of Form2 can exist at the time
+      }
+
+      Form3 form3 = new Form3 ();
+      form3.Show ();
     }
   }
 }
