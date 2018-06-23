@@ -179,6 +179,8 @@ namespace Rendering
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
     double[] GetIntensity ( Intersection intersection, out Vector3d dir );
+
+    Vector3d position { get; set; }
   }
 
   public enum ReflectionComponent
@@ -628,12 +630,17 @@ namespace Rendering
   }
 
 
-  public class Statistics
+  public static class Statistics
   {
     public static int primaryRaysCount;
 
     public static int allRaysCount;
 
+    public static void Reset ()
+    {
+      primaryRaysCount = 0;
+      allRaysCount = 0;
+    }
   }
 
   #endregion

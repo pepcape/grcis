@@ -9,7 +9,7 @@ using Utilities;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace _048rtmontecarlo
+namespace Rendering
 {
   public partial class Form3 : Form
   {
@@ -31,7 +31,7 @@ namespace _048rtmontecarlo
     float diameter = 4.0f;
 
     float near = 0.1f;
-    float far  = 5.0f;
+    float far  = 25.0f;
 
     Vector3 light = new Vector3 ( -2, 1, 1 );
 

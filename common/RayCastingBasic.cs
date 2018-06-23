@@ -661,7 +661,7 @@ namespace Rendering
     /// <summary>
     /// 3D coordinate of the source.
     /// </summary>
-    internal Vector3d position;
+    public Vector3d position { get; set; }
 
     /// <summary>
     /// Intensity of the source expressed as color tuple.
@@ -710,7 +710,9 @@ namespace Rendering
   {
     protected double[] intensity;
 
-    public AmbientLightSource ( double intens )
+    public Vector3d position { get; set; }
+
+		public AmbientLightSource ( double intens )
     {
       intensity = new double[] { intens, intens, intens };
     }
