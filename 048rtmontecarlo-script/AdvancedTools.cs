@@ -71,19 +71,9 @@ namespace _048rtmontecarlo
       }
 
 
-      double depth;
+      double depth = Vector3d.Distance(rayOrigin, firstIntersection.CoordWorld);
 
-      if ( firstIntersection == null )
-      {
-        depth = 10000; // TODO: CHANGE - placeholder for "infinity"
-      }
-      else
-      {
-        depth = Vector3d.Distance ( rayOrigin, firstIntersection.CoordWorld );
-      }
-
-
-      isInMiddleOfRegistering = true;
+			isInMiddleOfRegistering = true;
 
       // actual registering - increasing/writing to desired arrays
       if ( level == 0 )

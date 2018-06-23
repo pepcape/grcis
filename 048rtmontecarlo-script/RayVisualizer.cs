@@ -13,32 +13,36 @@ using Rendering;
 
 namespace _048rtmontecarlo
 {
-  public class RayVisualiser
+  public class RayVisualizer
   {
-		public static RayVisualiser instance; // singleton
+		public static RayVisualizer instance; // singleton
 
-    private List<Vector3d> rays;
+    internal List<Vector3d> rays;
+		internal List<Vector3d> shadowRays;
 
-    public RayVisualiser ()
+    public RayVisualizer ()
     {
-      rays = new List<Vector3d>();
-    }
-
-    public void RegisterRayForVisualiser ( int level, Vector3d rayOrigin, Intersection firstIntersection )
-    {
-      if ( firstIntersection == null )
-      {
-				return;
-      }
-
-      rays.Add ( rayOrigin );
-      rays.Add ( firstIntersection.CoordWorld );
-    }
-
-    public void Reset ()
-    {
-			rays = new List<Vector3d>();
+			rays       = new List<Vector3d>();
+      shadowRays = new List<Vector3d>();
 		}
+
+    public void RegisterRay ( int level, Vector3d rayOrigin, Vector3d rayTarget)
+    {
+      rays.Add ( rayOrigin );
+      rays.Add ( rayTarget );
+    }
+
+    public void RegisterShadowRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
+    {
+      shadowRays.Add ( rayOrigin );
+      shadowRays.Add ( rayTarget );
+    }
+
+		public void Reset ()
+    {
+      rays       = new List<Vector3d>();
+      shadowRays = new List<Vector3d>();
+    }
   }
 
   public partial class Form3
@@ -99,7 +103,7 @@ namespace _048rtmontecarlo
 
       // general OpenGL
       glControl1.VSync = true;
-      GL.ClearColor ( Color.DarkBlue );
+      GL.ClearColor ( Color.Black );
       GL.Enable ( EnableCap.DepthTest );
       GL.ShadeModel ( ShadingModel.Flat );
 
@@ -610,7 +614,10 @@ namespace _048rtmontecarlo
       }
       else
       {
-        RenderPlaceholderScene ();
+        //RenderPlaceholderScene ();
+
+        RenderRays ();
+        RenderCamera ();
       }
 
       // Support: axes
@@ -768,7 +775,87 @@ namespace _048rtmontecarlo
 
       GL.End ();
 
-      triangleCounter += 12;
+      triangleCounter += 12;      
+		}
+
+    private void RenderRays ()
+    {
+      SetVertexPointer ( false ); // ??
+      SetVertexAttrib ( false );
+
+      GL.Begin ( PrimitiveType.Lines );
+
+      // Render normal rays
+      GL.Color3 ( Color.Red );
+      GL.LineWidth (5);
+      for ( int i = 0; i < RayVisualizer.instance.rays.Count; i += 2 )
+      {
+        GL.Vertex3 ( RayVisualizer.instance.rays [ i ] );
+        GL.Vertex3 ( RayVisualizer.instance.rays [ i + 1 ] );
+      }
+
+      // Render shadow rays
+      GL.Color3(Color.LightGreen);
+      GL.LineWidth(1);
+			for (int i = 0; i < RayVisualizer.instance.shadowRays.Count; i += 2)
+			{
+			  GL.Vertex3 ( RayVisualizer.instance.shadowRays [ i ] );
+			  GL.Vertex3 ( RayVisualizer.instance.shadowRays [ i + 1 ] );
+			}
+
+			GL.End ();
     }
-  }
+
+    private void RenderCamera() //TODO: change to better representation of camera
+    {
+      SetVertexPointer(false); // ??
+      SetVertexAttrib(false);
+
+      if ( RayVisualizer.instance.rays.Count == 0 ) //TODO: remove after setting rayOrigin other way
+      {
+				return;
+      }
+
+      Vector3d rayOrigin = RayVisualizer.instance.rays [ 0 ]; //TODO: set different way
+      float cameraSize = 0.2f;
+
+			GL.Begin(PrimitiveType.Quads);
+      GL.Color3(Color.Yellow);
+
+
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, -1.0f ) * cameraSize + rayOrigin ) );  // Top Right Of The Quad (Top)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, -1.0f ) * cameraSize + rayOrigin ) ); // Top Left Of The Quad (Top)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, 1.0f ) * cameraSize + rayOrigin ) );  // Bottom Left Of The Quad (Top)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, 1.0f ) * cameraSize + rayOrigin ) );   // Bottom Right Of The Quad (Top)
+
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, 1.0f ) * cameraSize + rayOrigin ) );   // Top Right Of The Quad (Bottom)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, 1.0f ) * cameraSize + rayOrigin ) );  // Top Left Of The Quad (Bottom)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * cameraSize + rayOrigin ) ); // Bottom Left Of The Quad (Bottom)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * cameraSize + rayOrigin ) );  // Bottom Right Of The Quad (Bottom)
+
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, 1.0f ) * cameraSize + rayOrigin ) );  // Top Right Of The Quad (Front)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, 1.0f ) * cameraSize + rayOrigin ) ); // Top Left Of The Quad (Front)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, 1.0f ) * cameraSize +rayOrigin ) ); // Bottom Left Of The Quad (Front)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, 1.0f ) * cameraSize + rayOrigin ) ); // Bottom Right Of The Quad (Front)
+
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * cameraSize + rayOrigin ) ); // Bottom Left Of The Quad (Back)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * cameraSize +rayOrigin ) ); // Bottom Right Of The Quad (Back)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, -1.0f ) * cameraSize + rayOrigin ) ); // Top Right Of The Quad (Back)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, -1.0f ) * cameraSize + rayOrigin ) );  // Top Left Of The Quad (Back)
+
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, 1.0f ) * cameraSize + rayOrigin ) );  // Top Right Of The Quad (Left)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, -1.0f ) * cameraSize + rayOrigin ) ); // Top Left Of The Quad (Left)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * cameraSize +rayOrigin ) ); // Bottom Left Of The Quad (Left)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, 1.0f ) * cameraSize + rayOrigin ) ); // Bottom Right Of The Quad (Left)
+
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, -1.0f ) * cameraSize + rayOrigin ) );   // Top Right Of The Quad (Right)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, 1.0f ) * cameraSize + rayOrigin ) );    // Top Left Of The Quad (Right)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, 1.0f ) * cameraSize + rayOrigin ) );   // Bottom Left Of The Quad (Right)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * cameraSize + rayOrigin ) );  // Bottom Right Of The Quad (Right)
+
+			GL.End();
+
+			triangleCounter += 12;
+    }
+	}
 }

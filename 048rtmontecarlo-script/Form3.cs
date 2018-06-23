@@ -43,7 +43,7 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Associated Trackball instance.
     /// </summary>
-    Trackball trackBall = null;
+    internal Trackball trackBall = null;
 
     /// <summary>
     /// Frustum vertices, 0 or 8 vertices
@@ -70,7 +70,9 @@ namespace _048rtmontecarlo
 
       InitShaderRepository ();
 
-      RayVisualiser.instance = new RayVisualiser ();
+			Form3.instance = this;
+
+      RayVisualizer.instance = new RayVisualizer ();
     }
 
     private void GenerateMesh () // formerly: "buttonGenerate_Click ( object sender, EventArgs e )"
