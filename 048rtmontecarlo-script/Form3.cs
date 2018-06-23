@@ -5,6 +5,9 @@ using Scene3D;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using Utilities;
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
 
 namespace _048rtmontecarlo
 {
@@ -68,8 +71,37 @@ namespace _048rtmontecarlo
       InitShaderRepository ();
     }
 
+    private void GenerateMesh () // formerly: "buttonGenerate_Click ( object sender, EventArgs e )"
+    {
+      Cursor.Current = Cursors.WaitCursor;
 
-    private void glControl1_Load ( object sender, EventArgs e )
+      bool doCheck = false;
+
+      scene.Reset ();
+
+      Construction cn = new Construction ();
+
+      cn.AddMesh ( scene, Matrix4.Identity, null );
+      diameter = scene.GetDiameter ( out center );
+
+      scene.BuildCornerTable ();
+      int errors = doCheck ? scene.CheckCornerTable ( null ) : 0;
+      scene.GenerateColors ( 12 );
+
+      trackBall.Center   = center;
+      trackBall.Diameter = diameter;
+      SetLight ( diameter, ref light );
+      trackBall.Reset ();
+
+      PrepareDataBuffers ();
+
+      glControl1.Invalidate ();
+
+      Cursor.Current = Cursors.Default;
+    }
+
+
+		private void glControl1_Load ( object sender, EventArgs e )
     {
       InitOpenGL ();
 
