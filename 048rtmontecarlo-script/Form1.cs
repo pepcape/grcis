@@ -401,7 +401,9 @@ namespace _048rtmontecarlo
         // GUI stuff:
         SetGUI( true );
 
-        Form2.instance?.RenderButtonsEnabled(true); 
+        Form2.instance?.RenderButtonsEnabled(true);
+				MT.renderingInProgress = false;
+				MT.sceneRendered = true;
       }
     }
 
@@ -412,6 +414,9 @@ namespace _048rtmontecarlo
     /// <param name="y">Y-coordinate inside the raster image.</param>
     private void singleSample ( int x, int y )
     {
+			MT.singleRayTracing = true;
+      RayVisualiser.instance?.Reset ();
+
       // determine output image size:
       int width = ImageWidth;
       if ( width <= 0 ) width = panel1.Width;
@@ -428,7 +433,9 @@ namespace _048rtmontecarlo
       long hash = imfs.GetSample( x + 0.5, y + 0.5, color );
       labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                         x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
-    }
+
+      MT.singleRayTracing = false;
+		}
 
     public Form1 ( string[] args )
     {
@@ -509,16 +516,17 @@ namespace _048rtmontecarlo
 
       AdvancedTools.instance?.NewRenderInitialization();
 
-
       if ( aThread != null )
         return;
 
       // GUI stuff:
       SetGUI( false );
 
-      Form2.instance?.RenderButtonsEnabled ( false ); 
+      Form2.instance?.RenderButtonsEnabled ( false );
+      MT.renderingInProgress = true;
 
-      lock ( progress )
+
+			lock ( progress )
         progress.Continue = true;
 
       SetText( "Wait a moment.." );
@@ -560,14 +568,14 @@ namespace _048rtmontecarlo
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( aThread == null && e.Button == MouseButtons.Left )
+      if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
         singleSample( e.X, e.Y );
     }
 
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( aThread == null && e.Button == MouseButtons.Left )
-        singleSample( e.X, e.Y );
+      if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
+				singleSample( e.X, e.Y );
     }
 
     private void Form1_FormClosing ( object sender, FormClosingEventArgs e )

@@ -69,6 +69,8 @@ namespace _048rtmontecarlo
       trackBall = new Trackball ( center, diameter );
 
       InitShaderRepository ();
+
+      RayVisualiser.instance = new RayVisualiser ();
     }
 
     private void GenerateMesh () // formerly: "buttonGenerate_Click ( object sender, EventArgs e )"
