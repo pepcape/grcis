@@ -13,9 +13,9 @@ using Utilities;
 
 namespace _048rtmontecarlo
 {
-  public partial class Form1 : Form
+  public partial class Form1: Form
   {
-    static readonly string rev = Util.SetVersion( "$Rev$" );
+    static readonly string rev = Util.SetVersion ( "$Rev$" );
 
     public static Form1 singleton = null;
 
@@ -60,19 +60,20 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Global instance of a random generator.
     /// </summary>
-    public static RandomJames rnd = new RandomJames();
+    public static RandomJames rnd = new RandomJames ();
 
     /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
     /// </summary>
-    protected Stopwatch sw = new Stopwatch();
+    protected Stopwatch sw = new Stopwatch ();
 
     /// <summary>
     /// Rendering master thread.
     /// </summary>
     protected Thread aThread = null;
 
-    protected class RenderingProgress : Progress
+
+    protected class RenderingProgress: Progress
     {
       protected Form1 f;
 
@@ -95,8 +96,8 @@ namespace _048rtmontecarlo
           return;
 
         lastSync = now;
-        f.SetText( string.Format( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
-                                  100.0f * Finished, 1.0e-3 * now ) );
+        f.SetText ( string.Format ( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
+                                    100.0f * Finished, 1.0e-3 * now ) );
         Bitmap b = msg as Bitmap;
         if ( b != null )
         {
@@ -415,7 +416,7 @@ namespace _048rtmontecarlo
     private void singleSample ( int x, int y )
     {
 			MT.singleRayTracing = true;
-      RayVisualiser.instance?.Reset ();
+      RayVisualizer.instance?.Reset ();
 
       // determine output image size:
       int width = ImageWidth;
@@ -440,12 +441,12 @@ namespace _048rtmontecarlo
     public Form1 ( string[] args )
     {
       singleton = this;
-      InitializeComponent();
-      progress = new RenderingProgress( this );
+      InitializeComponent ();
+      progress = new RenderingProgress ( this );
 
       // Init scenes etc.
       string name;
-      FormSupport.InitializeScenes( args, out name );
+      FormSupport.InitializeScenes ( args, out name );
 
       Form2.instance?.SetNewDimensions(ImageWidth, ImageHeight);
 

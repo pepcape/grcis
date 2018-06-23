@@ -661,7 +661,7 @@ namespace Rendering
     /// <summary>
     /// 3D coordinate of the source.
     /// </summary>
-    protected Vector3d position;
+    internal Vector3d position;
 
     /// <summary>
     /// Intensity of the source expressed as color tuple.

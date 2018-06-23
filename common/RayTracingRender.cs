@@ -102,7 +102,7 @@ namespace Rendering
 
     /// <summary>
     /// Recursive shading function - computes color contribution of the given ray (shot from the
-    /// origin 'p0' into direction vector 'p1''). Recursion is stopped
+    /// origin 'rayOrigin' into direction vector 'p1''). Recursion is stopped
     /// by a hybrid method: 'importance' and 'level' are checked.
     /// Internal integration support.
     /// </summary>
@@ -130,7 +130,7 @@ namespace Rendering
       // there was at least one intersection
       i.Complete();
 
-      RegisterRay ( level, p0, i ); // moved lower to also register rays for shadows
+      RegisterRay ( level, p0, i, false ); // moved lower to also register rays for shadows
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode();
@@ -157,7 +157,13 @@ namespace Rendering
         {
           Vector3d dir;
           double[] intensity = source.GetIntensity( i, out dir );
-          if ( intensity != null )
+
+          if (MT.singleRayTracing && !(source is AmbientLightSource))
+          {
+            RayVisualizer.instance?.RegisterShadowRay(level, i.CoordWorld, (source as PointLightSource).position); // register shadow ray for RayVisualizer // TODO: position for ILightSource?
+          }
+
+					if ( intensity != null )
           {
             if ( DoShadows && dir != Vector3d.Zero )
             {
@@ -166,11 +172,9 @@ namespace Rendering
               Intersection si = Intersection.FirstIntersection( intersections, ref dir );
               // Better shadow testing: intersection between 0.0 and 1.0 kills the lighting
               if ( si != null && !si.Far( 1.0, ref dir ) ) continue;
-            }
+            }            					
 
-            //AdvancedTools.instance.Register(level, p0, i);
-
-            double[] reflection = i.ReflectanceModel.ColorReflection( i, dir, p1, ReflectionComponent.ALL );
+						double[] reflection = i.ReflectanceModel.ColorReflection( i, dir, p1, ReflectionComponent.ALL );
             if ( reflection != null )
             {
               for ( b = 0; b < bands; b++ )
@@ -231,16 +235,28 @@ namespace Rendering
       return hash;
     }
 
-    private void RegisterRay ( int level, Vector3d p0, Intersection i )
+    private void RegisterRay ( int level, Vector3d rayOrigin, Intersection intersection, bool shadowRay )
     {
       if ( MT.singleRayTracing )
       {
-				RayVisualiser.instance?.RegisterRayForVisualiser(level, p0, i); // register ray for RayVisualiser
+        if ( intersection == null )
+        {
+          return;
+        }
+
+        if ( shadowRay )
+        {
+          RayVisualizer.instance?.RegisterShadowRay ( level, rayOrigin, intersection.CoordWorld ); // register shadow ray for RayVisualizer
+        }
+        else
+        {
+          RayVisualizer.instance?.RegisterRay ( level, rayOrigin, intersection.CoordWorld ); // register ray for RayVisualizer
+        }			
 			}
       else
-      {        
-        AdvancedTools.instance?.Register(level, p0, i); // register ray for statistics and maps   
-			}
+      {
+        AdvancedTools.instance?.Register ( level, rayOrigin, intersection ); // register ray for statistics and maps   
+      }
     }
   }
 }
