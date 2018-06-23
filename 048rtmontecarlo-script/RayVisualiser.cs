@@ -9,10 +9,38 @@ using MathSupport;
 using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-
+using Rendering;
 
 namespace _048rtmontecarlo
 {
+  public class RayVisualiser
+  {
+		public static RayVisualiser instance; // singleton
+
+    private List<Vector3d> rays;
+
+    public RayVisualiser ()
+    {
+      rays = new List<Vector3d>();
+    }
+
+    public void RegisterRayForVisualiser ( int level, Vector3d rayOrigin, Intersection firstIntersection )
+    {
+      if ( firstIntersection == null )
+      {
+				return;
+      }
+
+      rays.Add ( rayOrigin );
+      rays.Add ( firstIntersection.CoordWorld );
+    }
+
+    public void Reset ()
+    {
+			rays = new List<Vector3d>();
+		}
+  }
+
   public partial class Form3
   {
     /// <summary>

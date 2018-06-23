@@ -130,7 +130,7 @@ namespace Rendering
       // there was at least one intersection
       i.Complete();
 
-      AdvancedTools.instance?.Register ( level, p0, i );  // moved lower to also register rays for shadows
+      RegisterRay ( level, p0, i ); // moved lower to also register rays for shadows
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode();
@@ -230,6 +230,17 @@ namespace Rendering
 
       return hash;
     }
-  }
 
+    private void RegisterRay ( int level, Vector3d p0, Intersection i )
+    {
+      if ( MT.singleRayTracing )
+      {
+				RayVisualiser.instance?.RegisterRayForVisualiser(level, p0, i); // register ray for RayVisualiser
+			}
+      else
+      {        
+        AdvancedTools.instance?.Register(level, p0, i); // register ray for statistics and maps   
+			}
+    }
+  }
 }

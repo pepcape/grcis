@@ -587,12 +587,16 @@ namespace Rendering
     [ThreadStatic] public static int rank;
     [ThreadStatic] public static int total;
 
-    // Put more TLS data here..
+    public static bool singleRayTracing = false;
+    public static bool sceneRendered = false;
+    public static bool renderingInProgress = false;
 
-    /// <summary>
-    /// Cold init of the thread data.
-    /// </summary>
-    public static void InitThreadData ()
+		// Put more TLS data here..
+
+		/// <summary>
+		/// Cold init of the thread data.
+		/// </summary>
+		public static void InitThreadData ()
     {
       if ( rnd == null )
         rnd = new RandomJames();

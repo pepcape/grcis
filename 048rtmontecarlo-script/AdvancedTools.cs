@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Reflection;
@@ -46,7 +47,6 @@ namespace _048rtmontecarlo
     {
       if ( Form2.instance == null )
         return;
-
 
       // Initial check for null references
       if ( primaryRaysMap == null || allRaysMap == null || depthMap == null || normalMapRelative == null )
@@ -272,26 +272,33 @@ namespace _048rtmontecarlo
       {
         Vector3d relativeNormalVector = rayOrigin - intersectionVector - normalVector;
 
-        if ( relativeNormalVector != Vector3d.Zero )
+        if ( normalVector == Vector3d.Zero )
+        {
+          return Color.Black;
+        }
+
+				if ( relativeNormalVector != Vector3d.Zero )
         {
           relativeNormalVector.Normalize ();
-        }
+        }        
 
         int red   = (int) ( ( relativeNormalVector.X + 1 ) * 127.5 );
         int green = (int) ( ( relativeNormalVector.Y + 1 ) * 127.5 );
-        int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 127.5 );
+				int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 1275 );  //TODO: Change?
 
-        return Color.FromArgb ( red, green, blue );
+				return Color.FromArgb ( red, green, blue );
       }
 
       private Color GetAppropriateColorAbsolute ( Vector3d normalVector, Vector3d intersectionVector )
       {
-        if ( normalVector != Vector3d.Zero )
+        if ( normalVector == Vector3d.Zero )
         {
-          normalVector.Normalize ();
+          return Color.Black;
         }
 
-        int red   = (int) ( ( normalVector.X + 1 ) * 127.5 );
+        normalVector.Normalize();
+
+				int red   = (int) ( ( normalVector.X + 1 ) * 127.5 );
         int green = (int) ( ( normalVector.Y + 1 ) * 127.5 );
         int blue  = 255 - (int) ( ( normalVector.Z + 1 ) * 127.5 );
 
