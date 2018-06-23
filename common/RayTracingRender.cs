@@ -115,6 +115,8 @@ namespace Rendering
     protected virtual long shade ( int level, double importance, ref Vector3d p0, ref Vector3d p1,
                                    double[] color )
     {
+      Vector3d direction = p1;
+
       int bands = color.Length;
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect( p0, p1 );
       Intersection.countRays++;
@@ -123,7 +125,12 @@ namespace Rendering
 
       if ( i == null )          // no intersection -> background color
       {
-        Array.Copy( scene.BackgroundColor, color, bands );
+        if ( MT.singleRayTracing )
+        {
+					RayVisualizer.instance?.RegisterRay(level, p0, direction * 1000);
+				}
+        
+				Array.Copy( scene.BackgroundColor, color, bands );
         return 1L;
       }
 
@@ -158,9 +165,10 @@ namespace Rendering
           Vector3d dir;
           double[] intensity = source.GetIntensity( i, out dir );
 
-          if (MT.singleRayTracing && !(source is AmbientLightSource))
+          if ( MT.singleRayTracing && !( source is AmbientLightSource ) )
           {
-            RayVisualizer.instance?.RegisterShadowRay(level, i.CoordWorld, (source as PointLightSource).position); // register shadow ray for RayVisualizer // TODO: position for ILightSource?
+            RayVisualizer.instance?.RegisterShadowRay ( level, i.CoordWorld, source.position ); 
+            // register shadow ray for RayVisualizer
           }
 
 					if ( intensity != null )
