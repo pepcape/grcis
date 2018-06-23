@@ -10,30 +10,30 @@ namespace _048rtmontecarlo
 {
   public class AdvancedTools
   {
-    public static AdvancedTools instance;   //singleton
+    public static AdvancedTools instance; //singleton
 
     private IMap[] allMaps;
 
     internal bool isInMiddleOfRegistering;
 
-    public RaysMap primaryRaysMap;
-    public RaysMap allRaysMap;
-    public DepthMap depthMap;
+    public RaysMap   primaryRaysMap;
+    public RaysMap   allRaysMap;
+    public DepthMap  depthMap;
     public NormalMap normalMapRelative;
     public NormalMap normalMapAbsolute;
 
     internal void Initialize ()
     {
-      primaryRaysMap = new RaysMap ();
-      allRaysMap = new RaysMap ();
-      depthMap = new DepthMap ();
-      normalMapRelative = new NormalMap (relative: true);
-      normalMapAbsolute = new NormalMap (relative: false);
+      primaryRaysMap    = new RaysMap ();
+      allRaysMap        = new RaysMap ();
+      depthMap          = new DepthMap ();
+      normalMapRelative = new NormalMap ( relative: true );
+      normalMapAbsolute = new NormalMap ( relative: false );
 
-      normalMapAbsolute.mapArray = normalMapRelative.mapArray;
+      normalMapAbsolute.mapArray             = normalMapRelative.mapArray;
       normalMapAbsolute.intersectionMapArray = normalMapRelative.intersectionMapArray;
 
-      allMaps = new IMap[] { primaryRaysMap , allRaysMap , depthMap , normalMapRelative , normalMapAbsolute };
+      allMaps = new IMap[] { primaryRaysMap, allRaysMap, depthMap, normalMapRelative, normalMapAbsolute };
     }
 
     /// <summary>
@@ -49,27 +49,27 @@ namespace _048rtmontecarlo
 
 
       // Initial check for null references
-      if ( primaryRaysMap == null || allRaysMap == null || depthMap == null || normalMapRelative == null)
-        Initialize ();       
+      if ( primaryRaysMap == null || allRaysMap == null || depthMap == null || normalMapRelative == null )
+        Initialize ();
 
       if ( primaryRaysMap.mapArray == null )
         primaryRaysMap.Initialize ();
 
       if ( allRaysMap.mapArray == null )
-        allRaysMap.Initialize();
+        allRaysMap.Initialize ();
 
       if ( depthMap.mapArray == null )
         depthMap.Initialize ();
 
-      if (normalMapRelative.mapArray == null || normalMapRelative.intersectionMapArray == null )
+      if ( normalMapRelative.mapArray == null || normalMapRelative.intersectionMapArray == null || normalMapAbsolute.mapArray == null)
       {
-        normalMapRelative.Initialize();
+        normalMapRelative.Initialize ();
         normalMapRelative.rayOrigin = rayOrigin;
 
-        normalMapAbsolute.Initialize();
+        normalMapAbsolute.Initialize ();
         normalMapAbsolute.rayOrigin = rayOrigin;
       }
-        
+
 
       double depth;
 
@@ -87,31 +87,32 @@ namespace _048rtmontecarlo
 
       // actual registering - increasing/writing to desired arrays
       if ( level == 0 )
-      {       
+      {
         // register depth
-        depthMap.mapArray[MT.x, MT.y] += depth;
+        depthMap.mapArray [ MT.x, MT.y ] += depth;
 
         // register primary rays (those with level 0)
-        primaryRaysMap.mapArray[MT.x, MT.y] += 1; // do not use ++ instead - causes problems with strong type T in Map<T>
+        primaryRaysMap.mapArray [ MT.x, MT.y ] +=
+          1; // do not use ++ instead - causes problems with strong type T in Map<T>
 
         if ( firstIntersection != null )
         {
           // register normal vector
-          normalMapRelative.intersectionMapArray[ MT.x, MT.y ] += firstIntersection.CoordWorld;
-          normalMapAbsolute.mapArray[ MT.x, MT.y ] += firstIntersection.Normal;       
+          normalMapRelative.intersectionMapArray [ MT.x, MT.y ] += firstIntersection.CoordWorld;
+          normalMapRelative.mapArray [ MT.x, MT.y ]             += firstIntersection.Normal;
         }
       }
 
       // register all rays
-      allRaysMap.mapArray[ MT.x, MT.y ] += 1;
+      allRaysMap.mapArray [ MT.x, MT.y ] += 1;
 
       isInMiddleOfRegistering = false;
     }
 
 
-    public class DepthMap : Map<double>
+    public class DepthMap: Map<double>
     {
-      public override void RenderMap()
+      public override void RenderMap ()
       {
         if ( mapImageWidth == 0 || mapImageHeight == 0 )
           Initialize ();
@@ -140,37 +141,38 @@ namespace _048rtmontecarlo
 
       protected override Color GetAppropriateColor ( int x, int y )
       {
-        return GetAppropriateColorBlackAndWhiteLogarithmic ( minValue, maxValue, mapArray[x, y]);
+        return GetAppropriateColorBlackAndWhiteLogarithmic ( minValue, maxValue, mapArray [ x, y ] );
       }
 
       protected override void DivideArray ( int x, int y )
       {
-        mapArray[ x, y ] /= instance.primaryRaysMap.mapArray[ x, y ];
+        mapArray [ x, y ] /= instance.primaryRaysMap.mapArray [ x, y ];
       }
 
-      public override dynamic GetValueAtCoordinates( int x, int y )
+      public override dynamic GetValueAtCoordinates ( int x, int y )
       {
-        if ( mapArray[ x, y ] >= maxValue ) // TODO: PositiveInfinity in depthMap?
+        if ( mapArray [ x, y ] >= maxValue ) // TODO: PositiveInfinity in depthMap?
         {
           return double.PositiveInfinity;
         }
         else
         {
-          return mapArray[ x, y ];
+          return mapArray [ x, y ];
         }
       }
     }
 
-    public class RaysMap : Map<int>
+
+    public class RaysMap: Map<int>
     {
       protected override Color GetAppropriateColor ( int x, int y )
       {
-        return GetAppropriateColorLinear ( minValue, maxValue, mapArray[ x, y ] );
+        return GetAppropriateColorLinear ( minValue, maxValue, mapArray [ x, y ] );
       }
 
       protected override void DivideArray ( int x, int y )
       {
-        mapArray[x, y] /= instance.primaryRaysMap.mapArray[ x, y ];
+        mapArray [ x, y ] /= instance.primaryRaysMap.mapArray [ x, y ];
       }
 
       public override dynamic GetValueAtCoordinates ( int x, int y )
@@ -180,13 +182,15 @@ namespace _048rtmontecarlo
           return -1;
         }
 
-        return mapArray[x, y];
+        return mapArray [ x, y ];
       }
     }
 
-    public class NormalMap : Map<Vector3d>
+
+    public class NormalMap: Map<Vector3d>
     {
       delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector );
+
 
       private AppropriateColor appropriateColor;
 
@@ -194,9 +198,9 @@ namespace _048rtmontecarlo
 
       public Vector3d rayOrigin;
 
-      public NormalMap(bool relative = true)
+      public NormalMap ( bool relative = true )
       {
-        if (relative)
+        if ( relative )
         {
           appropriateColor = GetAppropriateColorRelative;
         }
@@ -205,38 +209,37 @@ namespace _048rtmontecarlo
           appropriateColor = GetAppropriateColorAbsolute;
         }
 
-        mapArray = new Vector3d[mapImageWidth, mapImageHeight];
+        mapArray             = new Vector3d[mapImageWidth, mapImageHeight];
         intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
       }
 
-      public new void Initialize ( int formImageWidth = 0, int formImageHeight = 0)
+      public new void Initialize ( int formImageWidth = 0, int formImageHeight = 0 )
       {
         base.Initialize ( formImageWidth, formImageHeight );
 
-        if (formImageWidth != 0)
+        if ( formImageWidth != 0 )
         {
           mapImageWidth  = formImageWidth;
           mapImageHeight = formImageHeight;
         }
 
-        mapArray = new Vector3d[mapImageWidth, mapImageHeight];
+        mapArray             = new Vector3d[mapImageWidth, mapImageHeight];
         intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
 
-        instance.normalMapAbsolute.mapArray = instance.normalMapRelative.mapArray;
+        instance.normalMapAbsolute.mapArray             = instance.normalMapRelative.mapArray;
         instance.normalMapAbsolute.intersectionMapArray = instance.normalMapRelative.intersectionMapArray;
       }
 
-
-      public override void RenderMap()
+      public override void RenderMap ()
       {
-        if (mapImageWidth == 0 || mapImageHeight == 0)
+        if ( mapImageWidth == 0 || mapImageHeight == 0 )
         {
           Initialize ();
         }
 
         if ( !wasAveraged )
         {
-          AverageMap();
+          AverageMap ();
 
           instance.normalMapAbsolute.wasAveraged = true;
           instance.normalMapRelative.wasAveraged = true;
@@ -245,62 +248,63 @@ namespace _048rtmontecarlo
         base.RenderMap ();
       }
 
-      protected new void SetReferenceMinAndMaxValues () { }  // intentionally left blank for speed-up
+      protected new void SetReferenceMinAndMaxValues () { } // intentionally left blank for speed-up
 
-      protected override void SetMinimumAndMaximum () { }  // intentionally left blank for speed-up
+      protected override void SetMinimumAndMaximum () { } // intentionally left blank for speed-up
 
-      protected override Color GetAppropriateColor (int x, int y)
+      protected override Color GetAppropriateColor ( int x, int y )
       {
-        return appropriateColor (mapArray[x, y], intersectionMapArray[x, y]);
+        return appropriateColor ( mapArray [ x, y ], intersectionMapArray [ x, y ] );
       }
 
       protected override void DivideArray ( int x, int y )
       {
-        intersectionMapArray[ x, y ] /= instance.primaryRaysMap.mapArray[ x, y ];
-      }
+        intersectionMapArray [ x, y ] /= instance.primaryRaysMap.mapArray [ x, y ];
+        mapArray[x, y] /= instance.primaryRaysMap.mapArray[x, y];
+			}
 
-      public override dynamic GetValueAtCoordinates(int x, int y)
+      public override dynamic GetValueAtCoordinates ( int x, int y )
       {
-        return Vector3d.CalculateAngle ( mapArray[ x, y ], rayOrigin - intersectionMapArray[ x, y ] ) * 180 / Math.PI;
+        return Vector3d.CalculateAngle ( mapArray [ x, y ], rayOrigin - intersectionMapArray [ x, y ] ) * 180 / Math.PI;
       }
 
       private Color GetAppropriateColorRelative ( Vector3d normalVector, Vector3d intersectionVector )
       {
         Vector3d relativeNormalVector = rayOrigin - intersectionVector - normalVector;
 
-        if (relativeNormalVector != Vector3d.Zero)
+        if ( relativeNormalVector != Vector3d.Zero )
         {
-          relativeNormalVector.Normalize();
+          relativeNormalVector.Normalize ();
         }
 
-        int red   =       (int) ( ( relativeNormalVector.X + 1 ) * 127.5);
-        int green =       (int) ( ( relativeNormalVector.Y + 1 ) * 127.5);
-        int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 127.5);
+        int red   = (int) ( ( relativeNormalVector.X + 1 ) * 127.5 );
+        int green = (int) ( ( relativeNormalVector.Y + 1 ) * 127.5 );
+        int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 127.5 );
 
-        return Color.FromArgb (red, green, blue);
+        return Color.FromArgb ( red, green, blue );
       }
 
       private Color GetAppropriateColorAbsolute ( Vector3d normalVector, Vector3d intersectionVector )
       {
         if ( normalVector != Vector3d.Zero )
         {
-          normalVector.Normalize();
-        }      
+          normalVector.Normalize ();
+        }
 
-        int red   =       (int) ( (normalVector.X + 1 ) * 127.5 );
-        int green =       (int) ( (normalVector.Y + 1 ) * 127.5 );
-        int blue  = 255 - (int) ( (normalVector.Z + 1 ) * 127.5 );
+        int red   = (int) ( ( normalVector.X + 1 ) * 127.5 );
+        int green = (int) ( ( normalVector.Y + 1 ) * 127.5 );
+        int blue  = 255 - (int) ( ( normalVector.Z + 1 ) * 127.5 );
 
         return Color.FromArgb ( red, green, blue );
       }
 
-      private Color GetAppropriateColorSimple(Vector3d normalVector, Vector3d intersectionVector)
+      private Color GetAppropriateColorSimple ( Vector3d normalVector, Vector3d intersectionVector )
       {
         double angle = Vector3d.CalculateAngle ( normalVector, rayOrigin - intersectionVector ) * 180 / Math.PI;
 
         double colorValue = angle / 90 * 240;
 
-        if ( double.IsNaN( colorValue ) )
+        if ( double.IsNaN ( colorValue ) )
         {
           return Color.FromArgb ( 1, 1, 1, 1 );
         }
@@ -315,8 +319,6 @@ namespace _048rtmontecarlo
         intersectionMapArray = null;
       }
     }
-
-
 
 
     public abstract class Map<T>: IMap
@@ -341,15 +343,15 @@ namespace _048rtmontecarlo
       /// Sets mapImageWidth and mapImageHeight according to dimensions of main image in Form1
       /// Initializes mapArray and other
       /// </summary>
-      public void Initialize( int formImageWidth = 0, int formImageHeight = 0 )
+      public void Initialize ( int formImageWidth = 0, int formImageHeight = 0 )
       {
         if ( formImageWidth != 0 )
         {
           mapImageWidth  = formImageWidth;
           mapImageHeight = formImageHeight;
-        }        
+        }
 
-        mapArray = new T[mapImageWidth, mapImageHeight];      
+        mapArray = new T[mapImageWidth, mapImageHeight];
 
         wasAveraged = false;
       }
@@ -357,11 +359,11 @@ namespace _048rtmontecarlo
       /// <summary>
       /// Main method for creating mapBitmap from mapArray and other arrays using GetAppropriateColor for each pixel of mapBitmap
       /// </summary>
-      public virtual void RenderMap()
+      public virtual void RenderMap ()
       {
-        if (mapImageWidth == 0 || mapImageHeight == 0)
+        if ( mapImageWidth == 0 || mapImageHeight == 0 )
         {
-          Initialize();
+          Initialize ();
         }
 
         SetMinimumAndMaximum ();
@@ -392,16 +394,16 @@ namespace _048rtmontecarlo
       /// </summary>
       /// <param name="name">Name of static field</param>
       /// <returns></returns>
-      private static T ReadStaticField(string name)
+      private static T ReadStaticField ( string name )
       {
-        FieldInfo field = typeof(T).GetField(name, BindingFlags.Public | BindingFlags.Static);
+        FieldInfo field = typeof ( T ).GetField ( name, BindingFlags.Public | BindingFlags.Static );
 
-        if (field == null)
+        if ( field == null )
         {
-          throw new InvalidOperationException ("Invalid type argument for NumericUpDown<T>: " + typeof(T).Name);
+          throw new InvalidOperationException ( "Invalid type argument for NumericUpDown<T>: " + typeof ( T ).Name );
         }
 
-        return (T)field.GetValue(null);
+        return (T) field.GetValue ( null );
       }
 
       /// <summary>
@@ -419,16 +421,16 @@ namespace _048rtmontecarlo
       /// <summary>
       /// Averages all elements in mapArray (standard arithmetic average)
       /// </summary>
-      protected void AverageMap()
+      protected void AverageMap ()
       {
-        if (instance.primaryRaysMap == null )
+        if ( instance.primaryRaysMap == null )
         {
-          instance.Initialize();
+          instance.Initialize ();
         }
 
-        if (instance.primaryRaysMap.mapArray == null )
+        if ( instance.primaryRaysMap.mapArray == null )
         {
-          instance.primaryRaysMap.Initialize();
+          instance.primaryRaysMap.Initialize ();
         }
 
         if ( wasAveraged )
@@ -440,9 +442,9 @@ namespace _048rtmontecarlo
         {
           for ( int j = 0; j < mapImageHeight; j++ )
           {
-            if (instance.primaryRaysMap.mapArray[i, j] != 0 ) // TODO: Fix 0 rays count
+            if ( instance.primaryRaysMap.mapArray [ i, j ] != 0 ) // TODO: Fix 0 rays count
             {
-              DivideArray(i, j);  // Separate method for division because of strongly typed T
+              DivideArray ( i, j ); // Separate method for division because of strongly typed T
             }
           }
         }
@@ -453,13 +455,13 @@ namespace _048rtmontecarlo
       /// <summary>
       /// Implementation of standard division operator (needed because of strongly typed T)
       /// </summary>
-      protected abstract void DivideArray (int x, int y);
+      protected abstract void DivideArray ( int x, int y );
 
       /// <summary>
       /// Returns mapBitmap usually to PictureBox to display it in Form2
       /// </summary>
       /// <returns></returns>
-      public Bitmap GetBitmap()
+      public Bitmap GetBitmap ()
       {
         if ( mapBitmap == null )
         {
@@ -481,18 +483,18 @@ namespace _048rtmontecarlo
       /// Sets minimal and maximal values found in mapArray
       /// </summary>
       /// <typeparam name="T">Type IComparable</typeparam>
-      protected virtual void SetMinimumAndMaximum()
+      protected virtual void SetMinimumAndMaximum ()
       {
         SetReferenceMinAndMaxValues ();
 
         for ( int x = 0; x < instance.depthMap.mapImageWidth; x++ )
         {
           for ( int y = 0; y < instance.depthMap.mapImageHeight; y++ )
-          {          
-            if ( ( mapArray[ x, y ] as IComparable<T> ).CompareTo ( maxValue ) > 0 )
-              maxValue = mapArray[ x, y ];
-            if ( ( mapArray[ x, y ] as IComparable<T> ).CompareTo ( minValue ) < 0 )
-              minValue = mapArray[ x, y ];
+          {
+            if ( ( mapArray [ x, y ] as IComparable<T> ).CompareTo ( maxValue ) > 0 )
+              maxValue = mapArray [ x, y ];
+            if ( ( mapArray [ x, y ] as IComparable<T> ).CompareTo ( minValue ) < 0 )
+              minValue = mapArray [ x, y ];
           }
         }
       }
@@ -503,6 +505,7 @@ namespace _048rtmontecarlo
       }
     }
 
+
     /// <summary>
     /// Returns minimal and maximal values found in a specific map
     /// Values are returned via reference and must be of type IComparable
@@ -511,17 +514,17 @@ namespace _048rtmontecarlo
     /// <param name="minValue">Must be initially set to max value of corresponding type</param>
     /// <param name="maxValue">Must be initially set to min value of corresponding type</param>
     /// <param name="map">2D array of values</param>
-    private void GetMinimumAndMaximum<T> ( ref T minValue, ref T maxValue, T[,] map ) where T: IComparable
+    private void GetMinimumAndMaximum<T> ( ref T minValue, ref T maxValue, T[,] map ) where T : IComparable
     {
       for ( int x = 0; x < depthMap.mapImageWidth; x++ )
       {
         for ( int y = 0; y < depthMap.mapImageHeight; y++ )
         {
-          if ( map[ x, y ].CompareTo ( maxValue ) > 0 )
-            maxValue = map[ x, y ];
+          if ( map [ x, y ].CompareTo ( maxValue ) > 0 )
+            maxValue = map [ x, y ];
 
-          if ( map[ x, y ].CompareTo ( minValue ) < 0 )
-            minValue = map[ x, y ];
+          if ( map [ x, y ].CompareTo ( minValue ) < 0 )
+            minValue = map [ x, y ];
         }
       }
     }
@@ -540,11 +543,6 @@ namespace _048rtmontecarlo
     {
       double colorValue = ( newValue - minValue ) / ( maxValue - minValue ) * 240;
 
-      if ( double.IsNaN ( colorValue ) || double.IsInfinity ( colorValue ) )  // TODO: Needed or just throw exception?
-      {
-        colorValue = 0;
-      }
-
       return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
     }
 
@@ -557,16 +555,12 @@ namespace _048rtmontecarlo
     /// <param name="maxValue">End of range (black color)</param>
     /// <param name="newValue">Value for which we want color</param>
     /// <returns>Appropriate color</returns>
-    private static Color GetAppropriateColorBlackAndWhiteLogarithmic ( double minValue, double maxValue, double newValue )
+    private static Color GetAppropriateColorBlackAndWhiteLogarithmic ( double minValue, double maxValue,
+                                                                       double newValue )
     {
       double colorValue = Math.Log ( ( newValue - minValue + 1 ), ( maxValue - minValue + 1 ) ) * 255;
 
-      if ( double.IsNaN ( colorValue ) || double.IsInfinity ( colorValue ) )  // TODO: Needed or just throw exception?
-      {
-        colorValue = 0;
-      }
-
-      return Color.FromArgb (255 - (int) colorValue, 255 - (int) colorValue, 255 - (int) colorValue);
+      return Color.FromArgb ( 255 - (int) colorValue, 255 - (int) colorValue, 255 - (int) colorValue );
     }
 
     /// <summary>
@@ -579,14 +573,9 @@ namespace _048rtmontecarlo
     /// <param name="maxValue">End of range (dark blue color)</param>
     /// <param name="newValue">Value for which we want color</param>
     /// <returns>Appropriate color</returns>
-    private static Color GetAppropriateColorLogarithmicReversed ( double minValue, double maxValue,double newValue )
+    private static Color GetAppropriateColorLogarithmicReversed ( double minValue, double maxValue, double newValue )
     {
       var colorValue = Math.Log ( newValue - minValue + 1, maxValue - minValue + 1 ) * 240;
-
-      if ( double.IsNaN ( colorValue ) || double.IsInfinity ( colorValue ) ) // TODO: Needed or just throw exception?
-      {
-        colorValue = 0;
-      }    
 
       return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
     }
@@ -603,27 +592,27 @@ namespace _048rtmontecarlo
     {
       if ( selected )
       {
-        for ( int i = 0; i < array.GetLength(0); i++ )
+        for ( int i = 0; i < array.GetLength ( 0 ); i++ )
         {
-          for ( int j = 0; j < array.GetLength(1); j++ )
+          for ( int j = 0; j < array.GetLength ( 1 ); j++ )
           {
-            if ( array[i, j].Equals( selectedValue ) )
+            if ( array [ i, j ].Equals ( selectedValue ) )
             {
-              array[i, j] = value;
-            }            
+              array [ i, j ] = value;
+            }
           }
         }
       }
       else
       {
-        for ( int i = 0; i < array.GetLength(0); i++ )
+        for ( int i = 0; i < array.GetLength ( 0 ); i++ )
         {
-          for ( int j = 0; j < array.GetLength(1); j++ )
+          for ( int j = 0; j < array.GetLength ( 1 ); j++ )
           {
-            array[i, j] = value;
+            array [ i, j ] = value;
           }
         }
-      }        
+      }
     }
 
     /// <summary>
@@ -633,14 +622,14 @@ namespace _048rtmontecarlo
     {
       if ( allMaps == null )
       {
-        Initialize();
+        Initialize ();
       }
 
       foreach ( IMap map in allMaps )
       {
         if ( map == null )
         {
-          Initialize();
+          Initialize ();
           break;
         }
       }
@@ -655,7 +644,7 @@ namespace _048rtmontecarlo
     /// Removes all maps and unnecessary stuff
     /// </summary>
     public void NewRenderInitialization ()
-    {    
+    {
       foreach ( IMap map in allMaps )
       {
         if ( map != null )
@@ -673,9 +662,9 @@ namespace _048rtmontecarlo
 /// </summary>
 interface IMap
 {
-  void Initialize(int formImageWidth = 0, int formImageHeight = 0);
+  void Initialize ( int formImageWidth = 0, int formImageHeight = 0 );
 
-  void RenderMap();
+  void RenderMap ();
 
   Bitmap GetBitmap ();
 

@@ -41,7 +41,7 @@
             this.checkTwosided = new System.Windows.Forms.CheckBox();
             this.checkWireframe = new System.Windows.Forms.CheckBox();
             this.checkSmooth = new System.Windows.Forms.CheckBox();
-            this.labelFps = new System.Windows.Forms.Label();
+            this.labelFPS = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // glControl1
@@ -209,22 +209,22 @@
             this.checkSmooth.Text = "Smooth";
             this.checkSmooth.UseVisualStyleBackColor = true;
             // 
-            // labelFps
+            // labelFPS
             // 
-            this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelFps.AutoSize = true;
-            this.labelFps.Location = new System.Drawing.Point(292, 503);
-            this.labelFps.Name = "labelFps";
-            this.labelFps.Size = new System.Drawing.Size(33, 13);
-            this.labelFps.TabIndex = 58;
-            this.labelFps.Text = "FPS: ";
+            this.labelFPS.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelFPS.AutoSize = true;
+            this.labelFPS.Location = new System.Drawing.Point(292, 503);
+            this.labelFPS.Name = "labelFPS";
+            this.labelFPS.Size = new System.Drawing.Size(33, 13);
+            this.labelFPS.TabIndex = 58;
+            this.labelFPS.Text = "FPS: ";
             // 
             // Form3
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1023, 528);
-            this.Controls.Add(this.labelFps);
+            this.Controls.Add(this.labelFPS);
             this.Controls.Add(this.checkAxes);
             this.Controls.Add(this.checkPhong);
             this.Controls.Add(this.checkSpecular);
@@ -262,6 +262,6 @@
         private System.Windows.Forms.CheckBox checkTwosided;
         private System.Windows.Forms.CheckBox checkWireframe;
         private System.Windows.Forms.CheckBox checkSmooth;
-        private System.Windows.Forms.Label labelFps;
+        private System.Windows.Forms.Label labelFPS;
     }
 }

@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MathSupport;
 using OpenglSupport;
@@ -59,33 +57,34 @@ namespace _048rtmontecarlo
     Vector3 whiteLight    = new Vector3(1.0f, 1.0f, 1.0f);
     Vector3 lightPosition = new Vector3(-20.0f, 10.0f, 10.0f);
 
-    long   lastFpsTime     = 0L;
+    long   lastFPSTime     = 0L;
     int    frameCounter    = 0;
     long   triangleCounter = 0L;
-    double lastFps         = 0.0;
-    double lastTps         = 0.0;
+    double lastFPS         = 0.0;
+    double lastTPS         = 0.0;
+
 
     void InitOpenGL ()
     {
       // log OpenGL info
       GlInfo.LogGLProperties ();
 
-      // general OpenGL:
+      // general OpenGL
       glControl1.VSync = true;
       GL.ClearColor ( Color.DarkBlue );
       GL.Enable ( EnableCap.DepthTest );
       GL.ShadeModel ( ShadingModel.Flat );
 
-      // VBO init:
+      // VBO initialization
       VBOid = new uint[2];
       GL.GenBuffers ( 2, VBOid );
       useVBO = ( GL.GetError () == ErrorCode.NoError );
 
-      // shaders:
+      // shaders
       if ( useVBO )
         canShaders = SetupShaders ();
 
-      // texture:
+      // texture
       texName = GenerateTexture ();
     }
 
@@ -112,6 +111,7 @@ namespace _048rtmontecarlo
       return true;
     }
 
+
     /// <summary>
     /// De-allocated all the data associated with the given texture object.
     /// </summary>
@@ -125,6 +125,7 @@ namespace _048rtmontecarlo
       if ( tHandle != 0 )
         GL.DeleteTexture ( tHandle );
     }
+
 
     /// <summary>
     /// Generate static procedural texture.
@@ -144,28 +145,31 @@ namespace _048rtmontecarlo
       GL.BindTexture ( TextureTarget.Texture2D, texName );
 
       Vector3[] data = new Vector3[TEX_SIZE * TEX_SIZE];
+
       for ( int y = 0; y < TEX_SIZE; y++ )
+      {
         for ( int x = 0; x < TEX_SIZE; x++ )
         {
           int  i   = y * TEX_SIZE + x;
           bool odd = ( ( x / TEX_CHECKER_SIZE + y / TEX_CHECKER_SIZE ) & 1 ) > 0;
-          data[ i ] = odd ? colBlack : colWhite;
+          data [ i ] = odd ? colBlack : colWhite;
+
           // add some fancy shading on the edges:
           if ( ( x % TEX_CHECKER_SIZE ) == 0 || ( y % TEX_CHECKER_SIZE ) == 0 )
-            data[ i ] += colShade;
+            data [ i ] += colShade;
           if ( ( ( x + 1 ) % TEX_CHECKER_SIZE ) == 0 || ( ( y + 1 ) % TEX_CHECKER_SIZE ) == 0 )
-            data[ i ] -= colShade;
+            data [ i ] -= colShade;
+
           // add top-half texture markers:
           if ( y < TEX_SIZE / 2 )
           {
-            if ( x % TEX_CHECKER_SIZE == TEX_CHECKER_SIZE / 2 &&
-                 y % TEX_CHECKER_SIZE == TEX_CHECKER_SIZE / 2 )
-              data[ i ] -= colShade;
+            if ( x % TEX_CHECKER_SIZE == TEX_CHECKER_SIZE / 2 && y % TEX_CHECKER_SIZE == TEX_CHECKER_SIZE / 2 )
+              data [ i ] -= colShade;
           }
         }
-
-      GL.TexImage2D ( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, TEX_SIZE, TEX_SIZE, 0, PixelFormat.Rgb,
-                      PixelType.Float, data );
+      }
+        
+      GL.TexImage2D ( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, TEX_SIZE, TEX_SIZE, 0, PixelFormat.Rgb, PixelType.Float, data );
 
       GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat );
       GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat );
@@ -182,14 +186,13 @@ namespace _048rtmontecarlo
     /// </summary>
     void PrepareDataBuffers ()
     {
-      if ( useVBO &&
-           scene != null &&
-           scene.Triangles > 0 )
+      if ( useVBO && scene != null && scene.Triangles > 0 )
       {
         // Vertex array: color [normal] coord
         GL.BindBuffer ( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
 
         int vertexBufferSize = scene.VertexBufferSize ( true, true, true, true );
+
         GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
 
         IntPtr videoMemoryPtr = GL.MapBuffer ( BufferTarget.ArrayBuffer, BufferAccess.WriteOnly );
@@ -205,8 +208,7 @@ namespace _048rtmontecarlo
 
         // Index buffer
         GL.BindBuffer ( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-        GL.BufferData ( BufferTarget.ElementArrayBuffer, (IntPtr) ( scene.Triangles * 3 * sizeof ( uint ) ),
-                        IntPtr.Zero, BufferUsageHint.StaticDraw );
+        GL.BufferData ( BufferTarget.ElementArrayBuffer, (IntPtr) ( scene.Triangles * 3 * sizeof ( uint ) ), IntPtr.Zero, BufferUsageHint.StaticDraw );
         videoMemoryPtr = GL.MapBuffer ( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
 
         unsafe
@@ -310,20 +312,20 @@ namespace _048rtmontecarlo
 #endif
 
         long now = DateTime.Now.Ticks;
-        if ( now - lastFpsTime > 5000000 ) // more than 0.5 sec
+        if ( now - lastFPSTime > 5000000 ) // more than 0.5 sec
         {
-          lastFps         = 0.5 * lastFps + 0.5 * ( frameCounter * 1.0e7 / ( now - lastFpsTime ) );
-          lastTps         = 0.5 * lastTps + 0.5 * ( triangleCounter * 1.0e7 / ( now - lastFpsTime ) );
-          lastFpsTime     = now;
+          lastFPS         = 0.5 * lastFPS + 0.5 * ( frameCounter * 1.0e7 / ( now - lastFPSTime ) );
+          lastTPS         = 0.5 * lastTPS + 0.5 * ( triangleCounter * 1.0e7 / ( now - lastFPSTime ) );
+          lastFPSTime     = now;
           frameCounter    = 0;
           triangleCounter = 0L;
 
-          if ( lastTps < 5.0e5 )
-            labelFps.Text = string.Format ( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f0}k",
-                                            lastFps, ( lastTps * 1.0e-3 ) );
+          if ( lastTPS < 5.0e5 )
+            labelFPS.Text = string.Format ( CultureInfo.InvariantCulture, "FPS: {0:f1}, TPS: {1:f0}k",
+                                            lastFPS, ( lastTPS * 1.0e-3 ) );
           else
-            labelFps.Text = string.Format ( CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f1}m",
-                                            lastFps, ( lastTps * 1.0e-6 ) );
+            labelFPS.Text = string.Format ( CultureInfo.InvariantCulture, "FPS: {0:f1}, TPS: {1:f1}m",
+                                            lastFPS, ( lastTPS * 1.0e-6 ) );
         }
 
         // pointing:
@@ -335,16 +337,17 @@ namespace _048rtmontecarlo
           Vector2d uv;
           double   nearest = double.PositiveInfinity;
 
-          if ( scene != null &&
-               scene.Triangles > 0 )
+          if ( scene != null && scene.Triangles > 0 )
           {
             Vector3 A, B, C;
+
             for ( int i = 0; i < scene.Triangles; i++ )
             {
               scene.GetTriangleVertices ( i, out A, out B, out C );
+
               double curr = Geometry.RayTriangleIntersection ( ref p0, ref p1, ref A, ref B, ref C, out uv );
-              if ( !double.IsInfinity ( curr ) &&
-                   curr < nearest )
+
+              if ( !double.IsInfinity ( curr ) && curr < nearest )
                 nearest = curr;
             }
           }
@@ -352,6 +355,7 @@ namespace _048rtmontecarlo
           {
             Vector3d ul   = new Vector3d ( -1.0, -1.0, -1.0 );
             Vector3d size = new Vector3d ( 2.0, 2.0, 2.0 );
+
             if ( Geometry.RayBoxIntersection ( ref p0, ref p1, ref ul, ref size, out uv ) )
               nearest = uv.X;
           }
@@ -362,6 +366,7 @@ namespace _048rtmontecarlo
             spot = new Vector3 ( (float) ( p0.X + nearest * p1.X ),
                                  (float) ( p0.Y + nearest * p1.Y ),
                                  (float) ( p0.Z + nearest * p1.Z ) );
+
           pointDirty = false;
         }
       }
@@ -396,10 +401,13 @@ namespace _048rtmontecarlo
       if ( on )
       {
         GL.EnableClientState ( ArrayCap.VertexArray );
+
         if ( scene.TxtCoords > 0 )
           GL.EnableClientState ( ArrayCap.TextureCoordArray );
+
         if ( scene.Normals > 0 )
           GL.EnableClientState ( ArrayCap.NormalArray );
+
         if ( scene.Colors > 0 )
           GL.EnableClientState ( ArrayCap.ColorArray );
       }
@@ -439,6 +447,7 @@ namespace _048rtmontecarlo
           Matrix4 modelView  = trackBall.ModelView;
           Matrix4 projection = trackBall.Projection;
           Vector3 eye        = trackBall.Eye;
+
           GL.UniformMatrix4 ( activeProgram.GetUniform ( "matrixModelView" ), false, ref modelView );
           GL.UniformMatrix4 ( activeProgram.GetUniform ( "matrixProjection" ), false, ref projection );
 
@@ -471,8 +480,7 @@ namespace _048rtmontecarlo
 
           // texture handling:
           bool useTexture = checkTexture.Checked;
-          if ( !scene.HasTxtCoords () ||
-               texName == 0 )
+          if ( !scene.HasTxtCoords () || texName == 0 )
             useTexture = false;
           GL.Uniform1 ( activeProgram.GetUniform ( "useTexture" ), useTexture ? 1 : 0 );
           GL.Uniform1 ( activeProgram.GetUniform ( "texSurface" ), 0 );
@@ -525,8 +533,7 @@ namespace _048rtmontecarlo
 
           // texture handling:
           bool useTexture = checkTexture.Checked;
-          if ( !scene.HasTxtCoords () ||
-               texName == 0 )
+          if ( !scene.HasTxtCoords () || texName == 0 )
             useTexture = false;
           if ( useTexture )
           {
@@ -575,50 +582,7 @@ namespace _048rtmontecarlo
       }
       else
       {
-        SetVertexPointer ( false );
-        SetVertexAttrib ( false );
-
-        GL.Begin ( PrimitiveType.Quads );
-
-        GL.Color3 ( 0.0f, 1.0f, 0.0f );    // Set The Color To Green
-        GL.Vertex3 ( 1.0f, 1.0f, -1.0f );  // Top Right Of The Quad (Top)
-        GL.Vertex3 ( -1.0f, 1.0f, -1.0f ); // Top Left Of The Quad (Top)
-        GL.Vertex3 ( -1.0f, 1.0f, 1.0f );  // Bottom Left Of The Quad (Top)
-        GL.Vertex3 ( 1.0f, 1.0f, 1.0f );   // Bottom Right Of The Quad (Top)
-
-        GL.Color3 ( 1.0f, 0.5f, 0.0f );     // Set The Color To Orange
-        GL.Vertex3 ( 1.0f, -1.0f, 1.0f );   // Top Right Of The Quad (Bottom)
-        GL.Vertex3 ( -1.0f, -1.0f, 1.0f );  // Top Left Of The Quad (Bottom)
-        GL.Vertex3 ( -1.0f, -1.0f, -1.0f ); // Bottom Left Of The Quad (Bottom)
-        GL.Vertex3 ( 1.0f, -1.0f, -1.0f );  // Bottom Right Of The Quad (Bottom)
-
-        GL.Color3 ( 1.0f, 0.0f, 0.0f );    // Set The Color To Red
-        GL.Vertex3 ( 1.0f, 1.0f, 1.0f );   // Top Right Of The Quad (Front)
-        GL.Vertex3 ( -1.0f, 1.0f, 1.0f );  // Top Left Of The Quad (Front)
-        GL.Vertex3 ( -1.0f, -1.0f, 1.0f ); // Bottom Left Of The Quad (Front)
-        GL.Vertex3 ( 1.0f, -1.0f, 1.0f );  // Bottom Right Of The Quad (Front)
-
-        GL.Color3 ( 1.0f, 1.0f, 0.0f );     // Set The Color To Yellow
-        GL.Vertex3 ( 1.0f, -1.0f, -1.0f );  // Bottom Left Of The Quad (Back)
-        GL.Vertex3 ( -1.0f, -1.0f, -1.0f ); // Bottom Right Of The Quad (Back)
-        GL.Vertex3 ( -1.0f, 1.0f, -1.0f );  // Top Right Of The Quad (Back)
-        GL.Vertex3 ( 1.0f, 1.0f, -1.0f );   // Top Left Of The Quad (Back)
-
-        GL.Color3 ( 0.0f, 0.0f, 1.0f );     // Set The Color To Blue
-        GL.Vertex3 ( -1.0f, 1.0f, 1.0f );   // Top Right Of The Quad (Left)
-        GL.Vertex3 ( -1.0f, 1.0f, -1.0f );  // Top Left Of The Quad (Left)
-        GL.Vertex3 ( -1.0f, -1.0f, -1.0f ); // Bottom Left Of The Quad (Left)
-        GL.Vertex3 ( -1.0f, -1.0f, 1.0f );  // Bottom Right Of The Quad (Left)
-
-        GL.Color3 ( 1.0f, 0.0f, 1.0f );    // Set The Color To Violet
-        GL.Vertex3 ( 1.0f, 1.0f, -1.0f );  // Top Right Of The Quad (Right)
-        GL.Vertex3 ( 1.0f, 1.0f, 1.0f );   // Top Left Of The Quad (Right)
-        GL.Vertex3 ( 1.0f, -1.0f, 1.0f );  // Bottom Left Of The Quad (Right)
-        GL.Vertex3 ( 1.0f, -1.0f, -1.0f ); // Bottom Right Of The Quad (Right)
-
-        GL.End ();
-
-        triangleCounter += 12;
+        RenderPlaceholderScene ();
       }
 
       // Support: axes
@@ -628,90 +592,155 @@ namespace _048rtmontecarlo
         float origPoint = GL.GetFloat ( GetPName.PointSize );
 
         // axes:
-        GL.LineWidth ( 2.0f );
-        GL.Begin ( PrimitiveType.Lines );
-
-        GL.Color3 ( 1.0f, 0.1f, 0.1f );
-        GL.Vertex3 ( center );
-        GL.Vertex3 ( center + new Vector3 ( 0.5f, 0.0f, 0.0f ) * diameter );
-
-        GL.Color3 ( 0.0f, 1.0f, 0.0f );
-        GL.Vertex3 ( center );
-        GL.Vertex3 ( center + new Vector3 ( 0.0f, 0.5f, 0.0f ) * diameter );
-
-        GL.Color3 ( 0.2f, 0.2f, 1.0f );
-        GL.Vertex3 ( center );
-        GL.Vertex3 ( center + new Vector3 ( 0.0f, 0.0f, 0.5f ) * diameter );
-
-        GL.End ();
+        RenderAxes ();
 
         // Support: pointing
         if ( pointOrigin != null )
         {
-          GL.Begin ( PrimitiveType.Lines );
-          GL.Color3 ( 1.0f, 1.0f, 0.0f );
-          GL.Vertex3 ( pointOrigin.Value );
-          GL.Vertex3 ( pointTarget );
-          GL.Color3 ( 1.0f, 0.0f, 0.0f );
-          GL.Vertex3 ( pointOrigin.Value );
-          GL.Vertex3 ( eye );
-          GL.End ();
-
-          GL.PointSize ( 4.0f );
-          GL.Begin ( PrimitiveType.Points );
-          GL.Color3 ( 1.0f, 0.0f, 0.0f );
-          GL.Vertex3 ( pointOrigin.Value );
-          GL.Color3 ( 0.0f, 1.0f, 0.2f );
-          GL.Vertex3 ( pointTarget );
-          GL.Color3 ( 1.0f, 1.0f, 1.0f );
-          if ( spot != null )
-            GL.Vertex3 ( spot.Value );
-          GL.Vertex3 ( eye );
-          GL.End ();
+          RenderPointing ();
         }
 
         // Support: frustum
         if ( frustumFrame.Count >= 8 )
         {
-          GL.LineWidth ( 2.0f );
-          GL.Begin ( PrimitiveType.Lines );
-
-          GL.Color3 ( 1.0f, 0.0f, 0.0f );
-          GL.Vertex3 ( frustumFrame[ 0 ] );
-          GL.Vertex3 ( frustumFrame[ 1 ] );
-          GL.Vertex3 ( frustumFrame[ 1 ] );
-          GL.Vertex3 ( frustumFrame[ 3 ] );
-          GL.Vertex3 ( frustumFrame[ 3 ] );
-          GL.Vertex3 ( frustumFrame[ 2 ] );
-          GL.Vertex3 ( frustumFrame[ 2 ] );
-          GL.Vertex3 ( frustumFrame[ 0 ] );
-
-          GL.Color3 ( 1.0f, 1.0f, 1.0f );
-          GL.Vertex3 ( frustumFrame[ 0 ] );
-          GL.Vertex3 ( frustumFrame[ 4 ] );
-          GL.Vertex3 ( frustumFrame[ 1 ] );
-          GL.Vertex3 ( frustumFrame[ 5 ] );
-          GL.Vertex3 ( frustumFrame[ 2 ] );
-          GL.Vertex3 ( frustumFrame[ 6 ] );
-          GL.Vertex3 ( frustumFrame[ 3 ] );
-          GL.Vertex3 ( frustumFrame[ 7 ] );
-
-          GL.Color3 ( 0.0f, 1.0f, 0.0f );
-          GL.Vertex3 ( frustumFrame[ 4 ] );
-          GL.Vertex3 ( frustumFrame[ 5 ] );
-          GL.Vertex3 ( frustumFrame[ 5 ] );
-          GL.Vertex3 ( frustumFrame[ 7 ] );
-          GL.Vertex3 ( frustumFrame[ 7 ] );
-          GL.Vertex3 ( frustumFrame[ 6 ] );
-          GL.Vertex3 ( frustumFrame[ 6 ] );
-          GL.Vertex3 ( frustumFrame[ 4 ] );
-
-          GL.End ();
+          RenderFrustum ();
         }
 
         GL.LineWidth ( origWidth );
         GL.PointSize ( origPoint );
       }
+    }
+
+    private void RenderPointing ()
+    {
+      GL.Begin ( PrimitiveType.Lines );
+      GL.Color3 ( 1.0f, 1.0f, 0.0f );
+      GL.Vertex3 ( pointOrigin.Value );
+      GL.Vertex3 ( pointTarget );
+      GL.Color3 ( 1.0f, 0.0f, 0.0f );
+      GL.Vertex3 ( pointOrigin.Value );
+      GL.Vertex3 ( eye );
+      GL.End ();
+
+      GL.PointSize ( 4.0f );
+      GL.Begin ( PrimitiveType.Points );
+      GL.Color3 ( 1.0f, 0.0f, 0.0f );
+      GL.Vertex3 ( pointOrigin.Value );
+      GL.Color3 ( 0.0f, 1.0f, 0.2f );
+      GL.Vertex3 ( pointTarget );
+      GL.Color3 ( 1.0f, 1.0f, 1.0f );
+
+      if ( spot != null )
+        GL.Vertex3 ( spot.Value );
+
+      GL.Vertex3 ( eye );
+      GL.End ();
+    }
+
+    private void RenderFrustum ()
+    {
+      GL.LineWidth ( 2.0f );
+      GL.Begin ( PrimitiveType.Lines );
+
+      GL.Color3 ( 1.0f, 0.0f, 0.0f );
+      GL.Vertex3 ( frustumFrame [ 0 ] );
+      GL.Vertex3 ( frustumFrame [ 1 ] );
+      GL.Vertex3 ( frustumFrame [ 1 ] );
+      GL.Vertex3 ( frustumFrame [ 3 ] );
+      GL.Vertex3 ( frustumFrame [ 3 ] );
+      GL.Vertex3 ( frustumFrame [ 2 ] );
+      GL.Vertex3 ( frustumFrame [ 2 ] );
+      GL.Vertex3 ( frustumFrame [ 0 ] );
+
+      GL.Color3 ( 1.0f, 1.0f, 1.0f );
+      GL.Vertex3 ( frustumFrame [ 0 ] );
+      GL.Vertex3 ( frustumFrame [ 4 ] );
+      GL.Vertex3 ( frustumFrame [ 1 ] );
+      GL.Vertex3 ( frustumFrame [ 5 ] );
+      GL.Vertex3 ( frustumFrame [ 2 ] );
+      GL.Vertex3 ( frustumFrame [ 6 ] );
+      GL.Vertex3 ( frustumFrame [ 3 ] );
+      GL.Vertex3 ( frustumFrame [ 7 ] );
+
+      GL.Color3 ( 0.0f, 1.0f, 0.0f );
+      GL.Vertex3 ( frustumFrame [ 4 ] );
+      GL.Vertex3 ( frustumFrame [ 5 ] );
+      GL.Vertex3 ( frustumFrame [ 5 ] );
+      GL.Vertex3 ( frustumFrame [ 7 ] );
+      GL.Vertex3 ( frustumFrame [ 7 ] );
+      GL.Vertex3 ( frustumFrame [ 6 ] );
+      GL.Vertex3 ( frustumFrame [ 6 ] );
+      GL.Vertex3 ( frustumFrame [ 4 ] );
+
+      GL.End ();
+    }
+
+    private void RenderAxes ()
+    {
+      GL.LineWidth ( 2.0f );
+      GL.Begin ( PrimitiveType.Lines );
+
+      GL.Color3 ( 1.0f, 0.1f, 0.1f );
+      GL.Vertex3 ( center );
+      GL.Vertex3 ( center + new Vector3 ( 0.5f, 0.0f, 0.0f ) * diameter );
+
+      GL.Color3 ( 0.0f, 1.0f, 0.0f );
+      GL.Vertex3 ( center );
+      GL.Vertex3 ( center + new Vector3 ( 0.0f, 0.5f, 0.0f ) * diameter );
+
+      GL.Color3 ( 0.2f, 0.2f, 1.0f );
+      GL.Vertex3 ( center );
+      GL.Vertex3 ( center + new Vector3 ( 0.0f, 0.0f, 0.5f ) * diameter );
+
+      GL.End ();
+    }
+
+    private void RenderPlaceholderScene ()
+    {
+      SetVertexPointer ( false );
+      SetVertexAttrib ( false );
+
+      GL.Begin ( PrimitiveType.Quads );
+
+      GL.Color3 ( 0.0f, 1.0f, 0.0f );    // Set The Color To Green
+      GL.Vertex3 ( 1.0f, 1.0f, -1.0f );  // Top Right Of The Quad (Top)
+      GL.Vertex3 ( -1.0f, 1.0f, -1.0f ); // Top Left Of The Quad (Top)
+      GL.Vertex3 ( -1.0f, 1.0f, 1.0f );  // Bottom Left Of The Quad (Top)
+      GL.Vertex3 ( 1.0f, 1.0f, 1.0f );   // Bottom Right Of The Quad (Top)
+
+      GL.Color3 ( 1.0f, 0.5f, 0.0f );     // Set The Color To Orange
+      GL.Vertex3 ( 1.0f, -1.0f, 1.0f );   // Top Right Of The Quad (Bottom)
+      GL.Vertex3 ( -1.0f, -1.0f, 1.0f );  // Top Left Of The Quad (Bottom)
+      GL.Vertex3 ( -1.0f, -1.0f, -1.0f ); // Bottom Left Of The Quad (Bottom)
+      GL.Vertex3 ( 1.0f, -1.0f, -1.0f );  // Bottom Right Of The Quad (Bottom)
+
+      GL.Color3 ( 1.0f, 0.0f, 0.0f );    // Set The Color To Red
+      GL.Vertex3 ( 1.0f, 1.0f, 1.0f );   // Top Right Of The Quad (Front)
+      GL.Vertex3 ( -1.0f, 1.0f, 1.0f );  // Top Left Of The Quad (Front)
+      GL.Vertex3 ( -1.0f, -1.0f, 1.0f ); // Bottom Left Of The Quad (Front)
+      GL.Vertex3 ( 1.0f, -1.0f, 1.0f );  // Bottom Right Of The Quad (Front)
+
+      GL.Color3 ( 1.0f, 1.0f, 0.0f );     // Set The Color To Yellow
+      GL.Vertex3 ( 1.0f, -1.0f, -1.0f );  // Bottom Left Of The Quad (Back)
+      GL.Vertex3 ( -1.0f, -1.0f, -1.0f ); // Bottom Right Of The Quad (Back)
+      GL.Vertex3 ( -1.0f, 1.0f, -1.0f );  // Top Right Of The Quad (Back)
+      GL.Vertex3 ( 1.0f, 1.0f, -1.0f );   // Top Left Of The Quad (Back)
+
+      GL.Color3 ( 0.0f, 0.0f, 1.0f );     // Set The Color To Blue
+      GL.Vertex3 ( -1.0f, 1.0f, 1.0f );   // Top Right Of The Quad (Left)
+      GL.Vertex3 ( -1.0f, 1.0f, -1.0f );  // Top Left Of The Quad (Left)
+      GL.Vertex3 ( -1.0f, -1.0f, -1.0f ); // Bottom Left Of The Quad (Left)
+      GL.Vertex3 ( -1.0f, -1.0f, 1.0f );  // Bottom Right Of The Quad (Left)
+
+      GL.Color3 ( 1.0f, 0.0f, 1.0f );    // Set The Color To Violet
+      GL.Vertex3 ( 1.0f, 1.0f, -1.0f );  // Top Right Of The Quad (Right)
+      GL.Vertex3 ( 1.0f, 1.0f, 1.0f );   // Top Left Of The Quad (Right)
+      GL.Vertex3 ( 1.0f, -1.0f, 1.0f );  // Bottom Left Of The Quad (Right)
+      GL.Vertex3 ( 1.0f, -1.0f, -1.0f ); // Bottom Right Of The Quad (Right)
+
+      GL.End ();
+
+      triangleCounter += 12;
     }
   }
 }
