@@ -42,12 +42,18 @@
 			this.checkWireframe = new System.Windows.Forms.CheckBox();
 			this.checkSmooth = new System.Windows.Forms.CheckBox();
 			this.labelFPS = new System.Windows.Forms.Label();
+			this.NormalRaysCheckBox = new System.Windows.Forms.CheckBox();
+			this.ShadowRaysCheckBox = new System.Windows.Forms.CheckBox();
+			this.CameraCheckBox = new System.Windows.Forms.CheckBox();
+			this.LightSourcesCheckBox = new System.Windows.Forms.CheckBox();
+			this.AllignCameraButton = new System.Windows.Forms.Button();
+			this.AllignCameraCheckBox = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// glControl1
 			// 
-			this.glControl1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-			| System.Windows.Forms.AnchorStyles.Right)));
+			this.glControl1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.glControl1.BackColor = System.Drawing.Color.Black;
 			this.glControl1.Location = new System.Drawing.Point(12, 12);
 			this.glControl1.Name = "glControl1";
@@ -219,11 +225,89 @@
 			this.labelFPS.TabIndex = 58;
 			this.labelFPS.Text = "FPS: ";
 			// 
+			// NormalRaysCheckBox
+			// 
+			this.NormalRaysCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.NormalRaysCheckBox.AutoSize = true;
+			this.NormalRaysCheckBox.Checked = true;
+			this.NormalRaysCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.NormalRaysCheckBox.Location = new System.Drawing.Point(529, 427);
+			this.NormalRaysCheckBox.Name = "NormalRaysCheckBox";
+			this.NormalRaysCheckBox.Size = new System.Drawing.Size(81, 17);
+			this.NormalRaysCheckBox.TabIndex = 59;
+			this.NormalRaysCheckBox.Text = "Normal rays";
+			this.NormalRaysCheckBox.UseVisualStyleBackColor = true;
+			// 
+			// ShadowRaysCheckBox
+			// 
+			this.ShadowRaysCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.ShadowRaysCheckBox.AutoSize = true;
+			this.ShadowRaysCheckBox.Checked = true;
+			this.ShadowRaysCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.ShadowRaysCheckBox.Location = new System.Drawing.Point(529, 451);
+			this.ShadowRaysCheckBox.Name = "ShadowRaysCheckBox";
+			this.ShadowRaysCheckBox.Size = new System.Drawing.Size(87, 17);
+			this.ShadowRaysCheckBox.TabIndex = 60;
+			this.ShadowRaysCheckBox.Text = "Shadow rays";
+			this.ShadowRaysCheckBox.UseVisualStyleBackColor = true;
+			// 
+			// CameraCheckBox
+			// 
+			this.CameraCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.CameraCheckBox.AutoSize = true;
+			this.CameraCheckBox.Checked = true;
+			this.CameraCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.CameraCheckBox.Location = new System.Drawing.Point(529, 474);
+			this.CameraCheckBox.Name = "CameraCheckBox";
+			this.CameraCheckBox.Size = new System.Drawing.Size(62, 17);
+			this.CameraCheckBox.TabIndex = 61;
+			this.CameraCheckBox.Text = "Camera";
+			this.CameraCheckBox.UseVisualStyleBackColor = true;
+			// 
+			// LightSourcesCheckBox
+			// 
+			this.LightSourcesCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.LightSourcesCheckBox.AutoSize = true;
+			this.LightSourcesCheckBox.Checked = true;
+			this.LightSourcesCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.LightSourcesCheckBox.Location = new System.Drawing.Point(529, 499);
+			this.LightSourcesCheckBox.Name = "LightSourcesCheckBox";
+			this.LightSourcesCheckBox.Size = new System.Drawing.Size(89, 17);
+			this.LightSourcesCheckBox.TabIndex = 62;
+			this.LightSourcesCheckBox.Text = "Light sources";
+			this.LightSourcesCheckBox.UseVisualStyleBackColor = true;
+			// 
+			// AllignCameraButton
+			// 
+			this.AllignCameraButton.Location = new System.Drawing.Point(693, 427);
+			this.AllignCameraButton.Name = "AllignCameraButton";
+			this.AllignCameraButton.Size = new System.Drawing.Size(159, 23);
+			this.AllignCameraButton.TabIndex = 63;
+			this.AllignCameraButton.Text = "Allign camera to primary ray";
+			this.AllignCameraButton.UseVisualStyleBackColor = true;
+			this.AllignCameraButton.Click += new System.EventHandler(this.AllignCamera);
+			// 
+			// AllignCameraCheckBox
+			// 
+			this.AllignCameraCheckBox.AutoSize = true;
+			this.AllignCameraCheckBox.Location = new System.Drawing.Point(859, 432);
+			this.AllignCameraCheckBox.Name = "AllignCameraCheckBox";
+			this.AllignCameraCheckBox.Size = new System.Drawing.Size(90, 17);
+			this.AllignCameraCheckBox.TabIndex = 64;
+			this.AllignCameraCheckBox.Text = "Keep alligned";
+			this.AllignCameraCheckBox.UseVisualStyleBackColor = true;
+			// 
 			// Form3
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1023, 528);
+			this.Controls.Add(this.AllignCameraCheckBox);
+			this.Controls.Add(this.AllignCameraButton);
+			this.Controls.Add(this.LightSourcesCheckBox);
+			this.Controls.Add(this.CameraCheckBox);
+			this.Controls.Add(this.ShadowRaysCheckBox);
+			this.Controls.Add(this.NormalRaysCheckBox);
 			this.Controls.Add(this.labelFPS);
 			this.Controls.Add(this.checkAxes);
 			this.Controls.Add(this.checkPhong);
@@ -241,6 +325,7 @@
 			this.Name = "Form3";
 			this.Text = "Ray Visualiser";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form3_FormClosing);
+			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form3_FormClosed);
 			this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseWheel);
 			this.ResumeLayout(false);
 			this.PerformLayout();
@@ -263,5 +348,11 @@
 		private System.Windows.Forms.CheckBox checkWireframe;
 		private System.Windows.Forms.CheckBox checkSmooth;
 		private System.Windows.Forms.Label labelFPS;
+		private System.Windows.Forms.CheckBox NormalRaysCheckBox;
+		private System.Windows.Forms.CheckBox ShadowRaysCheckBox;
+		private System.Windows.Forms.CheckBox CameraCheckBox;
+		private System.Windows.Forms.CheckBox LightSourcesCheckBox;
+		private System.Windows.Forms.Button AllignCameraButton;
+		private System.Windows.Forms.CheckBox AllignCameraCheckBox;
 	}
 }

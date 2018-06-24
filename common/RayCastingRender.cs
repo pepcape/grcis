@@ -42,7 +42,11 @@ namespace Rendering
     public RayCasting ( IRayScene sc )
     {
       scene = sc;
-      RayVisualizer.instance.scene = sc;
+
+      if ( RayVisualizer.instance != null )
+      {
+        RayVisualizer.instance.scene = sc;
+      }
     }
 
     /// <summary>

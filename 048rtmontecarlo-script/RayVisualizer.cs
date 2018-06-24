@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -22,6 +23,8 @@ namespace Rendering
 
     internal IRayScene scene;
 
+    private static Vector3d AxesCorrectionVector = new Vector3d ( 1, 1, -1 );
+
 		public RayVisualizer ()
     {
       rays = new List<Vector3d> ( 16 );
@@ -30,21 +33,29 @@ namespace Rendering
 
     public void RegisterRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
     {
-      rays.Add ( rayOrigin );
-      rays.Add ( rayTarget );
+      //Debug.WriteLine (rayOrigin + "   " + rayTarget + "   " + level);
+
+      rays.Add ( AxesCorrector ( rayOrigin ) );
+      rays.Add ( AxesCorrector ( rayTarget ) );
     }
 
     public void RegisterShadowRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
     {
-      shadowRays.Add ( rayOrigin );
-      shadowRays.Add ( rayTarget );
-    }
+      shadowRays.Add ( AxesCorrector ( rayOrigin ) );
+      shadowRays.Add ( AxesCorrector ( rayTarget ) );
+		}
 
 		public void Reset ()
 		{
 		  rays = new List<Vector3d> ( 16 );
 		  shadowRays = new List<Vector3d> ( 16 );
 		}
+
+    public static Vector3d AxesCorrector ( Vector3d position )
+    {
+      return position * AxesCorrectionVector;
+
+    }
   }
 
   public partial class Form3
@@ -621,6 +632,11 @@ namespace Rendering
         RenderRays ();
         RenderCamera ();
         RenderLightSources ();
+
+        if ( AllignCameraCheckBox.Checked )
+        {
+          AllignCamera ( null, null );
+        }
       }
 
       // Support: axes
@@ -788,28 +804,32 @@ namespace Rendering
 
       GL.Begin ( PrimitiveType.Lines );
 
-      // Render normal rays
-      GL.Color3 ( Color.Red );
-      for ( int i = 0; i < RayVisualizer.instance.rays.Count; i += 2 )
+      if ( NormalRaysCheckBox.Checked ) // Render normal rays
       {
-        GL.Vertex3 ( RayVisualizer.instance.rays [ i ] );
-        GL.Vertex3 ( RayVisualizer.instance.rays [ i + 1 ] );
+        GL.Color3 ( Color.Red );
+        for ( int i = 0; i < RayVisualizer.instance.rays.Count; i += 2 )
+        {
+          GL.Vertex3 ( RayVisualizer.instance.rays [ i ] );
+          GL.Vertex3 ( RayVisualizer.instance.rays [ i + 1 ] );
+        }
       }
 
-      // Render shadow rays
-      GL.Color3(Color.LightGreen);
-			for (int i = 0; i < RayVisualizer.instance.shadowRays.Count; i += 2)
-			{
-			  GL.Vertex3 ( RayVisualizer.instance.shadowRays [ i ] );
-			  GL.Vertex3 ( RayVisualizer.instance.shadowRays [ i + 1 ] );
-			}
+      if ( ShadowRaysCheckBox.Checked ) // Render shadow rays
+      {
+        GL.Color3 ( Color.LightGreen );
+        for ( int i = 0; i < RayVisualizer.instance.shadowRays.Count; i += 2 )
+        {
+          GL.Vertex3 ( RayVisualizer.instance.shadowRays [ i ] );
+          GL.Vertex3 ( RayVisualizer.instance.shadowRays [ i + 1 ] );
+        }
+      }     
 
 			GL.End ();
     }
 
     private void RenderCamera () //TODO: change to better representation of camera
     {
-      if ( RayVisualizer.instance.rays.Count == 0 )
+      if ( RayVisualizer.instance.rays.Count == 0 || !CameraCheckBox.Checked )
       {
         return;
       }
@@ -819,7 +839,7 @@ namespace Rendering
 
     private void RenderLightSources () //TODO: change to better representation of light sources
     {
-      if ( RayVisualizer.instance.rays.Count == 0 || RayVisualizer.instance.scene.Sources == null )
+      if ( RayVisualizer.instance?.rays.Count == 0 || RayVisualizer.instance?.scene.Sources == null || !LightSourcesCheckBox.Checked)
       {
         return;
       }
@@ -828,7 +848,7 @@ namespace Rendering
       {
         if ( !( lightSource is AmbientLightSource ) )
         {
-          RenderCube ( lightSource.position, 0.07f, Color.Green );
+          RenderCube ( RayVisualizer.AxesCorrector( lightSource.position ), 0.07f, Color.Green );
         }      
       }      
     }

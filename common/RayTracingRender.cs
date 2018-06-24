@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using OpenTK;
 using MathSupport;
 using _048rtmontecarlo;
@@ -119,7 +120,13 @@ namespace Rendering
 
       int bands = color.Length;
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect( p0, p1 );
-      Intersection.countRays++;
+
+      Statistics.allRaysCount++;
+      if ( level == 0 )
+      {
+        Statistics.primaryRaysCount++;
+      }
+
       Intersection i = Intersection.FirstIntersection( intersections, ref p1 );
       int b;
 
@@ -127,20 +134,25 @@ namespace Rendering
       {
         if ( MT.singleRayTracing )
         {
-					RayVisualizer.instance?.RegisterRay(level, p0, direction * 1000);
-				}
+          RayVisualizer.instance?.RegisterRay ( level, p0, direction * 1000 );
+        }
         
 				Array.Copy( scene.BackgroundColor, color, bands );
         return 1L;
       }
 
       // there was at least one intersection
-      i.Complete();
+      i.Complete ();
 
       RegisterRay ( level, p0, i, false ); // moved lower to also register rays for shadows
 
+      if ( level == 2 )
+      {
+				//Console.WriteLine("test");
+      }
+
       // hash code for adaptive supersampling:
-      long hash = i.Solid.GetHashCode();
+      long hash = i.Solid.GetHashCode ();
 
       // apply all the textures fist..
       if ( i.Textures != null )
@@ -156,7 +168,7 @@ namespace Rendering
       else
       {
         // apply the reflectance model for each source
-        i.Material = (IMaterial)i.Material.Clone();
+        i.Material = (IMaterial) i.Material.Clone ();
         i.Material.Color = i.SurfaceColor;
         Array.Clear( color, 0, bands );
 
@@ -176,7 +188,7 @@ namespace Rendering
             if ( DoShadows && dir != Vector3d.Zero )
             {
               intersections = scene.Intersectable.Intersect( i.CoordWorld, dir );
-              Intersection.countRays++;              
+              Statistics.allRaysCount++;              
               Intersection si = Intersection.FirstIntersection( intersections, ref dir );
               // Better shadow testing: intersection between 0.0 and 1.0 kills the lighting
               if ( si != null && !si.Far( 1.0, ref dir ) ) continue;
