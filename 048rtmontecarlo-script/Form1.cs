@@ -525,6 +525,7 @@ namespace _048rtmontecarlo
 
       Form2.instance?.RenderButtonsEnabled ( false );
       MT.renderingInProgress = true;
+      Statistics.Reset ();
 
 
 			lock ( progress )
@@ -603,10 +604,12 @@ namespace _048rtmontecarlo
       {
         Form3.instance.Activate ();
 
-        return; //only one instance of Form2 can exist at the time
+        return; //only one instance of Form3 can exist at the time
       }
 
-      Form3 form3 = new Form3 ();
+      Cursor.Current = Cursors.WaitCursor;
+
+			Form3 form3 = new Form3 ();
       form3.Show ();
     }
   }

@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using Utilities;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using _048rtmontecarlo;
 
 namespace Rendering
 {
@@ -66,14 +67,18 @@ namespace Rendering
     {
       InitializeComponent ();
 
-      trackBall = new Trackball ( center, diameter );
+      Form1.singleton.RayVisualiserButton.Enabled = false;
+
+			trackBall = new Trackball ( center, diameter );
 
       InitShaderRepository ();
 
 			Form3.instance = this;
 
       RayVisualizer.instance = new RayVisualizer ();
-    }
+
+      Cursor.Current = Cursors.Default;
+		}
 
     private void GenerateMesh () // formerly: "buttonGenerate_Click ( object sender, EventArgs e )"
     {
@@ -220,5 +225,22 @@ namespace Rendering
         }
       }
     }
-  }
+
+		private void Form3_FormClosed(object sender, FormClosedEventArgs e)
+		{
+		  Form1.singleton.RayVisualiserButton.Enabled = true;
+
+			instance = null;
+		}
+
+		private void AllignCamera ( object sender, EventArgs e )
+		{
+		  if ( RayVisualizer.instance?.rays.Count < 2 )
+		  {
+				return;
+		  }
+
+		  //TODO: allign camera
+		}
+	}
 }

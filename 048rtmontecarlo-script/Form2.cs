@@ -20,9 +20,9 @@ namespace _048rtmontecarlo
 
       Form1.singleton.AdvancedToolsButton.Enabled = false;
 
-      if (AdvancedTools.instance == null)
+      if ( AdvancedTools.instance == null )
       {
-        AdvancedTools.instance = new AdvancedTools();
+        AdvancedTools.instance = new AdvancedTools ();
       }      
 
       InitializeComponent ();
@@ -32,7 +32,7 @@ namespace _048rtmontecarlo
       // Sets location of Form2 (Advanced Tools) to either right or left of Form1 (Main) 
       // depending on position of Form1 (whether it is close to right edge of primary screen)
 
-      if (( Form1.singleton.Location.X - this.Width < 0 ) && 
+      if ( ( Form1.singleton.Location.X - this.Width < 0 ) && 
           ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width > SystemInformation.VirtualScreen.Width ) )
       {
         this.Location =
@@ -121,6 +121,10 @@ namespace _048rtmontecarlo
 
       Button saveButton = panel.Controls.Find("Save" + fieldNameCamelCase + "Button", true).FirstOrDefault() as Button;    
       saveButton.Enabled = true;
+
+      SetTotalAndAveragePrimaryRaysCount ();
+      SetTotalAndAverageAllRaysCount ();
+
     }
 
     /// <summary>
@@ -163,28 +167,6 @@ namespace _048rtmontecarlo
     }
 
     /// <summary>
-    /// Displays number of primary rays sent to selected pixel (clicked or hovered over while mouse down)
-    /// </summary>
-    private void PrimaryRaysMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
-    {
-      if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
-      {
-        RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.instance.primaryRaysMap, PrimaryRaysMapCoordinates, e.Location );
-      }
-    }
-
-    /// <summary>
-    /// Displays number of all rays sent to selected pixel (clicked or hovered over while mouse down)
-    /// </summary>
-    private void AllRaysMapPictureBox_MouseDownAndMouseMove(object sender, MouseEventArgs e)
-    {
-      if (((PictureBox)sender).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
-      {
-        RaysMapPictureBox_MouseDownAndMouseMove(AdvancedTools.instance.allRaysMap, AllRaysMapCoordinates, e.Location);
-      }
-    }
-
-    /// <summary>
     /// Displays angle of rayOrigin-intersection and normal vector in place of intersection in selected pixel (clicked or hovered over while mouse down)
     /// Intersections as well as normal vectors are averaged through all such vectors in selected pixel
     /// </summary>
@@ -203,44 +185,68 @@ namespace _048rtmontecarlo
         }
 
         NormalMapRelativeCoordinates.Text =
-        NormalMapAbsoluteCoordinates.Text =
-          String.Format ( "X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}{3}",
-                                                    coordinates.X,
-                                                    coordinates.Y,
-                                                    angle,
-                                                    degreesChar);
+          NormalMapAbsoluteCoordinates.Text =
+            String.Format ( "X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}{3}",
+                            coordinates.X,
+                            coordinates.Y,
+                            angle,
+                            degreesChar );
       }
     }
 
     /// <summary>
-    /// Called only from methods which choose raysMap (All/Primary rays)
+    /// Displays number of primary rays sent to selected pixel (clicked or hovered over while mouse down)
     /// </summary>
-    /// <param name="raysMap">AllRaysMap or PrimaryRaysMap</param>
-    /// <param name="label">UI element where to write info</param>
-    /// <param name="coordinates">Point where mouse was clicked / hovered over while held down</param>
-    private void RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.RaysMap raysMap, Label label, Point coordinates )
+    private void PrimaryRaysMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
+    {
+      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left && ( (PictureBox) sender ).ClientRectangle.Contains ( e.Location ) )
+      {
+        RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.instance.primaryRaysMap, PrimaryRaysMapCoordinates, e.Location );
+      }
+    }
+
+    /// <summary>
+    /// Displays number of all rays sent to selected pixel (clicked or hovered over while mouse down)
+    /// </summary>
+    private void AllRaysMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
+    {
+      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left && ( (PictureBox) sender ).ClientRectangle.Contains ( e.Location ) )
+      {
+        RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.instance.allRaysMap, AllRaysMapCoordinates, e.Location );
+      }
+    }
+
+		/// <summary>
+		/// Called only from methods which choose raysMap (All/Primary rays)
+		/// </summary>
+		/// <param name="raysMap">AllRaysMap or PrimaryRaysMap</param>
+		/// <param name="label">UI element where to write info</param>
+		/// <param name="coordinates">Point where mouse was clicked / hovered over while held down</param>
+		private void RaysMapPictureBox_MouseDownAndMouseMove ( AdvancedTools.RaysMap raysMap, Label label, Point coordinates )
     //TODO: refactor to get rid of PrimaryRaysMapPictureBox_MouseDownAndMouseMove and AllRaysMapPictureBox_MouseDownAndMouseMove
     {
-      int raysCount = raysMap.GetValueAtCoordinates(coordinates.X, coordinates.Y);
+      int raysCount = raysMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
 
-      label.Text = String.Format("X: {0}\r\nY: {1}\r\nRays count:\r\n{2}",
-                                 coordinates.X,
-                                 coordinates.Y,
-                                 raysCount);
+      label.Text = String.Format ( "X: {0}\r\nY: {1}\r\nRays count:\r\n{2}",
+                                   coordinates.X,
+                                   coordinates.Y,
+                                   raysCount );
     }
 
-    public void SetTotalAndAveragePrimaryRaysCount ( long totalCount, int width, int height )
+    public void SetTotalAndAveragePrimaryRaysCount ()
     {
-      TotalPrimaryRaysCount.Text = String.Format ( "Total rays\r\ncount:\r\n{0}", totalCount );  //TODO: All rays, not only primary
+      TotalPrimaryRaysCount.Text = String.Format ( "Total rays\r\ncount:\r\n{0}", Statistics.primaryRaysCount );
 
-      AveragePrimaryRaysCount.Text = String.Format ( "Average rays\r\ncount\r\nper pixel:\r\n{0}", totalCount / ( width * height ) );
+      AveragePrimaryRaysCount.Text = String.Format ( "Average rays\r\ncount\r\nper pixel:\r\n{0}", 
+                                                     Statistics.primaryRaysCount / ( PrimaryRaysMapPictureBox.Width * PrimaryRaysMapPictureBox.Height ) );
     }
 
-    public void SetTotalAndAverageAllRaysCount( long totalCount, int width, int height )
+    public void SetTotalAndAverageAllRaysCount ()
     {
-      TotalAllRaysCount.Text = String.Format ( "Total all\r\nrays count:\r\n{0}", totalCount );
+      TotalAllRaysCount.Text = String.Format ( "Total all\r\nrays count:\r\n{0}", Statistics.allRaysCount );
 
-      AverageAllRaysCount.Text = String.Format ( "Average all\r\nray count\r\nper pixel:\r\n{0}", totalCount / ( width * height ) );
+      AverageAllRaysCount.Text = String.Format ( "Average all\r\nray count\r\nper pixel:\r\n{0}",
+                                                 Statistics.allRaysCount / ( AllRaysMapPictureBox.Width * AllRaysMapPictureBox.Height ) );
     }
 
     /// <summary>
