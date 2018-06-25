@@ -177,9 +177,9 @@ namespace Rendering
           Vector3d dir;
           double[] intensity = source.GetIntensity( i, out dir );
 
-          if ( MT.singleRayTracing && !( source is AmbientLightSource ) )
+          if ( MT.singleRayTracing && source.position != null )
           {
-            RayVisualizer.instance?.RegisterShadowRay ( level, i.CoordWorld, source.position ); 
+            RayVisualizer.instance?.RegisterShadowRay ( level, i.CoordWorld, (Vector3d) source.position );
             // register shadow ray for RayVisualizer
           }
 
@@ -191,7 +191,8 @@ namespace Rendering
               Statistics.allRaysCount++;              
               Intersection si = Intersection.FirstIntersection( intersections, ref dir );
               // Better shadow testing: intersection between 0.0 and 1.0 kills the lighting
-              if ( si != null && !si.Far( 1.0, ref dir ) ) continue;
+              if ( si != null && !si.Far( 1.0, ref dir ) )
+                continue;
             }            					
 
 						double[] reflection = i.ReflectanceModel.ColorReflection( i, dir, p1, ReflectionComponent.ALL );

@@ -10,10 +10,12 @@ using MathSupport;
 using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using Rendering;
 
 namespace Rendering
 {
+  /// <summary>
+	/// Takes care of registering rays into lists which are later used for their rendering
+	/// </summary>
   public class RayVisualizer
   {
 		public static RayVisualizer instance; // singleton
@@ -25,13 +27,26 @@ namespace Rendering
 
     private static Vector3d AxesCorrectionVector = new Vector3d ( 1, 1, -1 );
 
+    private int initialListCapacity = 32;
+
+    /// <summary>
+		/// Prepares lists
+		/// Initial list capacity is small enough to accomodate all elements in most cases
+		/// (used for speed-up since ray registration and rendering should be in real-time)
+		/// </summary>
 		public RayVisualizer ()
     {
-      rays = new List<Vector3d> ( 16 );
-      shadowRays = new List<Vector3d> ( 16 );
+      rays = new List<Vector3d> ( initialListCapacity );
+      shadowRays = new List<Vector3d> ( initialListCapacity );
     }
 
-    public void RegisterRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
+		/// <summary>
+		/// Registers normal ray
+		/// </summary>
+		/// <param name="level">**Not used right now**</param>
+		/// <param name="rayOrigin">Position of the beginning of ray</param>
+		/// <param name="rayTarget">Position of the end of ray</param>
+		public void RegisterRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
     {
       //Debug.WriteLine (rayOrigin + "   " + rayTarget + "   " + level);
 
@@ -39,22 +54,41 @@ namespace Rendering
       rays.Add ( AxesCorrector ( rayTarget ) );
     }
 
-    public void RegisterShadowRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
+    /// <summary>
+    /// Registers shadow ray (from intersection to position of light source)
+    /// </summary>
+    /// <param name="level">**Not used right now**</param>
+    /// <param name="rayOrigin">Position of the beginning of ray - intersection with scene</param>
+    /// <param name="rayTarget">Position of the end of ray - position of light source</param>
+		public void RegisterShadowRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
     {
       shadowRays.Add ( AxesCorrector ( rayOrigin ) );
       shadowRays.Add ( AxesCorrector ( rayTarget ) );
 		}
 
+    /// <summary>
+		/// Empties lists to prepare them for a new set of rays
+		/// </summary>
 		public void Reset ()
 		{
-		  rays = new List<Vector3d> ( 16 );
-		  shadowRays = new List<Vector3d> ( 16 );
+		  rays = new List<Vector3d> ( initialListCapacity );
+		  shadowRays = new List<Vector3d> ( initialListCapacity );
 		}
 
-    public static Vector3d AxesCorrector ( Vector3d position )
+    /// <summary>
+		/// Corrects axes (different axes labels/positioning system for scene original raytracer and OpenGL system)
+		/// Inverts 3rd axis of position
+		/// </summary>
+		/// <param name="position">Position in original raytracer scene</param>
+		/// <returns>Position in OpenGL system (or zero vector if input is null)</returns>
+    public static Vector3d AxesCorrector ( Vector3d? position )
     {
-      return position * AxesCorrectionVector;
+      if ( position == null )
+      {
+        return new Vector3d ( 0, 0, 0 );
+      }
 
+      return (Vector3d) position * AxesCorrectionVector;
     }
   }
 
@@ -226,6 +260,7 @@ namespace Rendering
       return texName;
     }
 
+
     /// <summary>
     /// Prepare VBO content and upload it to the GPU.
     /// </summary>
@@ -278,6 +313,7 @@ namespace Rendering
         }
       }
     }
+
     
     /// <summary>
     /// Set light-source coordinate in the world-space.
@@ -627,8 +663,6 @@ namespace Rendering
       }
       else
       {
-        //RenderPlaceholderScene ();
-
         RenderRays ();
         RenderCamera ();
         RenderLightSources ();
@@ -729,6 +763,7 @@ namespace Rendering
       GL.End ();
     }
 
+
     private void RenderAxes ()
     {
       GL.LineWidth ( 2.0f );
@@ -748,6 +783,7 @@ namespace Rendering
 
       GL.End ();
     }
+
 
     private void RenderPlaceholderScene ()
     {
@@ -797,6 +833,10 @@ namespace Rendering
       triangleCounter += 12;      
 		}
 
+
+    /// <summary>
+		/// Renders all normal and shadow rays (further selection done via check boxes)
+		/// </summary>
     private void RenderRays ()
     {
       SetVertexPointer ( false ); // ??
@@ -816,7 +856,7 @@ namespace Rendering
 
       if ( ShadowRaysCheckBox.Checked ) // Render shadow rays
       {
-        GL.Color3 ( Color.LightGreen );
+        GL.Color3 ( Color.Yellow );
         for ( int i = 0; i < RayVisualizer.instance.shadowRays.Count; i += 2 )
         {
           GL.Vertex3 ( RayVisualizer.instance.shadowRays [ i ] );
@@ -827,6 +867,10 @@ namespace Rendering
 			GL.End ();
     }
 
+
+    /// <summary>
+		/// Renders representation of camera (initially at position of rayOrigin of first primary ray)
+		/// </summary>
     private void RenderCamera () //TODO: change to better representation of camera
     {
       if ( RayVisualizer.instance.rays.Count == 0 || !CameraCheckBox.Checked )
@@ -834,26 +878,37 @@ namespace Rendering
         return;
       }
 
-      RenderCube ( RayVisualizer.instance.rays [ 0 ], 0.2f, Color.Yellow );
+      RenderCube ( RayVisualizer.instance.rays [ 0 ], 0.2f, Color.Turquoise );
     }
 
-    private void RenderLightSources () //TODO: change to better representation of light sources
+
+		/// <summary>
+		/// Renders representation of all light sources (except those in with null as position - usually ambient and directional lights which position does not matter)
+		/// </summary>
+		private void RenderLightSources () //TODO: change to better representation of light sources
     {
-      if ( RayVisualizer.instance?.rays.Count == 0 || RayVisualizer.instance?.scene.Sources == null || !LightSourcesCheckBox.Checked)
+      if ( RayVisualizer.instance?.rays.Count == 0 || RayVisualizer.instance?.scene.Sources == null || !LightSourcesCheckBox.Checked )
       {
         return;
       }
 
       foreach ( ILightSource lightSource in RayVisualizer.instance?.scene.Sources )
       {
-        if ( !( lightSource is AmbientLightSource ) )
+        if ( lightSource.position != null )
         {
-          RenderCube ( RayVisualizer.AxesCorrector( lightSource.position ), 0.07f, Color.Green );
-        }      
-      }      
+					RenderCube ( RayVisualizer.AxesCorrector ( lightSource.position ), 0.07f, Color.Yellow );
+				}			
+			}      
     }
 
 
+    /// <summary>
+		/// Renders simple cube of uniform color
+		/// Initially used as placeholder so several objects
+		/// </summary>
+		/// <param name="position">Position in space</param>
+		/// <param name="size">Size of cube</param>
+		/// <param name="color">Uniform color of cube</param>
 		private void RenderCube(Vector3d position, float size, Color color) 
     {
       SetVertexPointer(false); // ??

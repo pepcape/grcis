@@ -5,9 +5,6 @@ using Scene3D;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using Utilities;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
 using _048rtmontecarlo;
 
 namespace Rendering

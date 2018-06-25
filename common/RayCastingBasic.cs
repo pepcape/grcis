@@ -661,7 +661,7 @@ namespace Rendering
     /// <summary>
     /// 3D coordinate of the source.
     /// </summary>
-    public Vector3d position { get; set; }
+    public Vector3d? position { get; set; }
 
     /// <summary>
     /// Intensity of the source expressed as color tuple.
@@ -695,7 +695,7 @@ namespace Rendering
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
     public virtual double[] GetIntensity ( Intersection intersection, out Vector3d dir )
     {
-      dir = position - intersection.CoordWorld;
+      dir = (Vector3d) position - intersection.CoordWorld;
       if ( Vector3d.Dot( dir, intersection.Normal ) <= 0.0 )
         return null;
 
@@ -710,7 +710,7 @@ namespace Rendering
   {
     protected double[] intensity;
 
-    public Vector3d position { get; set; }
+    public Vector3d? position { get; set; }
 
 		public AmbientLightSource ( double intens )
     {
@@ -815,7 +815,7 @@ namespace Rendering
         }
 
         // TODO: do something like:
-        sample = source.position + u * source.width + v * source.height;
+        sample = (Vector3d)source.position + u * source.width + v * source.height;
       }
     }
 
