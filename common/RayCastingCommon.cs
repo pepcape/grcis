@@ -180,7 +180,7 @@ namespace Rendering
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
     double[] GetIntensity ( Intersection intersection, out Vector3d dir );
 
-    Vector3d position { get; set; }
+		Vector3d? position { get; set; }
   }
 
   public enum ReflectionComponent

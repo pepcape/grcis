@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -13,7 +14,7 @@ namespace _048rtmontecarlo
   {
     public static AdvancedTools instance; //singleton
 
-    private IMap[] allMaps;
+    private List<IMap> allMaps;
 
     internal bool isInMiddleOfRegistering;
 
@@ -34,7 +35,17 @@ namespace _048rtmontecarlo
       normalMapAbsolute.mapArray             = normalMapRelative.mapArray;
       normalMapAbsolute.intersectionMapArray = normalMapRelative.intersectionMapArray;
 
-      allMaps = new IMap[] { primaryRaysMap, allRaysMap, depthMap, normalMapRelative, normalMapAbsolute };
+      allMaps = new List<IMap> ();
+
+      foreach ( FieldInfo fieldInfo in typeof(AdvancedTools).GetFields() )
+      {
+        if ( typeof(IMap).IsAssignableFrom( fieldInfo.FieldType ) )
+        {
+					allMaps.Add ( (IMap) fieldInfo.GetValue ( instance ) );
+				}
+      }
+
+      //allMaps = new IMap[] { primaryRaysMap, allRaysMap, depthMap, normalMapRelative, normalMapAbsolute };
     }
 
     /// <summary>
@@ -118,7 +129,7 @@ namespace _048rtmontecarlo
         PopulateArray2D<double> ( mapArray, maxValue, 0, true );
 
         minValue = double.MaxValue;
-        instance.GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray ); // TODO: New minimum after replacing all zeroes
+        instance.GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray ); // New minimum after replacing all zeroes
 
         for ( int x = 0; x < mapImageWidth; x++ )
         {
@@ -141,7 +152,7 @@ namespace _048rtmontecarlo
 
       public override dynamic GetValueAtCoordinates ( int x, int y )
       {
-        if ( mapArray [ x, y ] >= maxValue ) // TODO: PositiveInfinity in depthMap?
+        if ( mapArray [ x, y ] >= maxValue )
         {
           return double.PositiveInfinity;
         }
@@ -152,7 +163,9 @@ namespace _048rtmontecarlo
       }
     }
 
-
+    /// <summary>
+		/// Used for PrimaryRaysMap, AllRaysMap and potentially other maps based on rays count
+		/// </summary>
     public class RaysMap: Map<int>
     {
       protected override Color GetAppropriateColor ( int x, int y )
@@ -177,6 +190,10 @@ namespace _048rtmontecarlo
     }
 
 
+    /// <summary>
+		/// Used for Absolute- and Relative-NormaMap
+		/// Shows normals at first intersection of primary rays with scene (averages in case of multiple primary rays per pixel)
+		/// </summary>
     public class NormalMap: Map<Vector3d>
     {
       delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector );
@@ -318,6 +335,10 @@ namespace _048rtmontecarlo
     }
 
 
+    /// <summary>
+		/// Base class for all maps
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
     public abstract class Map<T>: IMap
     {
       // Image width and heightin pixels, 0 for default value (according to panel size)
@@ -439,7 +460,7 @@ namespace _048rtmontecarlo
         {
           for ( int j = 0; j < mapImageHeight; j++ )
           {
-            if ( instance.primaryRaysMap.mapArray [ i, j ] != 0 ) // TODO: Fix 0 rays count
+            if ( instance.primaryRaysMap.mapArray [ i, j ] != 0 )
             {
               DivideArray ( i, j ); // Separate method for division because of strongly typed T
             }
