@@ -25,7 +25,7 @@ namespace Rendering
 
     internal IRayScene scene;
 
-    private static Vector3d AxesCorrectionVector = new Vector3d ( 1, 1, -1 );
+    private static Vector3d axesCorrectionVector = new Vector3d ( 1, 1, -1 );
 
     private int initialListCapacity = 32;
 
@@ -88,7 +88,7 @@ namespace Rendering
         return new Vector3d ( 0, 0, 0 );
       }
 
-      return (Vector3d) position * AxesCorrectionVector;
+      return (Vector3d) position * axesCorrectionVector;
     }
   }
 

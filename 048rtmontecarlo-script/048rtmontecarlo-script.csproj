@@ -91,6 +91,9 @@
     <Reference Include="OpenTK.GLControl">
       <HintPath>..\lib\OpenTK.GLControl.dll</HintPath>
     </Reference>
+    <Reference Include="SplitButton">
+      <HintPath>..\SplitButton\bin\Release\SplitButton.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.AppContext.4.3.0\lib\net46\System.AppContext.dll</HintPath>
@@ -269,6 +272,13 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RayVisualizer.cs" />
+    <Compile Include="RenderClientsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RenderClientsForm.Designer.cs">
+      <DependentUpon>RenderClientsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WorkloadDistribution.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
@@ -288,10 +298,14 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="RenderClientsForm.resx">
+      <DependentUpon>RenderClientsForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
+    <None Include="Properties\DataSources\RenderClientsForm.datasource" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
