@@ -612,5 +612,20 @@ namespace _048rtmontecarlo
 			Form3 form3 = new Form3 ();
       form3.Show ();
     }
-  }
+
+		private void addRenderClientToolStripMenuItem_Click ( object sender, EventArgs e )
+		{
+		  if ( RenderClientsForm.instance != null )
+		  {
+		    RenderClientsForm.instance.Show ();
+
+				RenderClientsForm.instance.Activate ();
+
+		    return; //only one instance of renderClientsForm can exist at the time
+			}
+
+		  RenderClientsForm renderClientsForm = new RenderClientsForm ();
+		  renderClientsForm.Show ();
+		}
+	}
 }
