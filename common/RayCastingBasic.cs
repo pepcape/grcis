@@ -496,8 +496,8 @@ namespace Rendering
     /// <param name="color">Computed pixel color.</param>
     public override void RenderPixel ( int x, int y, double[] color )
     {
-      Debug.Assert( color != null );
-      Debug.Assert( MT.rnd != null );
+      //Debug.Assert( color != null );
+      //Debug.Assert( MT.rnd != null );
 
       MT.StartPixel( x, y, Supersampling );
 
