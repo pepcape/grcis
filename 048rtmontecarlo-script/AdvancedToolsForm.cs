@@ -7,14 +7,14 @@ using Rendering;
 
 namespace _048rtmontecarlo
 {
-  public partial class Form2 : Form
+  public partial class AdvancedToolsForm : Form
   {
-    public static Form2 instance; //singleton
+    public static AdvancedToolsForm instance; //singleton
 
     /// <summary>
     /// Constructor which sets location of Form2 window and initializes AdvancedTools class
     /// </summary>
-    public Form2 ()
+    public AdvancedToolsForm ()
     {
       instance = this;
 

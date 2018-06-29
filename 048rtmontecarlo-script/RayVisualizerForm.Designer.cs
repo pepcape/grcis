@@ -1,6 +1,6 @@
 ﻿namespace Rendering
 {
-	partial class Form3
+	partial class RayVisualizerForm
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -300,7 +300,7 @@
 			this.AllignCameraCheckBox.Text = "Keep alligned";
 			this.AllignCameraCheckBox.UseVisualStyleBackColor = true;
 			// 
-			// Form3
+			// RayVisualizerForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -326,7 +326,7 @@
 			this.Controls.Add(this.checkSmooth);
 			this.Controls.Add(this.glControl1);
 			this.MinimumSize = new System.Drawing.Size(1000, 500);
-			this.Name = "Form3";
+			this.Name = "RayVisualizerForm";
 			this.Text = "Ray Visualiser";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form3_FormClosing);
 			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form3_FormClosed);

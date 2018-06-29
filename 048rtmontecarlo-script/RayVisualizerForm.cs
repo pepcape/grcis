@@ -9,9 +9,9 @@ using _048rtmontecarlo;
 
 namespace Rendering
 {
-  public partial class Form3 : Form
+  public partial class RayVisualizerForm : Form
   {
-    public static Form3 instance; //singleton
+    public static RayVisualizerForm instance; //singleton
 
     /// <summary>
     /// Scene read from file.
@@ -60,7 +60,7 @@ namespace Rendering
     bool pointDirty = false;
 
 
-    public Form3 ()
+    public RayVisualizerForm ()
     {
       InitializeComponent ();
 
@@ -70,7 +70,7 @@ namespace Rendering
 
       InitShaderRepository ();
 
-			Form3.instance = this;
+			RayVisualizerForm.instance = this;
 
       RayVisualizer.instance = new RayVisualizer ();
 

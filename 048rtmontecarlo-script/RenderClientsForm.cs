@@ -17,15 +17,15 @@ namespace _048rtmontecarlo
 
 		public BindingList<Client> clients;
 
+		/// <summary>
+		/// Form constructor
+		/// Creates BindingList and binds it to the correct columns of clientsDataGrid
+		/// </summary>
 		public RenderClientsForm ()
 		{
 			InitializeComponent ();
 
 		  clients = new BindingList<Client>();
-
-		  clients.Add ( new Client { Name = "test1", Address = "1.1.1.1" } );
-		  clients.Add ( new Client { Name = "test2", Address = "1.1.1.2" } );
-		  clients.Add ( new Client { Name = "test3", Address = "1.1.1.3" } );
 
 		  clientsDataGrid.AutoGenerateColumns = false;
 
@@ -57,29 +57,6 @@ namespace _048rtmontecarlo
 		    Hide ();
 		  }
 		}
-
-
-	  public static void ParseAddress ()
-	  {
-	    bool isValidIP = false;
-
-	    do
-	    {
-	      string line = Console.ReadLine ();
-
-	      if ( line != null )
-	      {
-	        //isValidIP = IPAddress.TryParse ( line, out ipAdr );
-	      }
-
-	      if ( !isValidIP )
-	      {
-	        Console.WriteLine ( "IP is not in valid format!" );
-	        Console.WriteLine ( "Try to enter it again:" );
-	      }
-
-	    } while ( !isValidIP );
-	  }
 	}
 
 
@@ -98,13 +75,18 @@ namespace _048rtmontecarlo
 
       if ( !isValidIP )
       {
-				address = null;
+				address = IPAddress.Parse ( "0.0.0.0" ); ;
       }
 		}
 
     private string GetIPAddress ()
     {
       if ( address == null )
+      {
+        return "";
+      }
+
+      if ( address.ToString() == "0.0.0.0" )
       {
         return "Invalid IP Address!";
       }

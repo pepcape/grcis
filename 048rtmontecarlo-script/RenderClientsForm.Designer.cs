@@ -44,7 +44,7 @@
 			this.clientsDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.clientsDataGrid.Location = new System.Drawing.Point(12, 12);
 			this.clientsDataGrid.Name = "clientsDataGrid";
-			this.clientsDataGrid.Size = new System.Drawing.Size(351, 115);
+			this.clientsDataGrid.Size = new System.Drawing.Size(351, 142);
 			this.clientsDataGrid.TabIndex = 1;
 			// 
 			// renderClientsFormBindingSource
@@ -55,7 +55,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(375, 139);
+			this.ClientSize = new System.Drawing.Size(375, 166);
 			this.Controls.Add(this.clientsDataGrid);
 			this.Name = "RenderClientsForm";
 			this.Text = "Render Client Management";
