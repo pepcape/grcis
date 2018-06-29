@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using System.Drawing;
+using System.Threading;
 using System.Threading.Tasks;
+using Rendering;
 
 namespace RenderClient
 {
@@ -12,22 +14,28 @@ namespace RenderClient
 	{
 	  static void Main ( string[] args )
 	  {
-	    //RenderClient.ParseAddress ();
 
-	    RenderClient.ConnectToServer ();
-	  }
+
+
+
+
+			// RenderClient.ConnectToServer ();
+
+			//TODO: Do something with stream
+		}
 	}
 
   static class RenderClient
   {
     private static IPAddress ipAdr;
     private static int port = 5000;
+    private static NetworkStream stream;
 
-    public static void ConnectToServer()
+		public static void ConnectToServer()
     {
-      TcpListener localServer = new TcpListener ( IPAddress.Loopback, port );
+			Console.WriteLine ( "Waiting for remote server to connect to this client..." ); 
 
-      NetworkStream stream;
+      TcpListener localServer = new TcpListener ( IPAddress.Loopback, port );
 
       do
       {
@@ -36,7 +44,8 @@ namespace RenderClient
         stream = client.GetStream ();
 			} while ( stream == null );
 
-      //TODO: Do something with stream
+
+			Console.WriteLine ( "Client succesfully connected." );     
 		}
   }
 }

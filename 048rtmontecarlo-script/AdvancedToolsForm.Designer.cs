@@ -1,6 +1,6 @@
 ﻿namespace _048rtmontecarlo
 {
-  partial class Form2
+  partial class AdvancedToolsForm
   {
     /// <summary>
     /// Required designer variable.

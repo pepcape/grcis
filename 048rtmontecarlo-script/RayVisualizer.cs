@@ -92,7 +92,7 @@ namespace Rendering
     }
   }
 
-  public partial class Form3
+  public partial class RayVisualizerForm
   {
     /// <summary>
     /// Are we allowed to use VBO?

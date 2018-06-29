@@ -56,7 +56,7 @@ namespace _048rtmontecarlo
     /// <param name="firstIntersection">First element of array of Intersections</param>
     public void Register ( int level, Vector3d rayOrigin, Intersection firstIntersection )
     {
-      if ( Form2.instance == null )
+      if ( AdvancedToolsForm.instance == null )
         return;
 
       // Initial check for null references

@@ -266,9 +266,13 @@ namespace _048rtmontecarlo
 
       // determine output image size:
       int width = ImageWidth;
-      if ( width <= 0 ) width = panel1.Width;
+      if ( width <= 0 )
+        width = panel1.Width;
+
       int height = ImageHeight;
-      if ( height <= 0 ) height = panel1.Height;
+      if ( height <= 0 )
+        height = panel1.Height;
+
 
       Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
 
@@ -402,7 +406,7 @@ namespace _048rtmontecarlo
         // GUI stuff:
         SetGUI( true );
 
-        Form2.instance?.RenderButtonsEnabled(true);
+        AdvancedToolsForm.instance?.RenderButtonsEnabled(true);
 				MT.renderingInProgress = false;
 				MT.sceneRendered = true;
       }
@@ -448,7 +452,7 @@ namespace _048rtmontecarlo
       string name;
       FormSupport.InitializeScenes ( args, out name );
 
-      Form2.instance?.SetNewDimensions(ImageWidth, ImageHeight);
+      AdvancedToolsForm.instance?.SetNewDimensions(ImageWidth, ImageHeight);
 
       Text += " (rev: " + rev + ") '" + name + '\'';
 
@@ -507,13 +511,13 @@ namespace _048rtmontecarlo
         ImageHeight = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
 
-        Form2.instance?.SetNewDimensions(form.ImageWidth, form.ImageHeight);
+        AdvancedToolsForm.instance?.SetNewDimensions(form.ImageWidth, form.ImageHeight);
       }
     }
 
     private void buttonRender_Click ( object sender, EventArgs e )
     {
-      Form2.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
+      AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
 
       AdvancedTools.instance?.NewRenderInitialization();
 
@@ -523,7 +527,7 @@ namespace _048rtmontecarlo
       // GUI stuff:
       SetGUI( false );
 
-      Form2.instance?.RenderButtonsEnabled ( false );
+      AdvancedToolsForm.instance?.RenderButtonsEnabled ( false );
       MT.renderingInProgress = true;
       Statistics.Reset ();
 
@@ -587,30 +591,30 @@ namespace _048rtmontecarlo
 
     private void AdvancedToolsButton_Click(object sender, EventArgs e)
     {
-      if ( Form2.instance != null )
+      if ( AdvancedToolsForm.instance != null )
       {
-        Form2.instance.Activate();
+        AdvancedToolsForm.instance.Activate();
 
         return;   //only one instance of Form2 can exist at the time
       }
 
-      Form2 form2 = new Form2();
+      AdvancedToolsForm form2 = new AdvancedToolsForm();
       form2.Show ();
     }
 
     private void RayVisualiserButton_Click ( object sender, EventArgs e )
     {
-      if ( Form3.instance != null )
+      if ( RayVisualizerForm.instance != null )
       {
-        Form3.instance.Activate ();
+        RayVisualizerForm.instance.Activate ();
 
-        return; //only one instance of Form3 can exist at the time
+        return; //only one instance of RayVisualizerForm can exist at the time
       }
 
       Cursor.Current = Cursors.WaitCursor;
 
-			Form3 form3 = new Form3 ();
-      form3.Show ();
+			RayVisualizerForm rayVisualizerForm = new RayVisualizerForm ();
+      rayVisualizerForm.Show ();
     }
 
 		private void addRenderClientToolStripMenuItem_Click ( object sender, EventArgs e )
