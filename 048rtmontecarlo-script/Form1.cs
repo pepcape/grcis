@@ -290,7 +290,7 @@ namespace _048rtmontecarlo
         wti[ t ] = new WorkerThreadInit( r, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t, threads );
       }
 
-      progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 30000L : 10000L;
+      progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 3000L : 1000L;
       progress.Reset();
       CSGInnerNode.ResetStatistics();
 
@@ -339,7 +339,69 @@ namespace _048rtmontecarlo
       StopRendering();
     }
 
-    void SetGUI ( bool enable )
+
+		private void RenderImage2 ()
+		{
+			Cursor.Current = Cursors.WaitCursor;
+
+			// determine output image size:
+			int width = ImageWidth;
+			if ( width <= 0 )
+				width = panel1.Width;
+
+			int height = ImageHeight;
+			if ( height <= 0 )
+				height = panel1.Height;
+
+
+			Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
+
+			int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
+
+		  IRayScene      sc  = FormSupport.getScene();
+		  IImageFunction imf = getImageFunction( sc, width, height );
+		  IRenderer      r   = getRenderer( imf, width, height );
+
+			Master.instance = new Master(newImage, sc, r);
+		  Master.instance.progressData = progress;
+
+
+			progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
+			progress.Reset ();
+			CSGInnerNode.ResetStatistics ();
+
+			lock ( sw )
+				sw.Restart ();
+
+		  ThreadStart ts = delegate { Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads ); };
+			Thread newRenderThread = new Thread ( ts );
+		  newRenderThread.Start ();
+
+		  newRenderThread.Join ();
+
+			long elapsed;
+			lock ( sw )
+			{
+				sw.Stop ();
+				elapsed = sw.ElapsedMilliseconds;
+			}
+
+			string msg = string.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
+																	1.0e-3 * elapsed, width, height, threads,
+																	(Intersection.countRays + 500L) / 1000L,
+																	(Intersection.countIntersections + 500L) / 1000L,
+																	(CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
+																	(CSGInnerNode.countTriangles + 500L) / 1000L );
+			SetText ( msg );
+			Console.WriteLine ( "Rendering finished: " + msg );
+			SetImage ( newImage );
+
+			Cursor.Current = Cursors.Default;
+
+			StopRendering ();
+		}
+
+		void SetGUI ( bool enable )
     {
       numericSupersampling.Enabled =
       checkJitter.Enabled =

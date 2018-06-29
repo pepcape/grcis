@@ -6,20 +6,20 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using MathSupport;
+using _048rtmontecarlo;
 
 namespace Rendering
 {
-	class WorkloadDistribution
-	{
-
-	}
-
-
   class Master
   {
     public static Master instance; // singleton
 
     public ConcurrentQueue<Assignment> availableAssignments;
+
+    private Thread[] pool;
+
+		public Thread mainThread;
 
     public int totalNumberOfAssignments;
 
@@ -27,53 +27,62 @@ namespace Rendering
 
     public const int assignmentSize = 64;
 
-    public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
+    public object locker = new object ();
+
+    public Progress progressData;
+
+    public int densityCount = 0;
+    public int densityCountMax;
+
+		public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
     {
-			instance = this;
+			//instance = this;
       finishedAssignments = 0;
 
-      InitializeAssignmnts ( bitmap, scene, renderer );
+      InitializeAssignments ( bitmap, scene, renderer );
     }
 
-    public void StartThreads( bool multithreading )
-    {     
-			int threads = multithreading ? Environment.ProcessorCount : 1;
+    public void StartThreads( object threads )
+    {
+      pool = new Thread[(int)threads];
 
-      for ( int i = 0; i < threads; i++ )
+
+      for ( int i = 0; i < (int)threads; i++ )
       {
-        Thread newThread = new Thread ( Consume );
+				Thread newThread = new Thread ( Consume );
+        pool [ i ] = newThread;
         newThread.Start ();
       }
 
-      /*if ( threads > 1 )
-      {
-        availableThreads = new ConcurrentQueue<Thread>();
+      mainThread = pool [ 0 ];
 
-				for ( int i = 0; i < threads; i++ )
-				{
-				  availableThreads.Enqueue ( new Thread ( Assignment.Render ) );
-				}
-      }
-      else
-      {
-        //TODO: Add code for singlethread case
-      }*/
-
-      
-    }
+			for ( int i = 0; i < (int) threads; i++ )
+			{
+			  pool [ i ].Join ();
+			  pool [ i ] = null;
+			}
+		}
 
 		private void Consume()
     {
-      while ( finishedAssignments < totalNumberOfAssignments )
+      MT.InitThreadData ();
+
+			while ( finishedAssignments < totalNumberOfAssignments )
       {
 				Assignment newAssignment;
         availableAssignments.TryDequeue ( out newAssignment );
 
-        newAssignment.Render ();
+        if ( !Master.instance.progressData.Continue )
+          return;
+
+				if ( newAssignment != null )
+        {
+					newAssignment.Render ();
+				}      
       }
 		}
 
-    public void InitializeAssignmnts ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
+    public void InitializeAssignments ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
     {
       availableAssignments = new ConcurrentQueue<Assignment> ();
 
@@ -100,6 +109,7 @@ namespace Rendering
 
 
       totalNumberOfAssignments = availableAssignments.Count;
+      densityCountMax = totalNumberOfAssignments * 8;
     }
 	}
 
@@ -175,6 +185,10 @@ namespace Rendering
 
     public IRenderer renderer;
 
+    private int bitmapWidth, bitmapHeight;
+
+    private static object locker = new object();
+
 		public Assignment ( Bitmap bitmap, IRayScene scene, IRenderer renderer, int x1, int y1, int x2, int y2 )
     {
 			this.bitmap = bitmap;
@@ -186,19 +200,27 @@ namespace Rendering
 			this.y2 = y2;
 
       density = 8;
+
+      bitmapWidth = bitmap.Width;
+      bitmapHeight = bitmap.Height;
     }
 
-    /*public static void Render ( object assignment )
-    {
-      ( (Assignment) assignment ).Render ();
-    }*/
-
     public void Render ()
-    {
-      for ( int y = y1; y < y2; y += density )
+    {    
+      for ( int y = y1; y <= y2; y += density )
       {
-        for ( int x = x1; x < x2; x += density )
+        for ( int x = x1; x <= x2; x += density )
         {
+          if ( density != 8 && ( y % ( density << 1 ) == 0 ) && ( x % ( density << 1 ) == 0 ) ) // prevents rendering of already rendered pixels
+          {
+            continue;
+          }
+
+          if ( x >= bitmapWidth || y >= bitmapHeight )
+          {
+						continue;
+          }
+
           double[] color = new double[3];
 
           renderer.RenderPixel (x, y, color);
@@ -211,37 +233,51 @@ namespace Rendering
           {
             if ( density == 1 )
             {
-              bitmap.SetPixel ( x, y, c );
+              bitmap.SetPixel ( x, y, c );         
             }
             else
             {
               for ( int j = y; j < y + density; j++ )
               {
-                if ( j < bitmap.Height )
+                if ( j < bitmapHeight )
                 {
 									for ( int i = x; i < x + density; i++ )
 									{
-									  if ( i < bitmap.Width )
+									  if ( i < bitmapWidth )
 									  {
-											bitmap.SetPixel ( i, j, c );
+									    bitmap.SetPixel ( i, j, c );								
 										}
 									}
 								}							
 							}            
             }
           }
-        }
+
+          lock ( Master.instance.progressData )
+          {
+            if ( !Master.instance.progressData.Continue )
+              return;
+
+						if ( Master.instance.mainThread == Thread.CurrentThread )
+						{
+						  Master.instance.progressData.Finished = Master.instance.densityCount / (float) Master.instance.densityCountMax;
+						  Master.instance.progressData.Sync ( bitmap );
+						}					
+					}
+				}
 			}
 
 
-      if ( density == 1)
+      if ( density == 1 )
       {
         Master.instance.finishedAssignments++;
-      }
+        Master.instance.densityCount += density;
+			}
       else
       {
 				density = density >> 1; // density values: 8 > 4 > 2 > 1
-        Master.instance.availableAssignments.Enqueue ( this );
+        Master.instance.densityCount += density;
+				Master.instance.availableAssignments.Enqueue ( this );
 			}
 		}
 	}
