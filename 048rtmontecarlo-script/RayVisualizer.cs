@@ -654,14 +654,17 @@ namespace Rendering
       }
       else
       {
-        RenderRays ();
-        RenderCamera ();
-        RenderLightSources ();
+        bool renderFirst = true;
 
         if ( AllignCameraCheckBox.Checked )
         {
           AllignCamera ( null, null );
+          renderFirst = false;
         }
+
+        RenderRays ( renderFirst );
+        RenderCamera ();
+        RenderLightSources ();
       }
 
       // Support: axes
@@ -825,7 +828,7 @@ namespace Rendering
     /// <summary>
     /// Renders all normal and shadow rays (further selection done via check boxes)
     /// </summary>
-    private void RenderRays ()
+    private void RenderRays ( bool renderFirst )
     {
       SetVertexPointer ( false ); // ??
       SetVertexAttrib ( false );
@@ -834,8 +837,15 @@ namespace Rendering
 
       if ( NormalRaysCheckBox.Checked ) // Render normal rays
       {
+        int offset = 0;
+
+        if ( !renderFirst )
+        {
+          offset = 2;
+        }
+
         GL.Color3 ( Color.Red );
-        for ( int i = 0; i < RayVisualizer.instance.rays.Count; i += 2 )
+        for ( int i = offset; i < RayVisualizer.instance.rays.Count; i += 2 )
         {
           GL.Vertex3 ( RayVisualizer.instance.rays [ i ] );
           GL.Vertex3 ( RayVisualizer.instance.rays [ i + 1 ] );

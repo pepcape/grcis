@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Rendering;
 
 namespace MathSupport
 {
