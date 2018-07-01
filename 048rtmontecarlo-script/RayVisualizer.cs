@@ -14,14 +14,14 @@ using OpenTK.Graphics.OpenGL;
 namespace Rendering
 {
   /// <summary>
-	/// Takes care of registering rays into lists which are later used for their rendering
-	/// </summary>
+  /// Takes care of registering rays into lists which are later used for their rendering
+  /// </summary>
   public class RayVisualizer
   {
-		public static RayVisualizer instance; // singleton
+    public static RayVisualizer instance; // singleton
 
     internal List<Vector3d> rays;
-		internal List<Vector3d> shadowRays;
+    internal List<Vector3d> shadowRays;
 
     internal IRayScene scene;
 
@@ -30,23 +30,23 @@ namespace Rendering
     private int initialListCapacity = 32;
 
     /// <summary>
-		/// Prepares lists
-		/// Initial list capacity is small enough to accomodate all elements in most cases
-		/// (used for speed-up since ray registration and rendering should be in real-time)
-		/// </summary>
-		public RayVisualizer ()
+    /// Prepares lists
+    /// Initial list capacity is small enough to accomodate all elements in most cases
+    /// (used for speed-up since ray registration and rendering should be in real-time)
+    /// </summary>
+    public RayVisualizer ()
     {
-      rays = new List<Vector3d> ( initialListCapacity );
+      rays       = new List<Vector3d> ( initialListCapacity );
       shadowRays = new List<Vector3d> ( initialListCapacity );
     }
 
-		/// <summary>
-		/// Registers normal ray
-		/// </summary>
-		/// <param name="level">**Not used right now**</param>
-		/// <param name="rayOrigin">Position of the beginning of ray</param>
-		/// <param name="rayTarget">Position of the end of ray</param>
-		public void RegisterRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
+    /// <summary>
+    /// Registers normal ray
+    /// </summary>
+    /// <param name="level">**Not used right now**</param>
+    /// <param name="rayOrigin">Position of the beginning of ray</param>
+    /// <param name="rayTarget">Position of the end of ray</param>
+    public void RegisterRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
     {
       //Debug.WriteLine (rayOrigin + "   " + rayTarget + "   " + level);
 
@@ -60,27 +60,27 @@ namespace Rendering
     /// <param name="level">**Not used right now**</param>
     /// <param name="rayOrigin">Position of the beginning of ray - intersection with scene</param>
     /// <param name="rayTarget">Position of the end of ray - position of light source</param>
-		public void RegisterShadowRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
+    public void RegisterShadowRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
     {
       shadowRays.Add ( AxesCorrector ( rayOrigin ) );
       shadowRays.Add ( AxesCorrector ( rayTarget ) );
-		}
+    }
 
     /// <summary>
-		/// Empties lists to prepare them for a new set of rays
-		/// </summary>
-		public void Reset ()
-		{
-		  rays = new List<Vector3d> ( initialListCapacity );
-		  shadowRays = new List<Vector3d> ( initialListCapacity );
-		}
+    /// Empties lists to prepare them for a new set of rays
+    /// </summary>
+    public void Reset ()
+    {
+      rays       = new List<Vector3d> ( initialListCapacity );
+      shadowRays = new List<Vector3d> ( initialListCapacity );
+    }
 
     /// <summary>
-		/// Corrects axes (different axes labels/positioning system for scene original raytracer and OpenGL system)
-		/// Inverts 3rd axis of position
-		/// </summary>
-		/// <param name="position">Position in original raytracer scene</param>
-		/// <returns>Position in OpenGL system (or zero vector if input is null)</returns>
+    /// Corrects axes (different axes labels/positioning system for scene original raytracer and OpenGL system)
+    /// Inverts 3rd axis of position
+    /// </summary>
+    /// <param name="position">Position in original raytracer scene</param>
+    /// <returns>Position in OpenGL system (or zero vector if input is null)</returns>
     public static Vector3d AxesCorrector ( Vector3d? position )
     {
       if ( position == null )
@@ -91,6 +91,7 @@ namespace Rendering
       return (Vector3d) position * axesCorrectionVector;
     }
   }
+
 
   public partial class RayVisualizerForm
   {
@@ -128,20 +129,19 @@ namespace Rendering
     GlProgram activeProgram = null;
 
     // appearance:
-    Vector3 globalAmbient = new Vector3(0.2f, 0.2f, 0.2f);
-    Vector3 matAmbient    = new Vector3(0.8f, 0.6f, 0.2f);
-    Vector3 matDiffuse    = new Vector3(0.8f, 0.6f, 0.2f);
-    Vector3 matSpecular   = new Vector3(0.8f, 0.8f, 0.8f);
+    Vector3 globalAmbient = new Vector3 ( 0.2f, 0.2f, 0.2f );
+    Vector3 matAmbient    = new Vector3 ( 0.8f, 0.6f, 0.2f );
+    Vector3 matDiffuse    = new Vector3 ( 0.8f, 0.6f, 0.2f );
+    Vector3 matSpecular   = new Vector3 ( 0.8f, 0.8f, 0.8f );
     float   matShininess  = 100.0f;
-    Vector3 whiteLight    = new Vector3(1.0f, 1.0f, 1.0f);
-    Vector3 lightPosition = new Vector3(-20.0f, 10.0f, 10.0f);
+    Vector3 whiteLight    = new Vector3 ( 1.0f, 1.0f, 1.0f );
+    Vector3 lightPosition = new Vector3 ( -20.0f, 10.0f, 10.0f );
 
     long   lastFPSTime     = 0L;
     int    frameCounter    = 0;
     long   triangleCounter = 0L;
     double lastFPS         = 0.0;
     double lastTPS         = 0.0;
-
 
     void InitOpenGL ()
     {
@@ -190,7 +190,6 @@ namespace Rendering
       return true;
     }
 
-
     /// <summary>
     /// De-allocated all the data associated with the given texture object.
     /// </summary>
@@ -204,7 +203,6 @@ namespace Rendering
       if ( tHandle != 0 )
         GL.DeleteTexture ( tHandle );
     }
-
 
     /// <summary>
     /// Generate static procedural texture.
@@ -247,8 +245,9 @@ namespace Rendering
           }
         }
       }
-        
-      GL.TexImage2D ( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, TEX_SIZE, TEX_SIZE, 0, PixelFormat.Rgb, PixelType.Float, data );
+
+      GL.TexImage2D ( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, TEX_SIZE, TEX_SIZE, 0, PixelFormat.Rgb,
+                      PixelType.Float, data );
 
       GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat );
       GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat );
@@ -260,7 +259,6 @@ namespace Rendering
       return texName;
     }
 
-
     /// <summary>
     /// Prepare VBO content and upload it to the GPU.
     /// </summary>
@@ -269,7 +267,7 @@ namespace Rendering
       if ( useVBO && scene != null && scene.Triangles > 0 )
       {
         // Vertex array: color [normal] coord
-        GL.BindBuffer ( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
+        GL.BindBuffer ( BufferTarget.ArrayBuffer, VBOid [ 0 ] );
 
         int vertexBufferSize = scene.VertexBufferSize ( true, true, true, true );
 
@@ -287,8 +285,9 @@ namespace Rendering
         GlInfo.LogError ( "fill vertex-buffer" );
 
         // Index buffer
-        GL.BindBuffer ( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
-        GL.BufferData ( BufferTarget.ElementArrayBuffer, (IntPtr) ( scene.Triangles * 3 * sizeof ( uint ) ), IntPtr.Zero, BufferUsageHint.StaticDraw );
+        GL.BindBuffer ( BufferTarget.ElementArrayBuffer, VBOid [ 1 ] );
+        GL.BufferData ( BufferTarget.ElementArrayBuffer, (IntPtr) ( scene.Triangles * 3 * sizeof ( uint ) ),
+                        IntPtr.Zero, BufferUsageHint.StaticDraw );
         videoMemoryPtr = GL.MapBuffer ( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
 
         unsafe
@@ -304,17 +303,16 @@ namespace Rendering
       {
         if ( useVBO )
         {
-          GL.BindBuffer ( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
+          GL.BindBuffer ( BufferTarget.ArrayBuffer, VBOid [ 0 ] );
           GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) 0, IntPtr.Zero, BufferUsageHint.StaticDraw );
           GL.BindBuffer ( BufferTarget.ArrayBuffer, 0 );
-          GL.BindBuffer ( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+          GL.BindBuffer ( BufferTarget.ElementArrayBuffer, VBOid [ 1 ] );
           GL.BufferData ( BufferTarget.ElementArrayBuffer, (IntPtr) 0, IntPtr.Zero, BufferUsageHint.StaticDraw );
           GL.BindBuffer ( BufferTarget.ElementArrayBuffer, 0 );
         }
       }
     }
 
-    
     /// <summary>
     /// Set light-source coordinate in the world-space.
     /// </summary>
@@ -325,68 +323,65 @@ namespace Rendering
       lightPosition = 2.0f * size * light;
     }
 
-
-		void InitShaderRepository()
-		{
-		  programs.Clear();
-		  GlProgramInfo pi;
-
-		  // default program:
-		  pi = new GlProgramInfo("default", new GlShaderInfo[]
-		  {
-		    new GlShaderInfo ( ShaderType.VertexShader, "vertex.glsl", "048rtmontecarlo-script" ),
-		    new GlShaderInfo ( ShaderType.FragmentShader, "fragment.glsl", "048rtmontecarlo-script" )
-		  });
-
-		  programs[pi.name] = pi;
-		}
-
-
-		void DestroyShaders()
+    void InitShaderRepository ()
     {
-      foreach (GlProgramInfo prg in programs.Values)
-        prg.Destroy();
+      programs.Clear ();
+      GlProgramInfo pi;
+
+      // default program:
+      pi = new GlProgramInfo ( "default", new GlShaderInfo[]
+      {
+        new GlShaderInfo ( ShaderType.VertexShader, "vertex.glsl", "048rtmontecarlo-script" ),
+        new GlShaderInfo ( ShaderType.FragmentShader, "fragment.glsl", "048rtmontecarlo-script" )
+      } );
+
+      programs [ pi.name ] = pi;
     }
 
-
-    private void Render()
+    void DestroyShaders ()
     {
-      if (!loaded)
+      foreach ( GlProgramInfo prg in programs.Values )
+        prg.Destroy ();
+    }
+
+    private void Render ()
+    {
+      if ( !loaded )
         return;
 
       frameCounter++;
-      useShaders = (scene != null) &&
+      useShaders = ( scene != null ) &&
                    scene.Triangles > 0 &&
                    useVBO &&
                    canShaders &&
                    activeProgram != null &&
                    checkShaders.Checked;
 
-      GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-      GL.ShadeModel(checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat);
-      GL.PolygonMode(checkTwosided.Checked ? MaterialFace.FrontAndBack : MaterialFace.Front, checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill);
+      GL.Clear ( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
+      GL.ShadeModel ( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
+      GL.PolygonMode ( checkTwosided.Checked ? MaterialFace.FrontAndBack : MaterialFace.Front,
+                       checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
 
-      if (checkTwosided.Checked)
-        GL.Disable(EnableCap.CullFace);
+      if ( checkTwosided.Checked )
+        GL.Disable ( EnableCap.CullFace );
       else
-        GL.Enable(EnableCap.CullFace);
+        GL.Enable ( EnableCap.CullFace );
 
-      trackBall.GLsetCamera();
-      RenderScene();
+      trackBall.GLsetCamera ();
+      RenderScene ();
 
-      glControl1.SwapBuffers();
+      glControl1.SwapBuffers ();
     }
-
 
     void Application_Idle ( object sender, EventArgs e )
     {
       if ( glControl1.IsDisposed )
         return;
 
-			while ( glControl1.IsIdle )
+      while ( glControl1.IsIdle )
       {
 #if USE_INVALIDATE
-        glControl1.Invalidate();
+        glControl1.Invalidate ();
 #else
         glControl1.MakeCurrent ();
         Render ();
@@ -453,11 +448,9 @@ namespace Rendering
       }
     }
 
-
     // attribute/vertex arrays:
     bool vertexAttribOn  = false;
     bool vertexPointerOn = false;
-
 
     private void SetVertexAttrib ( bool on )
     {
@@ -472,7 +465,6 @@ namespace Rendering
 
       vertexAttribOn = on;
     }
-
 
     private void SetVertexPointer ( bool on )
     {
@@ -503,17 +495,16 @@ namespace Rendering
       vertexPointerOn = on;
     }
 
-
     /// <summary>
     /// Rendering code itself (separated for clarity).
     /// </summary>
     void RenderScene ()
     {
       // Scene rendering:
-      if ( scene != null && scene.Triangles > 0 && useVBO) // scene is nonempty => render it
+      if ( scene != null && scene.Triangles > 0 && useVBO ) // scene is nonempty => render it
       {
         // [txt] [colors] [normals] vertices
-        GL.BindBuffer ( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
+        GL.BindBuffer ( BufferTarget.ArrayBuffer, VBOid [ 0 ] );
         IntPtr p = IntPtr.Zero;
 
         if ( useShaders )
@@ -596,7 +587,7 @@ namespace Rendering
           GlInfo.LogError ( "set-attrib-pointers" );
 
           // index buffer
-          GL.BindBuffer ( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+          GL.BindBuffer ( BufferTarget.ElementArrayBuffer, VBOid [ 1 ] );
 
           // engage!
           GL.DrawElements ( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
@@ -646,7 +637,7 @@ namespace Rendering
           GL.VertexPointer ( 3, VertexPointerType.Float, stride, p );
 
           // index buffer
-          GL.BindBuffer ( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+          GL.BindBuffer ( BufferTarget.ElementArrayBuffer, VBOid [ 1 ] );
 
           // engage!
           GL.DrawElements ( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
@@ -763,7 +754,6 @@ namespace Rendering
       GL.End ();
     }
 
-
     private void RenderAxes ()
     {
       GL.LineWidth ( 2.0f );
@@ -783,7 +773,6 @@ namespace Rendering
 
       GL.End ();
     }
-
 
     private void RenderPlaceholderScene ()
     {
@@ -830,13 +819,12 @@ namespace Rendering
 
       GL.End ();
 
-      triangleCounter += 12;      
-		}
-
+      triangleCounter += 12;
+    }
 
     /// <summary>
-		/// Renders all normal and shadow rays (further selection done via check boxes)
-		/// </summary>
+    /// Renders all normal and shadow rays (further selection done via check boxes)
+    /// </summary>
     private void RenderRays ()
     {
       SetVertexPointer ( false ); // ??
@@ -862,15 +850,14 @@ namespace Rendering
           GL.Vertex3 ( RayVisualizer.instance.shadowRays [ i ] );
           GL.Vertex3 ( RayVisualizer.instance.shadowRays [ i + 1 ] );
         }
-      }     
+      }
 
-			GL.End ();
+      GL.End ();
     }
 
-
     /// <summary>
-		/// Renders representation of camera (initially at position of rayOrigin of first primary ray)
-		/// </summary>
+    /// Renders representation of camera (initially at position of rayOrigin of first primary ray)
+    /// </summary>
     private void RenderCamera () //TODO: change to better representation of camera
     {
       if ( RayVisualizer.instance.rays.Count == 0 || !CameraCheckBox.Checked )
@@ -881,13 +868,13 @@ namespace Rendering
       RenderCube ( RayVisualizer.instance.rays [ 0 ], 0.2f, Color.Turquoise );
     }
 
-
-		/// <summary>
-		/// Renders representation of all light sources (except those in with null as position - usually ambient and directional lights which position does not matter)
-		/// </summary>
-		private void RenderLightSources () //TODO: change to better representation of light sources
+    /// <summary>
+    /// Renders representation of all light sources (except those in with null as position - usually ambient and directional lights which position does not matter)
+    /// </summary>
+    private void RenderLightSources () //TODO: change to better representation of light sources
     {
-      if ( RayVisualizer.instance?.rays.Count == 0 || RayVisualizer.instance?.scene.Sources == null || !LightSourcesCheckBox.Checked )
+      if ( RayVisualizer.instance?.rays.Count == 0 || RayVisualizer.instance?.scene.Sources == null ||
+           !LightSourcesCheckBox.Checked )
       {
         return;
       }
@@ -896,25 +883,24 @@ namespace Rendering
       {
         if ( lightSource.position != null )
         {
-					RenderCube ( RayVisualizer.AxesCorrector ( lightSource.position ), 0.07f, Color.Yellow );
-				}			
-			}      
+          RenderCube ( RayVisualizer.AxesCorrector ( lightSource.position ), 0.07f, Color.Yellow );
+        }
+      }
     }
 
-
     /// <summary>
-		/// Renders simple cube of uniform color
-		/// Initially used as placeholder so several objects
-		/// </summary>
-		/// <param name="position">Position in space</param>
-		/// <param name="size">Size of cube</param>
-		/// <param name="color">Uniform color of cube</param>
-		private void RenderCube(Vector3d position, float size, Color color) 
+    /// Renders simple cube of uniform color
+    /// Initially used as placeholder so several objects
+    /// </summary>
+    /// <param name="position">Position in space</param>
+    /// <param name="size">Size of cube</param>
+    /// <param name="color">Uniform color of cube</param>
+    private void RenderCube ( Vector3d position, float size, Color color )
     {
-      SetVertexPointer(false); // ??
-      SetVertexAttrib(false);
+      SetVertexPointer ( false ); // ??
+      SetVertexAttrib ( false );
 
-			GL.Begin(PrimitiveType.Quads);
+      GL.Begin ( PrimitiveType.Quads );
       GL.Color3 ( color );
 
 
@@ -928,29 +914,29 @@ namespace Rendering
       GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Left Of The Quad (Bottom)
       GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * size + position ) );  // Bottom Right Of The Quad (Bottom)
 
-      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, 1.0f ) * size + position ) );  // Top Right Of The Quad (Front)
-      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, 1.0f ) * size + position ) ); // Top Left Of The Quad (Front)
-      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, 1.0f ) * size +position ) ); // Bottom Left Of The Quad (Front)
-      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, 1.0f ) * size + position ) ); // Bottom Right Of The Quad (Front)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, 1.0f ) * size + position ) );   // Top Right Of The Quad (Front)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, 1.0f ) * size + position ) );  // Top Left Of The Quad (Front)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, 1.0f ) * size + position ) ); // Bottom Left Of The Quad (Front)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, 1.0f ) * size + position ) );  // Bottom Right Of The Quad (Front)
 
-      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Left Of The Quad (Back)
-      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * size +position ) ); // Bottom Right Of The Quad (Back)
-      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, -1.0f ) * size + position ) ); // Top Right Of The Quad (Back)
-      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Left Of The Quad (Back)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * size + position ) );  // Bottom Left Of The Quad (Back)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Right Of The Quad (Back)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Right Of The Quad (Back)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, -1.0f ) * size + position ) );   // Top Left Of The Quad (Back)
 
-      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, 1.0f ) * size + position ) );  // Top Right Of The Quad (Left)
-      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, -1.0f ) * size + position ) ); // Top Left Of The Quad (Left)
-      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * size +position ) ); // Bottom Left Of The Quad (Left)
-      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, 1.0f ) * size + position ) ); // Bottom Right Of The Quad (Left)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, 1.0f ) * size + position ) );   // Top Right Of The Quad (Left)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Left Of The Quad (Left)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Left Of The Quad (Left)
+      GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, 1.0f ) * size + position ) );  // Bottom Right Of The Quad (Left)
 
-      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, -1.0f ) * size + position ) );   // Top Right Of The Quad (Right)
-      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, 1.0f ) * size + position ) );    // Top Left Of The Quad (Right)
-      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, 1.0f ) * size + position ) );   // Bottom Left Of The Quad (Right)
-      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * size + position ) );  // Bottom Right Of The Quad (Right)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Right Of The Quad (Right)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, 1.0f ) * size + position ) );   // Top Left Of The Quad (Right)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, 1.0f ) * size + position ) );  // Bottom Left Of The Quad (Right)
+      GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Right Of The Quad (Right)
 
-			GL.End();
+      GL.End ();
 
-			triangleCounter += 12;
+      triangleCounter += 12;
     }
-	}
+  }
 }
