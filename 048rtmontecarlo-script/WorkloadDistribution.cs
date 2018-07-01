@@ -249,7 +249,7 @@ namespace Rendering
       SendNecessaryObjects ();
 
 
-      while ( true ) { }
+      //while ( true ) { }
 
       return true;
       //TODO: Do something with stream
@@ -276,8 +276,20 @@ namespace Rendering
 
     public void SendNecessaryObjects ()
     {
-      //SendObject<IRayScene> ( Master.instance.scene );
+      SendObject<IRayScene> ( Master.instance.scene );
+      WaitForConfirmation ();
       SendObject<IRenderer> ( Master.instance.renderer );
+      WaitForConfirmation ();
+    }
+
+    private void WaitForConfirmation ()
+    {
+      byte receivedData;
+
+      do
+      {
+        receivedData = (byte) stream.ReadByte ();
+      } while ( receivedData != 1 );
     }
 
     private void SendObject<T> ( T objectToSend )
@@ -287,11 +299,11 @@ namespace Rendering
 
       formatter.Serialize ( memoryStream, objectToSend );
 
-      byte[] sceneData = memoryStream.ToArray ();
+      byte[] dataBuffer = memoryStream.ToArray ();
 
-      client.SendBufferSize = sceneData.Length;
+      client.SendBufferSize = dataBuffer.Length;
 
-      stream.Write ( sceneData, 0, sceneData.Length );
+      stream.Write ( dataBuffer, 0, dataBuffer.Length );
     }
   }
 
