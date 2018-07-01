@@ -266,6 +266,36 @@ namespace MathSupport
       prevRotation = Matrix4.Identity;
     }
 
+    public void Reset ( Vector3 dir )
+    {
+      dir.Normalize();
+      if ( Geometry.IsZero( dir.Length ) )
+      {
+        Reset();
+        return;
+      }
+
+      float len = (float)Math.Sqrt( dir.X * dir.X + dir.Z * dir.Z );
+      Matrix4 roty = Matrix4.Identity;
+      if ( !Geometry.IsZero( len ) )
+      {
+        roty.M11 = roty.M33 = -dir.Z / len;
+        roty.M13 = -(roty.M31 = dir.X / len);
+      }
+
+      float len2 = (float)Math.Sqrt( len * len + dir.Y * dir.Y );
+      Matrix4 rotx = Matrix4.Identity;
+      if ( !Geometry.IsZero( len2 ) )
+      {
+        rotx.M22 = rotx.M33 = len / len2;
+        rotx.M23 = -(rotx.M32 = dir.Y / len2);
+      }
+
+      Zoom = 1.0f;
+      rotation = Matrix4.Identity;
+      prevRotation = roty * rotx;
+    }
+
     private void setEllipse ( int width, int height )
     {
       width  /= 2;
