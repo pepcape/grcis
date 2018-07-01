@@ -9,6 +9,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
 using Rendering;
 
 namespace RenderClient
@@ -65,6 +66,8 @@ namespace RenderClient
 
       T receivedObject = (T) formatter.Deserialize ( memoryStream );
 
+      Console.WriteLine ( "Data for {0} received and deserialized.", typeof ( T ).Name );
+
       return receivedObject;
     }
 
@@ -82,10 +85,17 @@ namespace RenderClient
 
     public static void ReceiveNecessaryObjects ()
     {
-      //scene = ReceiveObject<IRayScene> ();
+      scene = ReceiveObject<IRayScene> ();
+      SendConfirmation ();
       renderer = ReceiveObject<IRenderer> ();
+      SendConfirmation ();
 
-      while ( true ) { }
+      Console.ReadLine ();  // For Debug Only
+    }
+
+    private static void SendConfirmation ()
+    {
+      stream.WriteByte ( 1 );
     }
   }
 }
