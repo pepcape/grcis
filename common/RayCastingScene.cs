@@ -142,10 +142,11 @@ namespace Rendering
   {
   }
 
-  /// <summary>
-  /// Common code for ISceneNode.
-  /// </summary>
-  public abstract class DefaultSceneNode : ISceneNode
+	/// <summary>
+	/// Common code for ISceneNode.
+	/// </summary>
+	[Serializable]
+	public abstract class DefaultSceneNode : ISceneNode
   {
     protected LinkedList<ISceneNode> children;
 
@@ -348,6 +349,7 @@ namespace Rendering
   /// <summary>
   /// CSG set operations in a inner scene node..
   /// </summary>
+  [Serializable]
   public class CSGInnerNode : DefaultSceneNode
   {
     /// <summary>
@@ -548,10 +550,11 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Default scene class for ray-based rendering.
-  /// </summary>
-  public class DefaultRayScene : IRayScene
+	/// <summary>
+	/// Default scene class for ray-based rendering.
+	/// </summary>
+	[Serializable]
+	public class DefaultRayScene : IRayScene
   {
     /// <summary>
     /// Scene model (whatever is able to compute ray intersections).

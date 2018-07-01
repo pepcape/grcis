@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
 using GuiSupport;
@@ -14,7 +15,7 @@ using Utilities;
 namespace _048rtmontecarlo
 {
   public partial class Form1: Form
-  {
+	{
     static readonly string rev = Util.SetVersion ( "$Rev$" );
 
     public static Form1 singleton = null;
@@ -72,17 +73,10 @@ namespace _048rtmontecarlo
     /// </summary>
     protected Thread aThread = null;
 
-
+    [Serializable]
     protected class RenderingProgress: Progress
     {
-      protected Form1 f;
-
       protected long lastSync = 0L;
-
-      public RenderingProgress ( Form1 _f )
-      {
-        f = _f;
-      }
 
       public void Reset ()
       {
@@ -91,12 +85,12 @@ namespace _048rtmontecarlo
 
       public override void Sync ( object msg )
       {
-        long now = f.sw.ElapsedMilliseconds;
+        long now = Form1.singleton.sw.ElapsedMilliseconds;
         if ( now - lastSync < SyncInterval )
           return;
 
         lastSync = now;
-        f.SetText ( string.Format ( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
+        Form1.singleton.SetText ( string.Format ( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
                                     100.0f * Finished, 1.0e-3 * now ) );
         Bitmap b = msg as Bitmap;
         if ( b != null )
@@ -104,7 +98,7 @@ namespace _048rtmontecarlo
           Bitmap nb;
           lock ( b )
             nb = new Bitmap( b );
-          f.SetImage( nb );
+          Form1.singleton.SetImage( nb );
         }
       }
     }
@@ -313,8 +307,9 @@ namespace _048rtmontecarlo
       }
       else
       {
-        wti[ 0 ].rend.RenderRectangle( newImage, 0, 0, width, height );
-        MT.InitThreadData();
+        MT.InitThreadData ();
+				wti[ 0 ].rend.RenderRectangle( newImage, 0, 0, width, height );
+        
       }
 
       long elapsed;
@@ -508,7 +503,7 @@ namespace _048rtmontecarlo
     {
       singleton = this;
       InitializeComponent ();
-      progress = new RenderingProgress ( this );
+      progress = new RenderingProgress ();
 
       // Init scenes etc.
       string name;
@@ -573,7 +568,7 @@ namespace _048rtmontecarlo
         ImageHeight = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
 
-        AdvancedToolsForm.instance?.SetNewDimensions(form.ImageWidth, form.ImageHeight);
+        AdvancedToolsForm.instance?.SetNewDimensions ( form.ImageWidth, form.ImageHeight );
       }
     }
 
@@ -581,7 +576,7 @@ namespace _048rtmontecarlo
     {
       AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
 
-      AdvancedTools.instance?.NewRenderInitialization();
+      AdvancedTools.instance?.NewRenderInitialization ();
 
       if ( aThread != null )
         return;
@@ -598,7 +593,7 @@ namespace _048rtmontecarlo
         progress.Continue = true;
 
       SetText( "Wait a moment.." );
-      aThread = new Thread( new ThreadStart( this.RenderImage ) );
+      aThread = new Thread( new ThreadStart( this.RenderImage2 ) );
       aThread.Start();
     }
 
@@ -660,8 +655,8 @@ namespace _048rtmontecarlo
         return;   //only one instance of Form2 can exist at the time
       }
 
-      AdvancedToolsForm form2 = new AdvancedToolsForm();
-      form2.Show ();
+      AdvancedToolsForm advancedToolsForm = new AdvancedToolsForm();
+      advancedToolsForm.Show ();
     }
 
     private void RayVisualiserButton_Click ( object sender, EventArgs e )

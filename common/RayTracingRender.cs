@@ -10,6 +10,7 @@ namespace Rendering
   /// <summary>
   /// Ray-tracing rendering (w all secondary rays).
   /// </summary>
+  [Serializable]
   public class RayTracing : RayCasting
   {
     /// <summary>

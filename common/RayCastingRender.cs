@@ -7,6 +7,7 @@ namespace Rendering
   /// <summary>
   /// Ray-casting rendering (ray-tracing w/o all secondary rays).
   /// </summary>
+  [Serializable]
   public class RayCasting : IImageFunction
   {
     /// <summary>

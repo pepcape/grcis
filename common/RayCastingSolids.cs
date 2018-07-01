@@ -7,11 +7,12 @@ using Scene3D;
 
 namespace Rendering
 {
-  /// <summary>
-  /// Unit sphere as a simple solid able to compute ray-intersection, normal vector
-  /// and 2D texture coordinates.
-  /// </summary>
-  public class Sphere : DefaultSceneNode, ISolid
+	/// <summary>
+	/// Unit sphere as a simple solid able to compute ray-intersection, normal vector
+	/// and 2D texture coordinates.
+	/// </summary>
+	[Serializable]
+	public class Sphere : DefaultSceneNode, ISolid
   {
     /// <summary>
     /// Computes the complete intersection of the given ray with the object.
@@ -106,11 +107,12 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Normalized (unit) cube as a simple solid able to compute ray-intersection, normal vector
-  /// and 2D texture coordinates. [0,1]^3
-  /// </summary>
-  public class Cube : DefaultSceneNode, ISolid
+	/// <summary>
+	/// Normalized (unit) cube as a simple solid able to compute ray-intersection, normal vector
+	/// and 2D texture coordinates. [0,1]^3
+	/// </summary>
+	[Serializable]
+	public class Cube : DefaultSceneNode, ISolid
   {
     protected enum CubeFaces
     {
@@ -332,10 +334,11 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Plane objects (infinite plane, rectangle, triangle) as elementary 3D solids.
-  /// </summary>
-  public class Plane : DefaultSceneNode, ISolid
+	/// <summary>
+	/// Plane objects (infinite plane, rectangle, triangle) as elementary 3D solids.
+	/// </summary>
+	[Serializable]
+	public class Plane : DefaultSceneNode, ISolid
   {
     /// <summary>
     /// Lower bound for x coordinate.
@@ -538,11 +541,12 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Unit cylinder (optionally restrictead by one or two bases) able to compute ray-intersection, normal vector
-  /// and 2D texture coordinates.
-  /// </summary>
-  public class Cylinder : DefaultSceneNode, ISolid
+	/// <summary>
+	/// Unit cylinder (optionally restrictead by one or two bases) able to compute ray-intersection, normal vector
+	/// and 2D texture coordinates.
+	/// </summary>
+	[Serializable]
+	public class Cylinder : DefaultSceneNode, ISolid
   {
     /// <summary>
     /// Lower bound for z coordinate (optional)
@@ -711,10 +715,11 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Torus (original author: Jan Navratil, (c) 2012).
-  /// </summary>
-  public class Torus : DefaultSceneNode, ISolid
+	/// <summary>
+	/// Torus (original author: Jan Navratil, (c) 2012).
+	/// </summary>
+	[Serializable]
+	public class Torus : DefaultSceneNode, ISolid
   {
     public double bigRadius = 1.0;
 
@@ -1098,11 +1103,11 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Bezier surface able to compute ray-intersection, normal vector
-  /// and 2D texture coordinates.
-  /// </summary>
-  public class BezierSurface : DefaultSceneNode, ISolid
+	/// <summary>
+	/// Bezier surface able to compute ray-intersection, normal vector
+	/// and 2D texture coordinates.
+	[Serializable]
+	public class BezierSurface : DefaultSceneNode, ISolid
   {
     /// <summary>
     /// Root Bezier patches R-trees.
@@ -1349,12 +1354,14 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Triangle mesh able to compute ray-intersection and normal vector.
-  /// </summary>
-  public class TriangleMesh : DefaultSceneNode, ISolid
+	/// <summary>
+	/// Triangle mesh able to compute ray-intersection and normal vector.
+	/// </summary>
+	[Serializable]
+	public class TriangleMesh : DefaultSceneNode, ISolid
   {
-    protected class TmpData
+    [Serializable]
+		protected class TmpData
     {
       /// <summary>
       /// Face id (id of the intersected triangle).

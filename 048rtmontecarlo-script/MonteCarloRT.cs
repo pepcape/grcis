@@ -114,6 +114,7 @@ namespace Rendering
   /// <summary>
   /// Super-samples only pixels/pixel parts which actually need it!
   /// </summary>
+  [Serializable]
   public class AdaptiveSupersampling : SupersamplingImageSynthesizer
   {
     public AdaptiveSupersampling ()
