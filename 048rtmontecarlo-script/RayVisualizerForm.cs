@@ -178,6 +178,12 @@ namespace Rendering
 
     private void glControl1_MouseMove ( object sender, MouseEventArgs e )
     {
+      if ( AllignCameraCheckBox.Checked && e.Button == trackBall.Button )
+      {
+        MessageBox.Show ( "You can not use mouse to rotate scene while \"Keep alligned\" box is checked." );
+        return;
+      }
+
       trackBall.MouseMove ( e );
     }
 
@@ -233,7 +239,9 @@ namespace Rendering
         return;
       }
 
-      //TODO: allign camera
+      trackBall.Center = (Vector3) RayVisualizer.instance.rays [ 1 ];
+      trackBall.Reset ( (Vector3) ( RayVisualizer.instance.rays [ 1 ] - RayVisualizer.instance.rays [ 0 ] ) );
+      trackBall.Zoom = (float) Vector3d.Distance ( RayVisualizer.instance.rays [ 1 ], RayVisualizer.instance.rays [ 0 ] );
     }
   }
 }

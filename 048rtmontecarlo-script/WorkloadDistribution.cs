@@ -24,6 +24,8 @@ namespace Rendering
 
     public ConcurrentQueue<Assignment> availableAssignments;
 
+    private List<NetworkWorker> networkWorkers;
+
     private Thread[] pool;
 
     public Thread mainThread;
@@ -52,6 +54,8 @@ namespace Rendering
     /// <param name="renderer">Rendered to use for RenderPixel method</param>
     public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
     {
+      instance = this;
+
       finishedAssignments = 0;
 
       this.bitmap   = bitmap;
@@ -112,7 +116,13 @@ namespace Rendering
         if ( !Master.instance.progressData.Continue )
           return;
 
-        newAssignment?.Render ();
+        if ( newAssignment == null )
+        {
+          continue;
+        }
+
+        float[] colorArray = newAssignment.Render ();
+        BitmapMerger ( colorArray, newAssignment.x1, newAssignment.y1, newAssignment.x2 + 1, newAssignment.y2 + 1 );
       }
     }
 
@@ -142,8 +152,10 @@ namespace Rendering
           int localX = x * assignmentSize;
           int localY = y * assignmentSize;
 
-          Assignment newAssignment = new Assignment ( bitmap, scene, renderer, localX, localY,
-                                                      localX + assignmentSize - 1, localY + assignmentSize - 1 );
+          Assignment newAssignment = new Assignment ( localX, 
+                                                      localY,
+                                                      localX + assignmentSize - 1, 
+                                                      localY + assignmentSize - 1 );
           availableAssignments.Enqueue ( newAssignment );
         }
       }
@@ -161,11 +173,16 @@ namespace Rendering
       foreach ( Client client in RenderClientsForm.instance.clients )
       {
         NetworkWorker newWorker = new NetworkWorker ( client.address );
+        networkWorkers = new List<NetworkWorker> ();
 
-        if ( !newWorker.ConnectToClient ()
-        ) // removes NetworkWorker instance in case of failure to connect to the client
+        if ( !newWorker.ConnectToClient () ) // removes NetworkWorker instance in case of failure to connect to the client
         {
           newWorker = null;
+        }
+        else
+        {
+          networkWorkers.Add ( newWorker );
+          newWorker.SendNecessaryObjects ();
         }
       }
     }
@@ -184,13 +201,27 @@ namespace Rendering
         {
           for ( int x = x1; x < x2; x++ )
           {
-            Color color = Color.FromArgb ( (int) newBitmap [ arrayPosition ],
-                                           (int) newBitmap [ arrayPosition + 1 ],
-                                           (int) newBitmap [ arrayPosition + 2 ] );
-            bitmap.SetPixel ( x, y, color );
+            if ( !float.IsInfinity ( newBitmap[arrayPosition] ) )
+            {
+              Color color = Color.FromArgb ( (int) newBitmap [ arrayPosition ],
+                                             (int) newBitmap [ arrayPosition + 1 ],
+                                             (int) newBitmap [ arrayPosition + 2 ] );
+              bitmap.SetPixel ( x, y, color );
+            }
 
             arrayPosition += 3;
           }
+        }
+      }
+    }
+
+    public void RenderedImageReceiver ()
+    {
+      while ( finishedAssignments < totalNumberOfAssignments )
+      {
+        foreach ( NetworkWorker worker in networkWorkers )
+        {
+          worker.ReceiveRenderedImage ();
         }
       }
     }
@@ -214,19 +245,6 @@ namespace Rendering
       this.ipAdr = ipAdr;
     }
 
-    public bool CreateEndPoint ()
-    {
-      if ( ipAdr == null )
-      {
-        return false;
-      }
-      else
-      {
-        endPoint = new IPEndPoint ( ipAdr, port );
-        return true;
-      }
-    }
-
     public bool ConnectToClient ()
     {
       if ( endPoint == null )
@@ -246,7 +264,7 @@ namespace Rendering
 
       stream = client.GetStream ();
 
-      SendNecessaryObjects ();
+      
 
 
       //while ( true ) { }
@@ -305,6 +323,42 @@ namespace Rendering
 
       stream.Write ( dataBuffer, 0, dataBuffer.Length );
     }
+
+
+    private const int bufferSize = ( Master.assignmentSize * Master.assignmentSize + 2) * sizeof ( float );
+    public void ReceiveRenderedImage ()
+    {
+      if ( stream.DataAvailable )
+      {
+        byte[] buffer = new byte[bufferSize];
+        int[] coordinates = new int[2];
+
+        stream.Read ( buffer, 0, bufferSize );
+
+        float[] floatBuffer = new float[Master.assignmentSize * Master.assignmentSize];
+        Buffer.BlockCopy ( buffer, 2 * sizeof ( float ), floatBuffer, 0, floatBuffer.Length );
+        Buffer.BlockCopy ( buffer, 0, coordinates, 0, coordinates.Length );
+
+        Master.instance.BitmapMerger ( floatBuffer, 
+                                       coordinates [ 0 ], 
+                                       coordinates [ 1 ],
+                                       coordinates [ 0 ] + Master.assignmentSize,
+                                       coordinates [ 1 ] + Master.assignmentSize );
+
+        Master.instance.finishedAssignments++;
+        AskForNewAssignment();
+      }
+    }
+
+    private void AskForNewAssignment ()
+    {
+      throw new NotImplementedException ();
+    }
+
+    public void SendAssignment ()
+    {
+      throw new NotImplementedException ();
+    }
   }
 
 
@@ -313,47 +367,44 @@ namespace Rendering
   /// </summary>
   public class Assignment
   {
-    internal Bitmap    bitmap;
-    internal IRayScene scene;
-    internal int       x1, y1, x2, y2;
+    internal int x1, y1, x2, y2;
 
     public int density; // Density of 'n' means that only each 'n'-th pixel is rendered (for sake of dynamic rendering)
 
-    public IRenderer renderer;
-
     private readonly int bitmapWidth, bitmapHeight;
 
-    public Assignment ( Bitmap bitmap, IRayScene scene, IRenderer renderer, int x1, int y1, int x2, int y2 )
+    public Assignment ( int x1, int y1, int x2, int y2 )
     {
-      this.bitmap   = bitmap;
-      this.scene    = scene;
-      this.renderer = renderer;
-      this.x1       = x1;
-      this.y1       = y1;
-      this.x2       = x2;
-      this.y2       = y2;
+      this.x1 = x1;
+      this.y1 = y1;
+      this.x2 = x2;
+      this.y2 = y2;
 
       // density values: 8 > 4 > 2 > 1; initially always 8
       // decreases at the end of rendering of current assignment and therefore makes another render of this assignment more detailed
       density = 8;
 
-      bitmapWidth  = bitmap.Width;
-      bitmapHeight = bitmap.Height;
+      bitmapWidth = Master.instance.bitmap.Width;
+      bitmapHeight = Master.instance.bitmap.Height;
     }
 
     /// <summary>
     /// Main render method
     /// Directly writes pixel colors to the main bitmap after rendering them
     /// </summary>
-    public void Render ()
+    public float[] Render ()
     {
+      float[] returnArray = new float[Master.assignmentSize * Master.assignmentSize * 3];
+
       for ( int y = y1; y <= y2; y += density )
       {
         for ( int x = x1; x <= x2; x += density )
         {
-          if ( density != 8 && ( y % ( density << 1 ) == 0 ) && ( x % ( density << 1 ) == 0 )
-          ) // prevents rendering of already rendered pixels
+          if ( density != 8 && ( y % ( density << 1 ) == 0 ) && ( x % ( density << 1 ) == 0 ) ) // prevents rendering of already rendered pixels
           {
+            returnArray[PositionInArray ( x, y )]     = float.PositiveInfinity;
+            returnArray[PositionInArray ( x, y ) + 1] = float.PositiveInfinity;
+            returnArray[PositionInArray ( x, y ) + 2] = float.PositiveInfinity;
             continue;
           }
 
@@ -364,30 +415,28 @@ namespace Rendering
 
           double[] color = new double[3];
 
-          renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
+          Master.instance.renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
 
-          Color c = Color.FromArgb ( (int) ( color [ 0 ] * 255.0 ),
-                                     (int) ( color [ 1 ] * 255.0 ),
-                                     (int) ( color [ 2 ] * 255.0 ) );
-
-          lock ( bitmap )
+          if ( density == 1 )
           {
-            if ( density == 1 )
+            returnArray [ PositionInArray ( x, y ) ] = (float) ( color [ 0 ] * 255.0 );
+            returnArray [ PositionInArray ( x, y ) + 1 ] = (float) ( color [ 1 ] * 255.0 );
+            returnArray [ PositionInArray ( x, y ) + 2 ] = (float) ( color [ 2 ] * 255.0 );
+          }
+          else
+          {
+            for ( int j = y; j < y + density; j++ )
             {
-              bitmap.SetPixel ( x, y, c );
-            }
-            else
-            {
-              for ( int j = y; j < y + density; j++ )
+              if ( j < bitmapHeight )
               {
-                if ( j < bitmapHeight )
+                for ( int i = x; i < x + density; i++ )
                 {
-                  for ( int i = x; i < x + density; i++ )
+                  if ( i < bitmapWidth )
                   {
-                    if ( i < bitmapWidth )
-                    {
-                      bitmap.SetPixel ( i, j, c ); // actual set of pixel color to main bitmap
-                    }
+                    // actual set of pixel color to main bitmap
+                    returnArray [ PositionInArray ( i, j ) ] = (float) ( color [ 0 ] * 255.0 );
+                    returnArray [ PositionInArray ( i, j ) + 1 ] = (float) ( color [ 1 ] * 255.0 );
+                    returnArray [ PositionInArray ( i, j ) + 2 ] = (float) ( color [ 2 ] * 255.0 );
                   }
                 }
               }
@@ -399,14 +448,14 @@ namespace Rendering
           {
             // test whether rendering should end (Stop button pressed) 
             if ( !Master.instance.progressData.Continue )
-              return;
+              return returnArray;
 
             // synchronization of bitmap with PictureBox in Form and update of progress (percentage of done work)
             if ( Master.instance.mainThread == Thread.CurrentThread )
             {
               Master.instance.progressData.Finished =
                 Master.instance.assignmentRoundsFinished / (float) Master.instance.assignmentRoundsTotal;
-              Master.instance.progressData.Sync ( bitmap );
+              Master.instance.progressData.Sync ( Master.instance.bitmap );
             }
           }
         }
@@ -424,6 +473,13 @@ namespace Rendering
         Master.instance.assignmentRoundsFinished++;
         Master.instance.availableAssignments.Enqueue ( this );
       }
+
+      return returnArray;
+    }
+
+    private int PositionInArray ( int x, int y )
+    {
+      return ( ( y - y1 ) * Master.assignmentSize + ( x - x1 ) ) * 3;
     }
   }
 }
