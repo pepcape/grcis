@@ -20,31 +20,31 @@ namespace _048rtmontecarlo
       Form1 f = Form1.singleton;
 
       // 1. default scenes from RayCastingScenes
-      f.sceneRepository = new Dictionary<string, object>( Scenes.staticRepository );
+      f.sceneRepository = new Dictionary<string, object> ( Scenes.staticRepository );
 
       // 2. scenes read from the command-line:
-      int rd = Scripts.ReadFromConfig( args, f.sceneRepository );
+      int rd = Scripts.ReadFromConfig ( args, f.sceneRepository );
       if ( rd > 0 )
-        f.SetText( $"{rd} scene scripts found" );
+        f.SetText ( $"{rd} scene scripts found" );
       else
-        f.SetText( $"No scene scripts found, check your -dir/-scene cmdline argument.." );
+        f.SetText ( $"No scene scripts found, check your -dir/-scene cmdline argument.." );
 
       // 3. static 'Test scene' (in this source file)
-      f.sceneRepository[ "Test scene" ] = new InitSceneParamDelegate( CustomScene.TestScene );
+      f.sceneRepository [ "Test scene" ] = new InitSceneParamDelegate ( CustomScene.TestScene );
 
       // 4. fill the combo-box
       foreach ( string key in f.sceneRepository.Keys )
-        f.ComboScene.Items.Add( key );
+        f.ComboScene.Items.Add ( key );
 
       // .. and set your favorite scene here:
-      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf( "Test scene" );
+      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf ( "Test scene" );
 
       // default image parameters?
-      f.ImageWidth = 640;
-      f.ImageHeight = 480;
-      f.NumericSupersampling.Value = 4;
+      f.ImageWidth                  = 640;
+      f.ImageHeight                 = 480;
+      f.NumericSupersampling.Value  = 4;
       f.CheckMultithreading.Checked = true;
-      f.TextParam.Text = "sampling=adapt1";      
+      f.TextParam.Text              = "sampling=adapt1";
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ namespace _048rtmontecarlo
     /// </summary>
     public static IRayScene getScene ()
     {
-      return Form1.singleton.SceneByComboBox();
+      return Form1.singleton.SceneByComboBox ();
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ namespace _048rtmontecarlo
     /// </summary>
     public static IImageFunction getImageFunction ( IRayScene scene, string param )
     {
-      return new RayTracing( scene );
+      return new RayTracing ( scene );
     }
 
     /// <summary>
@@ -68,40 +68,40 @@ namespace _048rtmontecarlo
     /// </summary>
     public static IRenderer getRenderer ( IImageFunction imf, int superSampling, double jittering, string param )
     {
-      Dictionary<string,string> p = Util.ParseKeyValueList( param );
+      Dictionary<string, string> p = Util.ParseKeyValueList ( param );
 
-      string isType;
+      string    isType;
       IRenderer r = null;
-      if ( p.TryGetValue( "sampling", out isType ) &&
+      if ( p.TryGetValue ( "sampling", out isType ) &&
            superSampling > 1 )
         switch ( isType )
         {
           case "adapt1":
             double threshold = 0.004;
-            Util.TryParse( p, "threshold", ref threshold );
-            AdaptiveSupersamplingJR adis = new AdaptiveSupersamplingJR( threshold );
+            Util.TryParse ( p, "threshold", ref threshold );
+            AdaptiveSupersamplingJR adis = new AdaptiveSupersamplingJR ( threshold );
             adis.ImageFunction = imf;
             adis.Supersampling = superSampling;
             adis.Jittering     = jittering;
-            r = adis;
+            r                  = adis;
             break;
 
           case "adapt2":
-            AdaptiveSupersampling sis = new AdaptiveSupersampling();
+            AdaptiveSupersampling sis = new AdaptiveSupersampling ();
             sis.ImageFunction = imf;
             sis.Supersampling = superSampling;
             sis.Jittering     = jittering;
-            r = sis;
+            r                 = sis;
             break;
         }
 
       if ( r == null )
       {
-        SupersamplingImageSynthesizer jit = new SupersamplingImageSynthesizer();
+        SupersamplingImageSynthesizer jit = new SupersamplingImageSynthesizer ();
         jit.ImageFunction = imf;
         jit.Supersampling = superSampling;
         jit.Jittering     = jittering;
-        r = jit;
+        r                 = jit;
       }
 
       return r;
@@ -115,12 +115,10 @@ namespace Rendering
   /// Super-samples only pixels/pixel parts which actually need it!
   /// </summary>
   [Serializable]
-  public class AdaptiveSupersampling : SupersamplingImageSynthesizer
+  public class AdaptiveSupersampling: SupersamplingImageSynthesizer
   {
     public AdaptiveSupersampling ()
-      : base( 16 )
-    {
-    }
+      : base ( 16 ) { }
 
     /// <summary>
     /// Renders the single pixel of an image (using required super-sampling).
@@ -130,48 +128,50 @@ namespace Rendering
     /// <param name="color">Computed pixel color.</param>
     public override void RenderPixel ( int x, int y, double[] color )
     {
-      Debug.Assert( color != null );
-      Debug.Assert( MT.rnd != null );
+      Debug.Assert ( color != null );
+      Debug.Assert ( MT.rnd != null );
 
       // !!!{{ TODO: this is exactly the code inherited from static sampling - make it adaptive!
 
       int bands = color.Length;
       int b;
-      Array.Clear( color, 0, bands );
-      double[] tmp = new double[ bands ];
+      Array.Clear ( color, 0, bands );
+      double[] tmp = new double[bands];
 
-      int i, j;
-      double step = 1.0 / superXY;
+      int    i, j;
+      double step      = 1.0 / superXY;
       double amplitude = Jittering * step;
-      double origin = 0.5 * (step - amplitude);
+      double origin    = 0.5 * ( step - amplitude );
       double x0, y0;
-      MT.StartPixel( x, y, Supersampling );
+      MT.StartPixel ( x, y, Supersampling );
 
       for ( j = 0, y0 = y + origin; j++ < superXY; y0 += step )
         for ( i = 0, x0 = x + origin; i++ < superXY; x0 += step )
         {
-          ImageFunction.GetSample( x0 + amplitude * MT.rnd.UniformNumber(),
-                                   y0 + amplitude * MT.rnd.UniformNumber(),
-                                   tmp );
-          MT.NextSample();
+          ImageFunction.GetSample ( x0 + amplitude * MT.rnd.UniformNumber (),
+                                    y0 + amplitude * MT.rnd.UniformNumber (),
+                                    tmp );
+          MT.NextSample ();
           for ( b = 0; b < bands; b++ )
-            color[ b ] += tmp[ b ];
+            color [ b ] += tmp [ b ];
         }
 
       double mul = step / superXY;
       if ( Gamma > 0.001 )
-      {                                     // gamma-encoding and clamping
+      {
+        // gamma-encoding and clamping
         double g = 1.0 / Gamma;
         for ( b = 0; b < bands; b++ )
-          color[ b ] = Arith.Clamp( Math.Pow( color[ b ] * mul, g ), 0.0, 1.0 );
+          color [ b ] = Arith.Clamp ( Math.Pow ( color [ b ] * mul, g ), 0.0, 1.0 );
       }
-      else                                  // no gamma, no clamping (for HDRI)
+      else // no gamma, no clamping (for HDRI)
         for ( b = 0; b < bands; b++ )
-          color[ b ] *= mul;
+          color [ b ] *= mul;
 
       // !!!}}
     }
   }
+
 
   /// <summary>
   /// Custom scene for adaptive super-sampling (derived from "Sphere on the Plane").
@@ -180,26 +180,27 @@ namespace Rendering
   {
     public static void TestScene ( IRayScene sc, string param )
     {
-      Debug.Assert( sc != null );
+      Debug.Assert ( sc != null );
 
       // CSG scene:
-      CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
-      root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
-      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 1.0, 0.8, 0.1 }, 0.1, 0.6, 0.4, 128 ) );
+      CSGInnerNode root = new CSGInnerNode ( SetOperation.Union );
+      root.SetAttribute ( PropertyName.REFLECTANCE_MODEL, new PhongModel () );
+      root.SetAttribute ( PropertyName.MATERIAL,
+                          new PhongMaterial ( new double[] { 1.0, 0.8, 0.1 }, 0.1, 0.6, 0.4, 128 ) );
       sc.Intersectable = root;
 
       // Background color:
       sc.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
 
       // Camera:
-      sc.Camera = new StaticCamera( new Vector3d( 0.7, 0.5, -5.0 ),
-                                    new Vector3d( 0.0, -0.18, 1.0 ),
-                                    50.0 );
+      sc.Camera = new StaticCamera ( new Vector3d ( 0.7, 0.5, -5.0 ),
+                                     new Vector3d ( 0.0, -0.18, 1.0 ),
+                                     50.0 );
 
       // Light sources:
-      sc.Sources = new LinkedList<ILightSource>();
-      sc.Sources.Add( new AmbientLightSource( 0.8 ) );
-      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 4.0, -3.0 ), 1.2 ) );
+      sc.Sources = new LinkedList<ILightSource> ();
+      sc.Sources.Add ( new AmbientLightSource ( 0.8 ) );
+      sc.Sources.Add ( new PointLightSource ( new Vector3d ( -5.0, 4.0, -3.0 ), 1.2 ) );
 
       /*
       // horizontal stick source:
@@ -221,14 +222,14 @@ namespace Rendering
       // --- NODE DEFINITIONS ----------------------------------------------------
 
       // Sphere:
-      Sphere s = new Sphere();
-      root.InsertChild( s, Matrix4d.Identity );
+      Sphere s = new Sphere ();
+      root.InsertChild ( s, Matrix4d.Identity );
 
       // Infinite plane with checker:
-      Plane pl = new Plane();
-      pl.SetAttribute( PropertyName.COLOR, new double[] { 0.3, 0.0, 0.0 } );
-      pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 0.6, 0.6, new double[] { 1.0, 1.0, 1.0 } ) );
-      root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
+      Plane pl = new Plane ();
+      pl.SetAttribute ( PropertyName.COLOR, new double[] { 0.3, 0.0, 0.0 } );
+      pl.SetAttribute ( PropertyName.TEXTURE, new CheckerTexture ( 0.6, 0.6, new double[] { 1.0, 1.0, 1.0 } ) );
+      root.InsertChild ( pl, Matrix4d.RotateX ( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation ( 0.0, -1.0, 0.0 ) );
     }
   }
 }

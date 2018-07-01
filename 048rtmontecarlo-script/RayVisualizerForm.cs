@@ -9,7 +9,7 @@ using _048rtmontecarlo;
 
 namespace Rendering
 {
-  public partial class RayVisualizerForm : Form
+  public partial class RayVisualizerForm: Form
   {
     public static RayVisualizerForm instance; //singleton
 
@@ -59,23 +59,22 @@ namespace Rendering
 
     bool pointDirty = false;
 
-
     public RayVisualizerForm ()
     {
       InitializeComponent ();
 
       Form1.singleton.RayVisualiserButton.Enabled = false;
 
-			trackBall = new Trackball ( center, diameter );
+      trackBall = new Trackball ( center, diameter );
 
       InitShaderRepository ();
 
-			RayVisualizerForm.instance = this;
+      RayVisualizerForm.instance = this;
 
       RayVisualizer.instance = new RayVisualizer ();
 
       Cursor.Current = Cursors.Default;
-		}
+    }
 
     private void GenerateMesh () // formerly: "buttonGenerate_Click ( object sender, EventArgs e )"
     {
@@ -106,8 +105,7 @@ namespace Rendering
       Cursor.Current = Cursors.Default;
     }
 
-
-		private void glControl1_Load ( object sender, EventArgs e )
+    private void glControl1_Load ( object sender, EventArgs e )
     {
       InitOpenGL ();
 
@@ -117,7 +115,6 @@ namespace Rendering
 
       Application.Idle += new EventHandler ( Application_Idle );
     }
-
 
     private void glControl1_Resize ( object sender, EventArgs e )
     {
@@ -129,18 +126,16 @@ namespace Rendering
       glControl1.Invalidate ();
     }
 
-
     private void glControl1_Paint ( object sender, PaintEventArgs e )
     {
       Render ();
     }
 
-
     private void Form3_FormClosing ( object sender, FormClosingEventArgs e )
     {
       DestroyTexture ( ref texName );
 
-      if ( VBOid != null && VBOid[ 0 ] != 0 )
+      if ( VBOid != null && VBOid [ 0 ] != 0 )
       {
         GL.DeleteBuffers ( 2, VBOid );
         VBOid = null;
@@ -158,7 +153,8 @@ namespace Rendering
       GL.GetFloat ( GetPName.ModelviewMatrix, out modelViewMatrix );
       GL.GetFloat ( GetPName.ProjectionMatrix, out projectionMatrix );
 
-      return Geometry.UnProject ( ref projectionMatrix, ref modelViewMatrix, glControl1.Width, glControl1.Height, x, glControl1.Height - y, z );
+      return Geometry.UnProject ( ref projectionMatrix, ref modelViewMatrix, glControl1.Width, glControl1.Height, x,
+                                  glControl1.Height - y, z );
     }
 
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
@@ -223,21 +219,21 @@ namespace Rendering
       }
     }
 
-		private void Form3_FormClosed(object sender, FormClosedEventArgs e)
-		{
-		  Form1.singleton.RayVisualiserButton.Enabled = true;
+    private void Form3_FormClosed ( object sender, FormClosedEventArgs e )
+    {
+      Form1.singleton.RayVisualiserButton.Enabled = true;
 
-			instance = null;
-		}
+      instance = null;
+    }
 
-		private void AllignCamera ( object sender, EventArgs e )
-		{
-		  if ( RayVisualizer.instance?.rays.Count < 2 )
-		  {
-				return;
-		  }
+    private void AllignCamera ( object sender, EventArgs e )
+    {
+      if ( RayVisualizer.instance?.rays.Count < 2 )
+      {
+        return;
+      }
 
-		  //TODO: allign camera
-		}
-	}
+      //TODO: allign camera
+    }
+  }
 }

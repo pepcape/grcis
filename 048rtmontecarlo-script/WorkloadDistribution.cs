@@ -16,8 +16,8 @@ using _048rtmontecarlo;
 namespace Rendering
 {
   /// <summary>
-	/// Takes care of distribution of rendering work between local threads and remote/network render clients
-	/// </summary>
+  /// Takes care of distribution of rendering work between local threads and remote/network render clients
+  /// </summary>
   class Master
   {
     public static Master instance; // singleton
@@ -26,61 +26,61 @@ namespace Rendering
 
     private Thread[] pool;
 
-		public Thread mainThread;
+    public Thread mainThread;
 
     public int totalNumberOfAssignments;
 
     public int finishedAssignments;
 
-		// width and height of one block of pixels (rendered at one thread at the time); 32 seems to be optimal; should be power of 2 and smaller than 8
-		public const int assignmentSize = 32;
+    // width and height of one block of pixels (rendered at one thread at the time); 32 seems to be optimal; should be power of 2 and smaller than 8
+    public const int assignmentSize = 32;
 
-		public Progress progressData;
+    public Progress progressData;
 
     public int assignmentRoundsFinished = 0;
     public int assignmentRoundsTotal;
 
-    public Bitmap bitmap;
+    public Bitmap    bitmap;
     public IRayScene scene;
     public IRenderer renderer;
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
-		/// <param name="scene">Scene to render</param>
-		/// <param name="renderer">Rendered to use for RenderPixel method</param>
-		public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
+    /// <param name="scene">Scene to render</param>
+    /// <param name="renderer">Rendered to use for RenderPixel method</param>
+    public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
     {
       finishedAssignments = 0;
 
-			this.bitmap = bitmap;
-			this.scene = scene;
-			this.renderer = renderer;
+      this.bitmap   = bitmap;
+      this.scene    = scene;
+      this.renderer = renderer;
 
-			InitializeAssignments ( bitmap, scene, renderer );
+      InitializeAssignments ( bitmap, scene, renderer );
 
 
-			if ( RenderClientsForm.instance == null )
+      if ( RenderClientsForm.instance == null )
       {
-				RenderClientsForm.instance = new RenderClientsForm ();
-			}
-		}
+        RenderClientsForm.instance = new RenderClientsForm ();
+      }
+    }
 
     /// <summary>
-		/// Creates threadpool and starts all threads on Consume method
-		/// </summary>
-		/// <param name="threads">Number of threads - is expected to be int</param>
-    public void StartThreads( object threads )
+    /// Creates threadpool and starts all threads on Consume method
+    /// </summary>
+    /// <param name="threads">Number of threads - is expected to be int</param>
+    public void StartThreads ( object threads )
     {
-      pool = new Thread[(int)threads];
+      pool = new Thread[(int) threads];
 
 
-      for ( int i = 0; i < (int)threads; i++ )
+      for ( int i = 0; i < (int) threads; i++ )
       {
-				Thread newThread = new Thread ( Consume );
+        Thread newThread = new Thread ( Consume );
         newThread.Priority = ThreadPriority.AboveNormal;
-        pool [ i ] = newThread;
+        pool [ i ]         = newThread;
         newThread.Start ();
       }
 
@@ -88,25 +88,25 @@ namespace Rendering
 
       AssignNetworkWorkerToStream ();
 
-			for ( int i = 0; i < (int) threads; i++ )
-			{
-			  pool [ i ].Join ();
-			  pool [ i ] = null;
-			}
-		}
+      for ( int i = 0; i < (int) threads; i++ )
+      {
+        pool [ i ].Join ();
+        pool [ i ] = null;
+      }
+    }
 
-		/// <summary>
-		/// Consumer-producer based multithreading work distribution
-		/// Each thread waits for a new Assignment to be added to availableAssignments queue
-		/// Most of the time is number of items in availableAssignments expected to be several times larger than number of threads
-		/// </summary>
-		private void Consume()
+    /// <summary>
+    /// Consumer-producer based multithreading work distribution
+    /// Each thread waits for a new Assignment to be added to availableAssignments queue
+    /// Most of the time is number of items in availableAssignments expected to be several times larger than number of threads
+    /// </summary>
+    private void Consume ()
     {
       MT.InitThreadData ();
 
-			while ( finishedAssignments < totalNumberOfAssignments )
+      while ( finishedAssignments < totalNumberOfAssignments )
       {
-				Assignment newAssignment;
+        Assignment newAssignment;
         availableAssignments.TryDequeue ( out newAssignment );
 
         if ( !Master.instance.progressData.Continue )
@@ -114,15 +114,15 @@ namespace Rendering
 
         newAssignment?.Render ();
       }
-		}
+    }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
-		/// <param name="scene">Scene to render</param>
-		/// <param name="renderer">Rendered to use for RenderPixel method</param>
-		public void InitializeAssignments ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
+    /// <param name="scene">Scene to render</param>
+    /// <param name="renderer">Rendered to use for RenderPixel method</param>
+    public void InitializeAssignments ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
     {
       availableAssignments = new ConcurrentQueue<Assignment> ();
 
@@ -135,54 +135,56 @@ namespace Rendering
         : bitmap.Height / assignmentSize + 1;
 
 
-			for ( int y = 0; y < numberOfAssignmentsOnHeight; y++ )
+      for ( int y = 0; y < numberOfAssignmentsOnHeight; y++ )
       {
         for ( int x = 0; x < numberOfAssignmentsOnWidth; x++ )
         {
           int localX = x * assignmentSize;
           int localY = y * assignmentSize;
 
-          Assignment newAssignment = new Assignment ( bitmap, scene, renderer, localX, localY, localX + assignmentSize - 1, localY + assignmentSize - 1 );
+          Assignment newAssignment = new Assignment ( bitmap, scene, renderer, localX, localY,
+                                                      localX + assignmentSize - 1, localY + assignmentSize - 1 );
           availableAssignments.Enqueue ( newAssignment );
         }
       }
 
 
       totalNumberOfAssignments = availableAssignments.Count;
-      assignmentRoundsTotal = totalNumberOfAssignments * 4;
+      assignmentRoundsTotal    = totalNumberOfAssignments * 4;
     }
 
     /// <summary>
-		/// Goes through all clients from RenderClientsForm and assigns a NetworkWorker to each of them
-		/// </summary>
+    /// Goes through all clients from RenderClientsForm and assigns a NetworkWorker to each of them
+    /// </summary>
     public void AssignNetworkWorkerToStream ()
     {
       foreach ( Client client in RenderClientsForm.instance.clients )
       {
         NetworkWorker newWorker = new NetworkWorker ( client.address );
 
-        if ( !newWorker.ConnectToClient () )  // removes NetworkWorker instance in case of failure to connect to the client
+        if ( !newWorker.ConnectToClient ()
+        ) // removes NetworkWorker instance in case of failure to connect to the client
         {
-					newWorker = null;
+          newWorker = null;
         }
       }
     }
 
     /// <summary>
-		/// Adds colors represented in newBitmap array to main bitmap
-		/// </summary>
-		/// <param name="newBitmap">Float values (for later HDR support) representing pixel color values</param>
-    public void BitmapMerger ( float[] newBitmap, int x1, int y1, int x2, int y2 )  //TODO: Change to unsafe?
-    {     
+    /// Adds colors represented in newBitmap array to main bitmap
+    /// </summary>
+    /// <param name="newBitmap">Float values (for later HDR support) representing pixel color values</param>
+    public void BitmapMerger ( float[] newBitmap, int x1, int y1, int x2, int y2 ) //TODO: Change to unsafe?
+    {
       lock ( bitmap )
       {
         int arrayPosition = 0;
 
-				for ( int y = y1; y < y2; y++ )
+        for ( int y = y1; y < y2; y++ )
         {
           for ( int x = x1; x < x2; x++ )
           {
-            Color color = Color.FromArgb ( (int) newBitmap [ arrayPosition ], 
+            Color color = Color.FromArgb ( (int) newBitmap [ arrayPosition ],
                                            (int) newBitmap [ arrayPosition + 1 ],
                                            (int) newBitmap [ arrayPosition + 2 ] );
             bitmap.SetPixel ( x, y, color );
@@ -194,116 +196,114 @@ namespace Rendering
     }
   }
 
+
   /// <summary>
-	/// Takes care of network communication with with 1 render client
-	/// </summary>
+  /// Takes care of network communication with with 1 render client
+  /// </summary>
   class NetworkWorker
-	{
-		private IPAddress ipAdr;
-		private IPEndPoint endPoint;
-    private const int port = 5000;
+  {
+    private       IPAddress  ipAdr;
+    private       IPEndPoint endPoint;
+    private const int        port = 5000;
 
-	  private TcpClient client;
-	  private NetworkStream stream;
+    private TcpClient     client;
+    private NetworkStream stream;
 
-		public NetworkWorker ( IPAddress ipAdr )
-	  {
-			this.ipAdr = ipAdr;
-		}
+    public NetworkWorker ( IPAddress ipAdr )
+    {
+      this.ipAdr = ipAdr;
+    }
 
     public bool CreateEndPoint ()
     {
-      if ( ipAdr == null)
+      if ( ipAdr == null )
       {
-				return false;
+        return false;
       }
       else
       {
-				endPoint = new IPEndPoint ( ipAdr, port );
-				return true;
-			}     
+        endPoint = new IPEndPoint ( ipAdr, port );
+        return true;
+      }
     }
 
-	  public bool ConnectToClient ()
-	  {
-	    if ( endPoint == null )
-	    {
-				endPoint = new IPEndPoint ( ipAdr, port );
-			}
+    public bool ConnectToClient ()
+    {
+      if ( endPoint == null )
+      {
+        endPoint = new IPEndPoint ( ipAdr, port );
+      }
 
-	    client = new TcpClient ();
-	    try
-	    {
-	      client.Connect ( endPoint );
-			}
-	    catch ( SocketException e )
-	    {
-				return false;
-	    }
-	    
-	    stream = client.GetStream ();
+      client = new TcpClient ();
+      try
+      {
+        client.Connect ( endPoint );
+      }
+      catch ( SocketException e )
+      {
+        return false;
+      }
 
-	    SendNecessaryObjects ();
+      stream = client.GetStream ();
+
+      SendNecessaryObjects ();
 
 
-			while ( true )
-	    {
-	      
-	    }
+      while ( true ) { }
 
-			return true;
+      return true;
       //TODO: Do something with stream
-	  }
+    }
+
+    public void TestReceive ()
+    {
+      while ( true )
+      {
+        byte[] buffer = new byte[client.ReceiveBufferSize];
+
+        stream.Read ( buffer, 0, buffer.Length );
+
+        string message = Encoding.UTF8.GetString ( buffer );
+
+        Debug.WriteLine ( message );
+
+        if ( message.Contains ( "." ) )
+        {
+          break;
+        }
+      }
+    }
+
+    public void SendNecessaryObjects ()
+    {
+      //SendObject<IRayScene> ( Master.instance.scene );
+      SendObject<IRenderer> ( Master.instance.renderer );
+    }
+
+    private void SendObject<T> ( T objectToSend )
+    {
+      BinaryFormatter formatter    = new BinaryFormatter ();
+      MemoryStream    memoryStream = new MemoryStream ();
+
+      formatter.Serialize ( memoryStream, objectToSend );
+
+      byte[] sceneData = memoryStream.ToArray ();
+
+      client.SendBufferSize = sceneData.Length;
+
+      stream.Write ( sceneData, 0, sceneData.Length );
+    }
+  }
 
 
-	  public void TestReceive ()
-	  {
-	    while ( true )
-	    {
-	      byte[] buffer = new byte[client.ReceiveBufferSize];
-
-	      stream.Read ( buffer, 0, buffer.Length );
-
-	      string message = Encoding.UTF8.GetString ( buffer );
-
-	      Debug.WriteLine ( message );
-
-	      if ( message.Contains ( "." ) )
-	      {
-	        break;
-	      }
-	    }
-		}
-
-	  public void SendNecessaryObjects ()
-	  {
-	    //SendObject<IRayScene> ( Master.instance.scene );
-	    SendObject<IRenderer> ( Master.instance.renderer );
-		}
-
-	  private void SendObject<T> (T objectToSend)
-	  {
-	    BinaryFormatter formatter = new BinaryFormatter ();
-	    MemoryStream memoryStream = new MemoryStream ();
-
-	    formatter.Serialize ( memoryStream, objectToSend );
-
-	    byte[] sceneData = memoryStream.ToArray ();
-
-	    client.SendBufferSize = sceneData.Length;
-
-	    stream.Write ( sceneData, 0, sceneData.Length );
-	  }
-	}
-
-	/// <summary>
-	/// Represents 1 render work ( = rectangle of pixels to render at specific density)
-	/// </summary>
-	public class Assignment
+  /// <summary>
+  /// Represents 1 render work ( = rectangle of pixels to render at specific density)
+  /// </summary>
+  public class Assignment
   {
-		internal Bitmap bitmap;
+    internal Bitmap    bitmap;
     internal IRayScene scene;
-    internal int x1, y1, x2, y2;
+    internal int       x1, y1, x2, y2;
 
     public int density; // Density of 'n' means that only each 'n'-th pixel is rendered (for sake of dynamic rendering)
 
@@ -311,57 +311,58 @@ namespace Rendering
 
     private readonly int bitmapWidth, bitmapHeight;
 
-		public Assignment ( Bitmap bitmap, IRayScene scene, IRenderer renderer, int x1, int y1, int x2, int y2 )
+    public Assignment ( Bitmap bitmap, IRayScene scene, IRenderer renderer, int x1, int y1, int x2, int y2 )
     {
-			this.bitmap = bitmap;
-			this.scene = scene;
-			this.renderer = renderer;
-			this.x1 = x1;
-			this.y1 = y1;
-			this.x2 = x2;
-			this.y2 = y2;
+      this.bitmap   = bitmap;
+      this.scene    = scene;
+      this.renderer = renderer;
+      this.x1       = x1;
+      this.y1       = y1;
+      this.x2       = x2;
+      this.y2       = y2;
 
-			// density values: 8 > 4 > 2 > 1; initially always 8
-			// decreases at the end of rendering of current assignment and therefore makes another render of this assignment more detailed
+      // density values: 8 > 4 > 2 > 1; initially always 8
+      // decreases at the end of rendering of current assignment and therefore makes another render of this assignment more detailed
       density = 8;
 
-			bitmapWidth = bitmap.Width;
+      bitmapWidth  = bitmap.Width;
       bitmapHeight = bitmap.Height;
     }
 
     /// <summary>
-		/// Main render method
-		/// Directly writes pixel colors to the main bitmap after rendering them
-		/// </summary>
+    /// Main render method
+    /// Directly writes pixel colors to the main bitmap after rendering them
+    /// </summary>
     public void Render ()
-    {    
+    {
       for ( int y = y1; y <= y2; y += density )
       {
         for ( int x = x1; x <= x2; x += density )
         {
-          if ( density != 8 && ( y % ( density << 1 ) == 0 ) && ( x % ( density << 1 ) == 0 ) ) // prevents rendering of already rendered pixels
+          if ( density != 8 && ( y % ( density << 1 ) == 0 ) && ( x % ( density << 1 ) == 0 )
+          ) // prevents rendering of already rendered pixels
           {
             continue;
           }
 
           if ( x >= bitmapWidth || y >= bitmapHeight )
           {
-						continue;
+            continue;
           }
 
           double[] color = new double[3];
 
-          renderer.RenderPixel (x, y, color); // called at desired IRenderer; gets pixel color
+          renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
 
-          Color c = Color.FromArgb( (int)(color[ 0 ] * 255.0),
-                                    (int)(color[ 1 ] * 255.0),
-                                    (int)(color[ 2 ] * 255.0) );
+          Color c = Color.FromArgb ( (int) ( color [ 0 ] * 255.0 ),
+                                     (int) ( color [ 1 ] * 255.0 ),
+                                     (int) ( color [ 2 ] * 255.0 ) );
 
-					lock ( bitmap )
+          lock ( bitmap )
           {
             if ( density == 1 )
             {
-              bitmap.SetPixel ( x, y, c );         
+              bitmap.SetPixel ( x, y, c );
             }
             else
             {
@@ -369,47 +370,48 @@ namespace Rendering
               {
                 if ( j < bitmapHeight )
                 {
-									for ( int i = x; i < x + density; i++ )
-									{
-									  if ( i < bitmapWidth )
-									  {
-									    bitmap.SetPixel ( i, j, c );  // actual set of pixel color to main bitmap
-										}
-									}
-								}							
-							}            
+                  for ( int i = x; i < x + density; i++ )
+                  {
+                    if ( i < bitmapWidth )
+                    {
+                      bitmap.SetPixel ( i, j, c ); // actual set of pixel color to main bitmap
+                    }
+                  }
+                }
+              }
             }
           }
 
-          
-					lock ( Master.instance.progressData )
-					{
-						// test whether rendering should end (Stop button pressed) 
-					  if ( !Master.instance.progressData.Continue )
-					    return;
 
-						// synchronization of bitmap with PictureBox in Form and update of progress (percentage of done work)
-						if ( Master.instance.mainThread == Thread.CurrentThread )
-						{
-						  Master.instance.progressData.Finished = Master.instance.assignmentRoundsFinished / (float) Master.instance.assignmentRoundsTotal;
-						  Master.instance.progressData.Sync ( bitmap );
-						}					
-					}
-				}
-			}
+          lock ( Master.instance.progressData )
+          {
+            // test whether rendering should end (Stop button pressed) 
+            if ( !Master.instance.progressData.Continue )
+              return;
+
+            // synchronization of bitmap with PictureBox in Form and update of progress (percentage of done work)
+            if ( Master.instance.mainThread == Thread.CurrentThread )
+            {
+              Master.instance.progressData.Finished =
+                Master.instance.assignmentRoundsFinished / (float) Master.instance.assignmentRoundsTotal;
+              Master.instance.progressData.Sync ( bitmap );
+            }
+          }
+        }
+      }
 
 
       if ( density == 1 )
       {
         Master.instance.finishedAssignments++;
-        Master.instance.assignmentRoundsFinished ++;
-			}
+        Master.instance.assignmentRoundsFinished++;
+      }
       else
       {
-				density = density >> 1; // density values: 8 > 4 > 2 > 1
-        Master.instance.assignmentRoundsFinished ++;
-				Master.instance.availableAssignments.Enqueue ( this );
-			}
-		}
-	}
+        density = density >> 1; // density values: 8 > 4 > 2 > 1
+        Master.instance.assignmentRoundsFinished++;
+        Master.instance.availableAssignments.Enqueue ( this );
+      }
+    }
+  }
 }

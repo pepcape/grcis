@@ -12,72 +12,46 @@ namespace Rendering
   /// Uses just one sample per pixel.
   /// </summary>
   [Serializable]
-  public class SimpleImageSynthesizer : IRenderer
+  public class SimpleImageSynthesizer: IRenderer
   {
     /// <summary>
     /// Image width in pixels.
     /// </summary>
-    public int Width
-    {
-      get;
-      set;
-    }
+    public int Width { get; set; }
 
     /// <summary>
     /// Image height in pixels.
     /// </summary>
-    public int Height
-    {
-      get;
-      set;
-    }
+    public int Height { get; set; }
 
     /// <summary>
     /// Gamma pre-compensation (gamma encoding, compression). Values 0.0 or 1.0 mean "no compensation".
     /// </summary>
-    public double Gamma
-    {
-      get;
-      set;
-    }
+    public double Gamma { get; set; }
 
     /// <summary>
     /// Sample-based rendering specifics: rendered image is defined by
     /// a continuous-argument image function.
     /// </summary>
-    public IImageFunction ImageFunction
-    {
-      get;
-      set;
-    }
+    public IImageFunction ImageFunction { get; set; }
 
     /// <summary>
     /// Cell-size for adaptive rendering, 0 or 1 to turn off adaptivitiy.
     /// </summary>
-    public int Adaptive
-    {
-      get;
-      set;
-    }
+    public int Adaptive { get; set; }
 
     /// <summary>
     /// Current progress object (can be null).
     /// </summary>
-    public Progress ProgressData
-    {
-      get;
-      set;
-    }
+    public Progress ProgressData { get; set; }
 
     public SimpleImageSynthesizer ()
-      : this( 1 )
-    {
-    }
+      : this ( 1 ) { }
 
     public SimpleImageSynthesizer ( int adaptive )
     {
-      Adaptive = adaptive;
-      Gamma = 2.2;              // the right value "by the book"
+      Adaptive     = adaptive;
+      Gamma        = 2.2; // the right value "by the book"
       ProgressData = null;
     }
 
@@ -89,17 +63,19 @@ namespace Rendering
     /// <param name="color">Computed pixel color.</param>
     public virtual void RenderPixel ( int x, int y, double[] color )
     {
-      MT.StartPixel( x, y, 1 );
-      ImageFunction.GetSample( x + 0.5, y + 0.5, color );
+      MT.StartPixel ( x, y, 1 );
+      ImageFunction.GetSample ( x + 0.5, y + 0.5, color );
 
       // gamma-encoding:
       if ( Gamma > 0.001 )
-      {                                     // gamma-encoding and clamping
+      {
+        // gamma-encoding and clamping
         double g = 1.0 / Gamma;
         for ( int b = 0; b < color.Length; b++ )
-          color[ b ] = Arith.Clamp( Math.Pow( color[ b ], g ), 0.0, 1.0 );
+          color [ b ] = Arith.Clamp ( Math.Pow ( color [ b ], g ), 0.0, 1.0 );
       }
-                                            // else: no gamma, no clamping (for HDRI)
+
+      // else: no gamma, no clamping (for HDRI)
     }
 
     /// <summary>
@@ -108,7 +84,7 @@ namespace Rendering
     /// <param name="image">Pre-initialized raster image.</param>
     public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 )
     {
-      RenderRectangle( image, x1, y1, x2, y2, ( n ) => true );
+      RenderRectangle ( image, x1, y1, x2, y2, ( n ) => true );
     }
 
     /// <summary>
@@ -119,60 +95,60 @@ namespace Rendering
     /// <param name="sel">Selector for this working thread.</param>
     public virtual void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel )
     {
-      bool lead = sel( 0L );
+      bool lead = sel ( 0L );
       if ( lead &&
            ProgressData != null )
         lock ( ProgressData )
         {
           ProgressData.Finished = 0.0f;
-          ProgressData.Message = "";
+          ProgressData.Message  = "";
         }
 
-      double[] color = new double[ 3 ];     // pixel color
+      double[] color = new double[3]; // pixel color
 
       // run several phases of image rendering:
-      int cell = 32;                        // cell size
+      int cell = 32; // cell size
       while ( cell > 1 && cell > Adaptive )
         cell >>= 1;
       int initCell = cell;
 
-      int x, y;
-      bool xParity, yParity;
-      float total = (x2 - x1) * (y2 - y1);
-      long counter = 0L;
-      long units = 0;
+      int   x,       y;
+      bool  xParity, yParity;
+      float total   = ( x2 - x1 ) * ( y2 - y1 );
+      long  counter = 0L;
+      long  units   = 0;
 
-      do                                    // do one phase
+      do // do one phase
       {
         for ( y = y1, yParity = false;
-              y < y2;                       // one image row
+              y < y2; // one image row
               y += cell, yParity = !yParity )
 
           for ( x = x1, xParity = false;
-                x < x2;                     // one image cell
+                x < x2; // one image cell
                 x += cell, xParity = !xParity )
 
             if ( cell == initCell ||
-                 xParity || yParity )       // process the cell
+                 xParity || yParity ) // process the cell
             {
-              if ( !sel( counter++ ) )
+              if ( !sel ( counter++ ) )
                 continue;
 
               // determine sample color ..
-              RenderPixel( x, y, color );
+              RenderPixel ( x, y, color );
 
               if ( Gamma <= 0.001 )
                 for ( int b = 0; b < color.Length; b++ )
-                  color[ b ] = Arith.Clamp( color[ b ], 0.0, 1.0 );
+                  color [ b ] = Arith.Clamp ( color [ b ], 0.0, 1.0 );
 
               // .. and render it:
-              Color c = Color.FromArgb( (int)(color[ 0 ] * 255.0),
-                                        (int)(color[ 1 ] * 255.0),
-                                        (int)(color[ 2 ] * 255.0) );
+              Color c = Color.FromArgb ( (int) ( color [ 0 ] * 255.0 ),
+                                         (int) ( color [ 1 ] * 255.0 ),
+                                         (int) ( color [ 2 ] * 255.0 ) );
               lock ( image )
               {
                 if ( cell == 1 )
-                  image.SetPixel( x, y, c );
+                  image.SetPixel ( x, y, c );
                 else
                 {
                   int xMax = x + cell;
@@ -183,11 +159,11 @@ namespace Rendering
                     yMax = y2;
                   for ( int iy = y; iy < yMax; iy++ )
                     for ( int ix = x; ix < xMax; ix++ )
-                      image.SetPixel( ix, iy, c );
+                      image.SetPixel ( ix, iy, c );
                 }
               }
 
-              if ( (++units & 63L) == 0L &&
+              if ( ( ++units & 63L ) == 0L &&
                    ProgressData != null )
                 lock ( ProgressData )
                 {
@@ -196,20 +172,20 @@ namespace Rendering
                   if ( lead )
                   {
                     ProgressData.Finished = counter / total;
-                    ProgressData.Sync( image );
+                    ProgressData.Sync ( image );
                   }
                 }
             }
-      }
-      while ( (cell >>= 1) > 0 );         // do one phase
+      } while ( ( cell >>= 1 ) > 0 ); // do one phase
     }
   }
+
 
   /// <summary>
   /// Supersampling image synthesizer (antialiasing by jittering).
   /// </summary>
   [Serializable]
-  public class SupersamplingImageSynthesizer : SimpleImageSynthesizer
+  public class SupersamplingImageSynthesizer: SimpleImageSynthesizer
   {
     /// <summary>
     /// 1D super-sampling factor.
@@ -221,10 +197,7 @@ namespace Rendering
     /// </summary>
     public int Supersampling
     {
-      get
-      {
-        return superXY * superXY;
-      }
+      get { return superXY * superXY; }
       set
       {
         superXY = 1;
@@ -236,19 +209,13 @@ namespace Rendering
     /// <summary>
     /// Supersampling method: 0.0 for regular sampling, 1.0 for full jittering.
     /// </summary>
-    public double Jittering
-    {
-      get;
-      set;
-    }
+    public double Jittering { get; set; }
 
     public SupersamplingImageSynthesizer ()
-      : this( 1 )
-    {
-    }
+      : this ( 1 ) { }
 
     public SupersamplingImageSynthesizer ( int adaptive )
-      : base( adaptive )
+      : base ( adaptive )
     {
       Jittering = 1.0;
     }
@@ -261,43 +228,45 @@ namespace Rendering
     /// <param name="color">Computed pixel color.</param>
     public override void RenderPixel ( int x, int y, double[] color )
     {
-      Debug.Assert( color != null );
+      Debug.Assert ( color != null );
 
       int bands = color.Length;
       int b;
-      Array.Clear( color, 0, bands );
-      double[] tmp = new double[ bands ];
+      Array.Clear ( color, 0, bands );
+      double[] tmp = new double[bands];
 
-      int i, j;
-      double step = 1.0 / superXY;
+      int    i, j;
+      double step      = 1.0 / superXY;
       double amplitude = Jittering * step;
-      double origin = 0.5 * (step - amplitude);
+      double origin    = 0.5 * ( step - amplitude );
       double x0, y0;
-      MT.StartPixel( x, y, Supersampling );
+      MT.StartPixel ( x, y, Supersampling );
 
       for ( j = 0, y0 = y + origin; j++ < superXY; y0 += step )
         for ( i = 0, x0 = x + origin; i++ < superXY; x0 += step )
         {
-          ImageFunction.GetSample( x0 + amplitude * MT.rnd.UniformNumber(),
-                                   y0 + amplitude * MT.rnd.UniformNumber(),
-                                   tmp );
-          MT.NextSample();
+          ImageFunction.GetSample ( x0 + amplitude * MT.rnd.UniformNumber (),
+                                    y0 + amplitude * MT.rnd.UniformNumber (),
+                                    tmp );
+          MT.NextSample ();
           for ( b = 0; b < bands; b++ )
-            color[ b ] += tmp[ b ];
+            color [ b ] += tmp [ b ];
         }
 
       double mul = step / superXY;
       if ( Gamma > 0.001 )
-      {                                     // gamma-encoding and clamping
+      {
+        // gamma-encoding and clamping
         double g = 1.0 / Gamma;
         for ( b = 0; b < bands; b++ )
-          color[ b ] = Arith.Clamp( Math.Pow( color[ b ] * mul, g ), 0.0, 1.0 );
+          color [ b ] = Arith.Clamp ( Math.Pow ( color [ b ] * mul, g ), 0.0, 1.0 );
       }
-      else                                  // no gamma, no clamping (for HDRI)
+      else // no gamma, no clamping (for HDRI)
         for ( b = 0; b < bands; b++ )
-          color[ b ] *= mul;
+          color [ b ] *= mul;
     }
   }
+
 
   /// <summary>
   /// Adaptive supersampling inspired by a quad-tree.
@@ -305,18 +274,19 @@ namespace Rendering
   /// Update: Josef Pelikan, 2018.
   /// </summary>
   [Serializable]
-  public class AdaptiveSupersamplingJR : SupersamplingImageSynthesizer
+  public class AdaptiveSupersamplingJR: SupersamplingImageSynthesizer
   {
     public AdaptiveSupersamplingJR ( double colThreshold = 0.004 )
-      : base( 16 )
+      : base ( 16 )
     {
-      bands = 0;
+      bands          = 0;
       colorThreshold = colThreshold;
     }
 
     protected int bands;
 
     protected double colorThreshold;
+
 
     /// <summary>
     /// Ternary tree to sture sampling results.
@@ -339,13 +309,14 @@ namespace Rendering
 
       public void sample ( IImageFunction iif, int bands )
       {
-        result = new Result( bands,
-                             x + step * MT.rnd.UniformNumber(),
-                             y + step * MT.rnd.UniformNumber() );
-        result.hash = iif.GetSample( result.x, result.y, result.color );
-        MT.NextSample();
+        result = new Result ( bands,
+                              x + step * MT.rnd.UniformNumber (),
+                              y + step * MT.rnd.UniformNumber () );
+        result.hash = iif.GetSample ( result.x, result.y, result.color );
+        MT.NextSample ();
       }
     }
+
 
     /// <summary>
     /// Intersection result stored together with color & hash.
@@ -354,34 +325,35 @@ namespace Rendering
     {
       public Result ( int bands, double x, double y )
       {
-        color  = new double[ bands ];
+        color  = new double[bands];
         this.x = x;
         this.y = y;
         hash   = 0L;
       }
 
-      public double x, y;
+      public double   x, y;
       public double[] color;
-      public long hash;
+      public long     hash;
     }
+
 
     /// <summary>
     /// Returns true if the two colors are similar
     /// </summary>
     private bool similarColor ( double[] col1, double[] col2 )
     {
-      double r_diff = col1[ 0 ] - col2[ 0 ];
-      double g_diff = col1[ 1 ] - col2[ 1 ];
-      double b_diff = col1[ 2 ] - col2[ 2 ];
-      return Math.Sqrt( r_diff * r_diff + g_diff * g_diff + b_diff * b_diff ) < colorThreshold;
+      double r_diff = col1 [ 0 ] - col2 [ 0 ];
+      double g_diff = col1 [ 1 ] - col2 [ 1 ];
+      double b_diff = col1 [ 2 ] - col2 [ 2 ];
+      return Math.Sqrt ( r_diff * r_diff + g_diff * g_diff + b_diff * b_diff ) < colorThreshold;
     }
 
     private bool subdivisionNeeded ( Result res1, Result res2 )
     {
       if ( res1.hash != res2.hash )
-        return true;   // two different objects were hit
+        return true; // two different objects were hit
 
-      return !similarColor( res1.color, res2.color );
+      return !similarColor ( res1.color, res2.color );
     }
 
     /// <summary>
@@ -390,58 +362,58 @@ namespace Rendering
     private void subdivide ( Node root, int division, int maxDivision )
     {
       double step = root.step * 0.5;
-      Node[] ch = new Node[ 4 ];
+      Node[] ch   = new Node[4];
       root.children = ch;
 
       // child[ 0 ] .. root.x, root.y
-      ch[ 0 ] = new Node( root.x, root.y, step );
+      ch [ 0 ] = new Node ( root.x, root.y, step );
       if ( root.result.x < root.x + step &&
            root.result.y < root.y + step )
       {
         // use the old sample:
-        ch[ 0 ].result = root.result;
-        root.result = null;
+        ch [ 0 ].result = root.result;
+        root.result     = null;
       }
       else
-        ch[ 0 ].sample( ImageFunction, bands );
+        ch [ 0 ].sample ( ImageFunction, bands );
 
       // child[ 1 ] .. root.x, root.y + step
-      ch[ 1 ] = new Node( root.x, root.y + step, step );
+      ch [ 1 ] = new Node ( root.x, root.y + step, step );
       if ( root.result != null &&
            root.result.x < root.x + step )
       {
         // use the old sample:
-        ch[ 1 ].result = root.result;
-        root.result = null;
+        ch [ 1 ].result = root.result;
+        root.result     = null;
       }
       else
-        ch[ 1 ].sample( ImageFunction, bands );
+        ch [ 1 ].sample ( ImageFunction, bands );
 
       // child[ 2 ] .. root.x + step, root.y
-      ch[ 2 ] = new Node( root.x + step, root.y, step );
+      ch [ 2 ] = new Node ( root.x + step, root.y, step );
       if ( root.result != null &&
            root.result.y < root.y + step )
       {
         // use the old sample:
-        ch[ 2 ].result = root.result;
-        root.result = null;
+        ch [ 2 ].result = root.result;
+        root.result     = null;
       }
       else
-        ch[ 2 ].sample( ImageFunction, bands );
+        ch [ 2 ].sample ( ImageFunction, bands );
 
       // child[ 3 ] .. root.x + step, root.y + step
-      ch[ 3 ] = new Node( root.x + step, root.y + step, step );
+      ch [ 3 ] = new Node ( root.x + step, root.y + step, step );
       if ( root.result != null )
       {
         // use the old sample:
-        ch[ 3 ].result = root.result;
-        root.result = null;
+        ch [ 3 ].result = root.result;
+        root.result     = null;
       }
       else
-        ch[ 3 ].sample( ImageFunction, bands );
+        ch [ 3 ].sample ( ImageFunction, bands );
 
       // tree-depth check
-      if ( (division += division) >= maxDivision )
+      if ( ( division += division ) >= maxDivision )
         return;
 
       bool toSubdivide0 = false;
@@ -450,27 +422,27 @@ namespace Rendering
       bool toSubdivide3 = false;
 
       // neighbour checks
-      if ( subdivisionNeeded( ch[ 0 ].result, ch[ 1 ].result ) )
+      if ( subdivisionNeeded ( ch [ 0 ].result, ch [ 1 ].result ) )
         toSubdivide0 = toSubdivide1 = true;
 
-      if ( subdivisionNeeded( ch[ 1 ].result, ch[ 3 ].result ) )
+      if ( subdivisionNeeded ( ch [ 1 ].result, ch [ 3 ].result ) )
         toSubdivide1 = toSubdivide3 = true;
 
-      if ( subdivisionNeeded( ch[ 0 ].result, ch[ 2 ].result ) )
+      if ( subdivisionNeeded ( ch [ 0 ].result, ch [ 2 ].result ) )
         toSubdivide0 = toSubdivide2 = true;
 
-      if ( subdivisionNeeded( ch[ 2 ].result, ch[ 3 ].result ) )
+      if ( subdivisionNeeded ( ch [ 2 ].result, ch [ 3 ].result ) )
         toSubdivide2 = toSubdivide3 = true;
 
       // divide and conquer:
       if ( toSubdivide0 )
-        subdivide( ch[ 0 ], division, maxDivision );
+        subdivide ( ch [ 0 ], division, maxDivision );
       if ( toSubdivide1 )
-        subdivide( ch[ 1 ], division, maxDivision );
+        subdivide ( ch [ 1 ], division, maxDivision );
       if ( toSubdivide2 )
-        subdivide( ch[ 2 ], division, maxDivision );
+        subdivide ( ch [ 2 ], division, maxDivision );
       if ( toSubdivide3 )
-        subdivide( ch[ 3 ], division, maxDivision );
+        subdivide ( ch [ 3 ], division, maxDivision );
     }
 
     /// <summary>
@@ -481,13 +453,13 @@ namespace Rendering
       if ( node.children != null )
         // inner node
         foreach ( Node child in node.children )
-          gatherColors( child, color );
+          gatherColors ( child, color );
       else
       {
         // leaf node
         double mult = node.step * node.step;
         for ( int i = 0; i < bands; i++ )
-          color[ i ] += node.result.color[ i ] * mult;
+          color [ i ] += node.result.color [ i ] * mult;
       }
     }
 
@@ -502,34 +474,36 @@ namespace Rendering
       //Debug.Assert( color != null );
       //Debug.Assert( MT.rnd != null );
 
-      MT.StartPixel( x, y, Supersampling );
+      MT.StartPixel ( x, y, Supersampling );
 
       bands = color.Length;
-      Array.Clear( color, 0, bands );
+      Array.Clear ( color, 0, bands );
 
       // we are starting from the whole pixel area = unit square
-      Node root = new Node( x, y, 1.0 );
-      root.sample( ImageFunction, bands );
+      Node root = new Node ( x, y, 1.0 );
+      root.sample ( ImageFunction, bands );
       if ( superXY > 1 )
-        subdivide( root, 1, superXY );
+        subdivide ( root, 1, superXY );
 
       // gather result color
-      gatherColors( root, color );
+      gatherColors ( root, color );
 
       if ( Gamma > 0.001 )
-      {                                     // gamma-encoding and clamping
+      {
+        // gamma-encoding and clamping
         double g = 1.0 / Gamma;
         for ( int b = 0; b < bands; b++ )
-          color[ b ] = Arith.Clamp( Math.Pow( color[ b ], g ), 0.0, 1.0 );
+          color [ b ] = Arith.Clamp ( Math.Pow ( color [ b ], g ), 0.0, 1.0 );
       }
     }
   }
 
-	/// <summary>
-	/// Simple camera with center of projection and planar projection surface.
-	/// </summary>
-	[Serializable]
-	public class StaticCamera : ICamera
+
+  /// <summary>
+  /// Simple camera with center of projection and planar projection surface.
+  /// </summary>
+  [Serializable]
+  public class StaticCamera: ICamera
   {
     /// <summary>
     /// Width / Height of the viewing area (viewport, frustum).
@@ -540,7 +514,7 @@ namespace Rendering
       set
       {
         height = width / value;
-        prepare();
+        prepare ();
       }
     }
 
@@ -555,7 +529,7 @@ namespace Rendering
       set
       {
         width = value;
-        prepare();
+        prepare ();
       }
     }
 
@@ -570,7 +544,7 @@ namespace Rendering
       set
       {
         height = value;
-        prepare();
+        prepare ();
       }
     }
 
@@ -578,7 +552,7 @@ namespace Rendering
 
     protected Vector3d direction;
 
-    protected Vector3d up = new Vector3d( 0.0, 1.0, 0.0 );
+    protected Vector3d up = new Vector3d ( 0.0, 1.0, 0.0 );
 
     /// <summary>
     /// Horizontal viewing angle in radians.
@@ -594,15 +568,15 @@ namespace Rendering
     /// </summary>
     protected void prepare ()
     {
-      Vector3d left = Vector3d.Cross( direction, up ).Normalized();
-      Vector3d top  = Vector3d.Cross( left, direction ).Normalized();
+      Vector3d left = Vector3d.Cross ( direction, up ).Normalized ();
+      Vector3d top  = Vector3d.Cross ( left, direction ).Normalized ();
 
       origin = center + direction;
-      double halfWidth  = Math.Tan( 0.5 * hAngle );
+      double halfWidth  = Math.Tan ( 0.5 * hAngle );
       double halfHeight = halfWidth / AspectRatio;
       origin += top * halfHeight + left * halfWidth;
-      dx = left * (-2.0 * halfWidth / width);
-      dy = -top * ( 2.0 * halfHeight / height);
+      dx     =  left * ( -2.0 * halfWidth / width );
+      dy     =  -top * ( 2.0 * halfHeight / height );
     }
 
     /// <summary>
@@ -615,10 +589,10 @@ namespace Rendering
     {
       center    = cen;
       direction = dir;
-      direction.Normalize();
-      hAngle    = MathHelper.DegreesToRadians( (float)ang );
-      Width     = 300;
-      Height    = 400;
+      direction.Normalize ();
+      hAngle = MathHelper.DegreesToRadians ( (float) ang );
+      Width  = 300;
+      Height = 400;
     }
 
     /// <summary>
@@ -632,11 +606,11 @@ namespace Rendering
     {
       center    = cen;
       direction = dir;
-      direction.Normalize();
-      up        = u;
-      hAngle    = MathHelper.DegreesToRadians( (float)ang );
-      Width     = 300;
-      Height    = 400;
+      direction.Normalize ();
+      up     = u;
+      hAngle = MathHelper.DegreesToRadians ( (float) ang );
+      Width  = 300;
+      Height = 400;
     }
 
     /// <summary>
@@ -652,16 +626,17 @@ namespace Rendering
       p0 = center;
       p1 = origin + x * dx + y * dy;
       p1 = p1 - center;
-      p1.Normalize();
+      p1.Normalize ();
       return true;
     }
   }
 
-	/// <summary>
-	/// Point light source w/o intensity attenuation.
-	/// </summary>
-	[Serializable]
-	public class PointLightSource : ILightSource
+
+  /// <summary>
+  /// Point light source w/o intensity attenuation.
+  /// </summary>
+  [Serializable]
+  public class PointLightSource: ILightSource
   {
     /// <summary>
     /// 3D coordinate of the source.
@@ -678,7 +653,7 @@ namespace Rendering
     /// </summary>
     public PointLightSource ( Vector3d pos, double intens )
     {
-      position = pos;
+      position  = pos;
       intensity = new double[] { intens, intens, intens };
     }
 
@@ -687,7 +662,7 @@ namespace Rendering
     /// </summary>
     public PointLightSource ( Vector3d pos, double[] intens )
     {
-      position = pos;
+      position  = pos;
       intensity = intens;
     }
 
@@ -701,24 +676,25 @@ namespace Rendering
     public virtual double[] GetIntensity ( Intersection intersection, out Vector3d dir )
     {
       dir = (Vector3d) position - intersection.CoordWorld;
-      if ( Vector3d.Dot( dir, intersection.Normal ) <= 0.0 )
+      if ( Vector3d.Dot ( dir, intersection.Normal ) <= 0.0 )
         return null;
 
       return intensity;
     }
   }
 
-	/// <summary>
-	/// Ambient white light source.
-	/// </summary>
-	[Serializable]
-	public class AmbientLightSource : ILightSource
+
+  /// <summary>
+  /// Ambient white light source.
+  /// </summary>
+  [Serializable]
+  public class AmbientLightSource: ILightSource
   {
     protected double[] intensity;
 
     public Vector3d? position { get; set; }
 
-		public AmbientLightSource ( double intens )
+    public AmbientLightSource ( double intens )
     {
       intensity = new double[] { intens, intens, intens };
     }
@@ -737,31 +713,29 @@ namespace Rendering
     }
   }
 
+
   /// <summary>
   /// Rectangle light source with intensity attenuation.
   /// </summary>
-  public class RectangleLightSource : PointLightSource
+  public class RectangleLightSource: PointLightSource
   {
     /// <summary>
     ///  "Horizontal" edge of the rectangle.
     /// </summary>
-    protected Vector3d width = new Vector3d( 1.0, 0.0, 0.0 );
+    protected Vector3d width = new Vector3d ( 1.0, 0.0, 0.0 );
 
     /// <summary>
     /// "Vertical" edge of the rectangle.
     /// </summary>
-    protected Vector3d height = new Vector3d( 0.0, 1.0, 0.0 );
+    protected Vector3d height = new Vector3d ( 0.0, 1.0, 0.0 );
 
     /// <summary>
     /// Dimming polynom coefficients: light is dimmed by the factor of
     /// Dim[0] + Dim[1] * D + Dim[2] * D^2.
     /// Can be "null" for no dimming..
     /// </summary>
-    public double[] Dim
-    {
-      get;
-      set;
-    }
+    public double[] Dim { get; set; }
+
 
     /// <summary>
     /// Support data container for sampling states.
@@ -776,14 +750,14 @@ namespace Rendering
       protected RandomJames.Permutation permU;
       protected RandomJames.Permutation permV;
 
-      protected double u, v;
-      public Vector3d sample;
+      protected double   u, v;
+      public    Vector3d sample;
 
       public SamplingState ( RectangleLightSource src )
       {
-        source = src;
-        permU = new RandomJames.Permutation();
-        permV = new RandomJames.Permutation();
+        source     = src;
+        permU      = new RandomJames.Permutation ();
+        permV      = new RandomJames.Permutation ();
         cachedRank = cachedTotal = 0;
       }
 
@@ -796,60 +770,61 @@ namespace Rendering
             return;
 
           int uCell, vCell;
-          if ( MT.total != cachedTotal || MT.rank < cachedRank )       // [re-]initialization
+          if ( MT.total != cachedTotal || MT.rank < cachedRank ) // [re-]initialization
           {
             cachedTotal = MT.total;
-            uCell = MT.rnd.PermutationFirst( cachedTotal, ref permU );
-            vCell = MT.rnd.PermutationFirst( cachedTotal, ref permV );
+            uCell       = MT.rnd.PermutationFirst ( cachedTotal, ref permU );
+            vCell       = MT.rnd.PermutationFirst ( cachedTotal, ref permV );
           }
           else
           {
-            uCell = Math.Max( MT.rnd.PermutationNext( ref permU ), 0 );
-            vCell = Math.Max( MT.rnd.PermutationNext( ref permV ), 0 );
+            uCell = Math.Max ( MT.rnd.PermutationNext ( ref permU ), 0 );
+            vCell = Math.Max ( MT.rnd.PermutationNext ( ref permV ), 0 );
           }
 
           cachedRank = MT.rank;
 
           // point sample will be placed into [ uCell, vCell ] cell:
-          u = (uCell + MT.rnd.UniformNumber()) / cachedTotal;
-          v = (vCell + MT.rnd.UniformNumber()) / cachedTotal;
+          u = ( uCell + MT.rnd.UniformNumber () ) / cachedTotal;
+          v = ( vCell + MT.rnd.UniformNumber () ) / cachedTotal;
         }
         else
         {
-          u = MT.rnd.UniformNumber();
-          v = MT.rnd.UniformNumber();
+          u = MT.rnd.UniformNumber ();
+          v = MT.rnd.UniformNumber ();
         }
 
         // TODO: do something like:
-        sample = (Vector3d)source.position + u * source.width + v * source.height;
+        sample = (Vector3d) source.position + u * source.width + v * source.height;
       }
     }
+
 
     /// <summary>
     /// Set of sampling states (one per random-generator instance / thread).
     /// </summary>
-    protected Dictionary<int, SamplingState> states = new Dictionary<int, SamplingState>();
+    protected Dictionary<int, SamplingState> states = new Dictionary<int, SamplingState> ();
 
     /// <summary>
     /// Monochromatic light source.
     /// </summary>
     public RectangleLightSource ( Vector3d pos, Vector3d wid, Vector3d hei, double intens )
-      : base( pos, intens )
+      : base ( pos, intens )
     {
-      width = wid;
+      width  = wid;
       height = hei;
-      Dim = new double[] { 0.5, 1.0, 0.1 };
+      Dim    = new double[] { 0.5, 1.0, 0.1 };
     }
 
     /// <summary>
     /// Color light source.
     /// </summary>
     public RectangleLightSource ( Vector3d pos, Vector3d wid, Vector3d hei, double[] intens )
-      : base( pos, intens )
+      : base ( pos, intens )
     {
-      width = wid;
+      width  = wid;
       height = hei;
-      Dim = new double[] { 0.5, 1.0, 0.1 };
+      Dim    = new double[] { 0.5, 1.0, 0.1 };
     }
 
     /// <summary>
@@ -862,97 +837,74 @@ namespace Rendering
     public override double[] GetIntensity ( Intersection intersection, out Vector3d dir )
     {
       if ( MT.rnd == null )
-        return GetIntensity( intersection, out dir );
+        return GetIntensity ( intersection, out dir );
 
       SamplingState ss;
       lock ( states )
       {
-        if ( !states.TryGetValue( MT.rnd.GetHashCode(), out ss ) )
+        if ( !states.TryGetValue ( MT.rnd.GetHashCode (), out ss ) )
         {
-          ss = new SamplingState( this );
-          states.Add( MT.rnd.GetHashCode(), ss );
+          ss = new SamplingState ( this );
+          states.Add ( MT.rnd.GetHashCode (), ss );
           // !!! TODO: check the states ???
         }
       }
 
       // generate a [new] sample:
-      ss.generateSample();
+      ss.generateSample ();
       dir = ss.sample - intersection.CoordWorld;
-      if ( Vector3d.Dot( dir, intersection.Normal ) <= 0.0 )
+      if ( Vector3d.Dot ( dir, intersection.Normal ) <= 0.0 )
         return null;
 
       if ( Dim == null || Dim.Length < 3 ) return intensity;
 
-      double dist = dir.Length;
-      double dimCoef = 1.0 / (Dim[0] + dist * (Dim[1] + dist * Dim[2]));
-      int bands = intensity.Length;
-      double[] result = new double[ bands ];
+      double   dist    = dir.Length;
+      double   dimCoef = 1.0 / ( Dim [ 0 ] + dist * ( Dim [ 1 ] + dist * Dim [ 2 ] ) );
+      int      bands   = intensity.Length;
+      double[] result  = new double[bands];
       for ( int i = 0; i < bands; i++ )
-        result[ i ] = intensity[ i ] * dimCoef;
+        result [ i ] = intensity [ i ] * dimCoef;
 
       return result;
     }
   }
 
-	/// <summary>
-	/// Simple Phong-like reflectance model: material description.
-	/// </summary>
-	[Serializable]
-	public class PhongMaterial : IMaterial
+
+  /// <summary>
+  /// Simple Phong-like reflectance model: material description.
+  /// </summary>
+  [Serializable]
+  public class PhongMaterial: IMaterial
   {
     /// <summary>
     /// Base surface color.
     /// </summary>
-    public double[] Color
-    {
-      get;
-      set;
-    }
+    public double[] Color { get; set; }
 
     /// <summary>
     /// Coefficient of diffuse reflection.
     /// </summary>
-    public double Kd
-    {
-      get;
-      set;
-    }
+    public double Kd { get; set; }
 
     /// <summary>
     /// Coefficient of specular reflection.
     /// </summary>
-    public double Ks
-    {
-      get;
-      set;
-    }
+    public double Ks { get; set; }
 
     /// <summary>
     /// Specular exponent.
     /// </summary>
-    public int H
-    {
-      get;
-      set;
-    }
+    public int H { get; set; }
 
     /// <summary>
     /// Ambient term (for ambient light sources only).
     /// </summary>
-    public double Ka
-    {
-      get;
-      set;
-    }
+    public double Ka { get; set; }
 
     /// <summary>
     /// Coefficient of transparency.
     /// </summary>
-    public double Kt
-    {
-      get;
-      set;
-    }
+    public double Kt { get; set; }
 
     protected double _n;
 
@@ -964,8 +916,8 @@ namespace Rendering
       get { return _n; }
       set
       {
-        _n = value;
-        cosTotal = _n > 1.0 ? (Math.Sqrt(_n * _n - 1.0) / _n) : 0.0;
+        _n       = value;
+        cosTotal = _n > 1.0 ? ( Math.Sqrt ( _n * _n - 1.0 ) / _n ) : 0.0;
       }
     }
 
@@ -976,124 +928,126 @@ namespace Rendering
 
     public PhongMaterial ( PhongMaterial m )
     {
-      Color = (double[])m.Color.Clone();
-      Ka = m.Ka;
-      Kd = m.Kd;
-      Ks = m.Ks;
-      H = m.H;
-      Kt = m.Kt;
-      n = m.n;
+      Color = (double[]) m.Color.Clone ();
+      Ka    = m.Ka;
+      Kd    = m.Kd;
+      Ks    = m.Ks;
+      H     = m.H;
+      Kt    = m.Kt;
+      n     = m.n;
     }
 
     public PhongMaterial ( double[] color, double ka, double kd, double ks, int h )
     {
       Color = color;
-      Ka = ka;
-      Kd = kd;
-      Ks = ks;
-      H  = h;
-      Kt = 0.0;
-      n  = 1.5;
+      Ka    = ka;
+      Kd    = kd;
+      Ks    = ks;
+      H     = h;
+      Kt    = 0.0;
+      n     = 1.5;
     }
 
-    public PhongMaterial () : this( new double[] { 1.0, 0.9, 0.4 }, 0.2, 0.7, 0.2, 16 )
-    {
-    }
+    public PhongMaterial (): this ( new double[] { 1.0, 0.9, 0.4 }, 0.2, 0.7, 0.2, 16 ) { }
 
     public object Clone ()
     {
-      return new PhongMaterial( this );
+      return new PhongMaterial ( this );
     }
   }
+
 
   /// <summary>
   /// Simple Phong-like reflectance model: the model itself.
   /// </summary>
   [Serializable]
-  public class PhongModel : IReflectanceModel
+  public class PhongModel: IReflectanceModel
   {
     public IMaterial DefaultMaterial ()
     {
-      return new PhongMaterial();
+      return new PhongMaterial ();
     }
 
-    public double[] ColorReflection ( Intersection intersection, Vector3d input, Vector3d output, ReflectionComponent comp )
+    public double[] ColorReflection ( Intersection        intersection, Vector3d input, Vector3d output,
+                                      ReflectionComponent comp )
     {
-      return ColorReflection( intersection.Material, intersection.Normal, input, output, comp );
+      return ColorReflection ( intersection.Material, intersection.Normal, input, output, comp );
     }
 
-    public double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output, ReflectionComponent comp )
+    public double[] ColorReflection ( IMaterial           material, Vector3d normal, Vector3d input, Vector3d output,
+                                      ReflectionComponent comp )
     {
-      if ( !(material is PhongMaterial) ) return null;
+      if ( !( material is PhongMaterial ) ) return null;
 
-      PhongMaterial mat = (PhongMaterial)material;
-      int bands = mat.Color.Length;
-      double[] result = new double[ bands ];
-      bool viewOut = Vector3d.Dot( output, normal ) > 0.0;
-      double coef;
+      PhongMaterial mat     = (PhongMaterial) material;
+      int           bands   = mat.Color.Length;
+      double[]      result  = new double[bands];
+      bool          viewOut = Vector3d.Dot ( output, normal ) > 0.0;
+      double        coef;
 
-      if ( input == Vector3d.Zero )    // ambient term only..
+      if ( input == Vector3d.Zero ) // ambient term only..
       {
         // dim ambient light if viewer is inside
-        coef = viewOut ? mat.Ka : (mat.Ka * mat.Kt);
+        coef = viewOut ? mat.Ka : ( mat.Ka * mat.Kt );
         for ( int i = 0; i < bands; i++ )
-          result[ i ] = coef * mat.Color[ i ];
+          result [ i ] = coef * mat.Color [ i ];
 
         return result;
       }
 
       // directional light source:
-      input.Normalize();
-      double cosAlpha = Vector3d.Dot( input, normal );
+      input.Normalize ();
+      double cosAlpha = Vector3d.Dot ( input, normal );
       bool   lightOut = cosAlpha > 0.0;
-      double ks = mat.Ks;
-      double kd = mat.Kd;
-      double kt = mat.Kt;
+      double ks       = mat.Ks;
+      double kd       = mat.Kd;
+      double kt       = mat.Kt;
 
       Vector3d r = Vector3d.Zero;
-      coef       = 1.0;
-      if ( viewOut == lightOut )            // viewer and source are on the same side..
+      coef = 1.0;
+      if ( viewOut == lightOut ) // viewer and source are on the same side..
       {
-        if ( (comp & ReflectionComponent.SPECULAR_REFLECTION) != 0 )
+        if ( ( comp & ReflectionComponent.SPECULAR_REFLECTION ) != 0 )
         {
           double cos2 = cosAlpha + cosAlpha;
           r = normal * cos2 - input;
 
-          if ( !lightOut &&                   // total reflection check
+          if ( !lightOut && // total reflection check
                -cosAlpha <= mat.cosTotal )
-            if ( (ks += kt) + kd > 1.0 )
+            if ( ( ks += kt ) + kd > 1.0 )
               ks = 1.0 - kd;
         }
       }
-      else                                  // opposite sides => use specular refraction
+      else // opposite sides => use specular refraction
       {
-        if ( (comp & ReflectionComponent.SPECULAR_REFRACTION) != 0 )
-          r = Geometry.SpecularRefraction( normal, mat.n, input );
+        if ( ( comp & ReflectionComponent.SPECULAR_REFRACTION ) != 0 )
+          r = Geometry.SpecularRefraction ( normal, mat.n, input );
         coef = kt;
       }
 
-      double diffuse = (comp & ReflectionComponent.DIFFUSE) == 0 ? 0.0 : coef * kd * Math.Abs( cosAlpha );
+      double diffuse  = ( comp & ReflectionComponent.DIFFUSE ) == 0 ? 0.0 : coef * kd * Math.Abs ( cosAlpha );
       double specular = 0.0;
 
       if ( r != Vector3d.Zero )
       {
-        double cosBeta = Vector3d.Dot( r, output );
+        double cosBeta = Vector3d.Dot ( r, output );
         if ( cosBeta > 0.0 )
-          specular = coef * ks * Arith.Pow( cosBeta, mat.H );
+          specular = coef * ks * Arith.Pow ( cosBeta, mat.H );
       }
 
       for ( int i = 0; i < bands; i++ )
-        result[i] = diffuse * mat.Color[i] + specular;
+        result [ i ] = diffuse * mat.Color [ i ] + specular;
 
       return result;
     }
   }
 
+
   /// <summary>
   /// Simple texture able to modulate surface color.
   /// </summary>
   [Serializable]
-  public class CheckerTexture : ITexture
+  public class CheckerTexture: ITexture
   {
     /// <summary>
     /// Alternative color.
@@ -1112,9 +1066,9 @@ namespace Rendering
 
     public CheckerTexture ( double fu, double fv, double[] color )
     {
-      Fu = fu;
-      Fv = fv;
-      Color2 = (double[])color.Clone();
+      Fu     = fu;
+      Fv     = fv;
+      Color2 = (double[]) color.Clone ();
     }
 
     /// <summary>
@@ -1128,13 +1082,13 @@ namespace Rendering
       double u = inter.TextureCoord.X * Fu;
       double v = inter.TextureCoord.Y * Fv;
 
-      long ui = (long)Math.Floor( u );
-      long vi = (long)Math.Floor( v );
+      long ui = (long) Math.Floor ( u );
+      long vi = (long) Math.Floor ( v );
 
-      if ( ((ui + vi) & 1) != 0 )
-        Array.Copy( Color2, inter.SurfaceColor, Math.Min( Color2.Length, inter.SurfaceColor.Length ) );
+      if ( ( ( ui + vi ) & 1 ) != 0 )
+        Array.Copy ( Color2, inter.SurfaceColor, Math.Min ( Color2.Length, inter.SurfaceColor.Length ) );
 
-      return (ui + RandomStatic.numericRecipes( vi ));
+      return ( ui + RandomStatic.numericRecipes ( vi ) );
     }
   }
 }

@@ -15,7 +15,7 @@ using Utilities;
 namespace _048rtmontecarlo
 {
   public partial class Form1: Form
-	{
+  {
     static readonly string rev = Util.SetVersion ( "$Rev$" );
 
     public static Form1 singleton = null;
@@ -73,6 +73,7 @@ namespace _048rtmontecarlo
     /// </summary>
     protected Thread aThread = null;
 
+
     [Serializable]
     protected class RenderingProgress: Progress
     {
@@ -91,17 +92,18 @@ namespace _048rtmontecarlo
 
         lastSync = now;
         Form1.singleton.SetText ( string.Format ( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
-                                    100.0f * Finished, 1.0e-3 * now ) );
+                                                  100.0f * Finished, 1.0e-3 * now ) );
         Bitmap b = msg as Bitmap;
         if ( b != null )
         {
           Bitmap nb;
           lock ( b )
-            nb = new Bitmap( b );
-          Form1.singleton.SetImage( nb );
+            nb = new Bitmap ( b );
+          Form1.singleton.SetImage ( nb );
         }
       }
     }
+
 
     /// <summary>
     /// Progress info / user break handling.
@@ -114,14 +116,14 @@ namespace _048rtmontecarlo
     /// </summary>
     public IRayScene SceneByComboBox ()
     {
-      string sceneName = (string)comboScene.Items[ selectedScene ];
+      string sceneName = (string) comboScene.Items [ selectedScene ];
 
       object definition;
-      if ( sceneRepository.TryGetValue( sceneName, out definition ) )
-        return Scripts.SceneFromObject( sceneName, definition, textParam.Text, str => SetText( str ) );
+      if ( sceneRepository.TryGetValue ( sceneName, out definition ) )
+        return Scripts.SceneFromObject ( sceneName, definition, textParam.Text, str => SetText ( str ) );
 
       // fallback to a default scene;
-      return Scenes.DefaultScene();
+      return Scenes.DefaultScene ();
     }
 
     public ComboBox ComboScene
@@ -152,12 +154,13 @@ namespace _048rtmontecarlo
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
       pictureBox1.Image = newImage;
-      pictureBox1.Invalidate();
+      pictureBox1.Invalidate ();
 
       if ( bakImage != null )
-        bakImage.Dispose();
+        bakImage.Dispose ();
       bakImage = newImage;
     }
+
 
     /// <summary>
     /// Worker-thread-specific data.
@@ -194,7 +197,8 @@ namespace _048rtmontecarlo
       public int width;
       public int height;
 
-      public WorkerThreadInit ( IRenderer r, ITimeDependent sc, ITimeDependent imf, Bitmap im, int wid, int hei, int threadNo, int threads )
+      public WorkerThreadInit ( IRenderer r,        ITimeDependent sc, ITimeDependent imf, Bitmap im, int wid, int hei,
+                                int       threadNo, int            threads )
       {
         scene  = sc;
         imfunc = imf;
@@ -203,9 +207,10 @@ namespace _048rtmontecarlo
         id     = threadNo;
         width  = wid;
         height = hei;
-        sel    = ( n ) => (n % threads) == threadNo;
+        sel    = ( n ) => ( n % threads ) == threadNo;
       }
     }
+
 
     /// <summary>
     /// Routine of one worker-thread.
@@ -217,15 +222,15 @@ namespace _048rtmontecarlo
       WorkerThreadInit init = spec as WorkerThreadInit;
       if ( init != null )
       {
-        MT.InitThreadData();
-        init.rend.RenderRectangle( init.image, 0, 0, init.width, init.height,
-                                   init.sel );
+        MT.InitThreadData ();
+        init.rend.RenderRectangle ( init.image, 0, 0, init.width, init.height,
+                                    init.sel );
       }
     }
 
     private IImageFunction getImageFunction ( IRayScene sc, int width, int height )
     {
-      IImageFunction imf = FormSupport.getImageFunction( sc, TextParam.Text );
+      IImageFunction imf = FormSupport.getImageFunction ( sc, TextParam.Text );
       imf.Width  = width;
       imf.Height = height;
 
@@ -242,7 +247,8 @@ namespace _048rtmontecarlo
 
     private IRenderer getRenderer ( IImageFunction imf, int width, int height )
     {
-      IRenderer rend = FormSupport.getRenderer( imf, (int)numericSupersampling.Value, checkJitter.Checked ? 1.0 : 0.0, TextParam.Text );
+      IRenderer rend = FormSupport.getRenderer ( imf, (int) numericSupersampling.Value, checkJitter.Checked ? 1.0 : 0.0,
+                                                 TextParam.Text );
       rend.Width        = width;
       rend.Height       = height;
       rend.Adaptive     = 8;
@@ -268,179 +274,186 @@ namespace _048rtmontecarlo
         height = panel1.Height;
 
 
-      Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
+      Bitmap newImage = new Bitmap ( width, height, PixelFormat.Format24bppRgb );
 
       int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
-      int t;    // thread ordinal number
+      int t; // thread ordinal number
 
-      WorkerThreadInit[] wti = new WorkerThreadInit[ threads ];
+      WorkerThreadInit[] wti = new WorkerThreadInit[threads];
 
       // separate renderer, image function and the scene for each thread (safety precaution)
       for ( t = 0; t < threads; t++ )
       {
-        IRayScene sc = FormSupport.getScene();
-        IImageFunction imf = getImageFunction( sc, width, height );
-        IRenderer r = getRenderer( imf, width, height );
-        wti[ t ] = new WorkerThreadInit( r, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t, threads );
+        IRayScene      sc  = FormSupport.getScene ();
+        IImageFunction imf = getImageFunction ( sc, width, height );
+        IRenderer      r   = getRenderer ( imf, width, height );
+        wti [ t ] = new WorkerThreadInit ( r, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t,
+                                           threads );
       }
 
-      progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 3000L : 1000L;
-      progress.Reset();
-      CSGInnerNode.ResetStatistics();
+      progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
+      progress.Reset ();
+      CSGInnerNode.ResetStatistics ();
 
       lock ( sw )
-        sw.Restart();
+        sw.Restart ();
 
       if ( threads > 1 )
       {
-        Thread[] pool = new Thread[ threads ];
+        Thread[] pool = new Thread[threads];
         for ( t = 0; t < threads; t++ )
-          pool[ t ] = new Thread( new ParameterizedThreadStart( RenderWorker ) );
+          pool [ t ] = new Thread ( new ParameterizedThreadStart ( RenderWorker ) );
         for ( t = threads; --t >= 0; )
-          pool[ t ].Start( wti[ t ] );
+          pool [ t ].Start ( wti [ t ] );
 
         for ( t = 0; t < threads; t++ )
         {
-          pool[ t ].Join();
-          pool[ t ] = null;
+          pool [ t ].Join ();
+          pool [ t ] = null;
         }
       }
       else
       {
         MT.InitThreadData ();
-				wti[ 0 ].rend.RenderRectangle( newImage, 0, 0, width, height );
-        
+        wti [ 0 ].rend.RenderRectangle ( newImage, 0, 0, width, height );
       }
 
       long elapsed;
       lock ( sw )
       {
-        sw.Stop();
+        sw.Stop ();
         elapsed = sw.ElapsedMilliseconds;
       }
 
-      string msg = string.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
-                                  1.0e-3 * elapsed, width, height, threads,
-                                  (Intersection.countRays + 500L) / 1000L,
-                                  (Intersection.countIntersections + 500L) / 1000L,
-                                  (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
-                                  (CSGInnerNode.countTriangles + 500L) / 1000L );
-      SetText( msg );
-      Console.WriteLine( "Rendering finished: " + msg );
-      SetImage( newImage );
+      string msg = string.Format ( CultureInfo.InvariantCulture,
+                                   "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
+                                   1.0e-3 * elapsed, width, height, threads,
+                                   ( Intersection.countRays + 500L ) / 1000L,
+                                   ( Intersection.countIntersections + 500L ) / 1000L,
+                                   ( CSGInnerNode.countBoundingBoxes + 500L ) / 1000L,
+                                   ( CSGInnerNode.countTriangles + 500L ) / 1000L );
+      SetText ( msg );
+      Console.WriteLine ( "Rendering finished: " + msg );
+      SetImage ( newImage );
 
       Cursor.Current = Cursors.Default;
 
-      StopRendering();
+      StopRendering ();
     }
 
+    private void RenderImage2 ()
+    {
+      Cursor.Current = Cursors.WaitCursor;
 
-		private void RenderImage2 ()
-		{
-			Cursor.Current = Cursors.WaitCursor;
+      // determine output image size:
+      int width = ImageWidth;
+      if ( width <= 0 )
+        width = panel1.Width;
 
-			// determine output image size:
-			int width = ImageWidth;
-			if ( width <= 0 )
-				width = panel1.Width;
-
-			int height = ImageHeight;
-			if ( height <= 0 )
-				height = panel1.Height;
-
-
-			Bitmap newImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
-
-			int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
-
-		  IRayScene      sc  = FormSupport.getScene();
-		  IImageFunction imf = getImageFunction( sc, width, height );
-		  IRenderer      r   = getRenderer( imf, width, height );
-
-			Master.instance = new Master(newImage, sc, r);
-		  Master.instance.progressData = progress;
+      int height = ImageHeight;
+      if ( height <= 0 )
+        height = panel1.Height;
 
 
-			progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
-			progress.Reset ();
-			CSGInnerNode.ResetStatistics ();
+      Bitmap newImage = new Bitmap ( width, height, PixelFormat.Format24bppRgb );
 
-			lock ( sw )
-				sw.Restart ();
+      int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
 
-		  ThreadStart ts = delegate { Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads ); };
-			Thread newRenderThread = new Thread ( ts );
-		  newRenderThread.Start ();
+      IRayScene      sc  = FormSupport.getScene ();
+      IImageFunction imf = getImageFunction ( sc, width, height );
+      IRenderer      r   = getRenderer ( imf, width, height );
 
-		  newRenderThread.Join ();
+      Master.instance              = new Master ( newImage, sc, r );
+      Master.instance.progressData = progress;
 
-			long elapsed;
-			lock ( sw )
-			{
-				sw.Stop ();
-				elapsed = sw.ElapsedMilliseconds;
-			}
 
-			string msg = string.Format( CultureInfo.InvariantCulture, "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
-																	1.0e-3 * elapsed, width, height, threads,
-																	(Intersection.countRays + 500L) / 1000L,
-																	(Intersection.countIntersections + 500L) / 1000L,
-																	(CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
-																	(CSGInnerNode.countTriangles + 500L) / 1000L );
-			SetText ( msg );
-			Console.WriteLine ( "Rendering finished: " + msg );
-			SetImage ( newImage );
+      progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
+      progress.Reset ();
+      CSGInnerNode.ResetStatistics ();
 
-			Cursor.Current = Cursors.Default;
+      lock ( sw )
+        sw.Restart ();
 
-			StopRendering ();
-		}
+      ThreadStart ts              = delegate { Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads ); };
+      Thread      newRenderThread = new Thread ( ts );
+      newRenderThread.Start ();
 
-		void SetGUI ( bool enable )
+      newRenderThread.Join ();
+
+      long elapsed;
+      lock ( sw )
+      {
+        sw.Stop ();
+        elapsed = sw.ElapsedMilliseconds;
+      }
+
+      string msg = string.Format ( CultureInfo.InvariantCulture,
+                                   "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
+                                   1.0e-3 * elapsed, width, height, threads,
+                                   ( Intersection.countRays + 500L ) / 1000L,
+                                   ( Intersection.countIntersections + 500L ) / 1000L,
+                                   ( CSGInnerNode.countBoundingBoxes + 500L ) / 1000L,
+                                   ( CSGInnerNode.countTriangles + 500L ) / 1000L );
+      SetText ( msg );
+      Console.WriteLine ( "Rendering finished: " + msg );
+      SetImage ( newImage );
+
+      Cursor.Current = Cursors.Default;
+
+      StopRendering ();
+    }
+
+    void SetGUI ( bool enable )
     {
       numericSupersampling.Enabled =
-      checkJitter.Enabled =
-      checkShadows.Enabled =
-      checkReflections.Enabled =
-      checkReflections.Enabled =
-      checkRefractions.Enabled =
-      checkMultithreading.Enabled =
-      buttonRender.Enabled =
-      comboScene.Enabled =
-      textParam.Enabled =
-      buttonRes.Enabled =
-      AdvancedToolsButton.Enabled =
-      buttonSave.Enabled = enable;
+        checkJitter.Enabled =
+          checkShadows.Enabled =
+            checkReflections.Enabled =
+              checkReflections.Enabled =
+                checkRefractions.Enabled =
+                  checkMultithreading.Enabled =
+                    buttonRender.Enabled =
+                      comboScene.Enabled =
+                        textParam.Enabled =
+                          buttonRes.Enabled =
+                            AdvancedToolsButton.Enabled =
+                              buttonSave.Enabled = enable;
       buttonStop.Enabled = !enable;
     }
 
+
     delegate void SetImageCallback ( Bitmap newImage );
+
 
     protected void SetImage ( Bitmap newImage )
     {
       if ( pictureBox1.InvokeRequired )
       {
-        SetImageCallback si = new SetImageCallback( SetImage );
-        BeginInvoke( si, new object[] { newImage } );
+        SetImageCallback si = new SetImageCallback ( SetImage );
+        BeginInvoke ( si, new object[] { newImage } );
       }
       else
-        setImage( ref outputImage, newImage );
+        setImage ( ref outputImage, newImage );
     }
 
+
     delegate void SetTextCallback ( string text );
+
 
     public void SetText ( string text )
     {
       if ( labelElapsed.InvokeRequired )
       {
-        SetTextCallback st = new SetTextCallback( SetText );
-        BeginInvoke( st, new object[] { text } );
+        SetTextCallback st = new SetTextCallback ( SetText );
+        BeginInvoke ( st, new object[] { text } );
       }
       else
         labelElapsed.Text = text;
     }
 
+
     delegate void StopRenderingCallback ();
+
 
     protected void StopRendering ()
     {
@@ -449,23 +462,23 @@ namespace _048rtmontecarlo
 
       if ( buttonRender.InvokeRequired )
       {
-        StopRenderingCallback ea = new StopRenderingCallback( StopRendering );
-        BeginInvoke( ea );
+        StopRenderingCallback ea = new StopRenderingCallback ( StopRendering );
+        BeginInvoke ( ea );
       }
       else
       {
         // actually stop the rendering:
         lock ( progress )
           progress.Continue = false;
-        aThread.Join();
+        aThread.Join ();
         aThread = null;
 
         // GUI stuff:
-        SetGUI( true );
+        SetGUI ( true );
 
-        AdvancedToolsForm.instance?.RenderButtonsEnabled(true);
-				MT.renderingInProgress = false;
-				MT.sceneRendered = true;
+        AdvancedToolsForm.instance?.RenderButtonsEnabled ( true );
+        MT.renderingInProgress = false;
+        MT.sceneRendered       = true;
       }
     }
 
@@ -476,28 +489,29 @@ namespace _048rtmontecarlo
     /// <param name="y">Y-coordinate inside the raster image.</param>
     private void singleSample ( int x, int y )
     {
-			MT.singleRayTracing = true;
+      MT.singleRayTracing = true;
       RayVisualizer.instance?.Reset ();
 
       // determine output image size:
-      int width = ImageWidth;
-      if ( width <= 0 ) width = panel1.Width;
-      int height = ImageHeight;
+      int width                 = ImageWidth;
+      if ( width <= 0 ) width   = panel1.Width;
+      int height                = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
 
       if ( dirty || imfs == null )
       {
-        imfs = getImageFunction( FormSupport.getScene(), width, height );
+        imfs  = getImageFunction ( FormSupport.getScene (), width, height );
         dirty = false;
       }
 
-      double[] color = new double[ 3 ];
-      long hash = imfs.GetSample( x + 0.5, y + 0.5, color );
-      labelSample.Text = string.Format( CultureInfo.InvariantCulture, "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
-                                        x, y, color[ 0 ], color[ 1 ], color[ 2 ], hash );
+      double[] color = new double[3];
+      long     hash  = imfs.GetSample ( x + 0.5, y + 0.5, color );
+      labelSample.Text = string.Format ( CultureInfo.InvariantCulture,
+                                         "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
+                                         x, y, color [ 0 ], color [ 1 ], color [ 2 ], hash );
 
       MT.singleRayTracing = false;
-		}
+    }
 
     public Form1 ( string[] args )
     {
@@ -509,51 +523,51 @@ namespace _048rtmontecarlo
       string name;
       FormSupport.InitializeScenes ( args, out name );
 
-      AdvancedToolsForm.instance?.SetNewDimensions(ImageWidth, ImageHeight);
+      AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
 
       Text += " (rev: " + rev + ") '" + name + '\'';
 
-      SetOptions( args );
-      buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+      SetOptions ( args );
+      buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
     }
 
     private void SetOptions ( string[] args )
     {
       foreach ( var opt in args )
-        if ( !string.IsNullOrEmpty( opt ) &&
-             opt[ 0 ] == '-' &&
-             opt.Contains( "=" ) )
+        if ( !string.IsNullOrEmpty ( opt ) &&
+             opt [ 0 ] == '-' &&
+             opt.Contains ( "=" ) )
         {
-          string[] opts = opt.Split( '=' );
+          string[] opts = opt.Split ( '=' );
           if ( opts.Length > 1 )
-            switch ( opts[ 0 ] )
+            switch ( opts [ 0 ] )
             {
               case "jittering":
-                checkJitter.Checked = Util.positive( opts[ 1 ] );
+                checkJitter.Checked = Util.positive ( opts [ 1 ] );
                 break;
 
               case "shadows":
-                checkShadows.Checked = Util.positive( opts[ 1 ] );
+                checkShadows.Checked = Util.positive ( opts [ 1 ] );
                 break;
 
               case "reflections":
-                checkReflections.Checked = Util.positive( opts[ 1 ] );
+                checkReflections.Checked = Util.positive ( opts [ 1 ] );
                 break;
 
               case "refractions":
-                checkRefractions.Checked = Util.positive( opts[ 1 ] );
+                checkRefractions.Checked = Util.positive ( opts [ 1 ] );
                 break;
 
               case "multi-threading":
-                checkMultithreading.Checked = Util.positive( opts[ 1 ] );
+                checkMultithreading.Checked = Util.positive ( opts [ 1 ] );
                 break;
 
               case "supersampling":
-                {
-                  int v;
-                  if ( int.TryParse( opts[ 1 ], out v ) )
-                    numericSupersampling.Text = v.ToString();
-                }
+              {
+                int v;
+                if ( int.TryParse ( opts [ 1 ], out v ) )
+                  numericSupersampling.Text = v.ToString ();
+              }
                 break;
             }
         }
@@ -561,12 +575,12 @@ namespace _048rtmontecarlo
 
     private void buttonRes_Click ( object sender, EventArgs e )
     {
-      FormResolution form = new FormResolution( ImageWidth, ImageHeight );
-      if ( form.ShowDialog() == DialogResult.OK )
+      FormResolution form = new FormResolution ( ImageWidth, ImageHeight );
+      if ( form.ShowDialog () == DialogResult.OK )
       {
-        ImageWidth = form.ImageWidth;
-        ImageHeight = form.ImageHeight;
-        buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+        ImageWidth     = form.ImageWidth;
+        ImageHeight    = form.ImageHeight;
+        buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
 
         AdvancedToolsForm.instance?.SetNewDimensions ( form.ImageWidth, form.ImageHeight );
       }
@@ -582,19 +596,19 @@ namespace _048rtmontecarlo
         return;
 
       // GUI stuff:
-      SetGUI( false );
+      SetGUI ( false );
 
       AdvancedToolsForm.instance?.RenderButtonsEnabled ( false );
       MT.renderingInProgress = true;
       Statistics.Reset ();
 
 
-			lock ( progress )
+      lock ( progress )
         progress.Continue = true;
 
-      SetText( "Wait a moment.." );
-      aThread = new Thread( new ThreadStart( this.RenderImage2 ) );
-      aThread.Start();
+      SetText ( "Wait a moment.." );
+      aThread = new Thread ( new ThreadStart ( this.RenderImage2 ) );
+      aThread.Start ();
     }
 
     private void buttonSave_Click ( object sender, EventArgs e )
@@ -602,26 +616,26 @@ namespace _048rtmontecarlo
       if ( outputImage == null ||
            aThread != null ) return;
 
-      SaveFileDialog sfd = new SaveFileDialog();
-      sfd.Title = "Save PNG file";
-      sfd.Filter = "PNG Files|*.png";
+      SaveFileDialog sfd = new SaveFileDialog ();
+      sfd.Title        = "Save PNG file";
+      sfd.Filter       = "PNG Files|*.png";
       sfd.AddExtension = true;
-      sfd.FileName = "";
-      if ( sfd.ShowDialog() != DialogResult.OK )
+      sfd.FileName     = "";
+      if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 
-      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
     private void buttonStop_Click ( object sender, EventArgs e )
     {
-      StopRendering();
+      StopRendering ();
     }
 
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
       selectedScene = comboScene.SelectedIndex;
-      dirty = true;
+      dirty         = true;
     }
 
     private void textParam_TextChanged ( object sender, EventArgs e )
@@ -632,30 +646,30 @@ namespace _048rtmontecarlo
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
-        singleSample( e.X, e.Y );
+        singleSample ( e.X, e.Y );
     }
 
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
-				singleSample( e.X, e.Y );
+        singleSample ( e.X, e.Y );
     }
 
     private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
     {
-      StopRendering();
+      StopRendering ();
     }
 
-    private void AdvancedToolsButton_Click(object sender, EventArgs e)
+    private void AdvancedToolsButton_Click ( object sender, EventArgs e )
     {
       if ( AdvancedToolsForm.instance != null )
       {
-        AdvancedToolsForm.instance.Activate();
+        AdvancedToolsForm.instance.Activate ();
 
-        return;   //only one instance of Form2 can exist at the time
+        return; //only one instance of Form2 can exist at the time
       }
 
-      AdvancedToolsForm advancedToolsForm = new AdvancedToolsForm();
+      AdvancedToolsForm advancedToolsForm = new AdvancedToolsForm ();
       advancedToolsForm.Show ();
     }
 
@@ -670,23 +684,23 @@ namespace _048rtmontecarlo
 
       Cursor.Current = Cursors.WaitCursor;
 
-			RayVisualizerForm rayVisualizerForm = new RayVisualizerForm ();
+      RayVisualizerForm rayVisualizerForm = new RayVisualizerForm ();
       rayVisualizerForm.Show ();
     }
 
-		private void addRenderClientToolStripMenuItem_Click ( object sender, EventArgs e )
-		{
-		  if ( RenderClientsForm.instance != null )
-		  {
-		    RenderClientsForm.instance.Show ();
+    private void addRenderClientToolStripMenuItem_Click ( object sender, EventArgs e )
+    {
+      if ( RenderClientsForm.instance != null )
+      {
+        RenderClientsForm.instance.Show ();
 
-				RenderClientsForm.instance.Activate ();
+        RenderClientsForm.instance.Activate ();
 
-		    return; //only one instance of renderClientsForm can exist at the time
-			}
+        return; //only one instance of renderClientsForm can exist at the time
+      }
 
-		  RenderClientsForm renderClientsForm = new RenderClientsForm ();
-		  renderClientsForm.Show ();
-		}
-	}
+      RenderClientsForm renderClientsForm = new RenderClientsForm ();
+      renderClientsForm.Show ();
+    }
+  }
 }

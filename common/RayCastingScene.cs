@@ -19,6 +19,7 @@ namespace Rendering
     Xor,
   }
 
+
   /// <summary>
   /// Builtin
   /// </summary>
@@ -45,55 +46,36 @@ namespace Rendering
     public static string MATERIAL = "material";
   }
 
+
   /// <summary>
   /// General scene node (hierarchical 3D scene used in ray-based rendering).
   /// </summary>
-  public interface ISceneNode : IIntersectable
+  public interface ISceneNode: IIntersectable
   {
     /// <summary>
     /// Reference to a parent node (null for root node).
     /// </summary>
-    ISceneNode Parent
-    {
-      get;
-      set;
-    }
+    ISceneNode Parent { get; set; }
 
     /// <summary>
     /// Transform from this space to parent's one.
     /// </summary>
-    Matrix4d ToParent
-    {
-      get;
-      set;
-    }
+    Matrix4d ToParent { get; set; }
 
     /// <summary>
     /// Transform from parent space to this node's space.
     /// </summary>
-    Matrix4d FromParent
-    {
-      get;
-      set;
-    }
+    Matrix4d FromParent { get; set; }
 
     /// <summary>
     /// Collection of node's children, can be null.
     /// </summary>
-    ICollection<ISceneNode> Children
-    {
-      get;
-      set;
-    }
+    ICollection<ISceneNode> Children { get; set; }
 
     /// <summary>
     /// True for object root (subject to animation). 3D texture coordinates should use Object space.
     /// </summary>
-    bool ObjectRoot
-    {
-      get;
-      set;
-    }
+    bool ObjectRoot { get; set; }
 
     /// <summary>
     /// Retrieves value of the given Attribute. Looks in parent nodes if not found locally.
@@ -135,58 +117,39 @@ namespace Rendering
     LinkedList<ITexture> GetTextures ();
   }
 
+
   /// <summary>
   /// Elementary solid - atomic building block of a scene.
   /// </summary>
-  public interface ISolid : ISceneNode
-  {
-  }
+  public interface ISolid: ISceneNode { }
 
-	/// <summary>
-	/// Common code for ISceneNode.
-	/// </summary>
-	[Serializable]
-	public abstract class DefaultSceneNode : ISceneNode
+
+  /// <summary>
+  /// Common code for ISceneNode.
+  /// </summary>
+  [Serializable]
+  public abstract class DefaultSceneNode: ISceneNode
   {
     protected LinkedList<ISceneNode> children;
 
     public ICollection<ISceneNode> Children
     {
-      get
-      {
-        return children;
-      }
+      get { return children; }
       set
       {
-        children.Clear();
+        children.Clear ();
         foreach ( ISceneNode sn in value )
-          children.AddLast( sn );
+          children.AddLast ( sn );
       }
     }
 
-    public ISceneNode Parent
-    {
-      get;
-      set;
-    }
+    public ISceneNode Parent { get; set; }
 
-    public Matrix4d ToParent
-    {
-      get;
-      set;
-    }
+    public Matrix4d ToParent { get; set; }
 
-    public Matrix4d FromParent
-    {
-      get;
-      set;
-    }
+    public Matrix4d FromParent { get; set; }
 
-    public bool ObjectRoot
-    {
-      get;
-      set;
-    }
+    public bool ObjectRoot { get; set; }
 
     protected Dictionary<string, object> attributes;
 
@@ -195,10 +158,11 @@ namespace Rendering
       if ( attributes != null )
       {
         object result;
-        if ( attributes.TryGetValue( name, out result ) )
+        if ( attributes.TryGetValue ( name, out result ) )
           return result;
       }
-      if ( Parent != null ) return Parent.GetAttribute( name );
+
+      if ( Parent != null ) return Parent.GetAttribute ( name );
       return null;
     }
 
@@ -206,7 +170,7 @@ namespace Rendering
     {
       object result;
       if ( attributes == null ||
-           !attributes.TryGetValue( name, out result ) )
+           !attributes.TryGetValue ( name, out result ) )
         return null;
 
       return result;
@@ -215,8 +179,8 @@ namespace Rendering
     public void SetAttribute ( string name, object value )
     {
       if ( attributes == null )
-        attributes = new Dictionary< string, object >();
-      attributes[ name ] = value;
+        attributes = new Dictionary<string, object> ();
+      attributes [ name ] = value;
     }
 
     /// <summary>
@@ -226,11 +190,11 @@ namespace Rendering
     /// <param name="toParent">Transform from local space of the child to the parent's space.</param>
     public virtual void InsertChild ( ISceneNode ch, Matrix4d toParent )
     {
-      children.AddLast( ch );
+      children.AddLast ( ch );
       ch.ToParent = toParent;
-      toParent.Invert();
+      toParent.Invert ();
       ch.FromParent = toParent;
-      ch.Parent = this;
+      ch.Parent     = this;
     }
 
     /// <summary>
@@ -240,7 +204,7 @@ namespace Rendering
     public Matrix4d ToWorld ()
     {
       if ( Parent == null ) return Matrix4d.Identity;
-      return( ToParent * Parent.ToWorld() );
+      return ( ToParent * Parent.ToWorld () );
     }
 
     /// <summary>
@@ -250,7 +214,7 @@ namespace Rendering
     public Matrix4d ToObject ()
     {
       if ( ObjectRoot || Parent == null ) return Matrix4d.Identity;
-      return( ToParent * Parent.ToObject() );
+      return ( ToParent * Parent.ToObject () );
     }
 
     /// <summary>
@@ -261,24 +225,23 @@ namespace Rendering
     {
       LinkedList<ITexture> result = null;
       if ( Parent != null )
-        result = Parent.GetTextures();
+        result = Parent.GetTextures ();
 
-      object local = GetLocalAttribute( PropertyName.TEXTURE );
+      object local = GetLocalAttribute ( PropertyName.TEXTURE );
       if ( local == null ) return result;
 
       if ( local is ITexture )
       {
         if ( result == null )
-          result = new LinkedList<ITexture>();
-        result.AddLast( (ITexture)local );
+          result = new LinkedList<ITexture> ();
+        result.AddLast ( (ITexture) local );
       }
-      else
-        if ( local is IEnumerable<ITexture> )
-          if ( result == null )
-            result = new LinkedList<ITexture>( (IEnumerable<ITexture>)local );
-          else
-            foreach ( ITexture tex in (IEnumerable<ITexture>)local )
-              result.AddLast( tex );
+      else if ( local is IEnumerable<ITexture> )
+        if ( result == null )
+          result = new LinkedList<ITexture> ( (IEnumerable<ITexture>) local );
+        else
+          foreach ( ITexture tex in (IEnumerable<ITexture>) local )
+            result.AddLast ( tex );
 
       return result;
     }
@@ -294,24 +257,23 @@ namespace Rendering
       if ( children == null || children.Count == 0 )
         return null;
 
-      ISceneNode child = children.First.Value;
-      Vector3d origin = Vector3d.TransformPosition( p0, child.FromParent );
-      Vector3d dir    = Vector3d.TransformVector(   p1, child.FromParent );
+      ISceneNode child  = children.First.Value;
+      Vector3d   origin = Vector3d.TransformPosition ( p0, child.FromParent );
+      Vector3d   dir    = Vector3d.TransformVector ( p1, child.FromParent );
       // ray in local child's coords: [ origin, dir ]
 
-      return child.Intersect( origin, dir );
+      return child.Intersect ( origin, dir );
     }
 
     /// <summary>
     /// Complete all relevant items in the given Intersection object.
     /// </summary>
     /// <param name="inter">Intersection instance to complete.</param>
-    public virtual void CompleteIntersection ( Intersection inter )
-    { }
+    public virtual void CompleteIntersection ( Intersection inter ) { }
 
     public DefaultSceneNode ()
     {
-      children = new LinkedList<ISceneNode>();
+      children   = new LinkedList<ISceneNode> ();
       attributes = null;
       ObjectRoot = false;
     }
@@ -321,7 +283,7 @@ namespace Rendering
       foreach ( var child in children )
       {
         ITimeDependent cha = child as ITimeDependent;
-        n.InsertChild( (cha == null) ? child : (ISceneNode)cha.Clone(), child.ToParent );
+        n.InsertChild ( ( cha == null ) ? child : (ISceneNode) cha.Clone (), child.ToParent );
       }
     }
 
@@ -332,30 +294,32 @@ namespace Rendering
         n.attributes = null;
       else
       {
-        n.attributes = new Dictionary<string, object>();
+        n.attributes = new Dictionary<string, object> ();
         foreach ( var kvp in attributes )
         {
           ICloneable vala = kvp.Value as ICloneable;
-          n.attributes.Add( kvp.Key, (vala == null) ? kvp.Value : vala.Clone() );
+          n.attributes.Add ( kvp.Key, ( vala == null ) ? kvp.Value : vala.Clone () );
 #if DEBUG
           if ( vala != null )
-            Util.Log( "Clone Attribute: " + kvp.Key );
+            Util.Log ( "Clone Attribute: " + kvp.Key );
 #endif
         }
       }
     }
   }
 
+
   /// <summary>
   /// CSG set operations in a inner scene node..
   /// </summary>
   [Serializable]
-  public class CSGInnerNode : DefaultSceneNode
+  public class CSGInnerNode: DefaultSceneNode
   {
     /// <summary>
     /// Delegate function for boolean operations
     /// </summary>
     protected delegate bool BooleanOperation ( bool x, bool y );
+
 
     /// <summary>
     /// Current boolean operation.
@@ -412,8 +376,8 @@ namespace Rendering
       }
 
       // set accelerator flags:
-      shortCurcuit = !(bop( false, false ) || bop( false, true ));   // does empty left operand kill the result?
-      trivial = bop( true, false ) && !bop( false, false );          // empty right operand doesn't change anything..
+      shortCurcuit = !( bop ( false, false ) || bop ( false, true ) ); // does empty left operand kill the result?
+      trivial      = bop ( true, false ) && !bop ( false, false );     // empty right operand doesn't change anything..
     }
 
     protected CSGInnerNode ( BooleanOperation _bop )
@@ -421,8 +385,8 @@ namespace Rendering
       bop = _bop;
 
       // set accelerator flags:
-      shortCurcuit = !(bop( false, false ) || bop( false, true ));   // does empty left operand kill the result?
-      trivial = bop( true, false ) && !bop( false, false );          // empty right operand doesn't change anything..
+      shortCurcuit = !( bop ( false, false ) || bop ( false, true ) ); // does empty left operand kill the result?
+      trivial      = bop ( true, false ) && !bop ( false, false );     // empty right operand doesn't change anything..
     }
 
     /// <summary>
@@ -431,15 +395,15 @@ namespace Rendering
     public static void ResetStatistics ()
     {
       Intersection.countRays =
-      Intersection.countIntersections =
-      countBoundingBoxes = 
-      countTriangles = 0L;
+        Intersection.countIntersections =
+          countBoundingBoxes =
+            countTriangles = 0L;
     }
 
     /// <summary>
     /// Not to be modified!
     /// </summary>
-    protected static LinkedList<Intersection> emptyResult = new LinkedList<Intersection>();
+    protected static LinkedList<Intersection> emptyResult = new LinkedList<Intersection> ();
 
     /// <summary>
     /// Computes the complete intersection of the given ray with the object.
@@ -455,33 +419,32 @@ namespace Rendering
       if ( BoundingVolume != null )
       {
         countBoundingBoxes++;
-        if ( BoundingVolume.Intersect( p0, p1 ) < -0.5 )
+        if ( BoundingVolume.Intersect ( p0, p1 ) < -0.5 )
           return null;
       }
 
       LinkedList<Intersection> result = null;
-      LinkedList<Intersection> left   = null;          // I'm going to reuse these two..
+      LinkedList<Intersection> left   = null; // I'm going to reuse these two..
 
-      bool leftOp = true;  // the 1st pass => left operand
+      bool leftOp = true; // the 1st pass => left operand
 
       foreach ( ISceneNode child in children )
       {
-        Vector3d origin = Vector3d.TransformPosition( p0, child.FromParent );
-        Vector3d dir    = Vector3d.TransformVector(   p1, child.FromParent );
+        Vector3d origin = Vector3d.TransformPosition ( p0, child.FromParent );
+        Vector3d dir    = Vector3d.TransformVector ( p1, child.FromParent );
         // ray in local child's coords: [ origin, dir ]
 
-        LinkedList<Intersection> partial = child.Intersect( origin, dir );
+        LinkedList<Intersection> partial = child.Intersect ( origin, dir );
         if ( partial == null )
-          partial = leftOp ? new LinkedList<Intersection>() : emptyResult;
-        else
-          if ( child is ISolid )
-            Intersection.countIntersections += partial.Count;
+          partial = leftOp ? new LinkedList<Intersection> () : emptyResult;
+        else if ( child is ISolid )
+          Intersection.countIntersections += partial.Count;
 
         if ( leftOp )
         {
           leftOp = false;
           result = partial;
-          left = new LinkedList<Intersection>();
+          left   = new LinkedList<Intersection> ();
         }
         else
         {
@@ -491,57 +454,60 @@ namespace Rendering
           // resolve one binary operation (result := left # partial):
           {
             LinkedList<Intersection> tmp = left;
-            left = result;
+            left   = result;
             result = tmp;
           }
           // result .. empty so far
-          result.Clear();
+          result.Clear ();
 
-          double lowestT = Double.NegativeInfinity;
-          Intersection leftFirst = (left.First == null) ? null : left.First.Value;
-          Intersection rightFirst = (partial.First == null) ? null : partial.First.Value;
+          double       lowestT    = Double.NegativeInfinity;
+          Intersection leftFirst  = ( left.First == null ) ? null : left.First.Value;
+          Intersection rightFirst = ( partial.First == null ) ? null : partial.First.Value;
           // initial inside status values:
-          bool insideLeft = (leftFirst != null && !leftFirst.Enter);
-          bool insideRight = (rightFirst != null && !rightFirst.Enter);
-          bool insideResult = bop( insideLeft, insideRight );
+          bool insideLeft   = ( leftFirst != null && !leftFirst.Enter );
+          bool insideRight  = ( rightFirst != null && !rightFirst.Enter );
+          bool insideResult = bop ( insideLeft, insideRight );
           // merge behavior:
-          bool minLeft = (leftFirst != null && leftFirst.T == lowestT);
-          bool minRight = (rightFirst != null && rightFirst.T == lowestT);
+          bool minLeft  = ( leftFirst != null && leftFirst.T == lowestT );
+          bool minRight = ( rightFirst != null && rightFirst.T == lowestT );
 
           while ( leftFirst != null || rightFirst != null )
           {
-            double leftVal = (leftFirst != null) ? leftFirst.T : double.PositiveInfinity;
-            double rightVal = (rightFirst != null) ? rightFirst.T : double.PositiveInfinity;
-            lowestT = Math.Min( leftVal, rightVal );
-            Debug.Assert( !Double.IsInfinity( lowestT ) );
+            double leftVal  = ( leftFirst != null ) ? leftFirst.T : double.PositiveInfinity;
+            double rightVal = ( rightFirst != null ) ? rightFirst.T : double.PositiveInfinity;
+            lowestT = Math.Min ( leftVal, rightVal );
+            Debug.Assert ( !Double.IsInfinity ( lowestT ) );
 
-            minLeft = leftVal == lowestT;
+            minLeft  = leftVal == lowestT;
             minRight = rightVal == lowestT;
 
             Intersection first = null;
             if ( minRight )
             {
               first = rightFirst;
-              partial.RemoveFirst();
-              rightFirst = (partial.First == null) ? null : partial.First.Value;
+              partial.RemoveFirst ();
+              rightFirst  = ( partial.First == null ) ? null : partial.First.Value;
               insideRight = first.Enter;
             }
+
             if ( minLeft )
             {
               first = leftFirst;
-              left.RemoveFirst();
-              leftFirst = (left.First == null) ? null : left.First.Value;
+              left.RemoveFirst ();
+              leftFirst  = ( left.First == null ) ? null : left.First.Value;
               insideLeft = first.Enter;
             }
-            bool newResult = bop( insideLeft, insideRight );
+
+            bool newResult = bop ( insideLeft, insideRight );
 
             if ( newResult != insideResult )
             {
               first.Enter = insideResult = newResult;
-              result.AddLast( first );
+              result.AddLast ( first );
             }
           }
         }
+
         if ( shortCurcuit && result.Count == 0 )
           break;
       }
@@ -550,71 +516,49 @@ namespace Rendering
     }
   }
 
-	/// <summary>
-	/// Default scene class for ray-based rendering.
-	/// </summary>
-	[Serializable]
-	public class DefaultRayScene : IRayScene
+
+  /// <summary>
+  /// Default scene class for ray-based rendering.
+  /// </summary>
+  [Serializable]
+  public class DefaultRayScene: IRayScene
   {
     /// <summary>
     /// Scene model (whatever is able to compute ray intersections).
     /// </summary>
-    public IIntersectable Intersectable
-    {
-      get;
-      set;
-    }
+    public IIntersectable Intersectable { get; set; }
 
     /// <summary>
     /// Background color.
     /// </summary>
-    public double[] BackgroundColor
-    {
-      get;
-      set;
-    }
+    public double[] BackgroundColor { get; set; }
 
     /// <summary>
     /// Camera = primary ray generator.
     /// </summary>
-    public ICamera Camera
-    {
-      get;
-      set;
-    }
+    public ICamera Camera { get; set; }
 
     /// <summary>
     /// Set of light sources.
     /// </summary>
-    public ICollection<ILightSource> Sources
-    {
-      get;
-      set;
-    }
+    public ICollection<ILightSource> Sources { get; set; }
   }
+
 
   /// <summary>
   /// Base implementation of time-dependent Ray-scene.
   /// </summary>
-  public class AnimatedRayScene : DefaultRayScene, ITimeDependent
+  public class AnimatedRayScene: DefaultRayScene, ITimeDependent
   {
     /// <summary>
     /// Starting (minimal) time in seconds.
     /// </summary>
-    public double Start
-    {
-      get;
-      set;
-    }
+    public double Start { get; set; }
 
     /// <summary>
     /// Ending (maximal) time in seconds.
     /// </summary>
-    public double End
-    {
-      get;
-      set;
-    }
+    public double End { get; set; }
 
     /// <summary>
     /// Internal variable for the current time.
@@ -627,7 +571,7 @@ namespace Rendering
     /// </summary>
     protected virtual void setTime ( double newTime )
     {
-      time = Arith.Clamp( newTime, Start, End );
+      time = Arith.Clamp ( newTime, Start, End );
 
       // Time-dependent scene?
       ITimeDependent intersectable = Intersectable as ITimeDependent;
@@ -653,14 +597,8 @@ namespace Rendering
     /// </summary>
     public double Time
     {
-      get
-      {
-        return time;
-      }
-      set
-      {
-        setTime( value );
-      }
+      get { return time; }
+      set { setTime ( value ); }
     }
 
     /// <summary>
@@ -670,31 +608,32 @@ namespace Rendering
     public virtual object Clone ()
     {
 #if DEBUG
-      Util.Log( "Clone: AnimatedRayScene" );
+      Util.Log ( "Clone: AnimatedRayScene" );
 #endif
-      AnimatedRayScene sc = new AnimatedRayScene();
+      AnimatedRayScene sc = new AnimatedRayScene ();
 
       ITimeDependent intersectable = Intersectable as ITimeDependent;
-      sc.Intersectable = (intersectable == null) ? Intersectable : (IIntersectable)intersectable.Clone();
+      sc.Intersectable = ( intersectable == null ) ? Intersectable : (IIntersectable) intersectable.Clone ();
 
-      sc.BackgroundColor = (double[])BackgroundColor.Clone();
+      sc.BackgroundColor = (double[]) BackgroundColor.Clone ();
 
       ITimeDependent camera = Camera as ITimeDependent;
-      sc.Camera = (camera == null) ? Camera : (ICamera)camera.Clone();
+      sc.Camera = ( camera == null ) ? Camera : (ICamera) camera.Clone ();
 
-      ILightSource[] tmp = new ILightSource[ Sources.Count ];
-      Sources.CopyTo( tmp, 0 );
+      ILightSource[] tmp = new ILightSource[Sources.Count];
+      Sources.CopyTo ( tmp, 0 );
       for ( int i = 0; i < tmp.Length; i++ )
       {
-        ITimeDependent source = tmp[ i ] as ITimeDependent;
+        ITimeDependent source = tmp [ i ] as ITimeDependent;
         if ( source != null )
-          tmp[ i ] = (ILightSource)source.Clone();
+          tmp [ i ] = (ILightSource) source.Clone ();
       }
-      sc.Sources = new LinkedList<ILightSource>( tmp );
+
+      sc.Sources = new LinkedList<ILightSource> ( tmp );
 
       sc.Start = Start;
       sc.End   = End;
-      sc.setTime( Time );                   // propagates the current time to all time-dependent components..
+      sc.setTime ( Time ); // propagates the current time to all time-dependent components..
 
       return sc;
     }

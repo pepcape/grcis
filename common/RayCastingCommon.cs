@@ -19,20 +19,12 @@ namespace Rendering
     /// <summary>
     /// Domain width.
     /// </summary>
-    double Width
-    {
-      get;
-      set;
-    }
+    double Width { get; set; }
 
     /// <summary>
     /// Domain height.
     /// </summary>
-    double Height
-    {
-      get;
-      set;
-    }
+    double Height { get; set; }
 
     /// <summary>
     /// Computes one image sample. Simple variant, w/o an integration support.
@@ -44,11 +36,13 @@ namespace Rendering
     long GetSample ( double x, double y, double[] color );
   }
 
+
   /// <summary>
   /// Delegate function for thread-selection.
   /// </summary>
   /// <param name="unit">Number of working unit (thread selected for unit==0 is leader).</param>
   public delegate bool ThreadSelector ( long unit );
+
 
   /// <summary>
   /// Algorithm capable of synthesizing raster image from virtual 3D scene.
@@ -59,47 +53,27 @@ namespace Rendering
     /// <summary>
     /// Image width in pixels.
     /// </summary>
-    int Width
-    {
-      get;
-      set;
-    }
+    int Width { get; set; }
 
     /// <summary>
     /// Image height in pixels.
     /// </summary>
-    int Height
-    {
-      get;
-      set;
-    }
+    int Height { get; set; }
 
     /// <summary>
     /// Gamma pre-compensation (gamma encoding, compression). Values 0.0 or 1.0 mean "no compensation".
     /// </summary>
-    double Gamma
-    {
-      get;
-      set;
-    }
+    double Gamma { get; set; }
 
     /// <summary>
     /// Cell-size for adaptive rendering, 0 or 1 to turn off adaptivitiy.
     /// </summary>
-    int Adaptive
-    {
-      get;
-      set;
-    }
+    int Adaptive { get; set; }
 
     /// <summary>
     /// Current progress object (can be null).
     /// </summary>
-    Progress ProgressData
-    {
-      get;
-      set;
-    }
+    Progress ProgressData { get; set; }
 
     /// <summary>
     /// Renders the single pixel of an image.
@@ -124,6 +98,7 @@ namespace Rendering
     void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel );
   }
 
+
   /// <summary>
   /// Ray generator (camera for ray-based methods).
   /// </summary>
@@ -132,29 +107,17 @@ namespace Rendering
     /// <summary>
     /// Width / Height of the viewing area (viewport, frustum).
     /// </summary>
-    double AspectRatio
-    {
-      get;
-      set;
-    }
+    double AspectRatio { get; set; }
 
     /// <summary>
     /// Viewport width.
     /// </summary>
-    double Width
-    {
-      get;
-      set;
-    }
+    double Width { get; set; }
 
     /// <summary>
     /// Viewport height.
     /// </summary>
-    double Height
-    {
-      get;
-      set;
-    }
+    double Height { get; set; }
 
     /// <summary>
     /// Ray-generator. Simple variant, w/o an integration support.
@@ -166,6 +129,7 @@ namespace Rendering
     /// <returns>True if the ray (viewport position) is valid.</returns>
     bool GetRay ( double x, double y, out Vector3d p0, out Vector3d p1 );
   }
+
 
   /// <summary>
   /// General light source.
@@ -181,17 +145,19 @@ namespace Rendering
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
     double[] GetIntensity ( Intersection intersection, out Vector3d dir );
 
-		Vector3d? position { get; set; }
+    Vector3d? position { get; set; }
   }
+
 
   public enum ReflectionComponent
   {
-    DIFFUSE = 1,
+    DIFFUSE             = 1,
     SPECULAR_REFLECTION = 2,
     SPECULAR_REFRACTION = 4,
-    SPECULAR = 6,
-    ALL = 7
+    SPECULAR            = 6,
+    ALL                 = 7
   }
+
 
   /// <summary>
   /// Reflection model - deals with local interaction between light and material surface.
@@ -203,42 +169,33 @@ namespace Rendering
 
     double[] ColorReflection ( Intersection intersection, Vector3d input, Vector3d output, ReflectionComponent comp );
 
-    double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output, ReflectionComponent comp );
+    double[] ColorReflection ( IMaterial           material, Vector3d normal, Vector3d input, Vector3d output,
+                               ReflectionComponent comp );
   }
+
 
   /// <summary>
   /// Abstract material description.
   /// Each IReflectionModel should define its own derivation with specific properties.
   /// </summary>
-  public interface IMaterial : ICloneable
+  public interface IMaterial: ICloneable
   {
     /// <summary>
     /// Base surface color.
     /// </summary>
-    double[] Color
-    {
-      get;
-      set;
-    }
+    double[] Color { get; set; }
 
     /// <summary>
     /// Coefficient of transparency.
     /// </summary>
-    double Kt
-    {
-      get;
-      set;
-    }
+    double Kt { get; set; }
 
     /// <summary>
     /// Absolute index of refraction.
     /// </summary>
-    double n
-    {
-      get;
-      set;
-    }
+    double n { get; set; }
   }
+
 
   /// <summary>
   /// Any object capable of ray-intersection in 3D.
@@ -260,6 +217,7 @@ namespace Rendering
     void CompleteIntersection ( Intersection inter );
   }
 
+
   /// <summary>
   /// Simple bounding volume, able to compute the closest positive intersection.
   /// </summary>
@@ -275,6 +233,7 @@ namespace Rendering
     double Intersect ( Vector3d p0, Vector3d p1 );
   }
 
+
   /// <summary>
   /// Texture object: general value-modulator (value = color, normal vector..).
   /// </summary>
@@ -289,80 +248,54 @@ namespace Rendering
     long Apply ( Intersection inter );
   }
 
-	/// <summary>
-	/// Data container for Ray-based scene rendering: complete scene definition including camera.
-	/// </summary>
-	public interface IRayScene
-	{
+
+  /// <summary>
+  /// Data container for Ray-based scene rendering: complete scene definition including camera.
+  /// </summary>
+  public interface IRayScene
+  {
     /// <summary>
     /// Scene model (whatever is able to compute ray intersections).
     /// </summary>
-    IIntersectable Intersectable
-    {
-      get;
-      set;
-    }
+    IIntersectable Intersectable { get; set; }
 
     /// <summary>
     /// Background color.
     /// </summary>
-    double[] BackgroundColor
-    {
-      get;
-      set;
-    }
+    double[] BackgroundColor { get; set; }
 
     /// <summary>
     /// Camera = primary ray generator.
     /// </summary>
-    ICamera Camera
-    {
-      get;
-      set;
-    }
+    ICamera Camera { get; set; }
 
     /// <summary>
     /// Set of light sources.
     /// </summary>
-    ICollection<ILightSource> Sources
-    {
-      get;
-      set;
-    }
+    ICollection<ILightSource> Sources { get; set; }
   }
+
 
   /// <summary>
   /// Abstract time-dependency of an object.
   /// Each instance has to be able to clone itself (multi-thread implementations).
   /// </summary>
-  public interface ITimeDependent : ICloneable
+  public interface ITimeDependent: ICloneable
   {
     /// <summary>
     /// Starting (minimal) time in seconds.
     /// </summary>
-    double Start
-    {
-      get;
-      set;
-    }
+    double Start { get; set; }
 
     /// <summary>
     /// Ending (maximal) time in seconds.
     /// </summary>
-    double End
-    {
-      get;
-      set;
-    }
+    double End { get; set; }
 
     /// <summary>
     /// Current time in seconds.
     /// </summary>
-    double Time
-    {
-      get;
-      set;
-    }
+    double Time { get; set; }
   }
 
   #endregion
@@ -372,7 +305,7 @@ namespace Rendering
   /// <summary>
   /// Intersection of a ray with a solid surface.
   /// </summary>
-  public class Intersection : IComparable
+  public class Intersection: IComparable
   {
     /// <summary>
     /// True if the ray enters a solid interior of an object here (transition from an air to solid material).
@@ -499,31 +432,31 @@ namespace Rendering
       if ( Solid != null )
       {
         // world coordinates:
-        LocalToWorld = Solid.ToWorld();
+        LocalToWorld = Solid.ToWorld ();
         WorldToLocal = LocalToWorld;
-        WorldToLocal.Invert();
-        Vector3d.TransformPosition( ref CoordLocal, ref LocalToWorld, out CoordWorld );
+        WorldToLocal.Invert ();
+        Vector3d.TransformPosition ( ref CoordLocal, ref LocalToWorld, out CoordWorld );
 
         // object coordinates:
-        LocalToObject = Solid.ToObject();
-        Vector3d.TransformPosition( ref CoordLocal, ref LocalToObject, out CoordObject );
+        LocalToObject = Solid.ToObject ();
+        Vector3d.TransformPosition ( ref CoordLocal, ref LocalToObject, out CoordObject );
 
         // appearance:
-        ReflectanceModel = (IReflectanceModel)Solid.GetAttribute( PropertyName.REFLECTANCE_MODEL );
+        ReflectanceModel = (IReflectanceModel) Solid.GetAttribute ( PropertyName.REFLECTANCE_MODEL );
         if ( ReflectanceModel == null )
-          ReflectanceModel = new PhongModel();
-        Material = (IMaterial)Solid.GetAttribute( PropertyName.MATERIAL );
+          ReflectanceModel = new PhongModel ();
+        Material = (IMaterial) Solid.GetAttribute ( PropertyName.MATERIAL );
         if ( Material == null )
-          Material = ReflectanceModel.DefaultMaterial();
-        double[] col = (double[])Solid.GetAttribute( PropertyName.COLOR );
-        SurfaceColor = (double[])((col != null) ? col.Clone() : Material.Color.Clone());
-        Textures = Solid.GetTextures();
+          Material = ReflectanceModel.DefaultMaterial ();
+        double[] col = (double[]) Solid.GetAttribute ( PropertyName.COLOR );
+        SurfaceColor = (double[]) ( ( col != null ) ? col.Clone () : Material.Color.Clone () );
+        Textures     = Solid.GetTextures ();
 
         // Solid is responsible for completing remaining values:
-        Solid.CompleteIntersection( this );
-        Normal.Normalize();
+        Solid.CompleteIntersection ( this );
+        Normal.Normalize ();
         if ( Enter != Front )
-          Vector3d.Multiply( ref Normal, -1.0, out Normal );
+          Vector3d.Multiply ( ref Normal, -1.0, out Normal );
       }
 
       if ( SurfaceColor == null )
@@ -554,7 +487,7 @@ namespace Rendering
 
       double p1Squared = p1.X * p1.X + p1.Y * p1.Y + p1.Z * p1.Z;
       t = T - t;
-      return( t * t * p1Squared > 1.0e-8 );
+      return ( t * t * p1Squared > 1.0e-8 );
     }
 
     /// <summary>
@@ -564,8 +497,8 @@ namespace Rendering
     /// <returns>-1, 0 or 1.</returns>
     public int CompareTo ( object obj )
     {
-      Intersection i = (Intersection)obj;
-      return T.CompareTo( i.T );
+      Intersection i = (Intersection) obj;
+      return T.CompareTo ( i.T );
     }
   }
 
@@ -590,19 +523,19 @@ namespace Rendering
     [ThreadStatic] public static int rank;
     [ThreadStatic] public static int total;
 
-    public static bool singleRayTracing = false;
-    public static bool sceneRendered = false;
+    public static bool singleRayTracing    = false;
+    public static bool sceneRendered       = false;
     public static bool renderingInProgress = false;
 
-		// Put more TLS data here..
+    // Put more TLS data here..
 
-		/// <summary>
-		/// Cold init of the thread data.
-		/// </summary>
-		public static void InitThreadData ()
+    /// <summary>
+    /// Cold init of the thread data.
+    /// </summary>
+    public static void InitThreadData ()
     {
       if ( rnd == null )
-        rnd = new RandomJames();
+        rnd = new RandomJames ();
 
       // Put TLS data init here..
     }
@@ -615,9 +548,9 @@ namespace Rendering
     /// <param name="tot">Designed supersampling factor.</param>
     public static void StartPixel ( int _x, int _y, int tot )
     {
-      x = _x;
-      y = _y;
-      rank = 0;
+      x     = _x;
+      y     = _y;
+      rank  = 0;
       total = tot;
     }
 
@@ -640,7 +573,7 @@ namespace Rendering
     public static void Reset ()
     {
       primaryRaysCount = 0;
-      allRaysCount = 0;
+      allRaysCount     = 0;
     }
   }
 

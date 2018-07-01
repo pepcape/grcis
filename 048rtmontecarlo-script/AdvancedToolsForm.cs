@@ -7,7 +7,7 @@ using Rendering;
 
 namespace _048rtmontecarlo
 {
-  public partial class AdvancedToolsForm : Form
+  public partial class AdvancedToolsForm: Form
   {
     public static AdvancedToolsForm instance; //singleton
 
@@ -23,7 +23,7 @@ namespace _048rtmontecarlo
       if ( AdvancedTools.instance == null )
       {
         AdvancedTools.instance = new AdvancedTools ();
-      }      
+      }
 
       InitializeComponent ();
 
@@ -32,15 +32,17 @@ namespace _048rtmontecarlo
       // Sets location of Form2 (Advanced Tools) to either right or left of Form1 (Main) 
       // depending on position of Form1 (whether it is close to right edge of primary screen)
 
-      if ( ( Form1.singleton.Location.X - this.Width < 0 ) && 
-          ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width > SystemInformation.VirtualScreen.Width ) )
+      if ( ( Form1.singleton.Location.X - this.Width < 0 ) &&
+           ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width > SystemInformation.VirtualScreen.Width ) )
       {
         this.Location =
-          new Point( Screen.PrimaryScreen.WorkingArea.Width / 2 - this.Width / 2,
-                     Screen.PrimaryScreen.WorkingArea.Height / 2 - this.Height / 2); // place in the middle of screen if no space around Form1 is available
+          new Point ( Screen.PrimaryScreen.WorkingArea.Width / 2 - this.Width / 2,
+                      Screen.PrimaryScreen.WorkingArea.Height / 2 -
+                      this.Height / 2 ); // place in the middle of screen if no space around Form1 is available
       }
-      else if ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width < Screen.PrimaryScreen.WorkingArea.Width ||
-           Form1.singleton.Location.X - this.Width < 0 )
+      else if ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width <
+                Screen.PrimaryScreen.WorkingArea.Width ||
+                Form1.singleton.Location.X - this.Width < 0 )
       {
         this.Location =
           new Point ( Form1.singleton.Location.X + Form1.singleton.Width,
@@ -58,7 +60,9 @@ namespace _048rtmontecarlo
 
     private void Form2_FormClosed ( object sender, FormClosedEventArgs e )
     {
-      System.Threading.SpinWait.SpinUntil(() => !AdvancedTools.instance.isInMiddleOfRegistering); // waiting for completion of registering current ray to maps
+      System.Threading.SpinWait.SpinUntil ( () => !AdvancedTools
+                                                  .instance
+                                                  .isInMiddleOfRegistering ); // waiting for completion of registering current ray to maps
 
       Form1.singleton.AdvancedToolsButton.Enabled = true;
 
@@ -73,26 +77,26 @@ namespace _048rtmontecarlo
     /// <param name="e"></param>
     private void SaveMapButton_Click ( object sender, EventArgs e )
     {
-      Panel panel = (sender as Control).Parent as Panel;
+      Panel panel = ( sender as Control ).Parent as Panel;
 
       string mapName = panel.Tag.ToString ();
 
-      PictureBox pictureBox = panel.Controls.Find(mapName + "PictureBox", true).FirstOrDefault() as PictureBox;
+      PictureBox pictureBox = panel.Controls.Find ( mapName + "PictureBox", true ).FirstOrDefault () as PictureBox;
 
       Bitmap outputImage = (Bitmap) pictureBox.Image;
 
-      if (outputImage == null)
+      if ( outputImage == null )
         return;
 
-      SaveFileDialog sfd = new SaveFileDialog();
+      SaveFileDialog sfd = new SaveFileDialog ();
       sfd.Title        = "Save PNG file";
       sfd.Filter       = "PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName     = mapName + ".png";
-      if (sfd.ShowDialog() != DialogResult.OK)
+      if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 
-      outputImage.Save(sfd.FileName, System.Drawing.Imaging.ImageFormat.Png);
+      outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
     /// <summary>
@@ -110,21 +114,22 @@ namespace _048rtmontecarlo
 
       var map = AdvancedTools.instance.GetType ().GetField ( fieldName ).GetValue ( AdvancedTools.instance );
 
-      (map as IMap).RenderMap ();
+      ( map as IMap ).RenderMap ();
 
       Panel panel = ( sender as Control ).Parent as Panel;
 
-      string fieldNameCamelCase = Char.ToUpper ( fieldName[ 0 ] ) + fieldName.Substring ( 1 );
+      string fieldNameCamelCase = Char.ToUpper ( fieldName [ 0 ] ) + fieldName.Substring ( 1 );
 
-      PictureBox pictureBox = panel.Controls.Find (fieldNameCamelCase + "PictureBox", true).FirstOrDefault() as PictureBox;
-      pictureBox.Image = (map as IMap).GetBitmap();
+      PictureBox pictureBox =
+        panel.Controls.Find ( fieldNameCamelCase + "PictureBox", true ).FirstOrDefault () as PictureBox;
+      pictureBox.Image = ( map as IMap ).GetBitmap ();
 
-      Button saveButton = panel.Controls.Find("Save" + fieldNameCamelCase + "Button", true).FirstOrDefault() as Button;    
+      Button saveButton =
+        panel.Controls.Find ( "Save" + fieldNameCamelCase + "Button", true ).FirstOrDefault () as Button;
       saveButton.Enabled = true;
 
       SetTotalAndAveragePrimaryRaysCount ();
       SetTotalAndAverageAllRaysCount ();
-
     }
 
     /// <summary>
@@ -136,16 +141,16 @@ namespace _048rtmontecarlo
     public void SetNewDimensions ( int formImageWidth, int formImageHeight )
     {
       PrimaryRaysMapPictureBox.Width =
-      AllRaysMapPictureBox.Width =
-      DepthMapPictureBox.Width =
-      NormalMapRelativePictureBox.Width = formImageWidth;
+        AllRaysMapPictureBox.Width =
+          DepthMapPictureBox.Width =
+            NormalMapRelativePictureBox.Width = formImageWidth;
 
       PrimaryRaysMapPictureBox.Height =
-      AllRaysMapPictureBox.Height =
-      DepthMapPictureBox.Height =
-      NormalMapRelativePictureBox.Height = formImageHeight;
+        AllRaysMapPictureBox.Height =
+          DepthMapPictureBox.Height =
+            NormalMapRelativePictureBox.Height = formImageHeight;
 
-      AdvancedTools.instance.SetNewDimensions (formImageWidth, formImageHeight); //makes all maps to initialize again
+      AdvancedTools.instance.SetNewDimensions ( formImageWidth, formImageHeight ); //makes all maps to initialize again
     }
 
     /// <summary>
@@ -153,7 +158,8 @@ namespace _048rtmontecarlo
     /// </summary>
     private void DepthMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
     {
-      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left && ((PictureBox)sender).ClientRectangle.Contains(e.Location))
+      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left &&
+           ( (PictureBox) sender ).ClientRectangle.Contains ( e.Location ) )
       {
         Point coordinates = e.Location;
 
@@ -170,16 +176,17 @@ namespace _048rtmontecarlo
     /// Displays angle of rayOrigin-intersection and normal vector in place of intersection in selected pixel (clicked or hovered over while mouse down)
     /// Intersections as well as normal vectors are averaged through all such vectors in selected pixel
     /// </summary>
-    private void NormalMapPictureBox_MouseDownAndMouseMove(object sender, MouseEventArgs e)
+    private void NormalMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
     {
-      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left && ( (PictureBox) sender ).ClientRectangle.Contains ( e.Location ) )
+      if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left &&
+           ( (PictureBox) sender ).ClientRectangle.Contains ( e.Location ) )
       {
         Point coordinates = e.Location;
 
         double angle = AdvancedTools.instance.normalMapRelative.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
 
         char degreesChar = '°';
-        if ( double.IsInfinity(angle) || double.IsNaN(angle) )
+        if ( double.IsInfinity ( angle ) || double.IsNaN ( angle ) )
         {
           degreesChar = '\0';
         }
@@ -194,29 +201,32 @@ namespace _048rtmontecarlo
       }
     }
 
-		/// <summary>
-		/// Displays number of rays of specific RaysMap (PrimaryRaysMap, AllRaysMap, ...) sent to selected pixel (clicked or hovered over while mouse down)
-		/// </summary>
-		private void RaysMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
-		{
-		  if ( ( (PictureBox) sender ).Image == null || e.Button != MouseButtons.Left || !( ( (PictureBox) sender ).ClientRectangle.Contains ( e.Location ) ) )
-		  {
-		    return;
-		  }
+    /// <summary>
+    /// Displays number of rays of specific RaysMap (PrimaryRaysMap, AllRaysMap, ...) sent to selected pixel (clicked or hovered over while mouse down)
+    /// </summary>
+    private void RaysMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
+    {
+      if ( ( (PictureBox) sender ).Image == null || e.Button != MouseButtons.Left ||
+           !( ( (PictureBox) sender ).ClientRectangle.Contains ( e.Location ) ) )
+      {
+        return;
+      }
 
-			string fieldName = ( sender as Control ).Tag.ToString ();
+      string fieldName = ( sender as Control ).Tag.ToString ();
 
-		  AdvancedTools.RaysMap raysMap = AdvancedTools.instance.GetType ().GetField ( fieldName ).GetValue ( AdvancedTools.instance ) as AdvancedTools.RaysMap;
-
-
-		  Panel panel = ( sender as Control ).Parent as Panel;
-
-		  string fieldNameCamelCase = Char.ToUpper ( fieldName[ 0 ] ) + fieldName.Substring ( 1 );
-
-		  Label label = panel.Controls.Find (fieldNameCamelCase + "Coordinates", true).FirstOrDefault() as Label;
+      AdvancedTools.RaysMap raysMap =
+        AdvancedTools.instance.GetType ().GetField ( fieldName ).GetValue ( AdvancedTools.instance ) as
+          AdvancedTools.RaysMap;
 
 
-			int raysCount = raysMap.GetValueAtCoordinates ( e.X, e.Y );
+      Panel panel = ( sender as Control ).Parent as Panel;
+
+      string fieldNameCamelCase = Char.ToUpper ( fieldName [ 0 ] ) + fieldName.Substring ( 1 );
+
+      Label label = panel.Controls.Find ( fieldNameCamelCase + "Coordinates", true ).FirstOrDefault () as Label;
+
+
+      int raysCount = raysMap.GetValueAtCoordinates ( e.X, e.Y );
 
       label.Text = String.Format ( "X: {0}\r\nY: {1}\r\nRays count:\r\n{2}",
                                    e.X,
@@ -226,10 +236,13 @@ namespace _048rtmontecarlo
 
     public void SetTotalAndAveragePrimaryRaysCount ()
     {
-      TotalPrimaryRaysCount.Text = String.Format ( "Total primary\r\nrays count:\r\n{0:n0}", Statistics.primaryRaysCount );
+      TotalPrimaryRaysCount.Text =
+        String.Format ( "Total primary\r\nrays count:\r\n{0:n0}", Statistics.primaryRaysCount );
 
-      AveragePrimaryRaysCount.Text = String.Format ( "Average\r\nprimary\r\nrays count\r\nper pixel:\r\n{0:n0}", 
-                                                     Statistics.primaryRaysCount / ( PrimaryRaysMapPictureBox.Width * PrimaryRaysMapPictureBox.Height ) );
+      AveragePrimaryRaysCount.Text = String.Format ( "Average\r\nprimary\r\nrays count\r\nper pixel:\r\n{0:n0}",
+                                                     Statistics.primaryRaysCount /
+                                                     ( PrimaryRaysMapPictureBox.Width *
+                                                       PrimaryRaysMapPictureBox.Height ) );
     }
 
     public void SetTotalAndAverageAllRaysCount ()
@@ -237,7 +250,8 @@ namespace _048rtmontecarlo
       TotalAllRaysCount.Text = String.Format ( "Total\r\nrays count:\r\n{0:n0}", Statistics.allRaysCount );
 
       AverageAllRaysCount.Text = String.Format ( "Average\r\nrays count\r\nper pixel:\r\n{0:n0}",
-                                                 Statistics.allRaysCount / ( AllRaysMapPictureBox.Width * AllRaysMapPictureBox.Height ) );
+                                                 Statistics.allRaysCount /
+                                                 ( AllRaysMapPictureBox.Width * AllRaysMapPictureBox.Height ) );
     }
 
     /// <summary>
@@ -246,16 +260,16 @@ namespace _048rtmontecarlo
     /// </summary>
     /// <param name="newStatus">Enabled/Disabled buttons</param>
     /// <param name="root">Used for recursion</param>
-    public void RenderButtonsEnabled ( bool newStatus, Control root = null)
+    public void RenderButtonsEnabled ( bool newStatus, Control root = null )
     {
       if ( root == null )
       {
         root = this;
       }
 
-      foreach ( Control control in root.Controls)
+      foreach ( Control control in root.Controls )
       {
-        if ( control.Name.Contains(@"Render") && control.Name.Contains(@"Button"))
+        if ( control.Name.Contains ( @"Render" ) && control.Name.Contains ( @"Button" ) )
         {
           control.Enabled = newStatus;
         }

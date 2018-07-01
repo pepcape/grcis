@@ -13,45 +13,45 @@ using Rendering;
 
 namespace RenderClient
 {
-	class Program
-	{
-	  static void Main ( string[] args )
-	  {
+  class Program
+  {
+    static void Main ( string[] args )
+    {
+      RenderClient.ConnectToServer ();
+      RenderClient.ReceiveNecessaryObjects ();
 
-			RenderClient.ConnectToServer ();
-	    RenderClient.ReceiveNecessaryObjects ();    
+      //TODO: Do something with stream
+    }
+  }
 
-	    //TODO: Do something with stream
-	  }
-	}
 
   static class RenderClient
   {
-    private static IPAddress ipAdr;
-    private static int port = 5000;
+    private static IPAddress     ipAdr;
+    private static int           port = 5000;
     private static NetworkStream stream;
-    private static TcpClient client;
+    private static TcpClient     client;
 
-		private static IRayScene scene;
-		private static IRenderer renderer;
+    private static IRayScene scene;
+    private static IRenderer renderer;
 
-		public static void ConnectToServer()
+    public static void ConnectToServer ()
     {
-			Console.WriteLine ( "Waiting for remote server to connect to this client..." ); 
+      Console.WriteLine ( "Waiting for remote server to connect to this client..." );
 
       TcpListener localServer = new TcpListener ( IPAddress.Loopback, port );
       localServer.Start ();
 
       do
       {
-				client = localServer.AcceptTcpClient ();
+        client = localServer.AcceptTcpClient ();
 
         stream = client.GetStream ();
-			} while ( stream == null );
+      } while ( stream == null );
 
 
-			Console.WriteLine ( "Client succesfully connected." );     
-		}
+      Console.WriteLine ( "Client succesfully connected." );
+    }
 
     public static T ReceiveObject<T> ()
     {
@@ -59,22 +59,22 @@ namespace RenderClient
 
       stream.Read ( dataBuffer, 0, dataBuffer.Length );
 
-      MemoryStream memoryStream = new MemoryStream ( dataBuffer );
-      BinaryFormatter formatter = new BinaryFormatter ();
+      MemoryStream    memoryStream = new MemoryStream ( dataBuffer );
+      BinaryFormatter formatter    = new BinaryFormatter ();
       memoryStream.Position = 0;
 
       T receivedObject = (T) formatter.Deserialize ( memoryStream );
 
-			return receivedObject;
+      return receivedObject;
     }
 
     public static void TestSend ()
-    {     
-      byte[] bytes = Encoding.ASCII.GetBytes("This is test message.");
+    {
+      byte[] bytes = Encoding.ASCII.GetBytes ( "This is test message." );
 
       client.SendBufferSize = bytes.Length;
 
-			stream.Write ( bytes, 0, bytes.Length);
+      stream.Write ( bytes, 0, bytes.Length );
 
       stream.Close ();
       client.Close ();
@@ -85,10 +85,7 @@ namespace RenderClient
       //scene = ReceiveObject<IRayScene> ();
       renderer = ReceiveObject<IRenderer> ();
 
-      while ( true )
-      {
-        
-      }
-		}
+      while ( true ) { }
+    }
   }
 }
