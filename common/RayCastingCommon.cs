@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.Serialization;
 using MathSupport;
 using OpenTK;
 
@@ -288,11 +289,11 @@ namespace Rendering
     long Apply ( Intersection inter );
   }
 
-  /// <summary>
-  /// Data container for Ray-based scene rendering: complete scene definition including camera.
-  /// </summary>
-  public interface IRayScene
-  {
+	/// <summary>
+	/// Data container for Ray-based scene rendering: complete scene definition including camera.
+	/// </summary>
+	public interface IRayScene
+	{
     /// <summary>
     /// Scene model (whatever is able to compute ray intersections).
     /// </summary>

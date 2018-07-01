@@ -260,6 +260,7 @@ namespace MathSupport
   /// <summary>
   /// Data class keeping info about current progress of a computation.
   /// </summary>
+  [Serializable]
   public class Progress
   {
     /// <summary>

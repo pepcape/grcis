@@ -11,6 +11,7 @@ namespace Rendering
   /// Image synthesizer w/o antialiasing or any other fancy stuff.
   /// Uses just one sample per pixel.
   /// </summary>
+  [Serializable]
   public class SimpleImageSynthesizer : IRenderer
   {
     /// <summary>
@@ -207,6 +208,7 @@ namespace Rendering
   /// <summary>
   /// Supersampling image synthesizer (antialiasing by jittering).
   /// </summary>
+  [Serializable]
   public class SupersamplingImageSynthesizer : SimpleImageSynthesizer
   {
     /// <summary>
@@ -302,6 +304,7 @@ namespace Rendering
   /// Original author: Jan Roztocil, 2012.
   /// Update: Josef Pelikan, 2018.
   /// </summary>
+  [Serializable]
   public class AdaptiveSupersamplingJR : SupersamplingImageSynthesizer
   {
     public AdaptiveSupersamplingJR ( double colThreshold = 0.004 )
@@ -522,10 +525,11 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Simple camera with center of projection and planar projection surface.
-  /// </summary>
-  public class StaticCamera : ICamera
+	/// <summary>
+	/// Simple camera with center of projection and planar projection surface.
+	/// </summary>
+	[Serializable]
+	public class StaticCamera : ICamera
   {
     /// <summary>
     /// Width / Height of the viewing area (viewport, frustum).
@@ -653,10 +657,11 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Point light source w/o intensity attenuation.
-  /// </summary>
-  public class PointLightSource : ILightSource
+	/// <summary>
+	/// Point light source w/o intensity attenuation.
+	/// </summary>
+	[Serializable]
+	public class PointLightSource : ILightSource
   {
     /// <summary>
     /// 3D coordinate of the source.
@@ -703,10 +708,11 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Ambient white light source.
-  /// </summary>
-  public class AmbientLightSource : ILightSource
+	/// <summary>
+	/// Ambient white light source.
+	/// </summary>
+	[Serializable]
+	public class AmbientLightSource : ILightSource
   {
     protected double[] intensity;
 
@@ -888,10 +894,11 @@ namespace Rendering
     }
   }
 
-  /// <summary>
-  /// Simple Phong-like reflectance model: material description.
-  /// </summary>
-  public class PhongMaterial : IMaterial
+	/// <summary>
+	/// Simple Phong-like reflectance model: material description.
+	/// </summary>
+	[Serializable]
+	public class PhongMaterial : IMaterial
   {
     /// <summary>
     /// Base surface color.
@@ -1002,6 +1009,7 @@ namespace Rendering
   /// <summary>
   /// Simple Phong-like reflectance model: the model itself.
   /// </summary>
+  [Serializable]
   public class PhongModel : IReflectanceModel
   {
     public IMaterial DefaultMaterial ()
@@ -1084,6 +1092,7 @@ namespace Rendering
   /// <summary>
   /// Simple texture able to modulate surface color.
   /// </summary>
+  [Serializable]
   public class CheckerTexture : ITexture
   {
     /// <summary>

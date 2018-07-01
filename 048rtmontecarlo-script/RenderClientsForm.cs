@@ -25,7 +25,9 @@ namespace _048rtmontecarlo
 		{
 			InitializeComponent ();
 
-		  clients = new BindingList<Client>();
+		  instance = this;
+
+			clients = new BindingList<Client>();
 
 		  clientsDataGrid.AutoGenerateColumns = false;
 
@@ -38,12 +40,10 @@ namespace _048rtmontecarlo
 
 			DataGridViewColumn column2 = new DataGridViewTextBoxColumn();
 		  column2.Name = "IP Address";
-		  column2.DataPropertyName = "address";
+		  column2.DataPropertyName = "AddressString";
 			clientsDataGrid.Columns.Add ( column2 );
 
-		  clientsDataGrid.Update ();
-
-			instance = this;
+		  clientsDataGrid.Update ();			
 		}
 
     /// <summary>
@@ -59,17 +59,18 @@ namespace _048rtmontecarlo
 		}
 	}
 
-
-  public class Client
+	/// <summary>
+	/// Represents one render client - name and IPaddress got from clientsDataGrid
+	/// </summary>
+	public class Client
   {
 		private string name;
-		private IPAddress address;
+		public IPAddress address;
 
 		public string Name { get => name; set => name = value; }
-		public string Address { get => GetIPAddress (); set => CheckAndSetIPAddress ( value );
-		}
+		public string AddressString { get => GetIPAddress (); set => CheckAndSetIPAddress ( value ); }  // string representation for the need of text in clientsDataGrid
 
-    private void CheckAndSetIPAddress ( string value )
+		private void CheckAndSetIPAddress ( string value )
     {
       bool isValidIP = IPAddress.TryParse ( value, out address );
 
