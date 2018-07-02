@@ -3,9 +3,6 @@ using System.Collections.Concurrent;
 using System.Drawing;
 using System.Net;
 using System.Net.Sockets;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading;
 using Rendering;
 
@@ -90,6 +87,7 @@ namespace RenderClient
         if ( stream.DataAvailable )
         {
           Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );
+          NetworkSupport.SendConfirmation ( stream );
           ClientMaster.instance.availableAssignments.Enqueue ( newAssignment );
         }
       }
@@ -113,8 +111,11 @@ namespace RenderClient
 
       Buffer.BlockCopy ( combinedBuffer, 0, sendBuffer, 0, sendBuffer.Length );
 
-      client.ReceiveBufferSize = sendBuffer.Length;
-      stream.Write ( sendBuffer, 0, bufferSize );
+      lock ( stream )
+      {
+        client.ReceiveBufferSize = sendBuffer.Length;
+        stream.Write ( sendBuffer, 0, bufferSize );
+      }     
     }
 
 
