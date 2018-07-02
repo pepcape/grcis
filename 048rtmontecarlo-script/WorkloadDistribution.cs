@@ -3,13 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using MathSupport;
 using _048rtmontecarlo;
 
@@ -307,64 +304,13 @@ namespace Rendering
     /// </summary>
     public void SendNecessaryObjects ()
     {
-      SendObject<IRayScene> ( Master.instance.scene );
-      WaitForConfirmation ();
-      SendObject<IRenderer> ( Master.instance.renderer );
-      WaitForConfirmation ();
+      NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, client, stream );
+      NetworkSupport.WaitForConfirmation ( stream );
+
+      NetworkSupport.SendObject<IRenderer> ( Master.instance.renderer, client, stream );
+      NetworkSupport.WaitForConfirmation ( stream );
     }
 
-    /// <summary>
-    /// For DEBUG purposes and to remove some problems with NetworkStream
-    /// Waits until byte "1" is not received
-    /// </summary>
-    private void WaitForConfirmation ()
-    {
-      byte receivedData;
-
-      do
-      {
-        receivedData = (byte) stream.ReadByte ();
-      } while ( receivedData != 1 );
-    }
-
-    /// <summary>
-    /// Serializes and sends object through NetworkStream
-    /// </summary>
-    /// <typeparam name="T">Type of object - must be marked as [Serializable], as well as all his recursive dependencies</typeparam>
-    /// <param name="objectToSend">Instance of actual object to send</param>
-    private void SendObject<T> ( T objectToSend )
-    {
-      BinaryFormatter formatter    = new BinaryFormatter ();
-      MemoryStream    memoryStream = new MemoryStream ();
-
-      formatter.Serialize ( memoryStream, objectToSend );
-
-      byte[] dataBuffer = memoryStream.ToArray ();
-
-      client.SendBufferSize = dataBuffer.Length;
-
-      stream.Write ( dataBuffer, 0, dataBuffer.Length );
-    }
-
-    /// <summary>
-    /// Receives object from NetworkStream and deserializes it
-    /// </summary>
-    /// <typeparam name="T">Type of object - must be marked as [Serializable], as well as all his recursive dependencies</typeparam>
-    /// <returns>Instance of actual received object</returns>
-    public T ReceiveObject<T> ()
-    {
-      byte[] dataBuffer = new byte[client.ReceiveBufferSize];
-
-      stream.Read ( dataBuffer, 0, dataBuffer.Length );
-
-      MemoryStream    memoryStream = new MemoryStream ( dataBuffer );
-      BinaryFormatter formatter    = new BinaryFormatter ();
-      memoryStream.Position = 0;
-
-      T receivedObject = (T) formatter.Deserialize ( memoryStream );
-
-      return receivedObject;
-    }
 
     private const int bufferSize = ( Master.assignmentSize * Master.assignmentSize + 2) * sizeof ( float );
     /// <summary>
