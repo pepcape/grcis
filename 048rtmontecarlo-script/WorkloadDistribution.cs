@@ -152,10 +152,12 @@ namespace Rendering
           int localX = x * assignmentSize;
           int localY = y * assignmentSize;
 
-          Assignment newAssignment = new Assignment ( localX, 
+          Assignment newAssignment = new Assignment ( localX,
                                                       localY,
-                                                      localX + assignmentSize - 1, 
-                                                      localY + assignmentSize - 1 );
+                                                      localX + assignmentSize - 1,
+                                                      localY + assignmentSize - 1,
+                                                      bitmap.Width, 
+                                                      bitmap.Height );
           availableAssignments.Enqueue ( newAssignment );
         }
       }
@@ -215,6 +217,10 @@ namespace Rendering
       }
     }
 
+    /// <summary>
+    /// Goes through NetworkStreams of all clients and checks if there is rendered image pending in them
+    /// Plus it takes care of that data via ReceiveRenderedImage method
+    /// </summary>
     public void RenderedImageReceiver ()
     {
       while ( finishedAssignments < totalNumberOfAssignments )
@@ -245,6 +251,10 @@ namespace Rendering
       this.ipAdr = ipAdr;
     }
 
+    /// <summary>
+    /// Establishes NetworkStream with desired client
+    /// </summary>
+    /// <returns>True if connection was succesfull, False otherwise</returns>
     public bool ConnectToClient ()
     {
       if ( endPoint == null )
@@ -264,15 +274,13 @@ namespace Rendering
 
       stream = client.GetStream ();
 
-      
-
-
-      //while ( true ) { }
-
       return true;
       //TODO: Do something with stream
     }
 
+    /// <summary>
+    /// For DEBUG only
+    /// </summary>
     public void TestReceive ()
     {
       while ( true )
@@ -292,6 +300,11 @@ namespace Rendering
       }
     }
 
+    /// <summary>
+    /// Sends all objects which are necessary to render scene to client
+    /// IRayScene - scene representation like solids, textures, lights, camera, ...
+    /// IRenderer - renderer itself including IImageFunction; needed for RenderPixel method
+    /// </summary>
     public void SendNecessaryObjects ()
     {
       SendObject<IRayScene> ( Master.instance.scene );
@@ -300,6 +313,10 @@ namespace Rendering
       WaitForConfirmation ();
     }
 
+    /// <summary>
+    /// For DEBUG purposes and to remove some problems with NetworkStream
+    /// Waits until byte "1" is not received
+    /// </summary>
     private void WaitForConfirmation ()
     {
       byte receivedData;
@@ -310,6 +327,11 @@ namespace Rendering
       } while ( receivedData != 1 );
     }
 
+    /// <summary>
+    /// Serializes and sends object through NetworkStream
+    /// </summary>
+    /// <typeparam name="T">Type of object - must be marked as [Serializable], as well as all his recursive dependencies</typeparam>
+    /// <param name="objectToSend">Instance of actual object to send</param>
     private void SendObject<T> ( T objectToSend )
     {
       BinaryFormatter formatter    = new BinaryFormatter ();
@@ -324,8 +346,34 @@ namespace Rendering
       stream.Write ( dataBuffer, 0, dataBuffer.Length );
     }
 
+    /// <summary>
+    /// Receives object from NetworkStream and deserializes it
+    /// </summary>
+    /// <typeparam name="T">Type of object - must be marked as [Serializable], as well as all his recursive dependencies</typeparam>
+    /// <returns>Instance of actual received object</returns>
+    public T ReceiveObject<T> ()
+    {
+      byte[] dataBuffer = new byte[client.ReceiveBufferSize];
+
+      stream.Read ( dataBuffer, 0, dataBuffer.Length );
+
+      MemoryStream    memoryStream = new MemoryStream ( dataBuffer );
+      BinaryFormatter formatter    = new BinaryFormatter ();
+      memoryStream.Position = 0;
+
+      T receivedObject = (T) formatter.Deserialize ( memoryStream );
+
+      return receivedObject;
+    }
 
     private const int bufferSize = ( Master.assignmentSize * Master.assignmentSize + 2) * sizeof ( float );
+    /// <summary>
+    /// Checks whether there is any data in NetworkStream to read
+    /// If so, it reads it as - expected format is array of floats
+    ///   - first 2 floats represents x1 and y1 coordinates - position in main bitmap;
+    ///   - rest of array are colors of rendered bitmap - 3 floats (RGB values) per pixel;
+    ///   - stored per lines from left upper corner (coordinates position)
+    /// </summary>
     public void ReceiveRenderedImage ()
     {
       if ( stream.DataAvailable )
@@ -348,14 +396,9 @@ namespace Rendering
         Master.instance.finishedAssignments++;
         AskForNewAssignment();
       }
-    }
+    }    
 
     private void AskForNewAssignment ()
-    {
-      throw new NotImplementedException ();
-    }
-
-    public void SendAssignment ()
     {
       throw new NotImplementedException ();
     }
@@ -363,29 +406,29 @@ namespace Rendering
 
 
   /// <summary>
-  /// Represents 1 render work ( = rectangle of pixels to render at specific density)
+  /// Represents 1 render work ( = rectangle of pixels to render at specific stride)
   /// </summary>
+  [Serializable]
   public class Assignment
   {
     internal int x1, y1, x2, y2;
 
-    public int density; // Density of 'n' means that only each 'n'-th pixel is rendered (for sake of dynamic rendering)
+    public int stride; // Density of 'n' means that only each 'n'-th pixel is rendered (for sake of dynamic rendering)
 
     private readonly int bitmapWidth, bitmapHeight;
 
-    public Assignment ( int x1, int y1, int x2, int y2 )
+    public Assignment ( int x1, int y1, int x2, int y2, int bitmapWidth, int bitmapHeight )
     {
       this.x1 = x1;
       this.y1 = y1;
       this.x2 = x2;
       this.y2 = y2;
+      this.bitmapWidth = bitmapWidth;
+      this.bitmapHeight = bitmapHeight;
 
-      // density values: 8 > 4 > 2 > 1; initially always 8
+      // stride values: 8 > 4 > 2 > 1; initially always 8
       // decreases at the end of rendering of current assignment and therefore makes another render of this assignment more detailed
-      density = 8;
-
-      bitmapWidth = Master.instance.bitmap.Width;
-      bitmapHeight = Master.instance.bitmap.Height;
+      stride = 8;   
     }
 
     /// <summary>
@@ -396,11 +439,11 @@ namespace Rendering
     {
       float[] returnArray = new float[Master.assignmentSize * Master.assignmentSize * 3];
 
-      for ( int y = y1; y <= y2; y += density )
+      for ( int y = y1; y <= y2; y += stride )
       {
-        for ( int x = x1; x <= x2; x += density )
+        for ( int x = x1; x <= x2; x += stride )
         {
-          if ( density != 8 && ( y % ( density << 1 ) == 0 ) && ( x % ( density << 1 ) == 0 ) ) // prevents rendering of already rendered pixels
+          if ( stride != 8 && ( y % ( stride << 1 ) == 0 ) && ( x % ( stride << 1 ) == 0 ) ) // prevents rendering of already rendered pixels
           {
             returnArray[PositionInArray ( x, y )]     = float.PositiveInfinity;
             returnArray[PositionInArray ( x, y ) + 1] = float.PositiveInfinity;
@@ -417,7 +460,7 @@ namespace Rendering
 
           Master.instance.renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
 
-          if ( density == 1 )
+          if ( stride == 1 )
           {
             returnArray [ PositionInArray ( x, y ) ] = (float) ( color [ 0 ] * 255.0 );
             returnArray [ PositionInArray ( x, y ) + 1 ] = (float) ( color [ 1 ] * 255.0 );
@@ -425,11 +468,11 @@ namespace Rendering
           }
           else
           {
-            for ( int j = y; j < y + density; j++ )
+            for ( int j = y; j < y + stride; j++ )
             {
               if ( j < bitmapHeight )
               {
-                for ( int i = x; i < x + density; i++ )
+                for ( int i = x; i < x + stride; i++ )
                 {
                   if ( i < bitmapWidth )
                   {
@@ -462,14 +505,14 @@ namespace Rendering
       }
 
 
-      if ( density == 1 )
+      if ( stride == 1 )
       {
         Master.instance.finishedAssignments++;
         Master.instance.assignmentRoundsFinished++;
       }
       else
       {
-        density = density >> 1; // density values: 8 > 4 > 2 > 1
+        stride = stride >> 1; // stride values: 8 > 4 > 2 > 1
         Master.instance.assignmentRoundsFinished++;
         Master.instance.availableAssignments.Enqueue ( this );
       }
@@ -477,6 +520,12 @@ namespace Rendering
       return returnArray;
     }
 
+    /// <summary>
+    /// Computes position of coordinates (bitmap) into one-dimensional array of floats (with 3 floats (RGB channels) per pixel)
+    /// </summary>
+    /// <param name="x">X coordinate in bitmap</param>
+    /// <param name="y">Y coordinate in bitmap</param>
+    /// <returns>Position in array of floats</returns>
     private int PositionInArray ( int x, int y )
     {
       return ( ( y - y1 ) * Master.assignmentSize + ( x - x1 ) ) * 3;
