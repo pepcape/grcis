@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -31,8 +32,8 @@ namespace Rendering
 
     public int finishedAssignments;
 
-    // width and height of one block of pixels (rendered at one thread at the time); 32 seems to be optimal; should be power of 2 and smaller than 8
-    public const int assignmentSize = 32;
+    // width and height of one block of pixels (rendered at one thread at the time); 64 seems to be optimal; should be power of 2 and larger than 8
+    public const int assignmentSize = 64;
 
     public Progress progressData;
 
@@ -71,6 +72,10 @@ namespace Rendering
     {
       pool = new Thread[threads];
 
+      AssignNetworkWorkerToStream ();
+
+      Thread imageFetcher = new Thread ( RenderedImageReceiver );
+      imageFetcher.Start ();
 
       for ( int i = 0; i < threads; i++ )
       {
@@ -82,17 +87,17 @@ namespace Rendering
 
       mainThread = pool [ 0 ];
 
-      AssignNetworkWorkerToStream ();
+      
 
-      Thread imageFetcher = new Thread ( RenderedImageReceiver );
-      imageFetcher.Priority = ThreadPriority.BelowNormal;
-      imageFetcher.Start ();
 
       for ( int i = 0; i < (int) threads; i++ )
       {
         pool [ i ].Join ();
         pool [ i ] = null;
       }
+
+      imageFetcher.Join ();
+      imageFetcher = null;
     }
 
     /// <summary>
@@ -112,7 +117,7 @@ namespace Rendering
         if ( !progressData.Continue ) // test whether rendering should end (Stop button pressed) 
           return;
 
-        if ( newAssignment == null ) // TryDequeue was not succesfull
+        if ( newAssignment == null ) // TryDequeue was not successful
           continue;
 
         float[] colorArray = newAssignment.Render ( false, renderer, progressData );
@@ -200,15 +205,15 @@ namespace Rendering
     /// Adds colors represented in newBitmap array to main bitmap
     /// </summary>
     /// <param name="newBitmap">Float values (for later HDR support) representing pixel color values</param>
-    public void BitmapMerger ( float[] newBitmap, int x1, int y1, int x2, int y2 ) //TODO: Change to unsafe?
+    public void BitmapMerger ( float[] newBitmap, int x1, int y1, int x2, int y2 )
     {
       lock ( bitmap )
       {
         int arrayPosition = 0;
 
-        for ( int y = y1; y < y2; y++ )
+        for ( int y = y1; y < Math.Min ( y2, bitmap.Height ); y++ )
         {
-          for ( int x = x1; x < x2; x++ )
+          for ( int x = x1; x < Math.Min ( x2, bitmap.Width ); x++ )
           {
             if ( !float.IsInfinity ( newBitmap[arrayPosition] ) )
             {
@@ -287,7 +292,6 @@ namespace Rendering
       stream = client.GetStream ();
 
       return true;
-      //TODO: Do something with stream
     }
 
     /// <summary>
@@ -355,7 +359,7 @@ namespace Rendering
                                        (int) coordinates [ 1 ] + Master.assignmentSize );
 
         Master.instance.finishedAssignments++;
-        //TryToGetNewAssignment();
+        TryToGetNewAssignment();
       }
     }    
 
@@ -374,7 +378,7 @@ namespace Rendering
           continue;
 
         NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
-
+        NetworkSupport.WaitForConfirmation ( stream );
         break;
       }
     }
@@ -389,9 +393,9 @@ namespace Rendering
   {
     public int x1, y1, x2, y2;
 
-    public const int assignmentSize = 32;
+    public const int assignmentSize = 64;
 
-    public int stride; // Density of 'n' means that only each 'n'-th pixel is rendered (for sake of dynamic rendering)
+    public int stride; // stride of 'n' means that only each 'n'-th pixel is rendered (for sake of dynamic rendering)
 
     private readonly int bitmapWidth, bitmapHeight;
 
