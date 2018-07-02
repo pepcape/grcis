@@ -25,8 +25,6 @@ public static class NetworkSupport
     client.SendBufferSize = dataBuffer.Length;
 
     stream.Write ( dataBuffer, 0, dataBuffer.Length );
-
-    Console.WriteLine ( "Data for {0} serialized and sent to server.", typeof ( T ).Name );
   }
 
   /// <summary>
@@ -45,8 +43,6 @@ public static class NetworkSupport
     memoryStream.Position = 0;
 
     T receivedObject = (T) formatter.Deserialize ( memoryStream );
-
-    Console.WriteLine ( "Data for {0} received and deserialized.", typeof ( T ).Name );
 
     return receivedObject;
   }

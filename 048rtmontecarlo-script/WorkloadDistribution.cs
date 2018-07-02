@@ -15,7 +15,7 @@ namespace Rendering
   /// <summary>
   /// Takes care of distribution of rendering work between local threads and remote/network render clients
   /// </summary>
-  class Master
+  public class Master
   {
     public static Master instance; // singleton
 
@@ -44,23 +44,18 @@ namespace Rendering
     public IRenderer renderer;
 
     /// <summary>
-    /// Constructor
+    /// Constructor which takes also care of initializing assignments
     /// </summary>
     /// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
     /// <param name="scene">Scene to render</param>
     /// <param name="renderer">Rendered to use for RenderPixel method</param>
     public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
     {
-      instance = this;
-
       finishedAssignments = 0;
-
-      this.bitmap   = bitmap;
+   
       this.scene    = scene;
       this.renderer = renderer;
-
-      InitializeAssignments ( bitmap, scene, renderer );
-
+      this.bitmap = bitmap;     
 
       if ( RenderClientsForm.instance == null )
       {
@@ -71,13 +66,13 @@ namespace Rendering
     /// <summary>
     /// Creates threadpool and starts all threads on Consume method
     /// </summary>
-    /// <param name="threads">Number of threads - is expected to be int</param>
-    public void StartThreads ( object threads )
+    /// <param name="threads">Number of threads to be used for rendering</param>
+    public void StartThreads ( int threads )
     {
-      pool = new Thread[(int) threads];
+      pool = new Thread[threads];
 
 
-      for ( int i = 0; i < (int) threads; i++ )
+      for ( int i = 0; i < threads; i++ )
       {
         Thread newThread = new Thread ( Consume );
         newThread.Priority = ThreadPriority.AboveNormal;
@@ -88,6 +83,10 @@ namespace Rendering
       mainThread = pool [ 0 ];
 
       AssignNetworkWorkerToStream ();
+
+      Thread imageFetcher = new Thread ( RenderedImageReceiver );
+      imageFetcher.Priority = ThreadPriority.BelowNormal;
+      imageFetcher.Start ();
 
       for ( int i = 0; i < (int) threads; i++ )
       {
@@ -101,7 +100,7 @@ namespace Rendering
     /// Each thread waits for a new Assignment to be added to availableAssignments queue
     /// Most of the time is number of items in availableAssignments expected to be several times larger than number of threads
     /// </summary>
-    private void Consume ()
+    protected void Consume ()
     {
       MT.InitThreadData ();
 
@@ -110,21 +109,31 @@ namespace Rendering
         Assignment newAssignment;
         availableAssignments.TryDequeue ( out newAssignment );
 
-        if ( !Master.instance.progressData.Continue )
+        if ( !progressData.Continue ) // test whether rendering should end (Stop button pressed) 
           return;
 
-        if ( newAssignment == null )
-        {
+        if ( newAssignment == null ) // TryDequeue was not succesfull
           continue;
-        }
 
-        float[] colorArray = newAssignment.Render ();
+        float[] colorArray = newAssignment.Render ( false, renderer, progressData );
         BitmapMerger ( colorArray, newAssignment.x1, newAssignment.y1, newAssignment.x2 + 1, newAssignment.y2 + 1 );
+
+        if ( newAssignment.stride == 1 )
+        {
+          finishedAssignments++;
+          assignmentRoundsFinished++;
+        }
+        else
+        {
+          newAssignment.stride = newAssignment.stride >> 1; // stride values: 8 > 4 > 2 > 1
+          assignmentRoundsFinished++;
+          availableAssignments.Enqueue ( newAssignment );
+        }
       }
     }
 
     /// <summary>
-    /// 
+    /// Creates new assignments based on width and heigh of bitmap and assignmentSize
     /// </summary>
     /// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
     /// <param name="scene">Scene to render</param>
@@ -182,6 +191,7 @@ namespace Rendering
         {
           networkWorkers.Add ( newWorker );
           newWorker.SendNecessaryObjects ();
+          newWorker.TryToGetNewAssignment ();
         }
       }
     }
@@ -220,6 +230,11 @@ namespace Rendering
     /// </summary>
     public void RenderedImageReceiver ()
     {
+      if ( networkWorkers == null || networkWorkers.Count == 0 )
+      {
+        return;
+      }
+
       while ( finishedAssignments < totalNumberOfAssignments )
       {
         foreach ( NetworkWorker worker in networkWorkers )
@@ -236,9 +251,9 @@ namespace Rendering
   /// </summary>
   class NetworkWorker
   {
-    private       IPAddress  ipAdr;
-    private       IPEndPoint endPoint;
-    private const int        port = 5000;
+    private readonly IPAddress  ipAdr;
+    private          IPEndPoint endPoint;
+    private const    int        port = 5000;
 
     private TcpClient     client;
     private NetworkStream stream;
@@ -312,7 +327,7 @@ namespace Rendering
     }
 
 
-    private const int bufferSize = ( Master.assignmentSize * Master.assignmentSize + 2) * sizeof ( float );
+    private const int bufferSize = ( Master.assignmentSize * Master.assignmentSize * 3 + 2) * sizeof ( float );
     /// <summary>
     /// Checks whether there is any data in NetworkStream to read
     /// If so, it reads it as - expected format is array of floats
@@ -325,39 +340,56 @@ namespace Rendering
       if ( stream.DataAvailable )
       {
         byte[] buffer = new byte[bufferSize];
-        int[] coordinates = new int[2];
+        float[] coordinates = new float[2];
 
         stream.Read ( buffer, 0, bufferSize );
 
-        float[] floatBuffer = new float[Master.assignmentSize * Master.assignmentSize];
-        Buffer.BlockCopy ( buffer, 2 * sizeof ( float ), floatBuffer, 0, floatBuffer.Length );
-        Buffer.BlockCopy ( buffer, 0, coordinates, 0, coordinates.Length );
+        float[] floatBuffer = new float[Master.assignmentSize * Master.assignmentSize * 3];
+        Buffer.BlockCopy ( buffer, 0, coordinates, 0, 2 * sizeof ( float ) );
+        Buffer.BlockCopy ( buffer, 2 * sizeof ( float ), floatBuffer, 0, floatBuffer.Length * sizeof ( float ) );        
 
         Master.instance.BitmapMerger ( floatBuffer, 
-                                       coordinates [ 0 ], 
-                                       coordinates [ 1 ],
-                                       coordinates [ 0 ] + Master.assignmentSize,
-                                       coordinates [ 1 ] + Master.assignmentSize );
+                                       (int) coordinates [ 0 ],
+                                       (int) coordinates [ 1 ],
+                                       (int) coordinates [ 0 ] + Master.assignmentSize,
+                                       (int) coordinates [ 1 ] + Master.assignmentSize );
 
         Master.instance.finishedAssignments++;
-        AskForNewAssignment();
+        //TryToGetNewAssignment();
       }
     }    
 
-    private void AskForNewAssignment ()
+    public void TryToGetNewAssignment ()
     {
-      throw new NotImplementedException ();
+      Assignment newAssignment = null;
+
+      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments )
+      {
+        Master.instance.availableAssignments.TryDequeue ( out newAssignment );
+
+        if ( !Master.instance.progressData.Continue ) // test whether rendering should end (Stop button pressed) 
+          return;
+
+        if ( newAssignment == null ) // TryDequeue was not succesfull
+          continue;
+
+        NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
+
+        break;
+      }
     }
   }
 
 
   /// <summary>
-  /// Represents 1 render work ( = rectangle of pixels to render at specific stride)
+  /// Represents 1 render work (= square of pixels to render at specific stride)
   /// </summary>
   [Serializable]
   public class Assignment
   {
-    internal int x1, y1, x2, y2;
+    public int x1, y1, x2, y2;
+
+    public const int assignmentSize = 32;
 
     public int stride; // Density of 'n' means that only each 'n'-th pixel is rendered (for sake of dynamic rendering)
 
@@ -381,15 +413,20 @@ namespace Rendering
     /// Main render method
     /// Directly writes pixel colors to the main bitmap after rendering them
     /// </summary>
-    public float[] Render ()
+    public float[] Render ( bool renderEverything, IRenderer renderer, Progress progressData = null )
     {
-      float[] returnArray = new float[Master.assignmentSize * Master.assignmentSize * 3];
+      float[] returnArray = new float[assignmentSize * assignmentSize * 3];
+
+      if ( renderEverything )
+      {
+        stride = 1;
+      }
 
       for ( int y = y1; y <= y2; y += stride )
       {
         for ( int x = x1; x <= x2; x += stride )
         {
-          if ( stride != 8 && ( y % ( stride << 1 ) == 0 ) && ( x % ( stride << 1 ) == 0 ) ) // prevents rendering of already rendered pixels
+          if ( stride != 8 && ( y % ( stride << 1 ) == 0 ) && ( x % ( stride << 1 ) == 0 ) && !renderEverything) // prevents rendering of already rendered pixels
           {
             returnArray[PositionInArray ( x, y )]     = float.PositiveInfinity;
             returnArray[PositionInArray ( x, y ) + 1] = float.PositiveInfinity;
@@ -404,7 +441,7 @@ namespace Rendering
 
           double[] color = new double[3];
 
-          Master.instance.renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
+          renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
 
           if ( stride == 1 )
           {
@@ -432,35 +469,24 @@ namespace Rendering
             }
           }
 
-
-          lock ( Master.instance.progressData )
+          if ( progressData != null )
           {
-            // test whether rendering should end (Stop button pressed) 
-            if ( !Master.instance.progressData.Continue )
-              return returnArray;
-
-            // synchronization of bitmap with PictureBox in Form and update of progress (percentage of done work)
-            if ( Master.instance.mainThread == Thread.CurrentThread )
+            lock ( Master.instance.progressData )
             {
-              Master.instance.progressData.Finished =
-                Master.instance.assignmentRoundsFinished / (float) Master.instance.assignmentRoundsTotal;
-              Master.instance.progressData.Sync ( Master.instance.bitmap );
+              // test whether rendering should end (Stop button pressed) 
+              if ( !Master.instance.progressData.Continue )
+                return returnArray;
+
+              // synchronization of bitmap with PictureBox in Form and update of progress (percentage of done work)
+              if ( Master.instance.mainThread == Thread.CurrentThread )
+              {
+                Master.instance.progressData.Finished =
+                  Master.instance.assignmentRoundsFinished / (float) Master.instance.assignmentRoundsTotal;
+                Master.instance.progressData.Sync ( Master.instance.bitmap );
+              }
             }
-          }
+          }         
         }
-      }
-
-
-      if ( stride == 1 )
-      {
-        Master.instance.finishedAssignments++;
-        Master.instance.assignmentRoundsFinished++;
-      }
-      else
-      {
-        stride = stride >> 1; // stride values: 8 > 4 > 2 > 1
-        Master.instance.assignmentRoundsFinished++;
-        Master.instance.availableAssignments.Enqueue ( this );
       }
 
       return returnArray;
@@ -474,7 +500,7 @@ namespace Rendering
     /// <returns>Position in array of floats</returns>
     private int PositionInArray ( int x, int y )
     {
-      return ( ( y - y1 ) * Master.assignmentSize + ( x - x1 ) ) * 3;
+      return ( ( y - y1 ) * assignmentSize + ( x - x1 ) ) * 3;
     }
   }
 }

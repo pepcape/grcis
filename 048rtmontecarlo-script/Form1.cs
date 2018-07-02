@@ -365,6 +365,7 @@ namespace _048rtmontecarlo
 
       Master.instance              = new Master ( newImage, sc, r );
       Master.instance.progressData = progress;
+      Master.instance.InitializeAssignments ( newImage, sc, r );
 
 
       progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
