@@ -868,7 +868,7 @@ namespace Rendering
     /// <summary>
     /// Renders representation of camera (initially at position of rayOrigin of first primary ray)
     /// </summary>
-    private void RenderCamera () //TODO: change to better representation of camera
+    private void RenderCamera ()
     {
       if ( RayVisualizer.instance.rays.Count == 0 || !CameraCheckBox.Checked )
       {
@@ -881,7 +881,7 @@ namespace Rendering
     /// <summary>
     /// Renders representation of all light sources (except those in with null as position - usually ambient and directional lights which position does not matter)
     /// </summary>
-    private void RenderLightSources () //TODO: change to better representation of light sources
+    private void RenderLightSources ()
     {
       if ( RayVisualizer.instance?.rays.Count == 0 || RayVisualizer.instance?.scene.Sources == null ||
            !LightSourcesCheckBox.Checked )

@@ -12,7 +12,26 @@ namespace RenderClient
   {
     static void Main ( string[] args )
     {
-      RenderClient.ConnectToServer ();
+      Console.SetWindowSize ( Math.Min ( 85, Console.LargestWindowWidth ),
+                              Math.Min ( 50, Console.LargestWindowHeight ) );
+
+      try
+      {
+        RenderClient.ConnectToServer ();
+      }
+      catch ( SocketException e )
+      {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine ( "\nYou can not start more than one client on one computer." );
+
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine ( "\nPress any key to exit this RenderClient...\n" );
+        Console.ReadLine ();
+
+        Console.ReadLine ();
+        return;
+      }
+      
       RenderClient.ReceiveNecessaryObjects ();
 
       Thread receiver = new Thread ( RenderClient.ReceiveAssignments );
@@ -21,6 +40,10 @@ namespace RenderClient
       receiver.Start ();
 
       RenderClient.ClientMaster.instance.StartThreads ( 1 ); //TODO: change to "Environment.ProcessorCount"
+
+      Console.ForegroundColor = ConsoleColor.White;
+      Console.WriteLine ( "\nPress any key to exit this RenderClient...\n" );
+      Console.ReadLine ();
     }
   }
 
@@ -43,6 +66,7 @@ namespace RenderClient
     /// </summary>
     public static void ConnectToServer ()
     {
+      Console.ForegroundColor = ConsoleColor.White;
       Console.WriteLine ( @"Waiting for remote server to connect to this client..." );
 
       TcpListener localServer = new TcpListener ( IPAddress.Loopback, port );
@@ -68,12 +92,14 @@ namespace RenderClient
     /// IRenderer - renderer itself including IImageFunction; needed for RenderPixel method
     /// </summary>
     public static void ReceiveNecessaryObjects ()
-    {
+    {     
       scene = NetworkSupport.ReceiveObject<IRayScene> ( client, stream );
+      Console.ForegroundColor = ConsoleColor.Green;
       Console.WriteLine ( "\nData for {0} received and deserialized.", typeof ( IRayScene ).Name );
 
 
       renderer = NetworkSupport.ReceiveObject<IRenderer> ( client, stream );
+      Console.ForegroundColor = ConsoleColor.Green;
       Console.WriteLine ( "Data for {0} received and deserialized.\n", typeof ( IRenderer ).Name );
 
       ClientMaster.instance = new ClientMaster ( null, scene, renderer );
@@ -84,16 +110,26 @@ namespace RenderClient
     /// </summary>
     public static void ReceiveAssignments ()
     {
-      while ( true )
+      while ( true )  //TODO: properly end
       {
         if ( stream.DataAvailable )
         {
-          //lock ( stream )
+          Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );         
+
+          if ( newAssignment.x1 == -1 ) // Ending assignment represented by -1 in x1 variable signals end of rendering
           {
-            Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );
-            //NetworkSupport.SendConfirmation ( stream );
-            ClientMaster.instance.availableAssignments.Enqueue ( newAssignment );
-          }                  
+            finished = true;
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine ( "\nRendering on server finished or no more assignments are expected to be received.\n" );
+
+            return;
+          }
+
+          Console.ForegroundColor = ConsoleColor.Green;
+          Console.WriteLine ( @"Data for assignment [{0}, {1}, {2}, {3}] received and deserialized.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
+
+          ClientMaster.instance.availableAssignments.Enqueue ( newAssignment );
         }
       }
     }
@@ -172,7 +208,7 @@ namespace RenderClient
       {
         MT.InitThreadData ();
 
-        while ( !finished )
+        while ( !finished || !availableAssignments.IsEmpty )
         {
           Assignment newAssignment;
           availableAssignments.TryDequeue ( out newAssignment );
@@ -180,13 +216,18 @@ namespace RenderClient
           if ( newAssignment == null ) // TryDequeue was not succesfull
             continue;
 
+          Console.ForegroundColor = ConsoleColor.DarkYellow;
           Console.WriteLine ( @"Start of rendering of assignment [{0}, {1}, {2}, {3}]", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
+
           float[] colorArray = newAssignment.Render ( true, renderer );
+
+          Console.ForegroundColor = ConsoleColor.Yellow;
           Console.WriteLine ( @"Rendering of assignment [{0}, {1}, {2}, {3}] finished. Sending result to server.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
 
 
           SendRenderedImage ( colorArray, newAssignment.x1, newAssignment.y1 );
-          
+
+          Console.ForegroundColor = ConsoleColor.Yellow;
           Console.WriteLine ( @"Result of assignment [{0}, {1}, {2}, {3}] sent.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
         }
       }

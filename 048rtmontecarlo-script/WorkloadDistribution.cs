@@ -201,6 +201,8 @@ namespace Rendering
           newWorker.TryToGetNewAssignment ();
           newWorker.TryToGetNewAssignment ();
           newWorker.TryToGetNewAssignment ();
+
+          newWorker.SendEndingAssignment ();
         }
       }
     }
@@ -278,10 +280,11 @@ namespace Rendering
     /// <returns>True if connection was succesfull, False otherwise</returns>
     public bool ConnectToClient ()
     {
+      if ( ipAdr == null )
+        return false;
+
       if ( endPoint == null )
-      {
         endPoint = new IPEndPoint ( ipAdr, port );
-      }
 
       client = new TcpClient ();
 
@@ -335,25 +338,23 @@ namespace Rendering
     {
       if ( stream.DataAvailable )
       {
-        client.ReceiveTimeout = 10000;
+        int totalReceivedSize = 0;
+        int leftToReceive = bufferSize;
 
-        byte[] buffer = new byte[bufferSize];
-        float[] coordinates = new float[2];
+        byte[] receiveBuffer = new byte[bufferSize];        
 
-        //lock ( stream )
+        while ( leftToReceive > 0 )  // Loop until enough data is received
         {
-          int receivedSize = stream.Read ( buffer, 0, bufferSize );
-          if ( receivedSize != buffer.Length )
-          {
-            Console.WriteLine ( "" );
-            //throw new Exception ("Kurva");
-          }
-          bool da = stream.DataAvailable;
-        }        
+          int latestReceivedSize = stream.Read ( receiveBuffer, totalReceivedSize, leftToReceive );
+          leftToReceive -= latestReceivedSize;
+          totalReceivedSize += latestReceivedSize;
+        }
 
+        // Use parts of bigBuffer - separate and convert data to coordinates and floats representing colors of pixels
+        float[] coordinates = new float[2];
         float[] floatBuffer = new float[Master.assignmentSize * Master.assignmentSize * 3];
-        Buffer.BlockCopy ( buffer, 0, coordinates, 0, 2 * sizeof ( float ) );
-        Buffer.BlockCopy ( buffer, 2 * sizeof ( float ), floatBuffer, 0, floatBuffer.Length * sizeof ( float ) );        
+        Buffer.BlockCopy ( receiveBuffer, 0, coordinates, 0, 2 * sizeof ( float ) );
+        Buffer.BlockCopy ( receiveBuffer, 2 * sizeof ( float ), floatBuffer, 0, floatBuffer.Length * sizeof ( float ) );
 
         Master.instance.BitmapMerger ( floatBuffer, 
                                        (int) coordinates [ 0 ],
@@ -383,10 +384,22 @@ namespace Rendering
         lock ( stream )
         {
           NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
-          //NetworkSupport.WaitForConfirmation ( stream );
         }
         
         break;
+      }
+    }
+
+    /// <summary>
+    /// Send dummy Assignment to signal client that rendering ended and/or client should not wait for more assignments
+    /// </summary>
+    public void SendEndingAssignment ()
+    {
+      Assignment newAssignment = new Assignment ( -1, -1, -1, -1, -1, -1 );
+
+      lock ( stream )
+      {
+        NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
       }
     }
   }

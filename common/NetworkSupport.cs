@@ -32,13 +32,19 @@ public static class NetworkSupport
   /// <returns>Instance of actual received object</returns>
   public static T ReceiveObject<T> ( TcpClient client, NetworkStream stream )
   {
-    int size = ReceiveSize ( stream );
+    int totalReceivedSize = 0;
+    int leftToReceive     = ReceiveSize ( stream );
 
-    byte[] dataBuffer = new byte[size];
+    byte[] receiveBuffer = new byte[leftToReceive];
 
-    stream.Read ( dataBuffer, 0, dataBuffer.Length );
+    while ( leftToReceive > 0 ) // Loop until enough data is received
+    {
+      int latestReceivedSize = stream.Read ( receiveBuffer, totalReceivedSize, leftToReceive );
+      leftToReceive     -= latestReceivedSize;
+      totalReceivedSize += latestReceivedSize;
+    }
 
-    MemoryStream    memoryStream = new MemoryStream ( dataBuffer );
+    MemoryStream    memoryStream = new MemoryStream ( receiveBuffer );
     BinaryFormatter formatter    = new BinaryFormatter ();
     memoryStream.Position = 0;
 
