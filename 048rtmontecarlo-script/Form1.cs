@@ -695,7 +695,7 @@ namespace _048rtmontecarlo
     {
       if ( RenderClientsForm.instance != null )
       {
-        RenderClientsForm.instance.ShowDialog ( this );
+        RenderClientsForm.instance.Show ();
 
         RenderClientsForm.instance.Activate ();
 
@@ -703,7 +703,7 @@ namespace _048rtmontecarlo
       }
 
       RenderClientsForm renderClientsForm = new RenderClientsForm ();
-      renderClientsForm.ShowDialog ( this );
+      renderClientsForm.Show ();
     }
   }
 }

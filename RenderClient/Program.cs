@@ -14,7 +14,7 @@ namespace RenderClient
     {
       Console.SetWindowSize ( Math.Min ( 85, Console.LargestWindowWidth ),
                               Math.Min ( 50, Console.LargestWindowHeight ) );
-
+     
       try
       {
         RenderClient.ConnectToServer ();
@@ -26,7 +26,6 @@ namespace RenderClient
 
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine ( "\nPress any key to exit this RenderClient...\n" );
-        Console.ReadLine ();
 
         Console.ReadLine ();
         return;

@@ -38,7 +38,7 @@ namespace Rendering
 
     public Progress progressData;
 
-    public int assignmentRoundsFinished = 0;
+    public int assignmentRoundsFinished;
     public int assignmentRoundsTotal;
 
     public Bitmap    bitmap;
@@ -63,6 +63,8 @@ namespace Rendering
       {
         RenderClientsForm.instance = new RenderClientsForm ();
       }
+
+      Assignment.assignmentSize = assignmentSize;
     }
 
     /// <summary>
@@ -221,7 +223,7 @@ namespace Rendering
         {
           for ( int x = x1; x < Math.Min ( x2, bitmap.Width ); x++ )
           {
-            if ( !float.IsInfinity ( newBitmap[arrayPosition] ) )
+            if ( !float.IsInfinity ( newBitmap [ arrayPosition ] ) )
             {
               Color color = Color.FromArgb ( Math.Min ( (int) newBitmap [ arrayPosition ], 255 ),
                                              Math.Min ( (int) newBitmap [ arrayPosition + 1 ], 255 ),
@@ -350,7 +352,7 @@ namespace Rendering
           totalReceivedSize += latestReceivedSize;
         }
 
-        // Use parts of bigBuffer - separate and convert data to coordinates and floats representing colors of pixels
+        // Use parts of receiveBuffer - separate and convert data to coordinates and floats representing colors of pixels
         float[] coordinates = new float[2];
         float[] floatBuffer = new float[Master.assignmentSize * Master.assignmentSize * 3];
         Buffer.BlockCopy ( receiveBuffer, 0, coordinates, 0, 2 * sizeof ( float ) );
@@ -371,7 +373,7 @@ namespace Rendering
     {
       Assignment newAssignment = null;
 
-      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments - 7 )
+      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments )
       {
         Master.instance.availableAssignments.TryDequeue ( out newAssignment );
 
@@ -413,7 +415,7 @@ namespace Rendering
   {
     public int x1, y1, x2, y2;
 
-    public const int assignmentSize = 64;
+    public static int assignmentSize;
 
     public int stride; // stride of 'n' means that only each 'n'-th pixel is rendered (for sake of dynamic rendering)
 
@@ -450,28 +452,33 @@ namespace Rendering
       {
         for ( int x = x1; x <= x2; x += stride )
         {
-          if ( stride != 8 && ( y % ( stride << 1 ) == 0 ) && ( x % ( stride << 1 ) == 0 ) && !renderEverything) // prevents rendering of already rendered pixels
-          {
-            returnArray[PositionInArray ( x, y )]     = float.PositiveInfinity;
-            returnArray[PositionInArray ( x, y ) + 1] = float.PositiveInfinity;
-            returnArray[PositionInArray ( x, y ) + 2] = float.PositiveInfinity;
-            continue;
-          }
-
           if ( x >= bitmapWidth || y >= bitmapHeight )
-          {
             continue;
-          }
 
           double[] color = new double[3];
+          float[] floatColor = new float[3];
 
-          renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
+          if ( stride == 8 || ( y % ( stride << 1 ) != 0 ) || ( x % ( stride << 1 ) != 0 ) || renderEverything ) // prevents rendering of already rendered pixels
+          {
+            renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
+            floatColor [ 0 ] = (float) color [ 0 ];
+            floatColor [ 1 ] = (float) color [ 1 ];
+            floatColor [ 2 ] = (float) color [ 2 ];
+          }
+          else
+          {
+            floatColor [ 0 ] = float.PositiveInfinity;
+            floatColor [ 1 ] = float.PositiveInfinity;
+            floatColor [ 2 ] = float.PositiveInfinity;
+          }
+
+          
 
           if ( stride == 1 )
           {
-            returnArray [ PositionInArray ( x, y ) ] = (float) ( color [ 0 ] * 255.0 );
-            returnArray [ PositionInArray ( x, y ) + 1 ] = (float) ( color [ 1 ] * 255.0 );
-            returnArray [ PositionInArray ( x, y ) + 2 ] = (float) ( color [ 2 ] * 255.0 );
+            returnArray [ PositionInArray ( x, y ) ]     = floatColor [ 0 ] * 255;
+            returnArray [ PositionInArray ( x, y ) + 1 ] = floatColor [ 1 ] * 255;
+            returnArray [ PositionInArray ( x, y ) + 2 ] = floatColor [ 2 ] * 255;
           }
           else
           {
@@ -483,10 +490,9 @@ namespace Rendering
                 {
                   if ( i < bitmapWidth )
                   {
-                    // actual set of pixel color to main bitmap
-                    returnArray [ PositionInArray ( i, j ) ] = (float) ( color [ 0 ] * 255.0 );
-                    returnArray [ PositionInArray ( i, j ) + 1 ] = (float) ( color [ 1 ] * 255.0 );
-                    returnArray [ PositionInArray ( i, j ) + 2 ] = (float) ( color [ 2 ] * 255.0 );
+                    returnArray [ PositionInArray ( i, j ) ]     = floatColor[0] * 255;
+                    returnArray [ PositionInArray ( i, j ) + 1 ] = floatColor[1] * 255;
+                    returnArray [ PositionInArray ( i, j ) + 2 ] = floatColor[2] * 255;
                   }
                 }
               }
