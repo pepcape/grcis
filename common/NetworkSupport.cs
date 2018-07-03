@@ -1,10 +1,8 @@
 using System;
-using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using Rendering;
 
 public static class NetworkSupport
 {
@@ -22,7 +20,7 @@ public static class NetworkSupport
 
     byte[] dataBuffer = memoryStream.ToArray ();
 
-    client.SendBufferSize = dataBuffer.Length;
+    SendSize ( stream, dataBuffer.Length );
 
     stream.Write ( dataBuffer, 0, dataBuffer.Length );
   }
@@ -34,7 +32,9 @@ public static class NetworkSupport
   /// <returns>Instance of actual received object</returns>
   public static T ReceiveObject<T> ( TcpClient client, NetworkStream stream )
   {
-    byte[] dataBuffer = new byte[client.ReceiveBufferSize];
+    int size = ReceiveSize ( stream );
+
+    byte[] dataBuffer = new byte[size];
 
     stream.Read ( dataBuffer, 0, dataBuffer.Length );
 
@@ -48,40 +48,33 @@ public static class NetworkSupport
   }
 
   /// <summary>
-  /// For DEBUG only
+  /// Sends message (always 4 bytes) notifying about size of the next message
   /// </summary>
-  public static void TestSend ( TcpClient client, NetworkStream stream )
+  /// <param name="stream">NetworkStream to use</param>
+  /// <param name="size">Int size of the next message (in bytes)</param>
+  public static void SendSize ( NetworkStream stream, int size )
   {
-    byte[] bytes = Encoding.ASCII.GetBytes ( "This is test message." );
-
-    client.SendBufferSize = bytes.Length;
+    byte[] bytes = BitConverter.GetBytes ( size );
 
     stream.Write ( bytes, 0, bytes.Length );
-
-    stream.Close ();
-    client.Close ();
   }
 
   /// <summary>
-  /// For DEBUG purposes and to remove some problems with NetworkStream
-  /// Simply sends byte "1"
+  /// Reads message (always 4 bytes) and returns size of the next message
   /// </summary>
-  public static void SendConfirmation ( NetworkStream stream )
+  /// <param name="stream">NetworkStream to use</param>
+  /// <returns>Int size of the next message (in bytes)</returns>
+  public static int ReceiveSize ( NetworkStream stream )
   {
-    stream.WriteByte ( 1 );
-  }
+    byte[] bytes = new byte[sizeof ( int )];
 
-  /// <summary>
-  /// For DEBUG purposes and to remove some problems with NetworkStream
-  /// Waits until byte "1" is not received
-  /// </summary>
-  public static void WaitForConfirmation ( NetworkStream stream )
-  {
-    byte receivedData;
+    int receivedSize = stream.Read ( bytes, 0, bytes.Length );
 
-    do
+    if ( receivedSize != bytes.Length )
     {
-      receivedData = (byte) stream.ReadByte ();
-    } while ( receivedData != 1 );
+      return -1;
+    }
+
+    return BitConverter.ToInt32 ( bytes, 0 );
   }
 }

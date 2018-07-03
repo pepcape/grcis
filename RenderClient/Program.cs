@@ -15,9 +15,10 @@ namespace RenderClient
       RenderClient.ConnectToServer ();
       RenderClient.ReceiveNecessaryObjects ();
 
-      Thread t = new Thread ( RenderClient.ReceiveAssignments );
-      t.Priority = ThreadPriority.BelowNormal;
-      t.Start ();
+      Thread receiver = new Thread ( RenderClient.ReceiveAssignments );
+      receiver.Name = "AssignmentReceiver";
+      receiver.Priority = ThreadPriority.BelowNormal;
+      receiver.Start ();
 
       RenderClient.ClientMaster.instance.StartThreads ( 1 ); //TODO: change to "Environment.ProcessorCount"
     }
@@ -54,6 +55,9 @@ namespace RenderClient
         stream = client.GetStream ();
       } while ( stream == null );
 
+      client.ReceiveBufferSize = 1024 * 1024 * 32;
+      client.SendBufferSize = 1024 * 1024 * 32;
+      //client.NoDelay = true;
 
       Console.WriteLine ( @"Client succesfully connected." );
     }
@@ -66,13 +70,11 @@ namespace RenderClient
     public static void ReceiveNecessaryObjects ()
     {
       scene = NetworkSupport.ReceiveObject<IRayScene> ( client, stream );
-      Console.WriteLine ( @"Data for {0} received and deserialized.", typeof ( IRayScene ).Name );
-      NetworkSupport.SendConfirmation ( stream );
+      Console.WriteLine ( "\nData for {0} received and deserialized.", typeof ( IRayScene ).Name );
 
 
       renderer = NetworkSupport.ReceiveObject<IRenderer> ( client, stream );
-      Console.WriteLine ( @"Data for {0} received and deserialized.", typeof ( IRenderer ).Name );
-      NetworkSupport.SendConfirmation ( stream );
+      Console.WriteLine ( "Data for {0} received and deserialized.\n", typeof ( IRenderer ).Name );
 
       ClientMaster.instance = new ClientMaster ( null, scene, renderer );
     }
@@ -86,25 +88,28 @@ namespace RenderClient
       {
         if ( stream.DataAvailable )
         {
-          Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );
-          NetworkSupport.SendConfirmation ( stream );
-          ClientMaster.instance.availableAssignments.Enqueue ( newAssignment );
+          //lock ( stream )
+          {
+            Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );
+            //NetworkSupport.SendConfirmation ( stream );
+            ClientMaster.instance.availableAssignments.Enqueue ( newAssignment );
+          }                  
         }
       }
     }
 
+    private const int bufferSize = ( Master.assignmentSize * Master.assignmentSize * 3 + 2 ) * sizeof ( float );
     /// <summary>
     /// Encodes and sends rendered image
     /// Format:
     ///   - array of floats where first 2 floats are coordinates x1 and y1 (left upper corner in main bitmap)
     ///   - rest of the floats are colors of pixels per rows (3 floats per 1 pixel - RGB channels)
     /// </summary>
-    private const int bufferSize = ( Master.assignmentSize * Master.assignmentSize * 3 + 2 ) * sizeof ( float );
     public static void SendRenderedImage ( float[] colorBuffer, int x1, int y1 )
     {
-      float[] coordinates = { x1, y1 };
+      float[] coordinates    = { x1, y1 };
       float[] combinedBuffer = new float[coordinates.Length + colorBuffer.Length];
-      coordinates.CopyTo ( combinedBuffer, 0 ); // copy coordinates to the first 2 floats in combinedBuffer
+      coordinates.CopyTo ( combinedBuffer, 0 );                  // copy coordinates to the first 2 floats in combinedBuffer
       colorBuffer.CopyTo ( combinedBuffer, coordinates.Length ); // copy colors to the rest of combinedBuffer
 
       byte[] sendBuffer = new byte[combinedBuffer.Length * sizeof ( float )];
@@ -113,9 +118,8 @@ namespace RenderClient
 
       lock ( stream )
       {
-        client.ReceiveBufferSize = sendBuffer.Length;
         stream.Write ( sendBuffer, 0, bufferSize );
-      }     
+      }
     }
 
 
@@ -144,6 +148,7 @@ namespace RenderClient
         for ( int i = 0; i < threads; i++ )
         {
           Thread newThread = new Thread ( Consume );
+          newThread.Name = "RenderThread" + i;
           newThread.Priority = ThreadPriority.AboveNormal;
           pool[i]            = newThread;
           newThread.Start ();
@@ -179,7 +184,9 @@ namespace RenderClient
           float[] colorArray = newAssignment.Render ( true, renderer );
           Console.WriteLine ( @"Rendering of assignment [{0}, {1}, {2}, {3}] finished. Sending result to server.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
 
+
           SendRenderedImage ( colorArray, newAssignment.x1, newAssignment.y1 );
+          
           Console.WriteLine ( @"Result of assignment [{0}, {1}, {2}, {3}] sent.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
         }
       }

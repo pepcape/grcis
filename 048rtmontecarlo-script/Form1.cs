@@ -375,11 +375,13 @@ namespace _048rtmontecarlo
       lock ( sw )
         sw.Restart ();
 
+      Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads );
+      /*
       ThreadStart ts              = delegate { Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads ); };
       Thread      newRenderThread = new Thread ( ts );
       newRenderThread.Start ();
 
-      newRenderThread.Join ();
+      newRenderThread.Join ();*/
 
       long elapsed;
       lock ( sw )

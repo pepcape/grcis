@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -75,20 +76,19 @@ namespace Rendering
       AssignNetworkWorkerToStream ();
 
       Thread imageFetcher = new Thread ( RenderedImageReceiver );
+      imageFetcher.Name = "ImageFetcher";
       imageFetcher.Start ();
 
       for ( int i = 0; i < threads; i++ )
       {
         Thread newThread = new Thread ( Consume );
+        newThread.Name = "RenderThread " + i;
         newThread.Priority = ThreadPriority.AboveNormal;
         pool [ i ]         = newThread;
         newThread.Start ();
       }
 
       mainThread = pool [ 0 ];
-
-      
-
 
       for ( int i = 0; i < (int) threads; i++ )
       {
@@ -197,6 +197,10 @@ namespace Rendering
           networkWorkers.Add ( newWorker );
           newWorker.SendNecessaryObjects ();
           newWorker.TryToGetNewAssignment ();
+          newWorker.TryToGetNewAssignment ();
+          newWorker.TryToGetNewAssignment ();
+          newWorker.TryToGetNewAssignment ();
+          newWorker.TryToGetNewAssignment ();
         }
       }
     }
@@ -217,9 +221,9 @@ namespace Rendering
           {
             if ( !float.IsInfinity ( newBitmap[arrayPosition] ) )
             {
-              Color color = Color.FromArgb ( (int) newBitmap [ arrayPosition ],
-                                             (int) newBitmap [ arrayPosition + 1 ],
-                                             (int) newBitmap [ arrayPosition + 2 ] );
+              Color color = Color.FromArgb ( Math.Min ( (int) newBitmap [ arrayPosition ], 255 ),
+                                             Math.Min ( (int) newBitmap [ arrayPosition + 1 ], 255 ),
+                                             Math.Min ( (int) newBitmap [ arrayPosition + 2 ], 255 ) );
               bitmap.SetPixel ( x, y, color );
             }
 
@@ -280,6 +284,7 @@ namespace Rendering
       }
 
       client = new TcpClient ();
+
       try
       {
         client.Connect ( endPoint );
@@ -291,30 +296,13 @@ namespace Rendering
 
       stream = client.GetStream ();
 
+      client.ReceiveBufferSize = 1024 * 1024 * 32;
+      client.SendBufferSize    = 1024 * 1024 * 32;
+      //client.NoDelay = true;
+
       return true;
     }
 
-    /// <summary>
-    /// For DEBUG only
-    /// </summary>
-    public void TestReceive ()
-    {
-      while ( true )
-      {
-        byte[] buffer = new byte[client.ReceiveBufferSize];
-
-        stream.Read ( buffer, 0, buffer.Length );
-
-        string message = Encoding.UTF8.GetString ( buffer );
-
-        Debug.WriteLine ( message );
-
-        if ( message.Contains ( "." ) )
-        {
-          break;
-        }
-      }
-    }
 
     /// <summary>
     /// Sends all objects which are necessary to render scene to client
@@ -323,11 +311,15 @@ namespace Rendering
     /// </summary>
     public void SendNecessaryObjects ()
     {
-      NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, client, stream );
-      NetworkSupport.WaitForConfirmation ( stream );
+      //lock ( stream )
+      {
+        NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, client, stream );
+      }
 
-      NetworkSupport.SendObject<IRenderer> ( Master.instance.renderer, client, stream );
-      NetworkSupport.WaitForConfirmation ( stream );
+      //lock ( stream )
+      {
+        NetworkSupport.SendObject<IRenderer> ( Master.instance.renderer, client, stream );
+      }      
     }
 
 
@@ -343,10 +335,21 @@ namespace Rendering
     {
       if ( stream.DataAvailable )
       {
+        client.ReceiveTimeout = 10000;
+
         byte[] buffer = new byte[bufferSize];
         float[] coordinates = new float[2];
 
-        stream.Read ( buffer, 0, bufferSize );
+        //lock ( stream )
+        {
+          int receivedSize = stream.Read ( buffer, 0, bufferSize );
+          if ( receivedSize != buffer.Length )
+          {
+            Console.WriteLine ( "" );
+            //throw new Exception ("Kurva");
+          }
+          bool da = stream.DataAvailable;
+        }        
 
         float[] floatBuffer = new float[Master.assignmentSize * Master.assignmentSize * 3];
         Buffer.BlockCopy ( buffer, 0, coordinates, 0, 2 * sizeof ( float ) );
@@ -359,7 +362,7 @@ namespace Rendering
                                        (int) coordinates [ 1 ] + Master.assignmentSize );
 
         Master.instance.finishedAssignments++;
-        TryToGetNewAssignment();
+        //TryToGetNewAssignment();
       }
     }    
 
@@ -367,7 +370,7 @@ namespace Rendering
     {
       Assignment newAssignment = null;
 
-      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments )
+      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments - 7 )
       {
         Master.instance.availableAssignments.TryDequeue ( out newAssignment );
 
@@ -377,8 +380,12 @@ namespace Rendering
         if ( newAssignment == null ) // TryDequeue was not succesfull
           continue;
 
-        NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
-        NetworkSupport.WaitForConfirmation ( stream );
+        lock ( stream )
+        {
+          NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
+          //NetworkSupport.WaitForConfirmation ( stream );
+        }
+        
         break;
       }
     }
