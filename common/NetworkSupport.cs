@@ -72,15 +72,52 @@ public static class NetworkSupport
   /// <returns>Int size of the next message (in bytes)</returns>
   public static int ReceiveSize ( NetworkStream stream )
   {
-    byte[] bytes = new byte[sizeof ( int )];
+    int totalReceivedSize = 0;
+    int leftToReceive     = sizeof ( int );
 
-    int receivedSize = stream.Read ( bytes, 0, bytes.Length );
+    byte[] receiveBuffer = new byte[leftToReceive];
 
-    if ( receivedSize != bytes.Length )
+    while ( leftToReceive > 0 ) // Loop until enough data is received
     {
-      return -1;
+      int latestReceivedSize = stream.Read ( receiveBuffer, totalReceivedSize, leftToReceive );
+      leftToReceive     -= latestReceivedSize;
+      totalReceivedSize += latestReceivedSize;
     }
 
-    return BitConverter.ToInt32 ( bytes, 0 );
+    return BitConverter.ToInt32 ( receiveBuffer, 0 );
+  }
+
+  /// <summary>
+  /// Determines whether TCP Client is still connected
+  /// </summary>
+  /// <param name="client">TcpClient used to get underlying Socket</param>
+  /// <returns></returns>
+  public static bool IsConnected ( TcpClient client )
+  {
+    Socket socket = client.Client;
+
+    bool blockingState = socket.Blocking; // preserves current blocking state
+
+    try
+    {
+      byte [] tmp = new byte[1];
+
+      socket.Blocking = false;
+      socket.Send ( tmp, 0, 0 );
+
+      return true;
+    }
+    catch ( SocketException e )
+    {
+      // 10035 == WSAEWOULDBLOCK (this error is thrown when non-blocking socket cannot be completed immediatelly; does not mean it did not arrive)
+      if ( e.NativeErrorCode.Equals ( 10035 ) )
+        return true;
+      else
+        return false;
+    }
+    finally
+    {
+      socket.Blocking = blockingState;
+    }
   }
 }

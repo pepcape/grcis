@@ -23,11 +23,11 @@ namespace Rendering
 
     public ConcurrentQueue<Assignment> availableAssignments;
 
-    private List<NetworkWorker> networkWorkers;
+    public List<NetworkWorker> networkWorkers;
 
     private Thread[] pool;
 
-    public Thread mainThread;
+    public Thread mainRenderThread;
 
     public int totalNumberOfAssignments;
 
@@ -69,37 +69,38 @@ namespace Rendering
 
     /// <summary>
     /// Creates threadpool and starts all threads on Consume method
+    /// Thread which calls this method will take care of preparing assignments and receiving rendered images from RenderClients meanwhile
     /// </summary>
     /// <param name="threads">Number of threads to be used for rendering</param>
     public void StartThreads ( int threads )
-    {
+    {     
       pool = new Thread[threads];
 
       AssignNetworkWorkerToStream ();
 
-      Thread imageFetcher = new Thread ( RenderedImageReceiver );
-      imageFetcher.Name = "ImageFetcher";
-      imageFetcher.Start ();
-
       for ( int i = 0; i < threads; i++ )
       {
         Thread newThread = new Thread ( Consume );
-        newThread.Name = "RenderThread " + i;
+        newThread.Name = "RenderThread #" + i;
         newThread.Priority = ThreadPriority.AboveNormal;
         pool [ i ]         = newThread;
         newThread.Start ();
       }
 
-      mainThread = pool [ 0 ];
+      mainRenderThread = pool [ 0 ];
 
-      for ( int i = 0; i < (int) threads; i++ )
+      RenderedImageReceiver ();
+
+      for ( int i = 0; i < threads; i++ )
       {
         pool [ i ].Join ();
         pool [ i ] = null;
       }
 
-      imageFetcher.Join ();
-      imageFetcher = null;
+      foreach ( NetworkWorker worker in networkWorkers )  // properly closes connections (and also sockets and streams) to all clients
+      {
+        worker.client.Close ();
+      }
     }
 
     /// <summary>
@@ -210,10 +211,10 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Adds colors represented in newBitmap array to main bitmap
+    /// Adds colors represented in colorBuffer array to main bitmap
     /// </summary>
-    /// <param name="newBitmap">Float values (for later HDR support) representing pixel color values</param>
-    public void BitmapMerger ( float[] newBitmap, int x1, int y1, int x2, int y2 )
+    /// <param name="colorBuffer">Float values (possible to be used for HDR) representing pixel color values</param>
+    public void BitmapMerger ( float[] colorBuffer, int x1, int y1, int x2, int y2 )
     {
       lock ( bitmap )
       {
@@ -223,11 +224,11 @@ namespace Rendering
         {
           for ( int x = x1; x < Math.Min ( x2, bitmap.Width ); x++ )
           {
-            if ( !float.IsInfinity ( newBitmap [ arrayPosition ] ) )
+            if ( !float.IsInfinity ( colorBuffer [ arrayPosition ] ) )  // positive infinity is indicator that color for this pixel is already present in bitmap and is final
             {
-              Color color = Color.FromArgb ( Math.Min ( (int) newBitmap [ arrayPosition ], 255 ),
-                                             Math.Min ( (int) newBitmap [ arrayPosition + 1 ], 255 ),
-                                             Math.Min ( (int) newBitmap [ arrayPosition + 2 ], 255 ) );
+              Color color = Color.FromArgb ( Math.Min ( (int) colorBuffer [ arrayPosition ], 255 ),
+                                             Math.Min ( (int) colorBuffer [ arrayPosition + 1 ], 255 ),
+                                             Math.Min ( (int) colorBuffer [ arrayPosition + 2 ], 255 ) );
               bitmap.SetPixel ( x, y, color );
             }
 
@@ -248,11 +249,11 @@ namespace Rendering
         return;
       }
 
-      while ( finishedAssignments < totalNumberOfAssignments )
+      while ( finishedAssignments < totalNumberOfAssignments && progressData.Continue )
       {
-        foreach ( NetworkWorker worker in networkWorkers )
+        for ( int i = 0; i < networkWorkers.Count; i++ )
         {
-          worker.ReceiveRenderedImage ();
+          networkWorkers[i]?.ReceiveRenderedImage ();
         }
       }
     }
@@ -262,14 +263,16 @@ namespace Rendering
   /// <summary>
   /// Takes care of network communication with with 1 render client
   /// </summary>
-  class NetworkWorker
+  public class NetworkWorker
   {
     private readonly IPAddress  ipAdr;
     private          IPEndPoint endPoint;
     private const    int        port = 5000;
 
-    private TcpClient     client;
-    private NetworkStream stream;
+    public TcpClient     client;
+    public NetworkStream stream;
+
+    private List<Assignment> unfinishedAssignments = new List<Assignment>();
 
     public NetworkWorker ( IPAddress ipAdr )
     {
@@ -301,9 +304,8 @@ namespace Rendering
 
       stream = client.GetStream ();
 
-      client.ReceiveBufferSize = 1024 * 1024 * 32;
-      client.SendBufferSize    = 1024 * 1024 * 32;
-      //client.NoDelay = true;
+      client.ReceiveBufferSize = 1024 * 1024;  // needed just in case - large portions of data are expected to be transfered at the same time (one rendered assignment is 50kB)
+      client.SendBufferSize    = 1024 * 1024;
 
       return true;
     }
@@ -316,15 +318,9 @@ namespace Rendering
     /// </summary>
     public void SendNecessaryObjects ()
     {
-      //lock ( stream )
-      {
-        NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, client, stream );
-      }
+      NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, client, stream );
 
-      //lock ( stream )
-      {
-        NetworkSupport.SendObject<IRenderer> ( Master.instance.renderer, client, stream );
-      }      
+      NetworkSupport.SendObject<IRenderer> ( Master.instance.renderer, client, stream );
     }
 
 
@@ -338,8 +334,18 @@ namespace Rendering
     /// </summary>
     public void ReceiveRenderedImage ()
     {
+      if ( !NetworkSupport.IsConnected ( client ) )
+      {
+        LostConnection ();        
+        return;
+      }
+
       if ( stream.DataAvailable )
       {
+        byte [] tmp = new byte[1];
+
+        stream.Write ( tmp, 0, 0 );
+
         int totalReceivedSize = 0;
         int leftToReceive = bufferSize;
 
@@ -365,16 +371,59 @@ namespace Rendering
                                        (int) coordinates [ 1 ] + Master.assignmentSize );
 
         Master.instance.finishedAssignments++;
-        //TryToGetNewAssignment();
-      }
-    }    
 
-    public void TryToGetNewAssignment ()
+        RemoveAssignmentFromUnfinishedAssignments ( (int) coordinates[0], (int) coordinates[1] );
+
+        //TryToGetNewAssignment(); //TODO: Implement dynamic system for this
+      }
+    }
+
+    /// <summary>
+    /// Takes care of flushing unfinished assignments back to availableAssignments queue in Master,
+    /// removes this NetworkWorker from networkWorkers list and properly closes TCP connection
+    /// Useful in case of lost connection to the client
+    /// </summary>
+    private void LostConnection ()
     {
+      ResetUnfinishedAssignments ();
+      Master.instance.networkWorkers.Remove ( this );
+      client.Close ();
+    }
+
+    /// <summary>
+    /// Removes assignments identified by its coordinates of left upper corner (x1 and y1) from unfinishedAssignments list
+    /// </summary>
+    /// <param name="x">Compared to value of x1 in assignment</param>
+    /// <param name="y">Compared to value of y1 in assignment</param>
+    private void RemoveAssignmentFromUnfinishedAssignments ( int x, int y )
+    {
+      for ( int i = 0; i < unfinishedAssignments.Count; i++ )
+      {
+        if ( unfinishedAssignments[i].x1 == x && unfinishedAssignments[i].y1 == y ) // assignments are uniquely indentified by coordinates of left upper corner
+        {
+          unfinishedAssignments.RemoveAt ( i );
+          return;
+        }
+      }
+
+      unfinishedAssignments.Clear ();
+    }
+
+    /// <summary>
+    /// Loops until it gets a new assignment and sends it to the RenderClient (or all assignments have been rendered)
+    /// </summary>
+    public void TryToGetNewAssignment ()
+    {      
       Assignment newAssignment = null;
 
       while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments )
       {
+        if ( !NetworkSupport.IsConnected ( client ) )
+        {
+          LostConnection ();
+          return;
+        }         
+
         Master.instance.availableAssignments.TryDequeue ( out newAssignment );
 
         if ( !Master.instance.progressData.Continue ) // test whether rendering should end (Stop button pressed) 
@@ -386,10 +435,23 @@ namespace Rendering
         lock ( stream )
         {
           NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
+          unfinishedAssignments.Add ( newAssignment );
         }
         
         break;
       }
+    }
+
+    /// <summary>
+    /// Moves all unfinished assignments cached in local unfinishedAssignments list to the main availableAssignments queue
+    /// Useful in case of lost connection to the client
+    /// </summary>
+    private void ResetUnfinishedAssignments ()
+    {
+      foreach ( Assignment unfinishedAssignment in unfinishedAssignments )
+      {
+        Master.instance.availableAssignments.Enqueue ( unfinishedAssignment );
+      }     
     }
 
     /// <summary>
@@ -437,8 +499,11 @@ namespace Rendering
 
     /// <summary>
     /// Main render method
-    /// Directly writes pixel colors to the main bitmap after rendering them
     /// </summary>
+    /// <param name="renderEverything">True if you want to ignore stride and just render everything at once (removes dynamic rendering effect; distributed network rendering)</param>
+    /// <param name="renderer">IRenderer which will be used for RenderPixel method</param>
+    /// <param name="progressData">Used for sync of bitmap with main PictureBox</param>
+    /// <returns>Float array which represents colors of pixels (3 floats per pixel - RGB channel)</returns>
     public float[] Render ( bool renderEverything, IRenderer renderer, Progress progressData = null )
     {
       float[] returnArray = new float[assignmentSize * assignmentSize * 3];
@@ -452,6 +517,7 @@ namespace Rendering
       {
         for ( int x = x1; x <= x2; x += stride )
         {
+          // removes the need to make assignments of different sizes to accomodate bitmaps with sides indivisible by assignment size
           if ( x >= bitmapWidth || y >= bitmapHeight )
             continue;
 
@@ -461,26 +527,27 @@ namespace Rendering
           if ( stride == 8 || ( y % ( stride << 1 ) != 0 ) || ( x % ( stride << 1 ) != 0 ) || renderEverything ) // prevents rendering of already rendered pixels
           {
             renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
+
             floatColor [ 0 ] = (float) color [ 0 ];
             floatColor [ 1 ] = (float) color [ 1 ];
             floatColor [ 2 ] = (float) color [ 2 ];
           }
           else
           {
-            floatColor [ 0 ] = float.PositiveInfinity;
+            // positive infinity is used to signal BitmapMerger that color for this pixel is already present in main bitmap and is final (therefore no need for change)
+            floatColor [ 0 ] = float.PositiveInfinity;  
             floatColor [ 1 ] = float.PositiveInfinity;
             floatColor [ 2 ] = float.PositiveInfinity;
           }
 
           
-
-          if ( stride == 1 )
+          if ( stride == 1 )  // apply color only to one pixel
           {
             returnArray [ PositionInArray ( x, y ) ]     = floatColor [ 0 ] * 255;
             returnArray [ PositionInArray ( x, y ) + 1 ] = floatColor [ 1 ] * 255;
             returnArray [ PositionInArray ( x, y ) + 2 ] = floatColor [ 2 ] * 255;
           }
-          else
+          else // apply same color to multiple neighbour pixels (rectangle with current pixel in top left and length of side equal to stride value)
           {
             for ( int j = y; j < y + stride; j++ )
             {
@@ -499,7 +566,8 @@ namespace Rendering
             }
           }
 
-          if ( progressData != null )
+
+          if ( progressData != null ) // progressData is not used for distributed network rendering - null value used in rendering in RenderClients
           {
             lock ( Master.instance.progressData )
             {
@@ -508,7 +576,7 @@ namespace Rendering
                 return returnArray;
 
               // synchronization of bitmap with PictureBox in Form and update of progress (percentage of done work)
-              if ( Master.instance.mainThread == Thread.CurrentThread )
+              if ( Master.instance.mainRenderThread == Thread.CurrentThread )
               {
                 Master.instance.progressData.Finished =
                   Master.instance.assignmentRoundsFinished / (float) Master.instance.assignmentRoundsTotal;
