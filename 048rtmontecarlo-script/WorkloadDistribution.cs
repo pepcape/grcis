@@ -97,10 +97,13 @@ namespace Rendering
         pool [ i ] = null;
       }
 
-      foreach ( NetworkWorker worker in networkWorkers )  // properly closes connections (and also sockets and streams) to all clients
+      if ( networkWorkers?.Count > 0 )
       {
-        worker.client.Close ();
-      }
+        foreach ( NetworkWorker worker in networkWorkers ) // properly closes connections (and also sockets and streams) to all clients
+        {
+          worker.client.Close ();
+        }
+      }   
     }
 
     /// <summary>
@@ -193,7 +196,7 @@ namespace Rendering
 
         if ( !newWorker.ConnectToClient () ) // removes NetworkWorker instance in case of failure to connect to the client
         {
-          newWorker = null;
+          //newWorker = null;
         }
         else
         {
