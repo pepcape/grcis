@@ -91,7 +91,7 @@ namespace RenderClient
       receiver.Priority = ThreadPriority.BelowNormal;
       receiver.Start ();
 
-      ClientMaster.instance.StartThreads ( 4 ); //TODO: change to "Environment.ProcessorCount"
+      ClientMaster.instance.StartThreads ( 1 ); //TODO: change to "Environment.ProcessorCount"
 
       EndOfRenderClientWork ();
     }
@@ -261,14 +261,13 @@ namespace RenderClient
         {
           Thread newThread = new Thread ( Consume );
           newThread.Name = "RenderThread" + i;
-          newThread.Priority = ThreadPriority.AboveNormal;
           pool[i]            = newThread;
           newThread.Start ();
         }
 
         mainRenderThread = pool[0];
 
-        for ( int i = 0; i < (int) threads; i++ )
+        for ( int i = 0; i < threads; i++ )
         {
           pool[i].Join ();
           pool[i] = null;

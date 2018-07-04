@@ -82,7 +82,6 @@ namespace Rendering
       {
         Thread newThread = new Thread ( Consume );
         newThread.Name = "RenderThread #" + i;
-        newThread.Priority = ThreadPriority.AboveNormal;
         pool [ i ]         = newThread;
         newThread.Start ();
       }
@@ -189,14 +188,15 @@ namespace Rendering
     /// </summary>
     public void AssignNetworkWorkerToStream ()
     {
+      networkWorkers = new List<NetworkWorker> ();
+
       foreach ( Client client in RenderClientsForm.instance.clients )
       {
-        NetworkWorker newWorker = new NetworkWorker ( client.address );
-        networkWorkers = new List<NetworkWorker> ();
+        NetworkWorker newWorker = new NetworkWorker ( client.address );        
 
         if ( !newWorker.ConnectToClient () ) // removes NetworkWorker instance in case of failure to connect to the client
         {
-          //newWorker = null;
+          newWorker = null;
         }
         else
         {
@@ -288,7 +288,7 @@ namespace Rendering
     /// <returns>True if connection was succesfull, False otherwise</returns>
     public bool ConnectToClient ()
     {
-      if ( ipAdr == null )
+      if ( ipAdr == null || ipAdr.ToString() == "0.0.0.0")
         return false;
 
       if ( endPoint == null )
