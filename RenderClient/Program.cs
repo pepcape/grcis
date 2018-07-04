@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Drawing;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -19,15 +20,15 @@ namespace RenderClient
       {
         RenderClient.ConnectToServer ();
       }
-      catch ( SocketException e )
+      catch ( SocketException e ) // thrown in case of multiple clients being launched on the same computer
       {
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine ( "\nYou can not start more than one client on one computer." );
+        Console.WriteLine ( "\nYou can not start more than one client on the same computer." );
 
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine ( "\nPress any key to exit this RenderClient...\n" );
 
-        Console.ReadLine ();
+        Console.ReadKey ();
         return;
       }
       
@@ -38,11 +39,12 @@ namespace RenderClient
       receiver.Priority = ThreadPriority.BelowNormal;
       receiver.Start ();
 
-      RenderClient.ClientMaster.instance.StartThreads ( 1 ); //TODO: change to "Environment.ProcessorCount"
+      RenderClient.ClientMaster.instance.StartThreads ( 2 ); //TODO: change to "Environment.ProcessorCount"
 
       Console.ForegroundColor = ConsoleColor.White;
       Console.WriteLine ( "\nPress any key to exit this RenderClient...\n" );
-      Console.ReadLine ();
+
+      Console.ReadKey ();
     }
   }
 
@@ -54,7 +56,7 @@ namespace RenderClient
     private const  int           port = 5000;
     private static NetworkStream stream;
     private static TcpClient     client;
-    private static bool          finished = false;
+    private static bool          finished = false;  // indication for Consume method that rendering of everything is finished and there will be no more assignments
 
     private static IRayScene scene;
     private static IRenderer renderer;
@@ -71,16 +73,15 @@ namespace RenderClient
       TcpListener localServer = new TcpListener ( IPAddress.Loopback, port );
       localServer.Start ();
 
-      do
+      do // loop to accept connection from render server (which in this case acts as "client" in TCP/IP terminology)
       {
         client = localServer.AcceptTcpClient ();
 
         stream = client.GetStream ();
       } while ( stream == null );
 
-      client.ReceiveBufferSize = 1024 * 1024 * 32;
-      client.SendBufferSize = 1024 * 1024 * 32;
-      //client.NoDelay = true;
+      client.ReceiveBufferSize = 1024 * 1024; // needed just in case - large portions of data are expected to be transfered at the same time (one rendered assignment is 50kB)
+      client.SendBufferSize = 1024 * 1024;
 
       Console.WriteLine ( @"Client succesfully connected." );
     }
@@ -106,18 +107,19 @@ namespace RenderClient
 
     /// <summary>
     /// Thread in infinite loop accepting new assignments
+    /// Loop is ended by receiving Ending Assignment
     /// </summary>
     public static void ReceiveAssignments ()
     {
-      while ( true )  //TODO: properly end
+      while ( true )
       {
         if ( stream.DataAvailable )
         {
           Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );         
 
-          if ( newAssignment.x1 == -1 ) // Ending assignment represented by -1 in x1 variable signals end of rendering
+          if ( newAssignment.x1 == -1 ) // Ending assignment represented by -1 in all coordinate variables signals end of rendering
           {
-            finished = true;
+            finished = true;  // signal for threads in Consume method
 
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine ( "\nRendering on server finished or no more assignments are expected to be received.\n" );
@@ -128,7 +130,7 @@ namespace RenderClient
           Console.ForegroundColor = ConsoleColor.Green;
           Console.WriteLine ( @"Data for assignment [{0}, {1}, {2}, {3}] received and deserialized.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
 
-          ClientMaster.instance.availableAssignments.Enqueue ( newAssignment );
+          ClientMaster.instance.availableAssignments.Enqueue ( newAssignment ); // adds new assignment to the queue; it is later taken from there by thread in Consume method
         }
       }
     }
@@ -153,11 +155,38 @@ namespace RenderClient
 
       lock ( stream )
       {
-        stream.Write ( sendBuffer, 0, bufferSize );
+        try
+        {
+          stream.Write ( sendBuffer, 0, bufferSize );
+        }
+        catch ( IOException e )
+        {
+          ConnectionLost ();  
+        }      
       }
     }
 
+    /// <summary>
+    /// Notifies user about lost connection and exits application
+    /// </summary>
+    private static void ConnectionLost ()
+    {
+      client.Close ();
 
+      Console.ForegroundColor = ConsoleColor.Red;
+      Console.WriteLine ( "\nConnection to the server was lost.\n" );
+
+      Console.ForegroundColor = ConsoleColor.White;
+      Console.WriteLine ( "Press any key to exit this RenderClient...\n" );
+      Console.ReadKey ();
+
+      Environment.Exit ( 0 );
+    }
+
+
+    /// <summary>
+    /// Takes care of distribution of work between local threads
+    /// </summary>
     public class ClientMaster: Master
     {
       public new static ClientMaster instance; //singleton
@@ -189,7 +218,7 @@ namespace RenderClient
           newThread.Start ();
         }
 
-        mainThread = pool[0];
+        mainRenderThread = pool[0];
 
         for ( int i = 0; i < (int) threads; i++ )
         {
@@ -231,8 +260,15 @@ namespace RenderClient
         }
       }
 
-      public new void AssignNetworkWorkerToStream () { }  // initially left blank
-      public new void InitializeAssignments ( Bitmap bitmap, IRayScene scene, IRenderer renderer ) { } // initially left blank
+      public new void AssignNetworkWorkerToStream ()
+      {
+        throw new NotSupportedException (); // exception thrown because this method should not be used in context of ClientMaster
+      }
+
+      public new void InitializeAssignments ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
+      {
+        throw new NotSupportedException (); // exception thrown because this method should not be used in context of ClientMaster
+      }
     }    
   }
 }
