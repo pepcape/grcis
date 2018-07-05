@@ -94,12 +94,12 @@ namespace Rendering
     /// <param name="p1">Ray direction vector.</param>
     /// <param name="color">Result color.</param>
     /// <returns>Hash-value (ray sub-signature) used for adaptive subsampling.</returns>
-    protected virtual long shade ( int      level, double importance, ref Vector3d p0, ref Vector3d p1,
+    protected virtual long shade ( int level, double importance, ref Vector3d p0, ref Vector3d p1,
                                    double[] color )
     {
       Vector3d direction = p1;
 
-      int                      bands         = color.Length;
+      int bands = color.Length;
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect ( p0, p1 );
 
       Statistics.allRaysCount++;
@@ -109,7 +109,7 @@ namespace Rendering
       }
 
       Intersection i = Intersection.FirstIntersection ( intersections, ref p1 );
-      int          b;
+      int b;
 
       if ( i == null ) // no intersection -> background color
       {
