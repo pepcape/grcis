@@ -948,5 +948,56 @@ namespace Rendering
 
       triangleCounter += 12;
     }
+
+    List<SceneObject> sceneObjects;
+
+    private void FillSceneObjects ()
+    {
+      DefaultSceneNode root = RayVisualizer.instance?.scene.Intersectable as DefaultSceneNode;
+
+      if ( root == null )
+      {
+        sceneObjects = null;
+        return;
+      }
+
+      sceneObjects = new List<SceneObject> ();
+
+
+      Matrix4d transformation = root.ToParent;
+
+      EvaluateSceneNode ( root, transformation );           
+    }
+
+    private void EvaluateSceneNode ( DefaultSceneNode parent, Matrix4d transformation )
+    {
+      foreach ( DefaultSceneNode children in parent.Children )
+      {
+        Matrix4d localTransformation = transformation * children.ToParent; //TODO: To- or From- parent?
+
+        if ( children is ISolid solid )
+        {
+          sceneObjects.Add ( new SceneObject ( solid, localTransformation ) );
+          return;
+        }
+
+        if ( children is CSGInnerNode node )
+        {
+          EvaluateSceneNode ( node, localTransformation );
+        }
+      }
+    }
+
+    class SceneObject
+    {
+      public ISolid solid;
+      public Matrix4d absolutePosition;
+
+      public SceneObject ( ISolid solid, Matrix4d absolutePosition )
+      {
+        this.solid = solid;
+        this.absolutePosition = absolutePosition;
+      }
+    }
   }
 }
