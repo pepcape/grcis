@@ -20,7 +20,7 @@ public static class NetworkSupport
 
     byte[] dataBuffer = memoryStream.ToArray ();
 
-    SendSize ( stream, dataBuffer.Length );
+    SendInt ( stream, dataBuffer.Length );
 
     stream.Write ( dataBuffer, 0, dataBuffer.Length );
   }
@@ -33,7 +33,7 @@ public static class NetworkSupport
   public static T ReceiveObject<T> ( TcpClient client, NetworkStream stream )
   {
     int totalReceivedSize = 0;
-    int leftToReceive     = ReceiveSize ( stream );
+    int leftToReceive     = ReceiveInt ( stream );
 
     byte[] receiveBuffer = new byte[leftToReceive];
 
@@ -54,11 +54,12 @@ public static class NetworkSupport
   }
 
   /// <summary>
-  /// Sends message (always 4 bytes) notifying about size of the next message
+  /// Sends message containing an int (4 bytes)
+  /// Used for notifying the other side about size of the next message (to prepare buffers)
   /// </summary>
   /// <param name="stream">NetworkStream to use</param>
-  /// <param name="size">Int size of the next message (in bytes)</param>
-  public static void SendSize ( NetworkStream stream, int size )
+  /// <param name="size">Int to send</param>
+  public static void SendInt ( NetworkStream stream, int size )
   {
     byte[] bytes = BitConverter.GetBytes ( size );
 
@@ -66,11 +67,12 @@ public static class NetworkSupport
   }
 
   /// <summary>
-  /// Reads message (always 4 bytes) and returns size of the next message
+  /// Reads 4 bytes from stream and returns them as int
+  /// Used for receiving info from the other side about size of the next message (to prepare buffers)
   /// </summary>
   /// <param name="stream">NetworkStream to use</param>
-  /// <returns>Int size of the next message (in bytes)</returns>
-  public static int ReceiveSize ( NetworkStream stream )
+  /// <returns>Int value represented by 4 bytes from NetworkStream</returns>
+  public static int ReceiveInt ( NetworkStream stream )
   {
     int totalReceivedSize = 0;
     int leftToReceive     = sizeof ( int );
@@ -89,6 +91,8 @@ public static class NetworkSupport
 
   /// <summary>
   /// Determines whether TCP Client is still connected
+  /// Works similar to ping
+  /// Sends non-blocking, empty message with no need to actively read it
   /// </summary>
   /// <param name="client">TcpClient used to get underlying Socket</param>
   /// <returns></returns>

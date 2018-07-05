@@ -96,10 +96,12 @@ namespace Rendering
         pool [ i ] = null;
       }
 
+      
       if ( networkWorkers?.Count > 0 )
       {
         foreach ( NetworkWorker worker in networkWorkers ) // properly closes connections (and also sockets and streams) to all clients
         {
+          worker.SendEndingAssignment ();
           worker.client.Close ();
         }
       }   
@@ -194,21 +196,18 @@ namespace Rendering
       {
         NetworkWorker newWorker = new NetworkWorker ( client.address );        
 
-        if ( !newWorker.ConnectToClient () ) // removes NetworkWorker instance in case of failure to connect to the client
-        {
-          newWorker = null;
-        }
-        else
+        if ( newWorker.ConnectToClient () )
         {
           networkWorkers.Add ( newWorker );
-          newWorker.SendNecessaryObjects ();
-          newWorker.TryToGetNewAssignment ();
-          newWorker.TryToGetNewAssignment ();
-          newWorker.TryToGetNewAssignment ();
-          newWorker.TryToGetNewAssignment ();
-          newWorker.TryToGetNewAssignment ();
 
-          newWorker.SendEndingAssignment ();
+          newWorker.ExchangeNecessaryInfo ();
+
+          for ( int i = 0; i < newWorker.threadCountAtClient; i++ )
+          {
+            newWorker.TryToGetNewAssignment ();
+          }          
+
+          //newWorker.SendEndingAssignment ();
         }
       }
     }
@@ -275,6 +274,9 @@ namespace Rendering
     public TcpClient     client;
     public NetworkStream stream;
 
+    public int threadCountAtClient;
+    private int assignmentsAtClient;
+
     private List<Assignment> unfinishedAssignments = new List<Assignment>();
 
     public NetworkWorker ( IPAddress ipAdr )
@@ -318,12 +320,15 @@ namespace Rendering
     /// Sends all objects which are necessary to render scene to client
     /// IRayScene - scene representation like solids, textures, lights, camera, ...
     /// IRenderer - renderer itself including IImageFunction; needed for RenderPixel method
+    /// Receives number of threads available to render at RenderClient
     /// </summary>
-    public void SendNecessaryObjects ()
+    public void ExchangeNecessaryInfo ()
     {
       NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, client, stream );
 
       NetworkSupport.SendObject<IRenderer> ( Master.instance.renderer, client, stream );
+
+      threadCountAtClient = NetworkSupport.ReceiveInt ( stream );
     }
 
 
@@ -374,10 +379,11 @@ namespace Rendering
                                        (int) coordinates [ 1 ] + Master.assignmentSize );
 
         Master.instance.finishedAssignments++;
+        assignmentsAtClient--;
 
         RemoveAssignmentFromUnfinishedAssignments ( (int) coordinates[0], (int) coordinates[1] );
 
-        //TryToGetNewAssignment(); //TODO: Implement dynamic system for this
+        TryToGetNewAssignment(); //TODO: Implement dynamic system for this
       }
     }
 
@@ -419,7 +425,7 @@ namespace Rendering
     {      
       Assignment newAssignment = null;
 
-      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments )
+      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments - assignmentsAtClient ) //TODO: fix bug
       {
         if ( !NetworkSupport.IsConnected ( client ) )
         {
@@ -438,6 +444,7 @@ namespace Rendering
         lock ( stream )
         {
           NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
+          assignmentsAtClient++;
           unfinishedAssignments.Add ( newAssignment );
         }
         
@@ -511,9 +518,16 @@ namespace Rendering
     {
       float[] returnArray = new float[assignmentSize * assignmentSize * 3];
 
+      int previousStride = stride;
+
       if ( renderEverything )
       {
         stride = 1;
+
+        if ( previousStride == stride )
+        {
+          renderEverything = false;
+        }
       }
 
       for ( int y = y1; y <= y2; y += stride )
@@ -527,7 +541,14 @@ namespace Rendering
           double[] color = new double[3];
           float[] floatColor = new float[3];
 
-          if ( stride == 8 || ( y % ( stride << 1 ) != 0 ) || ( x % ( stride << 1 ) != 0 ) || renderEverything ) // prevents rendering of already rendered pixels
+          // prevents rendering of already rendered pixels
+          if ( ( stride == 8 ||
+                 ( y % ( stride << 1 ) != 0 ) ||
+                 ( x % ( stride << 1 ) != 0 ) )
+             ||
+               ( renderEverything &&
+                 ( ( y % ( previousStride << 1 ) != 0 ) ||
+                   ( x % ( previousStride << 1 ) != 0 ) ) ) )
           {
             renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
 

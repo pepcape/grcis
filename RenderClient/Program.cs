@@ -33,6 +33,8 @@ namespace RenderClient
     private static IRayScene scene;
     private static IRenderer renderer;
 
+    private static int threadCount = 1; //TODO: change to "Environment.ProcessorCount"
+
     static object consoleLock = new object();
 
     /// <summary>
@@ -84,14 +86,14 @@ namespace RenderClient
 
       finished = false;
 
-      ReceiveNecessaryObjects ();
+      ExchangeNecessaryInfo ();
 
       Thread receiver = new Thread ( ReceiveAssignments );
       receiver.Name     = "AssignmentReceiver";
       receiver.Priority = ThreadPriority.BelowNormal;
       receiver.Start ();
 
-      ClientMaster.instance.StartThreads ( 1 ); //TODO: change to "Environment.ProcessorCount"
+      ClientMaster.instance.StartThreads ( threadCount );
 
       EndOfRenderClientWork ();
     }
@@ -128,8 +130,9 @@ namespace RenderClient
     /// Receives all objects which are necessary from render server
     /// IRayScene - scene representation like solids, textures, lights, camera, ...
     /// IRenderer - renderer itself including IImageFunction; needed for RenderPixel method
+    /// Sends number of threads available at client to render
     /// </summary>
-    private static void ReceiveNecessaryObjects ()
+    private static void ExchangeNecessaryInfo ()
     {     
       scene = NetworkSupport.ReceiveObject<IRayScene> ( client, stream );
       Console.ForegroundColor = ConsoleColor.Green;
@@ -139,6 +142,8 @@ namespace RenderClient
       renderer = NetworkSupport.ReceiveObject<IRenderer> ( client, stream );
       Console.ForegroundColor = ConsoleColor.Green;
       Console.WriteLine ( "Data for {0} received and deserialized.\n", typeof ( IRenderer ).Name );
+
+      NetworkSupport.SendInt ( stream, threadCount );
 
       ClientMaster.instance = new ClientMaster ( null, scene, renderer );
     }
