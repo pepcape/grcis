@@ -232,6 +232,11 @@ namespace Rendering
       instance = null;
     }
 
+    /// <summary>
+    /// Moves camera so that primary ray is perpendicular to screen
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void AllignCamera ( object sender, EventArgs e )
     {
       if ( RayVisualizer.instance?.rays.Count < 2 )
@@ -241,7 +246,11 @@ namespace Rendering
 
       trackBall.Center = (Vector3) RayVisualizer.instance.rays [ 1 ];
       trackBall.Reset ( (Vector3) ( RayVisualizer.instance.rays [ 1 ] - RayVisualizer.instance.rays [ 0 ] ) );
-      trackBall.Zoom = (float) Vector3d.Distance ( RayVisualizer.instance.rays [ 1 ], RayVisualizer.instance.rays [ 0 ] );
+
+      double distanceOfEye = Vector3.Distance ( trackBall.Center, trackBall.Eye );
+      double distanceOfCamera = Vector3d.Distance ( RayVisualizer.instance.rays [ 1 ], RayVisualizer.instance.rays [ 0 ]) * 0.9;
+
+      trackBall.Zoom = (float) (distanceOfEye / distanceOfCamera);
     }
   }
 }

@@ -121,7 +121,10 @@ namespace Rendering
   /// <summary>
   /// Elementary solid - atomic building block of a scene.
   /// </summary>
-  public interface ISolid: ISceneNode { }
+  public interface ISolid: ISceneNode
+  {
+    void GetBoundingBox ( out Vector3d corner1, out Vector3d corner2);
+  }
 
 
   /// <summary>
@@ -130,6 +133,8 @@ namespace Rendering
   [Serializable]
   public abstract class DefaultSceneNode: ISceneNode
   {
+    public static double infinityPlaceholder = 10000;
+      
     protected LinkedList<ISceneNode> children;
 
     public ICollection<ISceneNode> Children

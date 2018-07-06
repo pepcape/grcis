@@ -52,7 +52,9 @@ namespace _048rtmontecarlo
     /// </summary>
     public static IRayScene getScene ()
     {
-      return Form1.singleton.SceneByComboBox ();
+      IRayScene scene = Form1.singleton.SceneByComboBox ();
+      RayVisualizer.UpdateRayScene ( scene );
+      return scene;
     }
 
     /// <summary>
