@@ -383,7 +383,7 @@ namespace Rendering
 
         RemoveAssignmentFromUnfinishedAssignments ( (int) coordinates[0], (int) coordinates[1] );
 
-        TryToGetNewAssignment(); //TODO: Implement dynamic system for this
+        TryToGetNewAssignment();
       }
     }
 
@@ -425,7 +425,7 @@ namespace Rendering
     {      
       Assignment newAssignment = null;
 
-      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments - assignmentsAtClient ) //TODO: fix bug
+      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments - assignmentsAtClient )
       {
         if ( !NetworkSupport.IsConnected ( client ) )
         {

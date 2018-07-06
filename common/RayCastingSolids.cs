@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using MathSupport;
 using OpenTK;
 using Scene3D;
@@ -1162,12 +1163,20 @@ namespace Rendering
       set { BezierPatch.Epsilon = value; }
     }
 
+    private int K, L;
+    private double maxV, minV;
+
     public BezierSurface ( int K, int L, double[] v )
     {
       Debug.Assert ( K > 0 && L > 0 );
       Debug.Assert ( v != null && v.Length >= 3 * ( 3 * K + 1 ) * ( 3 * L + 1 ) );
 
       PreciseNormals = true;
+
+      this.K = K;
+      this.L = L;
+      maxV = v.Max ();
+      minV = v.Min ();
 
       patches = new List<BezierPatch> ( K * L );
       int stride = 3 * ( 3 * L + 1 );
@@ -1390,7 +1399,8 @@ namespace Rendering
 
     public void GetBoundingBox ( out Vector3d corner1, out Vector3d corner2 )
     {
-      throw new NotImplementedException ();
+      corner1 = new Vector3d ( 0, 0, minV );
+      corner2 = new Vector3d ( L * 3, maxV, K * 3 );
     }
   }
 
