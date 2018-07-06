@@ -10,6 +10,7 @@ using MathSupport;
 using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using _048rtmontecarlo;
 
 namespace Rendering
 {
@@ -22,8 +23,6 @@ namespace Rendering
 
     internal List<Vector3d> rays;
     internal List<Vector3d> shadowRays;
-
-    internal IRayScene scene;
 
     private static Vector3d axesCorrectionVector = new Vector3d ( 1, 1, -1 );
 
@@ -89,6 +88,12 @@ namespace Rendering
       }
 
       return (Vector3d) position * axesCorrectionVector;
+    }
+
+    public static IRayScene rayScene;
+    public static void UpdateRayScene ( IRayScene scene )
+    {
+      rayScene = scene;
     }
   }
 
@@ -652,7 +657,7 @@ namespace Rendering
 
         triangleCounter += scene.Triangles;
       }
-      else
+      else // actual scene and ray visualization
       {
         bool renderFirst = true;
 
@@ -665,6 +670,9 @@ namespace Rendering
         RenderRays ( renderFirst );
         RenderCamera ();
         RenderLightSources ();
+
+        FillSceneObjects ();
+        BoundingBoxesVisualization ();
       }
 
       // Support: axes
@@ -764,15 +772,15 @@ namespace Rendering
 
       GL.Color3 ( 1.0f, 0.1f, 0.1f );
       GL.Vertex3 ( center );
-      GL.Vertex3 ( center + new Vector3 ( 0.5f, 0.0f, 0.0f ) * diameter );
+      GL.Vertex3 ( center + new Vector3 ( 1.5f, 0.0f, 0.0f ) * diameter );
 
       GL.Color3 ( 0.0f, 1.0f, 0.0f );
       GL.Vertex3 ( center );
-      GL.Vertex3 ( center + new Vector3 ( 0.0f, 0.5f, 0.0f ) * diameter );
+      GL.Vertex3 ( center + new Vector3 ( 0.0f, 1.5f, 0.0f ) * diameter );
 
       GL.Color3 ( 0.2f, 0.2f, 1.0f );
       GL.Vertex3 ( center );
-      GL.Vertex3 ( center + new Vector3 ( 0.0f, 0.0f, 0.5f ) * diameter );
+      GL.Vertex3 ( center + new Vector3 ( 0.0f, 0.0f, 1.5f ) * diameter );
 
       GL.End ();
     }
@@ -833,6 +841,8 @@ namespace Rendering
       SetVertexPointer ( false ); // ??
       SetVertexAttrib ( false );
 
+      GL.LineWidth ( 2.0f );
+
       GL.Begin ( PrimitiveType.Lines );
 
       if ( NormalRaysCheckBox.Checked ) // Render normal rays
@@ -883,13 +893,12 @@ namespace Rendering
     /// </summary>
     private void RenderLightSources ()
     {
-      if ( RayVisualizer.instance?.rays.Count == 0 || RayVisualizer.instance?.scene.Sources == null ||
-           !LightSourcesCheckBox.Checked )
+      if ( RayVisualizer.instance?.rays.Count == 0 || rayScene.Sources == null || !LightSourcesCheckBox.Checked )
       {
         return;
       }
 
-      foreach ( ILightSource lightSource in RayVisualizer.instance?.scene.Sources )
+      foreach ( ILightSource lightSource in rayScene.Sources )
       {
         if ( lightSource.position != null )
         {
@@ -907,7 +916,7 @@ namespace Rendering
     /// <param name="color">Uniform color of cube</param>
     private void RenderCube ( Vector3d position, float size, Color color )
     {
-      SetVertexPointer ( false ); // ??
+      SetVertexPointer ( false );
       SetVertexAttrib ( false );
 
       GL.Begin ( PrimitiveType.Quads );
@@ -949,11 +958,185 @@ namespace Rendering
       triangleCounter += 12;
     }
 
-    List<SceneObject> sceneObjects;
+    /// <summary>
+    /// Renders cuboid (of uniform color) based on 2 opposite corners (with sides parallel to axes) and transforms it with transformation matrix
+    /// </summary>
+    /// <param name="c1">Position of first corner</param>
+    /// <param name="c2">Position of corner opposite to first corner</param>
+    /// <param name="transformation">4x4 transformation matrix</param>
+    /// <param name="color">Uniform color of cuboid</param>
+    private void RenderCuboid ( Vector3d c1, Vector3d c2, Matrix4d transformation, Color color )
+    {
+      SetVertexPointer ( false );
+      SetVertexAttrib ( false );
 
+      GL.Begin ( PrimitiveType.Quads );
+      GL.Color3 ( color );
+
+
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c1.Z ), transformation ) ) ); // Top Right Of The Quad (Top)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c2.Y, c1.Z ), transformation ) ) ); // Top Left Of The Quad (Top)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c2.Y, c2.Z ), transformation ) ) ); // Bottom Left Of The Quad (Top)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c2.Z ), transformation ) ) ); // Bottom Right Of The Quad (Top)
+
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c2.Z ), transformation ) ) ); // Top Right Of The Quad (Bottom)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c2.Z ), transformation ) ) ); // Top Left Of The Quad (Bottom)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c1.Z ), transformation ) ) ); // Bottom Left Of The Quad (Bottom)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c1.Z ), transformation ) ) ); // Bottom Right Of The Quad (Bottom)
+
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c2.Z ), transformation ) ) ); // Top Right Of The Quad (Front)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c2.Y, c2.Z ), transformation ) ) ); // Top Left Of The Quad (Front)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c2.Z ), transformation ) ) ); // Bottom Left Of The Quad (Front)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c2.Z ), transformation ) ) ); // Bottom Right Of The Quad (Front)
+
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c1.Z ), transformation ) ) ); // Bottom Left Of The Quad (Back)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c1.Z ), transformation ) ) ); // Bottom Right Of The Quad (Back)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c2.Y, c1.Z ), transformation ) ) ); // Top Right Of The Quad (Back)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c1.Z ), transformation ) ) ); // Top Left Of The Quad (Back)
+
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c2.Y, c2.Z ), transformation ) ) ); // Top Right Of The Quad (Left)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c2.Y, c1.Z ), transformation ) ) ); // Top Left Of The Quad (Left)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c1.Z ), transformation ) ) ); // Bottom Left Of The Quad (Left)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c2.Z ), transformation ) ) ); // Bottom Right Of The Quad (Left)
+
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c1.Z ), transformation ) ) ); // Top Right Of The Quad (Right)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c2.Z ), transformation ) ) ); // Top Left Of The Quad (Right)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c2.Z ), transformation ) ) ); // Bottom Left Of The Quad (Right)
+      GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c1.Z ), transformation ) ) ); // Bottom Right Of The Quad (Right)
+
+
+      GL.End ();
+
+      triangleCounter += 12;
+    }
+
+    /// <summary>
+    /// Applies tranformation matrix to vector
+    /// </summary>
+    /// <param name="vector">1x3 vector</param>
+    /// <param name="transformation">4x4 transformation matrix</param>
+    /// <returns>Transformed vector 1x3</returns>
+    public Vector3d ApplyTransformation ( Vector3d vector, Matrix4d transformation )
+    {
+      Vector4d transformedVector = MultiplyVectorByMatrix ( new Vector4d ( vector, 1 ), transformation ); //( vector, 1 ) is extention [x  y  z] -> [x  y  z  1]
+
+      return new Vector3d ( transformedVector.X / transformedVector.W, //[x  y  z  w] -> [x/w  y/w  z/w]
+                            transformedVector.Y / transformedVector.W,
+                            transformedVector.Z / transformedVector.W );
+    }
+
+    /// <summary>
+    /// Multiplication of Vector4d and Matrix4d
+    /// </summary>
+    /// <param name="vector">Vector 1x4 on left side</param>
+    /// <param name="matrix">Matrix 4x4 on right side</param>
+    /// <returns>Result of multiplication - 1x4 vector</returns>
+    public Vector4d MultiplyVectorByMatrix ( Vector4d vector, Matrix4d matrix )
+    {
+      Vector4d result = new Vector4d (0, 0, 0, 0);
+
+      for ( int i = 0; i < 4; i++ )
+      {
+        for ( int j = 0; j < 4; j++ )
+        {
+          result [ i ] += vector [ j ] * matrix [ j, i ];
+        }
+      }
+
+      return result;
+    }
+
+    /// <summary>
+    /// Renders scene using bounding boxes
+    /// </summary>
+    private void BoundingBoxesVisualization ()
+    {
+      if ( sceneObjects == null || sceneObjects.Count == 0 || !BoundingBoxesCheckBox.Checked )
+      {
+        return;
+      }
+
+      int index = 0;
+
+      foreach ( SceneObject sceneObject in sceneObjects )
+      {        
+        if ( sceneObject.solid is Plane plane)
+        {
+          plane.GetBoundingBox ( out Vector3d c1, out Vector3d c2 );
+
+          c1 = RayVisualizer.AxesCorrector ( c1 );
+          c2 = RayVisualizer.AxesCorrector ( c2 );
+
+          SetVertexPointer ( false );
+          SetVertexAttrib ( false );
+
+          GL.Begin ( PrimitiveType.Quads );
+          GL.Color3 ( Color.DarkSlateGray );
+
+          if ( !plane.Triangle )
+          {
+            GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c2.Z ), sceneObject.transformation ) ) );
+            GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c2.Z ), sceneObject.transformation ) ) );
+            GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c1.Z ), sceneObject.transformation ) ) );
+            GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c2.Y, c1.Z ), sceneObject.transformation ) ) );
+
+            triangleCounter += 2;
+          }
+          else
+          {
+            throw new NotImplementedException ();
+
+            triangleCounter += 1;
+          }
+                   
+          GL.End ();          
+        }
+        else
+        {         
+          sceneObject.solid.GetBoundingBox ( out Vector3d c1, out Vector3d c2 );
+
+          RenderCuboid ( c1, c2, sceneObject.transformation, GenerateColor ( index, sceneObjects.Count ) );
+        }
+
+        index++;
+      }
+    }
+
+    /// <summary>
+    /// Linearly generates shade of gray between approximately [0.25, 0.25, 0.25] and [0.75, 0.75, 0.75] (in 0 to 1 for RGB channels)
+    /// Closer the currentValue is to the maxValue, closer is returned color to [0.75, 0.75, 0.75]
+    /// </summary>
+    /// <param name="currentValue">Indicates current position between 0 and maxValue</param>
+    /// <param name="maxValue">Max value currentValue can have</param>
+    /// <returns>Gray color between approximately [0.25, 0.25, 0.25] and [0.75, 0.75, 0.75]</returns>
+    private Color GenerateColor ( int currentValue, int maxValue )
+    {
+      Arith.Clamp ( currentValue, 0, maxValue );
+
+      int colorValue = (int) ( ( currentValue / (double) maxValue / 1.333 + 0.25 ) * 255 );
+
+      return Color.FromArgb ( colorValue, colorValue, colorValue );
+    }
+
+
+    List<SceneObject> sceneObjects;
+    IRayScene rayScene;
+    /// <summary>
+    /// Fills sceneObjects list with objects from current scene
+    /// </summary>
     private void FillSceneObjects ()
     {
-      DefaultSceneNode root = RayVisualizer.instance?.scene.Intersectable as DefaultSceneNode;
+      if ( RayVisualizer.rayScene == rayScene ) // prevents filling whole list in case scene did not change (most of the time)
+      {
+        return;
+      }
+      else
+      {
+        rayScene = RayVisualizer.rayScene;
+      }
+
+
+      DefaultSceneNode root = rayScene.Intersectable as DefaultSceneNode;
 
       if ( root == null )
       {
@@ -963,12 +1146,19 @@ namespace Rendering
 
       sceneObjects = new List<SceneObject> ();
 
-
-      Matrix4d transformation = root.ToParent;
+      Matrix4d transformation = Matrix4d.Identity;
 
       EvaluateSceneNode ( root, transformation );           
     }
 
+    /// <summary>
+    /// Recursively goes through all children nodes of parent
+    /// If child is ISolid, adds a new object to sceneObjects based on it
+    /// If child is another CSGInnerNode, recursively goes through its children
+    /// Meanwhile counts transformation matrix for SceneObjects
+    /// </summary>
+    /// <param name="parent">Parent node</param>
+    /// <param name="transformation"></param>
     private void EvaluateSceneNode ( DefaultSceneNode parent, Matrix4d transformation )
     {
       foreach ( DefaultSceneNode children in parent.Children )
@@ -978,7 +1168,7 @@ namespace Rendering
         if ( children is ISolid solid )
         {
           sceneObjects.Add ( new SceneObject ( solid, localTransformation ) );
-          return;
+          continue;
         }
 
         if ( children is CSGInnerNode node )
@@ -988,15 +1178,18 @@ namespace Rendering
       }
     }
 
+    /// <summary>
+    /// Data class containing info about ISolid and its absolute position in scene (through transformation matrix)
+    /// </summary>
     class SceneObject
     {
       public ISolid solid;
-      public Matrix4d absolutePosition;
+      public Matrix4d transformation;
 
-      public SceneObject ( ISolid solid, Matrix4d absolutePosition )
+      public SceneObject ( ISolid solid, Matrix4d transformation )
       {
         this.solid = solid;
-        this.absolutePosition = absolutePosition;
+        this.transformation = transformation;
       }
     }
   }

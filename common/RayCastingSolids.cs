@@ -80,6 +80,12 @@ namespace Rendering
         : ( Math.Atan2 ( inter.CoordLocal.Y, inter.CoordLocal.X ) / ( 2.0 * Math.PI ) + 0.5 );
       inter.TextureCoord.Y = Math.Atan2 ( r, inter.CoordLocal.Z ) / Math.PI;
     }
+
+    public void GetBoundingBox ( out Vector3d corner1, out Vector3d corner2 )
+    {
+      corner1 = new Vector3d ( -1, -1, -1 );
+      corner2 = new Vector3d ( 1, 1, 1 );
+    }
   }
 
 
@@ -349,6 +355,12 @@ namespace Rendering
           break;
       }
     }
+
+    public void GetBoundingBox ( out Vector3d corner1, out Vector3d corner2 )
+    {
+      corner1 = new Vector3d ( 0, 0, 0 );
+      corner2 = new Vector3d ( 1, 1, 1 );
+    }
   }
 
 
@@ -519,6 +531,23 @@ namespace Rendering
       // 2D texture coordinates:
       // done
     }
+
+    public void GetBoundingBox ( out Vector3d corner1, out Vector3d corner2 )
+    {
+      if ( Triangle )
+      {
+        throw new NotImplementedException ();
+      }
+
+      // If XMin is positive/negative infinity, it is replaced to +/- infinityPlaceholder value
+      double localXMin = double.IsInfinity ( XMin ) ? ( double.IsPositiveInfinity ( XMin ) ? infinityPlaceholder : -infinityPlaceholder ) : XMin;
+      double localYMin = double.IsInfinity ( YMin ) ? ( double.IsPositiveInfinity ( YMin ) ? infinityPlaceholder : -infinityPlaceholder ) : YMin;
+      double localXMax = double.IsInfinity ( XMax ) ? ( double.IsPositiveInfinity ( XMax ) ? infinityPlaceholder : -infinityPlaceholder ) : XMax;
+      double localYMax = double.IsInfinity ( YMax ) ? ( double.IsPositiveInfinity ( YMax ) ? infinityPlaceholder : -infinityPlaceholder ) : YMax;
+
+      corner1 = new Vector3d ( localXMin, localYMin, 0 );
+      corner2 = new Vector3d ( localXMax, localYMax, 0 );
+    }
   }
 
 
@@ -687,6 +716,16 @@ namespace Rendering
       // 2D texture coordinates:
       inter.TextureCoord.Y = inter.CoordLocal.Z;
     }
+
+    public void GetBoundingBox ( out Vector3d corner1, out Vector3d corner2 )
+    {
+      // If XMin is positive/negative infinity, it is replaced to +/- infinityPlaceholder value
+      double localZMin = double.IsInfinity ( ZMin ) ? ( double.IsPositiveInfinity ( ZMin ) ? infinityPlaceholder : -infinityPlaceholder ) : ZMin;
+      double localZMax = double.IsInfinity ( ZMax ) ? ( double.IsPositiveInfinity ( ZMax ) ? infinityPlaceholder : -infinityPlaceholder ) : ZMax;
+
+      corner1 = new Vector3d ( -1, -1, localZMin );
+      corner2 = new Vector3d ( 1, 1, localZMax );
+    }
   }
 
 
@@ -811,6 +850,12 @@ namespace Rendering
       if ( r < bigRadius )
         r2 = -r2;
       inter.TextureCoord.Y = Math.Atan2 ( r2, inter.CoordLocal.Z ) / ( 2.0 * Math.PI ) + 0.5;
+    }
+
+    public void GetBoundingBox ( out Vector3d corner1, out Vector3d corner2 )
+    {
+      corner1 = new Vector3d ( -bigRadius, -bigRadius, -1 );
+      corner2 = new Vector3d ( bigRadius, bigRadius, 1 );
     }
 
     private Vector3d getSmallCircleCenter ( Intersection inter )
@@ -1342,6 +1387,11 @@ namespace Rendering
         }
       }
     }
+
+    public void GetBoundingBox ( out Vector3d corner1, out Vector3d corner2 )
+    {
+      throw new NotImplementedException ();
+    }
   }
 
 
@@ -1504,6 +1554,11 @@ namespace Rendering
         inter.TextureCoord.Y = 0.0;
 
       // !!!}}
+    }
+
+    public void GetBoundingBox ( out Vector3d corner1, out Vector3d corner2 )
+    {
+      throw new NotImplementedException ();
     }
   }
 }
