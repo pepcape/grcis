@@ -94,6 +94,9 @@ namespace Rendering
     public static void UpdateRayScene ( IRayScene scene )
     {
       rayScene = scene;
+      instance?.rays?.Clear ();
+      instance?.shadowRays?.Clear ();
+      //RayVisualizerForm.instance?.trackBall?.Reset ( new Vector3 ( 0, 0, 0 ) );
     }
   }
 
@@ -666,13 +669,13 @@ namespace Rendering
           AllignCamera ( null, null );
           renderFirst = false;
         }
+       
+        FillSceneObjects ();
+        BoundingBoxesVisualization ();
 
         RenderRays ( renderFirst );
         RenderCamera ();
         RenderLightSources ();
-
-        FillSceneObjects ();
-        BoundingBoxesVisualization ();
       }
 
       // Support: axes
@@ -893,7 +896,7 @@ namespace Rendering
     /// </summary>
     private void RenderLightSources ()
     {
-      if ( RayVisualizer.instance?.rays.Count == 0 || rayScene.Sources == null || !LightSourcesCheckBox.Checked )
+      if ( /*RayVisualizer.instance?.rays.Count == 0 || */ rayScene?.Sources == null || !LightSourcesCheckBox.Checked )
       {
         return;
       }
@@ -970,6 +973,9 @@ namespace Rendering
       SetVertexPointer ( false );
       SetVertexAttrib ( false );
 
+      GL.PolygonMode ( checkTwosided.Checked ? MaterialFace.FrontAndBack : MaterialFace.Front,
+                       WireframeBoundingBoxesCheckBox.Checked ? PolygonMode.Line : PolygonMode.Fill );
+
       GL.Begin ( PrimitiveType.Quads );
       GL.Color3 ( color );
 
@@ -1006,6 +1012,9 @@ namespace Rendering
 
 
       GL.End ();
+
+      GL.PolygonMode ( checkTwosided.Checked ? MaterialFace.FrontAndBack : MaterialFace.Front,
+                       checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
 
       triangleCounter += 12;
     }
@@ -1064,6 +1073,11 @@ namespace Rendering
         {
           plane.GetBoundingBox ( out Vector3d c1, out Vector3d c2 );
 
+
+          Color color = Color.FromArgb ( (int) ( sceneObject.color [ 0 ] * 255 ),
+                                         (int) ( sceneObject.color [ 1 ] * 255 ),
+                                         (int) ( sceneObject.color [ 2 ] * 255 ) );
+
           c1 = RayVisualizer.AxesCorrector ( c1 );
           c2 = RayVisualizer.AxesCorrector ( c2 );
 
@@ -1071,7 +1085,7 @@ namespace Rendering
           SetVertexAttrib ( false );
 
           GL.Begin ( PrimitiveType.Quads );
-          GL.Color3 ( Color.DarkSlateGray );
+          GL.Color3 ( color );
 
           if ( !plane.Triangle )
           {
@@ -1095,7 +1109,20 @@ namespace Rendering
         {         
           sceneObject.solid.GetBoundingBox ( out Vector3d c1, out Vector3d c2 );
 
-          RenderCuboid ( c1, c2, sceneObject.transformation, GenerateColor ( index, sceneObjects.Count ) );
+          Color color;
+
+          if ( sceneObject.color != null )
+          {
+            color = Color.FromArgb ( (int) ( sceneObject.color [ 0 ] * 255 ),
+                                     (int) ( sceneObject.color [ 1 ] * 255 ),
+                                     (int) ( sceneObject.color [ 2 ] * 255 ) );
+          }
+          else
+          {
+            color = GenerateColor ( index, sceneObjects.Count );
+          }
+
+          RenderCuboid ( c1, c2, sceneObject.transformation, color );
         }
 
         index++;
@@ -1135,7 +1162,6 @@ namespace Rendering
         rayScene = RayVisualizer.rayScene;
       }
 
-
       DefaultSceneNode root = rayScene.Intersectable as DefaultSceneNode;
 
       if ( root == null )
@@ -1148,7 +1174,18 @@ namespace Rendering
 
       Matrix4d transformation = Matrix4d.Identity;
 
-      EvaluateSceneNode ( root, transformation );           
+      double[] color;
+
+      if ( (double[]) root.GetAttribute ( PropertyName.COLOR ) != null )
+      {
+        color = (double[]) root.GetAttribute ( PropertyName.COLOR );
+      }
+      else
+      {
+        color = ( (IMaterial) root.GetAttribute ( PropertyName.MATERIAL ) ).Color;
+      }
+
+      EvaluateSceneNode ( root, transformation, color );           
     }
 
     /// <summary>
@@ -1159,21 +1196,42 @@ namespace Rendering
     /// </summary>
     /// <param name="parent">Parent node</param>
     /// <param name="transformation"></param>
-    private void EvaluateSceneNode ( DefaultSceneNode parent, Matrix4d transformation )
+    private void EvaluateSceneNode ( DefaultSceneNode parent, Matrix4d transformation, double[] color )
     {
       foreach ( DefaultSceneNode children in parent.Children )
       {
-        Matrix4d localTransformation = transformation * children.ToParent; //TODO: To- or From- parent?
+        Matrix4d localTransformation = children.ToParent * transformation;
+
+
+        double[] newColor;
+
+        // take color from child's attribute COLOR, child's attribute MATERIAL.Color or from parent
+        if ( (double[]) children.GetAttribute ( PropertyName.COLOR ) == null )
+        {
+          if ( ( (IMaterial) children.GetAttribute ( PropertyName.MATERIAL ) ).Color == null )
+          {
+            newColor = color;
+          }
+          else
+          {
+            newColor = ( (IMaterial) children.GetAttribute ( PropertyName.MATERIAL ) ).Color;
+          }
+        }
+        else
+        {
+          newColor = (double[]) children.GetAttribute ( PropertyName.COLOR );
+        }
+
 
         if ( children is ISolid solid )
         {
-          sceneObjects.Add ( new SceneObject ( solid, localTransformation ) );
+          sceneObjects.Add ( new SceneObject ( solid, localTransformation, newColor ) );
           continue;
         }
 
         if ( children is CSGInnerNode node )
         {
-          EvaluateSceneNode ( node, localTransformation );
+          EvaluateSceneNode ( node, localTransformation, newColor );
         }
       }
     }
@@ -1185,11 +1243,13 @@ namespace Rendering
     {
       public ISolid solid;
       public Matrix4d transformation;
+      public double[] color;
 
-      public SceneObject ( ISolid solid, Matrix4d transformation )
+      public SceneObject ( ISolid solid, Matrix4d transformation, double[] color )
       {
         this.solid = solid;
         this.transformation = transformation;
+        this.color = color;
       }
     }
   }

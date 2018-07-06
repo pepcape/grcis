@@ -49,6 +49,7 @@
       this.AllignCameraButton = new System.Windows.Forms.Button();
       this.AllignCameraCheckBox = new System.Windows.Forms.CheckBox();
       this.BoundingBoxesCheckBox = new System.Windows.Forms.CheckBox();
+      this.WireframeBoundingBoxesCheckBox = new System.Windows.Forms.CheckBox();
       this.SuspendLayout();
       // 
       // glControl1
@@ -162,9 +163,9 @@
       this.checkTexture.AutoSize = true;
       this.checkTexture.Location = new System.Drawing.Point(108, 430);
       this.checkTexture.Name = "checkTexture";
-      this.checkTexture.Size = new System.Drawing.Size(44, 17);
+      this.checkTexture.Size = new System.Drawing.Size(62, 17);
       this.checkTexture.TabIndex = 50;
-      this.checkTexture.Text = "Tex";
+      this.checkTexture.Text = "Texture";
       this.checkTexture.UseVisualStyleBackColor = true;
       // 
       // checkVsync
@@ -175,9 +176,9 @@
       this.checkVsync.CheckState = System.Windows.Forms.CheckState.Checked;
       this.checkVsync.Location = new System.Drawing.Point(108, 476);
       this.checkVsync.Name = "checkVsync";
-      this.checkVsync.Size = new System.Drawing.Size(57, 17);
+      this.checkVsync.Size = new System.Drawing.Size(60, 17);
       this.checkVsync.TabIndex = 49;
-      this.checkVsync.Text = "VSync";
+      this.checkVsync.Text = "V-Sync";
       this.checkVsync.UseVisualStyleBackColor = true;
       // 
       // checkTwosided
@@ -188,9 +189,9 @@
       this.checkTwosided.CheckState = System.Windows.Forms.CheckState.Checked;
       this.checkTwosided.Location = new System.Drawing.Point(12, 477);
       this.checkTwosided.Name = "checkTwosided";
-      this.checkTwosided.Size = new System.Drawing.Size(57, 17);
+      this.checkTwosided.Size = new System.Drawing.Size(60, 17);
       this.checkTwosided.TabIndex = 48;
-      this.checkTwosided.Text = "2sided";
+      this.checkTwosided.Text = "2-sided";
       this.checkTwosided.UseVisualStyleBackColor = true;
       // 
       // checkWireframe
@@ -199,9 +200,9 @@
       this.checkWireframe.AutoSize = true;
       this.checkWireframe.Location = new System.Drawing.Point(12, 454);
       this.checkWireframe.Name = "checkWireframe";
-      this.checkWireframe.Size = new System.Drawing.Size(48, 17);
+      this.checkWireframe.Size = new System.Drawing.Size(74, 17);
       this.checkWireframe.TabIndex = 47;
-      this.checkWireframe.Text = "Wire";
+      this.checkWireframe.Text = "Wireframe";
       this.checkWireframe.UseVisualStyleBackColor = true;
       // 
       // checkSmooth
@@ -307,18 +308,32 @@
       this.BoundingBoxesCheckBox.AutoSize = true;
       this.BoundingBoxesCheckBox.Checked = true;
       this.BoundingBoxesCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.BoundingBoxesCheckBox.Location = new System.Drawing.Point(620, 502);
+      this.BoundingBoxesCheckBox.Location = new System.Drawing.Point(617, 479);
       this.BoundingBoxesCheckBox.Name = "BoundingBoxesCheckBox";
       this.BoundingBoxesCheckBox.Size = new System.Drawing.Size(102, 17);
       this.BoundingBoxesCheckBox.TabIndex = 65;
       this.BoundingBoxesCheckBox.Text = "Bounding boxes";
       this.BoundingBoxesCheckBox.UseVisualStyleBackColor = true;
       // 
+      // WireframeBoundingBoxesCheckBox
+      // 
+      this.WireframeBoundingBoxesCheckBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+      this.WireframeBoundingBoxesCheckBox.AutoSize = true;
+      this.WireframeBoundingBoxesCheckBox.Checked = true;
+      this.WireframeBoundingBoxesCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.WireframeBoundingBoxesCheckBox.Location = new System.Drawing.Point(617, 502);
+      this.WireframeBoundingBoxesCheckBox.Name = "WireframeBoundingBoxesCheckBox";
+      this.WireframeBoundingBoxesCheckBox.Size = new System.Drawing.Size(164, 17);
+      this.WireframeBoundingBoxesCheckBox.TabIndex = 66;
+      this.WireframeBoundingBoxesCheckBox.Text = "Bounding boxes as wireframe";
+      this.WireframeBoundingBoxesCheckBox.UseVisualStyleBackColor = true;
+      // 
       // RayVisualizerForm
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(984, 531);
+      this.Controls.Add(this.WireframeBoundingBoxesCheckBox);
       this.Controls.Add(this.BoundingBoxesCheckBox);
       this.Controls.Add(this.AllignCameraCheckBox);
       this.Controls.Add(this.AllignCameraButton);
@@ -374,5 +389,6 @@
 		private System.Windows.Forms.Button AllignCameraButton;
 		private System.Windows.Forms.CheckBox AllignCameraCheckBox;
     private System.Windows.Forms.CheckBox BoundingBoxesCheckBox;
+    private System.Windows.Forms.CheckBox WireframeBoundingBoxesCheckBox;
   }
 }
