@@ -275,7 +275,7 @@ namespace Rendering
     public NetworkStream stream;
 
     public int threadCountAtClient;
-    private int assignmentsAtClient;
+    private static int assignmentsAtClients;
 
     private List<Assignment> unfinishedAssignments = new List<Assignment>();
 
@@ -379,7 +379,7 @@ namespace Rendering
                                        (int) coordinates [ 1 ] + Master.assignmentSize );
 
         Master.instance.finishedAssignments++;
-        assignmentsAtClient--;
+        assignmentsAtClients--;
 
         RemoveAssignmentFromUnfinishedAssignments ( (int) coordinates[0], (int) coordinates[1] );
 
@@ -425,7 +425,7 @@ namespace Rendering
     {      
       Assignment newAssignment = null;
 
-      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments - assignmentsAtClient )
+      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments - assignmentsAtClients )
       {
         if ( !NetworkSupport.IsConnected ( client ) )
         {
@@ -444,7 +444,7 @@ namespace Rendering
         lock ( stream )
         {
           NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
-          assignmentsAtClient++;
+          assignmentsAtClients++;
           unfinishedAssignments.Add ( newAssignment );
         }
         

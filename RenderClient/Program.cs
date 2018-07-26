@@ -46,7 +46,7 @@ namespace RenderClient
       Console.ForegroundColor = ConsoleColor.White;
       Console.WriteLine ( @"Waiting for remote server to connect to this client..." );
 
-      TcpListener localServer = new TcpListener ( IPAddress.Loopback, port );
+      TcpListener localServer = new TcpListener ( IPAddress.Any, port );
       localServer.Start ( 1 );
 
       do // loop to accept connection from render server (which in this case acts as "client" in TCP/IP terminology)
