@@ -101,7 +101,7 @@ namespace _048rtmontecarlo
 
     /// <summary>
     /// Universal method for calling render method of map class
-    /// Correct map class is chosen via reflection - sender(render button) must have set Tag to name of class instance in AdvancedTools class
+    /// Correct map class is chosen via reflection - panel (parent of sender) must have Tag set to name of class instance in AdvancedTools class
     /// </summary>
     /// <param name="sender">Should be only Render button</param>
     /// <param name="e"></param>
@@ -110,22 +110,18 @@ namespace _048rtmontecarlo
       if ( Form1.singleton.outputImage == null )
         return;
 
-      string fieldName = ( sender as Control ).Tag.ToString ();
+      Panel panel = ( sender as Control ).Parent as Panel;
 
-      var map = AdvancedTools.instance.GetType ().GetField ( fieldName ).GetValue ( AdvancedTools.instance );
+      string mapName = panel.Tag.ToString ();
+
+      object map = AdvancedTools.instance.GetType ().GetField ( Char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdvancedTools.instance );
 
       ( map as IMap ).RenderMap ();
 
-      Panel panel = ( sender as Control ).Parent as Panel;
-
-      string fieldNameCamelCase = Char.ToUpper ( fieldName [ 0 ] ) + fieldName.Substring ( 1 );
-
-      PictureBox pictureBox =
-        panel.Controls.Find ( fieldNameCamelCase + "PictureBox", true ).FirstOrDefault () as PictureBox;
+      PictureBox pictureBox = panel.Controls.Find ( mapName + "PictureBox", true ).FirstOrDefault () as PictureBox;
       pictureBox.Image = ( map as IMap ).GetBitmap ();
 
-      Button saveButton =
-        panel.Controls.Find ( "Save" + fieldNameCamelCase + "Button", true ).FirstOrDefault () as Button;
+      Button saveButton = panel.Controls.Find ( "Save" + mapName + "Button", true ).FirstOrDefault () as Button;
       saveButton.Enabled = true;
 
       SetTotalAndAveragePrimaryRaysCount ();
@@ -202,7 +198,7 @@ namespace _048rtmontecarlo
     }
 
     /// <summary>
-    /// Displays number of rays of specific RaysMap (PrimaryRaysMap, AllRaysMap, ...) sent to selected pixel (clicked or hovered over while mouse down)
+    /// Displays number of rays of specific RaysMap (PrimaryRaysMap, AllRaysMap, ...) sent to selected pixel (clicked or moved over while mouse down)
     /// </summary>
     private void RaysMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
     {
@@ -212,14 +208,14 @@ namespace _048rtmontecarlo
         return;
       }
 
-      string fieldName = ( sender as Control ).Tag.ToString ();
-
-      AdvancedTools.RaysMap raysMap =
-        AdvancedTools.instance.GetType ().GetField ( fieldName ).GetValue ( AdvancedTools.instance ) as
-          AdvancedTools.RaysMap;
-
-
       Panel panel = ( sender as Control ).Parent as Panel;
+
+      string mapName = panel.Tag.ToString ();
+
+      string fieldName = Char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 );
+
+      AdvancedTools.RaysMap raysMap = AdvancedTools.instance.GetType ().GetField ( fieldName ).GetValue ( AdvancedTools.instance ) as AdvancedTools.RaysMap;
+     
 
       string fieldNameCamelCase = Char.ToUpper ( fieldName [ 0 ] ) + fieldName.Substring ( 1 );
 

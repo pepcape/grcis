@@ -73,7 +73,7 @@ namespace Rendering
     /// </summary>
     /// <param name="threads">Number of threads to be used for rendering</param>
     public void StartThreads ( int threads )
-    {     
+    {
       pool = new Thread[threads];
 
       AssignNetworkWorkerToStream ();
@@ -302,7 +302,7 @@ namespace Rendering
       {
         client.Connect ( endPoint );
       }
-      catch ( SocketException e )
+      catch ( SocketException )
       {
         return false;
       }
@@ -602,8 +602,7 @@ namespace Rendering
               // synchronization of bitmap with PictureBox in Form and update of progress (percentage of done work)
               if ( Master.instance.mainRenderThread == Thread.CurrentThread )
               {
-                Master.instance.progressData.Finished =
-                  Master.instance.assignmentRoundsFinished / (float) Master.instance.assignmentRoundsTotal;
+                Master.instance.progressData.Finished = Master.instance.assignmentRoundsFinished / (float) Master.instance.assignmentRoundsTotal;
                 Master.instance.progressData.Sync ( Master.instance.bitmap );
               }
             }

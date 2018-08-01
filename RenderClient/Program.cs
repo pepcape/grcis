@@ -33,9 +33,20 @@ namespace RenderClient
     private static IRayScene scene;
     private static IRenderer renderer;
 
-    private static int threadCount = 1; //TODO: change to "Environment.ProcessorCount"
+    private static int threadCount;
 
     static object consoleLock = new object();
+
+    static RenderClient ()
+    {
+#if DEBUG
+      threadCount = 1;
+#endif
+
+#if !DEBUG
+      threadCount = Environment.ProcessorCount;
+#endif
+    }
 
     /// <summary>
     /// TcpListener is used even though this is in fact a client, not a server - this is done so that the real server can connect to the client
@@ -72,7 +83,7 @@ namespace RenderClient
       {
         ConnectToServer ();
       }
-      catch ( SocketException e ) // thrown in case of multiple clients being launched on the same computer
+      catch ( SocketException ) // thrown in case of multiple clients being launched on the same computer
       {
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine ( "\nYou can not start more than one client on the same computer." );
@@ -208,7 +219,7 @@ namespace RenderClient
         {
           stream.Write ( sendBuffer, 0, bufferSize );
         }
-        catch ( IOException e )
+        catch ( IOException )
         {
           ConnectionLost ();  
         }      
