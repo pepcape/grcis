@@ -47,8 +47,6 @@ namespace Rendering
     /// <param name="rayTarget">Position of the end of ray</param>
     public void RegisterRay ( int level, Vector3d rayOrigin, Vector3d rayTarget )
     {
-      //Debug.WriteLine (rayOrigin + "   " + rayTarget + "   " + level);
-
       rays.Add ( AxesCorrector ( rayOrigin ) );
       rays.Add ( AxesCorrector ( rayTarget ) );
     }
@@ -96,7 +94,6 @@ namespace Rendering
       rayScene = scene;
       instance?.rays?.Clear ();
       instance?.shadowRays?.Clear ();
-      //RayVisualizerForm.instance?.trackBall?.Reset ( new Vector3 ( 0, 0, 0 ) );
     }
   }
 
@@ -1084,26 +1081,35 @@ namespace Rendering
           SetVertexPointer ( false );
           SetVertexAttrib ( false );
 
-          GL.Begin ( PrimitiveType.Quads );
-          GL.Color3 ( color );
+          
 
           if ( !plane.Triangle )
           {
+            GL.Begin ( PrimitiveType.Quads );
+            GL.Color3 ( color );
+
             GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c2.Z ), sceneObject.transformation ) ) );
             GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c2.Z ), sceneObject.transformation ) ) );
             GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c1.Z ), sceneObject.transformation ) ) );
             GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c2.Y, c1.Z ), sceneObject.transformation ) ) );
 
             triangleCounter += 2;
+
+            GL.End ();
           }
           else
           {
-            throw new NotImplementedException ();
+            GL.Begin ( PrimitiveType.Triangles );
+            GL.Color3 ( color );
+
+            GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c2.Z ), sceneObject.transformation ) ) );
+            GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c2.Z ), sceneObject.transformation ) ) );
+            GL.Vertex3 ( RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c1.Z ), sceneObject.transformation ) ) );
 
             triangleCounter += 1;
-          }
-                   
-          GL.End ();          
+
+            GL.End ();
+          }                                      
         }
         else
         {         

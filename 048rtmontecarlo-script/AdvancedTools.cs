@@ -44,8 +44,6 @@ namespace _048rtmontecarlo
           allMaps.Add ( (IMap) fieldInfo.GetValue ( instance ) );
         }
       }
-
-      //allMaps = new IMap[] { primaryRaysMap, allRaysMap, depthMap, normalMapRelative, normalMapAbsolute };
     }
 
     /// <summary>
@@ -94,8 +92,7 @@ namespace _048rtmontecarlo
         depthMap.mapArray [ MT.x, MT.y ] += depth;
 
         // register primary rays (those with level 0)
-        primaryRaysMap.mapArray [ MT.x, MT.y ] +=
-          1; // do not use ++ instead - causes problems with strong type T in Map<T>
+        primaryRaysMap.mapArray [ MT.x, MT.y ] += 1; // do not use ++ instead - causes problems with strong type T in Map<T>
 
         if ( firstIntersection != null )
         {
@@ -130,8 +127,7 @@ namespace _048rtmontecarlo
         PopulateArray2D<double> ( mapArray, maxValue, 0, true );
 
         minValue = double.MaxValue;
-        instance.GetMinimumAndMaximum ( ref minValue, ref maxValue,
-                                        mapArray ); // New minimum after replacing all zeroes
+        instance.GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray ); // New minimum after replacing all zeroes
 
         for ( int x = 0; x < mapImageWidth; x++ )
         {
@@ -294,7 +290,7 @@ namespace _048rtmontecarlo
 
         int red   = (int) ( ( relativeNormalVector.X + 1 ) * 127.5 );
         int green = (int) ( ( relativeNormalVector.Y + 1 ) * 127.5 );
-        int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 1275 ); //TODO: Change?
+        int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 1275 );
 
         return Color.FromArgb ( red, green, blue );
       }
