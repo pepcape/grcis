@@ -291,8 +291,8 @@ namespace MathSupport
       Vector4.Transform( ref vec, ref projInv, out vec );
       Vector4.Transform( ref vec, ref viewInv, out vec );
 
-      if ( vec.W > float.Epsilon ||
-           vec.W < float.Epsilon )
+      if ( vec.W >  float.Epsilon ||
+           vec.W < -float.Epsilon )
       {
         vec.X /= vec.W;
         vec.Y /= vec.W;
