@@ -585,7 +585,7 @@ namespace _048rtmontecarlo
         ImageHeight    = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
 
-        AdvancedToolsForm.instance?.SetNewDimensions ( form.ImageWidth, form.ImageHeight );
+        //AdvancedToolsForm.instance?.SetNewDimensions ( form.ImageWidth, form.ImageHeight );
       }
     }
 

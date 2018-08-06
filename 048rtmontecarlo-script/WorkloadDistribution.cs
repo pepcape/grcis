@@ -55,7 +55,7 @@ namespace Rendering
     {
       finishedAssignments = 0;
    
-      this.scene    = scene;
+      this.scene = scene;
       this.renderer = renderer;
       this.bitmap = bitmap;     
 
@@ -82,7 +82,7 @@ namespace Rendering
       {
         Thread newThread = new Thread ( Consume );
         newThread.Name = "RenderThread #" + i;
-        pool [ i ]         = newThread;
+        pool [ i ] = newThread;
         newThread.Start ();
       }
 
@@ -224,9 +224,9 @@ namespace Rendering
 
         for ( int y = y1; y < Math.Min ( y2, bitmap.Height ); y++ )
         {
-          for ( int x = x1; x < Math.Min ( x2, bitmap.Width ); x++ )
+          for ( int x = x1; x < x2; x++ )
           {
-            if ( !float.IsInfinity ( colorBuffer [ arrayPosition ] ) )  // positive infinity is indicator that color for this pixel is already present in bitmap and is final
+            if ( !float.IsInfinity ( colorBuffer [ arrayPosition ] ) && x < bitmap.Width )  // positive infinity is indicator that color for this pixel is already present in bitmap and is final
             {
               Color color = Color.FromArgb ( Math.Min ( (int) colorBuffer [ arrayPosition ], 255 ),
                                              Math.Min ( (int) colorBuffer [ arrayPosition + 1 ], 255 ),
@@ -534,12 +534,12 @@ namespace Rendering
       {
         for ( int x = x1; x <= x2; x += stride )
         {
-          // removes the need to make assignments of different sizes to accomodate bitmaps with sides indivisible by assignment size
-          if ( x >= bitmapWidth || y >= bitmapHeight )
-            continue;
+          double[] color      = new double[3];
+          float[]  floatColor = new float[3];
 
-          double[] color = new double[3];
-          float[] floatColor = new float[3];
+          // removes the need to make assignments of different sizes to accommodate bitmaps with sides indivisible by assignment size
+          if ( y >= bitmapHeight || x >= bitmapWidth )
+            break;       
 
           // prevents rendering of already rendered pixels
           if ( ( stride == 8 ||

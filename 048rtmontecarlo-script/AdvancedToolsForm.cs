@@ -120,6 +120,8 @@ namespace _048rtmontecarlo
 
       PictureBox pictureBox = panel.Controls.Find ( mapName + "PictureBox", true ).FirstOrDefault () as PictureBox;
       pictureBox.Image = ( map as IMap ).GetBitmap ();
+      pictureBox.Width = newWidth;
+      pictureBox.Height = newHeight;
 
       Button saveButton = panel.Controls.Find ( "Save" + mapName + "Button", true ).FirstOrDefault () as Button;
       saveButton.Enabled = true;
@@ -128,6 +130,8 @@ namespace _048rtmontecarlo
       SetTotalAndAverageAllRaysCount ();
     }
 
+    private int newWidth;
+    private int newHeight;
     /// <summary>
     /// Sets new dimensions for all PictureBoxes
     /// Called after dimensions of main image in Form1 are changed
@@ -136,15 +140,8 @@ namespace _048rtmontecarlo
     /// <param name="formImageHeight"></param>
     public void SetNewDimensions ( int formImageWidth, int formImageHeight )
     {
-      PrimaryRaysMapPictureBox.Width =
-        AllRaysMapPictureBox.Width =
-          DepthMapPictureBox.Width =
-            NormalMapRelativePictureBox.Width = formImageWidth;
-
-      PrimaryRaysMapPictureBox.Height =
-        AllRaysMapPictureBox.Height =
-          DepthMapPictureBox.Height =
-            NormalMapRelativePictureBox.Height = formImageHeight;
+      newWidth = formImageWidth;
+      newHeight = formImageHeight;
 
       AdvancedTools.instance.SetNewDimensions ( formImageWidth, formImageHeight ); //makes all maps to initialize again
     }
