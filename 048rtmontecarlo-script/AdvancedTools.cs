@@ -560,6 +560,9 @@ namespace _048rtmontecarlo
     {
       double colorValue = ( newValue - minValue ) / ( maxValue - minValue ) * 240;
 
+      if ( double.IsNaN ( colorValue ) )  // this happens in case minValue and maxValue are same
+        return Color.Red;
+
       return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
     }
 
