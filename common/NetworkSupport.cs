@@ -1,8 +1,12 @@
 using System;
 using System.Net.Sockets;
 using System.IO;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
+using System.Collections.Generic;
+using Rendering;
+
 
 public static class NetworkSupport
 {
@@ -14,7 +18,16 @@ public static class NetworkSupport
   public static void SendObject<T> ( T objectToSend, TcpClient client, NetworkStream stream )
   {
     BinaryFormatter formatter    = new BinaryFormatter ();
-    MemoryStream    memoryStream = new MemoryStream ();
+
+		//XmlSerializer formatter = new XmlSerializer(typeof(T));
+
+		//IExtendedXmlSerializer formatter = new ConfigurationContainer ().EnableImplicitTyping ().EnableReferences ().Create ();
+
+		formatter.Binder = new PreMergeToMergedDeserializationBinder ();
+
+	  //formatter.AssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple;
+
+		MemoryStream memoryStream = new MemoryStream ();
 
     formatter.Serialize ( memoryStream, objectToSend );
 
@@ -45,10 +58,17 @@ public static class NetworkSupport
     }
 
     MemoryStream    memoryStream = new MemoryStream ( receiveBuffer );
-    BinaryFormatter formatter    = new BinaryFormatter ();
-    memoryStream.Position = 0;
+	  BinaryFormatter formatter    = new BinaryFormatter ();
 
-    T receivedObject = (T) formatter.Deserialize ( memoryStream );
+		//XmlSerializer formatter = new XmlSerializer(typeof(T));
+	  //IExtendedXmlSerializer formatter = new ConfigurationContainer().Create();
+
+
+		memoryStream.Position = 0;
+
+    formatter.Binder = new PreMergeToMergedDeserializationBinder ();
+
+	  T receivedObject = (T)formatter.Deserialize ( memoryStream );
 
     return receivedObject;
   }
@@ -124,4 +144,61 @@ public static class NetworkSupport
       socket.Blocking = blockingState;
     }
   }
+
+	sealed class PreMergeToMergedDeserializationBinder : SerializationBinder
+	{
+		public override Type BindToType ( string assemblyName, string typeName )
+		{
+			string currentAssembly = Assembly.GetExecutingAssembly().FullName;
+
+			string typeToGet = String.Format ( "{0}, {1}", typeName, currentAssembly );
+
+			if ( typeToGet.Contains("LinkedList") )
+			{
+				if ( typeToGet.Contains ( "ILight" ) )
+				{
+					typeToGet = typeof ( LinkedList<ILightSource> ).AssemblyQualifiedName;
+        }
+				if ( typeToGet.Contains ( "CSGInnerNode" ) )
+				{
+					typeToGet = typeof ( LinkedList<CSGInnerNode> ).AssemblyQualifiedName;
+				}
+				if ( typeToGet.Contains ( "ISceneNode" ) )
+				{
+					typeToGet = typeof ( LinkedList<ISceneNode> ).AssemblyQualifiedName;
+				}
+      }
+
+			if ( typeToGet.Contains ( "Generic.Dictionary" ) )
+			{
+				typeToGet = typeof ( Dictionary<string, object> ).AssemblyQualifiedName;
+      }
+
+      // Get the type using the typeName and assemblyName
+      Type typeToDeserialize = Type.GetType ( typeToGet );
+
+			return typeToDeserialize;
+		}
+
+
+    /// <summary>
+    /// override BindToName in order to strip the assembly name. Setting assembly name to null does nothing.
+    /// </summary>
+    /// <param name="serializedType"></param>
+    /// <param name="assemblyName"></param>
+    /// <param name="typeName"></param>
+    public override void BindToName ( Type serializedType, out string assemblyName, out string typeName )
+		{
+			if ( serializedType.Assembly.ToString() == "048rtmontercarlo-script" )
+			{
+				assemblyName = "RenderClient";
+      }
+			else
+			{
+				assemblyName = null;
+      }
+
+			typeName = serializedType.FullName;
+		}
+	}
 }

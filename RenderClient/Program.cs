@@ -257,7 +257,7 @@ namespace RenderClient
 
       private Thread[] pool;
 
-      public ClientMaster ( Bitmap bitmap, IRayScene scene, IRenderer renderer ) : base ( bitmap, scene, renderer )
+      public ClientMaster ( Bitmap bitmap, IRayScene scene, IRenderer renderer ) : base ( bitmap, scene, renderer, null )
       {
         availableAssignments = new ConcurrentQueue<Assignment> ();
 

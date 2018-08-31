@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using System.Windows.Forms;
 
-namespace _048rtmontecarlo
+namespace Rendering
 {
   public partial class RenderClientsForm: Form
   {
@@ -55,56 +47,6 @@ namespace _048rtmontecarlo
       {
         e.Cancel = true;
         Hide ();
-      }
-    }
-  }
-
-
-  /// <summary>
-  /// Represents one render client - name and IPaddress got from clientsDataGrid
-  /// </summary>
-  public class Client
-  {
-    private string    name;
-    public  IPAddress address;
-
-    public string Name
-    {
-      get => name;
-      set => name = value;
-    }
-
-    public string AddressString
-    {
-      get => GetIPAddress ();
-      set => CheckAndSetIPAddress ( value );
-    } // string representation for the need of text in clientsDataGrid
-
-    private void CheckAndSetIPAddress ( string value )
-    {
-      bool isValidIP = IPAddress.TryParse ( value, out address );
-
-      if ( !isValidIP )
-      {
-        address = IPAddress.Parse ( "0.0.0.0" );
-        ;
-      }
-    }
-
-    private string GetIPAddress ()
-    {
-      if ( address == null )
-      {
-        return "";
-      }
-
-      if ( address.ToString () == "0.0.0.0" )
-      {
-        return "Invalid IP Address!";
-      }
-      else
-      {
-        return address.ToString ();
       }
     }
   }

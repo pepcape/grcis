@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace _048rtmontecarlo
+namespace Rendering
 {
   static class Program
   {

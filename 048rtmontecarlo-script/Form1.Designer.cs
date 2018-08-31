@@ -1,4 +1,4 @@
-﻿namespace _048rtmontecarlo
+﻿namespace Rendering
 {
   partial class Form1
   {

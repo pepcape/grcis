@@ -11,6 +11,21 @@
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -46,15 +61,23 @@
     <Reference Include="Microsoft.CodeAnalysis.Scripting">
       <HintPath>..\048rtmontecarlo-script\bin\Debug\Microsoft.CodeAnalysis.Scripting.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTK">
+    <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\OpenTK.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTK.GLControl">
+    <Reference Include="OpenTK.GLControl, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\OpenTK.GLControl.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Collections.Immutable.1.4.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Interactive, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>packages\System.Interactive.3.1.1\lib\net45\System.Interactive.dll</HintPath>
+    </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -64,17 +87,88 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\Construction.cs">
+      <Link>Construction.cs</Link>
+    </Compile>
+    <Compile Include="..\common\GeomSupport.cs">
+      <Link>GeomSupport.cs</Link>
+    </Compile>
+    <Compile Include="..\common\MathSupport.cs">
+      <Link>MathSupport.cs</Link>
+    </Compile>
+    <Compile Include="..\common\NetworkSupport.cs">
+      <Link>NetworkSupport.cs</Link>
+    </Compile>
+    <Compile Include="..\common\OpenglSupport.cs">
+      <Link>OpenglSupport.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RandomJames.cs">
+      <Link>RandomJames.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RayCastingBasic.cs">
+      <Link>RayCastingBasic.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RayCastingCommon.cs">
+      <Link>RayCastingCommon.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RayCastingRender.cs">
+      <Link>RayCastingRender.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RayCastingScene.cs">
+      <Link>RayCastingScene.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RayCastingScenes.cs">
+      <Link>RayCastingScenes.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RayCastingScripts.cs">
+      <Link>RayCastingScripts.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RayCastingSolids.cs">
+      <Link>RayCastingSolids.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RayTracingRender.cs">
+      <Link>RayTracingRender.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RayVisualizer.cs">
+      <Link>RayVisualizer.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RenderProgress.cs">
+      <Link>RenderProgress.cs</Link>
+    </Compile>
+    <Compile Include="..\common\Scene.cs">
+      <Link>Scene.cs</Link>
+    </Compile>
+    <Compile Include="..\common\Trackball.cs">
+      <Link>Trackball.cs</Link>
+    </Compile>
+    <Compile Include="..\common\Util.cs">
+      <Link>Util.cs</Link>
+    </Compile>
+    <Compile Include="..\common\WavefrontObj.cs">
+      <Link>WavefrontObj.cs</Link>
+    </Compile>
+    <Compile Include="..\common\WorkloadDistribution.cs">
+      <Link>WorkloadDistribution.cs</Link>
+    </Compile>
+    <Compile Include="AdvancedTools.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\048rtmontecarlo-script\048rtmontecarlo-script.csproj">
-      <Project>{613cb738-142d-499a-98bd-31f8aece7a5c}</Project>
-      <Name>048rtmontecarlo-script</Name>
-    </ProjectReference>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.7.1">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.7.1 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -122,6 +122,9 @@
     <Reference Include="System.Globalization.Calendars, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Globalization.Calendars.4.3.0\lib\net46\System.Globalization.Calendars.dll</HintPath>
     </Reference>
+    <Reference Include="System.Interactive, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>packages\System.Interactive.3.1.1\lib\net45\System.Interactive.dll</HintPath>
+    </Reference>
     <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>packages\System.IO.Compression.4.3.0\lib\net46\System.IO.Compression.dll</HintPath>
       <Private>True</Private>
@@ -173,9 +176,6 @@
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.ValueTuple.4.5.0-preview1-26216-02\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
-    <Reference Include="System.Xml.Linq">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
     <Reference Include="System.Data.DataSetExtensions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -198,6 +198,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\AdvancedTools.cs">
+      <Link>AdvancedTools.cs</Link>
+    </Compile>
+    <Compile Include="..\common\Construction.cs">
+      <Link>Construction.cs</Link>
+    </Compile>
     <Compile Include="..\common\FormResolution.cs">
       <Link>FormResolution.cs</Link>
       <SubType>Form</SubType>
@@ -241,6 +247,12 @@
     <Compile Include="..\common\RayTracingRender.cs">
       <Link>RayTracingRender.cs</Link>
     </Compile>
+    <Compile Include="..\common\RayVisualizer.cs">
+      <Link>RayVisualizer.cs</Link>
+    </Compile>
+    <Compile Include="..\common\RenderProgress.cs">
+      <Link>RenderProgress.cs</Link>
+    </Compile>
     <Compile Include="..\common\Scene.cs">
       <Link>Scene.cs</Link>
     </Compile>
@@ -253,8 +265,9 @@
     <Compile Include="..\common\WavefrontObj.cs">
       <Link>WavefrontObj.cs</Link>
     </Compile>
-    <Compile Include="AdvancedTools.cs" />
-    <Compile Include="Construction.cs" />
+    <Compile Include="..\common\WorkloadDistribution.cs">
+      <Link>WorkloadDistribution.cs</Link>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -275,22 +288,23 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RayVisualizer.cs" />
     <Compile Include="RenderClientsForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="RenderClientsForm.Designer.cs">
       <DependentUpon>RenderClientsForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="WorkloadDistribution.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="AdvancedToolsForm.resx">
       <DependentUpon>AdvancedToolsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="RayVisualizerForm.resx">
       <DependentUpon>RayVisualizerForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -304,6 +318,7 @@
     </Compile>
     <EmbeddedResource Include="RenderClientsForm.resx">
       <DependentUpon>RenderClientsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="app.config">
       <SubType>Designer</SubType>

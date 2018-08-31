@@ -323,13 +323,13 @@ namespace Rendering
     /// <summary>
     /// Delegate function for boolean operations
     /// </summary>
-    protected delegate bool BooleanOperation ( bool x, bool y );
-
+    //[Serializable]
+    //public delegate bool BooleanOperation ( bool x, bool y );
 
     /// <summary>
     /// Current boolean operation.
     /// </summary>
-    protected BooleanOperation bop;
+    protected Operation bop;
 
     /// <summary>
     /// Does empty left operand kill the result?
@@ -363,7 +363,7 @@ namespace Rendering
 
     public CSGInnerNode ( SetOperation op )
     {
-      switch ( op )
+      /*switch ( op )
       {
         case SetOperation.Intersection:
           bop = ( x, y ) => x && y;
@@ -378,20 +378,37 @@ namespace Rendering
         default:
           bop = ( x, y ) => x || y;
           break;
-      }
+      }*/
+
+	    switch ( op )
+	    {
+		    case SetOperation.Intersection:
+			    bop = new OperationIntersection ();
+			    break;
+		    case SetOperation.Difference:
+			    bop = new OperationDifference ();
+			    break;
+		    case SetOperation.Xor:
+			    bop = new OperationXor ();
+			    break;
+		    case SetOperation.Union:
+		    default:
+			    bop = new OperationUnion ();
+			    break;
+	    }
 
       // set accelerator flags:
-      shortCurcuit = !( bop ( false, false ) || bop ( false, true ) ); // does empty left operand kill the result?
-      trivial      = bop ( true, false ) && !bop ( false, false );     // empty right operand doesn't change anything..
+      shortCurcuit = !( bop.Result ( false, false ) || bop.Result ( false, true ) ); // does empty left operand kill the result?
+      trivial      = bop.Result ( true, false ) && !bop.Result ( false, false );     // empty right operand doesn't change anything..
     }
 
-    protected CSGInnerNode ( BooleanOperation _bop )
+    protected CSGInnerNode ( Operation _bop )
     {
       bop = _bop;
 
       // set accelerator flags:
-      shortCurcuit = !( bop ( false, false ) || bop ( false, true ) ); // does empty left operand kill the result?
-      trivial      = bop ( true, false ) && !bop ( false, false );     // empty right operand doesn't change anything..
+      shortCurcuit = !( bop.Result ( false, false ) || bop.Result ( false, true ) ); // does empty left operand kill the result?
+      trivial      = bop.Result ( true, false ) && !bop.Result ( false, false );     // empty right operand doesn't change anything..
     }
 
     /// <summary>
@@ -471,7 +488,7 @@ namespace Rendering
           // initial inside status values:
           bool insideLeft   = ( leftFirst != null && !leftFirst.Enter );
           bool insideRight  = ( rightFirst != null && !rightFirst.Enter );
-          bool insideResult = bop ( insideLeft, insideRight );
+          bool insideResult = bop.Result ( insideLeft, insideRight );
           // merge behavior:
           bool minLeft  = ( leftFirst != null && leftFirst.T == lowestT );
           bool minRight = ( rightFirst != null && rightFirst.T == lowestT );
@@ -503,7 +520,7 @@ namespace Rendering
               insideLeft = first.Enter;
             }
 
-            bool newResult = bop ( insideLeft, insideRight );
+            bool newResult = bop.Result ( insideLeft, insideRight );
 
             if ( newResult != insideResult )
             {
@@ -525,7 +542,7 @@ namespace Rendering
   /// <summary>
   /// Default scene class for ray-based rendering.
   /// </summary>
-  [Serializable]
+  [System.Serializable]
   public class DefaultRayScene: IRayScene
   {
     /// <summary>
@@ -653,4 +670,46 @@ namespace Rendering
       time  = 0.0;
     }
   }
+
+	[Serializable]
+  public abstract class Operation
+	{
+		public abstract bool Result (bool x, bool y);
+	}
+
+	[Serializable]
+  public class OperationUnion: Operation
+	{
+		public override bool Result ( bool x, bool y )
+		{
+			return x || y;
+		}
+	}
+
+	[Serializable]
+  public class OperationIntersection : Operation
+	{
+		public override bool Result ( bool x, bool y )
+		{
+			return x && y;
+		}
+	}
+
+	[Serializable]
+  public class OperationDifference : Operation
+	{
+		public override bool Result ( bool x, bool y )
+		{
+			return x && !y;
+		}
+	}
+
+	[Serializable]
+  public class OperationXor : Operation
+	{
+		public override bool Result ( bool x, bool y )
+		{
+			return x ^ y;
+		}
+	}
 }
