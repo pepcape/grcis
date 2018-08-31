@@ -17,17 +17,11 @@ public static class NetworkSupport
   /// <param name="objectToSend">Instance of actual object to send</param>
   public static void SendObject<T> ( T objectToSend, TcpClient client, NetworkStream stream )
   {
+	  MemoryStream memoryStream = new MemoryStream ();
     BinaryFormatter formatter    = new BinaryFormatter ();
 
-		//XmlSerializer formatter = new XmlSerializer(typeof(T));
-
-		//IExtendedXmlSerializer formatter = new ConfigurationContainer ().EnableImplicitTyping ().EnableReferences ().Create ();
-
-		formatter.Binder = new PreMergeToMergedDeserializationBinder ();
-
-	  //formatter.AssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple;
-
-		MemoryStream memoryStream = new MemoryStream ();
+	  if ( customBinder != null )
+		  formatter.Binder = customBinder;   
 
     formatter.Serialize ( memoryStream, objectToSend );
 
@@ -60,17 +54,22 @@ public static class NetworkSupport
     MemoryStream    memoryStream = new MemoryStream ( receiveBuffer );
 	  BinaryFormatter formatter    = new BinaryFormatter ();
 
-		//XmlSerializer formatter = new XmlSerializer(typeof(T));
-	  //IExtendedXmlSerializer formatter = new ConfigurationContainer().Create();
+	  if ( customBinder != null )
+		  formatter.Binder = customBinder;
+	  
 
-
-		memoryStream.Position = 0;
-
-    formatter.Binder = new PreMergeToMergedDeserializationBinder ();
+    memoryStream.Position = 0;    
 
 	  T receivedObject = (T)formatter.Deserialize ( memoryStream );
 
     return receivedObject;
+  }
+
+	private static CustomBinder customBinder = null;
+
+  public static void SetAssemblyNames ( string senderAssembly, string targetAssembly )
+  {
+	  customBinder = new CustomBinder ( senderAssembly, targetAssembly );
   }
 
   /// <summary>
@@ -145,36 +144,39 @@ public static class NetworkSupport
     }
   }
 
-	sealed class PreMergeToMergedDeserializationBinder : SerializationBinder
+	sealed class CustomBinder : SerializationBinder
 	{
-		public override Type BindToType ( string assemblyName, string typeName )
+		public CustomBinder ( string senderAssembly, string targetAssembly )
+		{
+			this.senderAssembly = senderAssembly;
+      this.targetAssembly = targetAssembly;			
+		}
+
+		private string senderAssembly;
+    private string targetAssembly;		
+
+    /// <summary>
+    /// Overrides BindToType in order to change the assembly name. Called by BinaryFormatter.
+    /// </summary>
+    /// <param name="assemblyName"></param>
+    /// <param name="typeName"></param>
+    /// <returns></returns>
+    public override Type BindToType ( string assemblyName, string typeName )
 		{
 			string currentAssembly = Assembly.GetExecutingAssembly().FullName;
 
 			string typeToGet = String.Format ( "{0}, {1}", typeName, currentAssembly );
 
-			if ( typeToGet.Contains("LinkedList") )
+			if ( typeToGet.Contains ( "`" ) )  //char ` is used in full type name of generic classes - they need special treatment when changing their assembly name 
 			{
-				if ( typeToGet.Contains ( "ILight" ) )
-				{
-					typeToGet = typeof ( LinkedList<ILightSource> ).AssemblyQualifiedName;
-        }
-				if ( typeToGet.Contains ( "CSGInnerNode" ) )
-				{
-					typeToGet = typeof ( LinkedList<CSGInnerNode> ).AssemblyQualifiedName;
-				}
-				if ( typeToGet.Contains ( "ISceneNode" ) )
-				{
-					typeToGet = typeof ( LinkedList<ISceneNode> ).AssemblyQualifiedName;
-				}
-      }
+				string temp = typeof ( LinkedList<ILightSource> ).AssemblyQualifiedName;
+        string systemAssembly = temp.Substring (temp.IndexOf(", System, Version=") + 2);
 
-			if ( typeToGet.Contains ( "Generic.Dictionary" ) )
-			{
-				typeToGet = typeof ( Dictionary<string, object> ).AssemblyQualifiedName;
-      }
+        typeToGet = String.Format ( "{0}, {1}", typeName, systemAssembly );
 
-      // Get the type using the typeName and assemblyName
+				typeToGet = typeToGet.Replace ("048rtmontecarlo-script", "RenderClient");
+			}			
+
       Type typeToDeserialize = Type.GetType ( typeToGet );
 
 			return typeToDeserialize;
@@ -182,16 +184,16 @@ public static class NetworkSupport
 
 
     /// <summary>
-    /// override BindToName in order to strip the assembly name. Setting assembly name to null does nothing.
+    /// Overrides BindToName in order to change the assembly name. Setting assembly name to null does nothing. Called by BinaryFormatter.
     /// </summary>
     /// <param name="serializedType"></param>
     /// <param name="assemblyName"></param>
     /// <param name="typeName"></param>
     public override void BindToName ( Type serializedType, out string assemblyName, out string typeName )
 		{
-			if ( serializedType.Assembly.ToString() == "048rtmontercarlo-script" )
+			if ( serializedType.Assembly.ToString() == senderAssembly )
 			{
-				assemblyName = "RenderClient";
+				assemblyName = targetAssembly;
       }
 			else
 			{

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using MathSupport;
@@ -323,6 +324,8 @@ namespace Rendering
     /// </summary>
     public void ExchangeNecessaryInfo ()
     {
+	    NetworkSupport.SetAssemblyNames ( Assembly.GetExecutingAssembly ().GetName ().Name, "RenderClient" );
+
       NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, client, stream );
 
       NetworkSupport.SendObject<IRenderer> ( Master.instance.renderer, client, stream );

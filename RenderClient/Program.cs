@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
 using Rendering;
 
@@ -144,7 +145,9 @@ namespace RenderClient
     /// Sends number of threads available at client to render
     /// </summary>
     private static void ExchangeNecessaryInfo ()
-    {     
+    {
+	    NetworkSupport.SetAssemblyNames ( "048rtmontecarlo-script", Assembly.GetExecutingAssembly ().GetName ().Name );
+
       scene = NetworkSupport.ReceiveObject<IRayScene> ( client, stream );
       Console.ForegroundColor = ConsoleColor.Green;
       Console.WriteLine ( "\nData for {0} received and deserialized.", typeof ( IRayScene ).Name );
