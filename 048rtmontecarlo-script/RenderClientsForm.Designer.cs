@@ -1,4 +1,4 @@
-﻿namespace _048rtmontecarlo
+﻿namespace Rendering
 {
 	partial class RenderClientsForm
 	{
@@ -49,7 +49,7 @@
 			// 
 			// renderClientsFormBindingSource
 			// 
-			this.renderClientsFormBindingSource.DataSource = typeof(_048rtmontecarlo.RenderClientsForm);
+			this.renderClientsFormBindingSource.DataSource = typeof(Rendering.RenderClientsForm);
 			// 
 			// RenderClientsForm
 			// 

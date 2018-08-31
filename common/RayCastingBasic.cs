@@ -579,6 +579,8 @@ namespace Rendering
       dy     =  -top * ( 2.0 * halfHeight / height );
     }
 
+    public StaticCamera () { }
+
     /// <summary>
     /// Initializing constructor, able to set all camera parameters.
     /// </summary>
@@ -649,9 +651,9 @@ namespace Rendering
     protected double[] intensity;
 
     /// <summary>
-    /// Monochromatic light source.
-    /// </summary>
-    public PointLightSource ( Vector3d pos, double intens )
+		/// Monochromatic light source.
+		/// </summary>
+		public PointLightSource ( Vector3d pos, double intens )
     {
       position  = pos;
       intensity = new double[] { intens, intens, intens };
@@ -694,7 +696,9 @@ namespace Rendering
 
     public Vector3d? position { get; set; }
 
-    public AmbientLightSource ( double intens )
+    public AmbientLightSource () { }
+
+		public AmbientLightSource ( double intens )
     {
       intensity = new double[] { intens, intens, intens };
     }

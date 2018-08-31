@@ -4,11 +4,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Reflection;
+using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
-using Rendering;
 
-namespace _048rtmontecarlo
+namespace Rendering
 {
   public class AdvancedTools
   {
@@ -23,6 +23,8 @@ namespace _048rtmontecarlo
     public DepthMap  depthMap;
     public NormalMap normalMapRelative;
     public NormalMap normalMapAbsolute;
+
+    public bool formActive;
 
     internal void Initialize ()
     {
@@ -52,9 +54,9 @@ namespace _048rtmontecarlo
     /// <param name="level">To differentiate between primary and all rays</param>
     /// <param name="rayOrigin">Origin of ray / Centre of camera</param>
     /// <param name="firstIntersection">First element of array of Intersections</param>
-    public void Register ( int level, Vector3d rayOrigin, Intersection firstIntersection )
+    public void Register ( int level, Vector3d rayOrigin, Rendering.Intersection firstIntersection )
     {
-      if ( AdvancedToolsForm.instance == null )
+      if ( !formActive )
         return;
 
       // Initial check for null references

@@ -6,7 +6,7 @@ using OpenTK;
 using Rendering;
 using Utilities;
 
-namespace _048rtmontecarlo
+namespace Rendering
 {
   public class FormSupport
   {

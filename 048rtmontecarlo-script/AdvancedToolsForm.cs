@@ -2,10 +2,9 @@
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using System.Reflection;
-using Rendering;
+using _048rtmontecarlo;
 
-namespace _048rtmontecarlo
+namespace Rendering
 {
   public partial class AdvancedToolsForm: Form
   {
@@ -24,6 +23,8 @@ namespace _048rtmontecarlo
       {
         AdvancedTools.instance = new AdvancedTools ();
       }
+
+			AdvancedTools.instance.formActive = true;
 
       InitializeComponent ();
 
@@ -60,13 +61,13 @@ namespace _048rtmontecarlo
 
     private void Form2_FormClosed ( object sender, FormClosedEventArgs e )
     {
-      System.Threading.SpinWait.SpinUntil ( () => !AdvancedTools
-                                                  .instance
-                                                  .isInMiddleOfRegistering ); // waiting for completion of registering current ray to maps
+      System.Threading.SpinWait.SpinUntil ( () => !AdvancedTools.instance.isInMiddleOfRegistering ); // waiting for completion of registering current ray to maps
 
       Form1.singleton.AdvancedToolsButton.Enabled = true;
 
-      instance = null;
+      AdvancedTools.instance.formActive = false;
+
+			instance = null;
     }
 
     /// <summary>

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using OpenTK;
 using MathSupport;
-using _048rtmontecarlo;
 
 namespace Rendering
 {
@@ -127,11 +125,6 @@ namespace Rendering
 
       RegisterRay ( level, p0, i, false ); // moved lower to also register rays for shadows
 
-      if ( level == 2 )
-      {
-        //Console.WriteLine("test");
-      }
-
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode ();
 
@@ -249,8 +242,7 @@ namespace Rendering
         if ( shadowRay )
         {
           RayVisualizer.instance?.RegisterShadowRay ( level, rayOrigin,
-                                                      intersection
-                                                       .CoordWorld ); // register shadow ray for RayVisualizer
+                                                      intersection.CoordWorld ); // register shadow ray for RayVisualizer
         }
         else
         {

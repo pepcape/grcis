@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
+using System.Windows.Forms;
 using MathSupport;
-using _048rtmontecarlo;
 
 namespace Rendering
 {
@@ -45,24 +41,22 @@ namespace Rendering
     public IRayScene scene;
     public IRenderer renderer;
 
-    /// <summary>
-    /// Constructor which takes also care of initializing assignments
-    /// </summary>
-    /// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
-    /// <param name="scene">Scene to render</param>
-    /// <param name="renderer">Rendered to use for RenderPixel method</param>
-    public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer )
+    private IEnumerable<Client> clientsCollection;
+
+	  /// <summary>
+  	/// Constructor which takes also care of initializing assignments
+  	/// </summary>
+	  /// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
+	  /// <param name="scene">Scene to render</param>
+	  /// <param name="renderer">Rendered to use for RenderPixel method</param>
+		public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer, IEnumerable<Client> clientsCollection )
     {
       finishedAssignments = 0;
    
       this.scene = scene;
       this.renderer = renderer;
-      this.bitmap = bitmap;     
-
-      if ( RenderClientsForm.instance == null )
-      {
-        RenderClientsForm.instance = new RenderClientsForm ();
-      }
+      this.bitmap = bitmap;
+      this.clientsCollection = clientsCollection;
 
       Assignment.assignmentSize = assignmentSize;
     }
@@ -190,9 +184,14 @@ namespace Rendering
     /// </summary>
     public void AssignNetworkWorkerToStream ()
     {
+      if ( clientsCollection == null )
+      {
+        return;
+      }
+
       networkWorkers = new List<NetworkWorker> ();
 
-      foreach ( Client client in RenderClientsForm.instance.clients )
+      foreach ( Client client in clientsCollection )
       {
         NetworkWorker newWorker = new NetworkWorker ( client.address );        
 
@@ -622,6 +621,50 @@ namespace Rendering
     private int PositionInArray ( int x, int y )
     {
       return ( ( y - y1 ) * assignmentSize + ( x - x1 ) ) * 3;
+    }
+  }
+
+  /// <summary>
+  /// Represents one render client - name and IPaddress got from clientsDataGrid
+  /// </summary>
+  public class Client
+  {
+		public  IPAddress address;
+
+		public string Name { get; set; }
+
+		public string AddressString
+    {
+      get => GetIPAddress ();
+      set => CheckAndSetIPAddress ( value );
+    } // string representation for the need of text in clientsDataGrid
+
+    private void CheckAndSetIPAddress ( string value )
+    {
+      bool isValidIP = IPAddress.TryParse ( value, out address );
+
+      if ( !isValidIP )
+      {
+        address = IPAddress.Parse ( "0.0.0.0" );
+        ;
+      }
+    }
+
+    private string GetIPAddress ()
+    {
+      if ( address == null )
+      {
+        return "";
+      }
+
+      if ( address.ToString () == "0.0.0.0" )
+      {
+        return "Invalid IP Address!";
+      }
+      else
+      {
+        return address.ToString ();
+      }
     }
   }
 }

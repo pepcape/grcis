@@ -11,10 +11,11 @@ using GuiSupport;
 using MathSupport;
 using Rendering;
 using Utilities;
+using _048rtmontecarlo;
 
-namespace _048rtmontecarlo
+namespace Rendering
 {
-  public partial class Form1: Form
+  public partial class Form1: Form, IRenderProgressForm
   {
     static readonly string rev = Util.SetVersion ( "$Rev$" );
 
@@ -66,43 +67,12 @@ namespace _048rtmontecarlo
     /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
     /// </summary>
-    protected Stopwatch sw = new Stopwatch ();
+    public Stopwatch sw = new Stopwatch ();
 
     /// <summary>
     /// Rendering master thread.
     /// </summary>
     protected Thread aThread = null;
-
-
-    [Serializable]
-    protected class RenderingProgress: Progress
-    {
-      protected long lastSync = 0L;
-
-      public void Reset ()
-      {
-        lastSync = 0L;
-      }
-
-      public override void Sync ( object msg )
-      {
-        long now = Form1.singleton.sw.ElapsedMilliseconds;
-        if ( now - lastSync < SyncInterval )
-          return;
-
-        lastSync = now;
-        Form1.singleton.SetText ( string.Format ( CultureInfo.InvariantCulture, "{0:f1}%:  {1:f1}s",
-                                                  100.0f * Finished, 1.0e-3 * now ) );
-        Bitmap b = msg as Bitmap;
-        if ( b != null )
-        {
-          Bitmap nb;
-          lock ( b )
-            nb = new Bitmap ( b );
-          Form1.singleton.SetImage ( nb );
-        }
-      }
-    }
 
 
     /// <summary>
@@ -363,7 +333,7 @@ namespace _048rtmontecarlo
       IImageFunction imf = getImageFunction ( sc, width, height );
       IRenderer      r   = getRenderer ( imf, width, height );
 
-      Master.instance              = new Master ( newImage, sc, r );
+      Master.instance              = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients );
       Master.instance.progressData = progress;
       Master.instance.InitializeAssignments ( newImage, sc, r );
 
@@ -428,7 +398,12 @@ namespace _048rtmontecarlo
     delegate void SetImageCallback ( Bitmap newImage );
 
 
-    protected void SetImage ( Bitmap newImage )
+    public Stopwatch GetStopwatch ()
+    {
+      return sw;
+    }
+
+    public void SetImage ( Bitmap newImage )
     {
       if ( pictureBox1.InvokeRequired )
       {
@@ -520,7 +495,7 @@ namespace _048rtmontecarlo
     {
       singleton = this;
       InitializeComponent ();
-      progress = new RenderingProgress ();
+      progress = new RenderingProgress ( this );
 
       // Init scenes etc.
       string name;
