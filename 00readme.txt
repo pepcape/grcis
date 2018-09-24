@@ -8,7 +8,7 @@ History of GrCis goes back to 2010.
 
 Supported courses
 -----------------
-* NPGR003: Computer Graphics I
+* NPGR003: Introduction to Computer Graphics
            http://cgg.mff.cuni.cz/lectures/npgr003.en.php
 
 * NPGR004: Computer Graphics II
@@ -17,7 +17,7 @@ Supported courses
 * NPGR007: Advanced 2D Computer Graphics
            http://cgg.mff.cuni.cz/lectures/npgr007.en.php
 
-* NPGR019: Hardware for Computer Graphics (partially)
+* NPGR019: Realtime Graphics on GPU  (partially)
            http://cgg.mff.cuni.cz/lectures/npgr019.en.php
 
 * NPGR023: Visualization (partially)

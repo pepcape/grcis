@@ -61,6 +61,7 @@
 111tree (spatial tree for 2D kNN, 2017)
 112dials (special segment display assembled from analog dials, 2017)
 113graph (R2->R graph in 3D using OpenGL, 2017)
+114transition (2D image -> 2D image transition, 2018)
 
 ================================================================================
   DONE:
