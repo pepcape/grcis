@@ -7,8 +7,6 @@ using System.Globalization;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using MathSupport;
-using OpenTK;
 using Utilities;
 
 namespace _114transition
@@ -17,15 +15,30 @@ namespace _114transition
   {
     static readonly string rev = Util.SetVersion( "$Rev$" );
 
+    /// <summary>
+    /// The output image has to be recalculated.
+    /// </summary>
     volatile bool transitionDirty = false;
+
+    /// <summary>
+    /// Input image No1. Can be null.
+    /// </summary>
     Bitmap inputImage1 = null;
+
+    /// <summary>
+    /// Input image No2. Can be null.
+    /// </summary>
     Bitmap inputImage2 = null;
+
+    /// <summary>
+    /// Output (computed) image.
+    /// </summary>
     Bitmap outputImage = null;
 
     /// <summary>
     /// Time parameter (0.0 to 1.0).
     /// </summary>
-    double time = 0.0;
+    double time = 0.5;
 
     string winTitle;
     ToolTip tt = new ToolTip();
@@ -36,23 +49,38 @@ namespace _114transition
 
       string param;
       string name;
-      Transition.InitParams( out param, out name );
+      Transition.InitParams( out name, out param );
       textParam.Text = param ?? "";
       winTitle = (Text += " (" + rev + ") '" + name + '\'');
 
       Application.Idle += new EventHandler( Application_Idle );
     }
 
+    /// <summary>
+    /// Not-null only during a computation.
+    /// </summary>
     protected Thread aThread = null;
 
+    /// <summary>
+    /// If set to false, computation should end ASAP.
+    /// </summary>
     volatile public static bool cont = true;
+
+    /// <summary>
+    /// Working instance of a Transition object.
+    /// </summary>
+    protected Transition tr = null;
+
+    protected void assertTransition ( int width, int height )
+    {
+      if ( tr == null )
+        tr = new Transition( width, height, textParam.Text );
+      else
+        tr.Reset( width, height, textParam.Text );
+    }
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
-      pictureBox1.Image = newImage;
-      if ( bakImage == newImage )
-        return;
-
       if ( bakImage != null )
         bakImage.Dispose();
       bakImage = newImage;
@@ -69,6 +97,7 @@ namespace _114transition
       }
       else
       {
+        pictureBox1.Image = newImage;
         setImage( ref outputImage, newImage );
         pictureBox1.Invalidate();
       }
@@ -89,11 +118,13 @@ namespace _114transition
 
     void SetGUI ( bool enable )
     {
-      trackBarExp.Enabled =
-      textParam.Enabled   =
-      buttonOpen2.Enabled =
-      buttonOpen1.Enabled = enable;
-      buttonStop.Enabled  = !enable;
+      trackBarTime.Enabled =
+      textParam.Enabled    =
+      buttonOpen2.Enabled  =
+      buttonOpen1.Enabled  = enable;
+      buttonSave.Enabled   = enable && outputImage != null;
+      buttonRun.Enabled    = enable && inputImage1 != null && inputImage2 != null;
+      buttonStop.Enabled   = !enable;
     }
 
     void setWindowTitle ( string suffix )
@@ -111,37 +142,24 @@ namespace _114transition
     /// <param name="y">Y-coordinate inside the raster image.</param>
     private void showPixel ( int x, int y )
     {
-      if ( inputImage1 == null ||
-           inputImage2 == null )
+      if ( outputImage == null )
       {
         setWindowTitle( null );
         return;
       }
 
       StringBuilder sb = new StringBuilder();
-      sb.Append( $" {inputImage1.Width} x {inputImage1.Height}", ,  );
-      if ( x >= 0 && x < inputImage1.Width &&
-           y >= 0 && y < inputImage1.Height )
+      sb.Append( $" {outputImage.Width} x {outputImage.Height}" );
+      if ( x >= 0 && x < outputImage.Width &&
+           y >= 0 && y < outputImage.Height )
       {
-        sb.Append( $": [{x},{y}]: " );
-        Color c = inputImage1.GetPixel( x, y );
+        sb.Append( $": [{x},{y}]:" );
+        Color c = outputImage.GetPixel( x, y );
         sb.Append( $" [{c.R},{c.G},{c.B}]" );
-        if ( inputImage2 != null &&
-             inputImage2.Width  == inputImage1.Width &&
-             inputImage2.Height == inputImage1.Height )
-        {
-          c = inputImage2.GetPixel( x, y );
-          sb.Append( $"--[{c.R},{c.G},{c.B}]" );
-        }
       }
 
       setWindowTitle( sb.ToString() );
     }
-
-    /// <summary>
-    /// Shared timer.
-    /// </summary>
-    static Stopwatch sw = new Stopwatch();
 
     /// <summary>
     /// Function called whenever the main application is idle..
@@ -165,20 +183,21 @@ namespace _114transition
       if ( p.Count > 0 )
       {
         // t=<float-number>
+        // Has priority over the trackBarTime!
         Util.TryParse( p, "t", ref time );
       }
 
-      time = Util.Clamp( time, 0.0, 1.0 );
-
-      sw.Restart();
-      outputImage = inputImage.Exposure( outputImage, exposure, gamma );
-      sw.Stop();
-      labelStatus.Text = string.Format( CultureInfo.InvariantCulture, "{0:f1} EV, exp: {1} ms",
-                                        contrast, sw.ElapsedMilliseconds );
-
-      setImage( ref outputImage, outputImage );
+      time = Util.Clamp( time, 0.0, 1.0 );    // to be sure
+      cont = true;
+      transition();
     }
 
+    /// <summary>
+    /// Accepts a new input image (either #1 or #2).
+    /// </summary>
+    /// <param name="fn">Image file full-path.</param>
+    /// <param name="firstImage">Use the 1st image?</param>
+    /// <returns>True if ok.</returns>
     private bool newImage ( string fn, bool firstImage )
     {
       Bitmap inp = null;
@@ -194,8 +213,10 @@ namespace _114transition
       if ( inp == null )
         return false;
 
-      pictureBox1.Image = null;
-      setImage( ref inputImage, inp );
+      if ( firstImage )
+        setImage( ref inputImage1, inp );
+      else
+        setImage( ref inputImage2, inp );
 
       recompute();
 
@@ -219,24 +240,27 @@ namespace _114transition
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      // Load HDR file
-      if ( ofd.FileName.EndsWith( ".hdr" ) ||
-           ofd.FileName.EndsWith( ".pic" ) )
-      {
-        LoadHDR( ofd.FileName, textParam.Text );
-        return;
-      }
-
-      // Load PFM file
-      if ( ofd.FileName.EndsWith( ".pfm" ) )
-      {
-        MessageBox.Show( string.Format( "PFM format is not implemented yet '{0}'", ofd.FileName ), "PFM load error" );
-      }
+      newImage( ofd.FileName, true );
     }
 
     private void buttonOpen2_Click ( object sender, EventArgs e )
     {
-      recompute();
+      OpenFileDialog ofd = new OpenFileDialog();
+
+      ofd.Title = "Open Image 1";
+      ofd.Filter = "Bitmap Files|*.bmp" +
+          "|Gif Files|*.gif" +
+          "|JPEG Files|*.jpg" +
+          "|PNG Files|*.png" +
+          "|TIFF Files|*.tif" +
+          "|All image types|*.bmp;*.gif;*.jpg;*.png;*.tif";
+
+      ofd.FilterIndex = 6;
+      ofd.FileName = "";
+      if ( ofd.ShowDialog() != DialogResult.OK )
+        return;
+
+      newImage( ofd.FileName, false );
     }
 
     delegate void StopComputationCallback ();
@@ -263,24 +287,86 @@ namespace _114transition
       }
     }
 
-    private void tonemap ()
+    /// <summary>
+    /// Computes image transition from inputImage* using text params from the form.
+    /// Puts result into the outputImage and displays it in the form.
+    /// </summary>
+    private void transition ()
     {
-      if ( inputImage != null )
+      if ( inputImage1 != null &&
+           inputImage2 != null )
       {
-        Stopwatch swt = new Stopwatch();
-        swt.Start();
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
 
-        Bitmap newImage = ToneMapping.ToneMap( inputImage, outputImage, textParam.Text );
+        // Do the transformation job.
+        int width  = Math.Min( inputImage1.Width, inputImage2.Width );
+        int height = Math.Min( inputImage1.Height, inputImage2.Height );
+        Bitmap nImage = new Bitmap( width, height, PixelFormat.Format24bppRgb );
+        time = Util.Clamp( time, 0.0, 1.0 );     // to be sure
+        assertTransition( width, height );
 
-        swt.Stop();
-        SetText( string.Format( CultureInfo.InvariantCulture, "tonemap: {0} ms",
-                                swt.ElapsedMilliseconds ) );
-        SetImage( newImage );
+        // Fast memory-mapped code.
+        PixelFormat iFormat1 = inputImage1.PixelFormat;
+        if ( !PixelFormat.Format24bppRgb.Equals( iFormat1 ) &&
+             !PixelFormat.Format32bppArgb.Equals( iFormat1 ) &&
+             !PixelFormat.Format32bppPArgb.Equals( iFormat1 ) &&
+             !PixelFormat.Format32bppRgb.Equals( iFormat1 ) )
+          iFormat1 = PixelFormat.Format24bppRgb;
+        PixelFormat iFormat2 = inputImage2.PixelFormat;
+        if ( !PixelFormat.Format24bppRgb.Equals( iFormat2 ) &&
+             !PixelFormat.Format32bppArgb.Equals( iFormat2 ) &&
+             !PixelFormat.Format32bppPArgb.Equals( iFormat2 ) &&
+             !PixelFormat.Format32bppRgb.Equals( iFormat2 ) )
+          iFormat2 = PixelFormat.Format24bppRgb;
+
+        int x, y;
+        BitmapData dataIn1 = inputImage1.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, iFormat1 );
+        BitmapData dataIn2 = inputImage2.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, iFormat2 );
+        BitmapData dataOut = nImage.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb );
+        unsafe
+        {
+          byte* iptr1, iptr2, optr;
+          int dI1 = Image.GetPixelFormatSize( iFormat1 ) / 8;
+          int dI2 = Image.GetPixelFormatSize( iFormat2 ) / 8;
+          int dO = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;
+
+          for ( y = 0; y < height; y++ )
+          {
+            if ( !cont ) break;
+
+            iptr1 = (byte*)dataIn1.Scan0 + y * dataIn1.Stride;
+            iptr2 = (byte*)dataIn2.Scan0 + y * dataIn2.Stride;
+            optr  = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+
+            for ( x = 0; x < width; x++, iptr1 += dI1, iptr2 += dI2, optr += dO )
+            {
+              double t  = tr.BlendingFunction( time, x, y );
+              double t1 = 1.0 - t;
+
+              // Linear blend of two input pixels (three components = R,G,B).
+              optr[ 0 ] = (byte)Math.Round( t1 * iptr1[ 0 ] + t * iptr2[ 0 ] );
+              optr[ 1 ] = (byte)Math.Round( t1 * iptr1[ 1 ] + t * iptr2[ 1 ] );
+              optr[ 2 ] = (byte)Math.Round( t1 * iptr1[ 2 ] + t * iptr2[ 2 ] );
+            }
+          }
+        }
+        nImage.UnlockBits( dataOut );
+        inputImage1.UnlockBits( dataIn1 );
+        inputImage2.UnlockBits( dataIn2 );
+
+        sw.Stop();
+        SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0} ms",
+                                sw.ElapsedMilliseconds ) );
+        SetImage( nImage );
       }
 
       StopComputation();
     }
 
+    /// <summary>
+    /// Recomputes the outputImage in a separate thread.
+    /// </summary>
     private void recompute ()
     {
       if ( aThread != null )
@@ -289,10 +375,13 @@ namespace _114transition
       SetGUI( false );
       cont = true;
 
-      aThread = new Thread( new ThreadStart( tonemap ) );
+      aThread = new Thread( new ThreadStart( transition ) );
       aThread.Start();
     }
 
+    /// <summary>
+    /// Saves the output image (if ready).
+    /// </summary>
     private void buttonSave_Click ( object sender, EventArgs e )
     {
       if ( outputImage == null ) return;
@@ -315,29 +404,24 @@ namespace _114transition
 
     private void changeLabelExp ()
     {
-      // extended log2 scale
-      double aveLog2 = 0.5 * (minLog2 + maxLog2);
-      exposure = aveLog2 + (contrast + EXTENDED_CONTRAST) * ( (trackBarExp.Value - trackBarExp.Minimum) / (double)(trackBarExp.Maximum - trackBarExp.Minimum) - 0.5 );
-      labelExpValue.Text = string.Format( CultureInfo.InvariantCulture, "{0:f1} EV", exposure );
-
-      // multiplication coefficient:
-      exposure = Math.Pow( 2.0, exposure - aveLog2 );
+      time = (trackBarTime.Value - trackBarTime.Minimum) / (double)(trackBarTime.Maximum - trackBarTime.Minimum);
+      labelTimeValue.Text = string.Format( CultureInfo.InvariantCulture, "{0:f2}", time );
     }
 
-    private void trackBarExp_ValueChanged ( object sender, EventArgs e )
+    private void trackBarTime_ValueChanged ( object sender, EventArgs e )
     {
       changeLabelExp();
-      exposureDirty = true;
+      transitionDirty = true;
     }
 
     private void placeLabelExp ()
     {
-      Point old = labelExpValue.Location;
-      int half = labelExpValue.Size.Width / 2;
-      int barLocCenter = trackBarExp.Location.X + trackBarExp.Size.Width / 2;
+      Point old = labelTimeValue.Location;
+      int half = labelTimeValue.Size.Width / 2;
+      int barLocCenter = trackBarTime.Location.X + trackBarTime.Size.Width / 2;
       old.X = barLocCenter - half;
-      old.Y = trackBarExp.Location.Y + 30;
-      labelExpValue.Location = old;
+      old.Y = trackBarTime.Location.Y + 30;
+      labelTimeValue.Location = old;
     }
 
     private void Form1_SizeChanged ( object sender, EventArgs e )
@@ -359,8 +443,13 @@ namespace _114transition
 
     private void labelStatus_MouseHover ( object sender, EventArgs e )
     {
-      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector2 ) ),
+      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + ")",
                (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    private void buttonRun_Click ( object sender, EventArgs e )
+    {
+      transitionDirty = true;
     }
   }
 }
