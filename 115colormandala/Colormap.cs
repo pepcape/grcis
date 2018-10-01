@@ -1,5 +1,8 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using MathSupport;
+using Utilities;
 
 namespace _115colormandala
 {
@@ -8,51 +11,79 @@ namespace _115colormandala
     /// <summary>
     /// Form data initialization.
     /// </summary>
-    public static void InitForm ( out string author )
+    /// <param name="name">Your first-name and last-name.</param>
+    /// <param name="param">Optional text to initialize the form's text-field.</param>
+    public static void InitParams ( out string name, out string param, out string tooltip )
     {
-      author = "Josef Pelikán";
+      // {{
+      name = "Josef Pelikán";
+      param = "";
+      tooltip = "base=[R;G;B], minS=<double>, minV=<byte>";
+      // }}
     }
 
     /// <summary>
-    /// Generate a colormap based on input image.
+    /// Generate a cyclic colormap.
     /// </summary>
-    /// <param name="input">Input raster image.</param>
     /// <param name="numCol">Required colormap size (ignore it if you must).</param>
     /// <param name="colors">Output palette (array of colors).</param>
-    public static void Generate ( Bitmap input, int numCol, out Color[] colors )
+    /// <param name="param">Optional string parameter (its content and format is entierely up to you).</param>
+    public static void Generate ( int numCol, out Color[] colors, string param )
     {
-      // !!!{{ TODO - generate custom palette based on the given image
+      // {{ TODO - generate custom palette based on the given image
 
-      int width  = input.Width;
-      int height = input.Height;
+      // Base color, the whole colormap will have the same Hue.
+      List<int> baseColor = new List<int> { 40, 200, 0 };
 
-      colors = new Color[ numCol ];            // accepting the required palette size..
+      // Minimum saturation (maximum saturation will be 1.0).
+      double minSat = 0.2;
 
-      colors[ 0 ] = input.GetPixel( 0, 0 );    // upper left image corner
+      // Minimum value (maximum value will be 255).
+      int minVal = 32;
 
-      double H, S, V;
-      Color center = input.GetPixel( width / 2, height / 2 ); // image center
-      Arith.ColorToHSV( center, out H, out S, out V );
-      if ( S > 1.0e-3 )
-        colors[ numCol - 1 ] = Arith.HSVToColor( H, 1.0, 1.0 ); // non-monochromatic color => using Hue only
-      else
-        colors[ numCol - 1 ] = center;                          // monochromatic color => using it directly
-
-      // color-ramp linear interpolation:
-      float r = colors[ 0 ].R;
-      float g = colors[ 0 ].G;
-      float b = colors[ 0 ].B;
-      float dr = (colors[ numCol - 1 ].R - r) / (numCol - 1.0f);
-      float dg = (colors[ numCol - 1 ].G - g) / (numCol - 1.0f);
-      float db = (colors[ numCol - 1 ].B - b) / (numCol - 1.0f);
-
-      for ( int i = 1; i < numCol; i++ )
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+      if ( p.Count > 0 )
       {
-        r += dr; g += dg; b += db;
-        colors[ i ] = Color.FromArgb( (int)r, (int)g, (int)b );
+        // Base color.
+        // base=[R;G;B]
+        if ( Util.TryParse( p, "base", ref baseColor, ';' ) )
+          while ( baseColor.Count < 3 )
+            baseColor.Add( 0 );
+
+        // Minimum saturation.
+        // minS=<double>
+        if ( Util.TryParse( p, "minS", ref minSat ) )
+          minSat = Util.Clamp( minSat, 0.0, 1.0 );
+
+        // Minimum value.
+        // minV=<int>
+        if ( Util.TryParse( p, "minV", ref minVal ) )
+          minVal = Util.Clamp( minVal, 0, 255 );
+
+        // ... you can add more parameters here ...
       }
 
-      // !!!}}
+      colors = new Color[ numCol ];                   // accepting the required palette size..
+
+      double H, S, V;
+      Arith.ColorToHSV( Color.FromArgb( baseColor[ 0 ], baseColor[ 1 ], baseColor[ 2 ] ), out H, out S, out V );
+      // Only Hue (H) will be used..
+
+      double a = 0.0;
+      double da = 2.0 * Math.PI / numCol;
+      double Vmean = 0.5 * (1.0 + minVal / 255.0);    // V must be in the [0, 1] domain for the Arith.HSVToColor() function
+      double Vamplitude = 1.0 - Vmean;
+      double Smean = 0.5 * (1.0 + minSat);
+      double Samplitude = 1.0 - Smean;
+
+      for ( int i = 0; i < numCol; i++, a += da )
+      {
+        S = Smean + Samplitude * Math.Sin( a );
+        V = Vmean + Vamplitude * Math.Cos( a );
+        colors[ i ] = Arith.HSVToColor( H, S, V );
+      }
+
+      // }}
     }
   }
 }

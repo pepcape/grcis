@@ -47,8 +47,8 @@ namespace _114transition
     {
       InitializeComponent();
 
-      string param;
       string name;
+      string param;
       Transition.InitParams( out name, out param );
       textParam.Text = param ?? "";
       winTitle = (Text += " (" + rev + ") '" + name + '\'');
