@@ -117,9 +117,19 @@ namespace _114transition
       // !!! TODO: modify this function if you will be using morphing !!!
 
       // Default implementation - blending.
-      srcX1 = srcX2 = x;
-      srcY1 = srcY2 = y;
-      blend = Util.Clamp( t, 0.0, 1.0 );
+      srcX1 = x;
+      srcY1 = y;
+
+      srcX2 = x + (1.0 - t) * width;
+      srcY2 = y;
+
+      if ( srcX2 >= width )
+      {
+        srcX2 = width - 1;
+        blend = 0.0;
+      }
+      else
+        blend = 1.0;
 
       // }}
     }

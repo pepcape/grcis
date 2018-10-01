@@ -321,6 +321,8 @@ namespace _114transition
           iFormat2 = PixelFormat.Format24bppRgb;
 
         int x, y;
+        double x1, y1, x2, y2, t, t1;
+        int ix, iy;
         BitmapData dataIn1 = inputImage1.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, iFormat1 );
         BitmapData dataIn2 = inputImage2.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, iFormat2 );
         BitmapData dataOut = nImage.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb );
@@ -329,25 +331,51 @@ namespace _114transition
           byte* iptr1, iptr2, optr;
           int dI1 = Image.GetPixelFormatSize( iFormat1 ) / 8;
           int dI2 = Image.GetPixelFormatSize( iFormat2 ) / 8;
-          int dO = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;
+          int dO  = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;
 
           for ( y = 0; y < height; y++ )
           {
             if ( !cont ) break;
 
-            iptr1 = (byte*)dataIn1.Scan0 + y * dataIn1.Stride;
-            iptr2 = (byte*)dataIn2.Scan0 + y * dataIn2.Stride;
-            optr  = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+            optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
 
-            for ( x = 0; x < width; x++, iptr1 += dI1, iptr2 += dI2, optr += dO )
+            if ( tr.UseMorphing() )
             {
-              double t  = tr.BlendingFunction( time, x, y );
-              double t1 = 1.0 - t;
+              // Geometric transform + blending.
+              for ( x = 0; x < width; x++, optr += dO )
+              {
+                tr.MorphingFunction( time, x, y, out x1, out y1, out x2, out y2, out t );
+                t1 = 1.0 - t;
 
-              // Linear blend of two input pixels (three components = R,G,B).
-              optr[ 0 ] = (byte)Math.Round( t1 * iptr1[ 0 ] + t * iptr2[ 0 ] );
-              optr[ 1 ] = (byte)Math.Round( t1 * iptr1[ 1 ] + t * iptr2[ 1 ] );
-              optr[ 2 ] = (byte)Math.Round( t1 * iptr1[ 2 ] + t * iptr2[ 2 ] );
+                ix = Util.Clamp( (int)Math.Round( x1 ), 0, width - 1 );
+                iy = Util.Clamp( (int)Math.Round( y1 ), 0, height - 1 );
+                iptr1 = (byte*)dataIn1.Scan0 + iy * dataIn1.Stride + ix * dI1;
+                ix = Util.Clamp( (int)Math.Round( x2 ), 0, width - 1 );
+                iy = Util.Clamp( (int)Math.Round( y2 ), 0, height - 1 );
+                iptr2 = (byte*)dataIn2.Scan0 + iy * dataIn2.Stride + ix * dI2;
+
+                // Linear blend of two input pixels (three components = R,G,B).
+                optr[ 0 ] = (byte)Math.Round( t1 * iptr1[ 0 ] + t * iptr2[ 0 ] );
+                optr[ 1 ] = (byte)Math.Round( t1 * iptr1[ 1 ] + t * iptr2[ 1 ] );
+                optr[ 2 ] = (byte)Math.Round( t1 * iptr1[ 2 ] + t * iptr2[ 2 ] );
+              }
+            }
+            else
+            {
+              // Simple blending w/o geometric transform.
+              iptr1 = (byte*)dataIn1.Scan0 + y * dataIn1.Stride;
+              iptr2 = (byte*)dataIn2.Scan0 + y * dataIn2.Stride;
+
+              for ( x = 0; x < width; x++, iptr1 += dI1, iptr2 += dI2, optr += dO )
+              {
+                t = tr.BlendingFunction( time, x, y );
+                t1 = 1.0 - t;
+
+                // Linear blend of two input pixels (three components = R,G,B).
+                optr[ 0 ] = (byte)Math.Round( t1 * iptr1[ 0 ] + t * iptr2[ 0 ] );
+                optr[ 1 ] = (byte)Math.Round( t1 * iptr1[ 1 ] + t * iptr2[ 1 ] );
+                optr[ 2 ] = (byte)Math.Round( t1 * iptr1[ 2 ] + t * iptr2[ 2 ] );
+              }
             }
           }
         }
@@ -450,6 +478,15 @@ namespace _114transition
     private void buttonRun_Click ( object sender, EventArgs e )
     {
       transitionDirty = true;
+    }
+
+    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        transitionDirty = true;
+      }
     }
   }
 }
