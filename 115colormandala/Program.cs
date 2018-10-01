@@ -1,67 +1,81 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using MathSupport;
 
 namespace _115colormandala
 {
   [Designer( "System.Windows.Forms.Design.PictureBoxDesigner, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" )]
   public class MyBox : PictureBox
   {
+    protected int xy1, xy2, size1, size2;
+    protected int r1, r2, cxy;
+
+    protected void FillSlice ( Graphics g, Color c, float angle, float width )
+    {
+      Brush b = new SolidBrush( c );
+      GraphicsPath p = new GraphicsPath();
+      p.AddArc( xy1, xy1, size1, size1, angle, width );
+      double sina = Math.Sin( Arith.DegreeToRadian( angle + width ) );
+      double cosa = Math.Cos( Arith.DegreeToRadian( angle + width ) );
+      p.AddLine( (float)(cxy + r1 * cosa),
+                 (float)(cxy + r1 * sina),
+                 (float)(cxy + r2 * cosa),
+                 (float)(cxy + r2 * sina) );
+      p.AddArc( xy2, xy2, size2, size2, angle + width, -width );
+      p.CloseFigure();
+      g.FillPath( b, p );
+    }
+
     protected override void OnPaint ( PaintEventArgs pe )
     {
-      if ( Form1.colors == null ) return;
+      if ( Form1.colors == null ||
+           Form1.colors.Length < 2 ) return;
 
       // Get the graphics object
       Graphics gfx = pe.Graphics;
 
-      int width = this.Size.Width;
-      int height = this.Size.Height;
-      int stripes = Form1.colors.Length;
-      int stripHeight = height / stripes;
-      int columnWidth = width / stripes;
-      int y = 0;
+      int width = Size.Width;
+      int height = Size.Height;
+      int segments = Math.Min(Form1.colors.Length, 50);
 
-      // 1. create color brushes:
-      Brush[] brushes = new Brush[ stripes ];
-      for ( int i = 0; i < stripes; i++ )
-        brushes[ i ] = new SolidBrush( Form1.colors[ i ] );
-      Brush brBlack = new SolidBrush( Color.Black );
       Brush brWhite = new SolidBrush( Color.White );
+      gfx.FillRectangle( brWhite, 0, 0, width, height );
 
-      // 2. draw color stripes:
-      Font myFont = new System.Drawing.Font( "Helvetica", 10, FontStyle.Regular );
-      for ( int i = 0; i < stripes; i++, y += stripHeight )
-      {
-        gfx.FillRectangle( brushes[ i ], 0, y, width, stripHeight );
-        for ( int j = 0; j < stripes; j++ )
-          gfx.DrawString( "test", myFont, brushes[ j ], 4 + j * columnWidth, y + 4 );
-        gfx.DrawString( Form1.color2string( Form1.colors[ i ] ),
-                        myFont, Form1.colors[ i ].GetBrightness() < 0.5f ? brWhite : brBlack,
-                        12, y + stripHeight - 20 );
-      }
-    }
-  }
+      // Outer perimeter.
+      xy1 = 10;
+      size1 = Math.Min(width, height) - 2 * xy1;
+      r1 = size1 / 2;
+      cxy = xy1 + r1;
 
-  [Designer( "System.Windows.Forms.Design.PictureBoxDesigner, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" )]
-  public class BaseBox : PictureBox
-  {
-    public Color color
-    {
-      get;
-      set;
-    }
+      // Inner perimeter.
+      size2 = (2 * size1) / 3;
+      r2 = size2 / 2;
+      xy2 = xy1 + (size1 - size2) / 2;
 
-    protected override void OnPaint ( PaintEventArgs pe )
-    {
-      Graphics gfx = pe.Graphics;
+      const float GAP = 2.5f;
+      float dangle = (float)(360.0 / segments);
+      float wangle = dangle - Math.Max(GAP, dangle * 0.12f);
+      float angle = 0.5f * (dangle - wangle);
 
-      int width = this.Size.Width;
-      int height = this.Size.Height;
+      for ( int i = 0; i < segments; i++, angle += dangle )
+        FillSlice( gfx, Form1.colors[ i ], angle, wangle );
 
-      Brush brush = new SolidBrush( color );
+      // cxy remains the same.
+      size1 = size2 - 20;
+      r1 = size1 / 2;
+      xy1 = xy2 + (size2 - size1) / 2;
 
-      gfx.FillRectangle( brush, 0, 0, width, height );
+      // New inner perimeter.
+      size2 = size1 / 2;
+      r2 = size2 / 2;
+      xy2 = xy1 + (size1 - size2) / 2;
+
+      angle = 0.5f * (2.0f * dangle - wangle);
+      for ( int i = segments; --i >= 0; angle += dangle )
+        FillSlice( gfx, Form1.colors[ i ], angle, wangle );
     }
   }
 

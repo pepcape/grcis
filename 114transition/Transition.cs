@@ -7,10 +7,10 @@ namespace _114transition
   public class Transition
   {
     /// <summary>
-    /// Form initialization.
+    /// Form data initialization.
     /// </summary>
     /// <param name="name">Your first-name and last-name.</param>
-    /// <param name="param">Optinal text to initialize the form's text-field.</param>
+    /// <param name="param">Optional text to initialize the form's text-field.</param>
     public static void InitParams ( out string name, out string param )
     {
       // {{
