@@ -110,6 +110,7 @@
       this.textParam.Name = "textParam";
       this.textParam.Size = new System.Drawing.Size(235, 20);
       this.textParam.TabIndex = 3;
+      this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
       // 
       // buttonStop
       // 

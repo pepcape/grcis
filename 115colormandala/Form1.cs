@@ -20,7 +20,14 @@ namespace _115colormandala
     /// </summary>
     public static int numCol = 10;
 
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
     string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
     ToolTip tt = new ToolTip();
 
     public Form1 ()
@@ -62,6 +69,15 @@ namespace _115colormandala
     private void textParam_MouseHover ( object sender, EventArgs e )
     {
       tt.Show( tooltip, (IWin32Window)sender, 10, -25, 2000 );
+    }
+
+    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        recompute();
+      }
     }
   }
 }

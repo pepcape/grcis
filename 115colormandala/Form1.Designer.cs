@@ -79,6 +79,7 @@
       this.textParam.Name = "textParam";
       this.textParam.Size = new System.Drawing.Size(235, 20);
       this.textParam.TabIndex = 1;
+      this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
       this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
       // 
       // label1
