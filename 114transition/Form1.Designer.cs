@@ -78,9 +78,10 @@
       this.buttonOpen1.Name = "buttonOpen1";
       this.buttonOpen1.Size = new System.Drawing.Size(85, 23);
       this.buttonOpen1.TabIndex = 1;
-      this.buttonOpen1.Text = "Load image 1";
+      this.buttonOpen1.Text = "Image 1";
       this.buttonOpen1.UseVisualStyleBackColor = true;
       this.buttonOpen1.Click += new System.EventHandler(this.buttonOpen1_Click);
+      this.buttonOpen1.MouseHover += new System.EventHandler(this.buttonOpen1_MouseHover);
       // 
       // label1
       // 
@@ -99,9 +100,10 @@
       this.buttonOpen2.Name = "buttonOpen2";
       this.buttonOpen2.Size = new System.Drawing.Size(85, 23);
       this.buttonOpen2.TabIndex = 4;
-      this.buttonOpen2.Text = "Load image 2";
+      this.buttonOpen2.Text = "Image 2";
       this.buttonOpen2.UseVisualStyleBackColor = true;
       this.buttonOpen2.Click += new System.EventHandler(this.buttonOpen2_Click);
+      this.buttonOpen2.MouseHover += new System.EventHandler(this.buttonOpen2_MouseHover);
       // 
       // textParam
       // 
@@ -111,6 +113,7 @@
       this.textParam.Size = new System.Drawing.Size(235, 20);
       this.textParam.TabIndex = 3;
       this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
+      this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
       // 
       // buttonStop
       // 

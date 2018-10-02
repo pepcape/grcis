@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Utilities;
 
@@ -40,7 +42,24 @@ namespace _114transition
     /// </summary>
     double time = 0.5;
 
+    /// <summary>
+    /// Use parallel computation?
+    /// </summary>
+    bool par = true;
+
+    /// <summary>
+    /// Cached window title.
+    /// </summary>
     string winTitle;
+
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
+    string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
     ToolTip tt = new ToolTip();
 
     public Form1 ()
@@ -49,7 +68,7 @@ namespace _114transition
 
       string name;
       string param;
-      Transition.InitParams( out name, out param );
+      Transition.InitParams( out name, out param, out tooltip );
       textParam.Text = param ?? "";
       winTitle = (Text += " (" + rev + ") '" + name + '\'');
 
@@ -185,6 +204,10 @@ namespace _114transition
         // t=<float-number>
         // Has priority over the trackBarTime!
         Util.TryParse( p, "t", ref time );
+
+        // par=<bool>
+        // use Parallel.For?
+        Util.TryParse( p, "par", ref par );
       }
 
       time = Util.Clamp( time, 0.0, 1.0 );    // to be sure
@@ -214,20 +237,26 @@ namespace _114transition
         return false;
 
       if ( firstImage )
+      {
+        buttonOpen1.Text = Path.GetFileName( fn );
         setImage( ref inputImage1, inp );
+      }
       else
+      {
+        buttonOpen2.Text = Path.GetFileName( fn );
         setImage( ref inputImage2, inp );
+      }
 
       recompute();
 
       return true;
     }
 
-    private void buttonOpen1_Click ( object sender, EventArgs e )
+    private void fileOpen ( bool firstImage )
     {
       OpenFileDialog ofd = new OpenFileDialog();
 
-      ofd.Title = "Open Image 1";
+      ofd.Title = $"Open Image {(firstImage ? 1 : 2)}";
       ofd.Filter = "Bitmap Files|*.bmp" +
           "|Gif Files|*.gif" +
           "|JPEG Files|*.jpg" +
@@ -240,27 +269,17 @@ namespace _114transition
       if ( ofd.ShowDialog() != DialogResult.OK )
         return;
 
-      newImage( ofd.FileName, true );
+      newImage( ofd.FileName, firstImage );
+    }
+
+    private void buttonOpen1_Click ( object sender, EventArgs e )
+    {
+      fileOpen( true );
     }
 
     private void buttonOpen2_Click ( object sender, EventArgs e )
     {
-      OpenFileDialog ofd = new OpenFileDialog();
-
-      ofd.Title = "Open Image 1";
-      ofd.Filter = "Bitmap Files|*.bmp" +
-          "|Gif Files|*.gif" +
-          "|JPEG Files|*.jpg" +
-          "|PNG Files|*.png" +
-          "|TIFF Files|*.tif" +
-          "|All image types|*.bmp;*.gif;*.jpg;*.png;*.tif";
-
-      ofd.FilterIndex = 6;
-      ofd.FileName = "";
-      if ( ofd.ShowDialog() != DialogResult.OK )
-        return;
-
-      newImage( ofd.FileName, false );
+      fileOpen( false );
     }
 
     delegate void StopComputationCallback ();
@@ -320,29 +339,29 @@ namespace _114transition
              !PixelFormat.Format32bppRgb.Equals( iFormat2 ) )
           iFormat2 = PixelFormat.Format24bppRgb;
 
-        int x, y;
-        double x1, y1, x2, y2, t, t1;
-        int ix, iy;
         BitmapData dataIn1 = inputImage1.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, iFormat1 );
         BitmapData dataIn2 = inputImage2.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.ReadOnly, iFormat2 );
         BitmapData dataOut = nImage.LockBits( new Rectangle( 0, 0, width, height ), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb );
         unsafe
         {
-          byte* iptr1, iptr2, optr;
           int dI1 = Image.GetPixelFormatSize( iFormat1 ) / 8;
           int dI2 = Image.GetPixelFormatSize( iFormat2 ) / 8;
           int dO  = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;
 
-          for ( y = 0; y < height; y++ )
+          Action<int> body = y =>
           {
-            if ( !cont ) break;
+            if ( !cont ) return;
+
+            double x1, y1, x2, y2, t, t1;
+            int ix, iy;
+            byte* iptr1, iptr2, optr;
 
             optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
 
             if ( tr.UseMorphing() )
             {
               // Geometric transform + blending.
-              for ( x = 0; x < width; x++, optr += dO )
+              for ( int x = 0; x < width; x++, optr += dO )
               {
                 tr.MorphingFunction( time, x, y, out x1, out y1, out x2, out y2, out t );
                 t1 = 1.0 - t;
@@ -366,7 +385,7 @@ namespace _114transition
               iptr1 = (byte*)dataIn1.Scan0 + y * dataIn1.Stride;
               iptr2 = (byte*)dataIn2.Scan0 + y * dataIn2.Stride;
 
-              for ( x = 0; x < width; x++, iptr1 += dI1, iptr2 += dI2, optr += dO )
+              for ( int x = 0; x < width; x++, iptr1 += dI1, iptr2 += dI2, optr += dO )
               {
                 t = tr.BlendingFunction( time, x, y );
                 t1 = 1.0 - t;
@@ -377,7 +396,13 @@ namespace _114transition
                 optr[ 2 ] = (byte)Math.Round( t1 * iptr1[ 2 ] + t * iptr2[ 2 ] );
               }
             }
-          }
+          };
+
+          if ( par )
+            Parallel.For( 0, height, body );
+          else
+            for ( int y = 0; y < height; y++ )
+              body( y );
         }
         nImage.UnlockBits( dataOut );
         inputImage1.UnlockBits( dataIn1 );
@@ -472,7 +497,7 @@ namespace _114transition
     private void labelStatus_MouseHover ( object sender, EventArgs e )
     {
       tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + ")",
-               (IWin32Window)sender, 10, -25, 4000 );
+               (IWin32Window)sender, 10, -25, 2000 );
     }
 
     private void buttonRun_Click ( object sender, EventArgs e )
@@ -487,6 +512,25 @@ namespace _114transition
         e.Handled = true;
         transitionDirty = true;
       }
+    }
+
+    private void buttonOpen1_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( buttonOpen1.Text,
+               (IWin32Window)sender, 10, -25, 2000 );
+    }
+
+    private void buttonOpen2_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( buttonOpen2.Text,
+               (IWin32Window)sender, 10, -25, 2000 );
+    }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      if (!string.IsNullOrEmpty(tooltip))
+        tt.Show( tooltip,
+                 (IWin32Window)sender, 10, -25, 2000 );
     }
   }
 }
