@@ -13,6 +13,7 @@ namespace _115colormandala
     /// </summary>
     /// <param name="name">Your first-name and last-name.</param>
     /// <param name="param">Optional text to initialize the form's text-field.</param>
+    /// <param name="tooltip">Optional tooltip = param help.</param>
     public static void InitParams ( out string name, out string param, out string tooltip )
     {
       // {{

@@ -11,11 +11,13 @@ namespace _114transition
     /// </summary>
     /// <param name="name">Your first-name and last-name.</param>
     /// <param name="param">Optional text to initialize the form's text-field.</param>
-    public static void InitParams ( out string name, out string param )
+    /// <param name="tooltip">Optional tooltip = param help.</param>
+    public static void InitParams ( out string name, out string param, out string tooltip )
     {
       // {{
       name = "Josef Pelikán";
-      param = "morph=false";
+      param = "morph=false, par=true";
+      tooltip = "t=<double>, morph=<bool>, par=<bool>";
       // }}
     }
 
