@@ -364,6 +364,7 @@ namespace _114transition
               for ( int x = 0; x < width; x++, optr += dO )
               {
                 tr.MorphingFunction( time, x, y, out x1, out y1, out x2, out y2, out t );
+                t = Util.Clamp( t, 0.0, 1.0 );
                 t1 = 1.0 - t;
 
                 ix = Util.Clamp( (int)Math.Round( x1 ), 0, width - 1 );
@@ -387,7 +388,7 @@ namespace _114transition
 
               for ( int x = 0; x < width; x++, iptr1 += dI1, iptr2 += dI2, optr += dO )
               {
-                t = tr.BlendingFunction( time, x, y );
+                t = Util.Clamp( tr.BlendingFunction( time, x, y ), 0.0, 1.0 );
                 t1 = 1.0 - t;
 
                 // Linear blend of two input pixels (three components = R,G,B).
