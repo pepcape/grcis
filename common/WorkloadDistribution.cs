@@ -44,13 +44,14 @@ namespace Rendering
 
     private IEnumerable<Client> clientsCollection;
 
-	  /// <summary>
-  	/// Constructor which takes also care of initializing assignments
-  	/// </summary>
-	  /// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
-	  /// <param name="scene">Scene to render</param>
-	  /// <param name="renderer">Rendered to use for RenderPixel method</param>
-		public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer, IEnumerable<Client> clientsCollection )
+    /// <summary>
+    /// Constructor which takes also care of initializing assignments
+    /// </summary>
+    /// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
+    /// <param name="scene">Scene to render</param>
+    /// <param name="renderer">Rendered to use for RenderPixel method</param>
+    /// <param name="clientsCollection">Collection of Clients to get their IP addresses - names are only for user</param>
+    public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer, IEnumerable<Client> clientsCollection )
     {
       finishedAssignments = 0;
    
@@ -96,7 +97,7 @@ namespace Rendering
       {
         foreach ( NetworkWorker worker in networkWorkers ) // properly closes connections (and also sockets and streams) to all clients
         {
-          worker.SendEndingAssignment ();
+          worker.SendSpecialAssignment ( Assignment.AssignmentType.Ending );
           worker.client.Close ();
         }
       }   
@@ -318,13 +319,16 @@ namespace Rendering
 
     /// <summary>
     /// Sends all objects which are necessary to render scene to client
+    /// Assignment - special type of assignment (reset) to indicate (new) start of work
     /// IRayScene - scene representation like solids, textures, lights, camera, ...
     /// IRenderer - renderer itself including IImageFunction; needed for RenderPixel method
     /// Receives number of threads available to render at RenderClient
     /// </summary>
     public void ExchangeNecessaryInfo ()
     {
-	    NetworkSupport.SetAssemblyNames ( Assembly.GetExecutingAssembly ().GetName ().Name, "RenderClient" );
+      NetworkSupport.SetAssemblyNames ( Assembly.GetExecutingAssembly ().GetName ().Name, "RenderClient" );
+
+      NetworkSupport.SendObject<Assignment> ( new Assignment ( Assignment.AssignmentType.Reset ), client, stream );
 
       NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, client, stream );
 
@@ -467,11 +471,11 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Send dummy Assignment to signal client that rendering ended and/or client should not wait for more assignments
+    /// Sends special Assignment which can signal to client that rendering stopped or that client should be reset and wait for more work 
     /// </summary>
-    public void SendEndingAssignment ()
+    public void SendSpecialAssignment ( Assignment.AssignmentType assignmentType )
     {
-      Assignment newAssignment = new Assignment ( -1, -1, -1, -1, -1, -1 );
+      Assignment newAssignment = new Assignment ( assignmentType );
 
       lock ( stream )
       {
@@ -495,7 +499,12 @@ namespace Rendering
 
     private readonly int bitmapWidth, bitmapHeight;
 
-    public Assignment ( int x1, int y1, int x2, int y2, int bitmapWidth, int bitmapHeight )
+    public AssignmentType type;
+
+    /// <summary>
+    /// Main constructor for standard assignments
+    /// </summary>
+    public Assignment ( int x1, int y1, int x2, int y2, int bitmapWidth, int bitmapHeight)
     {
       this.x1 = x1;
       this.y1 = y1;
@@ -503,10 +512,24 @@ namespace Rendering
       this.y2 = y2;
       this.bitmapWidth = bitmapWidth;
       this.bitmapHeight = bitmapHeight;
+      this.type = AssignmentType.Standard;
 
       // stride values: 8 > 4 > 2 > 1; initially always 8
       // decreases at the end of rendering of current assignment and therefore makes another render of this assignment more detailed
       stride = 8;   
+    }
+
+    /// <summary>
+    /// Constructor used for special assignments with AssignmentType other than Standard
+    /// Special assignments are used to indicate end of rendering, request to reset render client, ...
+    /// Coordinates, dimensions and stride are irrelevant in this case - they are set to -1 for error checking
+    /// </summary>
+    /// <param name="type"></param>
+    public Assignment ( AssignmentType type )
+    {
+      x1 = y1 = x2 = y2 = bitmapWidth = bitmapHeight = stride = -1;
+
+      this.type = type;
     }
 
     /// <summary>
@@ -625,6 +648,16 @@ namespace Rendering
     {
       return ( ( y - y1 ) * assignmentSize + ( x - x1 ) ) * 3;
     }
+
+    /// <summary>
+    /// Standard - normal assignment with valid coordinates, dimensions and stride
+    /// Ending - special assignment which tells to RenderClient that rendering is dome/no more work should be expected
+    /// Reset - special asssignment which tells to RenderClient that it should reset and expect new render work
+    /// </summary>
+    public enum AssignmentType
+    {
+      Standard, Ending, Reset
+    }
   }
 
   /// <summary>
@@ -636,20 +669,27 @@ namespace Rendering
 
 		public string Name { get; set; }
 
-		public string AddressString
+		public string AddressString // string representation for the need of text in clientsDataGrid
     {
       get => GetIPAddress ();
       set => CheckAndSetIPAddress ( value );
-    } // string representation for the need of text in clientsDataGrid
+    }
 
     private void CheckAndSetIPAddress ( string value )
     {
+      value = value.Trim ();
+
+      if ( value.ToLower() == "localhost" || value.ToLower() == "local")
+      {
+        address = IPAddress.Parse ( "127.0.0.1" );
+        return;
+      }
+
       bool isValidIP = IPAddress.TryParse ( value, out address );
 
       if ( !isValidIP )
       {
-        address = IPAddress.Parse ( "0.0.0.0" );
-        ;
+        address = IPAddress.Parse ( "0.0.0.0" );       
       }
     }
 
