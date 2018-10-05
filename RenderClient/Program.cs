@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Rendering;
 
 namespace RenderClient
@@ -55,8 +56,9 @@ namespace RenderClient
     /// </summary>
     private static void ConnectToServer ()
     {
-      Console.ForegroundColor = ConsoleColor.White;
-      Console.WriteLine ( @"Waiting for remote server to connect to this client..." );
+	    if ( stream != null )	// connection already exists
+        return; 
+
 
       TcpListener localServer = new TcpListener ( IPAddress.Any, port );
       localServer.Start ( 1 );
@@ -68,75 +70,105 @@ namespace RenderClient
         stream = client.GetStream ();
       } while ( stream == null );
 
-      client.ReceiveBufferSize = 1024 * 1024; // needed just in case - large portions of data are expected to be transfered at the same time (one rendered assignment is 50kB)
-      client.SendBufferSize = 1024 * 1024;
+	    /*Task<TcpClient> acceptConnection = new Task<TcpClient> ( localServer.AcceptTcpClient, resetAssignmentToken );
+	    acceptConnection.Start ();
 
-      Console.WriteLine ( @"Client succesfully connected." );
+	    try
+	    {
+		    acceptConnection.Wait ( resetAssignmentToken );
+      }
+	    catch ( OperationCanceledException )
+	    {
+        return;
+	    }
+		        
+
+	    if ( acceptConnection.IsCanceled )
+		    return;
+
+	    client = acceptConnection.Result;
+
+      stream = client.GetStream ();*/
+
+      client.ReceiveBufferSize = 1024 * 1024; // needed just in case - large portions of data are expected to be transfered at the same time (one rendered assignment is 50kB)
+      client.SendBufferSize = 1024 * 1024;     
     }
 
+
+    private static bool resetAssignmentAlreadyReceived = false;
     /// <summary>
     /// Main start of RenderClient
     /// The only method needed to be called from outside
     /// </summary>
     public static void Start ()
     {
-      try
+	    while ( true )  // this loop is exited by Environment.Exit ( 1 ) in EndOfRenderClientWork ()
       {
-        ConnectToServer ();
-      }
-      catch ( SocketException ) // thrown in case of multiple clients being launched on the same computer
-      {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine ( "\nYou can not start more than one client on the same computer." );
+		    try
+		    {
+			    Console.ForegroundColor = ConsoleColor.White;
+			    Console.WriteLine ( @"Waiting for remote server to connect to this client..." );
 
-        Console.ForegroundColor = ConsoleColor.White;
-        Console.WriteLine ( "\nPress any key to exit this RenderClient...\n" );
+          ConnectToServer ();
 
-        Console.ReadKey ();
-        return;
-      }
+			    Console.WriteLine ( @"Client succesfully connected." );
+        }
+		    catch ( SocketException e ) // thrown in case of multiple clients being launched on the same computer
+		    {
+			    Console.ForegroundColor = ConsoleColor.Red;
+			    Console.WriteLine ( "\nYou can not start more than one client on the same computer." );
 
-      finished = false;
+			    Console.ForegroundColor = ConsoleColor.White;
+			    Console.WriteLine ( "\nPress any key to exit this RenderClient...\n" );
 
-      ExchangeNecessaryInfo ();
+			    Console.ReadKey ();
+			    return;
+		    }
 
-      Thread receiver = new Thread ( ReceiveAssignments );
-      receiver.Name     = "AssignmentReceiver";
-      receiver.Priority = ThreadPriority.BelowNormal;
-      receiver.Start ();
+		    finished = false;
 
-      ClientMaster.instance.StartThreads ( threadCount );
+		    ExchangeNecessaryInfo ();
 
-      EndOfRenderClientWork ();
+		    Thread receiver = new Thread ( ReceiveAssignments );
+		    receiver.Name     = "AssignmentReceiver";
+		    receiver.Priority = ThreadPriority.BelowNormal;
+		    receiver.Start ();
+
+		    ClientMaster.instance.StartThreads ( threadCount );
+
+		    EndOfRenderClientWork ();
+	    }
     }
 
+    private static bool keyPressReceivedSignal = false;
     /// <summary>
     /// Takes care of end of RenderClient work
-    /// Offers user to either exit or restart client
+    /// Offers user to either exit or wait for new work from server
     /// </summary>
+    /// <returns>True if RenderClient should be reset; False if RenderClient should exit</returns>
     private static void EndOfRenderClientWork ()
     {
-      Console.ForegroundColor = ConsoleColor.White;
-      Console.WriteLine ( "\nPress ENTER to exit or press SPACE to restart\n" );
+	    CancellationTokenSource source = new CancellationTokenSource();
+	    CancellationToken token = source.Token;
 
-      ConsoleKeyInfo keyInfo;
-      do
-      {
-        keyInfo = Console.ReadKey ();
+	  
+			Task exit = new Task( () =>
+			{
+				Console.WriteLine ( "Press ESC to exit or wait for new render work from server." );
+        while ( Console.ReadKey ().Key != ConsoleKey.Escape ) ;
+				Environment.Exit ( 1 ); 
+			}, token);
 
-      } while ( keyInfo.Key != ConsoleKey.Enter && keyInfo.Key != ConsoleKey.Spacebar );
+	    exit.Start ();
 
-      if ( keyInfo.Key == ConsoleKey.Enter )
-      {
-        Environment.Exit ( 0 );
-      }
 
-      if ( keyInfo.Key == ConsoleKey.Spacebar )
-      {
-        Console.Clear ();
-        Start ();
-      }
+	    WaitForResetAssignment ();
+
+	    source.Cancel ();
+
+      Console.Clear ();
     }
+
 
     /// <summary>
     /// Receives all objects which are necessary from render server
@@ -147,6 +179,21 @@ namespace RenderClient
     private static void ExchangeNecessaryInfo ()
     {
 	    NetworkSupport.SetAssemblyNames ( "048rtmontecarlo-script", Assembly.GetExecutingAssembly ().GetName ().Name );
+
+	    if ( resetAssignmentAlreadyReceived )	// if reset assignment was received in WaitForResetAssignment, skip it's receival here
+	    {
+		    resetAssignmentAlreadyReceived = false;
+      }
+	    else
+	    {
+		    Assignment assignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );
+
+		    if ( assignment.type != Assignment.AssignmentType.Reset )
+		    {
+			    throw new Exception ( $"Received assignment with {assignment.type}. {Assignment.AssignmentType.Reset} expected." );
+		    }
+      }
+
 
       scene = NetworkSupport.ReceiveObject<IRayScene> ( client, stream );
       Console.ForegroundColor = ConsoleColor.Green;
@@ -162,6 +209,7 @@ namespace RenderClient
       ClientMaster.instance = new ClientMaster ( null, scene, renderer );
     }
 
+
     /// <summary>
     /// Thread in infinite loop accepting new assignments
     /// Loop is ended by receiving Ending Assignment
@@ -174,7 +222,7 @@ namespace RenderClient
         {
           Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );         
 
-          if ( newAssignment.x1 == -1 ) // Ending assignment represented by -1 in all coordinate variables signals end of rendering
+          if ( newAssignment.type == Assignment.AssignmentType.Ending ) // Ending assignment signals end of rendering
           {
             finished = true;  // signal for threads in Consume method
 
@@ -182,9 +230,9 @@ namespace RenderClient
             {
               Console.ForegroundColor = ConsoleColor.Red;
               Console.WriteLine ( "\nRendering on server finished or no more assignments are expected to be received.\n" );
-            }            
+            }
 
-            return;
+	          return;
           }
 
           lock ( consoleLock )
@@ -197,6 +245,40 @@ namespace RenderClient
         }
       }
     }
+
+
+		/// <summary>
+    /// Used by other thread to wait for receival of special Reset-type assignment
+    /// </summary>
+	  private static void WaitForResetAssignment ()
+	  {
+      stream = null;
+		  ConnectToServer ();
+
+		  if ( stream == null )
+		  {
+        return;
+		  }
+
+      while ( true )
+		  {
+			  if ( keyPressReceivedSignal )
+          return;
+
+			  if ( stream.DataAvailable )
+			  {
+				  Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );
+
+				  if ( newAssignment.type == Assignment.AssignmentType.Reset ) // Reset assignment signals that RenderClient should expect new render work
+				  {
+            resetAssignmentAlreadyReceived = true;
+
+            return;
+				  }		 
+			  }
+		  }
+    }
+
 
     private const int bufferSize = ( Master.assignmentSize * Master.assignmentSize * 3 + 2 ) * sizeof ( float );
     /// <summary>
