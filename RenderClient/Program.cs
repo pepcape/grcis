@@ -186,7 +186,7 @@ namespace RenderClient
       }
 	    else
 	    {
-		    Assignment assignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );
+		    Assignment assignment = NetworkSupport.ReceiveObject<Assignment> ( stream );
 
 		    if ( assignment.type != Assignment.AssignmentType.Reset )
 		    {
@@ -195,12 +195,12 @@ namespace RenderClient
       }
 
 
-      scene = NetworkSupport.ReceiveObject<IRayScene> ( client, stream );
+      scene = NetworkSupport.ReceiveObject<IRayScene> ( stream );
       Console.ForegroundColor = ConsoleColor.Green;
       Console.WriteLine ( "\nData for {0} received and deserialized.", typeof ( IRayScene ).Name );
 
 
-      renderer = NetworkSupport.ReceiveObject<IRenderer> ( client, stream );
+      renderer = NetworkSupport.ReceiveObject<IRenderer> ( stream );
       Console.ForegroundColor = ConsoleColor.Green;
       Console.WriteLine ( "Data for {0} received and deserialized.\n", typeof ( IRenderer ).Name );
 
@@ -220,7 +220,7 @@ namespace RenderClient
       {
         if ( stream.DataAvailable )
         {
-          Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );         
+          Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( stream );         
 
           if ( newAssignment.type == Assignment.AssignmentType.Ending ) // Ending assignment signals end of rendering
           {
@@ -267,7 +267,7 @@ namespace RenderClient
 
 			  if ( stream.DataAvailable )
 			  {
-				  Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( client, stream );
+				  Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( stream );
 
 				  if ( newAssignment.type == Assignment.AssignmentType.Reset ) // Reset assignment signals that RenderClient should expect new render work
 				  {
