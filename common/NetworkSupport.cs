@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections.Generic;
+using System.Text;
 using Rendering;
 
 
@@ -14,8 +15,9 @@ public static class NetworkSupport
   /// Serializes and sends object through NetworkStream
   /// </summary>
   /// <typeparam name="T">Type of object - must be marked as [Serializable], as well as all his recursive dependencies</typeparam>
+  ///   /// <param name="stream">Network stream to send data</param>
   /// <param name="objectToSend">Instance of actual object to send</param>
-  public static void SendObject<T> ( T objectToSend, TcpClient client, NetworkStream stream )
+  public static void SendObject<T> ( T objectToSend, NetworkStream stream )
   {
 	  MemoryStream memoryStream = new MemoryStream ();
     BinaryFormatter formatter    = new BinaryFormatter ();
@@ -25,31 +27,19 @@ public static class NetworkSupport
 
     formatter.Serialize ( memoryStream, objectToSend );
 
-    byte[] dataBuffer = memoryStream.ToArray ();
-
-    SendInt ( stream, dataBuffer.Length );
-
-    stream.Write ( dataBuffer, 0, dataBuffer.Length );
+    SendBytes ( memoryStream.ToArray (), stream );
   }
+
 
   /// <summary>
   /// Receives object from NetworkStream and deserializes it
   /// </summary>
   /// <typeparam name="T">Type of object - must be marked as [Serializable], as well as all his recursive dependencies</typeparam>
+  /// <param name="stream">Network stream to receive data</param>
   /// <returns>Instance of actual received object</returns>
-  public static T ReceiveObject<T> ( TcpClient client, NetworkStream stream )
+  public static T ReceiveObject<T> ( NetworkStream stream )
   {
-    int totalReceivedSize = 0;
-    int leftToReceive     = ReceiveInt ( stream );
-
-    byte[] receiveBuffer = new byte[leftToReceive];
-
-    while ( leftToReceive > 0 ) // Loop until enough data is received
-    {
-      int latestReceivedSize = stream.Read ( receiveBuffer, totalReceivedSize, leftToReceive );
-      leftToReceive     -= latestReceivedSize;
-      totalReceivedSize += latestReceivedSize;
-    }
+    byte[] receiveBuffer = ReceiveByteArray ( stream );
 
     MemoryStream    memoryStream = new MemoryStream ( receiveBuffer );
 	  BinaryFormatter formatter    = new BinaryFormatter ();
@@ -65,12 +55,19 @@ public static class NetworkSupport
     return receivedObject;
   }
 
+
 	private static CustomBinder customBinder = null;
 
+  /// <summary>
+  /// Used to avoid problems with serialization in one assembly and deserialization in another one
+  /// </summary>
+  /// <param name="senderAssembly">Assembly name of sender</param>
+  /// <param name="targetAssembly">Assembly name of receiver</param>
   public static void SetAssemblyNames ( string senderAssembly, string targetAssembly )
   {
 	  customBinder = new CustomBinder ( senderAssembly, targetAssembly );
   }
+
 
   /// <summary>
   /// Sends message containing an int (4 bytes)
@@ -84,6 +81,7 @@ public static class NetworkSupport
 
     stream.Write ( bytes, 0, bytes.Length );
   }
+
 
   /// <summary>
   /// Reads 4 bytes from stream and returns them as int
@@ -107,6 +105,69 @@ public static class NetworkSupport
 
     return BitConverter.ToInt32 ( receiveBuffer, 0 );
   }
+
+
+  /// <summary>
+  /// Notifies the receiver about size of byte array (as single int) and sends that array to stream
+  /// </summary>
+  /// <param name="bytes">Data to send</param>
+  /// <param name="stream">NetworkStream to send data</param>
+  public static void SendBytes ( byte[] bytes, NetworkStream stream )
+  {
+    SendInt ( stream, bytes.Length );
+
+    stream.Write ( bytes, 0, bytes.Length );
+  }
+
+
+  /// <summary>
+  /// Receives info about size of byte array which will be received (as single int) and receives it from stream
+  /// </summary>
+  /// <param name="stream">NetworkStream to receive data</param>
+  /// <returns></returns>
+  public static byte[] ReceiveByteArray ( NetworkStream stream )
+  {
+    int totalReceivedSize = 0;
+    int leftToReceive     = ReceiveInt ( stream );
+
+    byte[] receiveBuffer = new byte[leftToReceive];
+
+    while ( leftToReceive > 0 ) // Loop until enough data is received
+    {
+      int latestReceivedSize = stream.Read ( receiveBuffer, totalReceivedSize, leftToReceive );
+      leftToReceive     -= latestReceivedSize;
+      totalReceivedSize += latestReceivedSize;
+    }
+
+    return receiveBuffer;
+  }
+
+
+  /// <summary>
+  /// Encodes string in ASCII and sends it over network stream
+  /// </summary>
+  /// <param name="str">String to send (if null, nothing is sent)</param>
+  /// <param name="stream">NetworkStream to send data</param>
+  public static void SendString ( string str, NetworkStream stream )
+  {
+    if ( str != null )
+    {
+      SendBytes ( Encoding.ASCII.GetBytes ( str ), stream );
+    }    
+  }
+
+  /// <summary>
+  /// Receives string from network stream and decodes it
+  /// </summary>
+  /// <param name="stream">NetworkStream to send data</param>
+  /// <returns>Received string</returns>
+  public static string ReceiveString ( NetworkStream stream )
+  {
+    byte[] bytes = ReceiveByteArray ( stream );
+
+    return Encoding.ASCII.GetString ( bytes );
+  }
+
 
   /// <summary>
   /// Determines whether TCP Client is still connected
@@ -143,6 +204,7 @@ public static class NetworkSupport
       socket.Blocking = blockingState;
     }
   }
+
 
 	sealed class CustomBinder : SerializationBinder
 	{

@@ -326,13 +326,13 @@ namespace Rendering
     /// </summary>
     public void ExchangeNecessaryInfo ()
     {
-      NetworkSupport.SetAssemblyNames ( Assembly.GetExecutingAssembly ().GetName ().Name, "RenderClient" );
+      NetworkSupport.SetAssemblyNames ( Assembly.GetExecutingAssembly().GetName().Name, "RenderClient" );
 
-      NetworkSupport.SendObject<Assignment> ( new Assignment ( Assignment.AssignmentType.Reset ), client, stream );
+      NetworkSupport.SendObject<Assignment> ( new Assignment ( Assignment.AssignmentType.Reset ), stream );
 
-      NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, client, stream );
+      NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, stream );
 
-      NetworkSupport.SendObject<IRenderer> ( Master.instance.renderer, client, stream );
+      NetworkSupport.SendObject<IRenderer> ( Master.instance.renderer, stream );
 
       threadCountAtClient = NetworkSupport.ReceiveInt ( stream );
     }
@@ -449,7 +449,7 @@ namespace Rendering
 
         lock ( stream )
         {
-          NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
+          NetworkSupport.SendObject<Assignment> ( newAssignment, stream );
           assignmentsAtClients++;
           unfinishedAssignments.Add ( newAssignment );
         }
@@ -479,7 +479,7 @@ namespace Rendering
 
       lock ( stream )
       {
-        NetworkSupport.SendObject<Assignment> ( newAssignment, client, stream );
+        NetworkSupport.SendObject<Assignment> ( newAssignment, stream );
       }
     }
   }
