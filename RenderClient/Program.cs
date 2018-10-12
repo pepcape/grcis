@@ -177,23 +177,22 @@ namespace RenderClient
     /// Sends number of threads available at client to render
     /// </summary>
     private static void ExchangeNecessaryInfo ()
-    {
-	    NetworkSupport.SetAssemblyNames ( "048rtmontecarlo-script", Assembly.GetExecutingAssembly ().GetName ().Name );
-
-	    if ( resetAssignmentAlreadyReceived )	// if reset assignment was received in WaitForResetAssignment, skip it's receival here
+    {	    
+      if ( resetAssignmentAlreadyReceived ) // if reset assignment was received in WaitForResetAssignment, skip it's receival here
 	    {
 		    resetAssignmentAlreadyReceived = false;
-      }
+	    }
 	    else
-	    {
-		    Assignment assignment = NetworkSupport.ReceiveObject<Assignment> ( stream );
+      {
+	      SetAssembliesNames ();
+
+        Assignment assignment = NetworkSupport.ReceiveObject<Assignment> ( stream );
 
 		    if ( assignment.type != Assignment.AssignmentType.Reset )
 		    {
 			    throw new Exception ( $"Received assignment with {assignment.type}. {Assignment.AssignmentType.Reset} expected." );
 		    }
-      }
-
+	    }	    
 
       scene = NetworkSupport.ReceiveObject<IRayScene> ( stream );
       Console.ForegroundColor = ConsoleColor.Green;
@@ -267,16 +266,28 @@ namespace RenderClient
 
 			  if ( stream.DataAvailable )
 			  {
+				  SetAssembliesNames ();
+
 				  Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( stream );
 
 				  if ( newAssignment.type == Assignment.AssignmentType.Reset ) // Reset assignment signals that RenderClient should expect new render work
 				  {
-            resetAssignmentAlreadyReceived = true;
+					  resetAssignmentAlreadyReceived = true;
 
-            return;
-				  }		 
-			  }
+					  return;
+				  }
+        }
 		  }
+    }
+
+    /// <summary>
+    /// Sets sender and receiver assemblies in NetworkSupport - needed for correct serialization/deserialization 
+    /// </summary>
+    private static void SetAssembliesNames ()
+	  {
+		  string senderAssembly = NetworkSupport.ReceiveString ( stream );
+		  NetworkSupport.SendString ( Assembly.GetExecutingAssembly ().GetName ().Name, stream );
+		  NetworkSupport.SetAssemblyNames ( senderAssembly, Assembly.GetExecutingAssembly ().GetName ().Name );
     }
 
 
@@ -425,6 +436,6 @@ namespace RenderClient
       {
         throw new NotSupportedException (); // exception thrown because this method should not be used in context of ClientMaster
       }
-    }    
+    }
   }
 }

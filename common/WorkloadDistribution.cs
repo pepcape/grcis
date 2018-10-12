@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -199,16 +200,21 @@ namespace Rendering
 
         if ( newWorker.ConnectToClient () )
         {
-          networkWorkers.Add ( newWorker );
+          try
+          {
+            newWorker.ExchangeNecessaryInfo ();
+          }
+          catch ( IOException ) //thrown usually in case when stream is closed while exchanging necessary data
+          {
+            continue;
+          }         
 
-          newWorker.ExchangeNecessaryInfo ();
+          networkWorkers.Add ( newWorker );
 
           for ( int i = 0; i < newWorker.threadCountAtClient; i++ )
           {
             newWorker.TryToGetNewAssignment ();
-          }          
-
-          //newWorker.SendEndingAssignment ();
+          }
         }
       }
     }
@@ -326,9 +332,12 @@ namespace Rendering
     /// </summary>
     public void ExchangeNecessaryInfo ()
     {
-      NetworkSupport.SetAssemblyNames ( Assembly.GetExecutingAssembly().GetName().Name, "RenderClient" );
+	    // set assemblies - needed for correct serialization/deserialization
+	    NetworkSupport.SendString ( Assembly.GetExecutingAssembly ().GetName ().Name, stream );
+	    string targetAssembly = NetworkSupport.ReceiveString ( stream );
+	    NetworkSupport.SetAssemblyNames ( Assembly.GetExecutingAssembly ().GetName ().Name, targetAssembly );
 
-      NetworkSupport.SendObject<Assignment> ( new Assignment ( Assignment.AssignmentType.Reset ), stream );
+      NetworkSupport.SendObject<Assignment> ( new Assignment ( Assignment.AssignmentType.Reset ), stream );     
 
       NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, stream );
 
