@@ -236,7 +236,7 @@ public static class NetworkSupport
 
         typeToGet = String.Format ( "{0}, {1}", typeName, systemAssembly );
 
-				typeToGet = typeToGet.Replace ("048rtmontecarlo-script", "RenderClient");
+				typeToGet = typeToGet.Replace ( senderAssembly, targetAssembly);
 			}			
 
       Type typeToDeserialize = Type.GetType ( typeToGet );
