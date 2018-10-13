@@ -31,7 +31,7 @@ namespace Rendering
 
     public int finishedAssignments;
 
-    // width and height of one block of pixels (rendered at one thread at the time); 64 seems to be optimal; should be power of 2 and larger than 8
+    // width and height of one block of pixels (rendered at one thread at the time); 64 seems to be optimal; should be power of 2 and larger than 8 (=stride)
     public const int assignmentSize = 64;
 
     public Progress progressData;
@@ -179,7 +179,8 @@ namespace Rendering
 
 
       totalNumberOfAssignments = availableAssignments.Count;
-      assignmentRoundsTotal    = totalNumberOfAssignments * 4;
+      // number of assignments * number of renderings of each assignments (depends on stride)
+      assignmentRoundsTotal = totalNumberOfAssignments * (int)( Math.Log ( Assignment.startingStride, 2 ) + 1 );  
     }
 
     /// <summary>
@@ -394,6 +395,12 @@ namespace Rendering
                                        (int) coordinates [ 1 ] + Master.assignmentSize );
 
         Master.instance.finishedAssignments++;
+
+        //takes care of increasing assignmentRoundsFinished by the ammount of finished rendering rounds on RenderClient
+        Assignment currentAssignment = unfinishedAssignments.Find ( a => a.x1 == (int) coordinates [ 0 ] && a.y1 == (int) coordinates [ 1 ]  );
+        int roundsFinished = (int) Math.Log ( currentAssignment.stride, 2 ) + 1;  // stride goes from 8 > 4 > 2 > 1 (1 step = 1 rendering round)
+        Master.instance.assignmentRoundsFinished += roundsFinished;
+
         assignmentsAtClients--;
 
         RemoveAssignmentFromUnfinishedAssignments ( (int) coordinates[0], (int) coordinates[1] );
@@ -510,6 +517,8 @@ namespace Rendering
 
     public AssignmentType type;
 
+    public const int startingStride = 8;
+
     /// <summary>
     /// Main constructor for standard assignments
     /// </summary>
@@ -525,7 +534,7 @@ namespace Rendering
 
       // stride values: 8 > 4 > 2 > 1; initially always 8
       // decreases at the end of rendering of current assignment and therefore makes another render of this assignment more detailed
-      stride = 8;   
+      stride = startingStride;   
     }
 
     /// <summary>
