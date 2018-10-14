@@ -623,6 +623,11 @@ namespace Rendering
       dirty = true;
     }
 
+    /// <summary>
+    /// Handles calling singleSample for RayVisualizer and picture box image pan control
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
@@ -632,6 +637,11 @@ namespace Rendering
       startingPoint = new PointF ( e.Location.X - movingPoint.X, e.Location.Y - movingPoint.Y );
     }
 
+    /// <summary>
+    /// Handles calling singleSample for RayVisualizer and picture box image pan control
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
@@ -697,6 +707,11 @@ namespace Rendering
       renderClientsForm.Show ();
     }
 
+    /// <summary>
+    /// Sets necessary stuff at form load
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void Form1_Load ( object sender, EventArgs e )
     {
       pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -704,7 +719,11 @@ namespace Rendering
       KeyPreview = true;
     }
 
-    
+    /// <summary>
+    /// Catches mouse wheel movement for zoom in/out of image in picture box
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
     {
       cursor = new Point ( e.X, e.Y );
@@ -715,6 +734,11 @@ namespace Rendering
         zoomPictureBox ( false );
     }    
 
+    /// <summary>
+    /// Catches +/PageUp for zoom in or -/PageDown for zoom out of image in picture box
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void Form1_KeyDown ( object sender, KeyEventArgs e )
     {
       cursor = new Point ( 0, 0 );
@@ -725,6 +749,11 @@ namespace Rendering
         zoomPictureBox ( false );
     }
 
+    /// <summary>
+    /// Changes global variable zoom to indicate current zoom level of picture in main picture box
+    /// Variable zoom can be equal 1 (no zoom), less than 1 (zoom out) or greater than 1 (zoom in)
+    /// </summary>
+    /// <param name="zoomIn">TRUE if zoom in is desired; FALSE if zoom out is desired</param>
     private void zoomPictureBox ( bool zoomIn )
     {
       if ( pictureBox1.Image != null )
@@ -738,10 +767,16 @@ namespace Rendering
       }
     }
 
+
     private float zoom = 1.0f;
     private PointF cursor;
     private Matrix transform = new Matrix ();
-
+    /// <summary>
+    /// Is called every time main picture box is needed to be re-painted
+    /// Used for re-painting after request for zoom in/out or pan
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void pictureBox1_Paint ( object sender, PaintEventArgs e )
     {
       if ( pictureBox1.Image != null )
@@ -786,7 +821,13 @@ namespace Rendering
       }
     }
 
+
     private const int border = 50;
+    /// <summary>
+    /// Prevents panning of image outside of picture box
+    /// There will always be small amount of pixels (variable border) visible at the edge
+    /// </summary>
+    /// <param name="points">Points representing upper-right, upper-left and lower-left corner of parallelogram for drawing graphics in picture box</param>
     private void OutOfScreenFix ( PointF[] points )
     {
       Matrix fixTransform = new Matrix ();
