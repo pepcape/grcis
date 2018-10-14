@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Globalization;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
-using Rendering;
 using Utilities;
-using _048rtmontecarlo;
 
 namespace Rendering
 {
@@ -605,6 +603,10 @@ namespace Rendering
       outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
+    private PointF startingPoint = PointF.Empty;
+    private PointF movingPoint   = PointF.Empty;
+    private bool  panning       = false;
+
     private void buttonStop_Click ( object sender, EventArgs e )
     {
       StopRendering ();
@@ -625,12 +627,26 @@ namespace Rendering
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
         singleSample ( e.X, e.Y );
+
+      panning = true;
+      startingPoint = new PointF ( e.Location.X - movingPoint.X, e.Location.Y - movingPoint.Y );
     }
 
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
         singleSample ( e.X, e.Y );
+
+      if ( panning )
+      {
+        movingPoint = new PointF ( e.Location.X - startingPoint.X, e.Location.Y - startingPoint.Y );
+        pictureBox1.Invalidate ();
+      }
+    }
+
+    private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
+    {
+      panning = false;
     }
 
     private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
@@ -679,6 +695,119 @@ namespace Rendering
 
       RenderClientsForm renderClientsForm = new RenderClientsForm ();
       renderClientsForm.Show ();
+    }
+
+    private void Form1_Load ( object sender, EventArgs e )
+    {
+      pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+      MouseWheel += new MouseEventHandler ( pictureBox1_MouseWheel );
+      KeyPreview = true;
+    }
+
+    
+    private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
+    {
+      cursor = new Point ( e.X, e.Y );
+
+      if ( e.Delta > 0 )
+        zoomPictureBox ( true );
+      else if ( e.Delta != 1 )
+        zoomPictureBox ( false );
+    }    
+
+    private void Form1_KeyDown ( object sender, KeyEventArgs e )
+    {
+      cursor = new Point ( 0, 0 );
+
+      if ( e.KeyCode == Keys.Add || e.KeyCode == Keys.PageUp )
+        zoomPictureBox ( true );
+      else if ( e.KeyCode == Keys.Subtract || e.KeyCode == Keys.PageDown )
+        zoomPictureBox ( false );
+    }
+
+    private void zoomPictureBox ( bool zoomIn )
+    {
+      if ( pictureBox1.Image != null )
+      {
+        if ( zoomIn )
+          zoom *= 1.05f;
+        else
+          zoom *= 1 / 1.05f;
+
+        pictureBox1.Invalidate ();
+      }
+    }
+
+    private float zoom = 1.0f;
+    private PointF cursor;
+    private Matrix transform = new Matrix ();
+
+    private void pictureBox1_Paint ( object sender, PaintEventArgs e )
+    {
+      if ( pictureBox1.Image != null )
+      {       
+        e.Graphics.Clear ( Color.White );
+
+        /*Point upperLeft = movingPoint; 
+        Point upperRight = new Point ( (int) (  movingPoint.X + pictureBox1.Image.Width  * zoom ), movingPoint.Y );
+        Point lowerLeft = new Point ( movingPoint.X, (int) (  movingPoint.Y + pictureBox1.Image.Height  * zoom ) );*/
+
+        /*PointF[] temp = new PointF[] { cursor };
+
+        transform.Invert ();
+        transform.TransformPoints ( temp );*/
+
+        PointF upperLeft = new PointF (0f, 0f);
+        PointF upperRight = new PointF ( 0f + pictureBox1.Image.Width, 0f );
+        PointF lowerLeft = new PointF ( 0f, 0f + pictureBox1.Image.Height );
+
+        PointF[] points = { upperLeft, upperRight, lowerLeft};
+
+        transform = new Matrix();
+
+        /*transform.Translate ( movingPoint.X - temp[0].X, movingPoint.Y - temp[0].Y, MatrixOrder.Append );
+        transform.Scale ( zoom, zoom, MatrixOrder.Append );
+        transform.Translate ( -( movingPoint.X - temp[0].X ), -( movingPoint.Y - temp[0].Y ), MatrixOrder.Append );*/
+
+        transform.Translate ( -cursor.X, -cursor.Y, MatrixOrder.Append );
+        transform.Scale ( zoom, zoom, MatrixOrder.Append );
+        transform.Translate ( -(  -cursor.X ), -(  -cursor.Y ), MatrixOrder.Append );
+
+        transform.Translate ( movingPoint.X, movingPoint.Y, MatrixOrder.Append );
+
+        transform.TransformPoints ( points );
+
+        OutOfScreenFix ( points );
+
+        e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+        e.Graphics.SmoothingMode     = SmoothingMode.None;
+
+        e.Graphics.DrawImage ( pictureBox1.Image, points );
+      }
+    }
+
+    private const int border = 50;
+    private void OutOfScreenFix ( PointF[] points )
+    {
+      Matrix fixTransform = new Matrix ();
+
+      if ( points [ 2 ].Y < border )
+        fixTransform.Translate ( 0, border - points [ 2 ].Y );
+
+      if ( points [ 1 ].X < border )
+        fixTransform.Translate ( border - points [ 1 ].X, 0 );
+
+      if ( points[0].X > pictureBox1.Width - border )
+        fixTransform.Translate ( pictureBox1.Width - border - points[0].X, 0 );
+
+      if ( points[0].Y > pictureBox1.Height - border )
+        fixTransform.Translate ( 0, pictureBox1.Height - border - points[0].Y );
+
+      fixTransform.TransformPoints ( points );
+
+      PointF[] temp = new PointF[] { movingPoint };
+      fixTransform.TransformPoints ( temp );
+      movingPoint = temp [ 0 ];
     }
   }
 }
