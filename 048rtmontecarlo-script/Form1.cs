@@ -630,8 +630,17 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
+      /*if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
+        singleSample ( e.X, e.Y );*/     
+
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
-        singleSample ( e.X, e.Y );
+      {
+        Point relative = getRelativeCursorLocation (e.X, e.Y);
+
+        if ( relative.X >= 0 )
+          singleSample ( relative.X, relative.Y );      
+      }
+        
 
       panning = true;
       startingPoint = new PointF ( e.Location.X - movingPoint.X, e.Location.Y - movingPoint.Y );
@@ -644,8 +653,16 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
+      /*if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
+        singleSample ( e.X, e.Y );*/
+
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
-        singleSample ( e.X, e.Y );
+      {
+        Point relative = getRelativeCursorLocation (e.X, e.Y);
+
+        if ( relative.X >= 0 )
+          singleSample ( relative.X, relative.Y );
+      }
 
       if ( panning )
       {
@@ -715,8 +732,13 @@ namespace Rendering
     private void Form1_Load ( object sender, EventArgs e )
     {
       pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
-      MouseWheel += new MouseEventHandler ( pictureBox1_MouseWheel );
+      pictureBox1.MouseWheel += new MouseEventHandler ( pictureBox1_MouseWheel );
       KeyPreview = true;
+
+      PointF upperLeft  = new PointF (0f, 0f);
+      PointF upperRight = new PointF ( 0f + pictureBox1.Width, 0f );
+      PointF lowerLeft  = new PointF ( 0f, 0f + pictureBox1.Height );
+      points = new PointF[] { upperLeft, upperRight, lowerLeft};
     }
 
     /// <summary>
@@ -727,11 +749,15 @@ namespace Rendering
     private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
     {
       cursor = new Point ( e.X, e.Y );
+      relativeCursor = getRelativeCursorLocation ( cursor.X, cursor.Y );
 
-      if ( e.Delta > 0 )
-        zoomPictureBox ( true );
-      else if ( e.Delta != 1 )
-        zoomPictureBox ( false );
+      if ( getRelativeCursorLocation ( e.X, e.Y ).X >= 0 )
+      {
+        if ( e.Delta > 0 )
+          zoomPictureBox ( true );
+        else if ( e.Delta != 1 )
+          zoomPictureBox ( false );
+      }     
     }    
 
     /// <summary>
@@ -741,12 +767,36 @@ namespace Rendering
     /// <param name="e"></param>
     private void Form1_KeyDown ( object sender, KeyEventArgs e )
     {
-      cursor = new Point ( 0, 0 );
+      cursor = new Point ( (int) ( points [ 0 ].X + ( ( points [ 1 ].X - points [ 0 ].X ) / 2 ) ),
+                           (int) ( points [ 0 ].X + ( ( points [ 1 ].X - points [ 0 ].X ) / 2 ) ) );
+      relativeCursor = getRelativeCursorLocation ( cursor.X, cursor.Y );
 
       if ( e.KeyCode == Keys.Add || e.KeyCode == Keys.PageUp )
         zoomPictureBox ( true );
       else if ( e.KeyCode == Keys.Subtract || e.KeyCode == Keys.PageDown )
         zoomPictureBox ( false );
+    }
+
+    /// <summary>
+    /// Converts absolute cursor location (in picture box) to relative location (based on position of actual picture; both translated and scaled)
+    /// </summary>
+    /// <param name="absoluteX">Absolute X position of cursor (technically relative to picture box)</param>
+    /// <param name="absoluteY">Absolute Y position of cursor (technically relative to picture box)</param>
+    /// <returns>Relative location of cursor in terms of actual rendered picture; (-1, -1) if relative position would be outside of picture</returns>
+    private Point getRelativeCursorLocation ( float absoluteX, float absoluteY )
+    {
+      if ( absoluteX < points[0].X || absoluteY < points[0].Y || absoluteX > points[1].X || absoluteY > points[2].Y )  // cursor ourside of picture
+      {
+        return new Point ( -1, -1 );
+      }
+
+      float widthRatio = pictureBox1.Image.Width / ( points[1].X - points[0].X );
+      float heightRatio = pictureBox1.Image.Height / ( points[2].Y - points[1].Y );
+
+      float relativeX = ( absoluteX - points [ 0 ].X ) * widthRatio;
+      float relativeY = ( absoluteY - points [ 0 ].Y ) * heightRatio;
+
+      return new Point ( (int)relativeX, (int)relativeY );
     }
 
     /// <summary>
@@ -758,10 +808,15 @@ namespace Rendering
     {
       if ( pictureBox1.Image != null )
       {
+        float zoomFactor = 1.05f;
+
+        if ( ModifierKeys.HasFlag ( Keys.Shift ) )  //holding down the Shift key makes zoom in/out faster
+          zoomFactor = 1.3f;
+
         if ( zoomIn )
-          zoom *= 1.05f;
+          zoom *= zoomFactor;
         else
-          zoom *= 1 / 1.05f;
+          zoom *= 1 / zoomFactor;
 
         pictureBox1.Invalidate ();
       }
@@ -769,8 +824,11 @@ namespace Rendering
 
 
     private float zoom = 1.0f;
-    private PointF cursor;
+    private Point cursor;
+    private PointF relativeCursor;
+
     private Matrix transform = new Matrix ();
+    PointF[] points;
     /// <summary>
     /// Is called every time main picture box is needed to be re-painted
     /// Used for re-painting after request for zoom in/out or pan
@@ -783,39 +841,42 @@ namespace Rendering
       {       
         e.Graphics.Clear ( Color.White );
 
-        /*Point upperLeft = movingPoint; 
-        Point upperRight = new Point ( (int) (  movingPoint.X + pictureBox1.Image.Width  * zoom ), movingPoint.Y );
-        Point lowerLeft = new Point ( movingPoint.X, (int) (  movingPoint.Y + pictureBox1.Image.Height  * zoom ) );*/
-
-        /*PointF[] temp = new PointF[] { cursor };
-
-        transform.Invert ();
-        transform.TransformPoints ( temp );*/
-
         PointF upperLeft = new PointF (0f, 0f);
         PointF upperRight = new PointF ( 0f + pictureBox1.Image.Width, 0f );
         PointF lowerLeft = new PointF ( 0f, 0f + pictureBox1.Image.Height );
 
-        PointF[] points = { upperLeft, upperRight, lowerLeft};
+        points = new PointF[] { upperLeft, upperRight, lowerLeft};
 
         transform = new Matrix();
 
-        /*transform.Translate ( movingPoint.X - temp[0].X, movingPoint.Y - temp[0].Y, MatrixOrder.Append );
+        /*transform.Translate ( movingPoint.X - relativeCursor.X, movingPoint.Y - relativeCursor.Y, MatrixOrder.Append );
         transform.Scale ( zoom, zoom, MatrixOrder.Append );
-        transform.Translate ( -( movingPoint.X - temp[0].X ), -( movingPoint.Y - temp[0].Y ), MatrixOrder.Append );*/
+        transform.Translate ( -( movingPoint.X - relativeCursor.X ), -( movingPoint.Y - relativeCursor.Y ), MatrixOrder.Append );*/        
 
-        transform.Translate ( -cursor.X, -cursor.Y, MatrixOrder.Append );
-        transform.Scale ( zoom, zoom, MatrixOrder.Append );
-        transform.Translate ( -(  -cursor.X ), -(  -cursor.Y ), MatrixOrder.Append );
+        //scale
+        if ( relativeCursor.X >= 0 )
+        {
+          //transform.Translate ( -relativeCursor.X, -relativeCursor.Y, MatrixOrder.Append );
+          transform.Translate ( -pictureBox1.Image.Width / 2f, -pictureBox1.Image.Height / 2f, MatrixOrder.Append );
+          transform.Scale ( zoom, zoom, MatrixOrder.Append );
+          transform.Translate ( pictureBox1.Image.Width / 2f, pictureBox1.Image.Height / 2f, MatrixOrder.Append );
+          //transform.Translate ( relativeCursor.X, relativeCursor.Y, MatrixOrder.Append );
+        }
 
+        Console.WriteLine ( movingPoint.X + "\t" + movingPoint.Y + "\t" + zoom );
+        Console.WriteLine ( relativeCursor.X + "\t" + relativeCursor.Y + "\t" + cursor.X + "\t" + cursor.Y + "\t" );
+
+        //translation
         transform.Translate ( movingPoint.X, movingPoint.Y, MatrixOrder.Append );
 
         transform.TransformPoints ( points );
 
         OutOfScreenFix ( points );
 
+        //makes sure there is no interpolation and anti-aliasing
+        e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
         e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-        e.Graphics.SmoothingMode     = SmoothingMode.None;
+        e.Graphics.SmoothingMode = SmoothingMode.None;
 
         e.Graphics.DrawImage ( pictureBox1.Image, points );
       }
