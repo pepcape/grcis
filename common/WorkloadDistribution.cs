@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
-using System.Windows.Forms;
 using MathSupport;
 
 namespace Rendering
@@ -589,9 +588,7 @@ namespace Rendering
                  ( y % ( stride << 1 ) != 0 ) ||
                  ( x % ( stride << 1 ) != 0 ) )
              ||
-               ( renderEverything &&
-                 ( ( y % ( previousStride << 1 ) != 0 ) ||
-                   ( x % ( previousStride << 1 ) != 0 ) ) ) )
+               renderEverything )
           {
             renderer.RenderPixel ( x, y, color ); // called at desired IRenderer; gets pixel color
 
