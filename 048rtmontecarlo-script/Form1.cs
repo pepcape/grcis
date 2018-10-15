@@ -603,10 +603,6 @@ namespace Rendering
       outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
 
-    private PointF startingPoint = PointF.Empty;
-    private PointF movingPoint   = PointF.Empty;
-    private bool  panning       = false;
-
     private void buttonStop_Click ( object sender, EventArgs e )
     {
       StopRendering ();
@@ -622,65 +618,6 @@ namespace Rendering
     {
       dirty = true;
     }
-
-    /// <summary>
-    /// Handles calling singleSample for RayVisualizer and picture box image pan control
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
-    {
-      /*if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
-        singleSample ( e.X, e.Y );*/     
-
-      if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
-      {
-        Point relative = getRelativeCursorLocation (e.X, e.Y);
-
-        if ( relative.X >= 0 )
-          singleSample ( relative.X, relative.Y );      
-      }
-        
-
-      panning = true;
-      startingPoint = new PointF ( e.Location.X - movingPoint.X, e.Location.Y - movingPoint.Y );
-    }
-
-    /// <summary>
-    /// Handles calling singleSample for RayVisualizer and picture box image pan control
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
-    {
-      /*if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
-        singleSample ( e.X, e.Y );*/
-
-      if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
-      {
-        Point relative = getRelativeCursorLocation (e.X, e.Y);
-
-        if ( relative.X >= 0 )
-          singleSample ( relative.X, relative.Y );
-      }
-
-      if ( panning )
-      {
-        movingPoint = new PointF ( e.Location.X - startingPoint.X, e.Location.Y - startingPoint.Y );
-        pictureBox1.Invalidate ();
-      }
-    }
-
-    private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
-    {
-      panning = false;
-    }
-
-    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
-    {
-      StopRendering ();
-    }
-
     private void AdvancedToolsButton_Click ( object sender, EventArgs e )
     {
       if ( AdvancedToolsForm.instance != null )
@@ -724,6 +661,78 @@ namespace Rendering
       renderClientsForm.Show ();
     }
 
+
+    private PointF startingPoint = PointF.Empty;
+    private PointF movingPoint   = PointF.Empty;
+    private bool   panning       = false;
+    /// <summary>
+    /// Handles calling singleSample for RayVisualizer and picture box image pan control
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
+    {
+      if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
+      {
+        Point relative = getRelativeCursorLocation (e.X, e.Y);
+
+        if ( relativeCursor.X >= 0 )
+          singleSample ( (int)relativeCursor.X, (int)relativeCursor.Y );
+      }
+
+      if ( !ModifierKeys.HasFlag ( Keys.Control ) ) //holding down CTRL key prevents panning
+      {
+        panning = true;
+        startingPoint = new PointF ( e.Location.X - movingPoint.X, e.Location.Y - movingPoint.Y );
+      }      
+    }
+
+    /// <summary>
+    /// Handles calling singleSample for RayVisualizer and picture box image pan control
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
+    {
+      if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
+      {
+        Point relative = getRelativeCursorLocation (e.X, e.Y);
+
+        if ( relativeCursor.X >= 0 )
+          singleSample ( (int) relativeCursor.X, (int) relativeCursor.Y );
+      }
+
+      if ( panning )
+      {
+        movingPoint = new PointF ( e.Location.X - startingPoint.X, e.Location.Y - startingPoint.Y );
+        pictureBox1.Invalidate ();
+      }
+    }
+
+    private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
+    {
+      panning = false;
+    }
+
+    /// <summary>
+    /// Catches mouse wheel movement for zoom in/out of image in picture box
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
+    {
+      cursor         = new Point ( e.X, e.Y );
+      relativeCursor = getRelativeCursorLocation ( cursor.X, cursor.Y );
+
+      if ( getRelativeCursorLocation ( e.X, e.Y ).X >= 0 )
+      {
+        if ( e.Delta > 0 )
+          zoomPictureBox ( true );
+        else if ( e.Delta != 1 )
+          zoomPictureBox ( false );
+      }
+    }
+
     /// <summary>
     /// Sets necessary stuff at form load
     /// </summary>
@@ -740,25 +749,10 @@ namespace Rendering
       PointF lowerLeft  = new PointF ( 0f, 0f + pictureBox1.Height );
       points = new PointF[] { upperLeft, upperRight, lowerLeft};
     }
-
-    /// <summary>
-    /// Catches mouse wheel movement for zoom in/out of image in picture box
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
+    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
     {
-      cursor = new Point ( e.X, e.Y );
-      relativeCursor = getRelativeCursorLocation ( cursor.X, cursor.Y );
-
-      if ( getRelativeCursorLocation ( e.X, e.Y ).X >= 0 )
-      {
-        if ( e.Delta > 0 )
-          zoomPictureBox ( true );
-        else if ( e.Delta != 1 )
-          zoomPictureBox ( false );
-      }     
-    }    
+      StopRendering ();
+    }
 
     /// <summary>
     /// Catches +/PageUp for zoom in or -/PageDown for zoom out of image in picture box
@@ -785,7 +779,8 @@ namespace Rendering
     /// <returns>Relative location of cursor in terms of actual rendered picture; (-1, -1) if relative position would be outside of picture</returns>
     private Point getRelativeCursorLocation ( float absoluteX, float absoluteY )
     {
-      if ( absoluteX < points[0].X || absoluteY < points[0].Y || absoluteX > points[1].X || absoluteY > points[2].Y )  // cursor ourside of picture
+      if ( absoluteX < points[0].X || absoluteY < points[0].Y || 
+           absoluteX > points[1].X || absoluteY > points[2].Y || pictureBox1.Image == null )  // cursor ourside of picture
       {
         return new Point ( -1, -1 );
       }
@@ -856,11 +851,11 @@ namespace Rendering
         //scale
         if ( relativeCursor.X >= 0 )
         {
-          //transform.Translate ( -relativeCursor.X, -relativeCursor.Y, MatrixOrder.Append );
-          transform.Translate ( -pictureBox1.Image.Width / 2f, -pictureBox1.Image.Height / 2f, MatrixOrder.Append );
+          transform.Translate ( -relativeCursor.X, -relativeCursor.Y, MatrixOrder.Append );
+          //transform.Translate ( -pictureBox1.Image.Width / 2f, -pictureBox1.Image.Height / 2f, MatrixOrder.Append );
           transform.Scale ( zoom, zoom, MatrixOrder.Append );
-          transform.Translate ( pictureBox1.Image.Width / 2f, pictureBox1.Image.Height / 2f, MatrixOrder.Append );
-          //transform.Translate ( relativeCursor.X, relativeCursor.Y, MatrixOrder.Append );
+          //transform.Translate ( pictureBox1.Image.Width / 2f, pictureBox1.Image.Height / 2f, MatrixOrder.Append );
+          transform.Translate ( relativeCursor.X, relativeCursor.Y, MatrixOrder.Append );
         }
 
         Console.WriteLine ( movingPoint.X + "\t" + movingPoint.Y + "\t" + zoom );
