@@ -211,7 +211,7 @@ namespace Rendering
 
           networkWorkers.Add ( newWorker );
 
-          for ( int i = 0; i < newWorker.threadCountAtClient; i++ )
+          for ( int i = 0; i < newWorker.threadCountAtClient + 2; i++ ) //to each client is sent enough assignments to fill all threads + 2 for reserve
           {
             newWorker.TryToGetNewAssignment ();
           }
