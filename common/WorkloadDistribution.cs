@@ -276,7 +276,7 @@ namespace Rendering
   {
     private readonly IPAddress  ipAdr;
     private          IPEndPoint endPoint;
-    private const    int        port = 5000;
+    private const    int        port = 5411;
 
     public TcpClient     client;
     public NetworkStream stream;
