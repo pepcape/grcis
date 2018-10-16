@@ -100,21 +100,14 @@ namespace Rendering
       int bands = color.Length;
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect ( p0, p1 );
 
-      Statistics.allRaysCount++;
-      if ( level == 0 )
-      {
-        Statistics.primaryRaysCount++;
-      }
+	    Statistics.IncrementRaysCounters ( 1, level == 0 );	// if ray is primary, increment both counters
 
       Intersection i = Intersection.FirstIntersection ( intersections, ref p1 );
       int b;
 
       if ( i == null ) // no intersection -> background color
       {
-        if ( MT.singleRayTracing )
-        {
-          RayVisualizer.instance?.RegisterRay ( level, p0, direction * 1000 );
-        }
+	      RegisterRay ( RayType.rayVisualizerNormal, level, p0, direction * 1000 );
 
         Array.Copy ( scene.BackgroundColor, color, bands );
         return 1L;
@@ -123,7 +116,7 @@ namespace Rendering
       // there was at least one intersection
       i.Complete ();
 
-      RegisterRay ( level, p0, i, false ); // moved lower to also register rays for shadows
+      RegisterRay ( RayType.unknown, level, p0, i ); // moved lower to also register rays for shadows
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode ();
@@ -142,7 +135,7 @@ namespace Rendering
       else
       {
         // apply the reflectance model for each source
-        i.Material       = (IMaterial) i.Material.Clone ();
+        i.Material = (IMaterial) i.Material.Clone ();
         i.Material.Color = i.SurfaceColor;
         Array.Clear ( color, 0, bands );
 
@@ -151,11 +144,9 @@ namespace Rendering
           Vector3d dir;
           double[] intensity = source.GetIntensity ( i, out dir );
 
-          if ( MT.singleRayTracing && source.position != null )
-          {
-            RayVisualizer.instance?.RegisterShadowRay ( level, i.CoordWorld, (Vector3d) source.position );
-            // register shadow ray for RayVisualizer
-          }
+	        if ( MT.singleRayTracing && source.position != null )
+		        // register shadow ray for RayVisualizer
+		        RegisterRay ( RayType.rayVisualizerShadow, level, i.CoordWorld, (Vector3d) source.position );        
 
           if ( intensity != null )
           {
@@ -230,30 +221,69 @@ namespace Rendering
       return hash;
     }
 
-    private void RegisterRay ( int level, Vector3d rayOrigin, Intersection intersection, bool shadowRay )
-    {
-      if ( MT.singleRayTracing )
-      {
-        if ( intersection == null )
-        {
-          return;
-        }
 
-        if ( shadowRay )
-        {
-          RayVisualizer.instance?.RegisterShadowRay ( level, rayOrigin,
-                                                      intersection.CoordWorld ); // register shadow ray for RayVisualizer
-        }
-        else
-        {
-          RayVisualizer.instance?.RegisterRay ( level, rayOrigin,
-                                                intersection.CoordWorld ); // register ray for RayVisualizer
-        }
-      }
-      else
-      {
-        AdvancedTools.instance?.Register ( level, rayOrigin, intersection ); // register ray for statistics and maps   
-      }
+    /// <summary>
+    /// Translate function for several ray register methods from AdvancedTools and RayVisualizer
+    /// Be careful with params - not type safe
+    /// </summary>
+    /// <param name="rayType">RayType which chooses method to be called</param>
+    /// <param name="parameters">All possible parameters that can be passed to individual ray register methods</param>
+    private void RegisterRay ( RayType rayType, params object[] parameters )
+    {
+	    if ( rayType == RayType.unknown )
+	    {
+		    rayType = DetermineRayType ();
+	    }
+
+	    switch ( rayType )
+	    {
+        case RayType.mapsNormal:
+	        //register ray for statistics and maps
+          AdvancedTools.instance?.Register ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], (Intersection) parameters [ 2 ] );
+          break;
+
+		    case RayType.rayVisualizerNormal:
+			    //register ray for RayVisualizer
+			    if ( ( (Intersection) parameters[2] ) == null || !MT.singleRayTracing )
+            return;
+          RayVisualizer.instance?.RegisterRay ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], ( (Intersection) parameters [ 2 ] ).CoordWorld );
+          break;
+
+		    case RayType.rayVisualizerShadow:
+          //register shadow ray for RayVisualizer
+			    if ( !MT.singleRayTracing )
+				    return;
+          RayVisualizer.instance?.RegisterShadowRay ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], (Vector3d) parameters [ 2 ] );
+          break;
+      }	    
     }
+
+    /// <summary>
+    /// Determined whether ray comes from normal rendering or single ray rendering (for information about pixel and RayVisualizer)
+    /// </summary>
+    /// <returns>Returns chosen RayType</returns>
+	  private RayType DetermineRayType ()
+	  {
+		  if ( MT.singleRayTracing )
+		  {
+			  return RayType.rayVisualizerNormal;
+		  }
+		  else
+		  {
+			  return RayType.mapsNormal;
+      }
+	  }
+
+    /// <summary>
+    /// Types of rays
+    /// Unknown used when further classification of it is needed and will be changed later
+    /// </summary>
+    enum RayType
+	  {
+		  rayVisualizerNormal,
+		  rayVisualizerShadow,
+		  mapsNormal,
+			unknown
+	  };
   }
 }
