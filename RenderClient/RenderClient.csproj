@@ -61,6 +61,9 @@
     <Reference Include="Microsoft.CodeAnalysis.Scripting">
       <HintPath>..\048rtmontecarlo-script\bin\Debug\Microsoft.CodeAnalysis.Scripting.dll</HintPath>
     </Reference>
+    <Reference Include="Open.Nat, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f22a6a4582336c76, processorArchitecture=MSIL">
+      <HintPath>packages\Open.NAT.2.1.0.0\lib\net45\Open.Nat.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\OpenTK.dll</HintPath>
@@ -87,6 +90,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\AdvancedTools.cs">
+      <Link>AdvancedTools.cs</Link>
+    </Compile>
     <Compile Include="..\common\Construction.cs">
       <Link>Construction.cs</Link>
     </Compile>
@@ -150,7 +156,6 @@
     <Compile Include="..\common\WorkloadDistribution.cs">
       <Link>WorkloadDistribution.cs</Link>
     </Compile>
-    <Compile Include="AdvancedTools.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

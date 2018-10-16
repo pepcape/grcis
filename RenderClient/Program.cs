@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Open.Nat;
 using Rendering;
 
 namespace RenderClient
@@ -27,7 +28,7 @@ namespace RenderClient
   /// </summary>
   static class RenderClient
   {
-    private const  int           port = 5000;
+    private const  int           port = 5411;
     private static NetworkStream stream;
     private static TcpClient     client;
     private static bool          finished = false;  // indication for Consume method that rendering of everything is finished and there will be no more assignments
@@ -56,9 +57,10 @@ namespace RenderClient
     /// </summary>
     private static void ConnectToServer ()
     {
-	    if ( stream != null )	// connection already exists
-        return; 
+	    NetworkSupport.NecessaryNetworkSettings ( port, Protocol.Tcp, "RenderClient (TCP)");  //sets port-forwarding    
 
+      if ( stream != null )	// connection already exists
+        return; 
 
       TcpListener localServer = new TcpListener ( IPAddress.Any, port );
       localServer.Start ( 1 );
@@ -70,28 +72,8 @@ namespace RenderClient
         stream = client.GetStream ();
       } while ( stream == null );
 
-	    /*Task<TcpClient> acceptConnection = new Task<TcpClient> ( localServer.AcceptTcpClient, resetAssignmentToken );
-	    acceptConnection.Start ();
-
-	    try
-	    {
-		    acceptConnection.Wait ( resetAssignmentToken );
-      }
-	    catch ( OperationCanceledException )
-	    {
-        return;
-	    }
-		        
-
-	    if ( acceptConnection.IsCanceled )
-		    return;
-
-	    client = acceptConnection.Result;
-
-      stream = client.GetStream ();*/
-
       client.ReceiveBufferSize = 1024 * 1024; // needed just in case - large portions of data are expected to be transfered at the same time (one rendered assignment is 50kB)
-      client.SendBufferSize = 1024 * 1024;     
+      client.SendBufferSize = 1024 * 1024;			
     }
 
 
@@ -106,7 +88,11 @@ namespace RenderClient
       {
 		    try
 		    {
+          //displays external and internal IP addresses for easier connection establishment
 			    Console.ForegroundColor = ConsoleColor.White;
+          Console.WriteLine ( "Your external IP address is: " + NetworkSupport.GetExternalIPAddress () );
+			    Console.WriteLine ( "Your local IP address is: " + NetworkSupport.GetLocalIPAddress () + '\n' );
+
 			    Console.WriteLine ( @"Waiting for remote server to connect to this client..." );
 
           ConnectToServer ();
