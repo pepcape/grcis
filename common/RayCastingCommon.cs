@@ -561,7 +561,7 @@ namespace Rendering
       rank++;
     }
   }
-
+  #endregion
 
   public static class Statistics
   {
@@ -569,12 +569,20 @@ namespace Rendering
 
     public static int allRaysCount;
 
+	  public static void IncrementRaysCounters ( int amount, bool primary )
+	  {	  
+		  allRaysCount += amount;
+
+		  if ( primary )
+		  {
+			  primaryRaysCount += amount;
+      }
+    }
+
     public static void Reset ()
     {
       primaryRaysCount = 0;
-      allRaysCount     = 0;
+      allRaysCount = 0;
     }
   }
-
-  #endregion
 }
