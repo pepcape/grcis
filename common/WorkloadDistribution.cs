@@ -42,7 +42,7 @@ namespace Rendering
     public IRayScene scene;
     public IRenderer renderer;
 
-    private IEnumerable<Client> clientsCollection;
+    private IEnumerable<Client> clientsCollection;  
 
     /// <summary>
     /// Constructor which takes also care of initializing assignments
@@ -74,24 +74,32 @@ namespace Rendering
 
       AssignNetworkWorkerToStream ();
 
+      WaitHandle[] waitHandles = new WaitHandle[threads];
+
       for ( int i = 0; i < threads; i++ )
       {
-        Thread newThread = new Thread ( Consume );
+        EventWaitHandle handle = new EventWaitHandle ( false, EventResetMode.ManualReset );
+
+        Thread newThread = new Thread ( () =>
+        {
+          Consume() ;
+          handle.Set();         
+        } );
+
         newThread.Name = "RenderThread #" + i;
         pool [ i ] = newThread;
         newThread.Start ();
+
+        waitHandles [ i ] = handle;
       }
 
       mainRenderThread = pool [ 0 ];
 
-      RenderedImageReceiver ();
+      Thread imageReceiver = new Thread ( RenderedImageReceiver );
+      imageReceiver.Name = "ImageReceiver";
+      imageReceiver.Start ();
 
-      for ( int i = 0; i < threads; i++ )
-      {
-        pool [ i ].Join ();
-        pool [ i ] = null;
-      }
-
+      WaitHandle.WaitAll ( waitHandles );
       
       if ( networkWorkers?.Count > 0 )
       {
@@ -258,12 +266,9 @@ namespace Rendering
         return;
       }
 
-      while ( finishedAssignments < totalNumberOfAssignments && progressData.Continue )
+      for ( int i = 0; i < networkWorkers.Count; i++ )
       {
-        for ( int i = 0; i < networkWorkers.Count; i++ )
-        {
-          networkWorkers[i]?.ReceiveRenderedImage ();
-        }
+        networkWorkers[i]?.ReceiveRenderedImageAsync ();
       }
     }
   }
@@ -286,9 +291,15 @@ namespace Rendering
 
     private List<Assignment> unfinishedAssignments = new List<Assignment>();
 
+    public CancellationTokenSource imageReceivalCancelSource;
+    private CancellationToken imageReceivalCancelToken;
+
     public NetworkWorker ( IPAddress ipAdr )
     {
       this.ipAdr = ipAdr;
+
+      imageReceivalCancelSource = new CancellationTokenSource ();
+      imageReceivalCancelToken = imageReceivalCancelSource.Token;
     }
 
     /// <summary>
@@ -349,63 +360,60 @@ namespace Rendering
 
     private const int bufferSize = ( Master.assignmentSize * Master.assignmentSize * 3 + 2) * sizeof ( float );
     /// <summary>
-    /// Checks whether there is any data in NetworkStream to read
+    /// Asynchronous image receiver uses NetworkStream.ReadAsync
+    /// Recursively called at the end
     /// If so, it reads it as - expected format is array of floats
     ///   - first 2 floats represents x1 and y1 coordinates - position in main bitmap;
     ///   - rest of array are colors of rendered bitmap - 3 floats (RGB values) per pixel;
     ///   - stored per lines from left upper corner (coordinates position)
     /// </summary>
-    public void ReceiveRenderedImage ()
+    public async void ReceiveRenderedImageAsync ()
     {
-      if ( !NetworkSupport.IsConnected ( client ) )
+      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments && Master.instance.progressData.Continue )
       {
-        LostConnection ();        
-        return;
-      }
-
-      if ( stream.DataAvailable )
-      {
-        byte [] tmp = new byte[1];
-
-        stream.Write ( tmp, 0, 0 );
-
-        int totalReceivedSize = 0;
-        int leftToReceive = bufferSize;
-
-        byte[] receiveBuffer = new byte[bufferSize];        
-
-        while ( leftToReceive > 0 )  // Loop until enough data is received
+        if ( !NetworkSupport.IsConnected ( client ) )
         {
-          int latestReceivedSize = stream.Read ( receiveBuffer, totalReceivedSize, leftToReceive );
-          leftToReceive -= latestReceivedSize;
-          totalReceivedSize += latestReceivedSize;
+          LostConnection ();
+          return;
         }
 
-        // Use parts of receiveBuffer - separate and convert data to coordinates and floats representing colors of pixels
+        byte[] receiveBuffer = new byte[bufferSize];
+
+        try
+        {
+          await stream.ReadAsync ( receiveBuffer, 0, bufferSize, imageReceivalCancelToken );
+        }
+        catch ( IOException )
+        {
+          LostConnection ();
+          return;
+        }
+
+        //uses parts of receiveBuffer - separates and converts data to coordinates and floats representing colors of pixels
         float[] coordinates = new float[2];
         float[] floatBuffer = new float[Master.assignmentSize * Master.assignmentSize * 3];
         Buffer.BlockCopy ( receiveBuffer, 0, coordinates, 0, 2 * sizeof ( float ) );
         Buffer.BlockCopy ( receiveBuffer, 2 * sizeof ( float ), floatBuffer, 0, floatBuffer.Length * sizeof ( float ) );
 
-        Master.instance.BitmapMerger ( floatBuffer, 
-                                       (int) coordinates [ 0 ],
-                                       (int) coordinates [ 1 ],
-                                       (int) coordinates [ 0 ] + Master.assignmentSize,
-                                       (int) coordinates [ 1 ] + Master.assignmentSize );
+        Master.instance.BitmapMerger ( floatBuffer,
+                                       (int) coordinates[0],
+                                       (int) coordinates[1],
+                                       (int) coordinates[0] + Master.assignmentSize,
+                                       (int) coordinates[1] + Master.assignmentSize );
 
         Master.instance.finishedAssignments++;
 
         //takes care of increasing assignmentRoundsFinished by the ammount of finished rendering rounds on RenderClient
         Assignment currentAssignment = unfinishedAssignments.Find ( a => a.x1 == (int) coordinates [ 0 ] && a.y1 == (int) coordinates [ 1 ]  );
-        int roundsFinished = (int) Math.Log ( currentAssignment.stride, 2 ) + 1;  // stride goes from 8 > 4 > 2 > 1 (1 step = 1 rendering round)
+        int        roundsFinished    = (int) Math.Log ( currentAssignment.stride, 2 ) + 1; // stride goes from 8 > 4 > 2 > 1 (1 step = 1 rendering round)
         Master.instance.assignmentRoundsFinished += roundsFinished;
 
         assignmentsAtClients--;
 
         RemoveAssignmentFromUnfinishedAssignments ( (int) coordinates[0], (int) coordinates[1] );
 
-        TryToGetNewAssignment();
-      }
+        TryToGetNewAssignment ();
+      }      
     }
 
     /// <summary>

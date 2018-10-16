@@ -5,7 +5,10 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
+using System.Threading;
+using Open.Nat;
 using Rendering;
 
 
@@ -206,7 +209,60 @@ public static class NetworkSupport
   }
 
 
-	sealed class CustomBinder : SerializationBinder
+	/// <summary>
+  /// Takes care of port forwarding
+  /// </summary>
+  /// <param name="port">Port to forward</param>
+  /// <param name="protocol">Protocol to use for forwarding</param>
+  /// <param name="description">Description of forwarding</param>
+	public static async void NecessaryNetworkSettings ( int port, Protocol protocol, string description )
+	{
+    NatDiscoverer discoverer = new NatDiscoverer();
+		CancellationTokenSource cts = new CancellationTokenSource ( 10000 );
+		NatDevice device = await discoverer.DiscoverDeviceAsync ( PortMapper.Upnp, cts );
+
+		await device.CreatePortMapAsync ( new Mapping ( protocol, port, port, description ) );
+  }
+
+	/// <summary>
+  /// Simple getter for external IP address
+  /// </summary>
+  /// <returns>Returns external IP address</returns>
+	public static IPAddress GetExternalIPAddress ()
+	{
+		string externalIP = new WebClient ().DownloadString ( "http://icanhazip.com" );
+
+		IPAddress.TryParse ( externalIP.TrimEnd(), out IPAddress address );
+
+    return address;
+	}
+
+	/// <summary>
+	/// Simple getter for local IP address
+	/// </summary>
+	/// <returns>Returns local IP address</returns>
+  public static IPAddress GetLocalIPAddress ()
+	{
+		string localIP;
+
+		using ( Socket socket = new Socket ( AddressFamily.InterNetwork, SocketType.Dgram, 0 ) )
+		{
+			socket.Connect ( "8.8.8.8", 65530 );	//8.8.8.8 is one of the Google's DNS servers
+
+			IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+			localIP = endPoint.Address.ToString ();
+		}
+
+		IPAddress.TryParse ( localIP, out IPAddress address );
+
+		return address;
+	}
+
+
+	/// <summary>
+  /// Custom Binder needed for serialization/deserialization between different assemblies
+  /// </summary>
+  sealed class CustomBinder : SerializationBinder
 	{
 		public CustomBinder ( string senderAssembly, string targetAssembly )
 		{
