@@ -28,7 +28,7 @@ namespace RenderClient
   /// </summary>
   static class RenderClient
   {
-    private const  int           port = 5411;
+    private const  int           port = 5411; // randomly chosen port - should be above 5000 and with bit of luck, it will not interfere with any other prorgam
     private static NetworkStream stream;
     private static TcpClient     client;
     private static bool          finished = false;  // indication for Consume method that rendering of everything is finished and there will be no more assignments

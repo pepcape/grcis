@@ -676,8 +676,8 @@ namespace Rendering
       {
         Point relative = getRelativeCursorLocation (e.X, e.Y);
 
-        if ( relativeCursor.X >= 0 )
-          singleSample ( (int)relativeCursor.X, (int)relativeCursor.Y );
+        if ( relative.X >= 0 )
+          singleSample ( (int) relative.X, (int) relative.Y );
       }
 
       if ( !ModifierKeys.HasFlag ( Keys.Control ) ) //holding down CTRL key prevents panning
@@ -698,8 +698,8 @@ namespace Rendering
       {
         Point relative = getRelativeCursorLocation (e.X, e.Y);
 
-        if ( relativeCursor.X >= 0 )
-          singleSample ( (int) relativeCursor.X, (int) relativeCursor.Y );
+        if ( relative.X >= 0 )
+          singleSample ( (int) relative.X, (int) relative.Y );
       }
 
       if ( panning )
@@ -744,7 +744,7 @@ namespace Rendering
       pictureBox1.MouseWheel += new MouseEventHandler ( pictureBox1_MouseWheel );
       KeyPreview = true;
 
-      PointF upperLeft  = new PointF (0f, 0f);
+      PointF upperLeft = new PointF ( 0f, 0f );
       PointF upperRight = new PointF ( 0f + pictureBox1.Width, 0f );
       PointF lowerLeft  = new PointF ( 0f, 0f + pictureBox1.Height );
       points = new PointF[] { upperLeft, upperRight, lowerLeft};
