@@ -107,7 +107,7 @@ namespace Rendering
 
       if ( i == null ) // no intersection -> background color
       {
-	      RegisterRay ( RayType.rayVisualizerNormal, level, p0, direction * 1000 );
+        RegisterRay ( RayType.rayVisualizerNormal, level, p0, direction * 1000 );
 
         Array.Copy ( scene.BackgroundColor, color, bands );
         return 1L;
@@ -244,9 +244,12 @@ namespace Rendering
 
 		    case RayType.rayVisualizerNormal:
 			    //register ray for RayVisualizer
-			    if ( ( (Intersection) parameters[2] ) == null || !MT.singleRayTracing )
+			    if ( !MT.singleRayTracing )
             return;
-          RayVisualizer.instance?.RegisterRay ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], ( (Intersection) parameters [ 2 ] ).CoordWorld );
+		      if ( parameters[2] is Vector3d vector )
+		        RayVisualizer.instance?.RegisterRay ( (int) parameters[0], (Vector3d) parameters[1], vector );
+		      if ( parameters[2] is Intersection intersection )
+		        RayVisualizer.instance?.RegisterRay ( (int) parameters[0], (Vector3d) parameters[1], intersection.CoordWorld );
           break;
 
 		    case RayType.rayVisualizerShadow:
