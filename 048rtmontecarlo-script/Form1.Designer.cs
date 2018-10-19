@@ -52,6 +52,7 @@
       this.addRenderClientToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.panel1 = new System.Windows.Forms.Panel();
       this.pictureBox1 = new System.Windows.Forms.PictureBox();
+      this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
       ((System.ComponentModel.ISupportInitialize)(this.numericSupersampling)).BeginInit();
       this.RenderButtonMenuStrip.SuspendLayout();
       this.panel1.SuspendLayout();
@@ -61,7 +62,7 @@
       // buttonSave
       // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonSave.Location = new System.Drawing.Point(602, 567);
+      this.buttonSave.Location = new System.Drawing.Point(849, 581);
       this.buttonSave.Name = "buttonSave";
       this.buttonSave.Size = new System.Drawing.Size(91, 23);
       this.buttonSave.TabIndex = 2;
@@ -73,7 +74,7 @@
       // 
       this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelElapsed.AutoSize = true;
-      this.labelElapsed.Location = new System.Drawing.Point(206, 573);
+      this.labelElapsed.Location = new System.Drawing.Point(206, 587);
       this.labelElapsed.Name = "labelElapsed";
       this.labelElapsed.Size = new System.Drawing.Size(48, 13);
       this.labelElapsed.TabIndex = 21;
@@ -83,7 +84,7 @@
       // 
       this.labelSample.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelSample.AutoSize = true;
-      this.labelSample.Location = new System.Drawing.Point(430, 510);
+      this.labelSample.Location = new System.Drawing.Point(677, 524);
       this.labelSample.Name = "labelSample";
       this.labelSample.Size = new System.Drawing.Size(45, 13);
       this.labelSample.TabIndex = 22;
@@ -93,7 +94,7 @@
       // 
       this.buttonStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonStop.Enabled = false;
-      this.buttonStop.Location = new System.Drawing.Point(126, 567);
+      this.buttonStop.Location = new System.Drawing.Point(126, 581);
       this.buttonStop.Name = "buttonStop";
       this.buttonStop.Size = new System.Drawing.Size(65, 23);
       this.buttonStop.TabIndex = 32;
@@ -105,7 +106,7 @@
       // 
       this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point(12, 508);
+      this.label1.Location = new System.Drawing.Point(12, 522);
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size(41, 13);
       this.label1.TabIndex = 33;
@@ -116,7 +117,7 @@
       this.comboScene.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.comboScene.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
       this.comboScene.FormattingEnabled = true;
-      this.comboScene.Location = new System.Drawing.Point(55, 504);
+      this.comboScene.Location = new System.Drawing.Point(55, 518);
       this.comboScene.Name = "comboScene";
       this.comboScene.Size = new System.Drawing.Size(155, 21);
       this.comboScene.TabIndex = 34;
@@ -126,7 +127,7 @@
       // 
       this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label2.AutoSize = true;
-      this.label2.Location = new System.Drawing.Point(123, 540);
+      this.label2.Location = new System.Drawing.Point(123, 554);
       this.label2.Name = "label2";
       this.label2.Size = new System.Drawing.Size(79, 13);
       this.label2.TabIndex = 35;
@@ -135,7 +136,7 @@
       // numericSupersampling
       // 
       this.numericSupersampling.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.numericSupersampling.Location = new System.Drawing.Point(204, 537);
+      this.numericSupersampling.Location = new System.Drawing.Point(204, 551);
       this.numericSupersampling.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -162,7 +163,7 @@
       this.checkShadows.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.checkShadows.Checked = true;
       this.checkShadows.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkShadows.Location = new System.Drawing.Point(331, 539);
+      this.checkShadows.Location = new System.Drawing.Point(331, 553);
       this.checkShadows.Name = "checkShadows";
       this.checkShadows.Size = new System.Drawing.Size(68, 17);
       this.checkShadows.TabIndex = 37;
@@ -176,7 +177,7 @@
       this.checkReflections.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.checkReflections.Checked = true;
       this.checkReflections.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkReflections.Location = new System.Drawing.Point(405, 539);
+      this.checkReflections.Location = new System.Drawing.Point(405, 553);
       this.checkReflections.Name = "checkReflections";
       this.checkReflections.Size = new System.Drawing.Size(74, 17);
       this.checkReflections.TabIndex = 38;
@@ -190,7 +191,7 @@
       this.checkRefractions.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.checkRefractions.Checked = true;
       this.checkRefractions.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkRefractions.Location = new System.Drawing.Point(485, 539);
+      this.checkRefractions.Location = new System.Drawing.Point(485, 553);
       this.checkRefractions.Name = "checkRefractions";
       this.checkRefractions.Size = new System.Drawing.Size(75, 17);
       this.checkRefractions.TabIndex = 39;
@@ -204,7 +205,7 @@
       this.checkJitter.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.checkJitter.Checked = true;
       this.checkJitter.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkJitter.Location = new System.Drawing.Point(266, 539);
+      this.checkJitter.Location = new System.Drawing.Point(266, 553);
       this.checkJitter.Name = "checkJitter";
       this.checkJitter.Size = new System.Drawing.Size(59, 17);
       this.checkJitter.TabIndex = 40;
@@ -216,7 +217,7 @@
       this.checkMultithreading.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkMultithreading.AutoSize = true;
       this.checkMultithreading.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-      this.checkMultithreading.Location = new System.Drawing.Point(566, 539);
+      this.checkMultithreading.Location = new System.Drawing.Point(566, 553);
       this.checkMultithreading.Name = "checkMultithreading";
       this.checkMultithreading.Size = new System.Drawing.Size(94, 17);
       this.checkMultithreading.TabIndex = 41;
@@ -226,7 +227,7 @@
       // buttonRes
       // 
       this.buttonRes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonRes.Location = new System.Drawing.Point(13, 535);
+      this.buttonRes.Location = new System.Drawing.Point(13, 549);
       this.buttonRes.Name = "buttonRes";
       this.buttonRes.Size = new System.Drawing.Size(101, 23);
       this.buttonRes.TabIndex = 42;
@@ -238,7 +239,7 @@
       // 
       this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label3.AutoSize = true;
-      this.label3.Location = new System.Drawing.Point(218, 509);
+      this.label3.Location = new System.Drawing.Point(218, 523);
       this.label3.Name = "label3";
       this.label3.Size = new System.Drawing.Size(40, 13);
       this.label3.TabIndex = 43;
@@ -248,16 +249,16 @@
       // 
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.textParam.Location = new System.Drawing.Point(261, 505);
+      this.textParam.Location = new System.Drawing.Point(261, 519);
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(163, 20);
+      this.textParam.Size = new System.Drawing.Size(410, 20);
       this.textParam.TabIndex = 44;
       this.textParam.TextChanged += new System.EventHandler(this.textParam_TextChanged);
       // 
       // AdvancedToolsButton
       // 
       this.AdvancedToolsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.AdvancedToolsButton.Location = new System.Drawing.Point(530, 567);
+      this.AdvancedToolsButton.Location = new System.Drawing.Point(777, 581);
       this.AdvancedToolsButton.Name = "AdvancedToolsButton";
       this.AdvancedToolsButton.Size = new System.Drawing.Size(66, 23);
       this.AdvancedToolsButton.TabIndex = 45;
@@ -268,7 +269,7 @@
       // RayVisualiserButton
       // 
       this.RayVisualiserButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.RayVisualiserButton.Location = new System.Drawing.Point(433, 567);
+      this.RayVisualiserButton.Location = new System.Drawing.Point(680, 581);
       this.RayVisualiserButton.Name = "RayVisualiserButton";
       this.RayVisualiserButton.Size = new System.Drawing.Size(91, 23);
       this.RayVisualiserButton.TabIndex = 46;
@@ -281,7 +282,7 @@
       this.buttonRender.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonRender.AutoSize = true;
       this.buttonRender.ContextMenuStrip = this.RenderButtonMenuStrip;
-      this.buttonRender.Location = new System.Drawing.Point(13, 567);
+      this.buttonRender.Location = new System.Drawing.Point(13, 581);
       this.buttonRender.Name = "buttonRender";
       this.buttonRender.Size = new System.Drawing.Size(101, 23);
       this.buttonRender.SplitMenuStrip = this.RenderButtonMenuStrip;
@@ -306,22 +307,25 @@
       // 
       // panel1
       // 
-      this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+      this.panel1.AutoScroll = true;
+      this.panel1.AutoSize = true;
       this.panel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
       this.panel1.Controls.Add(this.pictureBox1);
-      this.panel1.Location = new System.Drawing.Point(13, 13);
+      this.panel1.Controls.Add(this.flowLayoutPanel2);
+      this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
+      this.panel1.Location = new System.Drawing.Point(0, 0);
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(640, 480);
+      this.panel1.Size = new System.Drawing.Size(959, 460);
       this.panel1.TabIndex = 0;
       // 
       // pictureBox1
       // 
+      this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Top;
       this.pictureBox1.Location = new System.Drawing.Point(0, 0);
+      this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
       this.pictureBox1.Name = "pictureBox1";
-      this.pictureBox1.Size = new System.Drawing.Size(640, 480);
-      this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+      this.pictureBox1.Size = new System.Drawing.Size(959, 460);
+      this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
       this.pictureBox1.TabIndex = 50;
       this.pictureBox1.TabStop = false;
       this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
@@ -329,11 +333,18 @@
       this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseMove);
       this.pictureBox1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseUp);
       // 
+      // flowLayoutPanel2
+      // 
+      this.flowLayoutPanel2.Location = new System.Drawing.Point(102, 45);
+      this.flowLayoutPanel2.Name = "flowLayoutPanel2";
+      this.flowLayoutPanel2.Size = new System.Drawing.Size(197, 122);
+      this.flowLayoutPanel2.TabIndex = 48;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(712, 602);
+      this.ClientSize = new System.Drawing.Size(959, 616);
       this.Controls.Add(this.buttonRender);
       this.Controls.Add(this.RayVisualiserButton);
       this.Controls.Add(this.AdvancedToolsButton);
@@ -393,6 +404,7 @@
 		private System.Windows.Forms.ToolStripMenuItem addRenderClientToolStripMenuItem;
     private System.Windows.Forms.Panel panel1;
     private System.Windows.Forms.PictureBox pictureBox1;
+    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
   }
 }
 
