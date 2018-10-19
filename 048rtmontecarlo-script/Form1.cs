@@ -820,7 +820,7 @@ namespace Rendering
 
     private float zoom = 1.0f;
     private Point cursor;
-    private PointF relativeCursor;
+    private Point relativeCursor;
 
     private Matrix transform = new Matrix ();
     PointF[] points;
@@ -858,7 +858,8 @@ namespace Rendering
           transform.Translate ( relativeCursor.X, relativeCursor.Y, MatrixOrder.Append );
         }
 
-        Console.WriteLine ( movingPoint.X + "\t" + movingPoint.Y + "\t" + zoom );
+        Console.WriteLine ( "Starting: \t" + startingPoint.X + "\t" + startingPoint.Y );
+        Console.WriteLine ( "Moving: \t" + movingPoint.X + "\t" + movingPoint.Y );
         Console.WriteLine ( relativeCursor.X + "\t" + relativeCursor.Y + "\t" + cursor.X + "\t" + cursor.Y + "\t" );
 
         //translation

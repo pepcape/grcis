@@ -237,13 +237,14 @@ namespace Rendering
 
 	    switch ( rayType )
 	    {
+	      //ray for statistics and maps (AdvancedTools)
         case RayType.mapsNormal:
 	        //register ray for statistics and maps
           AdvancedTools.instance?.Register ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], (Intersection) parameters [ 2 ] );
           break;
 
-		    case RayType.rayVisualizerNormal:
-			    //register ray for RayVisualizer
+	      //ray for RayVisualizer
+        case RayType.rayVisualizerNormal:
 			    if ( !MT.singleRayTracing )
             return;
 		      if ( parameters[2] is Vector3d vector )
@@ -252,8 +253,8 @@ namespace Rendering
 		        RayVisualizer.instance?.RegisterRay ( (int) parameters[0], (Vector3d) parameters[1], intersection.CoordWorld );
           break;
 
-		    case RayType.rayVisualizerShadow:
-          //register shadow ray for RayVisualizer
+	      //shadow ray for RayVisualizer
+        case RayType.rayVisualizerShadow:         
 			    if ( !MT.singleRayTracing )
 				    return;
           RayVisualizer.instance?.RegisterShadowRay ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], (Vector3d) parameters [ 2 ] );
