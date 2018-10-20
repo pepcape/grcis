@@ -672,6 +672,10 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
+
+
+
+#if true
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
         Point relative = getRelativeCursorLocation (e.X, e.Y);
@@ -681,11 +685,18 @@ namespace Rendering
       }
 
       if ( !ModifierKeys.HasFlag ( Keys.Control ) ) //holding down CTRL key prevents panning
-      {
+      {      
         panning = true;
         startingPoint = new PointF ( e.Location.X - movingPoint.X, e.Location.Y - movingPoint.Y );
       }
+      else
+      {
+        Cursor = Cursors.Cross;
+      }
+
+#endif
     }
+
 
     /// <summary>
     /// Handles calling singleSample for RayVisualizer and picture box image pan control
@@ -694,24 +705,34 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
+      
+
+#if true
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
         Point relative = getRelativeCursorLocation (e.X, e.Y);
 
-        if ( relative.X >= 0 )
+        if ( relative.X >= 0 && !panning )
           singleSample ( (int) relative.X, (int) relative.Y );
       }
 
       if ( panning )
       {
+        Cursor = Cursors.NoMove2D;
+
         movingPoint = new PointF ( e.Location.X - startingPoint.X, e.Location.Y - startingPoint.Y );
         pictureBox1.Invalidate ();
       }
+#endif
     }
 
     private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
     {
+#if true
       panning = false;
+
+      Cursor = Cursors.Default;
+#endif
     }
 
     /// <summary>
@@ -721,6 +742,10 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
     {
+
+
+
+#if false
       cursor = new Point ( e.X, e.Y );
       relativeCursor = getRelativeCursorLocation ( cursor.X, cursor.Y );
 
@@ -731,6 +756,7 @@ namespace Rendering
         else if ( e.Delta != 1 )
           zoomPictureBox ( false );
       }
+#endif
     }
 
     /// <summary>
@@ -749,6 +775,8 @@ namespace Rendering
       PointF lowerLeft  = new PointF ( 0f, 0f + pictureBox1.Height );
       points = new PointF[] { upperLeft, upperRight, lowerLeft };
     }
+
+
     private void Form2_FormClosing ( object sender, FormClosingEventArgs e )
     {
       StopRendering ();
@@ -761,6 +789,9 @@ namespace Rendering
     /// <param name="e"></param>
     private void Form2_KeyDown ( object sender, KeyEventArgs e )
     {
+
+
+#if false
       cursor = new Point ( (int) ( points[0].X + ( ( points[1].X - points[0].X ) / 2 ) ),
                            (int) ( points[0].X + ( ( points[1].X - points[0].X ) / 2 ) ) );
       relativeCursor = getRelativeCursorLocation ( cursor.X, cursor.Y );
@@ -769,6 +800,7 @@ namespace Rendering
         zoomPictureBox ( true );
       else if ( e.KeyCode == Keys.Subtract || e.KeyCode == Keys.PageDown )
         zoomPictureBox ( false );
+#endif
     }
 
     /// <summary>
@@ -832,6 +864,11 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_Paint ( object sender, PaintEventArgs e )
     {
+      //e.Graphics.
+
+
+
+#if true
       if ( pictureBox1.Image != null )
       {
         e.Graphics.Clear ( Color.White );
@@ -849,19 +886,19 @@ namespace Rendering
         transform.Translate ( -( movingPoint.X - relativeCursor.X ), -( movingPoint.Y - relativeCursor.Y ), MatrixOrder.Append );*/
 
         //scale
-        if ( relativeCursor.X >= 0 )
+        /*if ( relativeCursor.X >= 0 )
         {
           transform.Translate ( -relativeCursor.X, -relativeCursor.Y, MatrixOrder.Append );
           //transform.Translate ( -pictureBox1.Image.Width / 2f, -pictureBox1.Image.Height / 2f, MatrixOrder.Append );
           transform.Scale ( zoom, zoom, MatrixOrder.Append );
           //transform.Translate ( pictureBox1.Image.Width / 2f, pictureBox1.Image.Height / 2f, MatrixOrder.Append );
           transform.Translate ( relativeCursor.X, relativeCursor.Y, MatrixOrder.Append );
-        }
+        }*/
 
-        Console.WriteLine ( "Starting: \t" + startingPoint.X + "\t" + startingPoint.Y );
+        /*Console.WriteLine ( "Starting: \t" + startingPoint.X + "\t" + startingPoint.Y );
         Console.WriteLine ( "Moving: \t" + movingPoint.X + "\t" + movingPoint.Y );
         Console.WriteLine ( relativeCursor.X + "\t" + relativeCursor.Y + "\t" + cursor.X + "\t" + cursor.Y + "\t" );
-
+        */
         //translation
         transform.Translate ( movingPoint.X, movingPoint.Y, MatrixOrder.Append );
 
@@ -876,6 +913,8 @@ namespace Rendering
 
         e.Graphics.DrawImage ( pictureBox1.Image, points );
       }
+
+#endif
     }
 
 
