@@ -495,6 +495,6 @@
     private System.Windows.Forms.Button buttonRender;
     private System.Windows.Forms.Button buttonStop;
     private System.Windows.Forms.PictureBox pictureBox1;
-    public System.Windows.Forms.Button AdvancedToolsButton;
+    private System.Windows.Forms.Button AdvancedToolsButton;
   }
 }

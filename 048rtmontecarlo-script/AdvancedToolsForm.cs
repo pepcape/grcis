@@ -17,7 +17,7 @@ namespace Rendering
     {
       instance = this;
 
-      Form2.singleton.AdvancedToolsButton.Enabled = false;  //TODO: change (no public button)
+      Form2.singleton.EnableAdvancedToolsButton ( false );
 
       if ( AdvancedTools.instance == null )
       {
@@ -63,7 +63,7 @@ namespace Rendering
     {
       System.Threading.SpinWait.SpinUntil ( () => !AdvancedTools.instance.isInMiddleOfRegistering ); // waiting for completion of registering current ray to maps
 
-      Form2.singleton.AdvancedToolsButton.Enabled = true;
+      Form2.singleton.EnableAdvancedToolsButton ( true );
 
       AdvancedTools.instance.formActive = false;
 
