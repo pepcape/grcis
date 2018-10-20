@@ -97,7 +97,7 @@
       this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
       this.pictureBox1.Name = "pictureBox1";
       this.pictureBox1.Size = new System.Drawing.Size(903, 507);
-      this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+      this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
       this.pictureBox1.TabIndex = 51;
       this.pictureBox1.TabStop = false;
       this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
@@ -450,6 +450,7 @@
       this.Load += new System.EventHandler(this.Form2_Load);
       this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form2_KeyDown);
       this.tableLayoutPanel1.ResumeLayout(false);
+      this.tableLayoutPanel1.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
       this.tableLayoutPanel2.ResumeLayout(false);
       this.flowLayoutPanel1.ResumeLayout(false);
