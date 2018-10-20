@@ -121,11 +121,12 @@ namespace Rendering
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
-      pictureBox1.Image = newImage;
+      //pictureBox1.Image = newImage;
+      image = newImage;
       pictureBox1.Invalidate ();
 
-      if ( bakImage != null )
-        bakImage.Dispose ();
+      bakImage?.Dispose ();
+
       bakImage = newImage;
     }
 
@@ -392,6 +393,11 @@ namespace Rendering
       buttonStop.Enabled = !enable;
     }
 
+    public void EnableAdvancedToolsButton ( bool enable )
+    {
+      AdvancedToolsButton.Enabled = enable;
+    }
+
 
     delegate void SetImageCallback ( Bitmap newImage );
 
@@ -505,6 +511,16 @@ namespace Rendering
 
       SetOptions ( args );
       buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
+
+      try
+      {
+        image = Image.FromFile ( "Logo-CGG.png" );
+      }
+      catch ( Exception )
+      { }
+      
+
+      pictureBox1.Image = null;
     }
 
     private void SetOptions ( string[] args )
@@ -661,10 +677,19 @@ namespace Rendering
       renderClientsForm.Show ();
     }
 
+    private Image image;
+    private Point mouseDown;
+    private int startX;
+    private int startY;
+    private int imageX;
+    private int imageY;
+
+    private bool mousePressed;
+    private float zoom = 1;
+
 
     private PointF startingPoint = PointF.Empty;
     private PointF movingPoint   = PointF.Empty;
-    private bool   panning       = false;
     /// <summary>
     /// Handles calling singleSample for RayVisualizer and picture box image pan control
     /// </summary>
@@ -672,29 +697,26 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
-
-
-
-#if true
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
-        Point relative = getRelativeCursorLocation (e.X, e.Y);
+        /*Point relative = getRelativeCursorLocation (e.X, e.Y);
 
         if ( relative.X >= 0 )
-          singleSample ( (int) relative.X, (int) relative.Y );
+          singleSample ( (int) relative.X, (int) relative.Y );*/
       }
 
-      if ( !ModifierKeys.HasFlag ( Keys.Control ) ) //holding down CTRL key prevents panning
-      {      
-        panning = true;
-        startingPoint = new PointF ( e.Location.X - movingPoint.X, e.Location.Y - movingPoint.Y );
+
+      if ( !ModifierKeys.HasFlag ( Keys.Control ) && e.Button == MouseButtons.Left && !mousePressed ) //holding down CTRL key prevents panning
+      {
+        mousePressed = true;
+        mouseDown    = e.Location;
+        startX       = imageX;
+        startY       = imageY;
       }
       else
       {
         Cursor = Cursors.Cross;
       }
-
-#endif
     }
 
 
@@ -705,34 +727,36 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
-      
-
-#if true
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
-        Point relative = getRelativeCursorLocation (e.X, e.Y);
+        /*Point relative = getRelativeCursorLocation (e.X, e.Y);
 
-        if ( relative.X >= 0 && !panning )
-          singleSample ( (int) relative.X, (int) relative.Y );
+        if ( relative.X >= 0 && !mousePressed )
+          singleSample ( (int) relative.X, (int) relative.Y );*/
       }
 
-      if ( panning )
+      if ( mousePressed && e.Button == MouseButtons.Left )
       {
         Cursor = Cursors.NoMove2D;
 
-        movingPoint = new PointF ( e.Location.X - startingPoint.X, e.Location.Y - startingPoint.Y );
-        pictureBox1.Invalidate ();
+        Point mousePosNow = e.Location;
+
+        int deltaX = mousePosNow.X - mouseDown.X;
+        int deltaY = mousePosNow.Y - mouseDown.Y;
+
+        imageX = (int) ( startX + ( deltaX / zoom ) );
+        imageY = (int) ( startY + ( deltaY / zoom ) );
+
+        pictureBox1.Refresh ();
       }
-#endif
     }
+
 
     private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
     {
-#if true
-      panning = false;
+      mousePressed = false;
 
       Cursor = Cursors.Default;
-#endif
     }
 
     /// <summary>
@@ -741,22 +765,11 @@ namespace Rendering
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
-    {
-
-
-
-#if false
-      cursor = new Point ( e.X, e.Y );
-      relativeCursor = getRelativeCursorLocation ( cursor.X, cursor.Y );
-
-      if ( getRelativeCursorLocation ( e.X, e.Y ).X >= 0 )
-      {
-        if ( e.Delta > 0 )
-          zoomPictureBox ( true );
-        else if ( e.Delta != 1 )
-          zoomPictureBox ( false );
-      }
-#endif
+    {     
+      if ( e.Delta > 0 )
+        zoomPictureBox ( true, e.Location );
+      else if ( e.Delta < 0 )
+        zoomPictureBox ( false, e.Location );
     }
 
     /// <summary>
@@ -789,18 +802,14 @@ namespace Rendering
     /// <param name="e"></param>
     private void Form2_KeyDown ( object sender, KeyEventArgs e )
     {
-
-
-#if false
-      cursor = new Point ( (int) ( points[0].X + ( ( points[1].X - points[0].X ) / 2 ) ),
-                           (int) ( points[0].X + ( ( points[1].X - points[0].X ) / 2 ) ) );
-      relativeCursor = getRelativeCursorLocation ( cursor.X, cursor.Y );
+      Point middle = new Point ();
+      middle.X = (int) ( ( imageX + ( image.Width * zoom ) ) - imageX ) / 2;
+      middle.Y = (int) ( ( imageY + ( image.Height * zoom ) ) - imageY ) / 2;
 
       if ( e.KeyCode == Keys.Add || e.KeyCode == Keys.PageUp )
-        zoomPictureBox ( true );
+        zoomPictureBox ( true, middle );
       else if ( e.KeyCode == Keys.Subtract || e.KeyCode == Keys.PageDown )
-        zoomPictureBox ( false );
-#endif
+        zoomPictureBox ( false, middle );
     }
 
     /// <summary>
@@ -831,31 +840,37 @@ namespace Rendering
     /// Variable zoom can be equal 1 (no zoom), less than 1 (zoom out) or greater than 1 (zoom in)
     /// </summary>
     /// <param name="zoomIn">TRUE if zoom in is desired; FALSE if zoom out is desired</param>
-    private void zoomPictureBox ( bool zoomIn )
+    private void zoomPictureBox ( bool zoomIn, Point zoomToPosition )
     {
-      if ( pictureBox1.Image != null )
-      {
-        float zoomFactor = 1.05f;
+      float oldzoom = zoom;
 
-        if ( ModifierKeys.HasFlag ( Keys.Shift ) )  //holding down the Shift key makes zoom in/out faster
-          zoomFactor = 1.3f;
+      float zoomFactor = 0.15F;
 
-        if ( zoomIn )
-          zoom *= zoomFactor;
-        else
-          zoom *= 1 / zoomFactor;
+      if ( ModifierKeys.HasFlag ( Keys.Shift ) ) //holding down the Shift key makes zoom in/out faster
+        zoomFactor = 0.35F;
 
-        pictureBox1.Invalidate ();
-      }
+      if ( zoomIn )
+        zoom += zoomFactor;
+      else
+        zoom = Math.Max ( zoom - zoomFactor, 0.1F ); // prevents picture to be too small (10% of original size si minimum)
+
+      int x = zoomToPosition.X - pictureBox1.Location.X;
+      int y = zoomToPosition.Y - pictureBox1.Location.Y;
+
+      int oldImageX = (int) ( x / oldzoom );
+      int oldImageY = (int) ( y / oldzoom );
+
+      int newImageX = (int) ( x / zoom );
+      int newImageY = (int) ( y / zoom );
+
+      imageX = newImageX - oldImageX + imageX;
+      imageY = newImageY - oldImageY + imageY;
+
+      pictureBox1.Refresh ();
     }
 
 
-    private float zoom = 1.0f;
-    private Point cursor;
-    private Point relativeCursor;
-
-    private Matrix transform = new Matrix ();
-    PointF[] points;
+    PointF[] points;  // 3 points representing rectangle (upper left[0], upper right[1] and lower left[2] corners)
     /// <summary>
     /// Is called every time main picture box is needed to be re-painted
     /// Used for re-painting after request for zoom in/out or pan
@@ -864,57 +879,15 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_Paint ( object sender, PaintEventArgs e )
     {
-      //e.Graphics.
+      if ( image == null )
+        return;
 
+      e.Graphics.PixelOffsetMode   = PixelOffsetMode.Half;
+      e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+      e.Graphics.SmoothingMode     = SmoothingMode.None;
 
-
-#if true
-      if ( pictureBox1.Image != null )
-      {
-        e.Graphics.Clear ( Color.White );
-
-        PointF upperLeft = new PointF (0f, 0f);
-        PointF upperRight = new PointF ( 0f + pictureBox1.Image.Width, 0f );
-        PointF lowerLeft = new PointF ( 0f, 0f + pictureBox1.Image.Height );
-
-        points = new PointF[] { upperLeft, upperRight, lowerLeft };
-
-        transform = new Matrix ();
-
-        /*transform.Translate ( movingPoint.X - relativeCursor.X, movingPoint.Y - relativeCursor.Y, MatrixOrder.Append );
-        transform.Scale ( zoom, zoom, MatrixOrder.Append );
-        transform.Translate ( -( movingPoint.X - relativeCursor.X ), -( movingPoint.Y - relativeCursor.Y ), MatrixOrder.Append );*/
-
-        //scale
-        /*if ( relativeCursor.X >= 0 )
-        {
-          transform.Translate ( -relativeCursor.X, -relativeCursor.Y, MatrixOrder.Append );
-          //transform.Translate ( -pictureBox1.Image.Width / 2f, -pictureBox1.Image.Height / 2f, MatrixOrder.Append );
-          transform.Scale ( zoom, zoom, MatrixOrder.Append );
-          //transform.Translate ( pictureBox1.Image.Width / 2f, pictureBox1.Image.Height / 2f, MatrixOrder.Append );
-          transform.Translate ( relativeCursor.X, relativeCursor.Y, MatrixOrder.Append );
-        }*/
-
-        /*Console.WriteLine ( "Starting: \t" + startingPoint.X + "\t" + startingPoint.Y );
-        Console.WriteLine ( "Moving: \t" + movingPoint.X + "\t" + movingPoint.Y );
-        Console.WriteLine ( relativeCursor.X + "\t" + relativeCursor.Y + "\t" + cursor.X + "\t" + cursor.Y + "\t" );
-        */
-        //translation
-        transform.Translate ( movingPoint.X, movingPoint.Y, MatrixOrder.Append );
-
-        transform.TransformPoints ( points );
-
-        OutOfScreenFix ( points );
-
-        //makes sure there is no interpolation and anti-aliasing
-        e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
-        e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-        e.Graphics.SmoothingMode = SmoothingMode.None;
-
-        e.Graphics.DrawImage ( pictureBox1.Image, points );
-      }
-
-#endif
+      e.Graphics.ScaleTransform ( zoom, zoom );
+      e.Graphics.DrawImage ( image, imageX, imageY );
     }
 
 
