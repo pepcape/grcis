@@ -121,8 +121,8 @@ namespace Rendering
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
-      //pictureBox1.Image = newImage;
       image = newImage;
+      zoom = ClampZoom ();
       pictureBox1.Invalidate ();
 
       bakImage?.Dispose ();
@@ -517,8 +517,10 @@ namespace Rendering
         image = Image.FromFile ( "Logo-CGG.png" );
       }
       catch ( Exception )
-      { }
-      
+      {
+        // ignored
+      }
+
 
       pictureBox1.Image = null;
     }
@@ -687,9 +689,6 @@ namespace Rendering
     private bool mousePressed;
     private float zoom = 1;
 
-
-    private PointF startingPoint = PointF.Empty;
-    private PointF movingPoint   = PointF.Empty;
     /// <summary>
     /// Handles calling singleSample for RayVisualizer and picture box image pan control
     /// </summary>
@@ -699,10 +698,10 @@ namespace Rendering
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
-        /*Point relative = getRelativeCursorLocation (e.X, e.Y);
+        PointF relative = getRelativeCursorLocation (e.X, e.Y);
 
         if ( relative.X >= 0 )
-          singleSample ( (int) relative.X, (int) relative.Y );*/
+          singleSample ( (int) relative.X, (int) relative.Y );
       }
 
 
@@ -729,11 +728,12 @@ namespace Rendering
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
-        /*Point relative = getRelativeCursorLocation (e.X, e.Y);
+        PointF relative = getRelativeCursorLocation (e.X, e.Y);
 
         if ( relative.X >= 0 && !mousePressed )
-          singleSample ( (int) relative.X, (int) relative.Y );*/
+          singleSample ( (int) relative.X, (int) relative.Y );
       }
+
 
       if ( mousePressed && e.Button == MouseButtons.Left )
       {
@@ -782,11 +782,6 @@ namespace Rendering
       pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
       pictureBox1.MouseWheel += new MouseEventHandler ( pictureBox1_MouseWheel );
       KeyPreview = true;
-
-      PointF upperLeft = new PointF ( 0f, 0f );
-      PointF upperRight = new PointF ( 0f + pictureBox1.Width, 0f );
-      PointF lowerLeft  = new PointF ( 0f, 0f + pictureBox1.Height );
-      points = new PointF[] { upperLeft, upperRight, lowerLeft };
     }
 
 
@@ -803,8 +798,8 @@ namespace Rendering
     private void Form2_KeyDown ( object sender, KeyEventArgs e )
     {
       Point middle = new Point ();
-      middle.X = (int) ( ( imageX + ( image.Width * zoom ) ) - imageX ) / 2;
-      middle.Y = (int) ( ( imageY + ( image.Height * zoom ) ) - imageY ) / 2;
+      middle.X = (int) ( ( ( imageX + image.Width ) * zoom ) / 2f );
+      middle.Y = (int) ( ( ( imageY + image.Height ) * zoom ) / 2f );
 
       if ( e.KeyCode == Keys.Add || e.KeyCode == Keys.PageUp )
         zoomPictureBox ( true, middle );
@@ -818,21 +813,15 @@ namespace Rendering
     /// <param name="absoluteX">Absolute X position of cursor (technically relative to picture box)</param>
     /// <param name="absoluteY">Absolute Y position of cursor (technically relative to picture box)</param>
     /// <returns>Relative location of cursor in terms of actual rendered picture; (-1, -1) if relative position would be outside of picture</returns>
-    private Point getRelativeCursorLocation ( float absoluteX, float absoluteY )
+    private PointF getRelativeCursorLocation ( int absoluteX, int absoluteY )
     {
-      if ( absoluteX < points[0].X || absoluteY < points[0].Y ||
-           absoluteX > points[1].X || absoluteY > points[2].Y || pictureBox1.Image == null )  // cursor ourside of picture
-      {
-        return new Point ( -1, -1 );
-      }
+      float X = (absoluteX - ( imageX * zoom )) / zoom;
+      float Y = (absoluteY - ( imageY * zoom )) / zoom;
 
-      float widthRatio = pictureBox1.Image.Width / ( points[1].X - points[0].X );
-      float heightRatio = pictureBox1.Image.Height / ( points[2].Y - points[1].Y );
-
-      float relativeX = ( absoluteX - points [ 0 ].X ) * widthRatio;
-      float relativeY = ( absoluteY - points [ 0 ].Y ) * heightRatio;
-
-      return new Point ( (int) relativeX, (int) relativeY );
+      if ( X < 0 || X > image.Width || Y < 0 || Y > image.Height )
+        return new PointF ( -1, -1 ); // cursor is outside of picture
+      else
+        return new PointF ( X, Y );
     }
 
     /// <summary>
@@ -840,19 +829,21 @@ namespace Rendering
     /// Variable zoom can be equal 1 (no zoom), less than 1 (zoom out) or greater than 1 (zoom in)
     /// </summary>
     /// <param name="zoomIn">TRUE if zoom in is desired; FALSE if zoom out is desired</param>
+    /// <param name="zoomToPosition">Position to zoom to/zoom out from - usually cursor position or middle of picture in case of zoom by keys</param>
     private void zoomPictureBox ( bool zoomIn, Point zoomToPosition )
     {
       float oldzoom = zoom;
+      float zoomFactor = 0.15F;     
 
-      float zoomFactor = 0.15F;
-
-      if ( ModifierKeys.HasFlag ( Keys.Shift ) ) //holding down the Shift key makes zoom in/out faster
-        zoomFactor = 0.35F;
+      if ( ModifierKeys.HasFlag ( Keys.Shift ) ) // holding down the Shift key makes zoom in/out faster
+        zoomFactor = 0.45F;
 
       if ( zoomIn )
         zoom += zoomFactor;
       else
-        zoom = Math.Max ( zoom - zoomFactor, 0.1F ); // prevents picture to be too small (10% of original size si minimum)
+        zoom -= zoomFactor;
+
+      zoom = ClampZoom ();
 
       int x = zoomToPosition.X - pictureBox1.Location.X;
       int y = zoomToPosition.Y - pictureBox1.Location.Y;
@@ -870,9 +861,19 @@ namespace Rendering
     }
 
 
-    PointF[] points;  // 3 points representing rectangle (upper left[0], upper right[1] and lower left[2] corners)
+    private const float minimalAbsoluteSizeInPixels = 20;
     /// <summary>
-    /// Is called every time main picture box is needed to be re-painted
+    /// Prevents picture to be too small (minimum is absolute size of 20 pixels for width/height)
+    /// </summary>
+    /// <returns>Clamped zoom</returns>
+    private float ClampZoom ()
+    {
+      float minZoomFactor = minimalAbsoluteSizeInPixels / Math.Min ( image.Width, image.Height );
+      return Math.Max ( zoom, minZoomFactor );
+    }
+
+    /// <summary>
+    /// Called every time main picture box is needed to be re-painted
     /// Used for re-painting after request for zoom in/out or pan
     /// </summary>
     /// <param name="sender"></param>
@@ -886,8 +887,13 @@ namespace Rendering
       e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
       e.Graphics.SmoothingMode     = SmoothingMode.None;
 
+      OutOfScreenFix ();
+
       e.Graphics.ScaleTransform ( zoom, zoom );
       e.Graphics.DrawImage ( image, imageX, imageY );
+
+
+      Console.WriteLine ( "{0}\t{1}\t{2}\t{3}\t\t{4}", startX, startY, imageX, imageY, zoom );
     }
 
 
@@ -897,9 +903,31 @@ namespace Rendering
     /// There will always be small amount of pixels (variable border) visible at the edge
     /// </summary>
     /// <param name="points">Points representing upper-right, upper-left and lower-left corner of parallelogram for drawing graphics in picture box</param>
-    private void OutOfScreenFix ( PointF[] points )
+    private void OutOfScreenFix ()
     {
+      float absoluteX = imageX * zoom;
+      float absoluteY = imageY * zoom;
+
+      float width = image.Width * zoom;
+      float height = image.Height * zoom;
+
+      if ( absoluteX > pictureBox1.Width - border )
+        imageX = (int) ( ( pictureBox1.Width - border ) / zoom );
+
+      if ( absoluteY > pictureBox1.Height - border )
+        imageY = (int) ( ( pictureBox1.Height - border ) / zoom );
+
+      if ( absoluteX + width < border )
+        imageX = (int) ( ( border - width ) / zoom );
+
+      if ( absoluteY + height < border )
+        imageY = (int) ( ( border - height ) / zoom );
+
+      /*
       Matrix fixTransform = new Matrix ();
+
+      PointF[] points = new PointF[3];
+      points [ 0 ] = new PointF ( imageX * zoom, imageY * zoom );
 
       if ( points[2].Y < border )
         fixTransform.Translate ( 0, border - points[2].Y );
@@ -907,8 +935,7 @@ namespace Rendering
       if ( points[1].X < border )
         fixTransform.Translate ( border - points[1].X, 0 );
 
-      if ( points[0].X > pictureBox1.Width - border )
-        fixTransform.Translate ( pictureBox1.Width - border - points[0].X, 0 );
+      
 
       if ( points[0].Y > pictureBox1.Height - border )
         fixTransform.Translate ( 0, pictureBox1.Height - border - points[0].Y );
@@ -917,7 +944,7 @@ namespace Rendering
 
       PointF[] temp = new PointF[] { movingPoint };
       fixTransform.TransformPoints ( temp );
-      movingPoint = temp[0];
+      movingPoint = temp[0];*/
     }
   }
 }
