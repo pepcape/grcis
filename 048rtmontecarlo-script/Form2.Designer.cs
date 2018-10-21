@@ -445,7 +445,7 @@
       this.Controls.Add(this.tableLayoutPanel1);
       this.MinimumSize = new System.Drawing.Size(680, 300);
       this.Name = "Form2";
-      this.Text = "Form2";
+      this.Text = "048 Monte Carlo RT script";
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form2_FormClosing);
       this.Load += new System.EventHandler(this.Form2_Load);
       this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form2_KeyDown);
