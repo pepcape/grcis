@@ -78,11 +78,11 @@ namespace Rendering
     /// <param name="e"></param>
     private void SaveMapButton_Click ( object sender, EventArgs e )
     {
-      Panel panel = ( sender as Control ).Parent as Panel;
+      TabPage tabPage = MapsTabControl.SelectedTab;
 
-      string mapName = panel.Tag.ToString ();
+      string mapName = tabPage.Tag.ToString ();
 
-      PictureBox pictureBox = panel.Controls.Find ( mapName + "PictureBox", true ).FirstOrDefault () as PictureBox;
+      PictureBox pictureBox = tabPage.Controls.Find ( mapName + "PictureBox", true ).FirstOrDefault () as PictureBox;
 
       Bitmap outputImage = (Bitmap) pictureBox.Image;
 
@@ -111,20 +111,20 @@ namespace Rendering
       if ( Form2.singleton.outputImage == null )
         return;
 
-      Panel panel = ( sender as Control ).Parent as Panel;
+      TabPage tabPage = MapsTabControl.SelectedTab;
 
-      string mapName = panel.Tag.ToString ();
+      string mapName = tabPage.Tag.ToString ();
 
       object map = AdvancedTools.instance.GetType ().GetField ( Char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdvancedTools.instance );
 
       ( map as IMap ).RenderMap ();
 
-      PictureBox pictureBox = panel.Controls.Find ( mapName + "PictureBox", true ).FirstOrDefault () as PictureBox;
+      PictureBox pictureBox = tabPage.Controls.Find ( mapName + "PictureBox", true ).FirstOrDefault () as PictureBox;
       pictureBox.Image = ( map as IMap ).GetBitmap ();
       pictureBox.Width = newWidth;
       pictureBox.Height = newHeight;
 
-      Button saveButton = panel.Controls.Find ( "Save" + mapName + "Button", true ).FirstOrDefault () as Button;
+      Button saveButton = tabPage.Controls.Find ( "Save" + mapName + "Button", true ).FirstOrDefault () as Button;
       saveButton.Enabled = true;
 
       SetTotalAndAveragePrimaryRaysCount ();
@@ -159,7 +159,7 @@ namespace Rendering
 
         double depth = AdvancedTools.instance.depthMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
 
-        DepthMap_Coordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\nDepth:\r\n{2:0.00}",
+        DepthMap_Coordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\nDepth: {2:0.00}",
                                                     coordinates.X,
                                                     coordinates.Y,
                                                     depth );
@@ -187,7 +187,7 @@ namespace Rendering
 
         NormalMapRelativeCoordinates.Text =
           NormalMapAbsoluteCoordinates.Text =
-            String.Format ( "X: {0}\r\nY: {1}\r\n\r\nAngle of\r\nnormal vector:\r\n{2:0.00}{3}",
+            String.Format ( "X: {0}\r\nY: {1}\r\nAngle of normal vector: {2:0.00}{3}",
                             coordinates.X,
                             coordinates.Y,
                             angle,
@@ -206,9 +206,9 @@ namespace Rendering
         return;
       }
 
-      Panel panel = ( sender as Control ).Parent as Panel;
+      TabPage tabPage = MapsTabControl.SelectedTab;
 
-      string mapName = panel.Tag.ToString ();
+      string mapName = tabPage.Tag.ToString ();
 
       string fieldName = Char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 );
 
@@ -217,12 +217,12 @@ namespace Rendering
 
       string fieldNameCamelCase = Char.ToUpper ( fieldName [ 0 ] ) + fieldName.Substring ( 1 );
 
-      Label label = panel.Controls.Find ( fieldNameCamelCase + "Coordinates", true ).FirstOrDefault () as Label;
+      Label label = tabPage.Controls.Find ( fieldNameCamelCase + "Coordinates", true ).FirstOrDefault () as Label;
 
 
       int raysCount = raysMap.GetValueAtCoordinates ( e.X, e.Y );
 
-      label.Text = String.Format ( "X: {0}\r\nY: {1}\r\nRays count:\r\n{2}",
+      label.Text = String.Format ( "X: {0}\r\nY: {1}\r\nRays count: {2}",
                                    e.X,
                                    e.Y,
                                    raysCount );
@@ -230,10 +230,9 @@ namespace Rendering
 
     public void SetTotalAndAveragePrimaryRaysCount ()
     {
-      TotalPrimaryRaysCount.Text =
-        String.Format ( "Total primary\r\nrays count:\r\n{0:n0}", Statistics.primaryRaysCount );
+      TotalPrimaryRaysCount.Text = String.Format ( "Total primary rays count: {0:n0}", Statistics.primaryRaysCount );
 
-      AveragePrimaryRaysCount.Text = String.Format ( "Average\r\nprimary\r\nrays count\r\nper pixel:\r\n{0:n0}",
+      AveragePrimaryRaysCount.Text = String.Format ( "Average primary rays count per pixel: {0:n0}",
                                                      Statistics.primaryRaysCount /
                                                      ( PrimaryRaysMapPictureBox.Width *
                                                        PrimaryRaysMapPictureBox.Height ) );
@@ -241,9 +240,9 @@ namespace Rendering
 
     public void SetTotalAndAverageAllRaysCount ()
     {
-      TotalAllRaysCount.Text = String.Format ( "Total\r\nrays count:\r\n{0:n0}", Statistics.allRaysCount );
+      TotalAllRaysCount.Text = String.Format ( "Total rays count: {0:n0}", Statistics.allRaysCount );
 
-      AverageAllRaysCount.Text = String.Format ( "Average\r\nrays count\r\nper pixel:\r\n{0:n0}",
+      AverageAllRaysCount.Text = String.Format ( "Average rays count per pixel: {0:n0}",
                                                  Statistics.allRaysCount /
                                                  ( AllRaysMapPictureBox.Width * AllRaysMapPictureBox.Height ) );
     }
