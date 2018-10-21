@@ -289,6 +289,7 @@
     <Compile Include="Form2.Designer.cs">
       <DependentUpon>Form2.cs</DependentUpon>
     </Compile>
+    <Compile Include="PointCloud.cs" />
     <Compile Include="RayVisualizerForm.cs">
       <SubType>Form</SubType>
     </Compile>

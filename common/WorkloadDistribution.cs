@@ -186,6 +186,7 @@ namespace Rendering
 
 
       totalNumberOfAssignments = availableAssignments.Count;
+
       // number of assignments * number of renderings of each assignments (depends on stride)
       assignmentRoundsTotal = totalNumberOfAssignments * (int)( Math.Log ( Assignment.startingStride, 2 ) + 1 );  
     }
@@ -702,7 +703,7 @@ namespace Rendering
     {
       value = value.Trim ();
 
-      if ( value.ToLower() == "localhost" || value.ToLower() == "local")
+      if ( value.ToLower() == "localhost" || value.ToLower() == "local" || value.ToLower () == "l" )
       {
         address = IPAddress.Parse ( "127.0.0.1" );
         return;
