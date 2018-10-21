@@ -389,7 +389,9 @@ namespace Rendering
                         textParam.Enabled =
                           buttonRes.Enabled =
                             AdvancedToolsButton.Enabled =
-                              buttonSave.Enabled = enable;
+                              pointCloudCheckBox.Enabled =
+                                buttonSave.Enabled = enable;
+
       buttonStop.Enabled = !enable;
     }
 
