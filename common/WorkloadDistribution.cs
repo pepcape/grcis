@@ -42,7 +42,9 @@ namespace Rendering
     public IRayScene scene;
     public IRenderer renderer;
 
-    private IEnumerable<Client> clientsCollection;  
+    private IEnumerable<Client> clientsCollection;
+
+    public PointCloud pointCloud;
 
     /// <summary>
     /// Constructor which takes also care of initializing assignments
@@ -61,6 +63,8 @@ namespace Rendering
       this.clientsCollection = clientsCollection;
 
       Assignment.assignmentSize = assignmentSize;
+
+      pointCloud = new PointCloud ();
     }
 
     /// <summary>
@@ -108,7 +112,9 @@ namespace Rendering
           worker.SendSpecialAssignment ( Assignment.AssignmentType.Ending );
           worker.client.Close ();
         }
-      }   
+      }
+
+      pointCloud.SaveToPLYFile ("test01.ply");
     }
 
     /// <summary>

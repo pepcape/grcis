@@ -117,6 +117,8 @@ namespace Rendering
       i.Complete ();
 
       RegisterRay ( RayType.unknown, level, p0, i ); // moved lower to also register rays for shadows
+      Vertex vertex = new Vertex ( i.CoordWorld, new float[] { 1, 1, 1 }, i.Normal );
+      Master.instance?.pointCloud?.cloud.Add ( vertex );
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode ();
@@ -172,8 +174,7 @@ namespace Rendering
       }
 
       // check the recursion depth:
-      if ( level++ >= MaxLevel ||
-           !DoReflections && !DoRefractions )
+      if ( level++ >= MaxLevel || !DoReflections && !DoRefractions )
         return hash; // no further recursion
 
       Vector3d r;
@@ -181,7 +182,7 @@ namespace Rendering
       double[] comp = new double[bands];
       double   newImportance;
 
-      if ( DoReflections ) // trying to shoot a reflected ray..
+      if ( DoReflections ) // trying to shoot a reflected ray
       {
         Geometry.SpecularReflection ( ref i.Normal, ref p1, out r );
         double[] ks = i.ReflectanceModel.ColorReflection ( i, p1, r, ReflectionComponent.SPECULAR_REFLECTION );
@@ -202,9 +203,9 @@ namespace Rendering
         }
       }
 
-      if ( DoRefractions ) // trying to shoot a refracted ray..
+      if ( DoRefractions ) // trying to shoot a refracted ray
       {
-        maxK          = i.Material.Kt; // simple solution, no influence of reflectance model yet
+        maxK = i.Material.Kt; // simple solution, no influence of reflectance model yet
         newImportance = importance * maxK;
         if ( newImportance < MinImportance )
           return hash;

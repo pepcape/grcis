@@ -1,61 +1,47 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using OpenTK;
 
-namespace PointCloud
+namespace Rendering
 {
   public class PointCloud
   {
-    private Vertex[][][] cloud;
-
-    private const int sizeX = 200;
-    private const int sizeY = 200;
-    private const int sizeZ = 200;
-
-    private int vertexCounter;
+    public ConcurrentBag<Vertex> cloud;
 
     public PointCloud ()
     {
       InitializeCloudArray ();
     }
 
+    /// <summary>
+    /// Creates new cloud
+    /// </summary>
     private void InitializeCloudArray ()
-    {  
-      cloud = new Vertex[sizeX][][];
-
-      for ( int i = 0; i < sizeX; i++ )
-      {
-        cloud [ i ] = new Vertex[sizeY][];
-
-        for ( int j = 0; j < sizeY; j++ )
-        {
-          cloud [ i ] [ j ] = new Vertex[sizeZ];
-        }
-      }
-
-      vertexCounter = 0;
+    {
+      cloud = new ConcurrentBag<Vertex> ();
     }
 
-    public void StoreToCloud ( int x, int y, int z, Vertex vertex )
+    /// <summary>
+    /// Saves content of cloud to external file (can be opened in MashLab or other software with .ply support)
+    /// </summary>
+    /// <param name="fileName">Name of external file - .ply file extension is added if it does not contain it already</param>
+    /// <returns>TRUE if save to file suceeded, else FALSE</returns>
+    public bool SaveToPLYFile ( string fileName )
     {
-
-
-      vertexCounter++;
-    }
-
-    private bool SaveToPLYFile ( string fileName )
-    {
-      int counter = 0;
-
       if ( fileName == null )
-        fileName = "PointCloud.obj";
+        fileName = "PointCloud.ply";
 
-      if ( fileName.Length < 4 || fileName.Substring ( fileName.Length - 4 ) != ".obj" )
-        fileName += ".obj";
+      if ( fileName.Length < 4 || fileName.Substring ( fileName.Length - 4 ) != ".ply" )
+        fileName += ".ply";
 
+      Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ( "en-GB" );  // needed for dot as decimal separator in float
 
       try
       {
@@ -63,22 +49,15 @@ namespace PointCloud
         {
           WritePLYFileHeader ( streamWriter );
 
-          for ( int x = 0; x < sizeX; x++ )
+          foreach ( Vertex vertex in cloud )
           {
-            for ( int y = 0; y < sizeY; y++ )
-            {
-              for ( int z = 0; z < sizeZ; z++ )
-              {
-                Vertex vertex = cloud [ x ] [ y ] [ z ];
-
-                streamWriter.Write ( "{0} {1} {2} ", x, y, z );
-                streamWriter.Write ( "{0} {1} {2} ", vertex.color[0], vertex.color[1], vertex.color[2] );
-                streamWriter.Write ( "{0} {1} {2}\n", vertex.normal[0], vertex.normal[1], vertex.normal[2] );
-
-                counter++;
-              }
-            }
+            streamWriter.WriteLine ( "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
+                                     vertex.coord.X, vertex.coord.Y, vertex.coord.Z,
+                                     vertex.color [ 0 ], vertex.color [ 1 ], vertex.color [ 2 ],
+                                     vertex.normal.X, vertex.normal.Y, vertex.normal.Z );
           }
+
+          streamWriter.Close ();
         }
       }
       catch ( IOException )
@@ -89,11 +68,15 @@ namespace PointCloud
       return true;
     }
 
+    /// <summary>
+    /// Header of PLY file - specifies number of verticies and their format (coordinates[XYZ], color[RGB], normal[XYZ] - one line per vertex)
+    /// </summary>
+    /// <param name="streamWriter"></param>
     private void WritePLYFileHeader ( StreamWriter streamWriter )
     {
       streamWriter.WriteLine ( "ply" );
       streamWriter.WriteLine ( "format ascii 1.0" );
-      streamWriter.WriteLine ( "element vertex {0}", vertexCounter );
+      streamWriter.WriteLine ( "element vertex {0}", cloud.Count );
       streamWriter.WriteLine ( "property float x" );
       streamWriter.WriteLine ( "property float y" );
       streamWriter.WriteLine ( "property float z" );
@@ -106,7 +89,7 @@ namespace PointCloud
       streamWriter.WriteLine ( "end_header" );
     }
 
-    private void ReadFromFile ( string fileName )
+    public void ReadFromFile ( string fileName )
     {
       InitializeCloudArray ();
 
@@ -115,25 +98,20 @@ namespace PointCloud
   }
 
   /// <summary>
-  /// Data class containing infor about 1 vertex (color and normal vector) in point cloud
+  /// Data structure containing info about 1 vertex (coordinates, color and normal vector) in point cloud
   /// </summary>
-  public class Vertex
+  public struct Vertex
   {
-    public float[] color  = new float[3];
-    public float[] normal = new float[3];
+    public Vector3d coord;
+    public float[] color;
+    public Vector3d normal;
 
-    public Vertex () : base ()
-    { }
 
-    public Vertex ( float[] color )
+    public Vertex ( Vector3d coord, float[] color, Vector3d normal )
     {
-      this.color = color ?? throw new ArgumentNullException ( nameof ( color ) );
-    }
-
-    public Vertex ( float[] color, float[] normal )
-    {
-      this.color  = color ?? throw new ArgumentNullException ( nameof ( color ) );
-      this.normal = normal ?? throw new ArgumentNullException ( nameof ( normal ) );
+      this.coord = coord;
+      this.color = color;
+      this.normal = normal;
     }
   }
 }
