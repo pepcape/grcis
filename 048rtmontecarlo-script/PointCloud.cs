@@ -103,11 +103,11 @@ namespace Rendering
   public struct Vertex
   {
     public Vector3d coord;
-    public float[] color;
+    public double[] color;
     public Vector3d normal;
 
 
-    public Vertex ( Vector3d coord, float[] color, Vector3d normal )
+    public Vertex ( Vector3d coord, double[] color, Vector3d normal )
     {
       this.coord = coord;
       this.color = color;

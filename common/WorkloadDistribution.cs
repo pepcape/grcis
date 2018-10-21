@@ -114,7 +114,7 @@ namespace Rendering
         }
       }
 
-      pointCloud.SaveToPLYFile ("test01.ply");
+      //pointCloud.SaveToPLYFile ("test01.ply");
     }
 
     /// <summary>

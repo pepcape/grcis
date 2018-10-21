@@ -56,6 +56,7 @@
       this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
       this.labelElapsed = new System.Windows.Forms.Label();
       this.labelSample = new System.Windows.Forms.Label();
+      this.pointCloudCheckBox = new System.Windows.Forms.CheckBox();
       this.tableLayoutPanel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.tableLayoutPanel2.SuspendLayout();
@@ -230,6 +231,7 @@
       this.flowLayoutPanel2.Controls.Add(this.checkReflections);
       this.flowLayoutPanel2.Controls.Add(this.checkRefractions);
       this.flowLayoutPanel2.Controls.Add(this.checkMultithreading);
+      this.flowLayoutPanel2.Controls.Add(this.pointCloudCheckBox);
       this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanel2.Location = new System.Drawing.Point(0, 542);
       this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
@@ -437,6 +439,18 @@
       this.labelSample.TabIndex = 23;
       this.labelSample.Text = "Sample:";
       // 
+      // pointCloudCheckBox
+      // 
+      this.pointCloudCheckBox.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.pointCloudCheckBox.AutoSize = true;
+      this.pointCloudCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.pointCloudCheckBox.Location = new System.Drawing.Point(657, 8);
+      this.pointCloudCheckBox.Name = "pointCloudCheckBox";
+      this.pointCloudCheckBox.Size = new System.Drawing.Size(78, 17);
+      this.pointCloudCheckBox.TabIndex = 51;
+      this.pointCloudCheckBox.Text = "point cloud";
+      this.pointCloudCheckBox.UseVisualStyleBackColor = true;
+      // 
       // Form2
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -496,5 +510,6 @@
     private System.Windows.Forms.Button buttonStop;
     private System.Windows.Forms.PictureBox pictureBox1;
     private System.Windows.Forms.Button AdvancedToolsButton;
+    public System.Windows.Forms.CheckBox pointCloudCheckBox;
   }
 }

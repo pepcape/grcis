@@ -92,8 +92,7 @@ namespace Rendering
     /// <param name="p1">Ray direction vector.</param>
     /// <param name="color">Result color.</param>
     /// <returns>Hash-value (ray sub-signature) used for adaptive subsampling.</returns>
-    protected virtual long shade ( int level, double importance, ref Vector3d p0, ref Vector3d p1,
-                                   double[] color )
+    protected virtual long shade ( int level, double importance, ref Vector3d p0, ref Vector3d p1, double[] color )
     {
       Vector3d direction = p1;
 
@@ -117,8 +116,14 @@ namespace Rendering
       i.Complete ();
 
       RegisterRay ( RayType.unknown, level, p0, i ); // moved lower to also register rays for shadows
-      Vertex vertex = new Vertex ( i.CoordWorld, new float[] { 1, 1, 1 }, i.Normal );
-      Master.instance?.pointCloud?.cloud.Add ( vertex );
+      
+      if ( Form2.singleton.pointCloudCheckBox.Checked && !MT.singleRayTracing )
+      {
+        double[] vertexColor = new double[3];
+        Array.Copy ( i.SurfaceColor, vertexColor, vertexColor.Length );
+        Vertex vertex = new Vertex ( i.CoordWorld, vertexColor, i.Normal );
+        Master.instance?.pointCloud?.cloud.Add ( vertex );
+      }
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode ();
