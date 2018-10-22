@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -15,12 +13,16 @@ namespace _094tonemapping
     /// <summary>
     /// Optional data initialization.
     /// </summary>
-    /// <param name="param">Optinal text parameter from the form's text-field.</param>
     /// <param name="name">Your first-name and last-name.</param>
-    public static void InitParams ( out string param, out string name )
+    /// <param name="param">Optinal text parameter from the form's text-field.</param>
+    /// <param name="tooltip">Optional tooltip = param help.</param>
+    public static void InitParams ( out string name, out string param, out string tooltip )
     {
+      // {{
+      name = "Josef Pelikán";
       param = "gamma=2.5";
-      name  = "pilot";
+      tooltip = "gamma=<double> (0 for no gamma pre-compensation)";
+      // }}
     }
 
     /// <summary>
@@ -35,7 +37,7 @@ namespace _094tonemapping
       if ( input == null )
         return null;
 
-      // !!!{{ TODO: write your own tone-mapping reduction code here
+      // {{ TODO: write your own tone-mapping reduction code here
 
       // custom parameters from the text-field:
       Dictionary<string, string> p = Util.ParseKeyValueList( param );
@@ -96,7 +98,7 @@ namespace _094tonemapping
       }
       result.UnlockBits( dataOut );
 
-      // !!!}}
+      // }}
 
       return result;
     }
