@@ -529,7 +529,7 @@ namespace _114transition
 
     private void textParam_MouseHover ( object sender, EventArgs e )
     {
-      if (!string.IsNullOrEmpty(tooltip))
+      if ( !string.IsNullOrEmpty(tooltip) )
         tt.Show( tooltip,
                  (IWin32Window)sender, 10, -25, 2000 );
     }
