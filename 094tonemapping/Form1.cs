@@ -359,7 +359,7 @@ namespace _094tonemapping
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
     {
-      exposureDirty = true;
+      recompute();
     }
 
     private void buttonStop_Click ( object sender, EventArgs e )
@@ -429,7 +429,7 @@ namespace _094tonemapping
       if ( e.KeyChar == (char)Keys.Enter )
       {
         e.Handled = true;
-        exposureDirty = true;
+        recompute();
       }
     }
   }
