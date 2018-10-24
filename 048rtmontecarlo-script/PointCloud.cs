@@ -11,6 +11,9 @@ using OpenTK;
 
 namespace Rendering
 {
+  /// <summary>
+  /// This class takes care of point cloud representation, storing, saving as well as reading from file 
+  /// </summary>
   public class PointCloud
   {
     public ConcurrentBag<Vertex> cloud;
@@ -29,7 +32,7 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Saves content of cloud to external file (can be opened in MashLab or other software with .ply support)
+    /// Saves content of cloud to external file (can be opened in MashLab or other software with ASCII .ply support)
     /// </summary>
     /// <param name="fileName">Name of external file - .ply file extension is added if it does not contain it already</param>
     public void SaveToPLYFile ( string fileName )
@@ -46,6 +49,10 @@ namespace Rendering
       fileSaver.Start ( fileName );
     }
 
+    /// <summary>
+    /// Actual file save - abstraction needed for better handling of parameterized thread start
+    /// </summary>
+    /// <param name="fileName"></param>
     private void ActualSave ( object fileName )
     {
       Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ( "en-GB" ); // needed for dot as decimal separator in float
@@ -58,14 +65,14 @@ namespace Rendering
         {
           streamWriter.WriteLine ( "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
                                    vertex.coord.X, vertex.coord.Y, vertex.coord.Z,
-                                   vertex.color[0], vertex.color[1], vertex.color[2],
+                                   (byte) ( vertex.color [ 0 ] * 255 ), (byte) ( vertex.color [ 1 ] * 255 ), (byte) ( vertex.color [ 2 ] * 255 ),
                                    vertex.normal.X, vertex.normal.Y, vertex.normal.Z );
         }
 
         streamWriter.Close ();
       }
 
-      Form2.singleton.Notification ( @"File succesfully saved", $"Point cloud file \"{(string) fileName}\" succesfully saved."  );
+      Form2.singleton?.Notification ( @"File succesfully saved", $"Point cloud file \"{(string) fileName}\" succesfully saved.", 30000 );
     }
 
     /// <summary>
@@ -80,20 +87,21 @@ namespace Rendering
       streamWriter.WriteLine ( "property float x" );
       streamWriter.WriteLine ( "property float y" );
       streamWriter.WriteLine ( "property float z" );
-      streamWriter.WriteLine ( "property float red" );
-      streamWriter.WriteLine ( "property float green" );
-      streamWriter.WriteLine ( "property float blue" );
+      streamWriter.WriteLine ( "property uchar red" );
+      streamWriter.WriteLine ( "property uchar green" );
+      streamWriter.WriteLine ( "property uchar blue" );
       streamWriter.WriteLine ( "property float nx" );
       streamWriter.WriteLine ( "property float ny" );
       streamWriter.WriteLine ( "property float nz" );
       streamWriter.WriteLine ( "end_header" );
     }
 
+
     public void ReadFromFile ( string fileName )
     {
       InitializeCloudArray ();
 
-
+      throw new NotImplementedException ();
     }
   }
 
@@ -106,7 +114,12 @@ namespace Rendering
     public double[] color;
     public Vector3d normal;
 
-
+    /// <summary>
+    /// Standard constructor
+    /// </summary>
+    /// <param name="coord">Coordinates of vertex</param>
+    /// <param name="color">Color of vertex (RGB as values between 0-1)</param>
+    /// <param name="normal">Normal vector in vertex</param>
     public Vertex ( Vector3d coord, double[] color, Vector3d normal )
     {
       this.coord = coord;

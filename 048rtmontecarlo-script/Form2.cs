@@ -929,7 +929,11 @@ namespace Rendering
         imageY = (int) ( ( border - height ) / zoom );
     }
 
-
+    /// <summary>
+    /// Opens SaveFileDialog and calls method SaveToPLYFile in PointCloud class
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void SavePointCloudButton_Click ( object sender, EventArgs e )
     {
       SaveFileDialog sfd = new SaveFileDialog ();
@@ -943,17 +947,23 @@ namespace Rendering
       Master.singleton?.pointCloud?.SaveToPLYFile ( sfd.FileName );
     }
 
-    public void Notification ( string title, string text )
+    /// <summary>
+    /// Displays bubble notification (in system tray or Notification Center) with desired title, text and diration
+    /// </summary>
+    /// <param name="title">Title of notification</param>
+    /// <param name="text">Body of notification</param>
+    /// <param name="duration">Duration of notification in milliseconds</param>
+    public void Notification ( string title, string text, int duration )
     {
       if ( text == null || title == null )
         return;
 
-      notificationIcon.Icon = SystemIcons.Application;
-      //notifyIcon1.Visible = true;
+      notificationIcon.Icon = SystemIcons.Information;
 
       notificationIcon.BalloonTipTitle = title;
       notificationIcon.BalloonTipText = text;
-      notificationIcon.ShowBalloonTip ( 30000 );
+      notificationIcon.ShowBalloonTip ( duration );
+      notificationIcon.Visible = false;
     }
   }
 }
