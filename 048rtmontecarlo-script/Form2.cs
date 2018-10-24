@@ -465,7 +465,7 @@ namespace Rendering
         MT.renderingInProgress = false;
         MT.sceneRendered = true;
 
-        if ( Master.singleton.pointCloud.cloud.IsEmpty )
+        if ( Master.singleton.pointCloud.IsCloudEmpty )
           SavePointCloudButton.Enabled = false;
       }
     }
@@ -960,6 +960,7 @@ namespace Rendering
 
       notificationIcon.Icon = SystemIcons.Information;
 
+      notificationIcon.Visible = true;
       notificationIcon.BalloonTipTitle = title;
       notificationIcon.BalloonTipText = text;
       notificationIcon.ShowBalloonTip ( duration );
