@@ -32,8 +32,7 @@ namespace Rendering
     /// Saves content of cloud to external file (can be opened in MashLab or other software with .ply support)
     /// </summary>
     /// <param name="fileName">Name of external file - .ply file extension is added if it does not contain it already</param>
-    /// <returns>TRUE if save to file suceeded, else FALSE</returns>
-    public bool SaveToPLYFile ( string fileName )
+    public void SaveToPLYFile ( string fileName )
     {
       if ( fileName == null )
         fileName = "PointCloud.ply";
@@ -41,31 +40,32 @@ namespace Rendering
       if ( fileName.Length < 4 || fileName.Substring ( fileName.Length - 4 ) != ".ply" )
         fileName += ".ply";
 
-      Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ( "en-GB" );  // needed for dot as decimal separator in float
+      Thread fileSaver = new Thread ( ActualSave );
+      fileSaver.Name = "FileSaver";
 
-      try
+      fileSaver.Start ( fileName );
+    }
+
+    private void ActualSave ( object fileName )
+    {
+      Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ( "en-GB" ); // needed for dot as decimal separator in float
+
+      using ( StreamWriter streamWriter = new StreamWriter ( (string) fileName ) )
       {
-        using ( StreamWriter streamWriter = new StreamWriter ( fileName ) )
+        WritePLYFileHeader ( streamWriter );
+
+        foreach ( Vertex vertex in cloud )
         {
-          WritePLYFileHeader ( streamWriter );
-
-          foreach ( Vertex vertex in cloud )
-          {
-            streamWriter.WriteLine ( "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
-                                     vertex.coord.X, vertex.coord.Y, vertex.coord.Z,
-                                     vertex.color [ 0 ], vertex.color [ 1 ], vertex.color [ 2 ],
-                                     vertex.normal.X, vertex.normal.Y, vertex.normal.Z );
-          }
-
-          streamWriter.Close ();
+          streamWriter.WriteLine ( "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
+                                   vertex.coord.X, vertex.coord.Y, vertex.coord.Z,
+                                   vertex.color[0], vertex.color[1], vertex.color[2],
+                                   vertex.normal.X, vertex.normal.Y, vertex.normal.Z );
         }
-      }
-      catch ( IOException )
-      {
-        return false;
+
+        streamWriter.Close ();
       }
 
-      return true;
+      Form2.singleton.Notification ( @"File succesfully saved", $"Point cloud file \"{(string) fileName}\" succesfully saved."  );
     }
 
     /// <summary>

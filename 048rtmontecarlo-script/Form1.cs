@@ -331,9 +331,9 @@ namespace Rendering
       IImageFunction imf = getImageFunction ( sc, width, height );
       IRenderer      r   = getRenderer ( imf, width, height );
 
-      Master.instance              = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients );
-      Master.instance.progressData = progress;
-      Master.instance.InitializeAssignments ( newImage, sc, r );
+      Master.singleton              = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients );
+      Master.singleton.progressData = progress;
+      Master.singleton.InitializeAssignments ( newImage, sc, r );
 
 
       progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
@@ -343,7 +343,7 @@ namespace Rendering
       lock ( sw )
         sw.Restart ();
 
-      Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads );
+      Master.singleton.StartThreads ( threads > 4 ? threads - 2 : threads );
       /*
       ThreadStart ts              = delegate { Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads ); };
       Thread      newRenderThread = new Thread ( ts );
@@ -466,7 +466,7 @@ namespace Rendering
     private void singleSample ( int x, int y )
     {
       MT.singleRayTracing = true;
-      RayVisualizer.instance?.Reset ();
+      RayVisualizer.singleton?.Reset ();
 
       // determine output image size:
       int width                 = ImageWidth;
@@ -566,7 +566,7 @@ namespace Rendering
     {
       AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
 
-      AdvancedTools.instance?.NewRenderInitialization ();
+      AdvancedTools.singleton?.NewRenderInitialization ();
 
       if ( aThread != null )
         return;

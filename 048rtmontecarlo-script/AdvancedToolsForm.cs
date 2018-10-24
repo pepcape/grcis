@@ -19,12 +19,12 @@ namespace Rendering
 
       Form2.singleton.EnableAdvancedToolsButton ( false );
 
-      if ( AdvancedTools.instance == null )
+      if ( AdvancedTools.singleton == null )
       {
-        AdvancedTools.instance = new AdvancedTools ();
+        AdvancedTools.singleton = new AdvancedTools ();
       }
 
-			AdvancedTools.instance.formActive = true;
+			AdvancedTools.singleton.formActive = true;
 
       InitializeComponent ();
 
@@ -61,11 +61,11 @@ namespace Rendering
 
     private void Form2_FormClosed ( object sender, FormClosedEventArgs e )
     {
-      System.Threading.SpinWait.SpinUntil ( () => !AdvancedTools.instance.isInMiddleOfRegistering ); // waiting for completion of registering current ray to maps
+      System.Threading.SpinWait.SpinUntil ( () => !AdvancedTools.singleton.isInMiddleOfRegistering ); // waiting for completion of registering current ray to maps
 
       Form2.singleton.EnableAdvancedToolsButton ( true );
 
-      AdvancedTools.instance.formActive = false;
+      AdvancedTools.singleton.formActive = false;
 
 			instance = null;
     }
@@ -90,8 +90,8 @@ namespace Rendering
         return;
 
       SaveFileDialog sfd = new SaveFileDialog ();
-      sfd.Title        = "Save PNG file";
-      sfd.Filter       = "PNG Files|*.png";
+      sfd.Title        = @"Save PNG file";
+      sfd.Filter       = @"PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName     = mapName + ".png";
       if ( sfd.ShowDialog () != DialogResult.OK )
@@ -115,7 +115,7 @@ namespace Rendering
 
       string mapName = tabPage.Tag.ToString ();
 
-      object map = AdvancedTools.instance.GetType ().GetField ( Char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdvancedTools.instance );
+      object map = AdvancedTools.singleton.GetType ().GetField ( Char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdvancedTools.singleton );
 
       ( map as IMap ).RenderMap ();
 
@@ -144,7 +144,7 @@ namespace Rendering
       newWidth = formImageWidth;
       newHeight = formImageHeight;
 
-      AdvancedTools.instance.SetNewDimensions ( formImageWidth, formImageHeight ); //makes all maps to initialize again
+      AdvancedTools.singleton.SetNewDimensions ( formImageWidth, formImageHeight ); //makes all maps to initialize again
     }
 
     /// <summary>
@@ -157,7 +157,7 @@ namespace Rendering
       {
         Point coordinates = e.Location;
 
-        double depth = AdvancedTools.instance.depthMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
+        double depth = AdvancedTools.singleton.depthMap.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
 
         DepthMap_Coordinates.Text = String.Format ( "X: {0}\r\nY: {1}\r\nDepth: {2:0.00}",
                                                     coordinates.X,
@@ -177,7 +177,7 @@ namespace Rendering
       {
         Point coordinates = e.Location;
 
-        double angle = AdvancedTools.instance.normalMapRelative.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
+        double angle = AdvancedTools.singleton.normalMapRelative.GetValueAtCoordinates ( coordinates.X, coordinates.Y );
 
         char degreesChar = '°';
         if ( double.IsInfinity ( angle ) || double.IsNaN ( angle ) )
@@ -212,7 +212,7 @@ namespace Rendering
 
       string fieldName = Char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 );
 
-      AdvancedTools.RaysMap raysMap = AdvancedTools.instance.GetType ().GetField ( fieldName ).GetValue ( AdvancedTools.instance ) as AdvancedTools.RaysMap;
+      AdvancedTools.RaysMap raysMap = AdvancedTools.singleton.GetType ().GetField ( fieldName ).GetValue ( AdvancedTools.singleton ) as AdvancedTools.RaysMap;
      
 
       string fieldNameCamelCase = Char.ToUpper ( fieldName [ 0 ] ) + fieldName.Substring ( 1 );

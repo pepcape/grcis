@@ -28,11 +28,13 @@
     /// </summary>
     private void InitializeComponent ()
     {
+      this.components = new System.ComponentModel.Container();
       this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
       this.pictureBox1 = new System.Windows.Forms.PictureBox();
       this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
       this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
       this.buttonSave = new System.Windows.Forms.Button();
+      this.SavePointCloudButton = new System.Windows.Forms.Button();
       this.AdvancedToolsButton = new System.Windows.Forms.Button();
       this.RayVisualiserButton = new System.Windows.Forms.Button();
       this.RenderClientsButton = new System.Windows.Forms.Button();
@@ -48,6 +50,7 @@
       this.checkReflections = new System.Windows.Forms.CheckBox();
       this.checkRefractions = new System.Windows.Forms.CheckBox();
       this.checkMultithreading = new System.Windows.Forms.CheckBox();
+      this.pointCloudCheckBox = new System.Windows.Forms.CheckBox();
       this.panel1 = new System.Windows.Forms.Panel();
       this.textParam = new System.Windows.Forms.TextBox();
       this.label3 = new System.Windows.Forms.Label();
@@ -56,7 +59,7 @@
       this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
       this.labelElapsed = new System.Windows.Forms.Label();
       this.labelSample = new System.Windows.Forms.Label();
-      this.pointCloudCheckBox = new System.Windows.Forms.CheckBox();
+      this.notificationIcon = new System.Windows.Forms.NotifyIcon(this.components);
       this.tableLayoutPanel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.tableLayoutPanel2.SuspendLayout();
@@ -88,7 +91,7 @@
       this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
       this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 35F));
       this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-      this.tableLayoutPanel1.Size = new System.Drawing.Size(903, 632);
+      this.tableLayoutPanel1.Size = new System.Drawing.Size(904, 632);
       this.tableLayoutPanel1.TabIndex = 0;
       // 
       // pictureBox1
@@ -97,7 +100,7 @@
       this.pictureBox1.Location = new System.Drawing.Point(0, 0);
       this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
       this.pictureBox1.Name = "pictureBox1";
-      this.pictureBox1.Size = new System.Drawing.Size(903, 507);
+      this.pictureBox1.Size = new System.Drawing.Size(904, 507);
       this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
       this.pictureBox1.TabIndex = 51;
       this.pictureBox1.TabStop = false;
@@ -119,18 +122,19 @@
       this.tableLayoutPanel2.Name = "tableLayoutPanel2";
       this.tableLayoutPanel2.RowCount = 1;
       this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel2.Size = new System.Drawing.Size(903, 35);
+      this.tableLayoutPanel2.Size = new System.Drawing.Size(904, 35);
       this.tableLayoutPanel2.TabIndex = 5;
       // 
       // flowLayoutPanel1
       // 
       this.flowLayoutPanel1.Controls.Add(this.buttonSave);
+      this.flowLayoutPanel1.Controls.Add(this.SavePointCloudButton);
       this.flowLayoutPanel1.Controls.Add(this.AdvancedToolsButton);
       this.flowLayoutPanel1.Controls.Add(this.RayVisualiserButton);
       this.flowLayoutPanel1.Controls.Add(this.RenderClientsButton);
       this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-      this.flowLayoutPanel1.Location = new System.Drawing.Point(225, 0);
+      this.flowLayoutPanel1.Location = new System.Drawing.Point(226, 0);
       this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel1.Name = "flowLayoutPanel1";
       this.flowLayoutPanel1.Size = new System.Drawing.Size(678, 35);
@@ -139,6 +143,7 @@
       // 
       // buttonSave
       // 
+      this.buttonSave.Enabled = false;
       this.buttonSave.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.buttonSave.Location = new System.Drawing.Point(587, 0);
       this.buttonSave.Margin = new System.Windows.Forms.Padding(5, 0, 0, 0);
@@ -149,10 +154,23 @@
       this.buttonSave.UseVisualStyleBackColor = true;
       this.buttonSave.Click += new System.EventHandler(this.buttonSave_Click);
       // 
+      // SavePointCloudButton
+      // 
+      this.SavePointCloudButton.Enabled = false;
+      this.SavePointCloudButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.SavePointCloudButton.Location = new System.Drawing.Point(460, 0);
+      this.SavePointCloudButton.Margin = new System.Windows.Forms.Padding(5, 0, 0, 0);
+      this.SavePointCloudButton.Name = "SavePointCloudButton";
+      this.SavePointCloudButton.Size = new System.Drawing.Size(122, 35);
+      this.SavePointCloudButton.TabIndex = 8;
+      this.SavePointCloudButton.Text = "Save point cloud";
+      this.SavePointCloudButton.UseVisualStyleBackColor = true;
+      this.SavePointCloudButton.Click += new System.EventHandler(this.SavePointCloudButton_Click);
+      // 
       // AdvancedToolsButton
       // 
       this.AdvancedToolsButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.AdvancedToolsButton.Location = new System.Drawing.Point(459, 0);
+      this.AdvancedToolsButton.Location = new System.Drawing.Point(332, 0);
       this.AdvancedToolsButton.Margin = new System.Windows.Forms.Padding(5, 0, 0, 0);
       this.AdvancedToolsButton.Name = "AdvancedToolsButton";
       this.AdvancedToolsButton.Size = new System.Drawing.Size(123, 35);
@@ -164,7 +182,7 @@
       // RayVisualiserButton
       // 
       this.RayVisualiserButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.RayVisualiserButton.Location = new System.Drawing.Point(329, 0);
+      this.RayVisualiserButton.Location = new System.Drawing.Point(202, 0);
       this.RayVisualiserButton.Margin = new System.Windows.Forms.Padding(5, 0, 0, 0);
       this.RayVisualiserButton.Name = "RayVisualiserButton";
       this.RayVisualiserButton.Size = new System.Drawing.Size(125, 35);
@@ -176,7 +194,7 @@
       // RenderClientsButton
       // 
       this.RenderClientsButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.RenderClientsButton.Location = new System.Drawing.Point(200, 0);
+      this.RenderClientsButton.Location = new System.Drawing.Point(73, 0);
       this.RenderClientsButton.Margin = new System.Windows.Forms.Padding(5, 0, 0, 0);
       this.RenderClientsButton.Name = "RenderClientsButton";
       this.RenderClientsButton.Size = new System.Drawing.Size(124, 35);
@@ -193,7 +211,7 @@
       this.flowLayoutPanel3.Location = new System.Drawing.Point(0, 0);
       this.flowLayoutPanel3.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-      this.flowLayoutPanel3.Size = new System.Drawing.Size(225, 35);
+      this.flowLayoutPanel3.Size = new System.Drawing.Size(226, 35);
       this.flowLayoutPanel3.TabIndex = 5;
       this.flowLayoutPanel3.WrapContents = false;
       // 
@@ -211,6 +229,7 @@
       // 
       // buttonStop
       // 
+      this.buttonStop.Enabled = false;
       this.buttonStop.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.buttonStop.Location = new System.Drawing.Point(113, 0);
       this.buttonStop.Margin = new System.Windows.Forms.Padding(0, 0, 5, 0);
@@ -236,7 +255,7 @@
       this.flowLayoutPanel2.Location = new System.Drawing.Point(0, 542);
       this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-      this.flowLayoutPanel2.Size = new System.Drawing.Size(903, 35);
+      this.flowLayoutPanel2.Size = new System.Drawing.Size(904, 35);
       this.flowLayoutPanel2.TabIndex = 1;
       // 
       // buttonRes
@@ -352,6 +371,18 @@
       this.checkMultithreading.Text = "multi-threading";
       this.checkMultithreading.UseVisualStyleBackColor = true;
       // 
+      // pointCloudCheckBox
+      // 
+      this.pointCloudCheckBox.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.pointCloudCheckBox.AutoSize = true;
+      this.pointCloudCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.pointCloudCheckBox.Location = new System.Drawing.Point(657, 8);
+      this.pointCloudCheckBox.Name = "pointCloudCheckBox";
+      this.pointCloudCheckBox.Size = new System.Drawing.Size(78, 17);
+      this.pointCloudCheckBox.TabIndex = 51;
+      this.pointCloudCheckBox.Text = "point cloud";
+      this.pointCloudCheckBox.UseVisualStyleBackColor = true;
+      // 
       // panel1
       // 
       this.panel1.Controls.Add(this.textParam);
@@ -361,7 +392,7 @@
       this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.panel1.Location = new System.Drawing.Point(3, 510);
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(897, 29);
+      this.panel1.Size = new System.Drawing.Size(898, 29);
       this.panel1.TabIndex = 3;
       // 
       // textParam
@@ -370,7 +401,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
       this.textParam.Location = new System.Drawing.Point(272, 5);
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(622, 20);
+      this.textParam.Size = new System.Drawing.Size(623, 20);
       this.textParam.TabIndex = 49;
       // 
       // label3
@@ -416,7 +447,7 @@
       this.tableLayoutPanel3.Name = "tableLayoutPanel3";
       this.tableLayoutPanel3.RowCount = 1;
       this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel3.Size = new System.Drawing.Size(903, 20);
+      this.tableLayoutPanel3.Size = new System.Drawing.Size(904, 20);
       this.tableLayoutPanel3.TabIndex = 4;
       // 
       // labelElapsed
@@ -439,23 +470,16 @@
       this.labelSample.TabIndex = 23;
       this.labelSample.Text = "Sample:";
       // 
-      // pointCloudCheckBox
+      // notificationIcon
       // 
-      this.pointCloudCheckBox.Anchor = System.Windows.Forms.AnchorStyles.Left;
-      this.pointCloudCheckBox.AutoSize = true;
-      this.pointCloudCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-      this.pointCloudCheckBox.Location = new System.Drawing.Point(657, 8);
-      this.pointCloudCheckBox.Name = "pointCloudCheckBox";
-      this.pointCloudCheckBox.Size = new System.Drawing.Size(78, 17);
-      this.pointCloudCheckBox.TabIndex = 51;
-      this.pointCloudCheckBox.Text = "point cloud";
-      this.pointCloudCheckBox.UseVisualStyleBackColor = true;
+      this.notificationIcon.Text = "048 Monte Carlo RT script";
+      this.notificationIcon.Visible = true;
       // 
       // Form2
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(903, 632);
+      this.ClientSize = new System.Drawing.Size(904, 632);
       this.Controls.Add(this.tableLayoutPanel1);
       this.MinimumSize = new System.Drawing.Size(680, 300);
       this.Name = "Form2";
@@ -511,5 +535,7 @@
     private System.Windows.Forms.PictureBox pictureBox1;
     private System.Windows.Forms.Button AdvancedToolsButton;
     public System.Windows.Forms.CheckBox pointCloudCheckBox;
+    private System.Windows.Forms.Button SavePointCloudButton;
+    private System.Windows.Forms.NotifyIcon notificationIcon;
   }
 }
