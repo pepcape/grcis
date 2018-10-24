@@ -122,7 +122,7 @@ namespace Rendering
 
       RayVisualizerForm.instance = this;
 
-      RayVisualizer.instance = new RayVisualizer ();
+      RayVisualizer.singleton = new RayVisualizer ();
 
       Cursor.Current = Cursors.Default;
     }
@@ -290,16 +290,16 @@ namespace Rendering
     /// <param name="e"></param>
     private void AllignCamera ( object sender, EventArgs e )
     {
-      if ( RayVisualizer.instance?.rays.Count < 2 )
+      if ( RayVisualizer.singleton?.rays.Count < 2 )
       {
         return;
       }
 
-      trackBall.Center = (Vector3) RayVisualizer.instance.rays [ 1 ];
-      trackBall.Reset ( (Vector3) ( RayVisualizer.instance.rays [ 1 ] - RayVisualizer.instance.rays [ 0 ] ) );
+      trackBall.Center = (Vector3) RayVisualizer.singleton.rays [ 1 ];
+      trackBall.Reset ( (Vector3) ( RayVisualizer.singleton.rays [ 1 ] - RayVisualizer.singleton.rays [ 0 ] ) );
 
       double distanceOfEye = Vector3.Distance ( trackBall.Center, trackBall.Eye );
-      double distanceOfCamera = Vector3d.Distance ( RayVisualizer.instance.rays [ 1 ], RayVisualizer.instance.rays [ 0 ]) * 0.9;
+      double distanceOfCamera = Vector3d.Distance ( RayVisualizer.singleton.rays [ 1 ], RayVisualizer.singleton.rays [ 0 ]) * 0.9;
 
       trackBall.Zoom = (float) (distanceOfEye / distanceOfCamera);
     }
@@ -1012,20 +1012,20 @@ namespace Rendering
 				}
 
 				GL.Color3 ( Color.Red );
-				for ( int i = offset; i < RayVisualizer.instance.rays.Count; i += 2 )
+				for ( int i = offset; i < RayVisualizer.singleton.rays.Count; i += 2 )
 				{
-					GL.Vertex3 ( RayVisualizer.instance.rays[i] );
-					GL.Vertex3 ( RayVisualizer.instance.rays[i + 1] );
+					GL.Vertex3 ( RayVisualizer.singleton.rays[i] );
+					GL.Vertex3 ( RayVisualizer.singleton.rays[i + 1] );
 				}
 			}
 
 			if ( ShadowRaysCheckBox.Checked ) // Render shadow rays
 			{
 				GL.Color3 ( Color.Yellow );
-				for ( int i = 0; i < RayVisualizer.instance.shadowRays.Count; i += 2 )
+				for ( int i = 0; i < RayVisualizer.singleton.shadowRays.Count; i += 2 )
 				{
-					GL.Vertex3 ( RayVisualizer.instance.shadowRays[i] );
-					GL.Vertex3 ( RayVisualizer.instance.shadowRays[i + 1] );
+					GL.Vertex3 ( RayVisualizer.singleton.shadowRays[i] );
+					GL.Vertex3 ( RayVisualizer.singleton.shadowRays[i + 1] );
 				}
 			}
 
@@ -1037,12 +1037,12 @@ namespace Rendering
 		/// </summary>
 		private void RenderCamera ()
 		{
-			if ( RayVisualizer.instance.rays.Count == 0 || !CameraCheckBox.Checked )
+			if ( RayVisualizer.singleton.rays.Count == 0 || !CameraCheckBox.Checked )
 			{
 				return;
 			}
 
-			RenderCube ( RayVisualizer.instance.rays[0], 0.2f, Color.Turquoise );
+			RenderCube ( RayVisualizer.singleton.rays[0], 0.2f, Color.Turquoise );
 		}
 
 		/// <summary>

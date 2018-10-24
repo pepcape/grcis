@@ -332,9 +332,9 @@ namespace Rendering
       IImageFunction imf = getImageFunction ( sc, width, height );
       IRenderer      r   = getRenderer ( imf, width, height );
 
-      Master.instance = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients );
-      Master.instance.progressData = progress;
-      Master.instance.InitializeAssignments ( newImage, sc, r );
+      Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients );
+      Master.singleton.progressData = progress;
+      Master.singleton.InitializeAssignments ( newImage, sc, r );
 
 
       progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
@@ -344,7 +344,7 @@ namespace Rendering
       lock ( sw )
         sw.Restart ();
 
-      Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads );
+      Master.singleton.StartThreads ( threads > 4 ? threads - 2 : threads );
       /*
       ThreadStart ts              = delegate { Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads ); };
       Thread      newRenderThread = new Thread ( ts );
@@ -375,7 +375,7 @@ namespace Rendering
       StopRendering ();
     }
 
-    void SetGUI ( bool enable )
+    private void SetGUI ( bool enable )
     {
       numericSupersampling.Enabled =
         checkJitter.Enabled =
@@ -390,7 +390,8 @@ namespace Rendering
                           buttonRes.Enabled =
                             AdvancedToolsButton.Enabled =
                               pointCloudCheckBox.Enabled =
-                                buttonSave.Enabled = enable;
+                                SavePointCloudButton.Enabled =
+                                  buttonSave.Enabled = enable;
 
       buttonStop.Enabled = !enable;
     }
@@ -463,6 +464,9 @@ namespace Rendering
         AdvancedToolsForm.instance?.RenderButtonsEnabled ( true );
         MT.renderingInProgress = false;
         MT.sceneRendered = true;
+
+        if ( Master.singleton.pointCloud.cloud.IsEmpty )
+          SavePointCloudButton.Enabled = false;
       }
     }
 
@@ -474,7 +478,7 @@ namespace Rendering
     private void singleSample ( int x, int y )
     {
       MT.singleRayTracing = true;
-      RayVisualizer.instance?.Reset ();
+      RayVisualizer.singleton?.Reset ();
 
       // determine output image size:
       int width                 = ImageWidth;
@@ -586,13 +590,13 @@ namespace Rendering
     {
       AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
 
-      AdvancedTools.instance?.NewRenderInitialization ();
+      AdvancedTools.singleton?.NewRenderInitialization ();
 
       if ( aThread != null )
         return;
 
       // GUI stuff:
-      SetGUI ( false );
+      SetGUI ( false );     
 
       AdvancedToolsForm.instance?.RenderButtonsEnabled ( false );
       MT.renderingInProgress = true;
@@ -616,11 +620,11 @@ namespace Rendering
       sfd.Title = "Save PNG file";
       sfd.Filter = "PNG Files|*.png";
       sfd.AddExtension = true;
-      sfd.FileName = "";
+      sfd.FileName = "RenderResult";
       if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 
-      outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save ( sfd.FileName, ImageFormat.Png );
     }
 
     private void buttonStop_Click ( object sender, EventArgs e )
@@ -904,7 +908,6 @@ namespace Rendering
     /// Prevents panning of image outside of picture box
     /// There will always be small amount of pixels (variable border) visible at the edge
     /// </summary>
-    /// <param name="points">Points representing upper-right, upper-left and lower-left corner of parallelogram for drawing graphics in picture box</param>
     private void OutOfScreenFix ()
     {
       float absoluteX = imageX * zoom;
@@ -924,29 +927,33 @@ namespace Rendering
 
       if ( absoluteY + height < border )
         imageY = (int) ( ( border - height ) / zoom );
+    }
 
-      /*
-      Matrix fixTransform = new Matrix ();
 
-      PointF[] points = new PointF[3];
-      points [ 0 ] = new PointF ( imageX * zoom, imageY * zoom );
+    private void SavePointCloudButton_Click ( object sender, EventArgs e )
+    {
+      SaveFileDialog sfd = new SaveFileDialog ();
+      sfd.Title        = @"Save PLY file";
+      sfd.Filter       = @"PLY Files|*.ply";
+      sfd.AddExtension = true;
+      sfd.FileName     = "PointCloud";
+      if ( sfd.ShowDialog () != DialogResult.OK )
+        return;
 
-      if ( points[2].Y < border )
-        fixTransform.Translate ( 0, border - points[2].Y );
+      Master.singleton?.pointCloud?.SaveToPLYFile ( sfd.FileName );
+    }
 
-      if ( points[1].X < border )
-        fixTransform.Translate ( border - points[1].X, 0 );
+    public void Notification ( string title, string text )
+    {
+      if ( text == null || title == null )
+        return;
 
-      
+      notificationIcon.Icon = SystemIcons.Application;
+      //notifyIcon1.Visible = true;
 
-      if ( points[0].Y > pictureBox1.Height - border )
-        fixTransform.Translate ( 0, pictureBox1.Height - border - points[0].Y );
-
-      fixTransform.TransformPoints ( points );
-
-      PointF[] temp = new PointF[] { movingPoint };
-      fixTransform.TransformPoints ( temp );
-      movingPoint = temp[0];*/
+      notificationIcon.BalloonTipTitle = title;
+      notificationIcon.BalloonTipText = text;
+      notificationIcon.ShowBalloonTip ( 30000 );
     }
   }
 }
