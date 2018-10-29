@@ -84,11 +84,7 @@ namespace _083animation
         Util.TryParse( p, "seed", ref seed );
 
         // speed=<double>
-        if ( Util.TryParse( p, "speed", ref speed ) )
-        {
-          if ( speed <= 0.001 )
-            speed = 0.001;
-        }
+        Util.TryParse( p, "speed", ref speed );
       }
 
       int wq = c.Width / 4;
@@ -97,12 +93,11 @@ namespace _083animation
       double t;
       int i, j;
       double x, y, r;
-      RandomJames rnd = new RandomJames( seed );
 
       c.Clear( Color.Black );
+      c.SetAntiAlias( true );
 
       // 1st quadrant - anti-aliased disks in a spiral.
-      c.SetAntiAlias( true );
       const int MAX_DISK = 30;
       for ( i = 0, t = 0.0; i < MAX_DISK; i++, t += 0.65 )
       {
@@ -112,7 +107,7 @@ namespace _083animation
       }
 
       // 2nd quadrant - anti-aliased random dots in a heart shape..
-      c.SetAntiAlias( true );
+      RandomJames rnd = new RandomJames( seed + (long)((time - start) * 5) );
       double xx, yy, tmp;
 
       for ( i = 0; i < objects; i++ )
@@ -136,7 +131,6 @@ namespace _083animation
       }
 
       // 4th quadrant - CGG logo.
-      c.SetAntiAlias( true );
       c.SetColor( COLORS[ 0 ] );
       for ( i = 0; i < DISC_DATA.Length / 3; i++ )
       {
@@ -146,8 +140,9 @@ namespace _083animation
         if ( i == FIRST_COLOR )
           c.SetColor( COLORS[ 1 ] );
 
-        double sina = Math.Sin( end - time );
-        double cosa = Math.Cos( end - time );
+        t = 4.0 * speed * Math.PI * (time - start) / (end - start);
+        double sina = Math.Sin( t );
+        double cosa = Math.Cos( t );
         double nx =  cosa * x + sina * y;
         double ny = -sina * x + cosa * y;
 
