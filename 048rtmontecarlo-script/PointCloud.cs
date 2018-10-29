@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -13,20 +14,30 @@ namespace Rendering
   /// </summary>
   public class PointCloud
   {
-    private ConcurrentBag<Vertex> cloud;
+    private List<float>[] cloud;
 
-    public PointCloud ()
+    private long numberOfElements;
+
+    public PointCloud ( int numberOfThreads )
     {
-      InitializeCloudArray ();
+      InitializeCloudArray ( numberOfThreads );
     }
 
     /// <summary>
     /// Creates new cloud
     /// </summary>
-    private void InitializeCloudArray ()
+    private void InitializeCloudArray ( int numberOfThreads )
     {
-      cloud = new ConcurrentBag<Vertex> ();
+      cloud = new List<float> [numberOfThreads];
+
+      for ( int i = 0; i < cloud.Length; i++ )
+      {
+        cloud[i] = new List<float> ( 65536 );
+      }
+
+      numberOfElements = 0;
     }
+
 
     /// <summary>
     /// Adds a new vertex to point cloud data structure
@@ -35,20 +46,26 @@ namespace Rendering
     /// <param name="coord">Coordinates of vertex</param>
     /// <param name="color">Color of vertex (RGB values between 0-1)</param>
     /// <param name="normal">Normal vector in vertex</param>
-    public void AddToPointCloud ( Vector3d coord, double[] color, Vector3d normal )
+    public void AddToPointCloud ( Vector3d coord, double[] color, Vector3d normal, int index )
     {
       Vector3d fixedCoordinates = AxesCorrector ( coord );
       Vector3d fixedNormals = AxesCorrector ( normal );
-      byte[] fixedColors =
+      
+      float[] fixedColors =
       {
-        (byte) ( color [ 0 ] * 255 ),
-        (byte) ( color [ 1 ] * 255 ),
-        (byte) ( color [ 2 ] * 255 )
+        (float) ( color [ 0 ] * 255 ),
+        (float) ( color [ 1 ] * 255 ),
+        (float) ( color [ 2 ] * 255 )
       };
 
-      Vertex newVertex = new Vertex ( fixedCoordinates, fixedColors, fixedNormals );
+      float[] coordArrray = new float[] { (float)fixedCoordinates.X, (float) fixedCoordinates.Y, (float) fixedCoordinates.Z };
+      float[] normalArray = new float[] { (float) fixedNormals.X, (float) fixedNormals.Y, (float) fixedNormals.Z };
 
-      cloud.Add ( newVertex );
+      cloud [ index ].AddRange ( coordArrray );
+      cloud [ index ].AddRange ( fixedColors );
+      cloud [ index ].AddRange ( normalArray );
+
+      numberOfElements++;
     }
 
     public bool IsCloudEmpty
@@ -86,12 +103,15 @@ namespace Rendering
       {
         WritePLYFileHeader ( streamWriter );
 
-        foreach ( Vertex vertex in cloud )
-        {       
-          streamWriter.WriteLine ( "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
-                                   vertex.coord.X, vertex.coord.Y, vertex.coord.Z,
-                                   (byte) ( vertex.color [ 0 ] * 255 ), (byte) ( vertex.color [ 1 ] * 255 ), (byte) ( vertex.color [ 2 ] * 255 ),
-                                   vertex.normal.X, vertex.normal.Y, vertex.normal.Z );
+        foreach ( List<float> list in cloud )
+        {
+          for ( int i = 0; i < list.Count; i += 9 )
+          {
+            streamWriter.WriteLine ( "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
+                                     list [ i ], list [ i + 1 ], list [ i + 2 ],
+                                     (byte)list [ i + 3 ], (byte) list [ i + 4 ], (byte) list [ i + 5 ],
+                                     list [ i + 6 ], list [ i + 7 ], list [ i + 8 ] );
+          }
         }
 
         streamWriter.Close ();
@@ -108,7 +128,7 @@ namespace Rendering
     {
       streamWriter.WriteLine ( "ply" );
       streamWriter.WriteLine ( "format ascii 1.0" );
-      streamWriter.WriteLine ( "element vertex {0}", cloud.Count );
+      streamWriter.WriteLine ( "element vertex {0}", numberOfElements );
       streamWriter.WriteLine ( "property float x" );
       streamWriter.WriteLine ( "property float y" );
       streamWriter.WriteLine ( "property float z" );
@@ -132,7 +152,7 @@ namespace Rendering
     /// <param name="fileName">Name of .ply file to read</param>
     public void ReadFromFile ( string fileName )
     {
-      InitializeCloudArray ();
+      InitializeCloudArray ( 1 );
 
       using ( StreamReader streamReader = new StreamReader ( fileName ) )
       {
@@ -151,24 +171,24 @@ namespace Rendering
           if ( line == null || line.Length != valuesPerVertex )
             throw new Exception ( $"Error at line {headerLength + i} in input file." );
 
-          returnBools [ 0 ] = double.TryParse ( line [ 0 ], out double x );
-          returnBools [ 1 ] = double.TryParse ( line [ 1 ], out double y );
-          returnBools [ 2 ] = double.TryParse ( line [ 2 ], out double z );
-          Vector3d coordinates = new Vector3d ( x, y, z );
+          returnBools [ 0 ] = float.TryParse ( line [ 0 ], out float x );
+          returnBools [ 1 ] = float.TryParse ( line [ 1 ], out float y );
+          returnBools [ 2 ] = float.TryParse ( line [ 2 ], out float z );
+          float[] coordinates = new float[] { x, y, z };
 
-          returnBools [ 3 ] = byte.TryParse ( line [ 3 ], out byte red );
-          returnBools [ 4 ] = byte.TryParse ( line [ 4 ], out byte green );
-          returnBools [ 5 ] = byte.TryParse ( line [ 5 ], out byte blue );
-          byte[] colors = new byte[] { red, green, blue };
+          returnBools [ 3 ] = float.TryParse ( line [ 3 ], out float red );
+          returnBools [ 4 ] = float.TryParse ( line [ 4 ], out float green );
+          returnBools [ 5 ] = float.TryParse ( line [ 5 ], out float blue );
+          float[] colors = new float[] { red, green, blue };
 
-          returnBools [ 6 ] = double.TryParse ( line [ 6 ], out double nx );
-          returnBools [ 7 ] = double.TryParse ( line [ 7 ], out double ny );
-          returnBools [ 8 ] = double.TryParse ( line [ 8 ], out double nz );
-          Vector3d normals = new Vector3d ( nx, ny, nz );
+          returnBools [ 6 ] = float.TryParse ( line [ 6 ], out float nx );
+          returnBools [ 7 ] = float.TryParse ( line [ 7 ], out float ny );
+          returnBools [ 8 ] = float.TryParse ( line [ 8 ], out float nz );
+          float[] normals = new float[] { nx, ny, nz };
 
-          Vertex newVertex = new Vertex ( coordinates, colors, normals );
-
-          cloud.Add ( newVertex );
+          cloud[0].AddRange ( coordinates );
+          cloud[0].AddRange ( colors );
+          cloud[0].AddRange ( normals );
         }
 
         streamReader.Close ();
@@ -252,9 +272,9 @@ namespace Rendering
   /// </summary>
   public struct Vertex
   {
-    public Vector3d coord;
+    public float[] coord;
     public byte[] color;
-    public Vector3d normal;
+    public float[] normal;
 
     /// <summary>
     /// Standard constructor
@@ -262,7 +282,7 @@ namespace Rendering
     /// <param name="coord">Coordinates of vertex</param>
     /// <param name="color">Color of vertex (RGB 0-255)</param>
     /// <param name="normal">Normal vector in vertex</param>
-    public Vertex ( Vector3d coord, byte[] color, Vector3d normal )
+    public Vertex ( float[] coord, byte[] color, float[] normal )
     {
       this.coord = coord;
       this.color = color;

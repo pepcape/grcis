@@ -332,7 +332,7 @@ namespace Rendering
       IImageFunction imf = getImageFunction ( sc, width, height );
       IRenderer      r   = getRenderer ( imf, width, height );
 
-      Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients );
+      Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads );
       Master.singleton.progressData = progress;
       Master.singleton.InitializeAssignments ( newImage, sc, r );
 
@@ -344,7 +344,7 @@ namespace Rendering
       lock ( sw )
         sw.Restart ();
 
-      Master.singleton.StartThreads ( threads > 4 ? threads - 2 : threads );
+      Master.singleton.StartThreads ();
       /*
       ThreadStart ts              = delegate { Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads ); };
       Thread      newRenderThread = new Thread ( ts );
@@ -465,7 +465,7 @@ namespace Rendering
         MT.renderingInProgress = false;
         MT.sceneRendered = true;
 
-        if ( Master.singleton.pointCloud.IsCloudEmpty )
+        if ( Master.singleton.pointCloud != null && Master.singleton.pointCloud.IsCloudEmpty )
           SavePointCloudButton.Enabled = false;
       }
     }
