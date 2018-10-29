@@ -62,7 +62,6 @@ namespace _082circles
       }
 
       // 2nd quadrant - anti-aliased random dots in a heart shape..
-      c.SetAntiAlias( true );
       const int MAX_RND_DOTS = 1000;
       double xx, yy, tmp;
 
@@ -87,7 +86,6 @@ namespace _082circles
       }
 
       // 4th quadrant - CGG logo.
-      c.SetAntiAlias( true );
       c.SetColor( COLORS[ 0 ] );
       for ( i = 0; i < DISC_DATA.Length / 3; i++ )
       {
@@ -102,7 +100,7 @@ namespace _082circles
                     (float)(r * 0.018 * minq) );
       }
 
-      // 3rd quadrant - jaggy disks.
+      // 3rd quadrant - disk grid.
       const int DISKS = 12;
       for ( j = 0; j < DISKS; j++ )
         for ( i = 0; i < DISKS; i++ )
