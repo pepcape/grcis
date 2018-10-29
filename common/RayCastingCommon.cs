@@ -522,6 +522,8 @@ namespace Rendering
     [ThreadStatic] public static int rank;
     [ThreadStatic] public static int total;
 
+    [ThreadStatic] public static int threadID;
+
     public static bool singleRayTracing    = false;
     public static bool sceneRendered       = false;
     public static bool renderingInProgress = false;

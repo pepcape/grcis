@@ -16,7 +16,7 @@ namespace Rendering
   /// </summary>
   public class Master
   {
-    public static Master instance; // singleton
+    public static Master singleton;
 
     public ConcurrentQueue<Assignment> availableAssignments;
 
@@ -46,6 +46,8 @@ namespace Rendering
 
     public PointCloud pointCloud;
 
+    private int threads;
+
     /// <summary>
     /// Constructor which takes also care of initializing assignments
     /// </summary>
@@ -53,7 +55,8 @@ namespace Rendering
     /// <param name="scene">Scene to render</param>
     /// <param name="renderer">Rendered to use for RenderPixel method</param>
     /// <param name="clientsCollection">Collection of Clients to get their IP addresses - names are only for user</param>
-    public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer, IEnumerable<Client> clientsCollection )
+    /// <param name="threads">Number of threads to be used for rendering</param>
+    public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer, IEnumerable<Client> clientsCollection, int threads )
     {
       finishedAssignments = 0;
    
@@ -61,18 +64,21 @@ namespace Rendering
       this.renderer = renderer;
       this.bitmap = bitmap;
       this.clientsCollection = clientsCollection;
+      this.threads = threads;
 
       Assignment.assignmentSize = assignmentSize;
 
-      pointCloud = new PointCloud ();
+      if ( Form2.singleton.pointCloudCheckBox.Checked )
+      {
+        pointCloud = new PointCloud ( threads );
+      }     
     }
 
     /// <summary>
     /// Creates threadpool and starts all threads on Consume method
     /// Thread which calls this method will take care of preparing assignments and receiving rendered images from RenderClients meanwhile
-    /// </summary>
-    /// <param name="threads">Number of threads to be used for rendering</param>
-    public void StartThreads ( int threads )
+    /// </summary>   
+    public void StartThreads ()
     {
       pool = new Thread[threads];
 
@@ -84,9 +90,11 @@ namespace Rendering
       {
         EventWaitHandle handle = new EventWaitHandle ( false, EventResetMode.ManualReset );
 
+        int i1 = i;
         Thread newThread = new Thread ( () =>
         {
-          Consume() ;
+          MT.threadID = i1;
+          Consume();
           handle.Set();         
         } );
 
@@ -113,8 +121,6 @@ namespace Rendering
           worker.client.Close ();
         }
       }
-
-      //pointCloud.SaveToPLYFile ("test01.ply");
     }
 
     /// <summary>
@@ -128,8 +134,7 @@ namespace Rendering
 
       while ( finishedAssignments < totalNumberOfAssignments )
       {
-        Assignment newAssignment;
-        availableAssignments.TryDequeue ( out newAssignment );
+        availableAssignments.TryDequeue ( out Assignment newAssignment );
 
         if ( !progressData.Continue ) // test whether rendering should end (Stop button pressed) 
           return;
@@ -238,6 +243,10 @@ namespace Rendering
     /// Adds colors represented in colorBuffer array to main bitmap
     /// </summary>
     /// <param name="colorBuffer">Float values (possible to be used for HDR) representing pixel color values</param>
+    /// <param name="x1">X coordinate of left upper corner in main picture</param>
+    /// <param name="y1">Y coordinate of left upper corner</param>
+    /// <param name="x2">X coordinate of right lower corner</param>
+    /// <param name="y2">Y coordinate of right lower corner</param>
     public void BitmapMerger ( float[] colorBuffer, int x1, int y1, int x2, int y2 )
     {
       lock ( bitmap )
@@ -273,9 +282,9 @@ namespace Rendering
         return;
       }
 
-      for ( int i = 0; i < networkWorkers.Count; i++ )
+      foreach ( NetworkWorker t in networkWorkers )
       {
-        networkWorkers[i]?.ReceiveRenderedImageAsync ();
+        t?.ReceiveRenderedImageAsync ();
       }
     }
   }
@@ -296,10 +305,10 @@ namespace Rendering
     public int threadCountAtClient;
     private static int assignmentsAtClients;
 
-    private List<Assignment> unfinishedAssignments = new List<Assignment>();
+    private readonly List<Assignment> unfinishedAssignments = new List<Assignment>();
 
     public CancellationTokenSource imageReceivalCancelSource;
-    private CancellationToken imageReceivalCancelToken;
+    private readonly CancellationToken imageReceivalCancelToken;
 
     public NetworkWorker ( IPAddress ipAdr )
     {
@@ -334,7 +343,8 @@ namespace Rendering
 
       stream = client.GetStream ();
 
-      client.ReceiveBufferSize = 1024 * 1024;  // needed just in case - large portions of data are expected to be transfered at the same time (one rendered assignment is 50kB)
+      // needed just in case - large portions of data are expected to be transfered at the same time (one rendered assignment is 50kB)
+      client.ReceiveBufferSize = 1024 * 1024;
       client.SendBufferSize    = 1024 * 1024;
 
       return true;
@@ -357,9 +367,9 @@ namespace Rendering
 
       NetworkSupport.SendObject<Assignment> ( new Assignment ( Assignment.AssignmentType.Reset ), stream );     
 
-      NetworkSupport.SendObject<IRayScene> ( Master.instance.scene, stream );
+      NetworkSupport.SendObject<IRayScene> ( Master.singleton.scene, stream );
 
-      NetworkSupport.SendObject<IRenderer> ( Master.instance.renderer, stream );
+      NetworkSupport.SendObject<IRenderer> ( Master.singleton.renderer, stream );
 
       threadCountAtClient = NetworkSupport.ReceiveInt ( stream );
     }
@@ -376,7 +386,7 @@ namespace Rendering
     /// </summary>
     public async void ReceiveRenderedImageAsync ()
     {
-      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments && Master.instance.progressData.Continue )
+      while ( Master.singleton.finishedAssignments < Master.singleton.totalNumberOfAssignments && Master.singleton.progressData.Continue )
       {
         if ( !NetworkSupport.IsConnected ( client ) )
         {
@@ -402,18 +412,18 @@ namespace Rendering
         Buffer.BlockCopy ( receiveBuffer, 0, coordinates, 0, 2 * sizeof ( float ) );
         Buffer.BlockCopy ( receiveBuffer, 2 * sizeof ( float ), floatBuffer, 0, floatBuffer.Length * sizeof ( float ) );
 
-        Master.instance.BitmapMerger ( floatBuffer,
+        Master.singleton.BitmapMerger ( floatBuffer,
                                        (int) coordinates[0],
                                        (int) coordinates[1],
                                        (int) coordinates[0] + Master.assignmentSize,
                                        (int) coordinates[1] + Master.assignmentSize );
 
-        Master.instance.finishedAssignments++;
+        Master.singleton.finishedAssignments++;
 
         //takes care of increasing assignmentRoundsFinished by the ammount of finished rendering rounds on RenderClient
         Assignment currentAssignment = unfinishedAssignments.Find ( a => a.x1 == (int) coordinates [ 0 ] && a.y1 == (int) coordinates [ 1 ]  );
         int        roundsFinished    = (int) Math.Log ( currentAssignment.stride, 2 ) + 1; // stride goes from 8 > 4 > 2 > 1 (1 step = 1 rendering round)
-        Master.instance.assignmentRoundsFinished += roundsFinished;
+        Master.singleton.assignmentRoundsFinished += roundsFinished;
 
         assignmentsAtClients--;
 
@@ -431,7 +441,7 @@ namespace Rendering
     private void LostConnection ()
     {
       ResetUnfinishedAssignments ();
-      Master.instance.networkWorkers.Remove ( this );
+      Master.singleton.networkWorkers.Remove ( this );
       client.Close ();
     }
 
@@ -458,10 +468,8 @@ namespace Rendering
     /// Loops until it gets a new assignment and sends it to the RenderClient (or all assignments have been rendered)
     /// </summary>
     public void TryToGetNewAssignment ()
-    {      
-      Assignment newAssignment = null;
-
-      while ( Master.instance.finishedAssignments < Master.instance.totalNumberOfAssignments - assignmentsAtClients )
+    {
+      while ( Master.singleton.finishedAssignments < Master.singleton.totalNumberOfAssignments - assignmentsAtClients )
       {
         if ( !NetworkSupport.IsConnected ( client ) )
         {
@@ -469,9 +477,9 @@ namespace Rendering
           return;
         }         
 
-        Master.instance.availableAssignments.TryDequeue ( out newAssignment );
+        Master.singleton.availableAssignments.TryDequeue ( out Assignment newAssignment );
 
-        if ( !Master.instance.progressData.Continue ) // test whether rendering should end (Stop button pressed) 
+        if ( !Master.singleton.progressData.Continue ) // test whether rendering should end (Stop button pressed) 
           return;
 
         if ( newAssignment == null ) // TryDequeue was not succesfull
@@ -496,7 +504,7 @@ namespace Rendering
     {
       foreach ( Assignment unfinishedAssignment in unfinishedAssignments )
       {
-        Master.instance.availableAssignments.Enqueue ( unfinishedAssignment );
+        Master.singleton.availableAssignments.Enqueue ( unfinishedAssignment );
       }     
     }
 
@@ -648,17 +656,17 @@ namespace Rendering
 
           if ( progressData != null ) // progressData is not used for distributed network rendering - null value used in rendering in RenderClients
           {
-            lock ( Master.instance.progressData )
+            lock ( Master.singleton.progressData )
             {
               // test whether rendering should end (Stop button pressed) 
-              if ( !Master.instance.progressData.Continue )
+              if ( !Master.singleton.progressData.Continue )
                 return returnArray;
 
               // synchronization of bitmap with PictureBox in Form and update of progress (percentage of done work)
-              if ( Master.instance.mainRenderThread == Thread.CurrentThread )
+              if ( Master.singleton.mainRenderThread == Thread.CurrentThread )
               {
-                Master.instance.progressData.Finished = Master.instance.assignmentRoundsFinished / (float) Master.instance.assignmentRoundsTotal;
-                Master.instance.progressData.Sync ( Master.instance.bitmap );
+                Master.singleton.progressData.Finished = Master.singleton.assignmentRoundsFinished / (float) Master.singleton.assignmentRoundsTotal;
+                Master.singleton.progressData.Sync ( Master.singleton.bitmap );
               }
             }
           }         

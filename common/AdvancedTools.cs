@@ -10,7 +10,7 @@ namespace Rendering
 {
   public class AdvancedTools
   {
-    public static AdvancedTools instance; //singleton
+    public static AdvancedTools singleton;
 
     private List<IMap> allMaps;
 
@@ -41,7 +41,7 @@ namespace Rendering
       {
         if ( typeof ( IMap ).IsAssignableFrom ( fieldInfo.FieldType ) )
         {
-          allMaps.Add ( (IMap) fieldInfo.GetValue ( instance ) );
+          allMaps.Add ( (IMap) fieldInfo.GetValue ( singleton ) );
         }
       }
     }
@@ -120,14 +120,14 @@ namespace Rendering
 
         SetReferenceMinAndMaxValues ();
 
-        instance.GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray );
+        singleton.GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray );
 
         mapBitmap = new Bitmap ( mapImageWidth, mapImageHeight, PixelFormat.Format24bppRgb );
 
         PopulateArray2D<double> ( mapArray, maxValue, 0, true );
 
         minValue = double.MaxValue;
-        instance.GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray ); // New minimum after replacing all zeroes
+        singleton.GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray ); // New minimum after replacing all zeroes
 
         for ( int x = 0; x < mapImageWidth; x++ )
         {
@@ -145,7 +145,7 @@ namespace Rendering
 
       protected override void DivideArray ( int x, int y )
       {
-        mapArray [ x, y ] /= instance.primaryRaysMap.mapArray [ x, y ];
+        mapArray [ x, y ] /= singleton.primaryRaysMap.mapArray [ x, y ];
       }
 
       public override dynamic GetValueAtCoordinates ( int x, int y )
@@ -174,7 +174,7 @@ namespace Rendering
 
       protected override void DivideArray ( int x, int y )
       {
-        mapArray [ x, y ] /= instance.primaryRaysMap.mapArray [ x, y ];
+        mapArray [ x, y ] /= singleton.primaryRaysMap.mapArray [ x, y ];
       }
 
       public override dynamic GetValueAtCoordinates ( int x, int y )
@@ -232,8 +232,8 @@ namespace Rendering
         mapArray             = new Vector3d[mapImageWidth, mapImageHeight];
         intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
 
-        instance.normalMapAbsolute.mapArray             = instance.normalMapRelative.mapArray;
-        instance.normalMapAbsolute.intersectionMapArray = instance.normalMapRelative.intersectionMapArray;
+        singleton.normalMapAbsolute.mapArray             = singleton.normalMapRelative.mapArray;
+        singleton.normalMapAbsolute.intersectionMapArray = singleton.normalMapRelative.intersectionMapArray;
       }
 
       public override void RenderMap ()
@@ -247,8 +247,8 @@ namespace Rendering
         {
           AverageMap ();
 
-          instance.normalMapAbsolute.wasAveraged = true;
-          instance.normalMapRelative.wasAveraged = true;
+          singleton.normalMapAbsolute.wasAveraged = true;
+          singleton.normalMapRelative.wasAveraged = true;
         }
 
         base.RenderMap ();
@@ -265,8 +265,8 @@ namespace Rendering
 
       protected override void DivideArray ( int x, int y )
       {
-        intersectionMapArray [ x, y ] /= instance.primaryRaysMap.mapArray [ x, y ];
-        mapArray [ x, y ]             /= instance.primaryRaysMap.mapArray [ x, y ];
+        intersectionMapArray [ x, y ] /= singleton.primaryRaysMap.mapArray [ x, y ];
+        mapArray [ x, y ]             /= singleton.primaryRaysMap.mapArray [ x, y ];
       }
 
       public override dynamic GetValueAtCoordinates ( int x, int y )
@@ -440,14 +440,14 @@ namespace Rendering
       /// </summary>
       protected void AverageMap ()
       {
-        if ( instance.primaryRaysMap == null )
+        if ( singleton.primaryRaysMap == null )
         {
-          instance.Initialize ();
+          singleton.Initialize ();
         }
 
-        if ( instance.primaryRaysMap.mapArray == null )
+        if ( singleton.primaryRaysMap.mapArray == null )
         {
-          instance.primaryRaysMap.Initialize ();
+          singleton.primaryRaysMap.Initialize ();
         }
 
         if ( wasAveraged )
@@ -459,7 +459,7 @@ namespace Rendering
         {
           for ( int j = 0; j < mapImageHeight; j++ )
           {
-            if ( instance.primaryRaysMap.mapArray [ i, j ] != 0 )
+            if ( singleton.primaryRaysMap.mapArray [ i, j ] != 0 )
             {
               DivideArray ( i, j ); // Separate method for division because of strongly typed T
             }
@@ -504,9 +504,9 @@ namespace Rendering
       {
         SetReferenceMinAndMaxValues ();
 
-        for ( int x = 0; x < instance.depthMap.mapImageWidth; x++ )
+        for ( int x = 0; x < singleton.depthMap.mapImageWidth; x++ )
         {
-          for ( int y = 0; y < instance.depthMap.mapImageHeight; y++ )
+          for ( int y = 0; y < singleton.depthMap.mapImageHeight; y++ )
           {
             if ( ( mapArray [ x, y ] as IComparable<T> ).CompareTo ( maxValue ) > 0 )
               maxValue = mapArray [ x, y ];

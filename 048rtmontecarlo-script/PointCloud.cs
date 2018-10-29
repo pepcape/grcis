@@ -26,13 +26,13 @@ namespace Rendering
     /// <summary>
     /// Creates new cloud
     /// </summary>
-    private void InitializeCloudArray ( int numberOfThreads )
+    private void InitializeCloudArray ( int numberOfThreads, int initialListCapacity = 65536 )
     {
       cloud = new List<float> [numberOfThreads];
 
       for ( int i = 0; i < cloud.Length; i++ )
       {
-        cloud[i] = new List<float> ( 65536 );
+        cloud[i] = new List<float> ( initialListCapacity );
       }
 
       numberOfElements = 0;
@@ -158,6 +158,8 @@ namespace Rendering
       {
         int vertexCount = ReadPLYFileHeader ( streamReader );
 
+        InitializeCloudArray ( 1, vertexCount );
+
         if ( vertexCount < 0 )
           throw new Exception ( "Incorrect element count in input file." );
 
@@ -264,29 +266,6 @@ namespace Rendering
       }
 
       return (Vector3d) position * axesCorrectionVector;
-    }
-  }
-
-  /// <summary>
-  /// Data structure containing info about 1 vertex (coordinates, color and normal vector) in point cloud
-  /// </summary>
-  public struct Vertex
-  {
-    public float[] coord;
-    public byte[] color;
-    public float[] normal;
-
-    /// <summary>
-    /// Standard constructor
-    /// </summary>
-    /// <param name="coord">Coordinates of vertex</param>
-    /// <param name="color">Color of vertex (RGB 0-255)</param>
-    /// <param name="normal">Normal vector in vertex</param>
-    public Vertex ( float[] coord, byte[] color, float[] normal )
-    {
-      this.coord = coord;
-      this.color = color;
-      this.normal = normal;
     }
   }
 }
