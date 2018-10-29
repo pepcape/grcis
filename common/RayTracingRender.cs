@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using OpenTK;
 using MathSupport;
 
@@ -121,8 +122,7 @@ namespace Rendering
       {
         double[] vertexColor = new double[3];
         Array.Copy ( i.SurfaceColor, vertexColor, vertexColor.Length );
-        Vertex vertex = new Vertex ( i.CoordWorld, vertexColor, i.Normal );
-        Master.instance?.pointCloud?.cloud.Add ( vertex );
+        Master.singleton?.pointCloud?.AddToPointCloud ( i.CoordWorld, vertexColor, i.Normal, MT.threadID );
       }
 
       // hash code for adaptive supersampling:
@@ -153,7 +153,7 @@ namespace Rendering
 
 	        if ( MT.singleRayTracing && source.position != null )
 		        // register shadow ray for RayVisualizer
-		        RegisterRay ( RayType.rayVisualizerShadow, level, i.CoordWorld, (Vector3d) source.position );        
+		        RegisterRay ( RayType.rayVisualizerShadow, i.CoordWorld, (Vector3d) source.position );        
 
           if ( intensity != null )
           {
@@ -246,24 +246,24 @@ namespace Rendering
 	      //ray for statistics and maps (AdvancedTools)
         case RayType.mapsNormal:
 	        //register ray for statistics and maps
-          AdvancedTools.instance?.Register ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], (Intersection) parameters [ 2 ] );
+          AdvancedTools.singleton?.Register ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], (Intersection) parameters [ 2 ] );
           break;
 
 	      //ray for RayVisualizer
         case RayType.rayVisualizerNormal:
 			    if ( !MT.singleRayTracing )
             return;
-		      if ( parameters[2] is Vector3d vector )
-		        RayVisualizer.instance?.RegisterRay ( (int) parameters[0], (Vector3d) parameters[1], vector );
+          if ( parameters[2] is Vector3d vector )
+            RayVisualizer.singleton?.RegisterRay ( (Vector3d) parameters[1], vector );
 		      if ( parameters[2] is Intersection intersection )
-		        RayVisualizer.instance?.RegisterRay ( (int) parameters[0], (Vector3d) parameters[1], intersection.CoordWorld );
+		        RayVisualizer.singleton?.RegisterRay ( (Vector3d) parameters[1], intersection.CoordWorld );
           break;
 
 	      //shadow ray for RayVisualizer
         case RayType.rayVisualizerShadow:         
 			    if ( !MT.singleRayTracing )
 				    return;
-          RayVisualizer.instance?.RegisterShadowRay ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], (Vector3d) parameters [ 2 ] );
+          RayVisualizer.singleton?.RegisterShadowRay ( (Vector3d) parameters [0], (Vector3d) parameters [1] );
           break;
       }	    
     }
