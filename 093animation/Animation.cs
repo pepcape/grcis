@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using LineCanvas;
@@ -12,22 +10,39 @@ namespace _093animation
   public class Animation
   {
     /// <summary>
-    /// Initialize form parameters.
+    /// Form data initialization.
     /// </summary>
-    public static void InitParams ( out int wid, out int hei, out double from, out double to, out double fps, out string param )
+    /// <param name="name">Your first-name and last-name.</param>
+    /// <param name="wid">Image width in pixels.</param>
+    /// <param name="hei">Image height in pixels.</param>
+    /// <param name="from">Animation start in seconds.</param>
+    /// <param name="to">Animation end in seconds.</param>
+    /// <param name="fps">Frames-per-seconds.</param>
+    /// <param name="param">Optional text to initialize the form's text-field.</param>
+    /// <param name="tooltip">Optional tooltip = param help.</param>
+    public static void InitParams ( out string name, out int wid, out int hei, out double from, out double to, out double fps, out string param, out string tooltip )
     {
-      // single frame:
+      // {{
+
+      // Put your name here.
+      name = "Josef Pelikán";
+
+      // Image size in pixels.
       wid = 640;
       hei = 480;
 
-      // animation:
+      // Animation.
       from =  0.0;
       to   = 10.0;
       fps  = 25.0;
 
-      // specific animation params:
-      param = "width=1.0,anti=true,objects=100,prob=0.95";
+      // Specific animation params.
+      param = "width=1.0,anti=true,objects=100,hatches=12,prob=0.95";
 
+      // Tooltip = help.
+      tooltip = "width=<double>, anti=<bool>, objects=<int>, hatches=<int>, prob=<double>";
+
+      // }}
     }
 
     /// <summary>
@@ -42,9 +57,9 @@ namespace _093animation
     /// <param name="param">Optional string parameter from the form.</param>
     public static void InitAnimation ( int width, int height, double start, double end, double fps, string param )
     {
-      // !!!{{ TODO: put your init code here
+      // {{ TODO: put your init code here
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -57,7 +72,7 @@ namespace _093animation
     /// <param name="param">Optional string parameter from the form.</param>
     public static void DrawFrame ( Canvas c, double time, double start, double end, string param )
     {
-      // !!!{{ TODO: put your drawing code here
+      // {{ TODO: put your drawing code here
 
       double timeNorm = Arith.Clamp( (time - start) / (end - start), 0.0, 1.0 );
 
@@ -242,7 +257,7 @@ namespace _093animation
         }
       }
 
-      // !!!}}
+      // }}
     }
   }
 }

@@ -13,7 +13,7 @@ namespace _093animation
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     /// <summary>
     /// Main animation-rendering thread.
@@ -41,6 +41,42 @@ namespace _093animation
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
     protected int ImageHeight = 480;
+
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
+    string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
+    ToolTip tt = new ToolTip();
+
+    public Form1 ()
+    {
+      InitializeComponent();
+
+      // Init form data.
+      double from, to, fps;
+      string name;
+      Animation.InitParams( out name, out ImageWidth, out ImageHeight, out from, out to, out fps, out param, out tooltip );
+      if ( ImageWidth < 0 )
+        ImageWidth = 0;          // 0 .. take image width from the form size
+      if ( ImageHeight < 0 )
+        ImageHeight = 0;         // 0 .. take image height from the form size
+      if ( to <= start )
+        to = start + 1.0;
+      if ( fps <= 0.0 )
+        fps = 25.0;
+
+      numFrom.Value = (decimal)from;
+      numTo.Value = (decimal)to;
+      numFps.Value = (decimal)fps;
+
+      Text += " (" + rev + ") '" + name + '\'';
+      textParam.Text = param ?? "";
+      buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+    }
 
     private void EnableGUI ( bool compute )
     {
@@ -160,30 +196,6 @@ namespace _093animation
         // GUI stuff:
         EnableGUI( true );
       }
-    }
-
-    public Form1 ()
-    {
-      InitializeComponent();
-      Text += " (rev: " + rev + ')';
-
-      // Init rendering params:
-      double from, to, fps;
-      Animation.InitParams( out ImageWidth, out ImageHeight, out from, out to, out fps, out param );
-      if ( ImageWidth < 0 )
-        ImageWidth = 0;          // 0 .. take image width from the form size
-      if ( ImageHeight < 0 )
-        ImageHeight = 0;         // 0 .. take image height from the form size
-      if ( to <= start )
-        to = start + 1.0;
-      if ( fps <= 0.0 )
-        fps = 25.0;
-
-      numFrom.Value  = (decimal)from;
-      numTo.Value    = (decimal)to;
-      numFps.Value   = (decimal)fps;
-      textParam.Text = param;
-      buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
     private void buttonRes_Click ( object sender, EventArgs e )
