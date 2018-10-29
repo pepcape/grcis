@@ -11,8 +11,16 @@ namespace _083animation
   public class Animation
   {
     /// <summary>
-    /// Initialize form parameters.
+    /// Form data initialization.
     /// </summary>
+    /// <param name="name">Your first-name and last-name.</param>
+    /// <param name="wid">Initial image width in pixels.</param>
+    /// <param name="hei">Initial image height in pixels.</param>
+    /// <param name="from">Start time (t0)</param>
+    /// <param name="to">End time (for animation length normalization).</param>
+    /// <param name="fps">Frames-per-second.</param>
+    /// <param name="param">Optional text to initialize the form's text-field.</param>
+    /// <param name="tooltip">Optional tooltip = param help.</param>
     public static void InitParams ( out string name, out int wid, out int hei, out double from, out double to, out double fps, out string param, out string tooltip )
     {
       // {{
