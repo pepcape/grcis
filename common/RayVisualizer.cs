@@ -70,11 +70,9 @@ namespace Rendering
     public static Vector3d AxesCorrector ( Vector3d? position )
     {
       if ( position == null )
-      {
         return new Vector3d ( 0, 0, 0 );
-      }
-
-      return (Vector3d) position * axesCorrectionVector;
+      else
+        return (Vector3d) position * axesCorrectionVector;
     }
 
     public static IRayScene rayScene;

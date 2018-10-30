@@ -120,9 +120,15 @@ namespace Rendering
       
       if ( Form2.singleton.pointCloudCheckBox.Checked && !MT.singleRayTracing )
       {
-        double[] vertexColor = new double[3];
-        Array.Copy ( i.SurfaceColor, vertexColor, vertexColor.Length );
-        Master.singleton?.pointCloud?.AddToPointCloud ( i.CoordWorld, vertexColor, i.Normal, MT.threadID );
+        foreach ( Intersection intersection in intersections )
+        {
+          if ( !intersection.completed )
+            intersection.Complete ();
+
+          double[] vertexColor = new double[3];
+          Array.Copy ( intersection.SurfaceColor, vertexColor, vertexColor.Length );
+          Master.singleton?.pointCloud?.AddToPointCloud ( intersection.CoordWorld, vertexColor, intersection.Normal, MT.threadID );
+        }
       }
 
       // hash code for adaptive supersampling:

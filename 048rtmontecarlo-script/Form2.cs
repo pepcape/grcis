@@ -465,7 +465,7 @@ namespace Rendering
         MT.renderingInProgress = false;
         MT.sceneRendered = true;
 
-        if ( Master.singleton.pointCloud != null && Master.singleton.pointCloud.IsCloudEmpty )
+        if ( Master.singleton.pointCloud == null || Master.singleton.pointCloud.IsCloudEmpty )
           SavePointCloudButton.Enabled = false;
       }
     }
@@ -581,8 +581,6 @@ namespace Rendering
         ImageWidth = form.ImageWidth;
         ImageHeight = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
-
-        //AdvancedToolsForm.instance?.SetNewDimensions ( form.ImageWidth, form.ImageHeight );
       }
     }
 
@@ -897,9 +895,6 @@ namespace Rendering
 
       e.Graphics.ScaleTransform ( zoom, zoom );
       e.Graphics.DrawImage ( image, imageX, imageY );
-
-
-      Console.WriteLine ( "{0}\t{1}\t{2}\t{3}\t\t{4}", startX, startY, imageX, imageY, zoom );
     }
 
 
