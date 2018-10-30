@@ -418,6 +418,8 @@ namespace Rendering
     /// </summary>
     public static long countIntersections = 0L;
 
+    public bool completed = false;
+
     public Intersection ( ISolid s )
     {
       Solid = s;
@@ -460,6 +462,8 @@ namespace Rendering
 
       if ( SurfaceColor == null )
         SurfaceColor = new double[] { 0.0, 0.2, 0.3 };
+
+      completed = true;
     }
 
     public static Intersection FirstIntersection ( LinkedList<Intersection> list, ref Vector3d p1 )

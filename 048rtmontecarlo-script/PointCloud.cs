@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using OpenTK;
 
@@ -26,8 +24,11 @@ namespace Rendering
     /// <summary>
     /// Creates new cloud
     /// </summary>
-    private void InitializeCloudArray ( int numberOfThreads, int initialListCapacity = 65536 )
+    private void InitializeCloudArray ( int numberOfThreads, int initialListCapacity = 0 )
     {
+      if ( initialListCapacity == 0 )
+        initialListCapacity = 100000 * 9 / numberOfThreads;
+
       cloud = new List<float> [numberOfThreads];
 
       for ( int i = 0; i < cloud.Length; i++ )
@@ -38,7 +39,6 @@ namespace Rendering
       numberOfElements = 0;
     }
 
-
     /// <summary>
     /// Adds a new vertex to point cloud data structure
     /// Thread-safe
@@ -46,6 +46,7 @@ namespace Rendering
     /// <param name="coord">Coordinates of vertex</param>
     /// <param name="color">Color of vertex (RGB values between 0-1)</param>
     /// <param name="normal">Normal vector in vertex</param>
+    /// <param name="index">Index of list where to store data - is usually MT.threadID, unique for each thread to accomplish thread-safety</param>
     public void AddToPointCloud ( Vector3d coord, double[] color, Vector3d normal, int index )
     {
       Vector3d fixedCoordinates = AxesCorrector ( coord );
@@ -70,7 +71,7 @@ namespace Rendering
 
     public bool IsCloudEmpty
     {
-      get { return cloud.IsEmpty (); }
+      get { return cloud == null; }
     }
 
     /// <summary>
@@ -158,7 +159,7 @@ namespace Rendering
       {
         int vertexCount = ReadPLYFileHeader ( streamReader );
 
-        InitializeCloudArray ( 1, vertexCount );
+        InitializeCloudArray ( 1, vertexCount * 9 );
 
         if ( vertexCount < 0 )
           throw new Exception ( "Incorrect element count in input file." );
@@ -261,11 +262,9 @@ namespace Rendering
     public static Vector3d AxesCorrector ( Vector3d? position )
     {
       if ( position == null )
-      {
         return new Vector3d ( 0, 0, 0 );
-      }
-
-      return (Vector3d) position * axesCorrectionVector;
+      else
+        return (Vector3d) position * axesCorrectionVector;
     }
   }
 }
