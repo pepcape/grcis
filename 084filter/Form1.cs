@@ -17,17 +17,30 @@ namespace _084filter
     protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
 
+    /// <summary>
+    /// Window title prefix.
+    /// </summary>
     protected string titlePrefix = null;
+
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
+    string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
+    ToolTip tt = new ToolTip();
 
     public Form1 ()
     {
       InitializeComponent();
 
       string par, name;
-      Filter.InitParams( out par, out name );
+      Filter.InitParams( out name, out par, out tooltip );
       textParam.Text = par;
 
-      Text += " (" + rev + ") '" + name + '\'';
+      titlePrefix = (Text += " (" + rev + ") '" + name + '\'');
     }
 
     protected Thread aThread = null;
@@ -222,7 +235,7 @@ namespace _084filter
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save( sfd.FileName, ImageFormat.Png );
     }
 
     private void buttonRedraw_Click ( object sender, EventArgs e )
@@ -254,14 +267,36 @@ namespace _084filter
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( aThread == null && e.Button == MouseButtons.Left )
+      if ( aThread == null &&
+           e.Button == MouseButtons.Left )
         imageProbe( e.X, e.Y );
     }
 
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( aThread == null && e.Button == MouseButtons.Left )
+      if ( aThread == null &&
+           e.Button == MouseButtons.Left )
         imageProbe( e.X, e.Y );
+    }
+
+    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        recompute();
+      }
+    }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( tooltip, (IWin32Window)sender, 10, -25, 2000 );
+    }
+
+    private void labelElapsed_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + ')',
+               (IWin32Window)sender, 10, -25, 2000 );
     }
   }
 }
