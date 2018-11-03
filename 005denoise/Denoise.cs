@@ -1,7 +1,10 @@
-﻿using System.Drawing;
-using MathSupport;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Imaging;
-using System;
+using System.Threading.Tasks;
+using Raster;
+using Utilities;
 
 namespace _005denoise
 {
@@ -14,72 +17,69 @@ namespace _005denoise
     {
       // {{
       name = "Josef Pelikán";
-      param = "12,8";
-      tooltip = "<boxw>[,<boxh>] .. box size in pixels";
+      param = "d=3, par=true";
+      tooltip = "d=<int> .. window diameter in pixels, mode={min|max|median|mid}, par=<bool>";
       // }}
     }
 
     /// <summary>
-    /// Separator for string parameter.
-    /// </summary>
-    static readonly char COMMA = ',';
-
-    /// <summary>
-    /// Recompute the output image.
+    /// Recompute the image from the given input.
     /// </summary>
     /// <param name="input">Input image.</param>
     /// <param name="param">Optional string parameter (its content and format is entierely up to you).</param>
     public static Bitmap Recompute ( Bitmap input, string param )
     {
-      // !!!{{ TODO: write your own image transform code here
+      // {{ TODO: write your own image transform code here
 
       if ( input == null )
         return null;
 
-      // Text parameter = image size
+      // !!! TODO: process the param string if you need !!!
+      int radius = 1;
+      RankHistogram.RankType mode = RankHistogram.RankType.MEDIAN;
+      bool par = true;
+
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+      if ( p.Count > 0 )
+      {
+        // d=<int>
+        if ( Util.TryParse( p, "d", ref radius ) )
+          radius >>= 1;
+
+        // mode={min|max|median|mid}
+        string mods;
+        if ( p.TryGetValue( "mode", out mods ) )
+          switch ( mods )
+          {
+            case "min":
+              mode = RankHistogram.RankType.MIN;
+              break;
+
+            case "max":
+              mode = RankHistogram.RankType.MAX;
+              break;
+
+            case "mid":
+              mode = RankHistogram.RankType.MIDDLE;
+              break;
+
+            default:
+              mode = RankHistogram.RankType.MEDIAN;
+              break;
+          }
+
+        // par=<bool>
+        // use Parallel.For?
+        Util.TryParse( p, "par", ref par );
+
+        // ... you can add more parameters here ...
+      }
+
+      // Pilot implementation = rank filter with rectangular window
       int wid = input.Width;
       int hei = input.Height;
-      int cellW = 8;
-      int cellH = 8;
-      if ( param.Length > 0 )
-      {
-        string[] size = param.Split( COMMA );
-        if ( size.Length > 0 )
-        {
-          if ( !int.TryParse( size[ 0 ], out cellW ) )
-            cellW = 1;
-          if ( cellW < 1 ) cellW = 1;
-          cellH = cellW;
 
-          if ( size.Length > 1 )
-          {
-            if ( !int.TryParse( size[ 1 ], out cellH ) )
-              cellH = cellW;
-            if ( cellH < 1 ) cellH = 1;
-          }
-        }
-      }
-
-      Bitmap output = new Bitmap( wid, hei, PixelFormat.Format24bppRgb );
-           
-      // convert pixel data:
-      int x, y;
-
-#if false
-      // slow GetPixel-SetPixel code:
-      for ( y = 0; y < hei; y++ )
-      {
-        if ( !Form1.cont ) break;
-
-        for ( x = 0; x < wid; x++ )
-        {
-          Color ic = input.GetPixel( x, y );
-          Color oc = Color.FromArgb( 255 - ic.R, 255 - ic.G, 255 - ic.B );
-          output.SetPixel( x, y, oc );
-        }
-      }
-#else
-      // fast memory-mapped code:
+      // Fast memory-mapped code.
       PixelFormat iFormat = input.PixelFormat;
       if ( !PixelFormat.Format24bppRgb.Equals( iFormat ) &&
            !PixelFormat.Format32bppArgb.Equals( iFormat ) &&
@@ -87,65 +87,180 @@ namespace _005denoise
            !PixelFormat.Format32bppRgb.Equals( iFormat ) )
         iFormat = PixelFormat.Format24bppRgb;
 
-      int x0, y0;
-      int x1, y1;
-      BitmapData dataIn  = input.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.ReadOnly, iFormat );
-      BitmapData dataOut = output.LockBits( new Rectangle( 0, 0, wid, hei ), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb );
+      Bitmap output = new Bitmap( wid, hei, PixelFormat.Format8bppIndexed );
+
+      // Set gray ramp as the output palette.
+      ColorPalette pal = output.Palette;
+      Draw.PaletteGray( pal );
+      output.Palette = pal;
+
+      Rectangle entire = new Rectangle( 0, 0, wid, hei );
+      BitmapData dataIn  = input.LockBits( entire, ImageLockMode.ReadOnly, iFormat );
+      BitmapData dataOut = output.LockBits( entire, ImageLockMode.WriteOnly, PixelFormat.Format8bppIndexed );
       unsafe
       {
-        byte* iptr, optr;
-        byte r, g, b;
-        int sR, sG, sB;
-        int pixels;
         int dI = Image.GetPixelFormatSize( iFormat ) / 8;
-        int dO = Image.GetPixelFormatSize( PixelFormat.Format24bppRgb ) / 8;
 
-        for ( y0 = 0; y0 < hei; y0 += cellH )
+        Action<int> body = oy =>
         {
-          if ( !Form1.cont ) break;
+          if ( !Form1.cont ) return;
 
-          for ( x0 = 0; x0 < wid; x0 += cellW )     // one output cell
+          int ox;      // output pixel coordinates
+          int ix, iy;  // input pixel coordinates
+
+          // Window bounds.
+          int miny = Math.Max( 0, oy - radius );
+          int maxy = Math.Min( hei - 1, oy + radius );
+
+          byte* iptr;
+          byte* optr = (byte*)dataOut.Scan0 + oy * dataOut.Stride;
+          RankHistogram rank = new RankHistogram( 255 );
+
+          for ( ox = 0; ox < wid; ox++ )     // one output pixel
           {
-            sR = sG = sB = 0;
-            x1 = Math.Min( x0 + cellW, wid );
-            y1 = Math.Min( y0 + cellH, hei );
+            rank.init();
 
-            for ( y = y0; y < y1; y++ )
+            for ( iy = miny; iy <= maxy; iy++ )
             {
-              iptr = (byte*)dataIn.Scan0 + y * dataIn.Stride + x0 * dI;
-              for ( x = x0; x < x1; x++, iptr += dI )
-              {
-                sB += (int)iptr[ 0 ];
-                sG += (int)iptr[ 1 ];
-                sR += (int)iptr[ 2 ];
-              }
+              // One hline of the filter window.
+              int minx = Math.Max( 0, ox - radius );
+              int maxx = Math.Min( wid - 1, ox + radius );
+              iptr = (byte*)dataIn.Scan0 + iy * dataIn.Stride + minx * dI;
+
+              for ( ix = minx; ix <= maxx; ix++, iptr += dI )
+                rank.add( Draw.RgbToGray( iptr[ 2 ], iptr[ 1 ], iptr[ 0 ] ) );
             }
 
-            pixels = (x1 - x0) * (y1 - y0);
-            r = (byte)((sR + pixels / 2) / pixels);
-            g = (byte)((sG + pixels / 2) / pixels);
-            b = (byte)((sB + pixels / 2) / pixels);
-
-            for ( y = y0; y < y1; y++ )
-            {
-              optr = (byte*)dataOut.Scan0 + y * dataOut.Stride + x0 * dO;
-              for ( x = x0; x < x1; x++, optr += dO )
-              {
-                optr[ 0 ] = b;
-                optr[ 1 ] = g;
-                optr[ 2 ] = r;
-              }
-            }
+            *optr++ = (byte)rank.result( mode );
           }
-        }
+        };
+
+        if ( par )
+          Parallel.For( 0, hei, body );
+        else
+          for ( int y = 0; y < hei; y++ )
+            body( y );
       }
       output.UnlockBits( dataOut );
       input.UnlockBits( dataIn );
-#endif
 
       return output;
 
-      // !!!}}
+      // }}
+    }
+  }
+
+  /// <summary>
+  /// Rank collecting class based on histogram implementation.
+  /// Able to efficiently compute median/middle/min/max values.
+  /// </summary>
+  class RankHistogram
+  {
+    /// <summary>
+    /// Maximal allowed input value.
+    /// </summary>
+    protected int maxV;
+
+    /// <summary>
+    /// Working histogram array.
+    /// </summary>
+    protected int[] h;
+
+    /// <summary>
+    /// Current minimum value.
+    /// </summary>
+    protected int cMin;
+
+    /// <summary>
+    /// Current maximum value.
+    /// </summary>
+    protected int cMax;
+
+    /// <summary>
+    /// Histogram size (number of values).
+    /// </summary>
+    protected int card;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum RankType
+    {
+      MIN,      // minimum (erosion)
+      MAX,      // maximum (dilation)
+      MIDDLE,   // middle of the range = (min+max)/2
+      MEDIAN    // median
+    }
+
+    public RankHistogram ( int maxValue = 255 )
+    {
+      init( maxValue );
+    }
+
+    /// <summary>
+    /// [Re-]initialization.
+    /// </summary>
+    /// <param name="maxValue">If negative, the old histogram domain is preserved.</param>
+    public void init ( int maxValue = -1 )
+    {
+      if ( maxValue >= 0 &&
+           (h == null ||
+            maxV != maxValue) )
+        h = new int[ (maxV = maxValue) + 1 ];
+      else
+        Array.Clear( h, 0, maxV );
+
+      cMin = maxV;
+      cMax = 0;
+      card = 0;
+    }
+
+    /// <summary>
+    /// Add a next value.
+    /// </summary>
+    public void add ( int value )
+    {
+      if ( value < 0 ||
+           value > maxV ) return;
+
+      h[ value ]++;
+      if ( value < cMin ) cMin = value;
+      if ( value > cMax ) cMax = value;
+      card++;
+    }
+
+    /// <summary>
+    /// Returns the required result. Nondestructive.
+    /// </summary>
+    public int result ( RankType type = RankType.MEDIAN )
+    {
+      switch ( type )
+      {
+        case RankType.MIN:
+          return cMin;
+
+        case RankType.MAX:
+          return cMax;
+
+        case RankType.MIDDLE:
+          return (cMin + cMax + 1) >> 1;
+
+        default:
+          {
+            // I'm going to compute median..
+            int steps = card >> 1;            // .. which is the (steps+1)-th least value ..
+            int median = cMin;
+            while ( true )
+            {
+              steps -= h[ median ];
+              if ( steps < 0 )
+                break;
+              median++;
+            }
+
+            return median;
+          }
+      }
     }
   }
 }

@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using System.Drawing.Imaging;
 using Utilities;
 
 namespace _005denoise
@@ -195,16 +196,20 @@ namespace _005denoise
 
     private void transform ()
     {
+      Dictionary<string, string> p = Util.ParseKeyValueList( textParam.Text );
+      bool par = false;
+      Util.TryParse( p, "par", ref par );
+
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
       Bitmap bmp = Filter.Recompute( inputImage, textParam.Text );
 
       sw.Stop();
-      float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
+      long elapsed = sw.ElapsedMilliseconds;
 
       SetImage( bmp );
-      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s ({1})", elapsed, bmp.PixelFormat.ToString() ) );
+      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0}ms{1}", elapsed, par ? " [MT]" : "" ) );
 
       StopComputation();
     }
