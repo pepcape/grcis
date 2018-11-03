@@ -251,7 +251,7 @@ namespace Raster
     /// <param name="errDistr">Will be the palette used for error-distribution?</param>
     public static void Palette332 ( ColorPalette pal, bool errDistr =false )
     {
-      // create the palette:
+      // Modify the palette.
       double R, G, B;
       double R0, G0, B0;
       double dRG, dB;
@@ -278,6 +278,23 @@ namespace Raster
         for ( g = 0, G = G0; g < 8; g++, G += dRG )
           for ( b = 0, B = B0; b < 4; b++, B += dB )
             pal.Entries[ i++ ] = Color.FromArgb( (int)( R + 0.5 ), (int)( G + 0.5 ), (int)( B + 0.5 ) );
+    }
+
+    /// <summary>
+    /// Creates a static gray colormap.
+    /// </summary>
+    /// <param name="pal">Instance of palette to modify.</param>
+    /// <param name="num">Size of grayscale ramp</param>
+    public static void PaletteGray ( ColorPalette pal, int num =256 )
+    {
+      // Modify the palette.
+      if ( num > 256 )
+        num = 256;
+      double RGB = 0.0;
+      double dRGB = 255.0 / (num - 1.0);
+
+      for ( int i = 0; i < num; RGB += dRGB )
+        pal.Entries[ i++ ] = Color.FromArgb( (int)Math.Round(RGB), (int)Math.Round( RGB ), (int)Math.Round( RGB ) );
     }
 
     public static long Hash ( Bitmap img )
