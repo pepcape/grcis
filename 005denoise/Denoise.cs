@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define SLOW
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -18,7 +20,7 @@ namespace _005denoise
       // {{
       name = "Josef Pelikán";
       param = "d=3, par=true";
-      tooltip = "d=<int> .. window diameter in pixels, mode={min|max|median|mid}, par=<bool>";
+      tooltip = "d=<int> .. window diameter in pixels, mode={min|max|mid|median}, par=<bool>";
       // }}
     }
 
@@ -29,7 +31,7 @@ namespace _005denoise
     /// <param name="param">Optional string parameter (its content and format is entierely up to you).</param>
     public static Bitmap Recompute ( Bitmap input, string param )
     {
-      // {{ TODO: write your own image transform code here
+      // {{ TODO: write your own image filter code here
 
       if ( input == null )
         return null;
@@ -46,7 +48,7 @@ namespace _005denoise
         if ( Util.TryParse( p, "d", ref radius ) )
           radius >>= 1;
 
-        // mode={min|max|median|mid}
+        // mode={min|max|mid|median}
         string mods;
         if ( p.TryGetValue( "mode", out mods ) )
           switch ( mods )
@@ -75,9 +77,51 @@ namespace _005denoise
         // ... you can add more parameters here ...
       }
 
-      // Pilot implementation = rank filter with rectangular window
+      // Pilot implementation = rank filter with rectangular window.
       int wid = input.Width;
       int hei = input.Height;
+
+#if SLOW
+
+      Bitmap output = new Bitmap( wid, hei, PixelFormat.Format24bppRgb );
+      RankHistogram rank = new RankHistogram( 255 );
+
+      for ( int oy = 0; oy < hei; oy++ )
+      {
+        if ( !Form1.cont ) break;
+
+        int ox;      // output pixel coordinates
+        int ix, iy;  // input pixel coordinates
+
+        // Window bounds.
+        int miny = Math.Max( 0, oy - radius );
+        int maxy = Math.Min( hei - 1, oy + radius );
+
+        for ( ox = 0; ox < wid; ox++ )     // one output pixel
+        {
+          rank.init();
+
+          for ( iy = miny; iy <= maxy; iy++ )
+          {
+            // One hline of the filter window.
+            int minx = Math.Max( 0, ox - radius );
+            int maxx = Math.Min( wid - 1, ox + radius );
+
+            for ( ix = minx; ix <= maxx; ix++ )
+            {
+              Color col = input.GetPixel( ix, iy );
+              rank.add( Draw.RgbToGray( col.R, col.G, col.B ) );
+            }
+          }
+
+          int r = rank.result( mode );
+          output.SetPixel( ox, oy, Color.FromArgb( r, r, r ) );
+        }
+      }
+
+      return output;
+
+#else
 
       // Fast memory-mapped code.
       PixelFormat iFormat = input.PixelFormat;
@@ -146,6 +190,8 @@ namespace _005denoise
 
       return output;
 
+#endif
+
       // }}
     }
   }
@@ -182,7 +228,7 @@ namespace _005denoise
     protected int card;
 
     /// <summary>
-    /// 
+    /// Types of rank computations.
     /// </summary>
     public enum RankType
     {
