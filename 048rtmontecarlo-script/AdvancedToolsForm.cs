@@ -48,10 +48,16 @@ namespace Rendering
                       Form1.singleton.Location.Y ); // place to the left of Form1
       }
 
-      if ( AdvancedTools.singleton.mapsEmpty || MT.renderingInProgress)
-        RenderButtonsEnabled ( false );      
+      if ( AdvancedTools.singleton.mapsEmpty || MT.renderingInProgress )
+      {
+        RenderButtonsEnabled ( false );
+        ExportDataButtonsEnabled ( false );
+      }        
       else
+      {
         RenderButtonsEnabled ( true );
+        ExportDataButtonsEnabled ( true );
+      }
     }
 
     private void AdvancedToolsForm_FormClosed ( object sender, FormClosedEventArgs e )
@@ -87,6 +93,7 @@ namespace Rendering
         return;
 
       outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      Form1.singleton?.Notification ( @"File succesfully saved", $"Image file \"{sfd.FileName}\" succesfully saved.", 30000 );
     }
    
     /// <summary>
@@ -104,7 +111,7 @@ namespace Rendering
 
       string mapName = tabPage.Tag.ToString ();
 
-      object map = AdvancedTools.singleton.GetType ().GetField ( Char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdvancedTools.singleton );
+      object map = AdvancedTools.singleton.GetType ().GetField ( char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdvancedTools.singleton );
 
       ( map as IMap ).RenderMap ();
 
@@ -237,24 +244,66 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Goes through all controls of root (initially Form1) and sets new status 
-    /// for Enabled property for all controls/buttons which has "Render" and "Button" in their name
+    /// Sets "enable" properties of all buttons with text Render in their name to new status
     /// </summary>
     /// <param name="newStatus">Enabled/Disabled buttons</param>
+    public void RenderButtonsEnabled ( bool newStatus )
+    {
+      ButtonsEnabled ( newStatus, "Render", null );
+    }
+
+    /// <summary>
+    /// Sets "enable" properties of all buttons with text Save in their name to new status
+    /// </summary>
+    /// <param name="newStatus">Enabled/Disabled buttons</param>
+    public void SaveButtonsEnabled ( bool newStatus )
+    {
+      ButtonsEnabled ( newStatus, "Save", null );
+    }
+
+    /// <summary>
+    /// Sets "enable" properties of all buttons with text Save in their name to new status
+    /// </summary>
+    /// <param name="newStatus">Enabled/Disabled buttons</param>
+    public void ExportDataButtonsEnabled ( bool newStatus )
+    {
+      ButtonsEnabled ( newStatus, "ExportData", null );
+    }
+
+    /// <summary>
+    /// Goes through all controls of root and sets new status 
+    /// for Enabled property for all controls/buttons which has buttonName and "Button" in their name
+    /// </summary>
+    /// <param name="newStatus">Enabled/Disabled buttons</param>
+    /// <param name="buttonName">Name of button to look for in Name property</param>
     /// <param name="root">Used for recursion</param>
-    public void RenderButtonsEnabled ( bool newStatus, Control root = null )
+    private void ButtonsEnabled ( bool newStatus, string buttonName, Control root = null )
     {
       if ( root == null )
         root = this;
 
       foreach ( Control control in root.Controls )
       {
-        if ( control.Name.Contains ( @"Render" ) && control.Name.Contains ( @"Button" ) )
+        if ( control.Name.Contains ( buttonName ) && control.Name.Contains ( @"Button" ) )
           control.Enabled = newStatus;
 
         if ( control.Controls.Count != 0 )
-          RenderButtonsEnabled ( newStatus, control );
+          ButtonsEnabled ( newStatus, buttonName, control );
       }
+    }
+
+    private void ExportDataButton_Click ( object sender, EventArgs e )
+    {
+      if ( Form1.singleton.outputImage == null || MT.renderingInProgress )
+        return;
+
+      TabPage tabPage = MapsTabControl.SelectedTab;
+
+      string mapName = tabPage.Tag.ToString ();
+
+      object map = AdvancedTools.singleton.GetType ().GetField ( char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdvancedTools.singleton );
+
+      ( map as IMap ).ExportData ( mapName );
     }
   }
 }

@@ -86,21 +86,21 @@ namespace Rendering
       if ( fileName.Length < 4 || fileName.Substring ( fileName.Length - 4 ) != ".ply" )
         fileName += ".ply";
 
-      Thread fileSaver = new Thread ( ActualSave );
+      Thread fileSaver = new Thread ( () => ActualSave(fileName) );
       fileSaver.Name = "FileSaver";
 
-      fileSaver.Start ( fileName );
+      fileSaver.Start ();
     }
 
     /// <summary>
-    /// Actual file save - abstraction needed for better handling of parameterized thread start
+    /// Actual file save
     /// </summary>
     /// <param name="fileName"></param>
-    private void ActualSave ( object fileName )
+    private void ActualSave ( string fileName )
     {
       Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ( "en-GB" ); // needed for dot as decimal separator in float
 
-      using ( StreamWriter streamWriter = new StreamWriter ( (string) fileName ) )
+      using ( StreamWriter streamWriter = new StreamWriter ( fileName ) )
       {
         WritePLYFileHeader ( streamWriter );
 
@@ -118,7 +118,7 @@ namespace Rendering
         streamWriter.Close ();
       }
 
-      Form1.singleton?.Notification ( @"File succesfully saved", $"Point cloud file \"{(string) fileName}\" succesfully saved.", 30000 );
+      Form1.singleton?.Notification ( @"File succesfully saved", $"Point cloud file \"{fileName}\" succesfully saved.", 30000 );
     }
 
     /// <summary>

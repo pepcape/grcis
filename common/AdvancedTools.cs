@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
+using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
 
@@ -105,7 +109,7 @@ namespace Rendering
     }
 
 
-    public class DepthMap: Map<double>
+    public class DepthMap: Map<double, double>
     {
       public override void RenderMap ()
       {
@@ -126,12 +130,8 @@ namespace Rendering
         singleton.GetMinimumAndMaximum ( ref minValue, ref maxValue, mapArray ); // New minimum after replacing all zeroes
 
         for ( int x = 0; x < mapImageWidth; x++ )
-        {
           for ( int y = 0; y < mapImageHeight; y++ )
-          {
             mapBitmap.SetPixel ( x, y, GetAppropriateColor ( x, y ) );
-          }
-        }
       }
 
       protected override Color GetAppropriateColor ( int x, int y )
@@ -144,23 +144,19 @@ namespace Rendering
         mapArray [ x, y ] /= singleton.primaryRaysMap.mapArray [ x, y ];
       }
 
-      public override dynamic GetValueAtCoordinates ( int x, int y )
+      public override double GetValueAtCoordinates ( int x, int y )
       {
         if ( mapArray [ x, y ] >= maxValue )
-        {
           return double.PositiveInfinity;
-        }
         else
-        {
           return mapArray [ x, y ];
-        }
       }
     }
 
     /// <summary>
     /// Used for PrimaryRaysMap, AllRaysMap and potentially other maps based on rays count
     /// </summary>
-    public class RaysMap: Map<int>
+    public class RaysMap: Map<int, int>
     {
       protected override Color GetAppropriateColor ( int x, int y )
       {
@@ -172,12 +168,10 @@ namespace Rendering
         mapArray [ x, y ] /= singleton.primaryRaysMap.mapArray [ x, y ];
       }
 
-      public override dynamic GetValueAtCoordinates ( int x, int y )
+      public override int GetValueAtCoordinates ( int x, int y )
       {
         if ( x < 0 || x >= mapImageWidth || y < 0 || y >= mapImageHeight )
-        {
           return -1;
-        }
 
         return mapArray [ x, y ];
       }
@@ -187,7 +181,7 @@ namespace Rendering
     /// Used for Absolute- and Relative-NormaMap
     /// Shows normals at first intersection of primary rays with scene (averages in case of multiple primary rays per pixel)
     /// </summary>
-    public class NormalMap: Map<Vector3d>
+    public class NormalMap: Map<Vector3d, double>
     {
       delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector );
 
@@ -263,7 +257,7 @@ namespace Rendering
         mapArray [ x, y ]             /= singleton.primaryRaysMap.mapArray [ x, y ];
       }
 
-      public override dynamic GetValueAtCoordinates ( int x, int y )
+      public override double GetValueAtCoordinates ( int x, int y )
       {
         return Vector3d.CalculateAngle ( mapArray [ x, y ], rayOrigin - intersectionMapArray [ x, y ] ) * 180 / Math.PI;
       }
@@ -331,7 +325,7 @@ namespace Rendering
     /// Base class for all maps
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class Map<T>: IMap
+    public abstract class Map<T, U>: IMap
     {
       // Image width and heightin pixels, 0 for default value (according to panel size)
       // Based on dimensions of main image in Form1
@@ -436,30 +430,18 @@ namespace Rendering
       protected void AverageMap ()
       {
         if ( singleton.primaryRaysMap == null )
-        {
           singleton.Initialize ();
-        }
 
         if ( singleton.primaryRaysMap.mapArray == null )
-        {
           singleton.primaryRaysMap.Initialize ();
-        }
 
         if ( wasAveraged )
-        {
           return;
-        }
 
         for ( int i = 0; i < mapImageWidth; i++ )
-        {
           for ( int j = 0; j < mapImageHeight; j++ )
-          {
             if ( singleton.primaryRaysMap.mapArray [ i, j ] != 0 )
-            {
               DivideArray ( i, j ); // Separate method for division because of strongly typed T
-            }
-          }
-        }
 
         wasAveraged = true;
       }
@@ -489,7 +471,7 @@ namespace Rendering
       /// <param name="x">X coordinate of cursor relative to bitmap/mapArray</param>
       /// <param name="y">Y coordinate of cursor relative to bitmap/mapArray</param>
       /// <returns>Returns dynamic because some map classes does not return their T type</returns>
-      public abstract dynamic GetValueAtCoordinates ( int x, int y );
+      public abstract U GetValueAtCoordinates ( int x, int y );
 
       /// <summary>
       /// Sets minimal and maximal values found in mapArray
@@ -516,6 +498,44 @@ namespace Rendering
         mapArray = null;
         dirtyRendered = false;
       }
+
+      public void ExportData ( string mapName )
+      {
+        SaveFileDialog sfd = new SaveFileDialog ();
+        sfd.Title        = @"Save CSV file";
+        sfd.Filter       = @"CSV Files|*.csv";
+        sfd.AddExtension = true;
+        sfd.FileName     = mapName + ".csv";
+        if ( sfd.ShowDialog () != DialogResult.OK )
+          return;
+
+        Thread fileSaver = new Thread ( () => singleton.ExportMapData(mapArray, sfd.FileName) );
+        fileSaver.Name = "FileSaver";
+
+        fileSaver.Start ();
+      }
+    }
+
+
+    void ExportMapData<T> ( T[,] mapArray, string fileName )
+    {
+      Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ( "en-GB" ); // needed for dot as decimal separator in float
+
+      using ( StreamWriter streamWriter = new StreamWriter ( fileName ) )
+      {
+        for ( int i = 0; i < mapArray.GetLength( 0 ); i++ )
+        {
+          for ( int j = 0; j < mapArray.GetLength ( 1 ); j++ )
+          {
+            streamWriter.Write ("{0}, ", mapArray[i, j]);
+          }
+          streamWriter.WriteLine ();
+        }
+
+        streamWriter.Close ();
+      }
+
+      Form1.singleton?.Notification ( @"File succesfully saved", $"CSV data file \"{fileName}\" succesfully saved.", 30000 );
     }
 
     /// <summary>
@@ -673,7 +693,7 @@ interface IMap
 
   Bitmap GetBitmap ();
 
-  dynamic GetValueAtCoordinates ( int x, int y );
-
   void Reset ();
+
+  void ExportData ( string mapName );
 }
