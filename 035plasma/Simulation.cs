@@ -9,14 +9,21 @@ namespace _035plasma
     /// <summary>
     /// Optional form-data initialization.
     /// </summary>
+    /// <param name="name">Return your full name.</param>
+    /// <param name="width">Simulation field's width in pixels.</param>
+    /// <param name="height">Simulation field's height in pixels.</param>
+    /// <param name="param">Optional text to initialize the form's text-field.</param>
+    /// <param name="tooltip">Optional tooltip = param help.</param>
     public static void InitParams ( out string name, out int width, out int height, out string param, out string tooltip )
     {
       // {{
+
       name    = "Josef Pelikán";
       width   = 640;
       height  = 360;
       param   = "";
       tooltip = "nothing yet..";
+
       // }}
     }
 
@@ -25,12 +32,11 @@ namespace _035plasma
     /// </summary>
     /// <param name="width">Visualization bitmap width.</param>
     /// <param name="height">Visualization bitmap height.</param>
-    public Simulation ( int width, int height )
+    /// <param name="param">Optional text parameter from the form.</param>
+    public Simulation ( int width, int height, string param )
     {
-      Width  = width;
-      Height = height;
       Radius = 3;
-      Reset();
+      Reset( width, height, param );
     }
 
     /// <summary>
@@ -61,18 +67,32 @@ namespace _035plasma
     }
 
     /// <summary>
+    /// Simulation parameter change.
+    /// </summary>
+    /// <param name="param">Optional text parameter from the form.</param>
+    public void Change ( string param )
+    {
+      // {{ TODO: put your simulation-param change here
+
+      // }}
+    }
+
+    /// <summary>
     /// Simulation reset.
     /// Can be called at any time after instance construction.
     /// </summary>
-    public void Reset ()
+    /// <param name="width">Visualization bitmap width.</param>
+    /// <param name="height">Visualization bitmap height.</param>
+    /// <param name="param">Optional text parameter from the form.</param>
+    public void Reset ( int width, int height, string param )
     {
       // {{ TODO: put your simulation-reset code here
 
       Frame     = 0;
-      simWidth  = Width;          // might be a fraction of rendering size..
-      simHeight = Height;         // might be a fraction of rendering size..
+      simWidth  = Width = width;    // might be a fraction of rendering size..
+      simHeight = Height = height;  // might be a fraction of rendering size..
       s         = new float[ simHeight, simWidth ];
-      rnd       = new Random();   // add seed-initialization here?
+      rnd       = new Random();     // add seed-initialization here?
 
       // }}
     }

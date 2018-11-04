@@ -39,6 +39,16 @@ namespace _035plasma
     protected int height;
 
     /// <summary>
+    /// Cached Params:
+    /// </summary>
+    protected string param;
+
+    /// <summary>
+    /// True if param changed => simulation should 
+    /// </summary>
+    protected bool paramDirty = false;
+
+    /// <summary>
     /// Save individual frames?
     /// </summary>
     protected bool saveFrames;
@@ -64,7 +74,7 @@ namespace _035plasma
 
       string par, name;
       Simulation.InitParams( out name, out width, out height, out par, out tooltip );
-      textParam.Text    = par;
+      textParam.Text    = param = par;
       numericXres.Value = width;
       numericYres.Value = height;
 
@@ -118,7 +128,8 @@ namespace _035plasma
 
     protected void StopSimulation ()
     {
-      if ( sim == null || aThread == null ) return;
+      if ( sim == null ||
+           aThread == null ) return;
 
       if ( buttonStart.InvokeRequired )
       {
@@ -142,7 +153,9 @@ namespace _035plasma
       if ( sim == null ||
            sim.Width != width ||
            sim.Height != height )
-        sim = new Simulation( width, height );
+        sim = new Simulation( width, height, param );
+      else
+        sim.Change( param );
 
       fps.Start();
       float fp = 0.0f;
@@ -178,9 +191,10 @@ namespace _035plasma
       EnableGui( false );
       cont = true;
 
-      // simulation properties:
-      width  = (int)numericXres.Value;
-      height = (int)numericYres.Value;
+      // Simulation properties.
+      width      = (int)numericXres.Value;
+      height     = (int)numericYres.Value;
+      param      = textParam.Text;
       saveFrames = checkAnim.Checked;
 
       aThread = new Thread( new ThreadStart( RunSimulation ) );
@@ -194,10 +208,15 @@ namespace _035plasma
 
     private void buttonReset_Click ( object sender, EventArgs e )
     {
-      if ( sim == null || aThread != null )
+      if ( sim == null ||
+           aThread != null )
         return;
 
-      sim.Reset();
+      width  = (int)numericXres.Value;
+      height = (int)numericYres.Value;
+      param  = textParam.Text;
+      sim.Reset( width, height, param );
+
       SetText( "Frame: 0 (FPS = 0.0)" );
     }
 
@@ -208,23 +227,45 @@ namespace _035plasma
 
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( sim != null && e.Button == MouseButtons.Left )
-        if ( sim.MouseMove( e.Location ) && aThread == null )
+      if ( sim != null &&
+           e.Button == MouseButtons.Left )
+        if ( sim.MouseMove( e.Location ) &&
+             aThread == null )
           SetImage( sim.Visualize() );
     }
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( sim != null && e.Button == MouseButtons.Left )
-        if ( sim.MouseDown( e.Location ) && aThread == null )
+      if ( sim != null &&
+           e.Button == MouseButtons.Left )
+        if ( sim.MouseDown( e.Location ) &&
+             aThread == null )
           SetImage( sim.Visualize() );
     }
 
     private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
     {
-      if ( sim != null && e.Button == MouseButtons.Left )
-        if ( sim.MouseUp( e.Location ) && aThread == null )
+      if ( sim != null &&
+           e.Button == MouseButtons.Left )
+        if ( sim.MouseUp( e.Location ) &&
+             aThread == null )
           SetImage( sim.Visualize() );
+    }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( tooltip, (IWin32Window)sender, 10, -25, 2000 );
+    }
+
+    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        param = textParam.Text;
+        if ( sim != null )
+          sim.Change( param );
+      }
     }
   }
 }
