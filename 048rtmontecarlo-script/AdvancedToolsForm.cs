@@ -18,15 +18,6 @@ namespace Rendering
     {
       instance = this;
 
-      Form1.singleton.EnableAdvancedToolsButton ( false );
-
-      if ( AdvancedTools.singleton == null )
-      {
-        AdvancedTools.singleton = new AdvancedTools ();
-      }
-
-			AdvancedTools.singleton.formActive = true;
-
       InitializeComponent ();
 
       this.StartPosition = FormStartPosition.Manual;
@@ -57,17 +48,14 @@ namespace Rendering
                       Form1.singleton.Location.Y ); // place to the left of Form1
       }
 
-      RenderButtonsEnabled ( false );
+      if ( AdvancedTools.singleton.mapsEmpty || MT.renderingInProgress)
+        RenderButtonsEnabled ( false );      
+      else
+        RenderButtonsEnabled ( true );
     }
 
-    private void Form2_FormClosed ( object sender, FormClosedEventArgs e )
+    private void AdvancedToolsForm_FormClosed ( object sender, FormClosedEventArgs e )
     {
-      System.Threading.SpinWait.SpinUntil ( () => !AdvancedTools.singleton.isInMiddleOfRegistering ); // waiting for completion of registering current ray to maps
-
-      Form1.singleton.EnableAdvancedToolsButton ( true );
-
-      AdvancedTools.singleton.formActive = false;
-
 			instance = null;
     }
 
@@ -259,21 +247,15 @@ namespace Rendering
     public void RenderButtonsEnabled ( bool newStatus, Control root = null )
     {
       if ( root == null )
-      {
         root = this;
-      }
 
       foreach ( Control control in root.Controls )
       {
         if ( control.Name.Contains ( @"Render" ) && control.Name.Contains ( @"Button" ) )
-        {
           control.Enabled = newStatus;
-        }
 
         if ( control.Controls.Count != 0 )
-        {
           RenderButtonsEnabled ( newStatus, control );
-        }
       }
     }
   }
