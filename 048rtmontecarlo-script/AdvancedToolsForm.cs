@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
-using _048rtmontecarlo;
 
 namespace Rendering
 {
@@ -152,6 +153,8 @@ namespace Rendering
     /// </summary>
     private void DepthMapPictureBox_MouseDownAndMouseMove ( object sender, MouseEventArgs e )
     {
+      Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ( "en-GB" ); // needed for dot as decimal separator in float
+
       if ( ( (PictureBox) sender ).Image != null && e.Button == MouseButtons.Left &&
            ( (PictureBox) sender ).ClientRectangle.Contains ( e.Location ) )
       {
