@@ -10,10 +10,13 @@ namespace _084filter
     /// <summary>
     /// Optional data initialization.
     /// </summary>
-    public static void InitParams ( out string param, out string name )
+    public static void InitParams ( out string name, out string param, out string tooltip )
     {
-      param = "";
+      // {{
       name = "Josef Pelikán";
+      param = "12,8";
+      tooltip = "<boxw>[,<boxh>] .. box size in pixels";
+      // }}
     }
 
     /// <summary>

@@ -119,11 +119,12 @@
       // 
       this.labelElapsed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelElapsed.AutoSize = true;
-      this.labelElapsed.Location = new System.Drawing.Point(284, 440);
+      this.labelElapsed.Location = new System.Drawing.Point(284, 442);
       this.labelElapsed.Name = "labelElapsed";
       this.labelElapsed.Size = new System.Drawing.Size(48, 13);
       this.labelElapsed.TabIndex = 8;
       this.labelElapsed.Text = "Elapsed:";
+      this.labelElapsed.MouseHover += new System.EventHandler(this.labelElapsed_MouseHover);
       // 
       // label3
       // 
@@ -166,7 +167,7 @@
       // buttonRedraw
       // 
       this.buttonRedraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonRedraw.Location = new System.Drawing.Point(145, 435);
+      this.buttonRedraw.Location = new System.Drawing.Point(145, 437);
       this.buttonRedraw.Name = "buttonRedraw";
       this.buttonRedraw.Size = new System.Drawing.Size(121, 23);
       this.buttonRedraw.TabIndex = 13;
@@ -178,7 +179,7 @@
       // 
       this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.buttonSave.Enabled = false;
-      this.buttonSave.Location = new System.Drawing.Point(598, 436);
+      this.buttonSave.Location = new System.Drawing.Point(598, 438);
       this.buttonSave.Name = "buttonSave";
       this.buttonSave.Size = new System.Drawing.Size(95, 23);
       this.buttonSave.TabIndex = 14;
@@ -195,6 +196,8 @@
       this.textParam.Size = new System.Drawing.Size(504, 20);
       this.textParam.TabIndex = 15;
       this.textParam.Text = "1.0";
+      this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
+      this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
       // 
       // Form1
       // 

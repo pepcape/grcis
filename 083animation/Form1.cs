@@ -13,7 +13,7 @@ namespace _083animation
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     /// <summary>
     /// Main animation-rendering thread.
@@ -41,6 +41,47 @@ namespace _083animation
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
     protected int ImageHeight = 480;
+
+    /// <summary>
+    /// Cached form's param field.
+    /// </summary>
+    string param;
+
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
+    string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
+    ToolTip tt = new ToolTip();
+
+    public Form1 ()
+    {
+      InitializeComponent();
+
+      // Init form data.
+      double from, to, fps;
+      string name;
+      Animation.InitParams( out name, out ImageWidth, out ImageHeight, out from, out to, out fps, out param, out tooltip );
+      if ( ImageWidth < 0 )
+        ImageWidth = 0;          // 0 .. take image width from the form size
+      if ( ImageHeight < 0 )
+        ImageHeight = 0;         // 0 .. take image height from the form size
+      if ( to <= start )
+        to = start + 1.0;
+      if ( fps <= 0.0 )
+        fps = 25.0;
+
+      numFrom.Value = (decimal)from;
+      numTo.Value = (decimal)to;
+      numFps.Value = (decimal)fps;
+
+      Text += " (" + rev + ") '" + name + '\'';
+      textParam.Text = param ?? "";
+      buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+    }
 
     private void EnableGUI ( bool compute )
     {
@@ -74,15 +115,16 @@ namespace _083animation
       double fps = (double)numFps.Value;
       if ( fps <= 0.0 )
         fps = 25.0;
+      param = textParam.Text;
 
-      Animation.InitAnimation( width, height, start, end, fps );
+      Animation.InitAnimation( width, height, start, end, fps, param );
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
       Canvas c = new Canvas( width, height );
 
-      Animation.DrawFrame( c, (double)numTime.Value, start, end );
+      Animation.DrawFrame( c, (double)numTime.Value, start, end, param );
       Bitmap newImage = c.Finish();
 
       sw.Stop();
@@ -159,29 +201,6 @@ namespace _083animation
         // GUI stuff:
         EnableGUI( true );
       }
-    }
-
-    public Form1 ()
-    {
-      InitializeComponent();
-      Text += " (rev: " + rev + ')';
-
-      // Init rendering params:
-      double from, to, fps;
-      Animation.InitParams( out ImageWidth, out ImageHeight, out from, out to, out fps );
-      if ( ImageWidth < 0 )
-        ImageWidth = 0;          // 0 .. take image width from the form size
-      if ( ImageHeight < 0 )
-        ImageHeight = 0;         // 0 .. take image height from the form size
-      if ( to <= start )
-        to = start + 1.0;
-      if ( fps <= 0.0 )
-        fps = 25.0;
-      numFrom.Value = (decimal)from;
-      numTo.Value   = (decimal)to;
-      numFps.Value  = (decimal)fps;
-
-      buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
     }
 
     private void buttonRes_Click ( object sender, EventArgs e )
@@ -337,7 +356,9 @@ namespace _083animation
       height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
 
-      Animation.InitAnimation( width, height, start, end, fps );
+      param = textParam.Text;
+
+      Animation.InitAnimation( width, height, start, end, fps, param );
 
       dt = 1.0 / fps;
       end += 0.5 * dt;
@@ -467,7 +488,7 @@ namespace _083animation
         // set up the new result record:
         Result r = new Result();
         r.frameNumber = myFrameNumber;
-        Animation.DrawFrame( c, myTime, start, end );
+        Animation.DrawFrame( c, myTime, start, end, param );
         r.image = c.Finish();
 
         // ... and put the result into the output queue:
@@ -482,6 +503,12 @@ namespace _083animation
             return;
         }
       }
+    }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      if ( !string.IsNullOrEmpty( tooltip ) )
+        tt.Show( tooltip, (IWin32Window)sender, 10, -25, 2000 );
     }
   }
 
