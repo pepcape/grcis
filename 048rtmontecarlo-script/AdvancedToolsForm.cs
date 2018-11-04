@@ -88,16 +88,16 @@ namespace Rendering
 
       outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
     }
-
+   
     /// <summary>
     /// Universal method for calling render method of map class
     /// Correct map class is chosen via reflection - panel (parent of sender) must have Tag set to name of class instance in AdvancedTools class
     /// </summary>
-    /// <param name="sender">Should be only Render button</param>
+    /// <param name="sender"></param>
     /// <param name="e"></param>
     private void RenderMapButton_Click ( object sender, EventArgs e )
     {
-      if ( Form1.singleton.outputImage == null )
+      if ( Form1.singleton.outputImage == null || MT.renderingInProgress )
         return;
 
       TabPage tabPage = MapsTabControl.SelectedTab;
@@ -132,8 +132,6 @@ namespace Rendering
     {
       newWidth = formImageWidth;
       newHeight = formImageHeight;
-
-      AdvancedTools.singleton.SetNewDimensions ( formImageWidth, formImageHeight ); //makes all maps to initialize again
     }
 
     /// <summary>

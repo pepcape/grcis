@@ -118,6 +118,7 @@
       this.MapsTabControl.Size = new System.Drawing.Size(861, 559);
       this.MapsTabControl.TabIndex = 0;
       this.MapsTabControl.Tag = "";
+      this.MapsTabControl.SelectedIndexChanged += new System.EventHandler(this.RenderMapButton_Click);
       // 
       // DepthMapTab
       // 
