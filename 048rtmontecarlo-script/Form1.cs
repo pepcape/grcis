@@ -87,9 +87,7 @@ namespace Rendering
 
       // Init scenes etc.
       string name;
-      FormSupport.InitializeScenes ( args, out name );
-
-      AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
+      FormSupport.InitializeScenes ( args, out name );     
 
       Text += " (" + rev + ") '" + name + '\'';
       winTitle = Text;
@@ -106,8 +104,6 @@ namespace Rendering
       {
         // ignored
       }
-
-      //pictureBox1.Image = null;
 
       if ( AdvancedTools.singleton == null )
         AdvancedTools.singleton = new AdvancedTools ();
@@ -581,7 +577,8 @@ namespace Rendering
     {
       AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
 
-      AdvancedTools.singleton?.NewRenderInitialization ();
+      AdvancedTools.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
+      AdvancedTools.singleton.NewRenderInitialization ();
 
       if ( aThread != null )
         return;

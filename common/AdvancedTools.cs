@@ -52,7 +52,7 @@ namespace Rendering
     /// <param name="firstIntersection">First element of array of Intersections</param>
     public void Register ( int level, Vector3d rayOrigin, Rendering.Intersection firstIntersection )
     {
-      if ( Form1.singleton.collectDataCheckBox.Checked )
+      if ( !Form1.singleton.collectDataCheckBox.Checked )
         return;
 
       // Initial check for null references
@@ -349,6 +349,8 @@ namespace Rendering
       internal T maxValue;
       internal T minValue;
 
+      private bool dirtyRendered;
+
       /// <summary>
       /// Sets mapImageWidth and mapImageHeight according to dimensions of main image in Form1
       /// Initializes mapArray and other
@@ -364,6 +366,7 @@ namespace Rendering
         mapArray = new T[mapImageWidth, mapImageHeight];
 
         wasAveraged = false;
+        dirtyRendered = false;
       }
 
       /// <summary>
@@ -371,22 +374,21 @@ namespace Rendering
       /// </summary>
       public virtual void RenderMap ()
       {
+        if ( dirtyRendered )
+          return;
+
         if ( mapImageWidth == 0 || mapImageHeight == 0 )
-        {
           Initialize ();
-        }
 
         SetMinimumAndMaximum ();
 
         mapBitmap = new Bitmap ( mapImageWidth, mapImageHeight, PixelFormat.Format24bppRgb );
 
         for ( int x = 0; x < mapImageWidth; x++ )
-        {
           for ( int y = 0; y < mapImageHeight; y++ )
-          {
             mapBitmap.SetPixel ( x, y, GetAppropriateColor ( x, y ) );
-          }
-        }
+
+        dirtyRendered = true;
       }
 
       /// <summary>
@@ -512,6 +514,7 @@ namespace Rendering
       public void Reset ()
       {
         mapArray = null;
+        dirtyRendered = false;
       }
     }
 
@@ -633,9 +636,7 @@ namespace Rendering
     public void SetNewDimensions ( int formImageWidth, int formImageHeight )
     {
       if ( allMaps == null )
-      {
         Initialize ();
-      }
 
       foreach ( IMap map in allMaps )
       {
@@ -647,9 +648,7 @@ namespace Rendering
       }
 
       foreach ( IMap map in allMaps )
-      {
         map.Initialize ( formImageWidth, formImageHeight );
-      }
     }
 
     /// <summary>
@@ -658,9 +657,7 @@ namespace Rendering
     public void NewRenderInitialization ()
     {
       foreach ( IMap map in allMaps )
-      {
         map?.Reset ();
-      }
     }
   }
 }
