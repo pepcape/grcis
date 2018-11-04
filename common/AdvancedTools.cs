@@ -14,15 +14,13 @@ namespace Rendering
 
     private List<IMap> allMaps;
 
-    internal bool isInMiddleOfRegistering;
-
     public RaysMap   primaryRaysMap;
     public RaysMap   allRaysMap;
     public DepthMap  depthMap;
     public NormalMap normalMapRelative;
     public NormalMap normalMapAbsolute;
 
-    public bool formActive;
+    public bool mapsEmpty = true;
 
     internal void Initialize ()
     {
@@ -54,7 +52,7 @@ namespace Rendering
     /// <param name="firstIntersection">First element of array of Intersections</param>
     public void Register ( int level, Vector3d rayOrigin, Rendering.Intersection firstIntersection )
     {
-      if ( !formActive )
+      if ( Form1.singleton.collectDataCheckBox.Checked )
         return;
 
       // Initial check for null references
@@ -83,8 +81,6 @@ namespace Rendering
 
       double depth = Vector3d.Distance ( rayOrigin, firstIntersection.CoordWorld );
 
-      isInMiddleOfRegistering = true;
-
       // actual registering - increasing/writing to desired arrays
       if ( level == 0 )
       {
@@ -105,8 +101,9 @@ namespace Rendering
       // register all rays
       allRaysMap.mapArray [ MT.x, MT.y ] += 1;
 
-      isInMiddleOfRegistering = false;
+      mapsEmpty = false;
     }
+
 
     public class DepthMap: Map<double>
     {

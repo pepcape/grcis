@@ -721,7 +721,7 @@
       this.MinimumSize = new System.Drawing.Size(600, 470);
       this.Name = "AdvancedToolsForm";
       this.Text = "Advanced tools";
-      this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form2_FormClosed);
+      this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.AdvancedToolsForm_FormClosed);
       this.MapsTabControl.ResumeLayout(false);
       this.DepthMapTab.ResumeLayout(false);
       this.DepthMapLayoutPanel.ResumeLayout(false);

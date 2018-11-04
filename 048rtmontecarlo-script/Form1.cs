@@ -107,7 +107,13 @@ namespace Rendering
         // ignored
       }
 
-      pictureBox1.Image = null;
+      //pictureBox1.Image = null;
+
+      if ( AdvancedTools.singleton == null )
+        AdvancedTools.singleton = new AdvancedTools ();
+
+      AdvancedTools.singleton.Initialize ();
+      AdvancedTools.singleton.SetNewDimensions ( ImageWidth, ImageHeight ); //makes all maps to initialize again
     }
 
     /// <summary>
@@ -416,17 +422,12 @@ namespace Rendering
       comboScene.Enabled =
       textParam.Enabled =
       buttonRes.Enabled =
-      AdvancedToolsButton.Enabled =
       pointCloudCheckBox.Enabled =
+      collectDataCheckBox.Enabled =
       SavePointCloudButton.Enabled =
       buttonSave.Enabled = enable;
 
       buttonStop.Enabled = !enable;
-    }
-
-    public void EnableAdvancedToolsButton ( bool enable )
-    {
-      AdvancedToolsButton.Enabled = enable;
     }
 
     delegate void SetImageCallback ( Bitmap newImage );

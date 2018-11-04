@@ -489,6 +489,8 @@
       this.collectDataCheckBox.Anchor = System.Windows.Forms.AnchorStyles.Left;
       this.collectDataCheckBox.AutoSize = true;
       this.collectDataCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.collectDataCheckBox.Checked = true;
+      this.collectDataCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
       this.collectDataCheckBox.Location = new System.Drawing.Point(719, 6);
       this.collectDataCheckBox.Name = "collectDataCheckBox";
       this.collectDataCheckBox.Size = new System.Drawing.Size(129, 17);

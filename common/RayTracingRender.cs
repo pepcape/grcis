@@ -243,16 +243,14 @@ namespace Rendering
     private void RegisterRay ( RayType rayType, params object[] parameters )
     {
       if ( rayType == RayType.unknown )
-      {
         rayType = DetermineRayType ();
-      }
 
       switch ( rayType )
       {
         //ray for statistics and maps (AdvancedTools)
         case RayType.mapsNormal:
-          //register ray for statistics and maps
-          AdvancedTools.singleton?.Register ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], (Intersection) parameters [ 2 ] );
+          //register ray for statistics and maps         
+          AdvancedTools.singleton.Register ( (int) parameters[0], (Vector3d) parameters[1], (Intersection) parameters[2] );
           break;
 
         //ray for RayVisualizer
