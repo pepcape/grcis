@@ -1,6 +1,6 @@
 @echo off
 set ffmpeg=c:\bin\ffmpeg.exe
-%ffmpeg% -i out%%04d.png -f avi -vcodec msmpeg4v2 -q:v 3 -y out.avi
+%ffmpeg% -framerate 25 -i out%%04d.png -f avi -vcodec msmpeg4v2 -q:v 3 -y out.avi
 
 rem =====================================
 rem   Doporucovane kodeky (-vcodec xxx):
