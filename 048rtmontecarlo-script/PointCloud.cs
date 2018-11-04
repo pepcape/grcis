@@ -142,7 +142,6 @@ namespace Rendering
       streamWriter.WriteLine ( "end_header" );
     }
 
-
     /// <summary>
     /// Very simple and non-flexible parser of PLY files
     /// Clears point cloud data structure, reads .ply file and parses it as new point cloud
@@ -198,9 +197,9 @@ namespace Rendering
       }
     }
 
-
     private const int headerLength = 14;
     private const int valuesPerVertex = 9;
+
     /// <summary>
     /// Reads header of PLY file
     /// Input .ply file must have exactly same header and body structure as .ply exported by SaveToPLYFile method
@@ -251,8 +250,8 @@ namespace Rendering
       return vertexCount;
     }
 
-
     private static readonly Vector3d axesCorrectionVector = new Vector3d ( 1, 1, -1 );
+
     /// <summary>
     /// Corrects axes (different axes labels/positioning system for scene in original raytracer and system used for FLY files)
     /// Inverts 3rd axis of position

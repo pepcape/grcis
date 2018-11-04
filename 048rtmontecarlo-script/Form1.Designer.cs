@@ -399,12 +399,11 @@
     private System.Windows.Forms.TextBox textParam;
     internal System.Windows.Forms.Button AdvancedToolsButton;
     internal System.Windows.Forms.Button RayVisualiserButton;
-		private wyDay.Controls.SplitButton buttonRender;
-		private System.Windows.Forms.ContextMenuStrip RenderButtonMenuStrip;
-		private System.Windows.Forms.ToolStripMenuItem addRenderClientToolStripMenuItem;
+    private wyDay.Controls.SplitButton buttonRender;
+    private System.Windows.Forms.ContextMenuStrip RenderButtonMenuStrip;
+    private System.Windows.Forms.ToolStripMenuItem addRenderClientToolStripMenuItem;
     private System.Windows.Forms.Panel panel1;
     private System.Windows.Forms.PictureBox pictureBox1;
     private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
   }
 }
-

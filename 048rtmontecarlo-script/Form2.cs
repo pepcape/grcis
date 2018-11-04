@@ -72,7 +72,6 @@ namespace Rendering
     /// </summary>
     protected Thread aThread = null;
 
-
     /// <summary>
     /// Progress info / user break handling.
     /// </summary>
@@ -129,7 +128,6 @@ namespace Rendering
 
       bakImage = newImage;
     }
-
 
     /// <summary>
     /// Worker-thread-specific data.
@@ -242,7 +240,6 @@ namespace Rendering
       if ( height <= 0 )
         height = panel1.Height;
 
-
       Bitmap newImage = new Bitmap ( width, height, PixelFormat.Format24bppRgb );
 
       int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
@@ -323,7 +320,6 @@ namespace Rendering
       if ( height <= 0 )
         height = panel1.Height;
 
-
       Bitmap newImage = new Bitmap ( width, height, PixelFormat.Format24bppRgb );
 
       int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
@@ -335,7 +331,6 @@ namespace Rendering
       Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads );
       Master.singleton.progressData = progress;
       Master.singleton.InitializeAssignments ( newImage, sc, r );
-
 
       progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
       progress.Reset ();
@@ -378,20 +373,20 @@ namespace Rendering
     private void SetGUI ( bool enable )
     {
       numericSupersampling.Enabled =
-        checkJitter.Enabled =
-          checkShadows.Enabled =
-            checkReflections.Enabled =
-              checkReflections.Enabled =
-                checkRefractions.Enabled =
-                  checkMultithreading.Enabled =
-                    buttonRender.Enabled =
-                      comboScene.Enabled =
-                        textParam.Enabled =
-                          buttonRes.Enabled =
-                            AdvancedToolsButton.Enabled =
-                              pointCloudCheckBox.Enabled =
-                                SavePointCloudButton.Enabled =
-                                  buttonSave.Enabled = enable;
+      checkJitter.Enabled =
+      checkShadows.Enabled =
+      checkReflections.Enabled =
+      checkReflections.Enabled =
+      checkRefractions.Enabled =
+      checkMultithreading.Enabled =
+      buttonRender.Enabled =
+      comboScene.Enabled =
+      textParam.Enabled =
+      buttonRes.Enabled =
+      AdvancedToolsButton.Enabled =
+      pointCloudCheckBox.Enabled =
+      SavePointCloudButton.Enabled =
+      buttonSave.Enabled = enable;
 
       buttonStop.Enabled = !enable;
     }
@@ -401,9 +396,7 @@ namespace Rendering
       AdvancedToolsButton.Enabled = enable;
     }
 
-
     delegate void SetImageCallback ( Bitmap newImage );
-
 
     public Stopwatch GetStopwatch ()
     {
@@ -421,9 +414,7 @@ namespace Rendering
         setImage ( ref outputImage, newImage );
     }
 
-
     delegate void SetTextCallback ( string text );
-
 
     public void SetText ( string text )
     {
@@ -436,9 +427,7 @@ namespace Rendering
         labelElapsed.Text = text;
     }
 
-
     delegate void StopRenderingCallback ();
-
 
     protected void StopRendering ()
     {
@@ -526,7 +515,6 @@ namespace Rendering
       {
         // ignored
       }
-
 
       pictureBox1.Image = null;
     }
@@ -708,7 +696,6 @@ namespace Rendering
           singleSample ( (int) relative.X, (int) relative.Y );
       }
 
-
       if ( !ModifierKeys.HasFlag ( Keys.Control ) && e.Button == MouseButtons.Left && !mousePressed ) //holding down CTRL key prevents panning
       {
         mousePressed = true;
@@ -721,7 +708,6 @@ namespace Rendering
         Cursor = Cursors.Cross;
       }
     }
-
 
     /// <summary>
     /// Handles calling singleSample for RayVisualizer and picture box image pan control
@@ -738,7 +724,6 @@ namespace Rendering
           singleSample ( (int) relative.X, (int) relative.Y );
       }
 
-
       if ( mousePressed && e.Button == MouseButtons.Left )
       {
         Cursor = Cursors.NoMove2D;
@@ -754,7 +739,6 @@ namespace Rendering
         pictureBox1.Refresh ();
       }
     }
-
 
     private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
     {
@@ -787,7 +771,6 @@ namespace Rendering
       pictureBox1.MouseWheel += new MouseEventHandler ( pictureBox1_MouseWheel );
       KeyPreview = true;
     }
-
 
     private void Form2_FormClosing ( object sender, FormClosingEventArgs e )
     {
@@ -837,7 +820,7 @@ namespace Rendering
     private void zoomPictureBox ( bool zoomIn, Point zoomToPosition )
     {
       float oldzoom = zoom;
-      float zoomFactor = 0.15F;     
+      float zoomFactor = 0.15F;
 
       if ( ModifierKeys.HasFlag ( Keys.Shift ) ) // holding down the Shift key makes zoom in/out faster
         zoomFactor = 0.45F;
@@ -864,8 +847,8 @@ namespace Rendering
       pictureBox1.Refresh ();
     }
 
-
     private const float minimalAbsoluteSizeInPixels = 20;
+
     /// <summary>
     /// Prevents picture to be too small (minimum is absolute size of 20 pixels for width/height)
     /// </summary>
@@ -897,8 +880,8 @@ namespace Rendering
       e.Graphics.DrawImage ( image, imageX, imageY );
     }
 
-
     private const int border = 50;
+
     /// <summary>
     /// Prevents panning of image outside of picture box
     /// There will always be small amount of pixels (variable border) visible at the edge

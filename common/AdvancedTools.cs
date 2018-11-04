@@ -108,7 +108,6 @@ namespace Rendering
       isInMiddleOfRegistering = false;
     }
 
-
     public class DepthMap: Map<double>
     {
       public override void RenderMap ()
@@ -161,7 +160,6 @@ namespace Rendering
       }
     }
 
-
     /// <summary>
     /// Used for PrimaryRaysMap, AllRaysMap and potentially other maps based on rays count
     /// </summary>
@@ -187,7 +185,6 @@ namespace Rendering
         return mapArray [ x, y ];
       }
     }
-
 
     /// <summary>
     /// Used for Absolute- and Relative-NormaMap
@@ -332,7 +329,6 @@ namespace Rendering
         intersectionMapArray = null;
       }
     }
-
 
     /// <summary>
     /// Base class for all maps
@@ -522,7 +518,6 @@ namespace Rendering
       }
     }
 
-
     /// <summary>
     /// Returns minimal and maximal values found in a specific map
     /// Values are returned via reference and must be of type IComparable
@@ -675,7 +670,6 @@ namespace Rendering
     }
   }
 }
-
 
 /// <summary>
 /// Interface for all maps

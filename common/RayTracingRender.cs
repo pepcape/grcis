@@ -100,7 +100,7 @@ namespace Rendering
       int bands = color.Length;
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect ( p0, p1 );
 
-	    Statistics.IncrementRaysCounters ( 1, level == 0 );	// if ray is primary, increment both counters
+      Statistics.IncrementRaysCounters ( 1, level == 0 );	// if ray is primary, increment both counters
 
       Intersection i = Intersection.FirstIntersection ( intersections, ref p1 );
       int b;
@@ -157,9 +157,9 @@ namespace Rendering
           Vector3d dir;
           double[] intensity = source.GetIntensity ( i, out dir );
 
-	        if ( MT.singleRayTracing && source.position != null )
-		        // register shadow ray for RayVisualizer
-		        RegisterRay ( RayType.rayVisualizerShadow, i.CoordWorld, (Vector3d) source.position );        
+          if ( MT.singleRayTracing && source.position != null )
+            // register shadow ray for RayVisualizer
+            RegisterRay ( RayType.rayVisualizerShadow, i.CoordWorld, (Vector3d) source.position );        
 
           if ( intensity != null )
           {
@@ -242,33 +242,33 @@ namespace Rendering
     /// <param name="parameters">All possible parameters that can be passed to individual ray register methods</param>
     private void RegisterRay ( RayType rayType, params object[] parameters )
     {
-	    if ( rayType == RayType.unknown )
-	    {
-		    rayType = DetermineRayType ();
-	    }
+      if ( rayType == RayType.unknown )
+      {
+        rayType = DetermineRayType ();
+      }
 
-	    switch ( rayType )
-	    {
-	      //ray for statistics and maps (AdvancedTools)
+      switch ( rayType )
+      {
+        //ray for statistics and maps (AdvancedTools)
         case RayType.mapsNormal:
-	        //register ray for statistics and maps
+          //register ray for statistics and maps
           AdvancedTools.singleton?.Register ( (int) parameters [ 0 ], (Vector3d) parameters [ 1 ], (Intersection) parameters [ 2 ] );
           break;
 
-	      //ray for RayVisualizer
+        //ray for RayVisualizer
         case RayType.rayVisualizerNormal:
-			    if ( !MT.singleRayTracing )
+          if ( !MT.singleRayTracing )
             return;
           if ( parameters[2] is Vector3d vector )
             RayVisualizer.singleton?.RegisterRay ( (Vector3d) parameters[1], vector );
-		      if ( parameters[2] is Intersection intersection )
-		        RayVisualizer.singleton?.RegisterRay ( (Vector3d) parameters[1], intersection.CoordWorld );
+          if ( parameters[2] is Intersection intersection )
+            RayVisualizer.singleton?.RegisterRay ( (Vector3d) parameters[1], intersection.CoordWorld );
           break;
 
-	      //shadow ray for RayVisualizer
+        //shadow ray for RayVisualizer
         case RayType.rayVisualizerShadow:         
-			    if ( !MT.singleRayTracing )
-				    return;
+          if ( !MT.singleRayTracing )
+            return;
           RayVisualizer.singleton?.RegisterShadowRay ( (Vector3d) parameters [0], (Vector3d) parameters [1] );
           break;
       }	    
@@ -278,28 +278,28 @@ namespace Rendering
     /// Determined whether ray comes from normal rendering or single ray rendering (for information about pixel and RayVisualizer)
     /// </summary>
     /// <returns>Returns chosen RayType</returns>
-	  private RayType DetermineRayType ()
-	  {
-		  if ( MT.singleRayTracing )
-		  {
-			  return RayType.rayVisualizerNormal;
-		  }
-		  else
-		  {
-			  return RayType.mapsNormal;
+    private RayType DetermineRayType ()
+    {
+      if ( MT.singleRayTracing )
+      {
+        return RayType.rayVisualizerNormal;
       }
-	  }
+      else
+      {
+        return RayType.mapsNormal;
+      }
+    }
 
     /// <summary>
     /// Types of rays
     /// Unknown used when further classification of it is needed and will be changed later
     /// </summary>
     enum RayType
-	  {
-		  rayVisualizerNormal,
-		  rayVisualizerShadow,
-		  mapsNormal,
-			unknown
-	  };
+    {
+      rayVisualizerNormal,
+      rayVisualizerShadow,
+      mapsNormal,
+      unknown
+    };
   }
 }

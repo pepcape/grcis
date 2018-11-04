@@ -58,11 +58,6 @@ namespace Rendering
     public int ImageHeight = 0;
 
     /// <summary>
-    /// Global instance of a random generator.
-    /// </summary>
-    public static RandomJames rnd = new RandomJames ();
-
-    /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
     /// </summary>
     public Stopwatch sw = new Stopwatch ();
@@ -71,7 +66,6 @@ namespace Rendering
     /// Rendering master thread.
     /// </summary>
     protected Thread aThread = null;
-
 
     /// <summary>
     /// Progress info / user break handling.
@@ -129,7 +123,6 @@ namespace Rendering
       bakImage = newImage;
     }
 
-
     /// <summary>
     /// Worker-thread-specific data.
     /// </summary>
@@ -178,7 +171,6 @@ namespace Rendering
         sel    = ( n ) => ( n % threads ) == threadNo;
       }
     }
-
 
     /// <summary>
     /// Routine of one worker-thread.
@@ -240,7 +232,6 @@ namespace Rendering
       int height = ImageHeight;
       if ( height <= 0 )
         height = panel1.Height;
-
 
       Bitmap newImage = new Bitmap ( width, height, PixelFormat.Format24bppRgb );
 
@@ -322,7 +313,6 @@ namespace Rendering
       if ( height <= 0 )
         height = panel1.Height;
 
-
       Bitmap newImage = new Bitmap ( width, height, PixelFormat.Format24bppRgb );
 
       int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
@@ -334,7 +324,6 @@ namespace Rendering
       Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads > 4 ? threads - 2 : threads );
       Master.singleton.progressData = progress;
       Master.singleton.InitializeAssignments ( newImage, sc, r );
-
 
       progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
       progress.Reset ();
@@ -377,24 +366,23 @@ namespace Rendering
     void SetGUI ( bool enable )
     {
       numericSupersampling.Enabled =
-        checkJitter.Enabled =
-          checkShadows.Enabled =
-            checkReflections.Enabled =
-              checkReflections.Enabled =
-                checkRefractions.Enabled =
-                  checkMultithreading.Enabled =
-                    buttonRender.Enabled =
-                      comboScene.Enabled =
-                        textParam.Enabled =
-                          buttonRes.Enabled =
-                            AdvancedToolsButton.Enabled =
-                              buttonSave.Enabled = enable;
+      checkJitter.Enabled =
+      checkShadows.Enabled =
+      checkReflections.Enabled =
+      checkReflections.Enabled =
+      checkRefractions.Enabled =
+      checkMultithreading.Enabled =
+      buttonRender.Enabled =
+      comboScene.Enabled =
+      textParam.Enabled =
+      buttonRes.Enabled =
+      AdvancedToolsButton.Enabled =
+      buttonSave.Enabled = enable;
+
       buttonStop.Enabled = !enable;
     }
 
-
     delegate void SetImageCallback ( Bitmap newImage );
-
 
     public Stopwatch GetStopwatch ()
     {
@@ -412,9 +400,7 @@ namespace Rendering
         setImage ( ref outputImage, newImage );
     }
 
-
     delegate void SetTextCallback ( string text );
-
 
     public void SetText ( string text )
     {
@@ -427,9 +413,7 @@ namespace Rendering
         labelElapsed.Text = text;
     }
 
-
     delegate void StopRenderingCallback ();
-
 
     protected void StopRendering ()
     {
@@ -661,10 +645,10 @@ namespace Rendering
       renderClientsForm.Show ();
     }
 
-
     private PointF startingPoint = PointF.Empty;
     private PointF movingPoint   = PointF.Empty;
     private bool   panning       = false;
+
     /// <summary>
     /// Handles calling singleSample for RayVisualizer and picture box image pan control
     /// </summary>
@@ -684,7 +668,7 @@ namespace Rendering
       {
         panning = true;
         startingPoint = new PointF ( e.Location.X - movingPoint.X, e.Location.Y - movingPoint.Y );
-      }      
+      }
     }
 
     /// <summary>
@@ -817,7 +801,6 @@ namespace Rendering
       }
     }
 
-
     private float zoom = 1.0f;
     private Point cursor;
     private Point relativeCursor;
@@ -833,7 +816,7 @@ namespace Rendering
     private void pictureBox1_Paint ( object sender, PaintEventArgs e )
     {
       if ( pictureBox1.Image != null )
-      {       
+      {
         e.Graphics.Clear ( Color.White );
 
         PointF upperLeft = new PointF (0f, 0f);
@@ -848,7 +831,7 @@ namespace Rendering
         transform.Scale ( zoom, zoom, MatrixOrder.Append );
         transform.Translate ( -( movingPoint.X - relativeCursor.X ), -( movingPoint.Y - relativeCursor.Y ), MatrixOrder.Append );*/        
 
-        //scale
+        // Scale
         if ( relativeCursor.X >= 0 )
         {
           transform.Translate ( -relativeCursor.X, -relativeCursor.Y, MatrixOrder.Append );
@@ -878,8 +861,8 @@ namespace Rendering
       }
     }
 
-
     private const int border = 50;
+
     /// <summary>
     /// Prevents panning of image outside of picture box
     /// There will always be small amount of pixels (variable border) visible at the edge
