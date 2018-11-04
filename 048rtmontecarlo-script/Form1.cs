@@ -13,7 +13,7 @@ using Utilities;
 
 namespace Rendering
 {
-  public partial class Form1: Form, IRenderProgressForm
+  public partial class Form1 : Form, IRenderProgressForm
   {
     static readonly string rev = Util.SetVersion ( "$Rev$" );
 
@@ -56,6 +56,11 @@ namespace Rendering
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
     public int ImageHeight = 0;
+
+    /// <summary>
+    /// Global instance of a random generator.
+    /// </summary>
+    public static RandomJames rnd = new RandomJames ();
 
     /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
@@ -115,11 +120,12 @@ namespace Rendering
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
-      pictureBox1.Image = newImage;
+      image = newImage;
+      zoom = ClampZoom ();
       pictureBox1.Invalidate ();
 
-      if ( bakImage != null )
-        bakImage.Dispose ();
+      bakImage?.Dispose ();
+
       bakImage = newImage;
     }
 
@@ -158,19 +164,20 @@ namespace Rendering
       public int width;
       public int height;
 
-      public WorkerThreadInit ( IRenderer r,        ITimeDependent sc, ITimeDependent imf, Bitmap im, int wid, int hei,
-                                int       threadNo, int            threads )
+      public WorkerThreadInit ( IRenderer r, ITimeDependent sc, ITimeDependent imf, Bitmap im, int wid, int hei,
+                                int threadNo, int threads )
       {
-        scene  = sc;
+        scene = sc;
         imfunc = imf;
-        rend   = r;
-        image  = im;
-        id     = threadNo;
-        width  = wid;
+        rend = r;
+        image = im;
+        id = threadNo;
+        width = wid;
         height = hei;
-        sel    = ( n ) => ( n % threads ) == threadNo;
+        sel = ( n ) => ( n % threads ) == threadNo;
       }
     }
+
 
     /// <summary>
     /// Routine of one worker-thread.
@@ -191,13 +198,13 @@ namespace Rendering
     private IImageFunction getImageFunction ( IRayScene sc, int width, int height )
     {
       IImageFunction imf = FormSupport.getImageFunction ( sc, TextParam.Text );
-      imf.Width  = width;
+      imf.Width = width;
       imf.Height = height;
 
       RayTracing rt = imf as RayTracing;
       if ( rt != null )
       {
-        rt.DoShadows     = checkShadows.Checked;
+        rt.DoShadows = checkShadows.Checked;
         rt.DoReflections = checkReflections.Checked;
         rt.DoRefractions = checkRefractions.Checked;
       }
@@ -209,9 +216,9 @@ namespace Rendering
     {
       IRenderer rend = FormSupport.getRenderer ( imf, (int) numericSupersampling.Value, checkJitter.Checked ? 1.0 : 0.0,
                                                  TextParam.Text );
-      rend.Width        = width;
-      rend.Height       = height;
-      rend.Adaptive     = 8;
+      rend.Width = width;
+      rend.Height = height;
+      rend.Adaptive = 8;
       rend.ProgressData = progress;
 
       return rend;
@@ -246,7 +253,7 @@ namespace Rendering
         IRayScene      sc  = FormSupport.getScene ();
         IImageFunction imf = getImageFunction ( sc, width, height );
         IRenderer      r   = getRenderer ( imf, width, height );
-        wti [ t ] = new WorkerThreadInit ( r, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t,
+        wti[t] = new WorkerThreadInit ( r, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t,
                                            threads );
       }
 
@@ -261,20 +268,20 @@ namespace Rendering
       {
         Thread[] pool = new Thread[threads];
         for ( t = 0; t < threads; t++ )
-          pool [ t ] = new Thread ( new ParameterizedThreadStart ( RenderWorker ) );
+          pool[t] = new Thread ( new ParameterizedThreadStart ( RenderWorker ) );
         for ( t = threads; --t >= 0; )
-          pool [ t ].Start ( wti [ t ] );
+          pool[t].Start ( wti[t] );
 
         for ( t = 0; t < threads; t++ )
         {
-          pool [ t ].Join ();
-          pool [ t ] = null;
+          pool[t].Join ();
+          pool[t] = null;
         }
       }
       else
       {
         MT.InitThreadData ();
-        wti [ 0 ].rend.RenderRectangle ( newImage, 0, 0, width, height );
+        wti[0].rend.RenderRectangle ( newImage, 0, 0, width, height );
       }
 
       long elapsed;
@@ -321,7 +328,7 @@ namespace Rendering
       IImageFunction imf = getImageFunction ( sc, width, height );
       IRenderer      r   = getRenderer ( imf, width, height );
 
-      Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads > 4 ? threads - 2 : threads );
+      Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads );
       Master.singleton.progressData = progress;
       Master.singleton.InitializeAssignments ( newImage, sc, r );
 
@@ -363,7 +370,7 @@ namespace Rendering
       StopRendering ();
     }
 
-    void SetGUI ( bool enable )
+    private void SetGUI ( bool enable )
     {
       numericSupersampling.Enabled =
       checkJitter.Enabled =
@@ -377,9 +384,16 @@ namespace Rendering
       textParam.Enabled =
       buttonRes.Enabled =
       AdvancedToolsButton.Enabled =
+      pointCloudCheckBox.Enabled =
+      SavePointCloudButton.Enabled =
       buttonSave.Enabled = enable;
 
       buttonStop.Enabled = !enable;
+    }
+
+    public void EnableAdvancedToolsButton ( bool enable )
+    {
+      AdvancedToolsButton.Enabled = enable;
     }
 
     delegate void SetImageCallback ( Bitmap newImage );
@@ -438,7 +452,10 @@ namespace Rendering
 
         AdvancedToolsForm.instance?.RenderButtonsEnabled ( true );
         MT.renderingInProgress = false;
-        MT.sceneRendered       = true;
+        MT.sceneRendered = true;
+
+        if ( Master.singleton.pointCloud == null || Master.singleton.pointCloud.IsCloudEmpty )
+          SavePointCloudButton.Enabled = false;
       }
     }
 
@@ -454,13 +471,13 @@ namespace Rendering
 
       // determine output image size:
       int width                 = ImageWidth;
-      if ( width <= 0 ) width   = panel1.Width;
+      if ( width <= 0 ) width = panel1.Width;
       int height                = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
 
       if ( dirty || imfs == null )
       {
-        imfs  = getImageFunction ( FormSupport.getScene (), width, height );
+        imfs = getImageFunction ( FormSupport.getScene (), width, height );
         dirty = false;
       }
 
@@ -468,7 +485,7 @@ namespace Rendering
       long     hash  = imfs.GetSample ( x + 0.5, y + 0.5, color );
       labelSample.Text = string.Format ( CultureInfo.InvariantCulture,
                                          "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
-                                         x, y, color [ 0 ], color [ 1 ], color [ 2 ], hash );
+                                         x, y, color[0], color[1], color[2], hash );
 
       MT.singleRayTracing = false;
     }
@@ -489,46 +506,57 @@ namespace Rendering
 
       SetOptions ( args );
       buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
+
+      try
+      {
+        image = Image.FromFile ( "Logo-CGG.png" );
+      }
+      catch ( Exception )
+      {
+        // ignored
+      }
+
+      pictureBox1.Image = null;
     }
 
     private void SetOptions ( string[] args )
     {
       foreach ( var opt in args )
         if ( !string.IsNullOrEmpty ( opt ) &&
-             opt [ 0 ] == '-' &&
+             opt[0] == '-' &&
              opt.Contains ( "=" ) )
         {
           string[] opts = opt.Split ( '=' );
           if ( opts.Length > 1 )
-            switch ( opts [ 0 ] )
+            switch ( opts[0] )
             {
               case "jittering":
-                checkJitter.Checked = Util.positive ( opts [ 1 ] );
+                checkJitter.Checked = Util.positive ( opts[1] );
                 break;
 
               case "shadows":
-                checkShadows.Checked = Util.positive ( opts [ 1 ] );
+                checkShadows.Checked = Util.positive ( opts[1] );
                 break;
 
               case "reflections":
-                checkReflections.Checked = Util.positive ( opts [ 1 ] );
+                checkReflections.Checked = Util.positive ( opts[1] );
                 break;
 
               case "refractions":
-                checkRefractions.Checked = Util.positive ( opts [ 1 ] );
+                checkRefractions.Checked = Util.positive ( opts[1] );
                 break;
 
               case "multi-threading":
-                checkMultithreading.Checked = Util.positive ( opts [ 1 ] );
+                checkMultithreading.Checked = Util.positive ( opts[1] );
                 break;
 
               case "supersampling":
               {
                 int v;
-                if ( int.TryParse ( opts [ 1 ], out v ) )
+                if ( int.TryParse ( opts[1], out v ) )
                   numericSupersampling.Text = v.ToString ();
               }
-                break;
+              break;
             }
         }
     }
@@ -538,11 +566,9 @@ namespace Rendering
       FormResolution form = new FormResolution ( ImageWidth, ImageHeight );
       if ( form.ShowDialog () == DialogResult.OK )
       {
-        ImageWidth     = form.ImageWidth;
-        ImageHeight    = form.ImageHeight;
+        ImageWidth = form.ImageWidth;
+        ImageHeight = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
-
-        //AdvancedToolsForm.instance?.SetNewDimensions ( form.ImageWidth, form.ImageHeight );
       }
     }
 
@@ -556,7 +582,7 @@ namespace Rendering
         return;
 
       // GUI stuff:
-      SetGUI ( false );
+      SetGUI ( false );     
 
       AdvancedToolsForm.instance?.RenderButtonsEnabled ( false );
       MT.renderingInProgress = true;
@@ -577,14 +603,14 @@ namespace Rendering
            aThread != null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog ();
-      sfd.Title        = "Save PNG file";
-      sfd.Filter       = "PNG Files|*.png";
+      sfd.Title = "Save PNG file";
+      sfd.Filter = "PNG Files|*.png";
       sfd.AddExtension = true;
-      sfd.FileName     = "";
+      sfd.FileName = "RenderResult";
       if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 
-      outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save ( sfd.FileName, ImageFormat.Png );
     }
 
     private void buttonStop_Click ( object sender, EventArgs e )
@@ -595,7 +621,7 @@ namespace Rendering
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
       selectedScene = comboScene.SelectedIndex;
-      dirty         = true;
+      dirty = true;
     }
 
     private void textParam_TextChanged ( object sender, EventArgs e )
@@ -608,7 +634,7 @@ namespace Rendering
       {
         AdvancedToolsForm.instance.Activate ();
 
-        return; //only one instance of Form2 can exist at the time
+        return; //only one instance of Form1 can exist at the time
       }
 
       AdvancedToolsForm advancedToolsForm = new AdvancedToolsForm ();
@@ -645,9 +671,15 @@ namespace Rendering
       renderClientsForm.Show ();
     }
 
-    private PointF startingPoint = PointF.Empty;
-    private PointF movingPoint   = PointF.Empty;
-    private bool   panning       = false;
+    private Image image;
+    private Point mouseDown;
+    private int startX;
+    private int startY;
+    private int imageX;
+    private int imageY;
+
+    private bool mousePressed;
+    private float zoom = 1;
 
     /// <summary>
     /// Handles calling singleSample for RayVisualizer and picture box image pan control
@@ -658,16 +690,22 @@ namespace Rendering
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
-        Point relative = getRelativeCursorLocation (e.X, e.Y);
+        PointF relative = getRelativeCursorLocation (e.X, e.Y);
 
         if ( relative.X >= 0 )
           singleSample ( (int) relative.X, (int) relative.Y );
       }
 
-      if ( !ModifierKeys.HasFlag ( Keys.Control ) ) //holding down CTRL key prevents panning
+      if ( !ModifierKeys.HasFlag ( Keys.Control ) && e.Button == MouseButtons.Left && !mousePressed ) //holding down CTRL key prevents panning
       {
-        panning = true;
-        startingPoint = new PointF ( e.Location.X - movingPoint.X, e.Location.Y - movingPoint.Y );
+        mousePressed = true;
+        mouseDown    = e.Location;
+        startX       = imageX;
+        startY       = imageY;
+      }
+      else
+      {
+        Cursor = Cursors.Cross;
       }
     }
 
@@ -680,22 +718,33 @@ namespace Rendering
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
-        Point relative = getRelativeCursorLocation (e.X, e.Y);
+        PointF relative = getRelativeCursorLocation (e.X, e.Y);
 
-        if ( relative.X >= 0 )
+        if ( relative.X >= 0 && !mousePressed )
           singleSample ( (int) relative.X, (int) relative.Y );
       }
 
-      if ( panning )
+      if ( mousePressed && e.Button == MouseButtons.Left )
       {
-        movingPoint = new PointF ( e.Location.X - startingPoint.X, e.Location.Y - startingPoint.Y );
-        pictureBox1.Invalidate ();
+        Cursor = Cursors.NoMove2D;
+
+        Point mousePosNow = e.Location;
+
+        int deltaX = mousePosNow.X - mouseDown.X;
+        int deltaY = mousePosNow.Y - mouseDown.Y;
+
+        imageX = (int) ( startX + ( deltaX / zoom ) );
+        imageY = (int) ( startY + ( deltaY / zoom ) );
+
+        pictureBox1.Refresh ();
       }
     }
 
     private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
     {
-      panning = false;
+      mousePressed = false;
+
+      Cursor = Cursors.Default;
     }
 
     /// <summary>
@@ -704,17 +753,11 @@ namespace Rendering
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
-    {
-      cursor         = new Point ( e.X, e.Y );
-      relativeCursor = getRelativeCursorLocation ( cursor.X, cursor.Y );
-
-      if ( getRelativeCursorLocation ( e.X, e.Y ).X >= 0 )
-      {
-        if ( e.Delta > 0 )
-          zoomPictureBox ( true );
-        else if ( e.Delta != 1 )
-          zoomPictureBox ( false );
-      }
+    {     
+      if ( e.Delta > 0 )
+        zoomPictureBox ( true, e.Location );
+      else if ( e.Delta < 0 )
+        zoomPictureBox ( false, e.Location );
     }
 
     /// <summary>
@@ -722,18 +765,14 @@ namespace Rendering
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void Form1_Load ( object sender, EventArgs e )
+    private void Form2_Load ( object sender, EventArgs e )
     {
       pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
       pictureBox1.MouseWheel += new MouseEventHandler ( pictureBox1_MouseWheel );
       KeyPreview = true;
-
-      PointF upperLeft = new PointF ( 0f, 0f );
-      PointF upperRight = new PointF ( 0f + pictureBox1.Width, 0f );
-      PointF lowerLeft  = new PointF ( 0f, 0f + pictureBox1.Height );
-      points = new PointF[] { upperLeft, upperRight, lowerLeft};
     }
-    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+
+    private void Form2_FormClosing ( object sender, FormClosingEventArgs e )
     {
       StopRendering ();
     }
@@ -743,16 +782,16 @@ namespace Rendering
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void Form1_KeyDown ( object sender, KeyEventArgs e )
+    private void Form2_KeyDown ( object sender, KeyEventArgs e )
     {
-      cursor = new Point ( (int) ( points [ 0 ].X + ( ( points [ 1 ].X - points [ 0 ].X ) / 2 ) ),
-                           (int) ( points [ 0 ].X + ( ( points [ 1 ].X - points [ 0 ].X ) / 2 ) ) );
-      relativeCursor = getRelativeCursorLocation ( cursor.X, cursor.Y );
+      Point middle = new Point ();
+      middle.X = (int) ( ( ( imageX + image.Width ) * zoom ) / 2f );
+      middle.Y = (int) ( ( ( imageY + image.Height ) * zoom ) / 2f );
 
       if ( e.KeyCode == Keys.Add || e.KeyCode == Keys.PageUp )
-        zoomPictureBox ( true );
+        zoomPictureBox ( true, middle );
       else if ( e.KeyCode == Keys.Subtract || e.KeyCode == Keys.PageDown )
-        zoomPictureBox ( false );
+        zoomPictureBox ( false, middle );
     }
 
     /// <summary>
@@ -761,21 +800,15 @@ namespace Rendering
     /// <param name="absoluteX">Absolute X position of cursor (technically relative to picture box)</param>
     /// <param name="absoluteY">Absolute Y position of cursor (technically relative to picture box)</param>
     /// <returns>Relative location of cursor in terms of actual rendered picture; (-1, -1) if relative position would be outside of picture</returns>
-    private Point getRelativeCursorLocation ( float absoluteX, float absoluteY )
+    private PointF getRelativeCursorLocation ( int absoluteX, int absoluteY )
     {
-      if ( absoluteX < points[0].X || absoluteY < points[0].Y || 
-           absoluteX > points[1].X || absoluteY > points[2].Y || pictureBox1.Image == null )  // cursor ourside of picture
-      {
-        return new Point ( -1, -1 );
-      }
+      float X = (absoluteX - ( imageX * zoom )) / zoom;
+      float Y = (absoluteY - ( imageY * zoom )) / zoom;
 
-      float widthRatio = pictureBox1.Image.Width / ( points[1].X - points[0].X );
-      float heightRatio = pictureBox1.Image.Height / ( points[2].Y - points[1].Y );
-
-      float relativeX = ( absoluteX - points [ 0 ].X ) * widthRatio;
-      float relativeY = ( absoluteY - points [ 0 ].Y ) * heightRatio;
-
-      return new Point ( (int)relativeX, (int)relativeY );
+      if ( X < 0 || X > image.Width || Y < 0 || Y > image.Height )
+        return new PointF ( -1, -1 ); // cursor is outside of picture
+      else
+        return new PointF ( X, Y );
     }
 
     /// <summary>
@@ -783,82 +816,68 @@ namespace Rendering
     /// Variable zoom can be equal 1 (no zoom), less than 1 (zoom out) or greater than 1 (zoom in)
     /// </summary>
     /// <param name="zoomIn">TRUE if zoom in is desired; FALSE if zoom out is desired</param>
-    private void zoomPictureBox ( bool zoomIn )
+    /// <param name="zoomToPosition">Position to zoom to/zoom out from - usually cursor position or middle of picture in case of zoom by keys</param>
+    private void zoomPictureBox ( bool zoomIn, Point zoomToPosition )
     {
-      if ( pictureBox1.Image != null )
-      {
-        float zoomFactor = 1.05f;
+      float oldzoom = zoom;
+      float zoomFactor = 0.15F;
 
-        if ( ModifierKeys.HasFlag ( Keys.Shift ) )  //holding down the Shift key makes zoom in/out faster
-          zoomFactor = 1.3f;
+      if ( ModifierKeys.HasFlag ( Keys.Shift ) ) // holding down the Shift key makes zoom in/out faster
+        zoomFactor = 0.45F;
 
-        if ( zoomIn )
-          zoom *= zoomFactor;
-        else
-          zoom *= 1 / zoomFactor;
+      if ( zoomIn )
+        zoom += zoomFactor;
+      else
+        zoom -= zoomFactor;
 
-        pictureBox1.Invalidate ();
-      }
+      zoom = ClampZoom ();
+
+      int x = zoomToPosition.X - pictureBox1.Location.X;
+      int y = zoomToPosition.Y - pictureBox1.Location.Y;
+
+      int oldImageX = (int) ( x / oldzoom );
+      int oldImageY = (int) ( y / oldzoom );
+
+      int newImageX = (int) ( x / zoom );
+      int newImageY = (int) ( y / zoom );
+
+      imageX = newImageX - oldImageX + imageX;
+      imageY = newImageY - oldImageY + imageY;
+
+      pictureBox1.Refresh ();
     }
 
-    private float zoom = 1.0f;
-    private Point cursor;
-    private Point relativeCursor;
+    private const float minimalAbsoluteSizeInPixels = 20;
 
-    private Matrix transform = new Matrix ();
-    PointF[] points;
     /// <summary>
-    /// Is called every time main picture box is needed to be re-painted
+    /// Prevents picture to be too small (minimum is absolute size of 20 pixels for width/height)
+    /// </summary>
+    /// <returns>Clamped zoom</returns>
+    private float ClampZoom ()
+    {
+      float minZoomFactor = minimalAbsoluteSizeInPixels / Math.Min ( image.Width, image.Height );
+      return Math.Max ( zoom, minZoomFactor );
+    }
+
+    /// <summary>
+    /// Called every time main picture box is needed to be re-painted
     /// Used for re-painting after request for zoom in/out or pan
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private void pictureBox1_Paint ( object sender, PaintEventArgs e )
     {
-      if ( pictureBox1.Image != null )
-      {
-        e.Graphics.Clear ( Color.White );
+      if ( image == null )
+        return;
 
-        PointF upperLeft = new PointF (0f, 0f);
-        PointF upperRight = new PointF ( 0f + pictureBox1.Image.Width, 0f );
-        PointF lowerLeft = new PointF ( 0f, 0f + pictureBox1.Image.Height );
+      e.Graphics.PixelOffsetMode   = PixelOffsetMode.Half;
+      e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+      e.Graphics.SmoothingMode     = SmoothingMode.None;
 
-        points = new PointF[] { upperLeft, upperRight, lowerLeft};
+      OutOfScreenFix ();
 
-        transform = new Matrix();
-
-        /*transform.Translate ( movingPoint.X - relativeCursor.X, movingPoint.Y - relativeCursor.Y, MatrixOrder.Append );
-        transform.Scale ( zoom, zoom, MatrixOrder.Append );
-        transform.Translate ( -( movingPoint.X - relativeCursor.X ), -( movingPoint.Y - relativeCursor.Y ), MatrixOrder.Append );*/        
-
-        // Scale
-        if ( relativeCursor.X >= 0 )
-        {
-          transform.Translate ( -relativeCursor.X, -relativeCursor.Y, MatrixOrder.Append );
-          //transform.Translate ( -pictureBox1.Image.Width / 2f, -pictureBox1.Image.Height / 2f, MatrixOrder.Append );
-          transform.Scale ( zoom, zoom, MatrixOrder.Append );
-          //transform.Translate ( pictureBox1.Image.Width / 2f, pictureBox1.Image.Height / 2f, MatrixOrder.Append );
-          transform.Translate ( relativeCursor.X, relativeCursor.Y, MatrixOrder.Append );
-        }
-
-        Console.WriteLine ( "Starting: \t" + startingPoint.X + "\t" + startingPoint.Y );
-        Console.WriteLine ( "Moving: \t" + movingPoint.X + "\t" + movingPoint.Y );
-        Console.WriteLine ( relativeCursor.X + "\t" + relativeCursor.Y + "\t" + cursor.X + "\t" + cursor.Y + "\t" );
-
-        //translation
-        transform.Translate ( movingPoint.X, movingPoint.Y, MatrixOrder.Append );
-
-        transform.TransformPoints ( points );
-
-        OutOfScreenFix ( points );
-
-        //makes sure there is no interpolation and anti-aliasing
-        e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
-        e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-        e.Graphics.SmoothingMode = SmoothingMode.None;
-
-        e.Graphics.DrawImage ( pictureBox1.Image, points );
-      }
+      e.Graphics.ScaleTransform ( zoom, zoom );
+      e.Graphics.DrawImage ( image, imageX, imageY );
     }
 
     private const int border = 50;
@@ -867,28 +886,63 @@ namespace Rendering
     /// Prevents panning of image outside of picture box
     /// There will always be small amount of pixels (variable border) visible at the edge
     /// </summary>
-    /// <param name="points">Points representing upper-right, upper-left and lower-left corner of parallelogram for drawing graphics in picture box</param>
-    private void OutOfScreenFix ( PointF[] points )
+    private void OutOfScreenFix ()
     {
-      Matrix fixTransform = new Matrix ();
+      float absoluteX = imageX * zoom;
+      float absoluteY = imageY * zoom;
 
-      if ( points [ 2 ].Y < border )
-        fixTransform.Translate ( 0, border - points [ 2 ].Y );
+      float width = image.Width * zoom;
+      float height = image.Height * zoom;
 
-      if ( points [ 1 ].X < border )
-        fixTransform.Translate ( border - points [ 1 ].X, 0 );
+      if ( absoluteX > pictureBox1.Width - border )
+        imageX = (int) ( ( pictureBox1.Width - border ) / zoom );
 
-      if ( points[0].X > pictureBox1.Width - border )
-        fixTransform.Translate ( pictureBox1.Width - border - points[0].X, 0 );
+      if ( absoluteY > pictureBox1.Height - border )
+        imageY = (int) ( ( pictureBox1.Height - border ) / zoom );
 
-      if ( points[0].Y > pictureBox1.Height - border )
-        fixTransform.Translate ( 0, pictureBox1.Height - border - points[0].Y );
+      if ( absoluteX + width < border )
+        imageX = (int) ( ( border - width ) / zoom );
 
-      fixTransform.TransformPoints ( points );
+      if ( absoluteY + height < border )
+        imageY = (int) ( ( border - height ) / zoom );
+    }
 
-      PointF[] temp = new PointF[] { movingPoint };
-      fixTransform.TransformPoints ( temp );
-      movingPoint = temp [ 0 ];
+    /// <summary>
+    /// Opens SaveFileDialog and calls method SaveToPLYFile in PointCloud class
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void SavePointCloudButton_Click ( object sender, EventArgs e )
+    {
+      SaveFileDialog sfd = new SaveFileDialog ();
+      sfd.Title        = @"Save PLY file";
+      sfd.Filter       = @"PLY Files|*.ply";
+      sfd.AddExtension = true;
+      sfd.FileName     = "PointCloud";
+      if ( sfd.ShowDialog () != DialogResult.OK )
+        return;
+
+      Master.singleton?.pointCloud?.SaveToPLYFile ( sfd.FileName );
+    }
+
+    /// <summary>
+    /// Displays bubble notification (in system tray or Notification Center) with desired title, text and diration
+    /// </summary>
+    /// <param name="title">Title of notification</param>
+    /// <param name="text">Body of notification</param>
+    /// <param name="duration">Duration of notification in milliseconds</param>
+    public void Notification ( string title, string text, int duration )
+    {
+      if ( text == null || title == null )
+        return;
+
+      notificationIcon.Icon = SystemIcons.Information;
+
+      notificationIcon.Visible = true;
+      notificationIcon.BalloonTipTitle = title;
+      notificationIcon.BalloonTipText = text;
+      notificationIcon.ShowBalloonTip ( duration );
+      notificationIcon.Visible = false;
     }
   }
 }

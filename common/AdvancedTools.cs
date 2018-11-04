@@ -471,7 +471,7 @@ namespace Rendering
       protected abstract void DivideArray ( int x, int y );
 
       /// <summary>
-      /// Returns mapBitmap usually to PictureBox to display it in Form2
+      /// Returns mapBitmap usually to PictureBox to display it in Form1
       /// </summary>
       /// <returns></returns>
       public Bitmap GetBitmap ()
@@ -485,7 +485,7 @@ namespace Rendering
       }
 
       /// <summary>
-      /// Used by Form2 to display info for mouse down and mouse move while mouse down
+      /// Used by Form1 to display info for mouse down and mouse move while mouse down
       /// </summary>
       /// <param name="x">X coordinate of cursor relative to bitmap/mapArray</param>
       /// <param name="y">Y coordinate of cursor relative to bitmap/mapArray</param>
@@ -662,10 +662,7 @@ namespace Rendering
     {
       foreach ( IMap map in allMaps )
       {
-        if ( map != null )
-        {
-          map.Reset ();
-        }
+        map?.Reset ();
       }
     }
   }

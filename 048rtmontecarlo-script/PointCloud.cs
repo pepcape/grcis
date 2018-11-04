@@ -118,7 +118,7 @@ namespace Rendering
         streamWriter.Close ();
       }
 
-      Form2.singleton?.Notification ( @"File succesfully saved", $"Point cloud file \"{(string) fileName}\" succesfully saved.", 30000 );
+      Form1.singleton?.Notification ( @"File succesfully saved", $"Point cloud file \"{(string) fileName}\" succesfully saved.", 30000 );
     }
 
     /// <summary>
