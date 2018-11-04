@@ -10,12 +10,15 @@ namespace _084filter
     /// <summary>
     /// Optional data initialization.
     /// </summary>
+    /// <param name="name">Return your full name.</param>
     public static void InitParams ( out string name, out string param, out string tooltip )
     {
       // {{
+
       name = "Josef Pelikán";
       param = "12,8";
       tooltip = "<boxw>[,<boxh>] .. box size in pixels";
+
       // }}
     }
 
@@ -31,7 +34,7 @@ namespace _084filter
     /// <param name="param">Optional string parameter (its content and format is entierely up to you).</param>
     public static Bitmap Recompute ( Bitmap input, string param )
     {
-      // !!!{{ TODO: write your own image transform code here
+      // {{ TODO: write your own image transform code here
 
       if ( input == null )
         return null;
@@ -145,7 +148,7 @@ namespace _084filter
 
       return output;
 
-      // !!!}}
+      // }}
     }
   }
 }
