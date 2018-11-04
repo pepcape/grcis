@@ -29,6 +29,7 @@
     private void InitializeComponent ()
     {
       this.components = new System.ComponentModel.Container();
+      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
       this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
       this.pictureBox1 = new System.Windows.Forms.PictureBox();
       this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
@@ -38,6 +39,7 @@
       this.AdvancedToolsButton = new System.Windows.Forms.Button();
       this.RayVisualiserButton = new System.Windows.Forms.Button();
       this.RenderClientsButton = new System.Windows.Forms.Button();
+      this.ResetButton = new System.Windows.Forms.Button();
       this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
       this.buttonRender = new System.Windows.Forms.Button();
       this.buttonStop = new System.Windows.Forms.Button();
@@ -60,6 +62,7 @@
       this.labelElapsed = new System.Windows.Forms.Label();
       this.labelSample = new System.Windows.Forms.Label();
       this.notificationIcon = new System.Windows.Forms.NotifyIcon(this.components);
+      this.collectDataCheckBox = new System.Windows.Forms.CheckBox();
       this.tableLayoutPanel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.tableLayoutPanel2.SuspendLayout();
@@ -96,6 +99,7 @@
       // pictureBox1
       // 
       this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.pictureBox1.InitialImage = ((System.Drawing.Image)(resources.GetObject("pictureBox1.InitialImage")));
       this.pictureBox1.Location = new System.Drawing.Point(0, 0);
       this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
       this.pictureBox1.Name = "pictureBox1";
@@ -131,6 +135,7 @@
       this.flowLayoutPanel1.Controls.Add(this.AdvancedToolsButton);
       this.flowLayoutPanel1.Controls.Add(this.RayVisualiserButton);
       this.flowLayoutPanel1.Controls.Add(this.RenderClientsButton);
+      this.flowLayoutPanel1.Controls.Add(this.ResetButton);
       this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
       this.flowLayoutPanel1.Location = new System.Drawing.Point(226, 0);
@@ -197,6 +202,17 @@
       this.RenderClientsButton.UseVisualStyleBackColor = true;
       this.RenderClientsButton.Click += new System.EventHandler(this.addRenderClientToolStripMenuItem_Click);
       // 
+      // ResetButton
+      // 
+      this.ResetButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.ResetButton.Location = new System.Drawing.Point(130, 3);
+      this.ResetButton.Name = "ResetButton";
+      this.ResetButton.Size = new System.Drawing.Size(43, 23);
+      this.ResetButton.TabIndex = 9;
+      this.ResetButton.Text = "Reset";
+      this.ResetButton.UseVisualStyleBackColor = true;
+      this.ResetButton.Click += new System.EventHandler(this.ResetButton_Click);
+      // 
       // flowLayoutPanel3
       // 
       this.flowLayoutPanel3.Controls.Add(this.buttonRender);
@@ -243,6 +259,7 @@
       this.flowLayoutPanel2.Controls.Add(this.checkRefractions);
       this.flowLayoutPanel2.Controls.Add(this.checkMultithreading);
       this.flowLayoutPanel2.Controls.Add(this.pointCloudCheckBox);
+      this.flowLayoutPanel2.Controls.Add(this.collectDataCheckBox);
       this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanel2.Location = new System.Drawing.Point(0, 554);
       this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
@@ -467,6 +484,18 @@
       this.notificationIcon.Text = "048 Monte Carlo RT script";
       this.notificationIcon.Visible = true;
       // 
+      // collectDataCheckBox
+      // 
+      this.collectDataCheckBox.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.collectDataCheckBox.AutoSize = true;
+      this.collectDataCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.collectDataCheckBox.Location = new System.Drawing.Point(719, 6);
+      this.collectDataCheckBox.Name = "collectDataCheckBox";
+      this.collectDataCheckBox.Size = new System.Drawing.Size(129, 17);
+      this.collectDataCheckBox.TabIndex = 52;
+      this.collectDataCheckBox.Text = "collect additional data";
+      this.collectDataCheckBox.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -529,5 +558,7 @@
     private System.Windows.Forms.Button SavePointCloudButton;
     private System.Windows.Forms.NotifyIcon notificationIcon;
     public System.Windows.Forms.Button RayVisualiserButton;
+    private System.Windows.Forms.Button ResetButton;
+    public System.Windows.Forms.CheckBox collectDataCheckBox;
   }
 }

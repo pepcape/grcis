@@ -77,6 +77,39 @@ namespace Rendering
     /// </summary>
     protected RenderingProgress progress = null;
 
+    protected string winTitle;
+
+    public Form1 ( string[] args )
+    {
+      singleton = this;
+      InitializeComponent ();
+      progress = new RenderingProgress ( this );
+
+      // Init scenes etc.
+      string name;
+      FormSupport.InitializeScenes ( args, out name );
+
+      AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
+
+      Text += " (" + rev + ") '" + name + '\'';
+      winTitle = Text;
+      setWindowTitleSuffix ( $" Zoom: {(int) ( zoom * 100 )}%" );
+
+      SetOptions ( args );
+      buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
+
+      try
+      {
+        image = Image.FromFile ( "Logo-CGG.png" );
+      }
+      catch ( Exception )
+      {
+        // ignored
+      }
+
+      pictureBox1.Image = null;
+    }
+
     /// <summary>
     /// Default behavior - create scene selected in the combo-box.
     /// Can handle InitSceneDelegate, InitSceneParamDelegate or CSscript file-name
@@ -488,36 +521,7 @@ namespace Rendering
                                          x, y, color[0], color[1], color[2], hash );
 
       MT.singleRayTracing = false;
-    }
-
-    public Form1 ( string[] args )
-    {
-      singleton = this;
-      InitializeComponent ();
-      progress = new RenderingProgress ( this );
-
-      // Init scenes etc.
-      string name;
-      FormSupport.InitializeScenes ( args, out name );
-
-      AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
-
-      Text += " (rev: " + rev + ") '" + name + '\'';
-
-      SetOptions ( args );
-      buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
-
-      try
-      {
-        image = Image.FromFile ( "Logo-CGG.png" );
-      }
-      catch ( Exception )
-      {
-        // ignored
-      }
-
-      pictureBox1.Image = null;
-    }
+    }  
 
     private void SetOptions ( string[] args )
     {
@@ -845,6 +849,8 @@ namespace Rendering
       imageY = newImageY - oldImageY + imageY;
 
       pictureBox1.Refresh ();
+
+      setWindowTitleSuffix ($" Zoom: {(int)(zoom * 100)}%");
     }
 
     private const float minimalAbsoluteSizeInPixels = 20;
@@ -943,6 +949,38 @@ namespace Rendering
       notificationIcon.BalloonTipText = text;
       notificationIcon.ShowBalloonTip ( duration );
       notificationIcon.Visible = false;
+    }
+
+    /// <summary>
+    /// Adds suffix to default text in Form>text property (title text in upper panel, between icon and minimize and close buttons)
+    /// </summary>
+    /// <param name="suffix"></param>
+    void setWindowTitleSuffix ( string suffix )
+    {
+      if ( string.IsNullOrEmpty ( suffix ) )
+        Text = winTitle;
+      else
+        Text = winTitle + ' ' + suffix;
+    }
+
+    /// <summary>
+    /// Resets image in picture box to 100% zoom and default position
+    /// (left upper corner of image in left upper conrner of picture box)
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void ResetButton_Click ( object sender, EventArgs e )
+    {
+      zoom = 1;
+      startX = 0;
+      startY = 0;
+
+      imageX = 0;
+      imageY = 0;
+
+      pictureBox1.Refresh ();
+
+      setWindowTitleSuffix ( $" Zoom: {(int) ( zoom * 100 )}%" );
     }
   }
 }
