@@ -50,16 +50,28 @@ namespace _094tonemapping
     FloatImage inputImage = null;
     Bitmap outputImage = null;
 
+    /// <summary>
+    /// Cached window title.
+    /// </summary>
     string winTitle;
+
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
+    string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
     ToolTip tt = new ToolTip();
 
     public Form1 ()
     {
       InitializeComponent();
 
-      string param;
       string name;
-      ToneMapping.InitParams( out param, out name );
+      string param;
+      ToneMapping.InitParams( out name, out param, out tooltip );
       textParam.Text = param ?? "";
       winTitle = (Text += " (" + rev + ") '" + name + '\'');
 
@@ -402,7 +414,23 @@ namespace _094tonemapping
     private void labelStatus_MouseHover ( object sender, EventArgs e )
     {
       tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector2 ) ),
-               (IWin32Window)sender, 10, -25, 4000 );
+               (IWin32Window)sender, 10, -25, 2000 );
+    }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      if ( !string.IsNullOrEmpty( tooltip ) )
+        tt.Show( tooltip,
+                 (IWin32Window)sender, 10, -25, 2000 );
+    }
+
+    private void textParam_KeyPress ( object sender, System.Windows.Forms.KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        recompute();
+      }
     }
   }
 }

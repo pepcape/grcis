@@ -212,6 +212,9 @@ namespace MathSupport
       }
     }
 
+    /// <summary>
+    /// Resets the camera - it will look in the negative Z direction. Y axis will point upwards.
+    /// </summary>
     public void Reset ()
     {
       Zoom         = 1.0f;
@@ -219,6 +222,21 @@ namespace MathSupport
       prevRotation = Matrix4.Identity;
     }
 
+    /// <summary>
+    /// Resets the camera by a caller-provided rotational matrix.
+    /// </summary>
+    /// <param name="rot">Matrix of rotation from view direction to the negative Z axis (must be matrix of rotation).</param>
+    public void Reset ( Matrix4 rot )
+    {
+      Zoom = 1.0f;
+      rotation = Matrix4.Identity;
+      prevRotation = rot;
+    }
+
+    /// <summary>
+    /// Resets the camera to look at the required direction. Y axis will point upwards.
+    /// </summary>
+    /// <param name="dir">Required view direction.</param>
     public void Reset ( Vector3 dir )
     {
       dir.Normalize();
@@ -228,6 +246,7 @@ namespace MathSupport
         return;
       }
 
+      // 1. rotation around vertical (Y) axis
       float len = (float)Math.Sqrt( dir.X * dir.X + dir.Z * dir.Z );
       Matrix4 roty = Matrix4.Identity;
       if ( !Geometry.IsZero( len ) )
@@ -236,6 +255,7 @@ namespace MathSupport
         roty.M13 = -(roty.M31 = dir.X / len);
       }
 
+      // 2. rotation around X axis (to look in the negative Z direction)
       float len2 = (float)Math.Sqrt( len * len + dir.Y * dir.Y );
       Matrix4 rotx = Matrix4.Identity;
       if ( !Geometry.IsZero( len2 ) )
@@ -244,9 +264,7 @@ namespace MathSupport
         rotx.M23 = -(rotx.M32 = dir.Y / len2);
       }
 
-      Zoom = 1.0f;
-      rotation = Matrix4.Identity;
-      prevRotation = roty * rotx;
+      Reset( roty * rotx );
     }
 
     private void setEllipse ( int width, int height )

@@ -1,4 +1,5 @@
 ﻿//#define OPEN
+//#define CIRCLES
 
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -112,7 +113,9 @@ namespace CircleCanvas
     /// <param name="aa">Use anti-aliasing?</param>
     public void SetAntiAlias ( bool aa )
     {
-      if ( currAntiAlias == aa ) return;
+      if ( currAntiAlias == aa )
+        return;
+
       currAntiAlias = aa;
       gr.SmoothingMode = currAntiAlias ? SmoothingMode.AntiAlias : SmoothingMode.None;
     }
@@ -123,33 +126,40 @@ namespace CircleCanvas
     /// <param name="col">New drawing color.</param>
     public void SetColor ( Color col )
     {
-      if ( currColor == col ) return;
+      if ( currColor == col )
+        return;
+
       currColor = col;
       currPen.Color = col;
       currBrush.Color = col;
     }
 
+#if CIRCLES
     /// <summary>
     /// Sets current pen width.
     /// </summary>
     /// <param name="width">New pen width in pixels.</param>
     public void SetPenWidth ( float width )
     {
-      if ( currPenWidth == width ) return;
+      if ( currPenWidth == width )
+        return;
+
       currPen.Width = currPenWidth = width;
     }
+#endif
 
     /// <summary>
-    /// Fills the given disk with the current color.
+    /// Fills the given disc with the current color.
     /// </summary>
     /// <param name="x">X-coordinate of the disk center.</param>
     /// <param name="y">Y-coordinate of the disk center.</param>
     /// <param name="r">Radius of the disk.</param>
-    public void FillDisk ( float x, float y, float r )
+    public void FillDisc ( float x, float y, float r )
     {
       gr.FillEllipse( currBrush, x - r, y - r, r + r, r + r );
     }
 
+#if CIRCLES
     /// <summary>
     /// Draws the circle using the current color.
     /// </summary>
@@ -160,6 +170,7 @@ namespace CircleCanvas
     {
       gr.DrawEllipse( currPen, x - r, y - r, r + r, r + r );
     }
+#endif
 
     /// <summary>
     /// Reinitializes the canvas, returns result in the Bitmap form.
