@@ -62,6 +62,9 @@
     <Compile Include="..\common\FpsMeter.cs">
       <Link>FpsMeter.cs</Link>
     </Compile>
+    <Compile Include="..\common\Util.cs">
+      <Link>Util.cs</Link>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
