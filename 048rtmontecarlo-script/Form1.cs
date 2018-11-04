@@ -481,6 +481,7 @@ namespace Rendering
         SetGUI ( true );
 
         AdvancedToolsForm.instance?.RenderButtonsEnabled ( true );
+        AdvancedToolsForm.instance?.ExportDataButtonsEnabled ( true );
         MT.renderingInProgress = false;
         MT.sceneRendered = true;
 
@@ -577,8 +578,13 @@ namespace Rendering
     {
       AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
 
-      AdvancedTools.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
-      AdvancedTools.singleton.NewRenderInitialization ();
+      if ( collectDataCheckBox.Checked )
+      {
+        AdvancedTools.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
+        AdvancedTools.singleton.NewRenderInitialization ();
+      }
+      else if ( !AdvancedTools.singleton.mapsEmpty )
+        AdvancedToolsForm.instance?.ExportDataButtonsEnabled ( true );
 
       if ( aThread != null )
         return;
