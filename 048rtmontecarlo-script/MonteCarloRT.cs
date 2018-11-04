@@ -17,7 +17,7 @@ namespace Rendering
     {
       name = "Josef Pelikán";
 
-      Form2 f = Form2.singleton;
+      Form1 f = Form1.singleton;
 
       // 1. default scenes from RayCastingScenes
       f.sceneRepository = new Dictionary<string, object> ( Scenes.staticRepository );
@@ -52,7 +52,7 @@ namespace Rendering
     /// </summary>
     public static IRayScene getScene ()
     {
-      IRayScene scene = Form2.singleton.SceneByComboBox ();
+      IRayScene scene = Form1.singleton.SceneByComboBox ();
       RayVisualizer.UpdateRayScene ( scene );
       return scene;
     }

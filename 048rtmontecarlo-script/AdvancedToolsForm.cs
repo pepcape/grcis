@@ -11,13 +11,13 @@ namespace Rendering
     public static AdvancedToolsForm instance; //singleton
 
     /// <summary>
-    /// Constructor which sets location of Form2 window and initializes AdvancedTools class
+    /// Constructor which sets location of Form1 window and initializes AdvancedTools class
     /// </summary>
     public AdvancedToolsForm ()
     {
       instance = this;
 
-      Form2.singleton.EnableAdvancedToolsButton ( false );
+      Form1.singleton.EnableAdvancedToolsButton ( false );
 
       if ( AdvancedTools.singleton == null )
       {
@@ -30,30 +30,30 @@ namespace Rendering
 
       this.StartPosition = FormStartPosition.Manual;
 
-      // Sets location of Form2 (Advanced Tools) to either right or left of Form1 (Main) 
+      // Sets location of Form1 (Advanced Tools) to either right or left of Form1 (Main) 
       // depending on position of Form1 (whether it is close to right edge of primary screen)
 
-      if ( ( Form2.singleton.Location.X - this.Width < 0 ) &&
-           ( Form2.singleton.Location.X + Form2.singleton.Width + this.Width > SystemInformation.VirtualScreen.Width ) )
+      if ( ( Form1.singleton.Location.X - this.Width < 0 ) &&
+           ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width > SystemInformation.VirtualScreen.Width ) )
       {
         this.Location =
           new Point ( Screen.PrimaryScreen.WorkingArea.Width / 2 - this.Width / 2,
                       Screen.PrimaryScreen.WorkingArea.Height / 2 -
                       this.Height / 2 ); // place in the middle of screen if no space around Form1 is available
       }
-      else if ( Form2.singleton.Location.X + Form2.singleton.Width + this.Width <
+      else if ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width <
                 Screen.PrimaryScreen.WorkingArea.Width ||
-                Form2.singleton.Location.X - this.Width < 0 )
+                Form1.singleton.Location.X - this.Width < 0 )
       {
         this.Location =
-          new Point ( Form2.singleton.Location.X + Form2.singleton.Width,
-                      Form2.singleton.Location.Y ); // place to the right of Form1
+          new Point ( Form1.singleton.Location.X + Form1.singleton.Width,
+                      Form1.singleton.Location.Y ); // place to the right of Form1
       }
       else
       {
         this.Location =
-          new Point ( Form2.singleton.Location.X - this.Width,
-                      Form2.singleton.Location.Y ); // place to the left of Form1
+          new Point ( Form1.singleton.Location.X - this.Width,
+                      Form1.singleton.Location.Y ); // place to the left of Form1
       }
 
       RenderButtonsEnabled ( false );
@@ -63,7 +63,7 @@ namespace Rendering
     {
       System.Threading.SpinWait.SpinUntil ( () => !AdvancedTools.singleton.isInMiddleOfRegistering ); // waiting for completion of registering current ray to maps
 
-      Form2.singleton.EnableAdvancedToolsButton ( true );
+      Form1.singleton.EnableAdvancedToolsButton ( true );
 
       AdvancedTools.singleton.formActive = false;
 
@@ -108,7 +108,7 @@ namespace Rendering
     /// <param name="e"></param>
     private void RenderMapButton_Click ( object sender, EventArgs e )
     {
-      if ( Form2.singleton.outputImage == null )
+      if ( Form1.singleton.outputImage == null )
         return;
 
       TabPage tabPage = MapsTabControl.SelectedTab;
@@ -248,7 +248,7 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Goes through all controls of root (initially Form2) and sets new status 
+    /// Goes through all controls of root (initially Form1) and sets new status 
     /// for Enabled property for all controls/buttons which has "Render" and "Button" in their name
     /// </summary>
     /// <param name="newStatus">Enabled/Disabled buttons</param>
