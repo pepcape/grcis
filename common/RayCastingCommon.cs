@@ -4,7 +4,9 @@ using System.Drawing;
 using MathSupport;
 using OpenTK;
 
-// Common code for ray-based rendering.
+/// <summary>
+/// Common code for ray-based rendering.
+/// </summary>
 namespace Rendering
 {
   #region Interfaces
@@ -97,7 +99,6 @@ namespace Rendering
     void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel );
   }
 
-
   /// <summary>
   /// Ray generator (camera for ray-based methods).
   /// </summary>
@@ -129,7 +130,6 @@ namespace Rendering
     bool GetRay ( double x, double y, out Vector3d p0, out Vector3d p1 );
   }
 
-
   /// <summary>
   /// General light source.
   /// </summary>
@@ -147,7 +147,6 @@ namespace Rendering
     Vector3d? position { get; set; }
   }
 
-
   public enum ReflectionComponent
   {
     DIFFUSE             = 1,
@@ -156,7 +155,6 @@ namespace Rendering
     SPECULAR            = 6,
     ALL                 = 7
   }
-
 
   /// <summary>
   /// Reflection model - deals with local interaction between light and material surface.
@@ -171,7 +169,6 @@ namespace Rendering
     double[] ColorReflection ( IMaterial           material, Vector3d normal, Vector3d input, Vector3d output,
                                ReflectionComponent comp );
   }
-
 
   /// <summary>
   /// Abstract material description.
@@ -195,7 +192,6 @@ namespace Rendering
     double n { get; set; }
   }
 
-
   /// <summary>
   /// Any object capable of ray-intersection in 3D.
   /// </summary>
@@ -216,7 +212,6 @@ namespace Rendering
     void CompleteIntersection ( Intersection inter );
   }
 
-
   /// <summary>
   /// Simple bounding volume, able to compute the closest positive intersection.
   /// </summary>
@@ -232,7 +227,6 @@ namespace Rendering
     double Intersect ( Vector3d p0, Vector3d p1 );
   }
 
-
   /// <summary>
   /// Texture object: general value-modulator (value = color, normal vector..).
   /// </summary>
@@ -246,7 +240,6 @@ namespace Rendering
     /// <returns>Hash value (texture signature) for adaptive subsampling.</returns>
     long Apply ( Intersection inter );
   }
-
 
   /// <summary>
   /// Data container for Ray-based scene rendering: complete scene definition including camera.
@@ -273,7 +266,6 @@ namespace Rendering
     /// </summary>
     ICollection<ILightSource> Sources { get; set; }
   }
-
 
   /// <summary>
   /// Abstract time-dependency of an object.
@@ -465,7 +457,6 @@ namespace Rendering
 
       completed = true;
     }
-
     public static Intersection FirstIntersection ( LinkedList<Intersection> list, ref Vector3d p1 )
     {
       if ( list == null || list.Count < 1 )
@@ -575,13 +566,13 @@ namespace Rendering
 
     public static int allRaysCount;
 
-	  public static void IncrementRaysCounters ( int amount, bool primary )
-	  {	  
-		  allRaysCount += amount;
+    public static void IncrementRaysCounters ( int amount, bool primary )
+    {
+      allRaysCount += amount;
 
-		  if ( primary )
-		  {
-			  primaryRaysCount += amount;
+      if ( primary )
+      {
+        primaryRaysCount += amount;
       }
     }
 

@@ -651,9 +651,9 @@ namespace Rendering
     protected double[] intensity;
 
     /// <summary>
-		/// Monochromatic light source.
-		/// </summary>
-		public PointLightSource ( Vector3d pos, double intens )
+    /// Monochromatic light source.
+    /// </summary>
+    public PointLightSource ( Vector3d pos, double intens )
     {
       position  = pos;
       intensity = new double[] { intens, intens, intens };
@@ -698,7 +698,7 @@ namespace Rendering
 
     public AmbientLightSource () { }
 
-		public AmbientLightSource ( double intens )
+    public AmbientLightSource ( double intens )
     {
       intensity = new double[] { intens, intens, intens };
     }

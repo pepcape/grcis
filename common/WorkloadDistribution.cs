@@ -225,7 +225,7 @@ namespace Rendering
           catch ( IOException ) //thrown usually in case when stream is closed while exchanging necessary data
           {
             continue;
-          }         
+          }
 
           networkWorkers.Add ( newWorker );
 
@@ -286,7 +286,6 @@ namespace Rendering
       }
     }
   }
-
 
   /// <summary>
   /// Takes care of network communication with with 1 render client
@@ -358,10 +357,10 @@ namespace Rendering
     /// </summary>
     public void ExchangeNecessaryInfo ()
     {
-	    // set assemblies - needed for correct serialization/deserialization
-	    NetworkSupport.SendString ( Assembly.GetExecutingAssembly ().GetName ().Name, stream );
-	    string targetAssembly = NetworkSupport.ReceiveString ( stream );
-	    NetworkSupport.SetAssemblyNames ( Assembly.GetExecutingAssembly ().GetName ().Name, targetAssembly );
+      // set assemblies - needed for correct serialization/deserialization
+      NetworkSupport.SendString ( Assembly.GetExecutingAssembly ().GetName ().Name, stream );
+      string targetAssembly = NetworkSupport.ReceiveString ( stream );
+      NetworkSupport.SetAssemblyNames ( Assembly.GetExecutingAssembly ().GetName ().Name, targetAssembly );
 
       NetworkSupport.SendObject<Assignment> ( new Assignment ( Assignment.AssignmentType.Reset ), stream );     
 
@@ -428,7 +427,7 @@ namespace Rendering
         RemoveAssignmentFromUnfinishedAssignments ( (int) coordinates[0], (int) coordinates[1] );
 
         TryToGetNewAssignment ();
-      }      
+      }
     }
 
     /// <summary>
@@ -473,7 +472,7 @@ namespace Rendering
         {
           LostConnection ();
           return;
-        }         
+        }
 
         Master.singleton.availableAssignments.TryDequeue ( out Assignment newAssignment );
 
@@ -489,7 +488,7 @@ namespace Rendering
           assignmentsAtClients++;
           unfinishedAssignments.Add ( newAssignment );
         }
-        
+
         break;
       }
     }
@@ -503,7 +502,7 @@ namespace Rendering
       foreach ( Assignment unfinishedAssignment in unfinishedAssignments )
       {
         Master.singleton.availableAssignments.Enqueue ( unfinishedAssignment );
-      }     
+      }
     }
 
     /// <summary>
@@ -519,7 +518,6 @@ namespace Rendering
       }
     }
   }
-
 
   /// <summary>
   /// Represents 1 render work (= square of pixels to render at specific stride)
@@ -554,7 +552,7 @@ namespace Rendering
 
       // stride values: 8 > 4 > 2 > 1; initially always 8
       // decreases at the end of rendering of current assignment and therefore makes another render of this assignment more detailed
-      stride = startingStride;   
+      stride = startingStride;
     }
 
     /// <summary>
@@ -602,7 +600,7 @@ namespace Rendering
 
           // removes the need to make assignments of different sizes to accommodate bitmaps with sides indivisible by assignment size
           if ( y >= bitmapHeight || x >= bitmapWidth )
-            break;       
+            break;
 
           // prevents rendering of already rendered pixels
           if ( ( stride == 8 ||
@@ -625,7 +623,6 @@ namespace Rendering
             floatColor [ 2 ] = float.PositiveInfinity;
           }
 
-          
           if ( stride == 1 )  // apply color only to one pixel
           {
             returnArray [ PositionInArray ( x, y ) ]     = floatColor [ 0 ] * 255;
@@ -650,7 +647,6 @@ namespace Rendering
               }
             }
           }
-
 
           if ( progressData != null ) // progressData is not used for distributed network rendering - null value used in rendering in RenderClients
           {
@@ -701,11 +697,11 @@ namespace Rendering
   /// </summary>
   public class Client
   {
-		public  IPAddress address;
+    public  IPAddress address;
 
-		public string Name { get; set; }
+    public string Name { get; set; }
 
-		public string AddressString // string representation for the need of text in clientsDataGrid
+    public string AddressString // string representation for the need of text in clientsDataGrid
     {
       get => GetIPAddress ();
       set => CheckAndSetIPAddress ( value );
@@ -725,7 +721,7 @@ namespace Rendering
 
       if ( !isValidIP )
       {
-        address = IPAddress.Parse ( "0.0.0.0" );       
+        address = IPAddress.Parse ( "0.0.0.0" );
       }
     }
 
