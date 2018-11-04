@@ -5,12 +5,13 @@ using System.Windows.Forms;
 using Scene3D;
 using System.Globalization;
 using System.Drawing.Imaging;
+using Utilities;
 
 namespace _035plasma
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     /// <summary>
     /// Global thread variable. Valid while the simulation is in progress..
@@ -46,6 +47,37 @@ namespace _035plasma
     /// Just for fun..
     /// </summary>
     protected FpsMeter fps = new FpsMeter();
+
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
+    string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
+    ToolTip tt = new ToolTip();
+
+    public Form1 ()
+    {
+      InitializeComponent();
+
+      string par, name;
+      Simulation.InitParams( out name, out width, out height, out par, out tooltip );
+      textParam.Text    = par;
+      numericXres.Value = width;
+      numericYres.Value = height;
+
+      Text += " (" + rev + ") '" + name + '\'';
+    }
+
+    protected void EnableGui ( bool enable )
+    {
+      buttonStart.Enabled =
+      buttonReset.Enabled = enable;
+
+      buttonStop.Enabled = !enable;
+    }
 
     delegate void SetImageCallback ( Bitmap newImage );
 
@@ -101,19 +133,11 @@ namespace _035plasma
         aThread = null;
 
         // GUI stuff:
-        buttonStart.Enabled = true;
-        buttonReset.Enabled = true;
-        buttonStop.Enabled = false;
+        EnableGui( true );
       }
     }
 
-    public Form1 ()
-    {
-      InitializeComponent();
-      Text += " (rev: " + rev + ')';
-    }
-
-    public void Simulation ()
+    public void RunSimulation ()
     {
       if ( sim == null ||
            sim.Width != width ||
@@ -151,17 +175,15 @@ namespace _035plasma
     {
       if ( aThread != null ) return;
 
-      buttonStart.Enabled = false;
-      buttonReset.Enabled = false;
-      buttonStop.Enabled  = true;
+      EnableGui( false );
       cont = true;
 
       // simulation properties:
-      width = (int)numericXres.Value;
+      width  = (int)numericXres.Value;
       height = (int)numericYres.Value;
       saveFrames = checkAnim.Checked;
 
-      aThread = new Thread( new ThreadStart( this.Simulation ) );
+      aThread = new Thread( new ThreadStart( RunSimulation ) );
       aThread.Start();
     }
 

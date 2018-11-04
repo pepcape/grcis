@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -8,6 +6,20 @@ namespace _035plasma
 {
   public class Simulation
   {
+    /// <summary>
+    /// Optional form-data initialization.
+    /// </summary>
+    public static void InitParams ( out string name, out int width, out int height, out string param, out string tooltip )
+    {
+      // {{
+      name    = "Josef Pelikán";
+      width   = 640;
+      height  = 360;
+      param   = "";
+      tooltip = "nothing yet..";
+      // }}
+    }
+
     /// <summary>
     /// Prime-time initialization.
     /// </summary>
@@ -54,15 +66,15 @@ namespace _035plasma
     /// </summary>
     public void Reset ()
     {
-      // !!!{{ TODO: put your simulation-reset code here
+      // {{ TODO: put your simulation-reset code here
 
       Frame     = 0;
-      simWidth  = Width;     /* might be a fraction of rendering size.. */
-      simHeight = Height;    /* might be a fraction of rendering size.. */
-      s = new float[ simHeight, simWidth ];
-      rnd = new Random();    /* add seed-initialization here? */
+      simWidth  = Width;          // might be a fraction of rendering size..
+      simHeight = Height;         // might be a fraction of rendering size..
+      s         = new float[ simHeight, simWidth ];
+      rnd       = new Random();   // add seed-initialization here?
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -80,10 +92,10 @@ namespace _035plasma
     /// <param name="location">Mouse pointer location.</param>
     protected void Draw ( Point location )
     {
-      // !!!{{ TODO: put your drawing code here
+      // {{ TODO: put your drawing code here
 
-      int x = location.X;                /* do proper coordinate-transform here! */
-      int y = location.Y;                /* do proper coordinate-transform here! */
+      int x = location.X;                // do proper coordinate-transform here!
+      int y = location.Y;                // do proper coordinate-transform here!
       if ( x < Radius )
         x = Radius;
       if ( x > simWidth - Radius )
@@ -95,9 +107,9 @@ namespace _035plasma
 
       for ( int i = y - Radius; i < y + Radius; i++ )
         for ( int j = x - Radius; j < x + Radius; j++ )
-          s[ i, j ] = 1.0f;              /* permanent white color .. 1.0f .. see Simulate() */
+          s[ i, j ] = 1.0f;              // permanent white color .. 1.0f .. see Simulate()
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -108,12 +120,12 @@ namespace _035plasma
     /// <returns>True if the visualization bitmap was altered.</returns>
     public bool MouseDown ( Point location )
     {
-      // !!!{{ TODO: put your drawing logic here
+      // {{ TODO: put your drawing logic here
 
       Draw( location );
       return true;
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -124,12 +136,12 @@ namespace _035plasma
     /// <returns>True if the visualization bitmap was altered.</returns>
     public bool MouseUp ( Point location )
     {
-      // !!!{{ TODO: put your drawing logic here
+      // {{ TODO: put your drawing logic here
 
       Draw( location );
       return true;
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -140,12 +152,12 @@ namespace _035plasma
     /// <returns>True if the visualization bitmap was altered.</returns>
     public bool MouseMove ( Point location )
     {
-      // !!!{{ TODO: put your drawing logic here
+      // {{ TODO: put your drawing logic here
 
       Draw( location );
       return true;
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -174,16 +186,16 @@ namespace _035plasma
     /// </summary>
     public void Simulate ()
     {
-      // !!!{{ TODO: put your simulation code here
+      // {{ TODO: put your simulation code here
 
       for ( int i = 0; i < simHeight; i++ )
         for ( int j = 0; j < simWidth; j++ )
-          if ( s[ i, j ] != 1.0f )       /* permanent white color */
+          if ( s[ i, j ] != 1.0f )          // permanent white color
             s[ i, j ] = (float)rnd.NextDouble();
 
       Frame++;
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -192,7 +204,7 @@ namespace _035plasma
     /// <returns>Visualization bitmap.</returns>
     public Bitmap Visualize ()
     {
-      // !!!{{ TODO: put your visualization code here
+      // {{ TODO: put your visualization code here
 
       PixelFormat fmt = PixelFormat.Format24bppRgb;
       int dO = Image.GetPixelFormatSize( fmt ) / 8;
@@ -219,7 +231,7 @@ namespace _035plasma
 
       return result;
 
-      // !!!}}
+      // }}
     }
   }
 }
