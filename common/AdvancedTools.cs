@@ -25,6 +25,7 @@ namespace Rendering
     public NormalMap normalMapAbsolute;
 
     public bool mapsEmpty = true;
+    public PointCloud pointCloud;
 
     internal void Initialize ()
     {

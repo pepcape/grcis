@@ -118,7 +118,7 @@ namespace Rendering
 
       RegisterRay ( RayType.unknown, level, p0, i ); // moved lower to also register rays for shadows
       
-      if ( Form1.singleton.pointCloudCheckBox.Checked && !MT.singleRayTracing )
+      if ( Form1.singleton.pointCloudCheckBox.Checked && !MT.pointCloudSavingInProgress && !MT.singleRayTracing )
       {
         foreach ( Intersection intersection in intersections )
         {

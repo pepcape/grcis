@@ -13,7 +13,7 @@ using Utilities;
 
 namespace Rendering
 {
-  public partial class Form1 : Form, IRenderProgressForm
+  public partial class Form1: Form, IRenderProgressForm
   {
     static readonly string rev = Util.SetVersion ( "$Rev$" );
 
@@ -87,7 +87,7 @@ namespace Rendering
 
       // Init scenes etc.
       string name;
-      FormSupport.InitializeScenes ( args, out name );     
+      FormSupport.InitializeScenes ( args, out name );
 
       Text += " (" + rev + ") '" + name + '\'';
       winTitle = Text;
@@ -120,9 +120,8 @@ namespace Rendering
     {
       string sceneName = (string) comboScene.Items [ selectedScene ];
 
-      object definition;
-      if ( sceneRepository.TryGetValue ( sceneName, out definition ) )
-        return Scripts.SceneFromObject ( sceneName, definition, textParam.Text, str => SetText ( str ) );
+      if ( sceneRepository.TryGetValue ( sceneName, out object definition ) )
+        return Scripts.SceneFromObject ( sceneName, definition, textParam.Text, SetText );
 
       // fallback to a default scene;
       return Scenes.DefaultScene ();
@@ -156,13 +155,14 @@ namespace Rendering
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
       image = newImage;
-      zoom = ClampZoom ();
+      zoom  = ClampZoom ();
       pictureBox1.Invalidate ();
 
       bakImage?.Dispose ();
 
       bakImage = newImage;
     }
+
 
     /// <summary>
     /// Worker-thread-specific data.
@@ -202,14 +202,14 @@ namespace Rendering
       public WorkerThreadInit ( IRenderer r, ITimeDependent sc, ITimeDependent imf, Bitmap im, int wid, int hei,
                                 int threadNo, int threads )
       {
-        scene = sc;
+        scene  = sc;
         imfunc = imf;
-        rend = r;
-        image = im;
-        id = threadNo;
-        width = wid;
+        rend   = r;
+        image  = im;
+        id     = threadNo;
+        width  = wid;
         height = hei;
-        sel = ( n ) => ( n % threads ) == threadNo;
+        sel    = ( n ) => ( n % threads ) == threadNo;
       }
     }
 
@@ -233,13 +233,13 @@ namespace Rendering
     private IImageFunction getImageFunction ( IRayScene sc, int width, int height )
     {
       IImageFunction imf = FormSupport.getImageFunction ( sc, TextParam.Text );
-      imf.Width = width;
+      imf.Width  = width;
       imf.Height = height;
 
       RayTracing rt = imf as RayTracing;
       if ( rt != null )
       {
-        rt.DoShadows = checkShadows.Checked;
+        rt.DoShadows     = checkShadows.Checked;
         rt.DoReflections = checkReflections.Checked;
         rt.DoRefractions = checkRefractions.Checked;
       }
@@ -375,12 +375,6 @@ namespace Rendering
         sw.Restart ();
 
       Master.singleton.StartThreads ();
-      /*
-      ThreadStart ts              = delegate { Master.instance.StartThreads ( threads > 4 ? threads - 2 : threads ); };
-      Thread      newRenderThread = new Thread ( ts );
-      newRenderThread.Start ();
-
-      newRenderThread.Join ();*/
 
       long elapsed;
       lock ( sw )
@@ -424,9 +418,17 @@ namespace Rendering
       buttonSave.Enabled = enable;
 
       buttonStop.Enabled = !enable;
+
+      if ( MT.pointCloudSavingInProgress )
+      {
+        pointCloudCheckBox.Enabled = false;
+        savePointCloudButton.Enabled = false;
+      }        
     }
 
+
     delegate void SetImageCallback ( Bitmap newImage );
+
 
     public Stopwatch GetStopwatch ()
     {
@@ -444,7 +446,9 @@ namespace Rendering
         setImage ( ref outputImage, newImage );
     }
 
+
     delegate void SetTextCallback ( string text );
+
 
     public void SetText ( string text )
     {
@@ -457,7 +461,9 @@ namespace Rendering
         labelElapsed.Text = text;
     }
 
+
     delegate void StopRenderingCallback ();
+
 
     protected void StopRendering ()
     {
@@ -486,7 +492,7 @@ namespace Rendering
         MT.sceneRendered = true;
 
         if ( Master.singleton.pointCloud == null || Master.singleton.pointCloud.IsCloudEmpty )
-          SavePointCloudButton.Enabled = false;
+          savePointCloudButton.Enabled = false;
       }
     }
 
@@ -519,7 +525,7 @@ namespace Rendering
                                          x, y, color[0], color[1], color[2], hash );
 
       MT.singleRayTracing = false;
-    }  
+    }
 
     private void SetOptions ( string[] args )
     {
@@ -568,8 +574,8 @@ namespace Rendering
       FormResolution form = new FormResolution ( ImageWidth, ImageHeight );
       if ( form.ShowDialog () == DialogResult.OK )
       {
-        ImageWidth = form.ImageWidth;
-        ImageHeight = form.ImageHeight;
+        ImageWidth     = form.ImageWidth;
+        ImageHeight    = form.ImageHeight;
         buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
       }
     }
@@ -590,12 +596,11 @@ namespace Rendering
         return;
 
       // GUI stuff:
-      SetGUI ( false );     
+      SetGUI ( false );
 
       AdvancedToolsForm.instance?.RenderButtonsEnabled ( false );
       MT.renderingInProgress = true;
       Statistics.Reset ();
-
 
       lock ( progress )
         progress.Continue = true;
@@ -611,10 +616,10 @@ namespace Rendering
            aThread != null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog ();
-      sfd.Title = "Save PNG file";
-      sfd.Filter = "PNG Files|*.png";
+      sfd.Title        = "Save PNG file";
+      sfd.Filter       = "PNG Files|*.png";
       sfd.AddExtension = true;
-      sfd.FileName = "RenderResult";
+      sfd.FileName     = "RenderResult";
       if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 
@@ -629,13 +634,14 @@ namespace Rendering
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
       selectedScene = comboScene.SelectedIndex;
-      dirty = true;
+      dirty         = true;
     }
 
     private void textParam_TextChanged ( object sender, EventArgs e )
     {
       dirty = true;
     }
+
     private void AdvancedToolsButton_Click ( object sender, EventArgs e )
     {
       if ( AdvancedToolsForm.instance != null )
@@ -681,12 +687,12 @@ namespace Rendering
 
     private Image image;
     private Point mouseDown;
-    private int startX;
-    private int startY;
-    private int imageX;
-    private int imageY;
+    private int   startX;
+    private int   startY;
+    private int   imageX;
+    private int   imageY;
 
-    private bool mousePressed;
+    private bool  mousePressed;
     private float zoom = 1;
 
     /// <summary>
@@ -698,7 +704,7 @@ namespace Rendering
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
-        PointF relative = getRelativeCursorLocation (e.X, e.Y);
+        PointF relative = getRelativeCursorLocation ( e.X, e.Y );
 
         if ( relative.X >= 0 )
           singleSample ( (int) relative.X, (int) relative.Y );
@@ -726,7 +732,7 @@ namespace Rendering
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
-        PointF relative = getRelativeCursorLocation (e.X, e.Y);
+        PointF relative = getRelativeCursorLocation ( e.X, e.Y );
 
         if ( relative.X >= 0 && !mousePressed )
           singleSample ( (int) relative.X, (int) relative.Y );
@@ -761,7 +767,7 @@ namespace Rendering
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
-    {     
+    {
       if ( e.Delta > 0 )
         zoomPictureBox ( true, e.Location );
       else if ( e.Delta < 0 )
@@ -775,9 +781,9 @@ namespace Rendering
     /// <param name="e"></param>
     private void Form2_Load ( object sender, EventArgs e )
     {
-      pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+      pictureBox1.SizeMode   =  PictureBoxSizeMode.Zoom;
       pictureBox1.MouseWheel += new MouseEventHandler ( pictureBox1_MouseWheel );
-      KeyPreview = true;
+      KeyPreview             =  true;
     }
 
     private void Form2_FormClosing ( object sender, FormClosingEventArgs e )
@@ -810,8 +816,8 @@ namespace Rendering
     /// <returns>Relative location of cursor in terms of actual rendered picture; (-1, -1) if relative position would be outside of picture</returns>
     private PointF getRelativeCursorLocation ( int absoluteX, int absoluteY )
     {
-      float X = (absoluteX - ( imageX * zoom )) / zoom;
-      float Y = (absoluteY - ( imageY * zoom )) / zoom;
+      float X = ( absoluteX - ( imageX * zoom ) ) / zoom;
+      float Y = ( absoluteY - ( imageY * zoom ) ) / zoom;
 
       if ( X < 0 || X > image.Width || Y < 0 || Y > image.Height )
         return new PointF ( -1, -1 ); // cursor is outside of picture
@@ -827,7 +833,7 @@ namespace Rendering
     /// <param name="zoomToPosition">Position to zoom to/zoom out from - usually cursor position or middle of picture in case of zoom by keys</param>
     private void zoomPictureBox ( bool zoomIn, Point zoomToPosition )
     {
-      float oldzoom = zoom;
+      float oldzoom    = zoom;
       float zoomFactor = 0.15F;
 
       if ( ModifierKeys.HasFlag ( Keys.Shift ) ) // holding down the Shift key makes zoom in/out faster
@@ -854,7 +860,7 @@ namespace Rendering
 
       pictureBox1.Refresh ();
 
-      setWindowTitleSuffix ($" Zoom: {(int)(zoom * 100)}%");
+      setWindowTitleSuffix ( $" Zoom: {(int) ( zoom * 100 )}%" );
     }
 
     private const float minimalAbsoluteSizeInPixels = 20;
@@ -901,7 +907,7 @@ namespace Rendering
       float absoluteX = imageX * zoom;
       float absoluteY = imageY * zoom;
 
-      float width = image.Width * zoom;
+      float width  = image.Width * zoom;
       float height = image.Height * zoom;
 
       if ( absoluteX > pictureBox1.Width - border )
@@ -932,7 +938,7 @@ namespace Rendering
       if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 
-      Master.singleton?.pointCloud?.SaveToPLYFile ( sfd.FileName );
+      AdvancedTools.singleton?.pointCloud?.SaveToPLYFile ( sfd.FileName );
     }
 
     /// <summary>
@@ -948,9 +954,9 @@ namespace Rendering
 
       notificationIcon.Icon = SystemIcons.Information;
 
-      notificationIcon.Visible = true;
+      notificationIcon.Visible         = true;
       notificationIcon.BalloonTipTitle = title;
-      notificationIcon.BalloonTipText = text;
+      notificationIcon.BalloonTipText  = text;
       notificationIcon.ShowBalloonTip ( duration );
       notificationIcon.Visible = false;
     }
@@ -975,7 +981,7 @@ namespace Rendering
     /// <param name="e"></param>
     private void ResetButton_Click ( object sender, EventArgs e )
     {
-      zoom = 1;
+      zoom   = 1;
       startX = 0;
       startY = 0;
 
@@ -985,6 +991,24 @@ namespace Rendering
       pictureBox1.Refresh ();
 
       setWindowTitleSuffix ( $" Zoom: {(int) ( zoom * 100 )}%" );
+    }
+
+    /// <summary>
+    /// Disables GUI elements related to point cloud (for example during saving file)
+    /// </summary>
+    public void PointCloudSavingStart ()
+    {
+      singleton.pointCloudCheckBox.Enabled = false;
+      singleton.savePointCloudButton.Enabled = false;
+    }
+
+    /// <summary>
+    /// Enables GUI elements related to point cloud (for example after file is saved)
+    /// </summary>
+    public void PointCloudSavingEnd ()
+    {
+      singleton.pointCloudCheckBox.Enabled = true;
+      singleton.savePointCloudButton.Enabled = true;
     }
   }
 }
