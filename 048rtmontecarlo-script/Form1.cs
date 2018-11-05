@@ -79,6 +79,8 @@ namespace Rendering
 
     protected string winTitle;
 
+    private PanAndZoomSupport panAndZoom;
+
     public Form1 ( string[] args )
     {
       singleton = this;
@@ -86,15 +88,16 @@ namespace Rendering
       progress = new RenderingProgress ( this );
 
       // Init scenes etc.
-      string name;
-      FormSupport.InitializeScenes ( args, out name );
+      FormSupport.InitializeScenes ( args, out string name );
 
       Text += " (" + rev + ") '" + name + '\'';
       winTitle = Text;
-      setWindowTitleSuffix ( $" Zoom: {(int) ( zoom * 100 )}%" );
+      setWindowTitleSuffix ( " Zoom: 100%" );
 
       SetOptions ( args );
       buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
+
+      Image image = null;
 
       try
       {
@@ -102,7 +105,7 @@ namespace Rendering
       }
       catch ( Exception )
       {
-        // ignored
+        image = null;
       }
 
       if ( AdvancedTools.singleton == null )
@@ -110,6 +113,8 @@ namespace Rendering
 
       AdvancedTools.singleton.Initialize ();
       AdvancedTools.singleton.SetNewDimensions ( ImageWidth, ImageHeight ); //makes all maps to initialize again
+
+      panAndZoom = new PanAndZoomSupport ( pictureBox1, image, setWindowTitleSuffix );
     }
 
     /// <summary>
@@ -154,9 +159,7 @@ namespace Rendering
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
-      image = newImage;
-      zoom  = ClampZoom ();
-      pictureBox1.Invalidate ();
+      panAndZoom.SetNewImage( newImage );    
 
       bakImage?.Dispose ();
 
@@ -414,7 +417,7 @@ namespace Rendering
       buttonRes.Enabled =
       pointCloudCheckBox.Enabled =
       collectDataCheckBox.Enabled =
-      SavePointCloudButton.Enabled =
+      savePointCloudButton.Enabled =
       buttonSave.Enabled = enable;
 
       buttonStop.Enabled = !enable;
@@ -685,15 +688,7 @@ namespace Rendering
       renderClientsForm.Show ();
     }
 
-    private Image image;
-    private Point mouseDown;
-    private int   startX;
-    private int   startY;
-    private int   imageX;
-    private int   imageY;
-
-    private bool  mousePressed;
-    private float zoom = 1;
+    private bool mousePressed;
 
     /// <summary>
     /// Handles calling singleSample for RayVisualizer and picture box image pan control
@@ -704,7 +699,7 @@ namespace Rendering
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
-        PointF relative = getRelativeCursorLocation ( e.X, e.Y );
+        PointF relative = panAndZoom.getRelativeCursorLocation ( e.X, e.Y );
 
         if ( relative.X >= 0 )
           singleSample ( (int) relative.X, (int) relative.Y );
@@ -713,9 +708,7 @@ namespace Rendering
       if ( !ModifierKeys.HasFlag ( Keys.Control ) && e.Button == MouseButtons.Left && !mousePressed ) //holding down CTRL key prevents panning
       {
         mousePressed = true;
-        mouseDown    = e.Location;
-        startX       = imageX;
-        startY       = imageY;
+        panAndZoom.MouseDown ( e.Location );
       }
       else
       {
@@ -732,7 +725,7 @@ namespace Rendering
     {
       if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
       {
-        PointF relative = getRelativeCursorLocation ( e.X, e.Y );
+        PointF relative = panAndZoom.getRelativeCursorLocation ( e.X, e.Y );
 
         if ( relative.X >= 0 && !mousePressed )
           singleSample ( (int) relative.X, (int) relative.Y );
@@ -741,16 +734,7 @@ namespace Rendering
       if ( mousePressed && e.Button == MouseButtons.Left )
       {
         Cursor = Cursors.NoMove2D;
-
-        Point mousePosNow = e.Location;
-
-        int deltaX = mousePosNow.X - mouseDown.X;
-        int deltaY = mousePosNow.Y - mouseDown.Y;
-
-        imageX = (int) ( startX + ( deltaX / zoom ) );
-        imageY = (int) ( startY + ( deltaY / zoom ) );
-
-        pictureBox1.Refresh ();
+        panAndZoom.MouseMove ( e.Location );
       }
     }
 
@@ -769,9 +753,9 @@ namespace Rendering
     private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
     {
       if ( e.Delta > 0 )
-        zoomPictureBox ( true, e.Location );
+        panAndZoom.zoomToPosition ( true, e.Location, ModifierKeys );
       else if ( e.Delta < 0 )
-        zoomPictureBox ( false, e.Location );
+        panAndZoom.zoomToPosition ( false, e.Location, ModifierKeys );
     }
 
     /// <summary>
@@ -779,14 +763,14 @@ namespace Rendering
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void Form2_Load ( object sender, EventArgs e )
+    private void Form1_Load ( object sender, EventArgs e )
     {
       pictureBox1.SizeMode   =  PictureBoxSizeMode.Zoom;
       pictureBox1.MouseWheel += new MouseEventHandler ( pictureBox1_MouseWheel );
       KeyPreview             =  true;
     }
 
-    private void Form2_FormClosing ( object sender, FormClosingEventArgs e )
+    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
     {
       StopRendering ();
     }
@@ -796,84 +780,20 @@ namespace Rendering
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void Form2_KeyDown ( object sender, KeyEventArgs e )
+    private void Form1_KeyDown ( object sender, KeyEventArgs e )
     {
-      Point middle = new Point ();
-      middle.X = (int) ( ( ( imageX + image.Width ) * zoom ) / 2f );
-      middle.Y = (int) ( ( ( imageY + image.Height ) * zoom ) / 2f );
-
-      if ( e.KeyCode == Keys.Add || e.KeyCode == Keys.PageUp )
-        zoomPictureBox ( true, middle );
-      else if ( e.KeyCode == Keys.Subtract || e.KeyCode == Keys.PageDown )
-        zoomPictureBox ( false, middle );
-    }
-
-    /// <summary>
-    /// Converts absolute cursor location (in picture box) to relative location (based on position of actual picture; both translated and scaled)
-    /// </summary>
-    /// <param name="absoluteX">Absolute X position of cursor (technically relative to picture box)</param>
-    /// <param name="absoluteY">Absolute Y position of cursor (technically relative to picture box)</param>
-    /// <returns>Relative location of cursor in terms of actual rendered picture; (-1, -1) if relative position would be outside of picture</returns>
-    private PointF getRelativeCursorLocation ( int absoluteX, int absoluteY )
-    {
-      float X = ( absoluteX - ( imageX * zoom ) ) / zoom;
-      float Y = ( absoluteY - ( imageY * zoom ) ) / zoom;
-
-      if ( X < 0 || X > image.Width || Y < 0 || Y > image.Height )
-        return new PointF ( -1, -1 ); // cursor is outside of picture
-      else
-        return new PointF ( X, Y );
-    }
-
-    /// <summary>
-    /// Changes global variable zoom to indicate current zoom level of picture in main picture box
-    /// Variable zoom can be equal 1 (no zoom), less than 1 (zoom out) or greater than 1 (zoom in)
-    /// </summary>
-    /// <param name="zoomIn">TRUE if zoom in is desired; FALSE if zoom out is desired</param>
-    /// <param name="zoomToPosition">Position to zoom to/zoom out from - usually cursor position or middle of picture in case of zoom by keys</param>
-    private void zoomPictureBox ( bool zoomIn, Point zoomToPosition )
-    {
-      float oldzoom    = zoom;
-      float zoomFactor = 0.15F;
-
-      if ( ModifierKeys.HasFlag ( Keys.Shift ) ) // holding down the Shift key makes zoom in/out faster
-        zoomFactor = 0.45F;
-
-      if ( zoomIn )
-        zoom += zoomFactor;
-      else
-        zoom -= zoomFactor;
-
-      zoom = ClampZoom ();
-
-      int x = zoomToPosition.X - pictureBox1.Location.X;
-      int y = zoomToPosition.Y - pictureBox1.Location.Y;
-
-      int oldImageX = (int) ( x / oldzoom );
-      int oldImageY = (int) ( y / oldzoom );
-
-      int newImageX = (int) ( x / zoom );
-      int newImageY = (int) ( y / zoom );
-
-      imageX = newImageX - oldImageX + imageX;
-      imageY = newImageY - oldImageY + imageY;
-
-      pictureBox1.Refresh ();
-
-      setWindowTitleSuffix ( $" Zoom: {(int) ( zoom * 100 )}%" );
-    }
-
-    private const float minimalAbsoluteSizeInPixels = 20;
-
-    /// <summary>
-    /// Prevents picture to be too small (minimum is absolute size of 20 pixels for width/height)
-    /// </summary>
-    /// <returns>Clamped zoom</returns>
-    private float ClampZoom ()
-    {
-      float minZoomFactor = minimalAbsoluteSizeInPixels / Math.Min ( image.Width, image.Height );
-      return Math.Max ( zoom, minZoomFactor );
-    }
+      switch ( e.KeyCode ) {
+        case Keys.Add:
+        case Keys.PageUp:
+          panAndZoom.zoomToMiddle ( true, ModifierKeys );
+          break;
+        case Keys.Subtract:
+        case Keys.PageDown:
+          panAndZoom.zoomToMiddle ( false, ModifierKeys );
+          break;
+      }
+    }   
+   
 
     /// <summary>
     /// Called every time main picture box is needed to be re-painted
@@ -882,45 +802,8 @@ namespace Rendering
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private void pictureBox1_Paint ( object sender, PaintEventArgs e )
-    {
-      if ( image == null )
-        return;
-
-      e.Graphics.PixelOffsetMode   = PixelOffsetMode.Half;
-      e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-      e.Graphics.SmoothingMode     = SmoothingMode.None;
-
-      OutOfScreenFix ();
-
-      e.Graphics.ScaleTransform ( zoom, zoom );
-      e.Graphics.DrawImage ( image, imageX, imageY );
-    }
-
-    private const int border = 50;
-
-    /// <summary>
-    /// Prevents panning of image outside of picture box
-    /// There will always be small amount of pixels (variable border) visible at the edge
-    /// </summary>
-    private void OutOfScreenFix ()
-    {
-      float absoluteX = imageX * zoom;
-      float absoluteY = imageY * zoom;
-
-      float width  = image.Width * zoom;
-      float height = image.Height * zoom;
-
-      if ( absoluteX > pictureBox1.Width - border )
-        imageX = (int) ( ( pictureBox1.Width - border ) / zoom );
-
-      if ( absoluteY > pictureBox1.Height - border )
-        imageY = (int) ( ( pictureBox1.Height - border ) / zoom );
-
-      if ( absoluteX + width < border )
-        imageX = (int) ( ( border - width ) / zoom );
-
-      if ( absoluteY + height < border )
-        imageY = (int) ( ( border - height ) / zoom );
+    {     
+      panAndZoom.Paint ( e );
     }
 
     /// <summary>
@@ -981,16 +864,7 @@ namespace Rendering
     /// <param name="e"></param>
     private void ResetButton_Click ( object sender, EventArgs e )
     {
-      zoom   = 1;
-      startX = 0;
-      startY = 0;
-
-      imageX = 0;
-      imageY = 0;
-
-      pictureBox1.Refresh ();
-
-      setWindowTitleSuffix ( $" Zoom: {(int) ( zoom * 100 )}%" );
+      panAndZoom.Reset ();
     }
 
     /// <summary>

@@ -507,9 +507,9 @@
       this.MinimumSize = new System.Drawing.Size(680, 300);
       this.Name = "Form1";
       this.Text = "048 Monte Carlo RT script";
-      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form2_FormClosing);
-      this.Load += new System.EventHandler(this.Form2_Load);
-      this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form2_KeyDown);
+      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+      this.Load += new System.EventHandler(this.Form1_Load);
+      this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
       this.tableLayoutPanel1.ResumeLayout(false);
       this.tableLayoutPanel1.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
