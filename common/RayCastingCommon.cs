@@ -522,6 +522,7 @@ namespace Rendering
     public static bool singleRayTracing    = false;
     public static bool sceneRendered       = false;
     public static bool renderingInProgress = false;
+    public static bool pointCloudSavingInProgress = false;
 
     // Put more TLS data here..
 

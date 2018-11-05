@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using System.Windows.Forms;
 using OpenTK;
 
 namespace Rendering
@@ -80,6 +81,9 @@ namespace Rendering
     /// <param name="fileName">Name of external file - .ply file extension is added if it does not contain it already</param>
     public void SaveToPLYFile ( string fileName )
     {
+      Form1.singleton.PointCloudSavingStart ();
+      MT.pointCloudSavingInProgress = true;
+
       if ( fileName == null )
         fileName = "PointCloud.ply";
 
@@ -90,7 +94,7 @@ namespace Rendering
       fileSaver.Name = "FileSaver";
 
       fileSaver.Start ();
-    }
+    }   
 
     /// <summary>
     /// Actual file save
@@ -117,6 +121,9 @@ namespace Rendering
 
         streamWriter.Close ();
       }
+
+      Form1.singleton.Invoke ( (MethodInvoker) Form1.singleton.PointCloudSavingEnd );
+      MT.pointCloudSavingInProgress = false;
 
       Form1.singleton?.Notification ( @"File succesfully saved", $"Point cloud file \"{fileName}\" succesfully saved.", 30000 );
     }

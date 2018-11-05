@@ -68,8 +68,15 @@ namespace Rendering
 
       Assignment.assignmentSize = assignmentSize;
 
-      if ( Form1.singleton.pointCloudCheckBox.Checked )
-        pointCloud = new PointCloud ( threads ); 
+      if ( Form1.singleton.pointCloudCheckBox.Checked && !MT.pointCloudSavingInProgress )
+      {
+        pointCloud = new PointCloud ( threads );
+        AdvancedTools.singleton.pointCloud = pointCloud;
+      }
+      else
+      {
+        pointCloud = AdvancedTools.singleton.pointCloud;
+      }      
     }
 
     /// <summary>

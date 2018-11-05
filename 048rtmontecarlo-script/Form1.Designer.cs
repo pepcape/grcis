@@ -35,7 +35,7 @@
       this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
       this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
       this.buttonSave = new System.Windows.Forms.Button();
-      this.SavePointCloudButton = new System.Windows.Forms.Button();
+      this.savePointCloudButton = new System.Windows.Forms.Button();
       this.AdvancedToolsButton = new System.Windows.Forms.Button();
       this.RayVisualiserButton = new System.Windows.Forms.Button();
       this.RenderClientsButton = new System.Windows.Forms.Button();
@@ -131,7 +131,7 @@
       // flowLayoutPanel1
       // 
       this.flowLayoutPanel1.Controls.Add(this.buttonSave);
-      this.flowLayoutPanel1.Controls.Add(this.SavePointCloudButton);
+      this.flowLayoutPanel1.Controls.Add(this.savePointCloudButton);
       this.flowLayoutPanel1.Controls.Add(this.AdvancedToolsButton);
       this.flowLayoutPanel1.Controls.Add(this.RayVisualiserButton);
       this.flowLayoutPanel1.Controls.Add(this.RenderClientsButton);
@@ -157,17 +157,17 @@
       this.buttonSave.UseVisualStyleBackColor = true;
       this.buttonSave.Click += new System.EventHandler(this.buttonSave_Click);
       // 
-      // SavePointCloudButton
+      // savePointCloudButton
       // 
-      this.SavePointCloudButton.Enabled = false;
-      this.SavePointCloudButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.SavePointCloudButton.Location = new System.Drawing.Point(495, 3);
-      this.SavePointCloudButton.Name = "SavePointCloudButton";
-      this.SavePointCloudButton.Size = new System.Drawing.Size(96, 23);
-      this.SavePointCloudButton.TabIndex = 8;
-      this.SavePointCloudButton.Text = "Save point cloud";
-      this.SavePointCloudButton.UseVisualStyleBackColor = true;
-      this.SavePointCloudButton.Click += new System.EventHandler(this.SavePointCloudButton_Click);
+      this.savePointCloudButton.Enabled = false;
+      this.savePointCloudButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.savePointCloudButton.Location = new System.Drawing.Point(495, 3);
+      this.savePointCloudButton.Name = "savePointCloudButton";
+      this.savePointCloudButton.Size = new System.Drawing.Size(96, 23);
+      this.savePointCloudButton.TabIndex = 8;
+      this.savePointCloudButton.Text = "Save point cloud";
+      this.savePointCloudButton.UseVisualStyleBackColor = true;
+      this.savePointCloudButton.Click += new System.EventHandler(this.SavePointCloudButton_Click);
       // 
       // AdvancedToolsButton
       // 
@@ -557,10 +557,10 @@
     private System.Windows.Forms.PictureBox pictureBox1;
     private System.Windows.Forms.Button AdvancedToolsButton;
     public System.Windows.Forms.CheckBox pointCloudCheckBox;
-    private System.Windows.Forms.Button SavePointCloudButton;
     private System.Windows.Forms.NotifyIcon notificationIcon;
     public System.Windows.Forms.Button RayVisualiserButton;
     private System.Windows.Forms.Button ResetButton;
     public System.Windows.Forms.CheckBox collectDataCheckBox;
+    public System.Windows.Forms.Button savePointCloudButton;
   }
 }

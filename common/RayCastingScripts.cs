@@ -169,7 +169,7 @@ namespace Rendering
     /// <param name="par">Text parameter (from form's text field..).</param>
     /// <param name="message">Message function</param>
     /// <returns>New initialized instance of a IRayScene object.</returns>
-    public static IRayScene SceneFromObject ( string         name, object definition, string par,
+    public static IRayScene SceneFromObject ( string name, object definition, string par,
                                               StringDelegate message = null )
     {
       DefaultRayScene sc = new DefaultRayScene ();
@@ -237,7 +237,9 @@ namespace Rendering
           }
         }
 
+       
         message?.Invoke ( "Using default scene.." );
+        
         return Scenes.DefaultScene ( sc );
       }
 
@@ -246,7 +248,8 @@ namespace Rendering
       else
         ispd?.Invoke ( sc, par );
 
-      message?.Invoke ( $"Rendering '{name}' ({++count}).." );
+      if ( !MT.singleRayTracing )
+        message?.Invoke ( $"Rendering '{name}' ({++count}).." );
       return sc;
     }
   }
