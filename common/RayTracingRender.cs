@@ -72,8 +72,7 @@ namespace Rendering
       // initial color = black
       Array.Clear ( color, 0, color.Length );
 
-      Vector3d p0, p1;
-      if ( !scene.Camera.GetRay ( x, y, out p0, out p1 ) )
+      if ( !scene.Camera.GetRay ( x, y, out Vector3d p0, out Vector3d p1 ) )
         return 11L;
 
       long hash = shade ( 0, 1.0, ref p0, ref p1, color );
@@ -118,7 +117,7 @@ namespace Rendering
 
       RegisterRay ( RayType.unknown, level, p0, i );
       
-      if ( Form1.singleton.pointCloudCheckBox.Checked && !MT.pointCloudSavingInProgress && !MT.singleRayTracing )
+      if ( MT.pointCloudCheckBox && !MT.pointCloudSavingInProgress && !MT.singleRayTracing )
       {
         foreach ( Intersection intersection in intersections )
         {
@@ -248,8 +247,9 @@ namespace Rendering
       {
         //ray for statistics and maps (AdvancedTools)
         case RayType.mapsNormal:
-          //register ray for statistics and maps         
-          AdvancedTools.singleton.Register ( (int) parameters[0], (Vector3d) parameters[1], (Intersection) parameters[2] );
+          //register ray for statistics and maps
+	        if ( AdvancedTools.singleton != null)
+		        AdvancedTools.singleton.Register ( (int) parameters[0], (Vector3d) parameters[1], (Intersection) parameters[2] );         
           break;
 
         //ray for RayVisualizer

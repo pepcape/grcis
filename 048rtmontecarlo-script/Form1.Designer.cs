@@ -53,6 +53,7 @@
       this.checkRefractions = new System.Windows.Forms.CheckBox();
       this.checkMultithreading = new System.Windows.Forms.CheckBox();
       this.pointCloudCheckBox = new System.Windows.Forms.CheckBox();
+      this.collectDataCheckBox = new System.Windows.Forms.CheckBox();
       this.panel1 = new System.Windows.Forms.Panel();
       this.textParam = new System.Windows.Forms.TextBox();
       this.label3 = new System.Windows.Forms.Label();
@@ -62,7 +63,6 @@
       this.labelElapsed = new System.Windows.Forms.Label();
       this.labelSample = new System.Windows.Forms.Label();
       this.notificationIcon = new System.Windows.Forms.NotifyIcon(this.components);
-      this.collectDataCheckBox = new System.Windows.Forms.CheckBox();
       this.tableLayoutPanel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.tableLayoutPanel2.SuspendLayout();
@@ -391,6 +391,21 @@
       this.pointCloudCheckBox.TabIndex = 51;
       this.pointCloudCheckBox.Text = "point cloud";
       this.pointCloudCheckBox.UseVisualStyleBackColor = true;
+      this.pointCloudCheckBox.CheckedChanged += new System.EventHandler(this.pointCloudCheckBox_CheckedChanged);
+      // 
+      // collectDataCheckBox
+      // 
+      this.collectDataCheckBox.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.collectDataCheckBox.AutoSize = true;
+      this.collectDataCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.collectDataCheckBox.Checked = true;
+      this.collectDataCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.collectDataCheckBox.Location = new System.Drawing.Point(719, 6);
+      this.collectDataCheckBox.Name = "collectDataCheckBox";
+      this.collectDataCheckBox.Size = new System.Drawing.Size(129, 17);
+      this.collectDataCheckBox.TabIndex = 52;
+      this.collectDataCheckBox.Text = "collect additional data";
+      this.collectDataCheckBox.UseVisualStyleBackColor = true;
       // 
       // panel1
       // 
@@ -483,20 +498,6 @@
       // 
       this.notificationIcon.Text = "048 Monte Carlo RT script";
       this.notificationIcon.Visible = true;
-      // 
-      // collectDataCheckBox
-      // 
-      this.collectDataCheckBox.Anchor = System.Windows.Forms.AnchorStyles.Left;
-      this.collectDataCheckBox.AutoSize = true;
-      this.collectDataCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-      this.collectDataCheckBox.Checked = true;
-      this.collectDataCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.collectDataCheckBox.Location = new System.Drawing.Point(719, 6);
-      this.collectDataCheckBox.Name = "collectDataCheckBox";
-      this.collectDataCheckBox.Size = new System.Drawing.Size(129, 17);
-      this.collectDataCheckBox.TabIndex = 52;
-      this.collectDataCheckBox.Text = "collect additional data";
-      this.collectDataCheckBox.UseVisualStyleBackColor = true;
       // 
       // Form1
       // 

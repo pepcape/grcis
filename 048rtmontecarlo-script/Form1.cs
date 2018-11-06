@@ -109,7 +109,7 @@ namespace Rendering
       }
 
       if ( AdvancedTools.singleton == null )
-        AdvancedTools.singleton = new AdvancedTools ();
+        AdvancedTools.singleton = new AdvancedTools ( collectDataCheckBox, Notification );
 
       AdvancedTools.singleton.Initialize ();
       AdvancedTools.singleton.SetNewDimensions ( ImageWidth, ImageHeight ); //makes all maps to initialize again
@@ -224,8 +224,7 @@ namespace Rendering
     /// <param name="spec">Thread-specific data (worker-thread-selector).</param>
     private void RenderWorker ( object spec )
     {
-      WorkerThreadInit init = spec as WorkerThreadInit;
-      if ( init != null )
+      if ( spec is WorkerThreadInit init )
       {
         MT.InitThreadData ();
         init.rend.RenderRectangle ( init.image, 0, 0, init.width, init.height,
@@ -239,8 +238,7 @@ namespace Rendering
       imf.Width  = width;
       imf.Height = height;
 
-      RayTracing rt = imf as RayTracing;
-      if ( rt != null )
+      if ( imf is RayTracing rt )
       {
         rt.DoShadows     = checkShadows.Checked;
         rt.DoReflections = checkReflections.Checked;
@@ -366,9 +364,12 @@ namespace Rendering
       IImageFunction imf = getImageFunction ( sc, width, height );
       IRenderer      r   = getRenderer ( imf, width, height );
 
-      Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads );
+      Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads, pointCloudCheckBox.Checked );
       Master.singleton.progressData = progress;
       Master.singleton.InitializeAssignments ( newImage, sc, r );
+
+      if ( pointCloudCheckBox.Checked )
+        Master.singleton.pointCloud.SetNecessaryFields ( PointCloudSavingStart, PointCloudSavingEnd, Notification, Invoke );
 
       progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
       progress.Reset ();
@@ -622,11 +623,13 @@ namespace Rendering
       if ( outputImage == null ||
            aThread != null ) return;
 
-      SaveFileDialog sfd = new SaveFileDialog ();
-      sfd.Title        = @"Save PNG file";
-      sfd.Filter       = @"PNG Files|*.png";
-      sfd.AddExtension = true;
-      sfd.FileName     = "RenderResult";
+      SaveFileDialog sfd = new SaveFileDialog
+      {
+        Title = @"Save PNG file",
+        Filter = @"PNG Files|*.png",
+        AddExtension = true,
+        FileName = "RenderResult"
+      };
       if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 
@@ -794,11 +797,13 @@ namespace Rendering
     /// <param name="e">Not needed</param>
     private void SavePointCloudButton_Click ( object sender, EventArgs e )
     {
-      SaveFileDialog sfd = new SaveFileDialog ();
-      sfd.Title        = @"Save PLY file";
-      sfd.Filter       = @"PLY Files|*.ply";
-      sfd.AddExtension = true;
-      sfd.FileName     = "PointCloud";
+      SaveFileDialog sfd = new SaveFileDialog
+      {
+        Title = @"Save PLY file",
+        Filter = @"PLY Files|*.ply",
+        AddExtension = true,
+        FileName = "PointCloud"
+      };
       if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 
@@ -864,6 +869,11 @@ namespace Rendering
     {
       singleton.pointCloudCheckBox.Enabled = true;
       singleton.savePointCloudButton.Enabled = true;
+    }
+
+    private void pointCloudCheckBox_CheckedChanged ( object sender, EventArgs e )
+    {
+      MT.pointCloudCheckBox = pointCloudCheckBox.Checked;
     }
   }
 }

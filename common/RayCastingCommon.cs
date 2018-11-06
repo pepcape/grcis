@@ -523,6 +523,7 @@ namespace Rendering
     public static bool sceneRendered       = false;
     public static bool renderingInProgress = false;
     public static bool pointCloudSavingInProgress = false;
+    public static bool pointCloudCheckBox;
 
     // Put more TLS data here..
 
