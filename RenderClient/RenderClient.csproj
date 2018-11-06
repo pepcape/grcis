@@ -108,6 +108,9 @@
     <Compile Include="..\common\OpenglSupport.cs">
       <Link>OpenglSupport.cs</Link>
     </Compile>
+    <Compile Include="..\common\PointCloud.cs">
+      <Link>PointCloud.cs</Link>
+    </Compile>
     <Compile Include="..\common\RandomJames.cs">
       <Link>RandomJames.cs</Link>
     </Compile>

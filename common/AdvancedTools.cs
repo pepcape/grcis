@@ -27,6 +27,15 @@ namespace Rendering
     public bool mapsEmpty = true;
     public PointCloud pointCloud;
 
+	  private readonly CheckBox collectDataCheckBox;
+	  private readonly Action<string, string, int> notification;
+
+	  public AdvancedTools ( CheckBox collectDataCheckBox , Action<string, string, int> notification )
+	  {
+      this.collectDataCheckBox = collectDataCheckBox;
+      this.notification = notification;
+    }
+
     internal void Initialize ()
     {
       primaryRaysMap    = new RaysMap ();
@@ -57,7 +66,7 @@ namespace Rendering
     /// <param name="firstIntersection">First element of array of Intersections</param>
     public void Register ( int level, Vector3d rayOrigin, Rendering.Intersection firstIntersection )
     {
-      if ( !Form1.singleton.collectDataCheckBox.Checked )
+      if ( !collectDataCheckBox.Checked )
         return;
 
       // Initial check for null references
@@ -187,7 +196,7 @@ namespace Rendering
       delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector );
 
 
-      private AppropriateColor appropriateColor;
+      private readonly AppropriateColor appropriateColor;
 
       internal Vector3d[,] intersectionMapArray;
 
@@ -196,13 +205,9 @@ namespace Rendering
       public NormalMap ( bool relative = true )
       {
         if ( relative )
-        {
           appropriateColor = GetAppropriateColorRelative;
-        }
         else
-        {
           appropriateColor = GetAppropriateColorAbsolute;
-        }
 
         mapArray             = new Vector3d[mapImageWidth, mapImageHeight];
         intersectionMapArray = new Vector3d[mapImageWidth, mapImageHeight];
@@ -502,11 +507,13 @@ namespace Rendering
 
       public void ExportData ( string mapName )
       {
-        SaveFileDialog sfd = new SaveFileDialog ();
-        sfd.Title        = @"Save CSV file";
-        sfd.Filter       = @"CSV Files|*.csv";
-        sfd.AddExtension = true;
-        sfd.FileName     = mapName + ".csv";
+        SaveFileDialog sfd = new SaveFileDialog
+        {
+          Title = @"Save CSV file",
+          Filter = @"CSV Files|*.csv",
+          AddExtension = true,
+          FileName = mapName + ".csv"
+        };
         if ( sfd.ShowDialog () != DialogResult.OK )
           return;
 
@@ -536,7 +543,7 @@ namespace Rendering
         streamWriter.Close ();
       }
 
-      Form1.singleton?.Notification ( @"File succesfully saved", $"CSV data file \"{fileName}\" succesfully saved.", 30000 );
+	    notification ( @"File succesfully saved", $"CSV data file \"{fileName}\" succesfully saved.", 30000 );
     }
 
     /// <summary>

@@ -67,8 +67,9 @@ namespace Rendering
 
       for ( int i = 0; i < MapsTabControl.TabCount; i++ )
       {
-        Func<Control, bool> condition = c => ( c.Name.Contains ( "PictureBox" ) && c.GetType () == typeof ( PictureBox ) );
-        PictureBox pictureBox = FindAllControls ( condition , MapsTabControl.TabPages [i] )[0] as PictureBox;
+        bool Condition ( Control c ) => ( c.Name.Contains ( "PictureBox" ) && c.GetType () == typeof ( PictureBox ) );
+
+        PictureBox pictureBox = FindAllControls ( Condition , MapsTabControl.TabPages [i] )[0] as PictureBox;
         pictureBox.MouseWheel += new MouseEventHandler ( pictureBox_MouseWheel );
         pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
 
@@ -98,11 +99,14 @@ namespace Rendering
       if ( outputImage == null )
         return;
 
-      SaveFileDialog sfd = new SaveFileDialog ();
-      sfd.Title        = @"Save PNG file";
-      sfd.Filter       = @"PNG Files|*.png";
-      sfd.AddExtension = true;
-      sfd.FileName     = mapName + ".png";
+      SaveFileDialog sfd = new SaveFileDialog
+      {
+        Title = @"Save PNG file",
+        Filter = @"PNG Files|*.png",
+        AddExtension = true,
+        FileName = mapName + ".png"
+      };
+
       if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 

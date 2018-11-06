@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
+using System.Windows.Forms;
 using MathSupport;
 
 namespace Rendering
@@ -42,11 +43,11 @@ namespace Rendering
     public IRayScene scene;
     public IRenderer renderer;
 
-    private IEnumerable<Client> clientsCollection;
+    private readonly IEnumerable<Client> clientsCollection;
 
     public PointCloud pointCloud;
 
-    private int threads;
+    private readonly int threads;
 
     /// <summary>
     /// Constructor which takes also care of initializing assignments
@@ -56,7 +57,9 @@ namespace Rendering
     /// <param name="renderer">Rendered to use for RenderPixel method</param>
     /// <param name="clientsCollection">Collection of Clients to get their IP addresses - names are only for user</param>
     /// <param name="threads">Number of threads to be used for rendering</param>
-    public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer, IEnumerable<Client> clientsCollection, int threads )
+    /// <param name="newPointCloud">Bool whether new point cloud should be created</param>
+
+    public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer, IEnumerable<Client> clientsCollection, int threads, bool newPointCloud )
     {
       finishedAssignments = 0;
    
@@ -68,14 +71,15 @@ namespace Rendering
 
       Assignment.assignmentSize = assignmentSize;
 
-      if ( Form1.singleton.pointCloudCheckBox.Checked && !MT.pointCloudSavingInProgress )
+      if ( newPointCloud && !MT.pointCloudSavingInProgress )
       {
         pointCloud = new PointCloud ( threads );
         AdvancedTools.singleton.pointCloud = pointCloud;
       }
       else
       {
-        pointCloud = AdvancedTools.singleton.pointCloud;
+        if ( AdvancedTools.singleton != null )
+          pointCloud = AdvancedTools.singleton.pointCloud;
       }      
     }
 

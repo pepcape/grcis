@@ -19,27 +19,27 @@ namespace Rendering
     /// <summary>
     /// Scene read from file.
     /// </summary>
-    SceneBrep scene = new SceneBrep ();
+    private readonly SceneBrep scene = new SceneBrep ();
 
     /// <summary>
     /// Scene center point.
     /// </summary>
-    Vector3 center = Vector3.Zero;
+    private Vector3 center = Vector3.Zero;
 
     /// <summary>
     /// Scene diameter.
     /// </summary>
-    float diameter = 4.0f;
+    private float diameter = 4.0f;
 
-    float near = 0.1f;
-    float far  = 25.0f;
+    private const float near = 0.1f;
+    private const float far = 25.0f;
 
-    Vector3 light = new Vector3 ( -2, 1, 1 );
+    private Vector3 light = new Vector3 ( -2, 1, 1 );
 
     /// <summary>
     /// GLControl guard flag.
     /// </summary>
-    bool loaded = false;
+    private bool loaded = false;
 
     /// <summary>
     /// Associated Trackball instance.
@@ -49,66 +49,66 @@ namespace Rendering
     /// <summary>
     /// Frustum vertices, 0 or 8 vertices
     /// </summary>
-    List<Vector3> frustumFrame = new List<Vector3> ();
+    private readonly List<Vector3> frustumFrame = new List<Vector3> ();
 
     /// <summary>
     /// Point in the 3D scene pointed out by an user, or null.
     /// </summary>
-    Vector3? spot = null;
+    private Vector3? spot = null;
 
-    Vector3? pointOrigin = null;
-    Vector3  pointTarget;
-    Vector3  eye;
+    private Vector3? pointOrigin = null;
+    private Vector3  pointTarget;
+    private Vector3  eye;
 
-    bool pointDirty = false;
+    private bool pointDirty = false;
 
     /// <summary>
     /// Are we allowed to use VBO?
     /// </summary>
-    bool useVBO = true;
+    private bool useVBO = true;
 
     /// <summary>
     /// Can we use shaders?
     /// </summary>
-    bool canShaders = false;
+    private bool canShaders = false;
 
     /// <summary>
     /// Are we currently using shaders?
     /// </summary>
-    bool useShaders = false;
+    private bool useShaders = false;
 
-    uint[] VBOid  = null; // vertex array (colors, normals, coords), index array
-    int    stride = 0;    // stride for vertex array
+    private uint[] VBOid  = null; // vertex array (colors, normals, coords), index array
+    private int    stride = 0;    // stride for vertex array
 
     /// <summary>
     /// Current texture.
     /// </summary>
-    int texName = 0;
+    private int texName = 0;
 
     /// <summary>
     /// Global GLSL program repository.
     /// </summary>
-    Dictionary<string, GlProgramInfo> programs = new Dictionary<string, GlProgramInfo> ();
+    private Dictionary<string, GlProgramInfo> programs = new Dictionary<string, GlProgramInfo> ();
 
     /// <summary>
     /// Current (active) GLSL program.
     /// </summary>
-    GlProgram activeProgram = null;
+    private GlProgram activeProgram = null;
 
     // appearance:
-    Vector3 globalAmbient = new Vector3 ( 0.2f, 0.2f, 0.2f );
-    Vector3 matAmbient    = new Vector3 ( 0.8f, 0.6f, 0.2f );
-    Vector3 matDiffuse    = new Vector3 ( 0.8f, 0.6f, 0.2f );
-    Vector3 matSpecular   = new Vector3 ( 0.8f, 0.8f, 0.8f );
-    float   matShininess  = 100.0f;
-    Vector3 whiteLight    = new Vector3 ( 1.0f, 1.0f, 1.0f );
-    Vector3 lightPosition = new Vector3 ( -20.0f, 10.0f, 10.0f );
+    private Vector3 globalAmbient = new Vector3 ( 0.2f, 0.2f, 0.2f );
+    private Vector3 matAmbient    = new Vector3 ( 0.8f, 0.6f, 0.2f );
+    private Vector3 matDiffuse    = new Vector3 ( 0.8f, 0.6f, 0.2f );
+    private Vector3 matSpecular   = new Vector3 ( 0.8f, 0.8f, 0.8f );
+    private float   matShininess  = 100.0f;
+    private Vector3 whiteLight    = new Vector3 ( 1.0f, 1.0f, 1.0f );
+    private Vector3 lightPosition = new Vector3 ( -20.0f, 10.0f, 10.0f );
 
-    long   lastFPSTime     = 0L;
-    int    frameCounter    = 0;
-    long   triangleCounter = 0L;
-    double lastFPS         = 0.0;
-    double lastTPS         = 0.0;
+    private long   lastFPSTime     = 0L;
+    private int    frameCounter    = 0;
+    private long   triangleCounter = 0L;
+    private double lastFPS         = 0.0;
+    private double lastTPS         = 0.0;
 
     private Color defaultBackgroundColor = Color.Black;
 
@@ -122,11 +122,16 @@ namespace Rendering
 
       InitShaderRepository ();
 
-      RayVisualizerForm.singleton = this;
+      singleton = this;
 
       RayVisualizer.singleton = new RayVisualizer ();
 
       Cursor.Current = Cursors.Default;
+
+      if ( AdvancedTools.singleton.pointCloud == null || AdvancedTools.singleton.pointCloud.IsCloudEmpty )
+        PointCloudButton.Enabled = false;
+      else
+        PointCloudButton.Enabled = true;
     }
 
     private void GenerateMesh () // formerly: "buttonGenerate_Click ( object sender, EventArgs e )"
@@ -200,11 +205,10 @@ namespace Rendering
     /// <summary>
     /// Unproject support
     /// </summary>
-    Vector3 screenToWorld ( int x, int y, float z = 0.0f )
+    private Vector3 screenToWorld ( int x, int y, float z = 0.0f )
     {
-      Matrix4 modelViewMatrix, projectionMatrix;
-      GL.GetFloat ( GetPName.ModelviewMatrix, out modelViewMatrix );
-      GL.GetFloat ( GetPName.ProjectionMatrix, out projectionMatrix );
+      GL.GetFloat ( GetPName.ModelviewMatrix, out Matrix4 modelViewMatrix );
+      GL.GetFloat ( GetPName.ProjectionMatrix, out Matrix4 projectionMatrix );
 
       return Geometry.UnProject ( ref projectionMatrix, ref modelViewMatrix, glControl1.Width, glControl1.Height, x,
                                   glControl1.Height - y, z );
@@ -306,8 +310,7 @@ namespace Rendering
       trackBall.Zoom = (float) (distanceOfEye / distanceOfCamera);
     }
 
-
-		void InitOpenGL ()
+    private void InitOpenGL ()
 		{
 			// log OpenGL info
 			GlInfo.LogGLProperties ();
@@ -335,7 +338,7 @@ namespace Rendering
 		/// Init shaders registered in global repository 'programs'.
 		/// </summary>
 		/// <returns>True if succeeded.</returns>
-		bool SetupShaders ()
+		private bool SetupShaders ()
 		{
 			activeProgram = null;
 
@@ -346,9 +349,7 @@ namespace Rendering
 			if ( activeProgram == null )
 				return false;
 
-			GlProgramInfo defInfo;
-
-			if ( programs.TryGetValue ( "default", out defInfo ) && defInfo.program != null )
+			if ( programs.TryGetValue ( "default", out GlProgramInfo defInfo ) && defInfo.program != null )
 				activeProgram = defInfo.program;
 
 			return true;
@@ -358,7 +359,7 @@ namespace Rendering
 		/// De-allocated all the data associated with the given texture object.
 		/// </summary>
 		/// <param name="texName"></param>
-		void DestroyTexture ( ref int texName )
+		private void DestroyTexture ( ref int texName )
 		{
 			int tHandle = texName;
 
@@ -372,7 +373,7 @@ namespace Rendering
 		/// Generate static procedural texture.
 		/// </summary>
 		/// <returns>Texture handle.</returns>
-		int GenerateTexture ()
+		private int GenerateTexture ()
 		{
 			// generated texture:
 			const int TEX_SIZE         = 128;
@@ -426,7 +427,7 @@ namespace Rendering
 		/// <summary>
 		/// Prepare VBO content and upload it to the GPU.
 		/// </summary>
-		void PrepareDataBuffers ()
+		private void PrepareDataBuffers ()
 		{
 			if ( useVBO && scene != null && scene.Triangles > 0 )
 			{
@@ -482,18 +483,17 @@ namespace Rendering
 		/// </summary>
 		/// <param name="size">Relative size (based on the scene size).</param>
 		/// <param name="light">Relative light position (default=[-2,1,1],viewer=[0,0,1]).</param>
-		void SetLight ( float size, ref Vector3 light )
+		private void SetLight ( float size, ref Vector3 light )
 		{
 			lightPosition = 2.0f * size * light;
 		}
 
-		void InitShaderRepository ()
+    private void InitShaderRepository ()
 		{
 			programs.Clear ();
-			GlProgramInfo pi;
 
-			// default program:
-			pi = new GlProgramInfo ( "default", new GlShaderInfo[]
+      // default program:
+		  GlProgramInfo pi = new GlProgramInfo ( "default", new GlShaderInfo[]
 			{
 		new GlShaderInfo ( ShaderType.VertexShader, "vertex.glsl", "048rtmontecarlo-script" ),
 		new GlShaderInfo ( ShaderType.FragmentShader, "fragment.glsl", "048rtmontecarlo-script" )
@@ -502,7 +502,7 @@ namespace Rendering
 			programs[pi.name] = pi;
 		}
 
-		void DestroyShaders ()
+    private void DestroyShaders ()
 		{
 			foreach ( GlProgramInfo prg in programs.Values )
 				prg.Destroy ();
@@ -548,7 +548,7 @@ namespace Rendering
 			glControl1.SwapBuffers ();
 		}
 
-		void Application_Idle ( object sender, EventArgs e )
+    private void Application_Idle ( object sender, EventArgs e )
 		{
 			if ( glControl1.IsDisposed )
 				return;
@@ -590,11 +590,9 @@ namespace Rendering
 
 					if ( scene != null && scene.Triangles > 0 )
 					{
-						Vector3 A, B, C;
-
 						for ( int i = 0; i < scene.Triangles; i++ )
 						{
-							scene.GetTriangleVertices ( i, out A, out B, out C );
+							scene.GetTriangleVertices ( i, out Vector3 A, out Vector3 B, out Vector3 C );
 
 							double curr = Geometry.RayTriangleIntersection ( ref p0, ref p1, ref A, ref B, ref C, out uv );
 
@@ -624,8 +622,8 @@ namespace Rendering
 		}
 
 		// attribute/vertex arrays:
-		bool vertexAttribOn  = false;
-		bool vertexPointerOn = false;
+    private bool vertexAttribOn  = false;
+    private bool vertexPointerOn = false;
 
 		private void SetVertexAttrib ( bool on )
 		{
@@ -673,7 +671,7 @@ namespace Rendering
 		/// <summary>
 		/// Rendering code itself (separated for clarity).
 		/// </summary>
-		void RenderScene ()
+		private void RenderScene ()
 		{
 			// Scene rendering:
 			if ( scene != null && scene.Triangles > 0 && useVBO ) // scene is nonempty => render it
@@ -1202,14 +1200,14 @@ namespace Rendering
 		}
 
 		/// <summary>
-		/// Applies tranformation matrix to vector
+		/// Applies transformation matrix to vector
 		/// </summary>
 		/// <param name="vector">1x3 vector</param>
 		/// <param name="transformation">4x4 transformation matrix</param>
 		/// <returns>Transformed vector 1x3</returns>
 		public Vector3d ApplyTransformation ( Vector3d vector, Matrix4d transformation )
 		{
-			Vector4d transformedVector = MultiplyVectorByMatrix ( new Vector4d ( vector, 1 ), transformation ); //( vector, 1 ) is extention [x  y  z] -> [x  y  z  1]
+			Vector4d transformedVector = MultiplyVectorByMatrix ( new Vector4d ( vector, 1 ), transformation ); //( vector, 1 ) is extenstion [x  y  z] -> [x  y  z  1]
 
 			return new Vector3d ( transformedVector.X / transformedVector.W, //[x  y  z  w] -> [x/w  y/w  z/w]
 								  transformedVector.Y / transformedVector.W,
@@ -1336,32 +1334,25 @@ namespace Rendering
 			return Color.FromArgb ( colorValue, colorValue, colorValue );
 		}
 
-
-		List<SceneObject> sceneObjects;
-		IRayScene rayScene;
+    private List<SceneObject> sceneObjects;
+    private IRayScene rayScene;
 		/// <summary>
 		/// Fills sceneObjects list with objects from current scene
 		/// </summary>
 		private void FillSceneObjects ()
 		{
 			if ( RayVisualizer.rayScene == rayScene ) // prevents filling whole list in case scene did not change (most of the time)
-			{
 				return;
-			}
 			else
-			{
 				rayScene = RayVisualizer.rayScene;
-			}
 
-			DefaultSceneNode root = rayScene.Intersectable as DefaultSceneNode;
+      if ( !( rayScene.Intersectable is DefaultSceneNode root ) )
+      {
+        sceneObjects = null;
+        return;
+      }
 
-			if ( root == null )
-			{
-				sceneObjects = null;
-				return;
-			}
-
-			sceneObjects = new List<SceneObject> ();
+      sceneObjects = new List<SceneObject> ();
 
 			Matrix4d transformation = Matrix4d.Identity;
 
@@ -1389,29 +1380,19 @@ namespace Rendering
 		/// <param name="transformation"></param>
 		private void EvaluateSceneNode ( DefaultSceneNode parent, Matrix4d transformation, double[] color )
 		{
-			foreach ( DefaultSceneNode children in parent.Children )
+			foreach ( ISceneNode sceneNode in parent.Children )
 			{
-				Matrix4d localTransformation = children.ToParent * transformation;
+			  ISceneNode children = (DefaultSceneNode) sceneNode;
+			  Matrix4d localTransformation = children.ToParent * transformation;
 
 
 				double[] newColor;
 
 				// take color from child's attribute COLOR, child's attribute MATERIAL.Color or from parent
 				if ( (double[]) children.GetAttribute ( PropertyName.COLOR ) == null )
-				{
-					if ( ( (IMaterial) children.GetAttribute ( PropertyName.MATERIAL ) ).Color == null )
-					{
-						newColor = color;
-					}
-					else
-					{
-						newColor = ( (IMaterial) children.GetAttribute ( PropertyName.MATERIAL ) ).Color;
-					}
-				}
+				  newColor = ( (IMaterial) children.GetAttribute ( PropertyName.MATERIAL ) ).Color ?? color;
 				else
-				{
 					newColor = (double[]) children.GetAttribute ( PropertyName.COLOR );
-				}
 
 
 				if ( children is ISolid solid )
@@ -1430,7 +1411,7 @@ namespace Rendering
 		/// <summary>
 		/// Data class containing info about ISolid and its absolute position in scene (through transformation matrix)
 		/// </summary>
-		class SceneObject
+		private class SceneObject
 		{
 			public ISolid solid;
 			public Matrix4d transformation;
@@ -1445,7 +1426,7 @@ namespace Rendering
 		}
 
     private PointCloud pointCloud;
-    private int pointCloudVBO = 0;
+    private int pointCloudVBO;
 
     /// <summary>
     /// Gets reference to point cloud, calls initialization of VBO for point cloud and changes GUI elements respectively 

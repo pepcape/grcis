@@ -36,9 +36,9 @@ namespace RenderClient
     private static IRayScene scene;
     private static IRenderer renderer;
 
-    private static int threadCount;
+    private static readonly int threadCount;
 
-    static object consoleLock = new object();
+	  private static readonly object consoleLock = new object();
 
     static RenderClient ()
     {
@@ -99,7 +99,7 @@ namespace RenderClient
 
 			    Console.WriteLine ( @"Client succesfully connected." );
         }
-		    catch ( SocketException e ) // thrown in case of multiple clients being launched on the same computer
+		    catch ( SocketException ) // thrown in case of multiple clients being launched on the same computer
 		    {
 			    Console.ForegroundColor = ConsoleColor.Red;
 			    Console.WriteLine ( "\nYou can not start more than one client on the same computer." );
@@ -120,13 +120,12 @@ namespace RenderClient
 		    receiver.Priority = ThreadPriority.BelowNormal;
 		    receiver.Start ();
 
-		    ClientMaster.instance.StartThreads ( threadCount );
+		    ClientMaster.singleton.StartThreads ( threadCount );
 
 		    EndOfRenderClientWork ();
 	    }
     }
 
-    private static bool keyPressReceivedSignal = false;
     /// <summary>
     /// Takes care of end of RenderClient work
     /// Offers user to either exit or wait for new work from server
@@ -191,7 +190,7 @@ namespace RenderClient
 
       NetworkSupport.SendInt ( stream, threadCount );
 
-      ClientMaster.instance = new ClientMaster ( null, scene, renderer );
+      ClientMaster.singleton = new ClientMaster ( null, scene, renderer );
     }
 
 
@@ -226,7 +225,7 @@ namespace RenderClient
             Console.WriteLine ( @"Data for assignment [{0}, {1}, {2}, {3}] received and deserialized.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
           }        
 
-          ClientMaster.instance.availableAssignments.Enqueue ( newAssignment ); // adds new assignment to the queue; it is later taken from there by thread in Consume method
+          ClientMaster.singleton.availableAssignments.Enqueue ( newAssignment ); // adds new assignment to the queue; it is later taken from there by thread in Consume method
         }
       }
     }
@@ -247,9 +246,6 @@ namespace RenderClient
 
       while ( true )
 		  {
-			  if ( keyPressReceivedSignal )
-          return;
-
 			  if ( stream.DataAvailable )
 			  {
 				  SetAssembliesNames ();
@@ -335,11 +331,11 @@ namespace RenderClient
     /// </summary>
     private class ClientMaster: Master
     {
-      public new static ClientMaster instance; //singleton
+      public new static ClientMaster singleton;
 
       private Thread[] pool;
 
-      public ClientMaster ( Bitmap bitmap, IRayScene scene, IRenderer renderer ) : base ( bitmap, scene, renderer, null )
+      public ClientMaster ( Bitmap bitmap, IRayScene scene, IRenderer renderer ) : base ( bitmap, scene, renderer, null, 1, false )
       {
         availableAssignments = new ConcurrentQueue<Assignment> ();
 
@@ -351,7 +347,7 @@ namespace RenderClient
       /// Creates threadpool and starts all threads on Consume method
       /// </summary>
       /// <param name="threads">Number of threads to be used for rendering</param>
-      public new void StartThreads ( int threads )
+      public void StartThreads ( int threads )
       {
         pool = new Thread[threads];
 
@@ -383,8 +379,7 @@ namespace RenderClient
 
         while ( !finished || !availableAssignments.IsEmpty )
         {
-          Assignment newAssignment;
-          availableAssignments.TryDequeue ( out newAssignment );
+          availableAssignments.TryDequeue ( out Assignment newAssignment );
 
           if ( newAssignment == null ) // TryDequeue was not succesfull
             continue;

@@ -17,9 +17,36 @@ namespace Rendering
 
     public int numberOfElements;
 
+	  private Action PointCloudSavingStart;
+	  private MethodInvoker PointCloudSavingEnd;
+	  private Func<MethodInvoker, object> Invoke;
+
+    private Action<string, string, int> Notification;
+
+		/// <summary>
+    /// Default constructor
+    /// </summary>
+    /// <param name="numberOfThreads">Number of threads used for rendering depicts number of separate lists in cloud data structure</param>
     public PointCloud ( int numberOfThreads )
     {
       InitializeCloudArray ( numberOfThreads );
+    }
+
+	  /// <summary>
+	  /// Sets necessary Form's methods
+	  /// </summary>
+    /// <param name="newPointCloud">Bool whether new point cloud should be created</param>
+    /// <param name="PointCloudSavingStart">Delegate to form's method which sets GUI at the beginning of point cloud saving</param>
+    /// <param name="PointCloudSavingEnd">MethodInvoker to form's method which sets GUI at the end of point cloud saving</param>
+    /// <param name="Notification">Delegate to notification method</param>
+    /// <param name="Invoke">Form's Invoke method</param>
+    public void SetNecessaryFields ( Action PointCloudSavingStart, MethodInvoker PointCloudSavingEnd,
+	                                   Action<string, string, int> Notification, Func<MethodInvoker, object> Invoke )
+	  {
+		  this.PointCloudSavingStart = PointCloudSavingStart;
+		  this.PointCloudSavingEnd = PointCloudSavingEnd;
+		  this.Notification = Notification;
+		  this.Invoke = Invoke;
     }
 
     /// <summary>
@@ -81,7 +108,7 @@ namespace Rendering
     /// <param name="fileName">Name of external file - .ply file extension is added if it does not contain it already</param>
     public void SaveToPLYFile ( string fileName )
     {
-      Form1.singleton.PointCloudSavingStart ();
+	    PointCloudSavingStart ();
       MT.pointCloudSavingInProgress = true;
 
       if ( fileName == null )
@@ -122,10 +149,10 @@ namespace Rendering
         streamWriter.Close ();
       }
 
-      Form1.singleton.Invoke ( (MethodInvoker) Form1.singleton.PointCloudSavingEnd );
+      Invoke ( PointCloudSavingEnd );
       MT.pointCloudSavingInProgress = false;
 
-      Form1.singleton?.Notification ( @"File succesfully saved", $"Point cloud file \"{fileName}\" succesfully saved.", 30000 );
+      Notification ( @"File succesfully saved", $"Point cloud file \"{fileName}\" succesfully saved.", 30000 );
     }
 
     /// <summary>
