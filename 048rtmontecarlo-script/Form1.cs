@@ -15,7 +15,7 @@ namespace Rendering
 {
   public partial class Form1: Form, IRenderProgressForm
   {
-    static readonly string rev = Util.SetVersion ( "$Rev$" );
+    public static readonly string rev = Util.SetVersion ( "$Rev$" );
 
     public static Form1 singleton = null;
 
@@ -77,9 +77,9 @@ namespace Rendering
     /// </summary>
     protected RenderingProgress progress = null;
 
-    protected string winTitle;
+    protected string formTitle;
 
-    private PanAndZoomSupport panAndZoom;
+    private readonly PanAndZoomSupport panAndZoom;
 
     public Form1 ( string[] args )
     {
@@ -90,8 +90,8 @@ namespace Rendering
       // Init scenes etc.
       FormSupport.InitializeScenes ( args, out string name );
 
-      Text += " (" + rev + ") '" + name + '\'';
-      winTitle = Text;
+      Text += @" (" + rev + @") '" + name + '\'';
+      formTitle = Text;
       SetWindowTitleSuffix ( " Zoom: 100%" );
 
       SetOptions ( args );
@@ -337,7 +337,7 @@ namespace Rendering
                                    ( CSGInnerNode.countBoundingBoxes + 500L ) / 1000L,
                                    ( CSGInnerNode.countTriangles + 500L ) / 1000L );
       SetText ( msg );
-      Console.WriteLine ( "Rendering finished: " + msg );
+      Console.WriteLine ( @"Rendering finished: " + msg );
       SetImage ( newImage );
 
       Cursor.Current = Cursors.Default;
@@ -394,7 +394,7 @@ namespace Rendering
                                    ( CSGInnerNode.countBoundingBoxes + 500L ) / 1000L,
                                    ( CSGInnerNode.countTriangles + 500L ) / 1000L );
       SetText ( msg );
-      Console.WriteLine ( "Rendering finished: " + msg );
+      Console.WriteLine ( @"Rendering finished: " + msg );
       SetImage ( newImage );
 
       Cursor.Current = Cursors.Default;
@@ -450,7 +450,7 @@ namespace Rendering
     }
 
 
-    delegate void SetTextCallback ( string text );
+    private delegate void SetTextCallback ( string text );
 
 
     public void SetText ( string text )
@@ -467,7 +467,9 @@ namespace Rendering
 
     delegate void StopRenderingCallback ();
 
-
+    /// <summary>
+    /// Called to stop rendering and at the end of successful rendering 
+    /// </summary>
     protected void StopRendering ()
     {
       if ( aThread == null )
@@ -489,21 +491,23 @@ namespace Rendering
         // GUI stuff:
         SetGUI ( true );
 
-        AdvancedToolsForm.instance?.RenderButtonsEnabled ( true );
-        AdvancedToolsForm.instance?.ExportDataButtonsEnabled ( true );
+        AdvancedToolsForm.singleton?.RenderButtonsEnabled ( true );
+        AdvancedToolsForm.singleton?.ExportDataButtonsEnabled ( true );
         MT.renderingInProgress = false;
         MT.sceneRendered = true;
 
         if ( Master.singleton.pointCloud == null || Master.singleton.pointCloud.IsCloudEmpty )
           savePointCloudButton.Enabled = false;
+
+        AdvancedToolsForm.singleton?.RenderCurrentlyActiveTab ();
       }
     }
 
     /// <summary>
-    /// Shoots single primary ray only..
+    /// Shoots single primary ray only
     /// </summary>
-    /// <param name="x">X-coordinate inside the raster image.</param>
-    /// <param name="y">Y-coordinate inside the raster image.</param>
+    /// <param name="x">X-coordinate inside the raster image</param>
+    /// <param name="y">Y-coordinate inside the raster image</param>
     private void singleSample ( int x, int y )
     {
       MT.singleRayTracing = true;
@@ -563,8 +567,7 @@ namespace Rendering
 
               case "supersampling":
               {
-                int v;
-                if ( int.TryParse ( opts[1], out v ) )
+                if ( int.TryParse ( opts[1], out int v ) )
                   numericSupersampling.Text = v.ToString ();
               }
               break;
@@ -591,7 +594,7 @@ namespace Rendering
         AdvancedTools.singleton.NewRenderInitialization ();
       }
       else if ( !AdvancedTools.singleton.mapsEmpty )
-        AdvancedToolsForm.instance?.ExportDataButtonsEnabled ( true );
+        AdvancedToolsForm.singleton?.ExportDataButtonsEnabled ( true );
 
       if ( aThread != null )
         return;
@@ -599,7 +602,7 @@ namespace Rendering
       // GUI stuff:
       SetGUI ( false );
 
-      AdvancedToolsForm.instance?.RenderButtonsEnabled ( false );
+      AdvancedToolsForm.singleton?.RenderButtonsEnabled ( false );
       MT.renderingInProgress = true;
       Statistics.Reset ();
 
@@ -617,8 +620,8 @@ namespace Rendering
            aThread != null ) return;
 
       SaveFileDialog sfd = new SaveFileDialog ();
-      sfd.Title        = "Save PNG file";
-      sfd.Filter       = "PNG Files|*.png";
+      sfd.Title        = @"Save PNG file";
+      sfd.Filter       = @"PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName     = "RenderResult";
       if ( sfd.ShowDialog () != DialogResult.OK )
@@ -645,9 +648,9 @@ namespace Rendering
 
     private void AdvancedToolsButton_Click ( object sender, EventArgs e )
     {
-      if ( AdvancedToolsForm.instance != null )
+      if ( AdvancedToolsForm.singleton != null )
       {
-        AdvancedToolsForm.instance.Activate ();
+        AdvancedToolsForm.singleton.Activate ();
 
         return; //only one instance of Form1 can exist at the time
       }
@@ -704,8 +707,8 @@ namespace Rendering
     /// <summary>
     /// Handles calling singleSample for RayVisualizer and picture box image pan control
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Needed for mouse button detection and cursor location</param>
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
       bool condition = aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress;
@@ -716,6 +719,11 @@ namespace Rendering
         Cursor = cursor;
     }
 
+    /// <summary>
+    /// Called as MouseUp event from PictureBox
+    /// </summary>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
     {
       panAndZoom.MouseUpRegistration ( out Cursor cursor );
@@ -726,8 +734,8 @@ namespace Rendering
     /// <summary>
     /// Catches mouse wheel movement for zoom in/out of image in picture box
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Needed for mouse wheel delta value and cursor location</param>
     private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
     {
       panAndZoom.MouseWheelRegistration ( e, ModifierKeys );
@@ -736,8 +744,8 @@ namespace Rendering
     /// <summary>
     /// Sets necessary stuff at form load
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void Form1_Load ( object sender, EventArgs e )
     {
       pictureBox1.SizeMode   =  PictureBoxSizeMode.Zoom;
@@ -751,22 +759,23 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Catches +/PageUp for zoom in or -/PageDown for zoom out of image in picture box
+    /// Called when any key is pressed;
+    /// Used for zoom using keys
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Needed to get pressed key</param>
     private void Form1_KeyDown ( object sender, KeyEventArgs e )
     {
       panAndZoom.KeyDownRegistration ( e.KeyCode, ModifierKeys );
-    }   
-   
+    }
+
 
     /// <summary>
     /// Called every time main picture box is needed to be re-painted
     /// Used for re-painting after request for zoom in/out or pan
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Needed to get Graphics class associated with PictureBox</param>
     private void pictureBox1_Paint ( object sender, PaintEventArgs e )
     {     
       panAndZoom.Paint ( e );
@@ -775,8 +784,8 @@ namespace Rendering
     /// <summary>
     /// Opens SaveFileDialog and calls method SaveToPLYFile in PointCloud class
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void SavePointCloudButton_Click ( object sender, EventArgs e )
     {
       SaveFileDialog sfd = new SaveFileDialog ();
@@ -813,13 +822,13 @@ namespace Rendering
     /// <summary>
     /// Adds suffix to default text in Form>text property (title text in upper panel, between icon and minimize and close buttons)
     /// </summary>
-    /// <param name="suffix"></param>
-    void SetWindowTitleSuffix ( string suffix )
+    /// <param name="suffix">Suffix to add to constant Form title</param>
+    private void SetWindowTitleSuffix ( string suffix )
     {
       if ( string.IsNullOrEmpty ( suffix ) )
-        Text = winTitle;
+        Text = formTitle;
       else
-        Text = winTitle + ' ' + suffix;
+        Text = formTitle + ' ' + suffix;
     }
 
     /// <summary>
