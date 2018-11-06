@@ -498,8 +498,9 @@ namespace Rendering
 
         if ( Master.singleton.pointCloud == null || Master.singleton.pointCloud.IsCloudEmpty )
           savePointCloudButton.Enabled = false;
-        else
+        else if ( RayVisualizerForm.singleton != null )
           RayVisualizerForm.singleton.PointCloudButton.Enabled = true;
+          
 
         AdvancedToolsForm.singleton?.RenderCurrentlyActiveTab ();
       }
