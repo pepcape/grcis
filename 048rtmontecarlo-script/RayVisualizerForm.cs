@@ -1431,9 +1431,14 @@ namespace Rendering
 			}
 		}
 
-    PointCloud pointCloud;
+    private PointCloud pointCloud;
     private int pointCloudVBO = 0;
 
+    /// <summary>
+    /// Gets reference to point cloud, calls initialization of VBO for point cloud and changes GUI elements respectively 
+    /// </summary>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void PointCloudButton_Click ( object sender, EventArgs e )
     {
       pointCloud = AdvancedTools.singleton.pointCloud;
@@ -1447,6 +1452,9 @@ namespace Rendering
       PointCloudCheckBox.Checked = true;
     }
 
+    /// <summary>
+    /// Initializes Vertex Buffer Object (VBO) for point cloud
+    /// </summary>
     private void InitializePointCloudVBO ()
     {
       pointCloudVBO = GL.GenBuffer ();

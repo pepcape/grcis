@@ -260,11 +260,11 @@ namespace Rendering
     private static readonly Vector3d axesCorrectionVector = new Vector3d ( 1, 1, -1 );
 
     /// <summary>
-    /// Corrects axes (different axes labels/positioning system for scene in original raytracer and system used for FLY files)
+    /// Corrects axes (different axes labels/positioning system for scene in original raytracer and system used for PLY files)
     /// Inverts 3rd axis of position
     /// </summary>
     /// <param name="position">Position in original raytracer scene</param>
-    /// <returns>Position in OpenGL system (or zero vector if input is null)</returns>
+    /// <returns>Position in standard system for PLY files (or zero vector if input is null)</returns>
     public static Vector3d AxesCorrector ( Vector3d? position )
     {
       if ( position == null )
