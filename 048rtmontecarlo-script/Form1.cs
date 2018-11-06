@@ -498,6 +498,8 @@ namespace Rendering
 
         if ( Master.singleton.pointCloud == null || Master.singleton.pointCloud.IsCloudEmpty )
           savePointCloudButton.Enabled = false;
+        else
+          RayVisualizerForm.singleton.PointCloudButton.Enabled = true;
 
         AdvancedToolsForm.singleton?.RenderCurrentlyActiveTab ();
       }
@@ -661,9 +663,9 @@ namespace Rendering
 
     private void RayVisualiserButton_Click ( object sender, EventArgs e )
     {
-      if ( RayVisualizerForm.instance != null )
+      if ( RayVisualizerForm.singleton != null )
       {
-        RayVisualizerForm.instance.Activate ();
+        RayVisualizerForm.singleton.Activate ();
 
         return; //only one instance of RayVisualizerForm can exist at the time
       }
