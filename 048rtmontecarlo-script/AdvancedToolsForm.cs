@@ -13,14 +13,14 @@ namespace Rendering
   {
     private readonly PanAndZoomSupport[] PanAndZoomControls;
 
-    public static AdvancedToolsForm instance; //singleton
+    public static AdvancedToolsForm singleton;
 
     /// <summary>
     /// Constructor which sets location of Form1 window and initializes AdvancedTools class
     /// </summary>
     public AdvancedToolsForm ()
     {
-      instance = this;
+      singleton = this;
 
       InitializeComponent ();
 
@@ -80,7 +80,7 @@ namespace Rendering
 
     private void AdvancedToolsForm_FormClosed ( object sender, FormClosedEventArgs e )
     {
-			instance = null;
+			singleton = null;
     }
 
     /// <summary>
@@ -109,13 +109,13 @@ namespace Rendering
       outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
       Form1.singleton?.Notification ( @"File succesfully saved", $"Image file \"{sfd.FileName}\" succesfully saved.", 30000 );
     }
-   
+
     /// <summary>
     /// Universal method for calling render method of map class
-    /// Correct map class is chosen via reflection - panel (parent of sender) must have Tag set to name of class instance in AdvancedTools class
+    /// Correct map class is chosen via reflection - current TabPage must have Tag set to name of class instance in AdvancedTools class
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void RenderMapButton_Click ( object sender, EventArgs e )
     {
       if ( Form1.singleton.outputImage == null || MT.renderingInProgress )
@@ -152,6 +152,19 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Displays number of rays of specific RaysMap (PrimaryRaysMap, AllRaysMap, ...) sent to selected pixel (clicked or moved over while mouse down)
+    /// </summary>
+    private void RaysMapPictureBox_MouseDown ( object sender, MouseEventArgs e )
+    {
+      CommonMouseDown ( e, RaysMapDisplayStats );
+    }
+
+    private void RaysMapPictureBox_MouseMove ( object sender, MouseEventArgs e )
+    {
+      CommonMouseMove ( e, RaysMapDisplayStats );
+    }
+
+    /// <summary>
     /// Displays angle of rayOrigin-intersection and normal vector in place of intersection in selected pixel (clicked or hovered over while mouse down)
     /// Intersections as well as normal vectors are averaged through all such vectors in selected pixel
     /// </summary>
@@ -166,19 +179,10 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Displays number of rays of specific RaysMap (PrimaryRaysMap, AllRaysMap, ...) sent to selected pixel (clicked or moved over while mouse down)
+    /// Displays statistics related to DepthMap
     /// </summary>
-    private void RaysMapPictureBox_MouseDown ( object sender, MouseEventArgs e )
-    {
-      CommonMouseDown ( e, RaysMapDisplayStats );
-    }
-
-    private void RaysMapPictureBox_MouseMove ( object sender, MouseEventArgs e )
-    {
-      CommonMouseMove ( e, RaysMapDisplayStats );
-    }
-
-
+    /// <param name="X">Relative X coordinate of curson on image</param>
+    /// <param name="Y">Relative Y coordinate of curson on image</param>
     private void DepthMapDisplayStats ( int X, int Y )
     {
       Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ( "en-GB" ); // needed for dot as decimal separator in float
@@ -188,21 +192,11 @@ namespace Rendering
       DepthMap_Coordinates.Text = $"X: {X}\r\nY: {Y}\r\nDepth: {depth:0.00}";
     }
 
-
-    private void NormalMapDisplayStats ( int X, int Y )
-    {
-      double angle = AdvancedTools.singleton.normalMapRelative.GetValueAtCoordinates ( X, Y );
-
-      char degreesChar = '°';
-      if ( double.IsInfinity ( angle ) || double.IsNaN ( angle ) )
-        degreesChar = '\0';
-
-      NormalMapRelativeCoordinates.Text =
-        NormalMapAbsoluteCoordinates.Text =
-          $"X: {X}\r\nY: {Y}\r\nAngle of normal vector: {angle:0.00}{degreesChar}";
-    }
-
-
+    /// <summary>
+    /// Displays statistics related to RayMaps
+    /// </summary>
+    /// <param name="X">Relative X coordinate of curson on image</param>
+    /// <param name="Y">Relative Y coordinate of curson on image</param>
     private void RaysMapDisplayStats ( int X, int Y )
     {
       TabPage tabPage = MapsTabControl.SelectedTab;
@@ -224,6 +218,29 @@ namespace Rendering
       label.Text = $"X: {X}\r\nY: {Y}\r\nRays count: {raysCount}";
     }
 
+    /// <summary>
+    /// Displays statistics related to NormalMaps
+    /// </summary>
+    /// <param name="X">Relative X coordinate of curson on image</param>
+    /// <param name="Y">Relative Y coordinate of curson on image</param>
+    private void NormalMapDisplayStats ( int X, int Y )
+    {
+      double angle = AdvancedTools.singleton.normalMapRelative.GetValueAtCoordinates ( X, Y );
+
+      char degreesChar = '°';
+      if ( double.IsInfinity ( angle ) || double.IsNaN ( angle ) )
+        degreesChar = '\0';
+
+      NormalMapRelativeCoordinates.Text =
+        NormalMapAbsoluteCoordinates.Text =
+          $"X: {X}\r\nY: {Y}\r\nAngle of normal vector: {angle:0.00}{degreesChar}";
+    }
+
+    /// <summary>
+    /// Should be called from MouseDown events of all PictureBoxes of maps
+    /// </summary>
+    /// <param name="e">Needed for mouse button detection and cursor location</param>
+    /// <param name="displayStats">DisplayStats method to use</param>
     private void CommonMouseDown ( MouseEventArgs e, Action<int, int> displayStats )
     {
       bool condition = PanAndZoomControls [MapsTabControl.SelectedIndex].image != null && e.Button == MouseButtons.Left;
@@ -232,28 +249,13 @@ namespace Rendering
 
       if ( cursor != null )
         Cursor = cursor;
-
-      /*
-      if ( PanAndZoomControls[MapsTabControl.SelectedIndex].image != null && e.Button == MouseButtons.Left )
-      {
-        PointF relative = PanAndZoomControls[MapsTabControl.SelectedIndex].GetRelativeCursorLocation ( e.X, e.Y );
-
-        if ( !float.IsNaN( relative.X ) )
-          displayStats ( (int) relative.X, (int) relative.Y );
-      }
-
-      if ( !ModifierKeys.HasFlag ( Keys.Control ) && e.Button == MouseButtons.Left && !mousePressed ) //holding down CTRL key prevents panning
-      {
-        mousePressed = true;
-        PanAndZoomControls[MapsTabControl.SelectedIndex].MouseDown ( e.Location );
-      }
-      else
-      {
-        Cursor = Cursors.Cross;
-      }*/
     }
 
-
+    /// <summary>
+    /// Should be called from MouseMove events of all PictureBoxes of maps
+    /// </summary>
+    /// <param name="e">Needed for mouse button detection and cursor location</param>
+    /// <param name="displayStats">DisplayStats method to use</param>
     private void CommonMouseMove ( MouseEventArgs e, Action<int, int> displayStats )
     {
       bool condition = PanAndZoomControls [MapsTabControl.SelectedIndex].image != null && e.Button == MouseButtons.Left;
@@ -262,22 +264,13 @@ namespace Rendering
 
       if ( cursor != null )
         Cursor = cursor;
-
-      /*if ( PanAndZoomControls[MapsTabControl.SelectedIndex].image != null && e.Button == MouseButtons.Left )
-      {
-        PointF relative = PanAndZoomControls[MapsTabControl.SelectedIndex].GetRelativeCursorLocation ( e.X, e.Y );
-
-        if ( !float.IsNaN ( relative.X ) && !mousePressed )
-          displayStats ( (int) relative.X, (int) relative.Y );
-      }
-
-      if ( mousePressed && e.Button == MouseButtons.Left )
-      {
-        Cursor = Cursors.NoMove2D;
-        PanAndZoomControls[MapsTabControl.SelectedIndex].MouseMove ( e.Location );
-      }*/
     }
 
+    /// <summary>
+    /// Should be called as MouseUp event from all PictureBoxes of maps
+    /// </summary>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Needed for mouse button detection and cursor location</param>
     private void CommonMouseUp ( object sender, MouseEventArgs e )
     {
       PanAndZoomControls [MapsTabControl.SelectedIndex].MouseUpRegistration ( out Cursor cursor );
@@ -285,11 +278,19 @@ namespace Rendering
       Cursor = cursor;
     }
 
+    /// <summary>
+    /// Takes care of zoom in/out using mouse wheel
+    /// </summary>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Used for cursor location</param>
     private void pictureBox_MouseWheel ( object sender, MouseEventArgs e )
     {
       PanAndZoomControls [MapsTabControl.SelectedIndex].MouseWheelRegistration ( e, ModifierKeys );
     }
 
+    /// <summary>
+    /// Sets global statistics (independent from currently selected pixel)
+    /// </summary>
     public void SetTotalAndAveragePrimaryRaysCount ()
     {
       TotalPrimaryRaysCount.Text = $"Total primary rays count: {Statistics.primaryRaysCount:n0}";
@@ -298,6 +299,9 @@ namespace Rendering
         $"Average primary rays count per pixel: {Statistics.primaryRaysCount / ( PrimaryRaysMapPictureBox.Width * PrimaryRaysMapPictureBox.Height ):n0}";
     }
 
+    /// <summary>
+    /// Sets global statistics (independent from currently selected pixel)
+    /// </summary>
     public void SetTotalAndAverageAllRaysCount ()
     {
       TotalAllRaysCount.Text = $"Total rays count: {Statistics.allRaysCount:n0}";
@@ -363,6 +367,12 @@ namespace Rendering
         ( button as Button ).Enabled = newStatus;  
     }
 
+    /// <summary>
+    /// Finds all controls recursively from root (initially Form [this]) meeting condition
+    /// </summary>
+    /// <param name="condition">Condition which must control meet to be added to return list</param>
+    /// <param name="root">Root control where to start looking for button (initially Form [this])</param>
+    /// <returns>List of found controls meeting condition</returns>
     private List<Control> FindAllControls ( Func<Control, bool> condition, Control root = null )
     {
       List<Control> returnControls = new List<Control> ();
@@ -382,6 +392,11 @@ namespace Rendering
       return returnControls;
     }
 
+    /// <summary>
+    /// Exports data (mapArray) of currently selected map
+    /// </summary>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void ExportDataButton_Click ( object sender, EventArgs e )
     {
       if ( Form1.singleton.outputImage == null || MT.renderingInProgress )
@@ -396,26 +411,26 @@ namespace Rendering
       ( map as IMap ).ExportData ( mapName );
     }
 
-    private readonly string winTitle = "Advanced Tools";
+    private const string formTitle = "Advanced Tools";
 
     /// <summary>
     /// Adds suffix to default text in Form>text property (title text in upper panel, between icon and minimize and close buttons)
     /// </summary>
-    /// <param name="suffix"></param>
-    void SetWindowTitleSuffix ( string suffix )
+    /// <param name="suffix">Suffix to add to constant Form title</param>
+    private void SetWindowTitleSuffix ( string suffix )
     {
       if ( string.IsNullOrEmpty ( suffix ) )
-        Text = winTitle;
+        Text = formTitle;
       else
-        Text = winTitle + ' ' + suffix;
+        Text = formTitle + ' ' + suffix;
     }
 
     /// <summary>
     /// Called every time main picture box is needed to be re-painted
     /// Used for re-painting after request for zoom in/out or pan
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Needed to get Graphics class associated with PictureBox</param>
     private void PictureBox_Paint ( object sender, PaintEventArgs e )
     {
       PanAndZoomControls [MapsTabControl.SelectedIndex].Paint ( e );
@@ -424,8 +439,8 @@ namespace Rendering
     /// <summary>
     /// Catches +/PageUp for zoom in or -/PageDown for zoom out of image in picture box
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Used to get pressed key</param>
     private void AdvancedToolsForm_KeyDown ( object sender, KeyEventArgs e )
     {
       PanAndZoomControls [MapsTabControl.SelectedIndex].KeyDownRegistration ( e.KeyCode, ModifierKeys );
@@ -435,11 +450,19 @@ namespace Rendering
     /// Resets image in picture box to 100% zoom and default position
     /// (left upper corner of image in left upper conrner of picture box)
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void ResetZoomAndPanButton_Click ( object sender, EventArgs e )
     {
       PanAndZoomControls[MapsTabControl.SelectedIndex].Reset ();
+    }
+
+    /// <summary>
+    /// Used to render currently active tab, for example after new rendering finished
+    /// </summary>
+    public void RenderCurrentlyActiveTab ()
+    {
+      RenderMapButton_Click ( null, null );
     }
   }
 }

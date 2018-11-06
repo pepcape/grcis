@@ -45,7 +45,7 @@ namespace Rendering
     /// <summary>
     /// Zooms in to/out from middle of image; Useful when zooming by keys
     /// </summary>
-    /// <param name="zoomIn"></param>
+    /// <param name="zoomIn">TRUE for zoom in; otherwise zoom out</param>
     /// <param name="modifierKeys">Currently pressed keys - used for detection of Shift key for faster zooming</param>
     public void ZoomToMiddle ( bool zoomIn, Keys modifierKeys )
     {
@@ -212,7 +212,7 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Should be called from KeyDown event of Form
+    /// Should be called from KeyDown event of Form; 
     /// Catches +/PageUp for zoom in or -/PageDown for zoom out of image in picture box
     /// </summary>
     /// <param name="keys">Key which caused KeyDown event</param>
@@ -310,7 +310,7 @@ namespace Rendering
 
       pictureBox.Refresh ();
 
-      setWindowTitleSuffix ( $" Zoom: {(int) ( zoom * 100 )}%" );
+      setWindowTitleSuffix ( " Zoom: 100%" );
     }
   }
 }
