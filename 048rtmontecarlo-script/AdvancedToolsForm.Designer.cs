@@ -38,6 +38,7 @@
       this.ExportDataDepthMapButton = new System.Windows.Forms.Button();
       this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
       this.RenderDepthMapButton = new System.Windows.Forms.Button();
+      this.ResetDepthMapButton = new System.Windows.Forms.Button();
       this.DepthMap_Coordinates = new System.Windows.Forms.Label();
       this.PrimaryRaysMapTab = new System.Windows.Forms.TabPage();
       this.PrimaryRaysMapLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
@@ -45,6 +46,7 @@
       this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
       this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
       this.RenderPrimaryRaysMapButton = new System.Windows.Forms.Button();
+      this.ResetPrimaryRaysMapButton = new System.Windows.Forms.Button();
       this.PrimaryRaysMapCoordinates = new System.Windows.Forms.Label();
       this.TotalPrimaryRaysCount = new System.Windows.Forms.Label();
       this.AveragePrimaryRaysCount = new System.Windows.Forms.Label();
@@ -60,6 +62,7 @@
       this.ExportDataAllRaysMapButton = new System.Windows.Forms.Button();
       this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
       this.RenderAllRaysMapButton = new System.Windows.Forms.Button();
+      this.ResetAllRaysMapButton = new System.Windows.Forms.Button();
       this.AllRaysMapCoordinates = new System.Windows.Forms.Label();
       this.TotalAllRaysCount = new System.Windows.Forms.Label();
       this.AverageAllRaysCount = new System.Windows.Forms.Label();
@@ -72,6 +75,7 @@
       this.ExportDataNormalMapRelativeButton = new System.Windows.Forms.Button();
       this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
       this.RenderNormalMapRelativeButton = new System.Windows.Forms.Button();
+      this.ResetNormalMapRelativeButton = new System.Windows.Forms.Button();
       this.NormalMapRelativeCoordinates = new System.Windows.Forms.Label();
       this.NormalMapAbsoluteTab = new System.Windows.Forms.TabPage();
       this.NormalMapAbsoluteLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
@@ -82,6 +86,7 @@
       this.ExportDataNormalMapAbsoluteButton = new System.Windows.Forms.Button();
       this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
       this.RenderNormalMapAbsoluteButton = new System.Windows.Forms.Button();
+      this.ResetNormalMapAbsoluteButton = new System.Windows.Forms.Button();
       this.NormalMapAbsoluteCoordinates = new System.Windows.Forms.Label();
       this.MapsTabControl.SuspendLayout();
       this.DepthMapTab.SuspendLayout();
@@ -174,8 +179,10 @@
       this.DepthMapPictureBox.TabIndex = 4;
       this.DepthMapPictureBox.TabStop = false;
       this.DepthMapPictureBox.Tag = "";
-      this.DepthMapPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DepthMapPictureBox_MouseDownAndMouseMove);
-      this.DepthMapPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DepthMapPictureBox_MouseDownAndMouseMove);
+      this.DepthMapPictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.PictureBox_Paint);
+      this.DepthMapPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DepthMapPictureBox_MouseDown);
+      this.DepthMapPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DepthMapPictureBox_MouseMove);
+      this.DepthMapPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CommonMouseUp);
       // 
       // tableLayoutPanel2
       // 
@@ -232,6 +239,7 @@
       // flowLayoutPanel1
       // 
       this.flowLayoutPanel1.Controls.Add(this.RenderDepthMapButton);
+      this.flowLayoutPanel1.Controls.Add(this.ResetDepthMapButton);
       this.flowLayoutPanel1.Controls.Add(this.DepthMap_Coordinates);
       this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
@@ -242,23 +250,34 @@
       // 
       // RenderDepthMapButton
       // 
-      this.RenderDepthMapButton.Dock = System.Windows.Forms.DockStyle.Top;
       this.RenderDepthMapButton.Enabled = false;
       this.RenderDepthMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.RenderDepthMapButton.Location = new System.Drawing.Point(3, 3);
       this.RenderDepthMapButton.Name = "RenderDepthMapButton";
       this.RenderDepthMapButton.Size = new System.Drawing.Size(169, 30);
-      this.RenderDepthMapButton.TabIndex = 7;
+      this.RenderDepthMapButton.TabIndex = 9;
       this.RenderDepthMapButton.Text = "Refresh";
       this.RenderDepthMapButton.UseVisualStyleBackColor = true;
       this.RenderDepthMapButton.Click += new System.EventHandler(this.RenderMapButton_Click);
+      // 
+      // ResetDepthMapButton
+      // 
+      this.ResetDepthMapButton.Enabled = false;
+      this.ResetDepthMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.ResetDepthMapButton.Location = new System.Drawing.Point(3, 39);
+      this.ResetDepthMapButton.Name = "ResetDepthMapButton";
+      this.ResetDepthMapButton.Size = new System.Drawing.Size(169, 30);
+      this.ResetDepthMapButton.TabIndex = 7;
+      this.ResetDepthMapButton.Text = "Reset";
+      this.ResetDepthMapButton.UseVisualStyleBackColor = true;
+      this.ResetDepthMapButton.Click += new System.EventHandler(this.ResetZoomAndPanButton_Click);
       // 
       // DepthMap_Coordinates
       // 
       this.DepthMap_Coordinates.Anchor = System.Windows.Forms.AnchorStyles.Left;
       this.DepthMap_Coordinates.AutoSize = true;
       this.DepthMap_Coordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.DepthMap_Coordinates.Location = new System.Drawing.Point(0, 51);
+      this.DepthMap_Coordinates.Location = new System.Drawing.Point(0, 87);
       this.DepthMap_Coordinates.Margin = new System.Windows.Forms.Padding(0, 15, 0, 0);
       this.DepthMap_Coordinates.Name = "DepthMap_Coordinates";
       this.DepthMap_Coordinates.Size = new System.Drawing.Size(61, 60);
@@ -304,8 +323,10 @@
       this.PrimaryRaysMapPictureBox.TabIndex = 4;
       this.PrimaryRaysMapPictureBox.TabStop = false;
       this.PrimaryRaysMapPictureBox.Tag = "";
-      this.PrimaryRaysMapPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.RaysMapPictureBox_MouseDownAndMouseMove);
-      this.PrimaryRaysMapPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.RaysMapPictureBox_MouseDownAndMouseMove);
+      this.PrimaryRaysMapPictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.PictureBox_Paint);
+      this.PrimaryRaysMapPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.RaysMapPictureBox_MouseDown);
+      this.PrimaryRaysMapPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.RaysMapPictureBox_MouseMove);
+      this.PrimaryRaysMapPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CommonMouseUp);
       // 
       // tableLayoutPanel3
       // 
@@ -326,6 +347,7 @@
       // flowLayoutPanel2
       // 
       this.flowLayoutPanel2.Controls.Add(this.RenderPrimaryRaysMapButton);
+      this.flowLayoutPanel2.Controls.Add(this.ResetPrimaryRaysMapButton);
       this.flowLayoutPanel2.Controls.Add(this.PrimaryRaysMapCoordinates);
       this.flowLayoutPanel2.Controls.Add(this.TotalPrimaryRaysCount);
       this.flowLayoutPanel2.Controls.Add(this.AveragePrimaryRaysCount);
@@ -338,7 +360,6 @@
       // 
       // RenderPrimaryRaysMapButton
       // 
-      this.RenderPrimaryRaysMapButton.Dock = System.Windows.Forms.DockStyle.Top;
       this.RenderPrimaryRaysMapButton.Enabled = false;
       this.RenderPrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.RenderPrimaryRaysMapButton.Location = new System.Drawing.Point(3, 3);
@@ -349,11 +370,23 @@
       this.RenderPrimaryRaysMapButton.UseVisualStyleBackColor = true;
       this.RenderPrimaryRaysMapButton.Click += new System.EventHandler(this.RenderMapButton_Click);
       // 
+      // ResetPrimaryRaysMapButton
+      // 
+      this.ResetPrimaryRaysMapButton.Enabled = false;
+      this.ResetPrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.ResetPrimaryRaysMapButton.Location = new System.Drawing.Point(3, 39);
+      this.ResetPrimaryRaysMapButton.Name = "ResetPrimaryRaysMapButton";
+      this.ResetPrimaryRaysMapButton.Size = new System.Drawing.Size(169, 30);
+      this.ResetPrimaryRaysMapButton.TabIndex = 15;
+      this.ResetPrimaryRaysMapButton.Text = "Reset";
+      this.ResetPrimaryRaysMapButton.UseVisualStyleBackColor = true;
+      this.ResetPrimaryRaysMapButton.Click += new System.EventHandler(this.ResetZoomAndPanButton_Click);
+      // 
       // PrimaryRaysMapCoordinates
       // 
       this.PrimaryRaysMapCoordinates.AutoSize = true;
       this.PrimaryRaysMapCoordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.PrimaryRaysMapCoordinates.Location = new System.Drawing.Point(0, 51);
+      this.PrimaryRaysMapCoordinates.Location = new System.Drawing.Point(0, 87);
       this.PrimaryRaysMapCoordinates.Margin = new System.Windows.Forms.Padding(0, 15, 0, 0);
       this.PrimaryRaysMapCoordinates.Name = "PrimaryRaysMapCoordinates";
       this.PrimaryRaysMapCoordinates.Size = new System.Drawing.Size(93, 60);
@@ -366,7 +399,7 @@
       this.TotalPrimaryRaysCount.AutoSize = true;
       this.flowLayoutPanel2.SetFlowBreak(this.TotalPrimaryRaysCount, true);
       this.TotalPrimaryRaysCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.TotalPrimaryRaysCount.Location = new System.Drawing.Point(0, 151);
+      this.TotalPrimaryRaysCount.Location = new System.Drawing.Point(0, 187);
       this.TotalPrimaryRaysCount.Margin = new System.Windows.Forms.Padding(0, 40, 0, 0);
       this.TotalPrimaryRaysCount.Name = "TotalPrimaryRaysCount";
       this.TotalPrimaryRaysCount.Size = new System.Drawing.Size(136, 40);
@@ -379,7 +412,7 @@
       this.AveragePrimaryRaysCount.AutoSize = true;
       this.flowLayoutPanel2.SetFlowBreak(this.AveragePrimaryRaysCount, true);
       this.AveragePrimaryRaysCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.AveragePrimaryRaysCount.Location = new System.Drawing.Point(0, 231);
+      this.AveragePrimaryRaysCount.Location = new System.Drawing.Point(0, 267);
       this.AveragePrimaryRaysCount.Margin = new System.Windows.Forms.Padding(0, 40, 0, 0);
       this.AveragePrimaryRaysCount.Name = "AveragePrimaryRaysCount";
       this.AveragePrimaryRaysCount.Size = new System.Drawing.Size(160, 40);
@@ -461,8 +494,10 @@
       this.AllRaysMapPictureBox.TabIndex = 4;
       this.AllRaysMapPictureBox.TabStop = false;
       this.AllRaysMapPictureBox.Tag = "";
-      this.AllRaysMapPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.RaysMapPictureBox_MouseDownAndMouseMove);
-      this.AllRaysMapPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.RaysMapPictureBox_MouseDownAndMouseMove);
+      this.AllRaysMapPictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.PictureBox_Paint);
+      this.AllRaysMapPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.RaysMapPictureBox_MouseDown);
+      this.AllRaysMapPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.RaysMapPictureBox_MouseMove);
+      this.AllRaysMapPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CommonMouseUp);
       // 
       // tableLayoutPanel4
       // 
@@ -519,6 +554,7 @@
       // flowLayoutPanel3
       // 
       this.flowLayoutPanel3.Controls.Add(this.RenderAllRaysMapButton);
+      this.flowLayoutPanel3.Controls.Add(this.ResetAllRaysMapButton);
       this.flowLayoutPanel3.Controls.Add(this.AllRaysMapCoordinates);
       this.flowLayoutPanel3.Controls.Add(this.TotalAllRaysCount);
       this.flowLayoutPanel3.Controls.Add(this.AverageAllRaysCount);
@@ -531,7 +567,6 @@
       // 
       // RenderAllRaysMapButton
       // 
-      this.RenderAllRaysMapButton.Dock = System.Windows.Forms.DockStyle.Top;
       this.RenderAllRaysMapButton.Enabled = false;
       this.RenderAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.RenderAllRaysMapButton.Location = new System.Drawing.Point(3, 3);
@@ -542,11 +577,23 @@
       this.RenderAllRaysMapButton.UseVisualStyleBackColor = true;
       this.RenderAllRaysMapButton.Click += new System.EventHandler(this.RenderMapButton_Click);
       // 
+      // ResetAllRaysMapButton
+      // 
+      this.ResetAllRaysMapButton.Enabled = false;
+      this.ResetAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.ResetAllRaysMapButton.Location = new System.Drawing.Point(3, 39);
+      this.ResetAllRaysMapButton.Name = "ResetAllRaysMapButton";
+      this.ResetAllRaysMapButton.Size = new System.Drawing.Size(169, 30);
+      this.ResetAllRaysMapButton.TabIndex = 15;
+      this.ResetAllRaysMapButton.Text = "Reset";
+      this.ResetAllRaysMapButton.UseVisualStyleBackColor = true;
+      this.ResetAllRaysMapButton.Click += new System.EventHandler(this.ResetZoomAndPanButton_Click);
+      // 
       // AllRaysMapCoordinates
       // 
       this.AllRaysMapCoordinates.AutoSize = true;
       this.AllRaysMapCoordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.AllRaysMapCoordinates.Location = new System.Drawing.Point(0, 51);
+      this.AllRaysMapCoordinates.Location = new System.Drawing.Point(0, 87);
       this.AllRaysMapCoordinates.Margin = new System.Windows.Forms.Padding(0, 15, 0, 0);
       this.AllRaysMapCoordinates.Name = "AllRaysMapCoordinates";
       this.AllRaysMapCoordinates.Size = new System.Drawing.Size(93, 60);
@@ -559,7 +606,7 @@
       this.TotalAllRaysCount.AutoSize = true;
       this.flowLayoutPanel3.SetFlowBreak(this.TotalAllRaysCount, true);
       this.TotalAllRaysCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.TotalAllRaysCount.Location = new System.Drawing.Point(0, 151);
+      this.TotalAllRaysCount.Location = new System.Drawing.Point(0, 187);
       this.TotalAllRaysCount.Margin = new System.Windows.Forms.Padding(0, 40, 0, 0);
       this.TotalAllRaysCount.Name = "TotalAllRaysCount";
       this.TotalAllRaysCount.Size = new System.Drawing.Size(125, 20);
@@ -572,7 +619,7 @@
       this.AverageAllRaysCount.AutoSize = true;
       this.flowLayoutPanel3.SetFlowBreak(this.AverageAllRaysCount, true);
       this.AverageAllRaysCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.AverageAllRaysCount.Location = new System.Drawing.Point(0, 211);
+      this.AverageAllRaysCount.Location = new System.Drawing.Point(0, 247);
       this.AverageAllRaysCount.Margin = new System.Windows.Forms.Padding(0, 40, 0, 0);
       this.AverageAllRaysCount.Name = "AverageAllRaysCount";
       this.AverageAllRaysCount.Size = new System.Drawing.Size(172, 40);
@@ -618,8 +665,10 @@
       this.NormalMapRelativePictureBox.TabIndex = 4;
       this.NormalMapRelativePictureBox.TabStop = false;
       this.NormalMapRelativePictureBox.Tag = "";
-      this.NormalMapRelativePictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
-      this.NormalMapRelativePictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
+      this.NormalMapRelativePictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.PictureBox_Paint);
+      this.NormalMapRelativePictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDown);
+      this.NormalMapRelativePictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseMove);
+      this.NormalMapRelativePictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CommonMouseUp);
       // 
       // tableLayoutPanel5
       // 
@@ -676,6 +725,7 @@
       // flowLayoutPanel4
       // 
       this.flowLayoutPanel4.Controls.Add(this.RenderNormalMapRelativeButton);
+      this.flowLayoutPanel4.Controls.Add(this.ResetNormalMapRelativeButton);
       this.flowLayoutPanel4.Controls.Add(this.NormalMapRelativeCoordinates);
       this.flowLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanel4.Location = new System.Drawing.Point(0, 0);
@@ -686,7 +736,6 @@
       // 
       // RenderNormalMapRelativeButton
       // 
-      this.RenderNormalMapRelativeButton.Dock = System.Windows.Forms.DockStyle.Top;
       this.RenderNormalMapRelativeButton.Enabled = false;
       this.RenderNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.RenderNormalMapRelativeButton.Location = new System.Drawing.Point(3, 3);
@@ -697,11 +746,23 @@
       this.RenderNormalMapRelativeButton.UseVisualStyleBackColor = true;
       this.RenderNormalMapRelativeButton.Click += new System.EventHandler(this.RenderMapButton_Click);
       // 
+      // ResetNormalMapRelativeButton
+      // 
+      this.ResetNormalMapRelativeButton.Enabled = false;
+      this.ResetNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.ResetNormalMapRelativeButton.Location = new System.Drawing.Point(3, 39);
+      this.ResetNormalMapRelativeButton.Name = "ResetNormalMapRelativeButton";
+      this.ResetNormalMapRelativeButton.Size = new System.Drawing.Size(169, 30);
+      this.ResetNormalMapRelativeButton.TabIndex = 16;
+      this.ResetNormalMapRelativeButton.Text = "Reset";
+      this.ResetNormalMapRelativeButton.UseVisualStyleBackColor = true;
+      this.ResetNormalMapRelativeButton.Click += new System.EventHandler(this.ResetZoomAndPanButton_Click);
+      // 
       // NormalMapRelativeCoordinates
       // 
       this.NormalMapRelativeCoordinates.AutoSize = true;
       this.NormalMapRelativeCoordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.NormalMapRelativeCoordinates.Location = new System.Drawing.Point(0, 51);
+      this.NormalMapRelativeCoordinates.Location = new System.Drawing.Point(0, 87);
       this.NormalMapRelativeCoordinates.Margin = new System.Windows.Forms.Padding(0, 15, 0, 0);
       this.NormalMapRelativeCoordinates.Name = "NormalMapRelativeCoordinates";
       this.NormalMapRelativeCoordinates.Size = new System.Drawing.Size(171, 60);
@@ -747,8 +808,10 @@
       this.NormalMapAbsolutePictureBox.TabIndex = 4;
       this.NormalMapAbsolutePictureBox.TabStop = false;
       this.NormalMapAbsolutePictureBox.Tag = "";
-      this.NormalMapAbsolutePictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
-      this.NormalMapAbsolutePictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDownAndMouseMove);
+      this.NormalMapAbsolutePictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.PictureBox_Paint);
+      this.NormalMapAbsolutePictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseDown);
+      this.NormalMapAbsolutePictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.NormalMapPictureBox_MouseMove);
+      this.NormalMapAbsolutePictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CommonMouseUp);
       // 
       // tableLayoutPanel6
       // 
@@ -805,6 +868,7 @@
       // flowLayoutPanel5
       // 
       this.flowLayoutPanel5.Controls.Add(this.RenderNormalMapAbsoluteButton);
+      this.flowLayoutPanel5.Controls.Add(this.ResetNormalMapAbsoluteButton);
       this.flowLayoutPanel5.Controls.Add(this.NormalMapAbsoluteCoordinates);
       this.flowLayoutPanel5.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanel5.Location = new System.Drawing.Point(0, 0);
@@ -815,7 +879,6 @@
       // 
       // RenderNormalMapAbsoluteButton
       // 
-      this.RenderNormalMapAbsoluteButton.Dock = System.Windows.Forms.DockStyle.Top;
       this.RenderNormalMapAbsoluteButton.Enabled = false;
       this.RenderNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.RenderNormalMapAbsoluteButton.Location = new System.Drawing.Point(3, 3);
@@ -826,11 +889,23 @@
       this.RenderNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
       this.RenderNormalMapAbsoluteButton.Click += new System.EventHandler(this.RenderMapButton_Click);
       // 
+      // ResetNormalMapAbsoluteButton
+      // 
+      this.ResetNormalMapAbsoluteButton.Enabled = false;
+      this.ResetNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.ResetNormalMapAbsoluteButton.Location = new System.Drawing.Point(3, 39);
+      this.ResetNormalMapAbsoluteButton.Name = "ResetNormalMapAbsoluteButton";
+      this.ResetNormalMapAbsoluteButton.Size = new System.Drawing.Size(169, 30);
+      this.ResetNormalMapAbsoluteButton.TabIndex = 16;
+      this.ResetNormalMapAbsoluteButton.Text = "Reset";
+      this.ResetNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
+      this.ResetNormalMapAbsoluteButton.Click += new System.EventHandler(this.ResetZoomAndPanButton_Click);
+      // 
       // NormalMapAbsoluteCoordinates
       // 
       this.NormalMapAbsoluteCoordinates.AutoSize = true;
       this.NormalMapAbsoluteCoordinates.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.NormalMapAbsoluteCoordinates.Location = new System.Drawing.Point(0, 51);
+      this.NormalMapAbsoluteCoordinates.Location = new System.Drawing.Point(0, 87);
       this.NormalMapAbsoluteCoordinates.Margin = new System.Windows.Forms.Padding(0, 15, 0, 0);
       this.NormalMapAbsoluteCoordinates.Name = "NormalMapAbsoluteCoordinates";
       this.NormalMapAbsoluteCoordinates.Size = new System.Drawing.Size(171, 60);
@@ -848,6 +923,7 @@
       this.Name = "AdvancedToolsForm";
       this.Text = "Advanced tools";
       this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.AdvancedToolsForm_FormClosed);
+      this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AdvancedToolsForm_KeyDown);
       this.MapsTabControl.ResumeLayout(false);
       this.DepthMapTab.ResumeLayout(false);
       this.DepthMapLayoutPanel.ResumeLayout(false);
@@ -928,7 +1004,7 @@
     private System.Windows.Forms.Button SaveDepthMapButton;
     private System.Windows.Forms.Button ExportDataDepthMapButton;
     private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
-    private System.Windows.Forms.Button RenderDepthMapButton;
+    private System.Windows.Forms.Button ResetDepthMapButton;
     private System.Windows.Forms.Label DepthMap_Coordinates;
     private System.Windows.Forms.TableLayoutPanel tableLayoutPanel4;
     private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel8;
@@ -945,5 +1021,10 @@
     private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel10;
     private System.Windows.Forms.Button SaveNormalMapAbsoluteButton;
     private System.Windows.Forms.Button ExportDataNormalMapAbsoluteButton;
+    private System.Windows.Forms.Button RenderDepthMapButton;
+    private System.Windows.Forms.Button ResetPrimaryRaysMapButton;
+    private System.Windows.Forms.Button ResetAllRaysMapButton;
+    private System.Windows.Forms.Button ResetNormalMapRelativeButton;
+    private System.Windows.Forms.Button ResetNormalMapAbsoluteButton;
   }
 }
