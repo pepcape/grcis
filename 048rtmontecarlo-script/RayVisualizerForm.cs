@@ -110,7 +110,9 @@ namespace Rendering
     double lastFPS         = 0.0;
     double lastTPS         = 0.0;
 
-		public RayVisualizerForm ()
+    private Color defaultBackgroundColor = Color.Black;
+
+    public RayVisualizerForm ()
     {
       InitializeComponent ();
 
@@ -506,10 +508,21 @@ namespace Rendering
 				prg.Destroy ();
 		}
 
-		private void Render ()
+    private void Render ()
 		{
 			if ( !loaded )
 				return;
+
+		  Color backgroundColor;
+
+      if ( RayVisualizer.backgroundColor == null )
+		    backgroundColor = defaultBackgroundColor;
+		  else
+        backgroundColor = Color.FromArgb ( (int) ( RayVisualizer.backgroundColor [0] * 255 ),
+                                           (int) ( RayVisualizer.backgroundColor [1] * 255 ),
+                                           (int) ( RayVisualizer.backgroundColor [2] * 255 ) );
+
+		  GL.ClearColor ( backgroundColor );
 
 			frameCounter++;
 			useShaders = ( scene != null ) &&
@@ -816,7 +829,7 @@ namespace Rendering
 			}
 			else // actual scene and ray visualization
 			{
-				bool renderFirst = true;
+        bool renderFirst = true;
 
 				if ( AllignCameraCheckBox.Checked )
 				{

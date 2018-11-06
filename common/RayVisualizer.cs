@@ -76,6 +76,7 @@ namespace Rendering
     }
 
     public static IRayScene rayScene;
+    public static float[] backgroundColor;
     /// <summary>
     /// Called when there is a new scene about to be rendered
     /// </summary>
@@ -85,6 +86,8 @@ namespace Rendering
       rayScene = scene;
       singleton?.rays?.Clear ();
       singleton?.shadowRays?.Clear ();
+
+      backgroundColor = new float[] { (float) scene.BackgroundColor [0], (float) scene.BackgroundColor [1], (float) scene.BackgroundColor [2] };
     }
   }
 }

@@ -116,7 +116,7 @@ namespace Rendering
       // there was at least one intersection
       i.Complete ();
 
-      RegisterRay ( RayType.unknown, level, p0, i ); // moved lower to also register rays for shadows
+      RegisterRay ( RayType.unknown, level, p0, i );
       
       if ( Form1.singleton.pointCloudCheckBox.Checked && !MT.pointCloudSavingInProgress && !MT.singleRayTracing )
       {
@@ -134,7 +134,7 @@ namespace Rendering
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode ();
 
-      // apply all the textures fist..
+      // apply all the textures first
       if ( i.Textures != null )
         foreach ( ITexture tex in i.Textures )
           hash = hash * HASH_TEXTURE + tex.Apply ( i );
@@ -154,8 +154,7 @@ namespace Rendering
 
         foreach ( ILightSource source in scene.Sources )
         {
-          Vector3d dir;
-          double[] intensity = source.GetIntensity ( i, out dir );
+          double[] intensity = source.GetIntensity ( i, out Vector3d dir );
 
           if ( MT.singleRayTracing && source.position != null )
             // register shadow ray for RayVisualizer

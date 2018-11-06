@@ -113,9 +113,9 @@ namespace Rendering
           for ( int i = 0; i < list.Count; i += 9 )
           {
             streamWriter.WriteLine ( "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
-                                     list [ i ], list [ i + 1 ], list [ i + 2 ],
-                                     (byte)list [ i + 3 ] * 255, (byte) list [ i + 4 ] * 255, (byte) list [ i + 5 ] * 255,
-                                     list [ i + 6 ], list [ i + 7 ], list [ i + 8 ] );
+                                     list [i], list [i + 1], list [i + 2],
+                                     (byte) ( list [i + 3] * 255 ), (byte) ( list [i + 4] * 255 ), (byte) ( list [i + 5] * 255 ),
+                                     list [i + 6], list [i + 7], list [i + 8] );
           }
         }
 
