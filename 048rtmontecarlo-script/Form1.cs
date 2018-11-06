@@ -92,7 +92,7 @@ namespace Rendering
 
       Text += " (" + rev + ") '" + name + '\'';
       winTitle = Text;
-      setWindowTitleSuffix ( " Zoom: 100%" );
+      SetWindowTitleSuffix ( " Zoom: 100%" );
 
       SetOptions ( args );
       buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
@@ -114,7 +114,7 @@ namespace Rendering
       AdvancedTools.singleton.Initialize ();
       AdvancedTools.singleton.SetNewDimensions ( ImageWidth, ImageHeight ); //makes all maps to initialize again
 
-      panAndZoom = new PanAndZoomSupport ( pictureBox1, image, setWindowTitleSuffix );
+      panAndZoom = new PanAndZoomSupport ( pictureBox1, image, SetWindowTitleSuffix );
     }
 
     /// <summary>
@@ -585,8 +585,6 @@ namespace Rendering
 
     private void buttonRender_Click ( object sender, EventArgs e )
     {
-      AdvancedToolsForm.instance?.SetNewDimensions ( ImageWidth, ImageHeight );
-
       if ( collectDataCheckBox.Checked )
       {
         AdvancedTools.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
@@ -637,7 +635,7 @@ namespace Rendering
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
       selectedScene = comboScene.SelectedIndex;
-      dirty         = true;
+      dirty = true;
     }
 
     private void textParam_TextChanged ( object sender, EventArgs e )
@@ -688,8 +686,6 @@ namespace Rendering
       renderClientsForm.Show ();
     }
 
-    private bool mousePressed;
-
     /// <summary>
     /// Handles calling singleSample for RayVisualizer and picture box image pan control
     /// </summary>
@@ -697,23 +693,12 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
-      {
-        PointF relative = panAndZoom.getRelativeCursorLocation ( e.X, e.Y );
+      bool condition = aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress;
 
-        if ( relative.X >= 0 )
-          singleSample ( (int) relative.X, (int) relative.Y );
-      }
+      panAndZoom.MouseDownRegistration ( e, singleSample, condition, ModifierKeys, out Cursor cursor );
 
-      if ( !ModifierKeys.HasFlag ( Keys.Control ) && e.Button == MouseButtons.Left && !mousePressed ) //holding down CTRL key prevents panning
-      {
-        mousePressed = true;
-        panAndZoom.MouseDown ( e.Location );
-      }
-      else
-      {
-        Cursor = Cursors.Cross;
-      }
+      if ( cursor != null )
+        Cursor = cursor;     
     }
 
     /// <summary>
@@ -723,26 +708,19 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress )
-      {
-        PointF relative = panAndZoom.getRelativeCursorLocation ( e.X, e.Y );
+      bool condition = aThread == null && e.Button == MouseButtons.Left && MT.sceneRendered && !MT.renderingInProgress;
 
-        if ( relative.X >= 0 && !mousePressed )
-          singleSample ( (int) relative.X, (int) relative.Y );
-      }
+      panAndZoom.MouseMoveRegistration ( e, singleSample, condition, ModifierKeys, out Cursor cursor );
 
-      if ( mousePressed && e.Button == MouseButtons.Left )
-      {
-        Cursor = Cursors.NoMove2D;
-        panAndZoom.MouseMove ( e.Location );
-      }
+      if ( cursor != null )
+        Cursor = cursor;
     }
 
     private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
     {
-      mousePressed = false;
+      panAndZoom.MouseUpRegistration ( out Cursor cursor );
 
-      Cursor = Cursors.Default;
+      Cursor = cursor;
     }
 
     /// <summary>
@@ -752,10 +730,7 @@ namespace Rendering
     /// <param name="e"></param>
     private void pictureBox1_MouseWheel ( object sender, MouseEventArgs e )
     {
-      if ( e.Delta > 0 )
-        panAndZoom.zoomToPosition ( true, e.Location, ModifierKeys );
-      else if ( e.Delta < 0 )
-        panAndZoom.zoomToPosition ( false, e.Location, ModifierKeys );
+      panAndZoom.MouseWheelRegistration ( e, ModifierKeys );
     }
 
     /// <summary>
@@ -782,16 +757,7 @@ namespace Rendering
     /// <param name="e"></param>
     private void Form1_KeyDown ( object sender, KeyEventArgs e )
     {
-      switch ( e.KeyCode ) {
-        case Keys.Add:
-        case Keys.PageUp:
-          panAndZoom.zoomToMiddle ( true, ModifierKeys );
-          break;
-        case Keys.Subtract:
-        case Keys.PageDown:
-          panAndZoom.zoomToMiddle ( false, ModifierKeys );
-          break;
-      }
+      panAndZoom.KeyDownRegistration ( e.KeyCode, ModifierKeys );
     }   
    
 
@@ -848,7 +814,7 @@ namespace Rendering
     /// Adds suffix to default text in Form>text property (title text in upper panel, between icon and minimize and close buttons)
     /// </summary>
     /// <param name="suffix"></param>
-    void setWindowTitleSuffix ( string suffix )
+    void SetWindowTitleSuffix ( string suffix )
     {
       if ( string.IsNullOrEmpty ( suffix ) )
         Text = winTitle;
