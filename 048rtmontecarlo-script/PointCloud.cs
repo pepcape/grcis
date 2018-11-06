@@ -13,9 +13,9 @@ namespace Rendering
   /// </summary>
   public class PointCloud
   {
-    private List<float>[] cloud;
+    public List<float>[] cloud;
 
-    private long numberOfElements;
+    public int numberOfElements;
 
     public PointCloud ( int numberOfThreads )
     {
@@ -55,9 +55,9 @@ namespace Rendering
       
       float[] fixedColors =
       {
-        (float) ( color [ 0 ] * 255 ),
-        (float) ( color [ 1 ] * 255 ),
-        (float) ( color [ 2 ] * 255 )
+        (float) ( color [ 0 ] ),
+        (float) ( color [ 1 ] ),
+        (float) ( color [ 2 ] )
       };
 
       float[] coordArrray = new float[] { (float)fixedCoordinates.X, (float) fixedCoordinates.Y, (float) fixedCoordinates.Z };
@@ -114,7 +114,7 @@ namespace Rendering
           {
             streamWriter.WriteLine ( "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
                                      list [ i ], list [ i + 1 ], list [ i + 2 ],
-                                     (byte)list [ i + 3 ], (byte) list [ i + 4 ], (byte) list [ i + 5 ],
+                                     (byte)list [ i + 3 ] * 255, (byte) list [ i + 4 ] * 255, (byte) list [ i + 5 ] * 255,
                                      list [ i + 6 ], list [ i + 7 ], list [ i + 8 ] );
           }
         }

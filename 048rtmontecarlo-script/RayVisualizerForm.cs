@@ -14,7 +14,7 @@ namespace Rendering
 {
   public partial class RayVisualizerForm: Form
   {
-    public static RayVisualizerForm instance; //singleton
+    public static RayVisualizerForm singleton; //singleton
 
     /// <summary>
     /// Scene read from file.
@@ -120,7 +120,7 @@ namespace Rendering
 
       InitShaderRepository ();
 
-      RayVisualizerForm.instance = this;
+      RayVisualizerForm.singleton = this;
 
       RayVisualizer.singleton = new RayVisualizer ();
 
@@ -280,7 +280,7 @@ namespace Rendering
     {
       Form1.singleton.RayVisualiserButton.Enabled = true;
 
-      instance = null;
+      singleton = null;
     }
 
     /// <summary>
@@ -830,6 +830,21 @@ namespace Rendering
 				RenderRays ( renderFirst );
 				RenderCamera ();
 				RenderLightSources ();
+
+			  if ( pointCloudVBO != 0 && PointCloudCheckBox.Checked )
+			  {
+			    GL.EnableClientState ( ArrayCap.VertexArray );
+			    GL.EnableClientState ( ArrayCap.ColorArray );
+			    GL.EnableClientState ( ArrayCap.NormalArray );
+
+          GL.VertexPointer ( 3, VertexPointerType.Float, 9 * sizeof ( float ), 0 );
+			    GL.ColorPointer ( 3, ColorPointerType.Float, 9 * sizeof ( float ), 3 * sizeof ( float ) );
+			    GL.NormalPointer ( NormalPointerType.Float, 9 * sizeof ( float ), 6 * sizeof ( float ) );
+
+          GL.BindBuffer ( BufferTarget.ArrayBuffer, pointCloudVBO );
+			    GL.Color4 ( Color.Red );
+			    GL.DrawArrays ( PrimitiveType.Points, 0, pointCloud.numberOfElements );
+			  }			  
 			}
 
 			// Support: axes
@@ -1050,7 +1065,7 @@ namespace Rendering
 		/// </summary>
 		private void RenderLightSources ()
 		{
-			if ( /*RayVisualizer.instance?.rays.Count == 0 || */ rayScene?.Sources == null || !LightSourcesCheckBox.Checked )
+			if ( /*RayVisualizer.singleton?.rays.Count == 0 || */ rayScene?.Sources == null || !LightSourcesCheckBox.Checked )
 			{
 				return;
 			}
@@ -1415,5 +1430,46 @@ namespace Rendering
 				this.color = color;
 			}
 		}
-	}
+
+    PointCloud pointCloud;
+    private int pointCloudVBO = 0;
+
+    private void PointCloudButton_Click ( object sender, EventArgs e )
+    {
+      pointCloud = AdvancedTools.singleton.pointCloud;
+
+      if ( pointCloud.cloud == null || pointCloud.IsCloudEmpty )
+        return;
+
+      InitializePointCloudVBO ();
+
+      PointCloudCheckBox.Enabled = true;
+      PointCloudCheckBox.Checked = true;
+    }
+
+    private void InitializePointCloudVBO ()
+    {
+      pointCloudVBO = GL.GenBuffer ();
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, pointCloudVBO );
+
+      int size = pointCloud.numberOfElements * 9 * sizeof(float);
+
+      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( size ), IntPtr.Zero, BufferUsageHint.StaticDraw );
+
+      int currentLength = 0;
+      foreach ( List<float> list in pointCloud.cloud )
+      {      
+        GL.BufferSubData ( BufferTarget.ArrayBuffer, (IntPtr) currentLength, (IntPtr) ( list.Count * sizeof ( float ) ) - 1, list.ToArray () );
+        currentLength += list.Count * sizeof ( float );
+      }
+
+      BoundingBoxesCheckBox.Checked = false;
+      WireframeBoundingBoxesCheckBox.Enabled = false;
+    }
+
+    private void BoundingBoxesCheckBox_CheckedChanged ( object sender, EventArgs e )
+    {
+      WireframeBoundingBoxesCheckBox.Enabled = BoundingBoxesCheckBox.Checked;
+    }
+  }
 }
