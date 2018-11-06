@@ -440,9 +440,12 @@ namespace Rendering
     /// Catches +/PageUp for zoom in or -/PageDown for zoom out of image in picture box
     /// </summary>
     /// <param name="sender">Not needed</param>
-    /// <param name="e">Used to get pressed key</param>
+    /// <param name="e">Needed to get pressed key</param>
     private void AdvancedToolsForm_KeyDown ( object sender, KeyEventArgs e )
     {
+      if ( e.KeyCode == Keys.R )
+        PanAndZoomControls[MapsTabControl.SelectedIndex].Reset ();
+
       PanAndZoomControls [MapsTabControl.SelectedIndex].KeyDownRegistration ( e.KeyCode, ModifierKeys );
     }
 

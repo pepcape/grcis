@@ -766,6 +766,9 @@ namespace Rendering
     /// <param name="e">Needed to get pressed key</param>
     private void Form1_KeyDown ( object sender, KeyEventArgs e )
     {
+      if ( e.KeyCode == Keys.R )
+        panAndZoom.Reset ();
+
       panAndZoom.KeyDownRegistration ( e.KeyCode, ModifierKeys );
     }
 
@@ -835,8 +838,8 @@ namespace Rendering
     /// Resets image in picture box to 100% zoom and default position
     /// (left upper corner of image in left upper conrner of picture box)
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void ResetButton_Click ( object sender, EventArgs e )
     {
       panAndZoom.Reset ();

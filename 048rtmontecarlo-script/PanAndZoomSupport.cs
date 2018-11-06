@@ -51,28 +51,30 @@ namespace Rendering
     {
       PointF middle = new PointF
       {
-        X = ( ( imageX + image.Width ) * zoom ) / 2f,
-        Y = ( ( imageY + image.Height ) * zoom ) / 2f
+        X = ( imageX * zoom + ( ( image.Width * zoom ) / 2f ) ),
+        Y = ( imageY * zoom + ( ( image.Height * zoom ) / 2f ) )
       };
 
       ZoomToPosition ( zoomIn, middle, modifierKeys );
     }
 
+    private const float zoomFactorNormal = 0.15f;
+    private const float zoomFactorFast = 0.45f;
     /// <summary>
-    /// Changes global variable zoom to indicate current zoom level of picture in main picture box
+    /// Changes global variable zoom to indicate current zoom level of picture in main picture box; 
     /// Variable zoom can be equal 1 (no zoom), less than 1 (zoom out) or greater than 1 (zoom in)
     /// </summary>
     /// <param name="zoomIn">TRUE if zoom in is desired; FALSE if zoom out is desired</param>
-    /// <param name="position">Position to zoom to/zoom out from - usually cursor position (absolute to picturebox)
+    /// <param name="position">Position to zoom to/zoom out from - usually cursor position (relative to picturebox, not to image)
     /// or middle of picture in case of zoom by keys</param>
     /// <param name="modifierKeys">Currently pressed keys - used for detection of Shift key for faster zooming</param>
     public void ZoomToPosition ( bool zoomIn, PointF position, Keys modifierKeys )
     {
       float oldzoom    = zoom;
-      float zoomFactor = 0.15F;
+      float zoomFactor = zoomFactorNormal;
 
       if ( modifierKeys.HasFlag ( Keys.Shift ) ) // holding down the Shift key makes zoom in/out faster
-        zoomFactor = 0.45F;
+        zoomFactor = zoomFactorFast;
 
       if ( zoomIn )
         zoom += zoomFactor;
