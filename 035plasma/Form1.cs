@@ -228,26 +228,24 @@ namespace _035plasma
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
       if ( sim != null &&
-           e.Button == MouseButtons.Left )
-        if ( sim.MouseMove( e.Location ) &&
+           e.Button != MouseButtons.None )
+        if ( sim.MouseMove( e.Location, e.Button, ModifierKeys ) &&
              aThread == null )
           SetImage( sim.Visualize() );
     }
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( sim != null &&
-           e.Button == MouseButtons.Left )
-        if ( sim.MouseDown( e.Location ) &&
+      if ( sim != null )
+        if ( sim.MouseDown( e.Location, e.Button, ModifierKeys ) &&
              aThread == null )
           SetImage( sim.Visualize() );
     }
 
     private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
     {
-      if ( sim != null &&
-           e.Button == MouseButtons.Left )
-        if ( sim.MouseUp( e.Location ) &&
+      if ( sim != null )
+        if ( sim.MouseUp( e.Location, e.Button, ModifierKeys ) &&
              aThread == null )
           SetImage( sim.Visualize() );
     }
