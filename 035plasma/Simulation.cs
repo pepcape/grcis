@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Windows.Forms;
 
 namespace _035plasma
 {
@@ -110,7 +111,7 @@ namespace _035plasma
     /// Support draw function (feel free to override/remove it).
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
-    protected void Draw ( Point location )
+    protected void Draw ( Point location, float color )
     {
       // {{ TODO: put your drawing code here
 
@@ -127,7 +128,7 @@ namespace _035plasma
 
       for ( int i = y - Radius; i < y + Radius; i++ )
         for ( int j = x - Radius; j < x + Radius; j++ )
-          s[ i, j ] = 1.0f;              // permanent white color .. 1.0f .. see Simulate()
+          s[ i, j ] = color;             // permanent white color .. 1.0f .. see Simulate()
 
       // }}
     }
@@ -137,12 +138,14 @@ namespace _035plasma
     /// Draws permanent 1.0f rectangle in pilot implementation.
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
+    /// <param name="mb">Which mouse button was pressed?</param>
+    /// <param name="altKeys">Which control keys were down?</param>
     /// <returns>True if the visualization bitmap was altered.</returns>
-    public bool MouseDown ( Point location )
+    public bool MouseDown ( Point location, MouseButtons mb, Keys altKeys )
     {
       // {{ TODO: put your drawing logic here
 
-      Draw( location );
+      Draw( location, (altKeys & Keys.Shift) > 0 ? 0.0f : 1.0f );
       return true;
 
       // }}
@@ -153,12 +156,14 @@ namespace _035plasma
     /// Draws permanent 1.0f rectangle in pilot implementation.
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
+    /// <param name="mb">Which mouse button was released?</param>
+    /// <param name="altKeys">Which control keys were down?</param>
     /// <returns>True if the visualization bitmap was altered.</returns>
-    public bool MouseUp ( Point location )
+    public bool MouseUp ( Point location, MouseButtons mb, Keys altKeys )
     {
       // {{ TODO: put your drawing logic here
 
-      Draw( location );
+      Draw( location, (altKeys & Keys.Shift) > 0 ? 0.0f : 1.0f );
       return true;
 
       // }}
@@ -169,12 +174,14 @@ namespace _035plasma
     /// Draws permanent 1.0f rectangle in pilot implementation.
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
+    /// <param name="mb">Which mouse buttons are down?</param>
+    /// <param name="altKeys">Which control keys were down?</param>
     /// <returns>True if the visualization bitmap was altered.</returns>
-    public bool MouseMove ( Point location )
+    public bool MouseMove ( Point location, MouseButtons mb, Keys altKeys )
     {
       // {{ TODO: put your drawing logic here
 
-      Draw( location );
+      Draw( location, (altKeys & Keys.Shift) > 0 ? 0.0f : 1.0f );
       return true;
 
       // }}
