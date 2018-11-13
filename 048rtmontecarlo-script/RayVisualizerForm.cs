@@ -189,10 +189,10 @@ namespace Rendering
       Render ();
     }
 
-    private void Form3_FormClosing ( object sender, FormClosingEventArgs e )
+    private void RayVisualizerForm_FormClosing ( object sender, FormClosingEventArgs e )
     {
       DestroyTexture ( ref texName );
-
+      
       if ( VBOid != null && VBOid [ 0 ] != 0 )
       {
         GL.DeleteBuffers ( 2, VBOid );
@@ -282,7 +282,7 @@ namespace Rendering
       }
     }
 
-    private void Form3_FormClosed ( object sender, FormClosedEventArgs e )
+    private void RayVisualizerForm_FormClosed ( object sender, FormClosedEventArgs e )
     {
       Form1.singleton.RayVisualiserButton.Enabled = true;
 

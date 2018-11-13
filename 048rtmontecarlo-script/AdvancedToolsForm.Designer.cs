@@ -36,6 +36,9 @@
       this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
       this.SaveDepthMapButton = new System.Windows.Forms.Button();
       this.ExportDataDepthMapButton = new System.Windows.Forms.Button();
+      this.flowLayoutPanel11 = new System.Windows.Forms.FlowLayoutPanel();
+      this.PreviousDepthMapButton = new System.Windows.Forms.Button();
+      this.NextDepthMapButton = new System.Windows.Forms.Button();
       this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
       this.RenderDepthMapButton = new System.Windows.Forms.Button();
       this.ResetDepthMapButton = new System.Windows.Forms.Button();
@@ -50,16 +53,10 @@
       this.PrimaryRaysMapCoordinates = new System.Windows.Forms.Label();
       this.TotalPrimaryRaysCount = new System.Windows.Forms.Label();
       this.AveragePrimaryRaysCount = new System.Windows.Forms.Label();
-      this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
-      this.SavePrimaryRaysMapButton = new System.Windows.Forms.Button();
-      this.ExportDataPrimaryRaysMapButton = new System.Windows.Forms.Button();
       this.AllRaysMapTab = new System.Windows.Forms.TabPage();
       this.AllRaysMapLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
       this.AllRaysMapPictureBox = new System.Windows.Forms.PictureBox();
       this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
-      this.flowLayoutPanel8 = new System.Windows.Forms.FlowLayoutPanel();
-      this.SaveAllRaysMapButton = new System.Windows.Forms.Button();
-      this.ExportDataAllRaysMapButton = new System.Windows.Forms.Button();
       this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
       this.RenderAllRaysMapButton = new System.Windows.Forms.Button();
       this.ResetAllRaysMapButton = new System.Windows.Forms.Button();
@@ -70,9 +67,6 @@
       this.NormalMapRelativeLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
       this.NormalMapRelativePictureBox = new System.Windows.Forms.PictureBox();
       this.tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
-      this.flowLayoutPanel9 = new System.Windows.Forms.FlowLayoutPanel();
-      this.SaveNormalMapRelativeButton = new System.Windows.Forms.Button();
-      this.ExportDataNormalMapRelativeButton = new System.Windows.Forms.Button();
       this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
       this.RenderNormalMapRelativeButton = new System.Windows.Forms.Button();
       this.ResetNormalMapRelativeButton = new System.Windows.Forms.Button();
@@ -81,44 +75,70 @@
       this.NormalMapAbsoluteLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
       this.NormalMapAbsolutePictureBox = new System.Windows.Forms.PictureBox();
       this.tableLayoutPanel6 = new System.Windows.Forms.TableLayoutPanel();
-      this.flowLayoutPanel10 = new System.Windows.Forms.FlowLayoutPanel();
-      this.SaveNormalMapAbsoluteButton = new System.Windows.Forms.Button();
-      this.ExportDataNormalMapAbsoluteButton = new System.Windows.Forms.Button();
       this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
       this.RenderNormalMapAbsoluteButton = new System.Windows.Forms.Button();
       this.ResetNormalMapAbsoluteButton = new System.Windows.Forms.Button();
       this.NormalMapAbsoluteCoordinates = new System.Windows.Forms.Label();
+      this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
+      this.SavePrimaryRaysMapButton = new System.Windows.Forms.Button();
+      this.ExportDataPrimaryRaysMapButton = new System.Windows.Forms.Button();
+      this.flowLayoutPanel12 = new System.Windows.Forms.FlowLayoutPanel();
+      this.PreviousPrimaryRaysMapButton = new System.Windows.Forms.Button();
+      this.NextPrimaryRaysMapButton = new System.Windows.Forms.Button();
+      this.flowLayoutPanel8 = new System.Windows.Forms.FlowLayoutPanel();
+      this.SaveAllRaysMapButton = new System.Windows.Forms.Button();
+      this.ExportDataAllRaysMapButton = new System.Windows.Forms.Button();
+      this.flowLayoutPanel13 = new System.Windows.Forms.FlowLayoutPanel();
+      this.PreviousAllRaysMapButton = new System.Windows.Forms.Button();
+      this.NextAllRaysMapButton = new System.Windows.Forms.Button();
+      this.flowLayoutPanel9 = new System.Windows.Forms.FlowLayoutPanel();
+      this.SaveNormalMapRelativeButton = new System.Windows.Forms.Button();
+      this.ExportDataNormalMapRelativeButton = new System.Windows.Forms.Button();
+      this.flowLayoutPanel14 = new System.Windows.Forms.FlowLayoutPanel();
+      this.PreviousNormalMapRelativeButton = new System.Windows.Forms.Button();
+      this.NextNormalMapRelativeButton = new System.Windows.Forms.Button();
+      this.flowLayoutPanel10 = new System.Windows.Forms.FlowLayoutPanel();
+      this.SaveNormalMapAbsoluteButton = new System.Windows.Forms.Button();
+      this.ExportDataNormalMapAbsoluteButton = new System.Windows.Forms.Button();
+      this.flowLayoutPanel15 = new System.Windows.Forms.FlowLayoutPanel();
+      this.PreviousNormalMapAbsoluteButton = new System.Windows.Forms.Button();
+      this.NextNormalMapAbsoluteButton = new System.Windows.Forms.Button();
       this.MapsTabControl.SuspendLayout();
       this.DepthMapTab.SuspendLayout();
       this.DepthMapLayoutPanel.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.DepthMapPictureBox)).BeginInit();
       this.tableLayoutPanel2.SuspendLayout();
       this.flowLayoutPanel7.SuspendLayout();
+      this.flowLayoutPanel11.SuspendLayout();
       this.flowLayoutPanel1.SuspendLayout();
       this.PrimaryRaysMapTab.SuspendLayout();
       this.PrimaryRaysMapLayoutPanel.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.PrimaryRaysMapPictureBox)).BeginInit();
       this.tableLayoutPanel3.SuspendLayout();
       this.flowLayoutPanel2.SuspendLayout();
-      this.flowLayoutPanel6.SuspendLayout();
       this.AllRaysMapTab.SuspendLayout();
       this.AllRaysMapLayoutPanel.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.AllRaysMapPictureBox)).BeginInit();
       this.tableLayoutPanel4.SuspendLayout();
-      this.flowLayoutPanel8.SuspendLayout();
       this.flowLayoutPanel3.SuspendLayout();
       this.NormalMapRelativeTab.SuspendLayout();
       this.NormalMapRelativeLayoutPanel.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.NormalMapRelativePictureBox)).BeginInit();
       this.tableLayoutPanel5.SuspendLayout();
-      this.flowLayoutPanel9.SuspendLayout();
       this.flowLayoutPanel4.SuspendLayout();
       this.NormalMapAbsoluteTab.SuspendLayout();
       this.NormalMapAbsoluteLayoutPanel.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.NormalMapAbsolutePictureBox)).BeginInit();
       this.tableLayoutPanel6.SuspendLayout();
-      this.flowLayoutPanel10.SuspendLayout();
       this.flowLayoutPanel5.SuspendLayout();
+      this.flowLayoutPanel6.SuspendLayout();
+      this.flowLayoutPanel12.SuspendLayout();
+      this.flowLayoutPanel8.SuspendLayout();
+      this.flowLayoutPanel13.SuspendLayout();
+      this.flowLayoutPanel9.SuspendLayout();
+      this.flowLayoutPanel14.SuspendLayout();
+      this.flowLayoutPanel10.SuspendLayout();
+      this.flowLayoutPanel15.SuspendLayout();
       this.SuspendLayout();
       // 
       // MapsTabControl
@@ -196,7 +216,7 @@
       this.tableLayoutPanel2.Name = "tableLayoutPanel2";
       this.tableLayoutPanel2.RowCount = 2;
       this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 58F));
+      this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 98F));
       this.tableLayoutPanel2.Size = new System.Drawing.Size(175, 533);
       this.tableLayoutPanel2.TabIndex = 5;
       // 
@@ -204,19 +224,20 @@
       // 
       this.flowLayoutPanel7.Controls.Add(this.SaveDepthMapButton);
       this.flowLayoutPanel7.Controls.Add(this.ExportDataDepthMapButton);
+      this.flowLayoutPanel7.Controls.Add(this.flowLayoutPanel11);
       this.flowLayoutPanel7.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanel7.FlowDirection = System.Windows.Forms.FlowDirection.BottomUp;
-      this.flowLayoutPanel7.Location = new System.Drawing.Point(0, 475);
+      this.flowLayoutPanel7.Location = new System.Drawing.Point(0, 435);
       this.flowLayoutPanel7.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel7.Name = "flowLayoutPanel7";
-      this.flowLayoutPanel7.Size = new System.Drawing.Size(175, 58);
+      this.flowLayoutPanel7.Size = new System.Drawing.Size(175, 98);
       this.flowLayoutPanel7.TabIndex = 9;
       // 
       // SaveDepthMapButton
       // 
       this.SaveDepthMapButton.Enabled = false;
       this.SaveDepthMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.SaveDepthMapButton.Location = new System.Drawing.Point(3, 32);
+      this.SaveDepthMapButton.Location = new System.Drawing.Point(3, 72);
       this.SaveDepthMapButton.Name = "SaveDepthMapButton";
       this.SaveDepthMapButton.Size = new System.Drawing.Size(169, 23);
       this.SaveDepthMapButton.TabIndex = 8;
@@ -228,13 +249,47 @@
       // 
       this.ExportDataDepthMapButton.Enabled = false;
       this.ExportDataDepthMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.ExportDataDepthMapButton.Location = new System.Drawing.Point(3, 3);
+      this.ExportDataDepthMapButton.Location = new System.Drawing.Point(3, 43);
       this.ExportDataDepthMapButton.Name = "ExportDataDepthMapButton";
       this.ExportDataDepthMapButton.Size = new System.Drawing.Size(169, 23);
       this.ExportDataDepthMapButton.TabIndex = 7;
       this.ExportDataDepthMapButton.Text = "Export data";
       this.ExportDataDepthMapButton.UseVisualStyleBackColor = true;
       this.ExportDataDepthMapButton.Click += new System.EventHandler(this.ExportDataButton_Click);
+      // 
+      // flowLayoutPanel11
+      // 
+      this.flowLayoutPanel11.Controls.Add(this.PreviousDepthMapButton);
+      this.flowLayoutPanel11.Controls.Add(this.NextDepthMapButton);
+      this.flowLayoutPanel11.Location = new System.Drawing.Point(0, 0);
+      this.flowLayoutPanel11.Margin = new System.Windows.Forms.Padding(0);
+      this.flowLayoutPanel11.Name = "flowLayoutPanel11";
+      this.flowLayoutPanel11.Size = new System.Drawing.Size(175, 40);
+      this.flowLayoutPanel11.TabIndex = 9;
+      // 
+      // PreviousDepthMapButton
+      // 
+      this.PreviousDepthMapButton.Enabled = false;
+      this.PreviousDepthMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousDepthMapButton.Location = new System.Drawing.Point(3, 3);
+      this.PreviousDepthMapButton.Name = "PreviousDepthMapButton";
+      this.PreviousDepthMapButton.Size = new System.Drawing.Size(81, 34);
+      this.PreviousDepthMapButton.TabIndex = 8;
+      this.PreviousDepthMapButton.Text = "Previous\r\nImage";
+      this.PreviousDepthMapButton.UseVisualStyleBackColor = true;
+      this.PreviousDepthMapButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
+      // 
+      // NextDepthMapButton
+      // 
+      this.NextDepthMapButton.Enabled = false;
+      this.NextDepthMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextDepthMapButton.Location = new System.Drawing.Point(90, 3);
+      this.NextDepthMapButton.Name = "NextDepthMapButton";
+      this.NextDepthMapButton.Size = new System.Drawing.Size(81, 34);
+      this.NextDepthMapButton.TabIndex = 9;
+      this.NextDepthMapButton.Text = "Next\r\nImage";
+      this.NextDepthMapButton.UseVisualStyleBackColor = true;
+      this.NextDepthMapButton.Click += new System.EventHandler(this.NextImageButton_Click);
       // 
       // flowLayoutPanel1
       // 
@@ -245,7 +300,7 @@
       this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
       this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-      this.flowLayoutPanel1.Size = new System.Drawing.Size(175, 475);
+      this.flowLayoutPanel1.Size = new System.Drawing.Size(175, 435);
       this.flowLayoutPanel1.TabIndex = 7;
       // 
       // RenderDepthMapButton
@@ -332,15 +387,15 @@
       // 
       this.tableLayoutPanel3.ColumnCount = 1;
       this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel3.Controls.Add(this.flowLayoutPanel2, 0, 0);
       this.tableLayoutPanel3.Controls.Add(this.flowLayoutPanel6, 0, 1);
+      this.tableLayoutPanel3.Controls.Add(this.flowLayoutPanel2, 0, 0);
       this.tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
       this.tableLayoutPanel3.Location = new System.Drawing.Point(0, 0);
       this.tableLayoutPanel3.Margin = new System.Windows.Forms.Padding(0);
       this.tableLayoutPanel3.Name = "tableLayoutPanel3";
       this.tableLayoutPanel3.RowCount = 2;
       this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 58F));
+      this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 98F));
       this.tableLayoutPanel3.Size = new System.Drawing.Size(175, 533);
       this.tableLayoutPanel3.TabIndex = 5;
       // 
@@ -355,7 +410,7 @@
       this.flowLayoutPanel2.Location = new System.Drawing.Point(0, 0);
       this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-      this.flowLayoutPanel2.Size = new System.Drawing.Size(175, 475);
+      this.flowLayoutPanel2.Size = new System.Drawing.Size(175, 435);
       this.flowLayoutPanel2.TabIndex = 7;
       // 
       // RenderPrimaryRaysMapButton
@@ -419,42 +474,6 @@
       this.AveragePrimaryRaysCount.TabIndex = 14;
       this.AveragePrimaryRaysCount.Text = "Average primary rays count per pixel:\r\n";
       // 
-      // flowLayoutPanel6
-      // 
-      this.flowLayoutPanel6.Controls.Add(this.SavePrimaryRaysMapButton);
-      this.flowLayoutPanel6.Controls.Add(this.ExportDataPrimaryRaysMapButton);
-      this.flowLayoutPanel6.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.flowLayoutPanel6.FlowDirection = System.Windows.Forms.FlowDirection.BottomUp;
-      this.flowLayoutPanel6.Location = new System.Drawing.Point(0, 475);
-      this.flowLayoutPanel6.Margin = new System.Windows.Forms.Padding(0);
-      this.flowLayoutPanel6.Name = "flowLayoutPanel6";
-      this.flowLayoutPanel6.Size = new System.Drawing.Size(175, 58);
-      this.flowLayoutPanel6.TabIndex = 8;
-      // 
-      // SavePrimaryRaysMapButton
-      // 
-      this.SavePrimaryRaysMapButton.Enabled = false;
-      this.SavePrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.SavePrimaryRaysMapButton.Location = new System.Drawing.Point(3, 32);
-      this.SavePrimaryRaysMapButton.Name = "SavePrimaryRaysMapButton";
-      this.SavePrimaryRaysMapButton.Size = new System.Drawing.Size(169, 23);
-      this.SavePrimaryRaysMapButton.TabIndex = 8;
-      this.SavePrimaryRaysMapButton.Text = "Save Image";
-      this.SavePrimaryRaysMapButton.UseVisualStyleBackColor = true;
-      this.SavePrimaryRaysMapButton.Click += new System.EventHandler(this.SaveMapButton_Click);
-      // 
-      // ExportDataPrimaryRaysMapButton
-      // 
-      this.ExportDataPrimaryRaysMapButton.Enabled = false;
-      this.ExportDataPrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.ExportDataPrimaryRaysMapButton.Location = new System.Drawing.Point(3, 3);
-      this.ExportDataPrimaryRaysMapButton.Name = "ExportDataPrimaryRaysMapButton";
-      this.ExportDataPrimaryRaysMapButton.Size = new System.Drawing.Size(169, 23);
-      this.ExportDataPrimaryRaysMapButton.TabIndex = 7;
-      this.ExportDataPrimaryRaysMapButton.Text = "Export data";
-      this.ExportDataPrimaryRaysMapButton.UseVisualStyleBackColor = true;
-      this.ExportDataPrimaryRaysMapButton.Click += new System.EventHandler(this.ExportDataButton_Click);
-      // 
       // AllRaysMapTab
       // 
       this.AllRaysMapTab.Controls.Add(this.AllRaysMapLayoutPanel);
@@ -511,45 +530,9 @@
       this.tableLayoutPanel4.Name = "tableLayoutPanel4";
       this.tableLayoutPanel4.RowCount = 2;
       this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 58F));
+      this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 98F));
       this.tableLayoutPanel4.Size = new System.Drawing.Size(175, 533);
       this.tableLayoutPanel4.TabIndex = 5;
-      // 
-      // flowLayoutPanel8
-      // 
-      this.flowLayoutPanel8.Controls.Add(this.SaveAllRaysMapButton);
-      this.flowLayoutPanel8.Controls.Add(this.ExportDataAllRaysMapButton);
-      this.flowLayoutPanel8.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.flowLayoutPanel8.FlowDirection = System.Windows.Forms.FlowDirection.BottomUp;
-      this.flowLayoutPanel8.Location = new System.Drawing.Point(0, 475);
-      this.flowLayoutPanel8.Margin = new System.Windows.Forms.Padding(0);
-      this.flowLayoutPanel8.Name = "flowLayoutPanel8";
-      this.flowLayoutPanel8.Size = new System.Drawing.Size(175, 58);
-      this.flowLayoutPanel8.TabIndex = 9;
-      // 
-      // SaveAllRaysMapButton
-      // 
-      this.SaveAllRaysMapButton.Enabled = false;
-      this.SaveAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.SaveAllRaysMapButton.Location = new System.Drawing.Point(3, 32);
-      this.SaveAllRaysMapButton.Name = "SaveAllRaysMapButton";
-      this.SaveAllRaysMapButton.Size = new System.Drawing.Size(169, 23);
-      this.SaveAllRaysMapButton.TabIndex = 8;
-      this.SaveAllRaysMapButton.Text = "Save Image";
-      this.SaveAllRaysMapButton.UseVisualStyleBackColor = true;
-      this.SaveAllRaysMapButton.Click += new System.EventHandler(this.SaveMapButton_Click);
-      // 
-      // ExportDataAllRaysMapButton
-      // 
-      this.ExportDataAllRaysMapButton.Enabled = false;
-      this.ExportDataAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.ExportDataAllRaysMapButton.Location = new System.Drawing.Point(3, 3);
-      this.ExportDataAllRaysMapButton.Name = "ExportDataAllRaysMapButton";
-      this.ExportDataAllRaysMapButton.Size = new System.Drawing.Size(169, 23);
-      this.ExportDataAllRaysMapButton.TabIndex = 7;
-      this.ExportDataAllRaysMapButton.Text = "Export data";
-      this.ExportDataAllRaysMapButton.UseVisualStyleBackColor = true;
-      this.ExportDataAllRaysMapButton.Click += new System.EventHandler(this.ExportDataButton_Click);
       // 
       // flowLayoutPanel3
       // 
@@ -562,7 +545,7 @@
       this.flowLayoutPanel3.Location = new System.Drawing.Point(0, 0);
       this.flowLayoutPanel3.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-      this.flowLayoutPanel3.Size = new System.Drawing.Size(175, 475);
+      this.flowLayoutPanel3.Size = new System.Drawing.Size(175, 435);
       this.flowLayoutPanel3.TabIndex = 7;
       // 
       // RenderAllRaysMapButton
@@ -682,45 +665,9 @@
       this.tableLayoutPanel5.Name = "tableLayoutPanel5";
       this.tableLayoutPanel5.RowCount = 2;
       this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 58F));
+      this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 98F));
       this.tableLayoutPanel5.Size = new System.Drawing.Size(175, 533);
       this.tableLayoutPanel5.TabIndex = 5;
-      // 
-      // flowLayoutPanel9
-      // 
-      this.flowLayoutPanel9.Controls.Add(this.SaveNormalMapRelativeButton);
-      this.flowLayoutPanel9.Controls.Add(this.ExportDataNormalMapRelativeButton);
-      this.flowLayoutPanel9.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.flowLayoutPanel9.FlowDirection = System.Windows.Forms.FlowDirection.BottomUp;
-      this.flowLayoutPanel9.Location = new System.Drawing.Point(0, 475);
-      this.flowLayoutPanel9.Margin = new System.Windows.Forms.Padding(0);
-      this.flowLayoutPanel9.Name = "flowLayoutPanel9";
-      this.flowLayoutPanel9.Size = new System.Drawing.Size(175, 58);
-      this.flowLayoutPanel9.TabIndex = 10;
-      // 
-      // SaveNormalMapRelativeButton
-      // 
-      this.SaveNormalMapRelativeButton.Enabled = false;
-      this.SaveNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.SaveNormalMapRelativeButton.Location = new System.Drawing.Point(3, 32);
-      this.SaveNormalMapRelativeButton.Name = "SaveNormalMapRelativeButton";
-      this.SaveNormalMapRelativeButton.Size = new System.Drawing.Size(169, 23);
-      this.SaveNormalMapRelativeButton.TabIndex = 8;
-      this.SaveNormalMapRelativeButton.Text = "Save Image";
-      this.SaveNormalMapRelativeButton.UseVisualStyleBackColor = true;
-      this.SaveNormalMapRelativeButton.Click += new System.EventHandler(this.SaveMapButton_Click);
-      // 
-      // ExportDataNormalMapRelativeButton
-      // 
-      this.ExportDataNormalMapRelativeButton.Enabled = false;
-      this.ExportDataNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.ExportDataNormalMapRelativeButton.Location = new System.Drawing.Point(3, 3);
-      this.ExportDataNormalMapRelativeButton.Name = "ExportDataNormalMapRelativeButton";
-      this.ExportDataNormalMapRelativeButton.Size = new System.Drawing.Size(169, 23);
-      this.ExportDataNormalMapRelativeButton.TabIndex = 7;
-      this.ExportDataNormalMapRelativeButton.Text = "Export data";
-      this.ExportDataNormalMapRelativeButton.UseVisualStyleBackColor = true;
-      this.ExportDataNormalMapRelativeButton.Click += new System.EventHandler(this.ExportDataButton_Click);
       // 
       // flowLayoutPanel4
       // 
@@ -731,7 +678,7 @@
       this.flowLayoutPanel4.Location = new System.Drawing.Point(0, 0);
       this.flowLayoutPanel4.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel4.Name = "flowLayoutPanel4";
-      this.flowLayoutPanel4.Size = new System.Drawing.Size(175, 475);
+      this.flowLayoutPanel4.Size = new System.Drawing.Size(175, 435);
       this.flowLayoutPanel4.TabIndex = 7;
       // 
       // RenderNormalMapRelativeButton
@@ -825,45 +772,9 @@
       this.tableLayoutPanel6.Name = "tableLayoutPanel6";
       this.tableLayoutPanel6.RowCount = 2;
       this.tableLayoutPanel6.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel6.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 58F));
+      this.tableLayoutPanel6.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 98F));
       this.tableLayoutPanel6.Size = new System.Drawing.Size(175, 533);
       this.tableLayoutPanel6.TabIndex = 5;
-      // 
-      // flowLayoutPanel10
-      // 
-      this.flowLayoutPanel10.Controls.Add(this.SaveNormalMapAbsoluteButton);
-      this.flowLayoutPanel10.Controls.Add(this.ExportDataNormalMapAbsoluteButton);
-      this.flowLayoutPanel10.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.flowLayoutPanel10.FlowDirection = System.Windows.Forms.FlowDirection.BottomUp;
-      this.flowLayoutPanel10.Location = new System.Drawing.Point(0, 475);
-      this.flowLayoutPanel10.Margin = new System.Windows.Forms.Padding(0);
-      this.flowLayoutPanel10.Name = "flowLayoutPanel10";
-      this.flowLayoutPanel10.Size = new System.Drawing.Size(175, 58);
-      this.flowLayoutPanel10.TabIndex = 10;
-      // 
-      // SaveNormalMapAbsoluteButton
-      // 
-      this.SaveNormalMapAbsoluteButton.Enabled = false;
-      this.SaveNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.SaveNormalMapAbsoluteButton.Location = new System.Drawing.Point(3, 32);
-      this.SaveNormalMapAbsoluteButton.Name = "SaveNormalMapAbsoluteButton";
-      this.SaveNormalMapAbsoluteButton.Size = new System.Drawing.Size(169, 23);
-      this.SaveNormalMapAbsoluteButton.TabIndex = 8;
-      this.SaveNormalMapAbsoluteButton.Text = "Save Image";
-      this.SaveNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
-      this.SaveNormalMapAbsoluteButton.Click += new System.EventHandler(this.SaveMapButton_Click);
-      // 
-      // ExportDataNormalMapAbsoluteButton
-      // 
-      this.ExportDataNormalMapAbsoluteButton.Enabled = false;
-      this.ExportDataNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.ExportDataNormalMapAbsoluteButton.Location = new System.Drawing.Point(3, 3);
-      this.ExportDataNormalMapAbsoluteButton.Name = "ExportDataNormalMapAbsoluteButton";
-      this.ExportDataNormalMapAbsoluteButton.Size = new System.Drawing.Size(169, 23);
-      this.ExportDataNormalMapAbsoluteButton.TabIndex = 7;
-      this.ExportDataNormalMapAbsoluteButton.Text = "Export data";
-      this.ExportDataNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
-      this.ExportDataNormalMapAbsoluteButton.Click += new System.EventHandler(this.ExportDataButton_Click);
       // 
       // flowLayoutPanel5
       // 
@@ -874,7 +785,7 @@
       this.flowLayoutPanel5.Location = new System.Drawing.Point(0, 0);
       this.flowLayoutPanel5.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel5.Name = "flowLayoutPanel5";
-      this.flowLayoutPanel5.Size = new System.Drawing.Size(175, 475);
+      this.flowLayoutPanel5.Size = new System.Drawing.Size(175, 435);
       this.flowLayoutPanel5.TabIndex = 7;
       // 
       // RenderNormalMapAbsoluteButton
@@ -912,6 +823,290 @@
       this.NormalMapAbsoluteCoordinates.TabIndex = 12;
       this.NormalMapAbsoluteCoordinates.Text = "X: \r\nY: \r\nAngle of normal vector:\r\n";
       // 
+      // flowLayoutPanel6
+      // 
+      this.flowLayoutPanel6.Controls.Add(this.SavePrimaryRaysMapButton);
+      this.flowLayoutPanel6.Controls.Add(this.ExportDataPrimaryRaysMapButton);
+      this.flowLayoutPanel6.Controls.Add(this.flowLayoutPanel12);
+      this.flowLayoutPanel6.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.flowLayoutPanel6.FlowDirection = System.Windows.Forms.FlowDirection.BottomUp;
+      this.flowLayoutPanel6.Location = new System.Drawing.Point(0, 435);
+      this.flowLayoutPanel6.Margin = new System.Windows.Forms.Padding(0);
+      this.flowLayoutPanel6.Name = "flowLayoutPanel6";
+      this.flowLayoutPanel6.Size = new System.Drawing.Size(175, 98);
+      this.flowLayoutPanel6.TabIndex = 10;
+      // 
+      // SavePrimaryRaysMapButton
+      // 
+      this.SavePrimaryRaysMapButton.Enabled = false;
+      this.SavePrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.SavePrimaryRaysMapButton.Location = new System.Drawing.Point(3, 72);
+      this.SavePrimaryRaysMapButton.Name = "SavePrimaryRaysMapButton";
+      this.SavePrimaryRaysMapButton.Size = new System.Drawing.Size(169, 23);
+      this.SavePrimaryRaysMapButton.TabIndex = 8;
+      this.SavePrimaryRaysMapButton.Text = "Save Image";
+      this.SavePrimaryRaysMapButton.UseVisualStyleBackColor = true;
+      this.SavePrimaryRaysMapButton.Click += new System.EventHandler(this.SaveMapButton_Click);
+      // 
+      // ExportDataPrimaryRaysMapButton
+      // 
+      this.ExportDataPrimaryRaysMapButton.Enabled = false;
+      this.ExportDataPrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.ExportDataPrimaryRaysMapButton.Location = new System.Drawing.Point(3, 43);
+      this.ExportDataPrimaryRaysMapButton.Name = "ExportDataPrimaryRaysMapButton";
+      this.ExportDataPrimaryRaysMapButton.Size = new System.Drawing.Size(169, 23);
+      this.ExportDataPrimaryRaysMapButton.TabIndex = 7;
+      this.ExportDataPrimaryRaysMapButton.Text = "Export data";
+      this.ExportDataPrimaryRaysMapButton.UseVisualStyleBackColor = true;
+      this.ExportDataPrimaryRaysMapButton.Click += new System.EventHandler(this.ExportDataButton_Click);
+      // 
+      // flowLayoutPanel12
+      // 
+      this.flowLayoutPanel12.Controls.Add(this.PreviousPrimaryRaysMapButton);
+      this.flowLayoutPanel12.Controls.Add(this.NextPrimaryRaysMapButton);
+      this.flowLayoutPanel12.Location = new System.Drawing.Point(0, 0);
+      this.flowLayoutPanel12.Margin = new System.Windows.Forms.Padding(0);
+      this.flowLayoutPanel12.Name = "flowLayoutPanel12";
+      this.flowLayoutPanel12.Size = new System.Drawing.Size(175, 40);
+      this.flowLayoutPanel12.TabIndex = 9;
+      // 
+      // PreviousPrimaryRaysMapButton
+      // 
+      this.PreviousPrimaryRaysMapButton.Enabled = false;
+      this.PreviousPrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousPrimaryRaysMapButton.Location = new System.Drawing.Point(3, 3);
+      this.PreviousPrimaryRaysMapButton.Name = "PreviousPrimaryRaysMapButton";
+      this.PreviousPrimaryRaysMapButton.Size = new System.Drawing.Size(81, 34);
+      this.PreviousPrimaryRaysMapButton.TabIndex = 8;
+      this.PreviousPrimaryRaysMapButton.Text = "Previous\r\nImage";
+      this.PreviousPrimaryRaysMapButton.UseVisualStyleBackColor = true;
+      this.PreviousPrimaryRaysMapButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
+      // 
+      // NextPrimaryRaysMapButton
+      // 
+      this.NextPrimaryRaysMapButton.Enabled = false;
+      this.NextPrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextPrimaryRaysMapButton.Location = new System.Drawing.Point(90, 3);
+      this.NextPrimaryRaysMapButton.Name = "NextPrimaryRaysMapButton";
+      this.NextPrimaryRaysMapButton.Size = new System.Drawing.Size(81, 34);
+      this.NextPrimaryRaysMapButton.TabIndex = 9;
+      this.NextPrimaryRaysMapButton.Text = "Next\r\nImage";
+      this.NextPrimaryRaysMapButton.UseVisualStyleBackColor = true;
+      this.NextPrimaryRaysMapButton.Click += new System.EventHandler(this.NextImageButton_Click);
+      // 
+      // flowLayoutPanel8
+      // 
+      this.flowLayoutPanel8.Controls.Add(this.SaveAllRaysMapButton);
+      this.flowLayoutPanel8.Controls.Add(this.ExportDataAllRaysMapButton);
+      this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel13);
+      this.flowLayoutPanel8.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.flowLayoutPanel8.FlowDirection = System.Windows.Forms.FlowDirection.BottomUp;
+      this.flowLayoutPanel8.Location = new System.Drawing.Point(0, 435);
+      this.flowLayoutPanel8.Margin = new System.Windows.Forms.Padding(0);
+      this.flowLayoutPanel8.Name = "flowLayoutPanel8";
+      this.flowLayoutPanel8.Size = new System.Drawing.Size(175, 98);
+      this.flowLayoutPanel8.TabIndex = 10;
+      // 
+      // SaveAllRaysMapButton
+      // 
+      this.SaveAllRaysMapButton.Enabled = false;
+      this.SaveAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.SaveAllRaysMapButton.Location = new System.Drawing.Point(3, 72);
+      this.SaveAllRaysMapButton.Name = "SaveAllRaysMapButton";
+      this.SaveAllRaysMapButton.Size = new System.Drawing.Size(169, 23);
+      this.SaveAllRaysMapButton.TabIndex = 8;
+      this.SaveAllRaysMapButton.Text = "Save Image";
+      this.SaveAllRaysMapButton.UseVisualStyleBackColor = true;
+      this.SaveAllRaysMapButton.Click += new System.EventHandler(this.SaveMapButton_Click);
+      // 
+      // ExportDataAllRaysMapButton
+      // 
+      this.ExportDataAllRaysMapButton.Enabled = false;
+      this.ExportDataAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.ExportDataAllRaysMapButton.Location = new System.Drawing.Point(3, 43);
+      this.ExportDataAllRaysMapButton.Name = "ExportDataAllRaysMapButton";
+      this.ExportDataAllRaysMapButton.Size = new System.Drawing.Size(169, 23);
+      this.ExportDataAllRaysMapButton.TabIndex = 7;
+      this.ExportDataAllRaysMapButton.Text = "Export data";
+      this.ExportDataAllRaysMapButton.UseVisualStyleBackColor = true;
+      this.ExportDataAllRaysMapButton.Click += new System.EventHandler(this.ExportDataButton_Click);
+      // 
+      // flowLayoutPanel13
+      // 
+      this.flowLayoutPanel13.Controls.Add(this.PreviousAllRaysMapButton);
+      this.flowLayoutPanel13.Controls.Add(this.NextAllRaysMapButton);
+      this.flowLayoutPanel13.Location = new System.Drawing.Point(0, 0);
+      this.flowLayoutPanel13.Margin = new System.Windows.Forms.Padding(0);
+      this.flowLayoutPanel13.Name = "flowLayoutPanel13";
+      this.flowLayoutPanel13.Size = new System.Drawing.Size(175, 40);
+      this.flowLayoutPanel13.TabIndex = 9;
+      // 
+      // PreviousAllRaysMapButton
+      // 
+      this.PreviousAllRaysMapButton.Enabled = false;
+      this.PreviousAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousAllRaysMapButton.Location = new System.Drawing.Point(3, 3);
+      this.PreviousAllRaysMapButton.Name = "PreviousAllRaysMapButton";
+      this.PreviousAllRaysMapButton.Size = new System.Drawing.Size(81, 34);
+      this.PreviousAllRaysMapButton.TabIndex = 8;
+      this.PreviousAllRaysMapButton.Text = "Previous\r\nImage";
+      this.PreviousAllRaysMapButton.UseVisualStyleBackColor = true;
+      this.PreviousAllRaysMapButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
+      // 
+      // NextAllRaysMapButton
+      // 
+      this.NextAllRaysMapButton.Enabled = false;
+      this.NextAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextAllRaysMapButton.Location = new System.Drawing.Point(90, 3);
+      this.NextAllRaysMapButton.Name = "NextAllRaysMapButton";
+      this.NextAllRaysMapButton.Size = new System.Drawing.Size(81, 34);
+      this.NextAllRaysMapButton.TabIndex = 9;
+      this.NextAllRaysMapButton.Text = "Next\r\nImage";
+      this.NextAllRaysMapButton.UseVisualStyleBackColor = true;
+      this.NextAllRaysMapButton.Click += new System.EventHandler(this.NextImageButton_Click);
+      // 
+      // flowLayoutPanel9
+      // 
+      this.flowLayoutPanel9.Controls.Add(this.SaveNormalMapRelativeButton);
+      this.flowLayoutPanel9.Controls.Add(this.ExportDataNormalMapRelativeButton);
+      this.flowLayoutPanel9.Controls.Add(this.flowLayoutPanel14);
+      this.flowLayoutPanel9.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.flowLayoutPanel9.FlowDirection = System.Windows.Forms.FlowDirection.BottomUp;
+      this.flowLayoutPanel9.Location = new System.Drawing.Point(0, 435);
+      this.flowLayoutPanel9.Margin = new System.Windows.Forms.Padding(0);
+      this.flowLayoutPanel9.Name = "flowLayoutPanel9";
+      this.flowLayoutPanel9.Size = new System.Drawing.Size(175, 98);
+      this.flowLayoutPanel9.TabIndex = 10;
+      // 
+      // SaveNormalMapRelativeButton
+      // 
+      this.SaveNormalMapRelativeButton.Enabled = false;
+      this.SaveNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.SaveNormalMapRelativeButton.Location = new System.Drawing.Point(3, 72);
+      this.SaveNormalMapRelativeButton.Name = "SaveNormalMapRelativeButton";
+      this.SaveNormalMapRelativeButton.Size = new System.Drawing.Size(169, 23);
+      this.SaveNormalMapRelativeButton.TabIndex = 8;
+      this.SaveNormalMapRelativeButton.Text = "Save Image";
+      this.SaveNormalMapRelativeButton.UseVisualStyleBackColor = true;
+      this.SaveNormalMapRelativeButton.Click += new System.EventHandler(this.SaveMapButton_Click);
+      // 
+      // ExportDataNormalMapRelativeButton
+      // 
+      this.ExportDataNormalMapRelativeButton.Enabled = false;
+      this.ExportDataNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.ExportDataNormalMapRelativeButton.Location = new System.Drawing.Point(3, 43);
+      this.ExportDataNormalMapRelativeButton.Name = "ExportDataNormalMapRelativeButton";
+      this.ExportDataNormalMapRelativeButton.Size = new System.Drawing.Size(169, 23);
+      this.ExportDataNormalMapRelativeButton.TabIndex = 7;
+      this.ExportDataNormalMapRelativeButton.Text = "Export data";
+      this.ExportDataNormalMapRelativeButton.UseVisualStyleBackColor = true;
+      this.ExportDataNormalMapRelativeButton.Click += new System.EventHandler(this.ExportDataButton_Click);
+      // 
+      // flowLayoutPanel14
+      // 
+      this.flowLayoutPanel14.Controls.Add(this.PreviousNormalMapRelativeButton);
+      this.flowLayoutPanel14.Controls.Add(this.NextNormalMapRelativeButton);
+      this.flowLayoutPanel14.Location = new System.Drawing.Point(0, 0);
+      this.flowLayoutPanel14.Margin = new System.Windows.Forms.Padding(0);
+      this.flowLayoutPanel14.Name = "flowLayoutPanel14";
+      this.flowLayoutPanel14.Size = new System.Drawing.Size(175, 40);
+      this.flowLayoutPanel14.TabIndex = 9;
+      // 
+      // PreviousNormalMapRelativeButton
+      // 
+      this.PreviousNormalMapRelativeButton.Enabled = false;
+      this.PreviousNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousNormalMapRelativeButton.Location = new System.Drawing.Point(3, 3);
+      this.PreviousNormalMapRelativeButton.Name = "PreviousNormalMapRelativeButton";
+      this.PreviousNormalMapRelativeButton.Size = new System.Drawing.Size(81, 34);
+      this.PreviousNormalMapRelativeButton.TabIndex = 8;
+      this.PreviousNormalMapRelativeButton.Text = "Previous\r\nImage";
+      this.PreviousNormalMapRelativeButton.UseVisualStyleBackColor = true;
+      this.PreviousNormalMapRelativeButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
+      // 
+      // NextNormalMapRelativeButton
+      // 
+      this.NextNormalMapRelativeButton.Enabled = false;
+      this.NextNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextNormalMapRelativeButton.Location = new System.Drawing.Point(90, 3);
+      this.NextNormalMapRelativeButton.Name = "NextNormalMapRelativeButton";
+      this.NextNormalMapRelativeButton.Size = new System.Drawing.Size(81, 34);
+      this.NextNormalMapRelativeButton.TabIndex = 9;
+      this.NextNormalMapRelativeButton.Text = "Next\r\nImage";
+      this.NextNormalMapRelativeButton.UseVisualStyleBackColor = true;
+      this.NextNormalMapRelativeButton.Click += new System.EventHandler(this.NextImageButton_Click);
+      // 
+      // flowLayoutPanel10
+      // 
+      this.flowLayoutPanel10.Controls.Add(this.SaveNormalMapAbsoluteButton);
+      this.flowLayoutPanel10.Controls.Add(this.ExportDataNormalMapAbsoluteButton);
+      this.flowLayoutPanel10.Controls.Add(this.flowLayoutPanel15);
+      this.flowLayoutPanel10.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.flowLayoutPanel10.FlowDirection = System.Windows.Forms.FlowDirection.BottomUp;
+      this.flowLayoutPanel10.Location = new System.Drawing.Point(0, 435);
+      this.flowLayoutPanel10.Margin = new System.Windows.Forms.Padding(0);
+      this.flowLayoutPanel10.Name = "flowLayoutPanel10";
+      this.flowLayoutPanel10.Size = new System.Drawing.Size(175, 98);
+      this.flowLayoutPanel10.TabIndex = 10;
+      // 
+      // SaveNormalMapAbsoluteButton
+      // 
+      this.SaveNormalMapAbsoluteButton.Enabled = false;
+      this.SaveNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.SaveNormalMapAbsoluteButton.Location = new System.Drawing.Point(3, 72);
+      this.SaveNormalMapAbsoluteButton.Name = "SaveNormalMapAbsoluteButton";
+      this.SaveNormalMapAbsoluteButton.Size = new System.Drawing.Size(169, 23);
+      this.SaveNormalMapAbsoluteButton.TabIndex = 8;
+      this.SaveNormalMapAbsoluteButton.Text = "Save Image";
+      this.SaveNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
+      this.SaveNormalMapAbsoluteButton.Click += new System.EventHandler(this.SaveMapButton_Click);
+      // 
+      // ExportDataNormalMapAbsoluteButton
+      // 
+      this.ExportDataNormalMapAbsoluteButton.Enabled = false;
+      this.ExportDataNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.ExportDataNormalMapAbsoluteButton.Location = new System.Drawing.Point(3, 43);
+      this.ExportDataNormalMapAbsoluteButton.Name = "ExportDataNormalMapAbsoluteButton";
+      this.ExportDataNormalMapAbsoluteButton.Size = new System.Drawing.Size(169, 23);
+      this.ExportDataNormalMapAbsoluteButton.TabIndex = 7;
+      this.ExportDataNormalMapAbsoluteButton.Text = "Export data";
+      this.ExportDataNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
+      this.ExportDataNormalMapAbsoluteButton.Click += new System.EventHandler(this.ExportDataButton_Click);
+      // 
+      // flowLayoutPanel15
+      // 
+      this.flowLayoutPanel15.Controls.Add(this.PreviousNormalMapAbsoluteButton);
+      this.flowLayoutPanel15.Controls.Add(this.NextNormalMapAbsoluteButton);
+      this.flowLayoutPanel15.Location = new System.Drawing.Point(0, 0);
+      this.flowLayoutPanel15.Margin = new System.Windows.Forms.Padding(0);
+      this.flowLayoutPanel15.Name = "flowLayoutPanel15";
+      this.flowLayoutPanel15.Size = new System.Drawing.Size(175, 40);
+      this.flowLayoutPanel15.TabIndex = 9;
+      // 
+      // PreviousNormalMapAbsoluteButton
+      // 
+      this.PreviousNormalMapAbsoluteButton.Enabled = false;
+      this.PreviousNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousNormalMapAbsoluteButton.Location = new System.Drawing.Point(3, 3);
+      this.PreviousNormalMapAbsoluteButton.Name = "PreviousNormalMapAbsoluteButton";
+      this.PreviousNormalMapAbsoluteButton.Size = new System.Drawing.Size(81, 34);
+      this.PreviousNormalMapAbsoluteButton.TabIndex = 8;
+      this.PreviousNormalMapAbsoluteButton.Text = "Previous\r\nImage";
+      this.PreviousNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
+      this.PreviousNormalMapAbsoluteButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
+      // 
+      // NextNormalMapAbsoluteButton
+      // 
+      this.NextNormalMapAbsoluteButton.Enabled = false;
+      this.NextNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextNormalMapAbsoluteButton.Location = new System.Drawing.Point(90, 3);
+      this.NextNormalMapAbsoluteButton.Name = "NextNormalMapAbsoluteButton";
+      this.NextNormalMapAbsoluteButton.Size = new System.Drawing.Size(81, 34);
+      this.NextNormalMapAbsoluteButton.TabIndex = 9;
+      this.NextNormalMapAbsoluteButton.Text = "Next\r\nImage";
+      this.NextNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
+      this.NextNormalMapAbsoluteButton.Click += new System.EventHandler(this.NextImageButton_Click);
+      // 
       // AdvancedToolsForm
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -930,6 +1125,7 @@
       ((System.ComponentModel.ISupportInitialize)(this.DepthMapPictureBox)).EndInit();
       this.tableLayoutPanel2.ResumeLayout(false);
       this.flowLayoutPanel7.ResumeLayout(false);
+      this.flowLayoutPanel11.ResumeLayout(false);
       this.flowLayoutPanel1.ResumeLayout(false);
       this.flowLayoutPanel1.PerformLayout();
       this.PrimaryRaysMapTab.ResumeLayout(false);
@@ -938,28 +1134,32 @@
       this.tableLayoutPanel3.ResumeLayout(false);
       this.flowLayoutPanel2.ResumeLayout(false);
       this.flowLayoutPanel2.PerformLayout();
-      this.flowLayoutPanel6.ResumeLayout(false);
       this.AllRaysMapTab.ResumeLayout(false);
       this.AllRaysMapLayoutPanel.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.AllRaysMapPictureBox)).EndInit();
       this.tableLayoutPanel4.ResumeLayout(false);
-      this.flowLayoutPanel8.ResumeLayout(false);
       this.flowLayoutPanel3.ResumeLayout(false);
       this.flowLayoutPanel3.PerformLayout();
       this.NormalMapRelativeTab.ResumeLayout(false);
       this.NormalMapRelativeLayoutPanel.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.NormalMapRelativePictureBox)).EndInit();
       this.tableLayoutPanel5.ResumeLayout(false);
-      this.flowLayoutPanel9.ResumeLayout(false);
       this.flowLayoutPanel4.ResumeLayout(false);
       this.flowLayoutPanel4.PerformLayout();
       this.NormalMapAbsoluteTab.ResumeLayout(false);
       this.NormalMapAbsoluteLayoutPanel.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.NormalMapAbsolutePictureBox)).EndInit();
       this.tableLayoutPanel6.ResumeLayout(false);
-      this.flowLayoutPanel10.ResumeLayout(false);
       this.flowLayoutPanel5.ResumeLayout(false);
       this.flowLayoutPanel5.PerformLayout();
+      this.flowLayoutPanel6.ResumeLayout(false);
+      this.flowLayoutPanel12.ResumeLayout(false);
+      this.flowLayoutPanel8.ResumeLayout(false);
+      this.flowLayoutPanel13.ResumeLayout(false);
+      this.flowLayoutPanel9.ResumeLayout(false);
+      this.flowLayoutPanel14.ResumeLayout(false);
+      this.flowLayoutPanel10.ResumeLayout(false);
+      this.flowLayoutPanel15.ResumeLayout(false);
       this.ResumeLayout(false);
 
 		}
@@ -996,9 +1196,6 @@
     private System.Windows.Forms.Label PrimaryRaysMapCoordinates;
     private System.Windows.Forms.Label TotalPrimaryRaysCount;
     private System.Windows.Forms.Label AveragePrimaryRaysCount;
-    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel6;
-    private System.Windows.Forms.Button ExportDataPrimaryRaysMapButton;
-    private System.Windows.Forms.Button SavePrimaryRaysMapButton;
     private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
     private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel7;
     private System.Windows.Forms.Button SaveDepthMapButton;
@@ -1007,24 +1204,42 @@
     private System.Windows.Forms.Button ResetDepthMapButton;
     private System.Windows.Forms.Label DepthMap_Coordinates;
     private System.Windows.Forms.TableLayoutPanel tableLayoutPanel4;
-    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel8;
-    private System.Windows.Forms.Button SaveAllRaysMapButton;
-    private System.Windows.Forms.Button ExportDataAllRaysMapButton;
     private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
     private System.Windows.Forms.Button RenderAllRaysMapButton;
     private System.Windows.Forms.Label AllRaysMapCoordinates;
     private System.Windows.Forms.Label TotalAllRaysCount;
     private System.Windows.Forms.Label AverageAllRaysCount;
-    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel9;
-    private System.Windows.Forms.Button SaveNormalMapRelativeButton;
-    private System.Windows.Forms.Button ExportDataNormalMapRelativeButton;
-    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel10;
-    private System.Windows.Forms.Button SaveNormalMapAbsoluteButton;
-    private System.Windows.Forms.Button ExportDataNormalMapAbsoluteButton;
     private System.Windows.Forms.Button RenderDepthMapButton;
     private System.Windows.Forms.Button ResetPrimaryRaysMapButton;
     private System.Windows.Forms.Button ResetAllRaysMapButton;
     private System.Windows.Forms.Button ResetNormalMapRelativeButton;
     private System.Windows.Forms.Button ResetNormalMapAbsoluteButton;
+    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel11;
+    private System.Windows.Forms.Button PreviousDepthMapButton;
+    private System.Windows.Forms.Button NextDepthMapButton;
+    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel6;
+    private System.Windows.Forms.Button SavePrimaryRaysMapButton;
+    private System.Windows.Forms.Button ExportDataPrimaryRaysMapButton;
+    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel12;
+    private System.Windows.Forms.Button PreviousPrimaryRaysMapButton;
+    private System.Windows.Forms.Button NextPrimaryRaysMapButton;
+    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel8;
+    private System.Windows.Forms.Button SaveAllRaysMapButton;
+    private System.Windows.Forms.Button ExportDataAllRaysMapButton;
+    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel13;
+    private System.Windows.Forms.Button PreviousAllRaysMapButton;
+    private System.Windows.Forms.Button NextAllRaysMapButton;
+    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel9;
+    private System.Windows.Forms.Button SaveNormalMapRelativeButton;
+    private System.Windows.Forms.Button ExportDataNormalMapRelativeButton;
+    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel14;
+    private System.Windows.Forms.Button PreviousNormalMapRelativeButton;
+    private System.Windows.Forms.Button NextNormalMapRelativeButton;
+    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel10;
+    private System.Windows.Forms.Button SaveNormalMapAbsoluteButton;
+    private System.Windows.Forms.Button ExportDataNormalMapAbsoluteButton;
+    private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel15;
+    private System.Windows.Forms.Button PreviousNormalMapAbsoluteButton;
+    private System.Windows.Forms.Button NextNormalMapAbsoluteButton;
   }
 }

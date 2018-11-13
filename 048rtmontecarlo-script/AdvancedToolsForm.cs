@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 
 namespace Rendering
 {
   public partial class AdvancedToolsForm: Form
-  {
+  {   
+    public static AdvancedToolsForm singleton;
+
     private readonly PanAndZoomSupport[] PanAndZoomControls;
 
-    public static AdvancedToolsForm singleton;
+    private bool[] newImageAvailable;
 
     /// <summary>
     /// Constructor which sets location of Form1 window and initializes AdvancedTools class
@@ -24,6 +25,42 @@ namespace Rendering
 
       InitializeComponent ();
 
+      SetFormPosition ();
+
+      if ( AdvancedTools.singleton.mapsEmpty || MT.renderingInProgress )
+      {
+        RenderButtonsEnabled ( false );
+        ExportDataButtonsEnabled ( false );
+      }        
+      else
+      {
+        RenderButtonsEnabled ( true );
+        ExportDataButtonsEnabled ( true );
+      }
+
+      PanAndZoomControls = new PanAndZoomSupport[MapsTabControl.TabCount];
+
+      for ( int i = 0; i < MapsTabControl.TabCount; i++ )
+      {
+        bool Condition ( Control c ) => ( c.Name.Contains ( "PictureBox" ) && c.GetType () == typeof ( PictureBox ) );
+
+        PictureBox pictureBox = FindAllControls ( Condition , MapsTabControl.TabPages [i] )[0] as PictureBox;
+        pictureBox.MouseWheel += new MouseEventHandler ( pictureBox_MouseWheel );
+        pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+
+        PanAndZoomControls [i] = new PanAndZoomSupport ( pictureBox, null, SetWindowTitleSuffix );
+      }
+
+      newImageAvailable = new bool[MapsTabControl.TabCount];
+
+      for ( int i = 0; i < newImageAvailable.Length; i++ )
+        newImageAvailable[i] = true;
+
+      KeyPreview = true;
+    }
+
+    private void SetFormPosition ()
+    {
       this.StartPosition = FormStartPosition.Manual;
 
       // Sets location of Form1 (Advanced Tools) to either right or left of Form1 (Main) 
@@ -51,32 +88,6 @@ namespace Rendering
           new Point ( Form1.singleton.Location.X - this.Width,
                       Form1.singleton.Location.Y ); // place to the left of Form1
       }
-
-      if ( AdvancedTools.singleton.mapsEmpty || MT.renderingInProgress )
-      {
-        RenderButtonsEnabled ( false );
-        ExportDataButtonsEnabled ( false );
-      }        
-      else
-      {
-        RenderButtonsEnabled ( true );
-        ExportDataButtonsEnabled ( true );
-      }
-
-      PanAndZoomControls = new PanAndZoomSupport[MapsTabControl.TabCount];
-
-      for ( int i = 0; i < MapsTabControl.TabCount; i++ )
-      {
-        bool Condition ( Control c ) => ( c.Name.Contains ( "PictureBox" ) && c.GetType () == typeof ( PictureBox ) );
-
-        PictureBox pictureBox = FindAllControls ( Condition , MapsTabControl.TabPages [i] )[0] as PictureBox;
-        pictureBox.MouseWheel += new MouseEventHandler ( pictureBox_MouseWheel );
-        pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
-
-        PanAndZoomControls [i] = new PanAndZoomSupport ( pictureBox, null, SetWindowTitleSuffix );
-      }
-
-      KeyPreview = true;
     }
 
     private void AdvancedToolsForm_FormClosed ( object sender, FormClosedEventArgs e )
@@ -122,7 +133,7 @@ namespace Rendering
     /// <param name="e">Not needed</param>
     private void RenderMapButton_Click ( object sender, EventArgs e )
     {
-      if ( Form1.singleton.outputImage == null || MT.renderingInProgress )
+      if ( Form1.singleton.outputImage == null || MT.renderingInProgress || !newImageAvailable [MapsTabControl.SelectedIndex] )
         return;
 
       TabPage tabPage = MapsTabControl.SelectedTab;
@@ -138,9 +149,13 @@ namespace Rendering
       SaveButtonsEnabled ( true, tabPage );
       ResetButtonsEnabled ( true, tabPage );
 
+      SetPreviousAndNextImageButtons ();
+
       SetTotalAndAveragePrimaryRaysCount ();
       SetTotalAndAverageAllRaysCount ();
-    }
+
+      newImageAvailable[MapsTabControl.SelectedIndex] = false;
+    }  
 
     /// <summary>
     /// Displays depth in scene of selected pixel (clicked or hovered over while mouse down)
@@ -353,6 +368,31 @@ namespace Rendering
       ButtonsEnabled ( newStatus, "Reset", root );
     }
 
+    public void NextImageButtonsEnabled ( bool newStatus, Control root = null )
+    {
+      ButtonsEnabled ( newStatus, "Next", root );
+    }
+
+    public void PreviousImageButtonsEnabled ( bool newStatus, Control root = null )
+    {
+      ButtonsEnabled ( newStatus, "Previous", root );
+    }
+
+    private void SetPreviousAndNextImageButtons ()
+    {
+      TabPage tabPage = MapsTabControl.SelectedTab;
+
+      if ( PanAndZoomControls[MapsTabControl.SelectedIndex].PreviousImageAvailable () )
+        PreviousImageButtonsEnabled ( true, tabPage );
+      else
+        PreviousImageButtonsEnabled ( false, tabPage );
+
+      if ( PanAndZoomControls[MapsTabControl.SelectedIndex].NextImageAvailable () )
+        NextImageButtonsEnabled ( true, tabPage );
+      else
+        NextImageButtonsEnabled ( false, tabPage );
+    }
+
     /// <summary>
     /// Goes through all controls of root and sets new status 
     /// for Enabled property for all controls/buttons which has buttonName and "Button" in their name
@@ -467,9 +507,31 @@ namespace Rendering
     /// <summary>
     /// Used to render currently active tab, for example after new rendering finished
     /// </summary>
-    public void RenderCurrentlyActiveTab ()
+    private void RenderCurrentlyActiveTab ()
     {
       RenderMapButton_Click ( null, null );
+    }
+
+    public void NewImageRendered ()
+    {
+      RenderCurrentlyActiveTab ();
+
+      for ( int i = 0; i < newImageAvailable.Length; i++ )
+        newImageAvailable[i] = true;
+    }
+
+    private void PreviousImageButton_Click ( object sender, EventArgs e )
+    {
+      PanAndZoomControls [MapsTabControl.SelectedIndex].SetPreviousImageFromHistory ();
+
+      SetPreviousAndNextImageButtons ();
+    }
+
+    private void NextImageButton_Click ( object sender, EventArgs e )
+    {
+      PanAndZoomControls[MapsTabControl.SelectedIndex].SetNextImageFromHistory ();
+
+      SetPreviousAndNextImageButtons ();
     }
   }
 }

@@ -503,7 +503,7 @@ namespace Rendering
           RayVisualizerForm.singleton.PointCloudButton.Enabled = true;
           
 
-        AdvancedToolsForm.singleton?.RenderCurrentlyActiveTab ();
+        AdvancedToolsForm.singleton?.NewImageRendered ();
       }
     }
 
