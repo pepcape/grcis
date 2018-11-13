@@ -108,11 +108,11 @@ namespace Rendering
         image = null;
       }
 
-      if ( AdvancedTools.singleton == null )
-        AdvancedTools.singleton = new AdvancedTools ( collectDataCheckBox, Notification );
+      if ( AdditionalViews.singleton == null )
+        AdditionalViews.singleton = new AdditionalViews ( collectDataCheckBox, Notification );
 
-      AdvancedTools.singleton.Initialize ();
-      AdvancedTools.singleton.SetNewDimensions ( ImageWidth, ImageHeight ); //makes all maps to initialize again
+      AdditionalViews.singleton.Initialize ();
+      AdditionalViews.singleton.SetNewDimensions ( ImageWidth, ImageHeight ); //makes all maps to initialize again
 
       panAndZoom = new PanAndZoomSupport ( pictureBox1, image, SetWindowTitleSuffix );
     }
@@ -492,8 +492,8 @@ namespace Rendering
         // GUI stuff:
         SetGUI ( true );
 
-        AdvancedToolsForm.singleton?.RenderButtonsEnabled ( true );
-        AdvancedToolsForm.singleton?.ExportDataButtonsEnabled ( true );
+        AdditionalViewsForm.singleton?.RenderButtonsEnabled ( true );
+        AdditionalViewsForm.singleton?.ExportDataButtonsEnabled ( true );
         MT.renderingInProgress = false;
         MT.sceneRendered = true;
 
@@ -503,7 +503,7 @@ namespace Rendering
           RayVisualizerForm.singleton.PointCloudButton.Enabled = true;
           
 
-        AdvancedToolsForm.singleton?.NewImageRendered ();
+        AdditionalViewsForm.singleton?.NewImageRendered ();
 
         panAndZoom.SetNewImage ( panAndZoom.image, true );
 
@@ -598,11 +598,11 @@ namespace Rendering
     {
       if ( collectDataCheckBox.Checked )
       {
-        AdvancedTools.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
-        AdvancedTools.singleton.NewRenderInitialization ();
+        AdditionalViews.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
+        AdditionalViews.singleton.NewRenderInitialization ();
       }
-      else if ( !AdvancedTools.singleton.mapsEmpty )
-        AdvancedToolsForm.singleton?.ExportDataButtonsEnabled ( true );
+      else if ( !AdditionalViews.singleton.mapsEmpty )
+        AdditionalViewsForm.singleton?.ExportDataButtonsEnabled ( true );
 
       if ( aThread != null )
         return;
@@ -610,7 +610,7 @@ namespace Rendering
       // GUI stuff:
       SetGUI ( false );
 
-      AdvancedToolsForm.singleton?.RenderButtonsEnabled ( false );
+      AdditionalViewsForm.singleton?.RenderButtonsEnabled ( false );
       MT.renderingInProgress = true;
       Statistics.Reset ();
 
@@ -658,15 +658,15 @@ namespace Rendering
 
     private void AdvancedToolsButton_Click ( object sender, EventArgs e )
     {
-      if ( AdvancedToolsForm.singleton != null )
+      if ( AdditionalViewsForm.singleton != null )
       {
-        AdvancedToolsForm.singleton.Activate ();
+        AdditionalViewsForm.singleton.Activate ();
 
         return; //only one instance of Form1 can exist at the time
       }
 
-      AdvancedToolsForm advancedToolsForm = new AdvancedToolsForm ();
-      advancedToolsForm.Show ();
+      AdditionalViewsForm additionalViewsForm = new AdditionalViewsForm ();
+      additionalViewsForm.Show ();
     }
 
     private void RayVisualiserButton_Click ( object sender, EventArgs e )
@@ -811,7 +811,7 @@ namespace Rendering
       if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 
-      AdvancedTools.singleton?.pointCloud?.SaveToPLYFile ( sfd.FileName );
+      AdditionalViews.singleton?.pointCloud?.SaveToPLYFile ( sfd.FileName );
     }
 
     /// <summary>

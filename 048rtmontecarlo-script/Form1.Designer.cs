@@ -180,7 +180,7 @@
       this.AdvancedToolsButton.Name = "AdvancedToolsButton";
       this.AdvancedToolsButton.Size = new System.Drawing.Size(107, 23);
       this.AdvancedToolsButton.TabIndex = 5;
-      this.AdvancedToolsButton.Text = "Advanced Tools";
+      this.AdvancedToolsButton.Text = "Additional Views";
       this.AdvancedToolsButton.UseVisualStyleBackColor = true;
       this.AdvancedToolsButton.Click += new System.EventHandler(this.AdvancedToolsButton_Click);
       // 
