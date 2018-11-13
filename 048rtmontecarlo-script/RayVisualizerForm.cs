@@ -128,7 +128,7 @@ namespace Rendering
 
       Cursor.Current = Cursors.Default;
 
-      if ( AdvancedTools.singleton.pointCloud == null || AdvancedTools.singleton.pointCloud.IsCloudEmpty )
+      if ( AdditionalViews.singleton.pointCloud == null || AdditionalViews.singleton.pointCloud.IsCloudEmpty )
         PointCloudButton.Enabled = false;
       else
         PointCloudButton.Enabled = true;
@@ -1435,7 +1435,7 @@ namespace Rendering
     /// <param name="e">Not needed</param>
     private void PointCloudButton_Click ( object sender, EventArgs e )
     {
-      pointCloud = AdvancedTools.singleton.pointCloud;
+      pointCloud = AdditionalViews.singleton.pointCloud;
 
       if ( pointCloud.cloud == null || pointCloud.IsCloudEmpty )
         return;

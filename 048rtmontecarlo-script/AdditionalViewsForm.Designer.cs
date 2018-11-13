@@ -1,6 +1,6 @@
 ﻿namespace Rendering
 {
-	partial class AdvancedToolsForm
+	partial class AdditionalViewsForm
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -1107,7 +1107,7 @@
       this.NextNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
       this.NextNormalMapAbsoluteButton.Click += new System.EventHandler(this.NextImageButton_Click);
       // 
-      // AdvancedToolsForm
+      // AdditionalViewsForm
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -1115,8 +1115,8 @@
       this.Controls.Add(this.MapsTabControl);
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
       this.MinimumSize = new System.Drawing.Size(600, 470);
-      this.Name = "AdvancedToolsForm";
-      this.Text = "Advanced tools";
+      this.Name = "AdditionalViewsForm";
+      this.Text = "Additional Views";
       this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.AdvancedToolsForm_FormClosed);
       this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AdvancedToolsForm_KeyDown);
       this.MapsTabControl.ResumeLayout(false);

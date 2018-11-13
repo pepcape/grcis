@@ -233,7 +233,7 @@ namespace Rendering
 
 
     /// <summary>
-    /// Translate function for several ray register methods from AdvancedTools and RayVisualizer
+    /// Translate function for several ray register methods from AdditionalViews and RayVisualizer
     /// Be careful with params - not type safe
     /// </summary>
     /// <param name="rayType">RayType which chooses method to be called</param>
@@ -245,11 +245,11 @@ namespace Rendering
 
       switch ( rayType )
       {
-        //ray for statistics and maps (AdvancedTools)
+        //ray for statistics and maps (AdditionalViews)
         case RayType.mapsNormal:
           //register ray for statistics and maps
-	        if ( AdvancedTools.singleton != null)
-		        AdvancedTools.singleton.Register ( (int) parameters[0], (Vector3d) parameters[1], (Intersection) parameters[2] );         
+	        if ( AdditionalViews.singleton != null)
+		        AdditionalViews.singleton.Register ( (int) parameters[0], (Vector3d) parameters[1], (Intersection) parameters[2] );         
           break;
 
         //ray for RayVisualizer

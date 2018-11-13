@@ -8,18 +8,18 @@ using System.Windows.Forms;
 
 namespace Rendering
 {
-  public partial class AdvancedToolsForm: Form
+  public partial class AdditionalViewsForm: Form
   {   
-    public static AdvancedToolsForm singleton;
+    public static AdditionalViewsForm singleton;
 
     private readonly PanAndZoomSupport[] PanAndZoomControls;
 
     private bool[] newImageAvailable;
 
     /// <summary>
-    /// Constructor which sets location of Form1 window and initializes AdvancedTools class
+    /// Constructor which sets location of Form1 window and initializes AdditionalViews class
     /// </summary>
-    public AdvancedToolsForm ()
+    public AdditionalViewsForm ()
     {
       singleton = this;
 
@@ -27,7 +27,7 @@ namespace Rendering
 
       SetFormPosition ();
 
-      if ( AdvancedTools.singleton.mapsEmpty || MT.renderingInProgress )
+      if ( AdditionalViews.singleton.mapsEmpty || MT.renderingInProgress )
       {
         RenderButtonsEnabled ( false );
         ExportDataButtonsEnabled ( false );
@@ -60,7 +60,7 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Sets location of Form1 (Advanced Tools) to either right or left of Form1 (Main) 
+    /// Sets location of Form1 (Additional Views) to either right or left of Form1 (Main) 
     /// depending on position of Form1 (whether it is close to right edge of primary screen)
     /// </summary>
     private void SetFormPosition ()
@@ -128,7 +128,7 @@ namespace Rendering
 
     /// <summary>
     /// Universal method for calling render method of map class
-    /// Correct map class is chosen via reflection - current TabPage must have Tag set to name of class instance in AdvancedTools class
+    /// Correct map class is chosen via reflection - current TabPage must have Tag set to name of class instance in AdditionalViews class
     /// </summary>
     /// <param name="sender">Not needed</param>
     /// <param name="e">Not needed</param>
@@ -141,7 +141,7 @@ namespace Rendering
 
       string mapName = tabPage.Tag.ToString ();
 
-      object map = AdvancedTools.singleton.GetType ().GetField ( char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdvancedTools.singleton );
+      object map = AdditionalViews.singleton.GetType ().GetField ( char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdditionalViews.singleton );
 
       ( map as IMap ).RenderMap ();
 
@@ -207,7 +207,7 @@ namespace Rendering
     {
       Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ( "en-GB" ); // needed for dot as decimal separator in float
 
-      double depth = AdvancedTools.singleton.depthMap.GetValueAtCoordinates ( X, Y );
+      double depth = AdditionalViews.singleton.depthMap.GetValueAtCoordinates ( X, Y );
 
       DepthMap_Coordinates.Text = $"X: {X}\r\nY: {Y}\r\nDepth: {depth:0.00}";
     }
@@ -225,7 +225,7 @@ namespace Rendering
 
       string fieldName = char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 );
 
-      AdvancedTools.RaysMap raysMap = AdvancedTools.singleton.GetType ().GetField ( fieldName ).GetValue ( AdvancedTools.singleton ) as AdvancedTools.RaysMap;
+      AdditionalViews.RaysMap raysMap = AdditionalViews.singleton.GetType ().GetField ( fieldName ).GetValue ( AdditionalViews.singleton ) as AdditionalViews.RaysMap;
 
 
       string fieldNameCamelCase = char.ToUpper ( fieldName [ 0 ] ) + fieldName.Substring ( 1 );
@@ -245,7 +245,7 @@ namespace Rendering
     /// <param name="Y">Relative Y coordinate of curson on image</param>
     private void NormalMapDisplayStats ( int X, int Y )
     {
-      double angle = AdvancedTools.singleton.normalMapRelative.GetValueAtCoordinates ( X, Y );
+      double angle = AdditionalViews.singleton.normalMapRelative.GetValueAtCoordinates ( X, Y );
 
       char degreesChar = '°';
       if ( double.IsInfinity ( angle ) || double.IsNaN ( angle ) )
@@ -457,12 +457,12 @@ namespace Rendering
 
       string mapName = tabPage.Tag.ToString ();
 
-      object map = AdvancedTools.singleton.GetType ().GetField ( char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdvancedTools.singleton );
+      object map = AdditionalViews.singleton.GetType ().GetField ( char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdditionalViews.singleton );
 
       ( map as IMap ).ExportData ( mapName );
     }
 
-    private const string formTitle = "Advanced Tools";
+    private const string formTitle = "Additional Views";
 
     /// <summary>
     /// Adds suffix to default text in Form>text property (title text in upper panel, between icon and minimize and close buttons)

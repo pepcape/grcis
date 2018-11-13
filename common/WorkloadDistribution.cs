@@ -74,12 +74,12 @@ namespace Rendering
       if ( newPointCloud && !MT.pointCloudSavingInProgress )
       {
         pointCloud = new PointCloud ( threads );
-        AdvancedTools.singleton.pointCloud = pointCloud;
+        AdditionalViews.singleton.pointCloud = pointCloud;
       }
       else
       {
-        if ( AdvancedTools.singleton != null )
-          pointCloud = AdvancedTools.singleton.pointCloud;
+        if ( AdditionalViews.singleton != null )
+          pointCloud = AdditionalViews.singleton.pointCloud;
       }      
     }
 

@@ -12,9 +12,9 @@ using OpenTK;
 
 namespace Rendering
 {
-  public class AdvancedTools
+  public class AdditionalViews
   {
-    public static AdvancedTools singleton;
+    public static AdditionalViews singleton;
 
     private List<IMap> allMaps;
 
@@ -30,7 +30,7 @@ namespace Rendering
 	  private readonly CheckBox collectDataCheckBox;
 	  private readonly Action<string, string, int> notification;
 
-	  public AdvancedTools ( CheckBox collectDataCheckBox , Action<string, string, int> notification )
+	  public AdditionalViews ( CheckBox collectDataCheckBox , Action<string, string, int> notification )
 	  {
       this.collectDataCheckBox = collectDataCheckBox;
       this.notification = notification;
@@ -49,7 +49,7 @@ namespace Rendering
 
       allMaps = new List<IMap> ();
 
-      foreach ( FieldInfo fieldInfo in typeof ( AdvancedTools ).GetFields () )
+      foreach ( FieldInfo fieldInfo in typeof ( AdditionalViews ).GetFields () )
       {
         if ( typeof ( IMap ).IsAssignableFrom ( fieldInfo.FieldType ) )
         {
@@ -659,7 +659,7 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Calls Initialize method of all subclasses in AdvancedTools (from array allMaps)
+    /// Calls Initialize method of all subclasses in AdditionalViews (from array allMaps)
     /// </summary>
     public void SetNewDimensions ( int formImageWidth, int formImageHeight )
     {
