@@ -159,9 +159,9 @@ namespace Rendering
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
-      panAndZoom.SetNewImage( newImage );    
+      panAndZoom.SetNewImage( newImage, false );
 
-      bakImage?.Dispose ();
+      //bakImage?.Dispose ();
 
       bakImage = newImage;
     }
@@ -504,6 +504,10 @@ namespace Rendering
           
 
         AdvancedToolsForm.singleton?.NewImageRendered ();
+
+        panAndZoom.SetNewImage ( panAndZoom.image, true );
+
+        SetPreviousAndNextImageButtons ();        
       }
     }
 
@@ -874,6 +878,26 @@ namespace Rendering
     private void pointCloudCheckBox_CheckedChanged ( object sender, EventArgs e )
     {
       MT.pointCloudCheckBox = pointCloudCheckBox.Checked;
+    }
+
+    private void PreviousImageButton_Click ( object sender, EventArgs e )
+    {
+      panAndZoom.SetPreviousImageFromHistory ();
+
+      SetPreviousAndNextImageButtons ();
+    }  
+
+    private void NextImageButton_Click ( object sender, EventArgs e )
+    {
+      panAndZoom.SetNextImageFromHistory ();
+
+      SetPreviousAndNextImageButtons ();
+    }
+
+    private void SetPreviousAndNextImageButtons ()
+    {
+      NextImageButton.Enabled = panAndZoom.NextImageAvailable ();
+      PreviousImageButton.Enabled = panAndZoom.PreviousImageAvailable ();
     }
   }
 }

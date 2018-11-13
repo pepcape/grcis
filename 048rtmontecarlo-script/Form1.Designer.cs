@@ -63,6 +63,8 @@
       this.labelElapsed = new System.Windows.Forms.Label();
       this.labelSample = new System.Windows.Forms.Label();
       this.notificationIcon = new System.Windows.Forms.NotifyIcon(this.components);
+      this.PreviousImageButton = new System.Windows.Forms.Button();
+      this.NextImageButton = new System.Windows.Forms.Button();
       this.tableLayoutPanel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.tableLayoutPanel2.SuspendLayout();
@@ -136,6 +138,8 @@
       this.flowLayoutPanel1.Controls.Add(this.RayVisualiserButton);
       this.flowLayoutPanel1.Controls.Add(this.RenderClientsButton);
       this.flowLayoutPanel1.Controls.Add(this.ResetButton);
+      this.flowLayoutPanel1.Controls.Add(this.NextImageButton);
+      this.flowLayoutPanel1.Controls.Add(this.PreviousImageButton);
       this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
       this.flowLayoutPanel1.Location = new System.Drawing.Point(226, 0);
@@ -499,6 +503,30 @@
       this.notificationIcon.Text = "048 Monte Carlo RT script";
       this.notificationIcon.Visible = true;
       // 
+      // PreviousImageButton
+      // 
+      this.PreviousImageButton.Enabled = false;
+      this.PreviousImageButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousImageButton.Location = new System.Drawing.Point(10, 3);
+      this.PreviousImageButton.Name = "PreviousImageButton";
+      this.PreviousImageButton.Size = new System.Drawing.Size(54, 23);
+      this.PreviousImageButton.TabIndex = 10;
+      this.PreviousImageButton.Text = "<<";
+      this.PreviousImageButton.UseVisualStyleBackColor = true;
+      this.PreviousImageButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
+      // 
+      // NextImageButton
+      // 
+      this.NextImageButton.Enabled = false;
+      this.NextImageButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextImageButton.Location = new System.Drawing.Point(70, 3);
+      this.NextImageButton.Name = "NextImageButton";
+      this.NextImageButton.Size = new System.Drawing.Size(54, 23);
+      this.NextImageButton.TabIndex = 11;
+      this.NextImageButton.Text = ">>";
+      this.NextImageButton.UseVisualStyleBackColor = true;
+      this.NextImageButton.Click += new System.EventHandler(this.NextImageButton_Click);
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -563,5 +591,7 @@
     private System.Windows.Forms.Button ResetButton;
     public System.Windows.Forms.CheckBox collectDataCheckBox;
     public System.Windows.Forms.Button savePointCloudButton;
+    private System.Windows.Forms.Button NextImageButton;
+    private System.Windows.Forms.Button PreviousImageButton;
   }
 }

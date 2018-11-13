@@ -270,24 +270,24 @@
       // PreviousDepthMapButton
       // 
       this.PreviousDepthMapButton.Enabled = false;
-      this.PreviousDepthMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousDepthMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.PreviousDepthMapButton.Location = new System.Drawing.Point(3, 3);
       this.PreviousDepthMapButton.Name = "PreviousDepthMapButton";
       this.PreviousDepthMapButton.Size = new System.Drawing.Size(81, 34);
       this.PreviousDepthMapButton.TabIndex = 8;
-      this.PreviousDepthMapButton.Text = "Previous\r\nImage";
+      this.PreviousDepthMapButton.Text = "<<";
       this.PreviousDepthMapButton.UseVisualStyleBackColor = true;
       this.PreviousDepthMapButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
       // 
       // NextDepthMapButton
       // 
       this.NextDepthMapButton.Enabled = false;
-      this.NextDepthMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextDepthMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.NextDepthMapButton.Location = new System.Drawing.Point(90, 3);
       this.NextDepthMapButton.Name = "NextDepthMapButton";
       this.NextDepthMapButton.Size = new System.Drawing.Size(81, 34);
       this.NextDepthMapButton.TabIndex = 9;
-      this.NextDepthMapButton.Text = "Next\r\nImage";
+      this.NextDepthMapButton.Text = ">>";
       this.NextDepthMapButton.UseVisualStyleBackColor = true;
       this.NextDepthMapButton.Click += new System.EventHandler(this.NextImageButton_Click);
       // 
@@ -873,24 +873,24 @@
       // PreviousPrimaryRaysMapButton
       // 
       this.PreviousPrimaryRaysMapButton.Enabled = false;
-      this.PreviousPrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousPrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.PreviousPrimaryRaysMapButton.Location = new System.Drawing.Point(3, 3);
       this.PreviousPrimaryRaysMapButton.Name = "PreviousPrimaryRaysMapButton";
       this.PreviousPrimaryRaysMapButton.Size = new System.Drawing.Size(81, 34);
       this.PreviousPrimaryRaysMapButton.TabIndex = 8;
-      this.PreviousPrimaryRaysMapButton.Text = "Previous\r\nImage";
+      this.PreviousPrimaryRaysMapButton.Text = "<<";
       this.PreviousPrimaryRaysMapButton.UseVisualStyleBackColor = true;
       this.PreviousPrimaryRaysMapButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
       // 
       // NextPrimaryRaysMapButton
       // 
       this.NextPrimaryRaysMapButton.Enabled = false;
-      this.NextPrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextPrimaryRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.NextPrimaryRaysMapButton.Location = new System.Drawing.Point(90, 3);
       this.NextPrimaryRaysMapButton.Name = "NextPrimaryRaysMapButton";
       this.NextPrimaryRaysMapButton.Size = new System.Drawing.Size(81, 34);
       this.NextPrimaryRaysMapButton.TabIndex = 9;
-      this.NextPrimaryRaysMapButton.Text = "Next\r\nImage";
+      this.NextPrimaryRaysMapButton.Text = ">>";
       this.NextPrimaryRaysMapButton.UseVisualStyleBackColor = true;
       this.NextPrimaryRaysMapButton.Click += new System.EventHandler(this.NextImageButton_Click);
       // 
@@ -944,24 +944,24 @@
       // PreviousAllRaysMapButton
       // 
       this.PreviousAllRaysMapButton.Enabled = false;
-      this.PreviousAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.PreviousAllRaysMapButton.Location = new System.Drawing.Point(3, 3);
       this.PreviousAllRaysMapButton.Name = "PreviousAllRaysMapButton";
       this.PreviousAllRaysMapButton.Size = new System.Drawing.Size(81, 34);
       this.PreviousAllRaysMapButton.TabIndex = 8;
-      this.PreviousAllRaysMapButton.Text = "Previous\r\nImage";
+      this.PreviousAllRaysMapButton.Text = "<<";
       this.PreviousAllRaysMapButton.UseVisualStyleBackColor = true;
       this.PreviousAllRaysMapButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
       // 
       // NextAllRaysMapButton
       // 
       this.NextAllRaysMapButton.Enabled = false;
-      this.NextAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextAllRaysMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.NextAllRaysMapButton.Location = new System.Drawing.Point(90, 3);
       this.NextAllRaysMapButton.Name = "NextAllRaysMapButton";
       this.NextAllRaysMapButton.Size = new System.Drawing.Size(81, 34);
       this.NextAllRaysMapButton.TabIndex = 9;
-      this.NextAllRaysMapButton.Text = "Next\r\nImage";
+      this.NextAllRaysMapButton.Text = ">>";
       this.NextAllRaysMapButton.UseVisualStyleBackColor = true;
       this.NextAllRaysMapButton.Click += new System.EventHandler(this.NextImageButton_Click);
       // 
@@ -1015,24 +1015,24 @@
       // PreviousNormalMapRelativeButton
       // 
       this.PreviousNormalMapRelativeButton.Enabled = false;
-      this.PreviousNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.PreviousNormalMapRelativeButton.Location = new System.Drawing.Point(3, 3);
       this.PreviousNormalMapRelativeButton.Name = "PreviousNormalMapRelativeButton";
       this.PreviousNormalMapRelativeButton.Size = new System.Drawing.Size(81, 34);
       this.PreviousNormalMapRelativeButton.TabIndex = 8;
-      this.PreviousNormalMapRelativeButton.Text = "Previous\r\nImage";
+      this.PreviousNormalMapRelativeButton.Text = "<<";
       this.PreviousNormalMapRelativeButton.UseVisualStyleBackColor = true;
       this.PreviousNormalMapRelativeButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
       // 
       // NextNormalMapRelativeButton
       // 
       this.NextNormalMapRelativeButton.Enabled = false;
-      this.NextNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextNormalMapRelativeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.NextNormalMapRelativeButton.Location = new System.Drawing.Point(90, 3);
       this.NextNormalMapRelativeButton.Name = "NextNormalMapRelativeButton";
       this.NextNormalMapRelativeButton.Size = new System.Drawing.Size(81, 34);
       this.NextNormalMapRelativeButton.TabIndex = 9;
-      this.NextNormalMapRelativeButton.Text = "Next\r\nImage";
+      this.NextNormalMapRelativeButton.Text = ">>";
       this.NextNormalMapRelativeButton.UseVisualStyleBackColor = true;
       this.NextNormalMapRelativeButton.Click += new System.EventHandler(this.NextImageButton_Click);
       // 
@@ -1086,24 +1086,24 @@
       // PreviousNormalMapAbsoluteButton
       // 
       this.PreviousNormalMapAbsoluteButton.Enabled = false;
-      this.PreviousNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.PreviousNormalMapAbsoluteButton.Location = new System.Drawing.Point(3, 3);
       this.PreviousNormalMapAbsoluteButton.Name = "PreviousNormalMapAbsoluteButton";
       this.PreviousNormalMapAbsoluteButton.Size = new System.Drawing.Size(81, 34);
       this.PreviousNormalMapAbsoluteButton.TabIndex = 8;
-      this.PreviousNormalMapAbsoluteButton.Text = "Previous\r\nImage";
+      this.PreviousNormalMapAbsoluteButton.Text = "<<";
       this.PreviousNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
       this.PreviousNormalMapAbsoluteButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
       // 
       // NextNormalMapAbsoluteButton
       // 
       this.NextNormalMapAbsoluteButton.Enabled = false;
-      this.NextNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextNormalMapAbsoluteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.NextNormalMapAbsoluteButton.Location = new System.Drawing.Point(90, 3);
       this.NextNormalMapAbsoluteButton.Name = "NextNormalMapAbsoluteButton";
       this.NextNormalMapAbsoluteButton.Size = new System.Drawing.Size(81, 34);
       this.NextNormalMapAbsoluteButton.TabIndex = 9;
-      this.NextNormalMapAbsoluteButton.Text = "Next\r\nImage";
+      this.NextNormalMapAbsoluteButton.Text = ">>";
       this.NextNormalMapAbsoluteButton.UseVisualStyleBackColor = true;
       this.NextNormalMapAbsoluteButton.Click += new System.EventHandler(this.NextImageButton_Click);
       // 

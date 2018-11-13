@@ -166,7 +166,23 @@ namespace MathSupport
       GL.Viewport ( 0, 0, width, height );
 
       // 2. set projection matrix
-      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView ( Fov, width / (float) height, near, far );
+      if ( float.IsPositiveInfinity( far ) )
+      {
+        float viewAngleVertical = (float) ( Fov * 180 / Math.PI );
+        float f = (float) ( 1.0 / Math.Tan ( viewAngleVertical / 2.0 ) );
+        float aspect = width / (float) height;
+
+        //perspectiveProjection = new Matrix4 ( focalLength, 0, 0, 0, 0, focalLength / ratio, 0, 0, 0, 0, -1, -2 * near, 0, 0, -1, 0 );
+        perspectiveProjection = new Matrix4 ( f / aspect, 0.0f, 0.0f, 0.0f,
+                                              0.0f, f, 0.0f, 0.0f,
+                                              0.0f, 0.0f, -1.0f, -1.0f,
+                                              0.0f, 0.0f, -2.0f * near, 0.0f );
+      }
+      else
+      {
+        perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView ( Fov, width / (float) height, near, far );
+      }
+
       float minSize = 2.0f * Math.Min ( width, height );
       ortographicProjection = Matrix4.CreateOrthographic ( diameter * width / minSize,
                                                            diameter * height / minSize,

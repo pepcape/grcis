@@ -28,7 +28,9 @@ namespace Rendering
 
     private List<Image> history;
     private int historyIndex;
+    public byte historyCapacity = defaultHistoryCapacity;
 
+    private const byte defaultHistoryCapacity = 5;
     /// <summary>
     /// Default constructor
     /// </summary>
@@ -45,7 +47,7 @@ namespace Rendering
 
       zoom = 1;
 
-      history = new List<Image>();
+      history = new List<Image>( defaultHistoryCapacity );
       historyIndex = -1;
     }
 
@@ -261,17 +263,30 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Sets new image to PictueBox, clamps zoom and makes PictureBox to refresh
+    /// Sets new image to PictueBox, clamps zoom and makes PictureBox to refresh (optionally, saves new iumage to history)
     /// </summary>
     /// <param name="newImage">New image to set for PictureBox</param>
-    public void SetNewImage ( Bitmap newImage )
+    /// <param name="saveToHistory">TRUE to make this new image to save to history</param>
+    public void SetNewImage ( Image newImage, bool saveToHistory )
     {
-      history.Add ( newImage );
-      historyIndex = history.Count - 1;
+      if ( newImage == null )
+        return;
+
+      if ( saveToHistory )
+      {
+        if ( history.Count == historyCapacity && historyCapacity != 0)
+          history.RemoveAt ( 0 );
+
+        history.Add ( newImage );
+        historyIndex = history.Count - 1;     
+      }
 
       SetImage ( newImage );
     }
 
+    /// <summary>
+    /// Sets next image in history as active
+    /// </summary>
     public void SetNextImageFromHistory ()
     {
       historyIndex++;
@@ -279,6 +294,9 @@ namespace Rendering
       SetImage ( history[historyIndex] );
     }
 
+    /// <summary>
+    /// Sets previous image from history as active
+    /// </summary>
     public void SetPreviousImageFromHistory ()
     {
       historyIndex--;
@@ -286,16 +304,29 @@ namespace Rendering
       SetImage ( history [historyIndex] );
     }
 
+    /// <summary>
+    /// Next image availability
+    /// </summary>
+    /// <returns>TRUE if there is available next (newer than current one) image in history</returns>
     public bool NextImageAvailable ()
     {
       return historyIndex + 1 < history.Count;
     }
 
+    /// <summary>
+    /// Previous image availability
+    /// </summary>
+    /// <returns>TRUE if there is available previous (older than current one) image in history</returns>
     public bool PreviousImageAvailable ()
     {
       return historyIndex > 0;
     }
 
+    /// <summary>
+    /// Common set-image method for setting new image directly or from history
+    /// Clamps zoom and makes PictureBox to refresh
+    /// </summary>
+    /// <param name="newImage">Image to set as active</param>
     private void SetImage ( Image newImage )
     {
       image = newImage;

@@ -32,7 +32,7 @@ namespace Rendering
     private float diameter = 4.0f;
 
     private const float near = 0.1f;
-    private const float far = 25.0f;
+    private const float far = float.PositiveInfinity;
 
     private Vector3 light = new Vector3 ( -2, 1, 1 );
 

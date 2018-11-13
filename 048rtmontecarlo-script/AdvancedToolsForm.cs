@@ -59,12 +59,13 @@ namespace Rendering
       KeyPreview = true;
     }
 
+    /// <summary>
+    /// Sets location of Form1 (Advanced Tools) to either right or left of Form1 (Main) 
+    /// depending on position of Form1 (whether it is close to right edge of primary screen)
+    /// </summary>
     private void SetFormPosition ()
     {
       this.StartPosition = FormStartPosition.Manual;
-
-      // Sets location of Form1 (Advanced Tools) to either right or left of Form1 (Main) 
-      // depending on position of Form1 (whether it is close to right edge of primary screen)
 
       if ( ( Form1.singleton.Location.X - this.Width < 0 ) &&
            ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width > SystemInformation.VirtualScreen.Width ) )
@@ -144,7 +145,7 @@ namespace Rendering
 
       ( map as IMap ).RenderMap ();
 
-      PanAndZoomControls [MapsTabControl.SelectedIndex].SetNewImage ( ( map as IMap ).GetBitmap () );
+      PanAndZoomControls [MapsTabControl.SelectedIndex].SetNewImage ( ( map as IMap ).GetBitmap (), true );
 
       SaveButtonsEnabled ( true, tabPage );
       ResetButtonsEnabled ( true, tabPage );
@@ -368,29 +369,35 @@ namespace Rendering
       ButtonsEnabled ( newStatus, "Reset", root );
     }
 
+    /// <summary>
+    /// Sets "enable" properties of all buttons in children of root (initially Form) recursively with text Next in their name to new status
+    /// </summary>
+    /// <param name="newStatus">Enabled/Disabled buttons</param>
+    /// /// <param name="root">Root control where to start looking for button (initially Form [this])</param>
     public void NextImageButtonsEnabled ( bool newStatus, Control root = null )
     {
       ButtonsEnabled ( newStatus, "Next", root );
     }
 
+    /// <summary>
+    /// Sets "enable" properties of all buttons in children of root (initially Form) recursively with text Previous in their name to new status
+    /// </summary>
+    /// <param name="newStatus">Enabled/Disabled buttons</param>
+    /// /// <param name="root">Root control where to start looking for button (initially Form [this])</param>
     public void PreviousImageButtonsEnabled ( bool newStatus, Control root = null )
     {
       ButtonsEnabled ( newStatus, "Previous", root );
     }
 
+    /// <summary>
+    /// Enables/disables Next and Previous image buttons based on availability in history
+    /// </summary>
     private void SetPreviousAndNextImageButtons ()
     {
       TabPage tabPage = MapsTabControl.SelectedTab;
 
-      if ( PanAndZoomControls[MapsTabControl.SelectedIndex].PreviousImageAvailable () )
-        PreviousImageButtonsEnabled ( true, tabPage );
-      else
-        PreviousImageButtonsEnabled ( false, tabPage );
-
-      if ( PanAndZoomControls[MapsTabControl.SelectedIndex].NextImageAvailable () )
-        NextImageButtonsEnabled ( true, tabPage );
-      else
-        NextImageButtonsEnabled ( false, tabPage );
+      PreviousImageButtonsEnabled ( PanAndZoomControls[MapsTabControl.SelectedIndex].PreviousImageAvailable (), tabPage );
+      NextImageButtonsEnabled ( PanAndZoomControls [MapsTabControl.SelectedIndex].NextImageAvailable (), tabPage );
     }
 
     /// <summary>
@@ -512,14 +519,22 @@ namespace Rendering
       RenderMapButton_Click ( null, null );
     }
 
+    /// <summary>
+    /// Should be called, when new image is fully rendered
+    /// </summary>
     public void NewImageRendered ()
     {
-      RenderCurrentlyActiveTab ();
-
       for ( int i = 0; i < newImageAvailable.Length; i++ )
         newImageAvailable[i] = true;
+
+      RenderCurrentlyActiveTab ();
     }
 
+    /// <summary>
+    /// Sets previous (older) image from history as active in PictureBox
+    /// </summary>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void PreviousImageButton_Click ( object sender, EventArgs e )
     {
       PanAndZoomControls [MapsTabControl.SelectedIndex].SetPreviousImageFromHistory ();
@@ -527,6 +542,11 @@ namespace Rendering
       SetPreviousAndNextImageButtons ();
     }
 
+    /// <summary>
+    /// Sets next (newer) image from history as active in PictureBox
+    /// </summary>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void NextImageButton_Click ( object sender, EventArgs e )
     {
       PanAndZoomControls[MapsTabControl.SelectedIndex].SetNextImageFromHistory ();
