@@ -387,8 +387,8 @@
       this.MinimumSize = new System.Drawing.Size(1000, 500);
       this.Name = "RayVisualizerForm";
       this.Text = "Ray Visualizer";
-      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form3_FormClosing);
-      this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form3_FormClosed);
+      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.RayVisualizerForm_FormClosing);
+      this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.RayVisualizerForm_FormClosed);
       this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glControl1_MouseWheel);
       this.ResumeLayout(false);
       this.PerformLayout();

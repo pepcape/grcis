@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -25,6 +26,9 @@ namespace Rendering
 
     private bool mousePressed;
 
+    private List<Image> history;
+    private int historyIndex;
+
     /// <summary>
     /// Default constructor
     /// </summary>
@@ -40,6 +44,9 @@ namespace Rendering
       this.setWindowTitleSuffix = setWindowTitleSuffix;
 
       zoom = 1;
+
+      history = new List<Image>();
+      historyIndex = -1;
     }
 
     /// <summary>
@@ -259,7 +266,40 @@ namespace Rendering
     /// <param name="newImage">New image to set for PictureBox</param>
     public void SetNewImage ( Bitmap newImage )
     {
+      history.Add ( newImage );
+      historyIndex = history.Count - 1;
+
+      SetImage ( newImage );
+    }
+
+    public void SetNextImageFromHistory ()
+    {
+      historyIndex++;
+
+      SetImage ( history[historyIndex] );
+    }
+
+    public void SetPreviousImageFromHistory ()
+    {
+      historyIndex--;
+
+      SetImage ( history [historyIndex] );
+    }
+
+    public bool NextImageAvailable ()
+    {
+      return historyIndex + 1 < history.Count;
+    }
+
+    public bool PreviousImageAvailable ()
+    {
+      return historyIndex > 0;
+    }
+
+    private void SetImage ( Image newImage )
+    {
       image = newImage;
+      OutOfScreenFix ();
       ClampZoom ();
       pictureBox.Invalidate ();
     }
