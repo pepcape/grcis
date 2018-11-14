@@ -38,7 +38,8 @@ namespace MathSupport
         n = 1.0 / n;
 
       double cos2 = 1.0 - n * n * ( 1.0 - d * d );
-      if ( cos2 <= 0.0 ) return Vector3d.Zero; // total reflection
+      if ( cos2 <= 0.0 )
+        return Vector3d.Zero; // total reflection
 
       d = n * d - Math.Sqrt ( cos2 );
       return ( normal * d - input * n );

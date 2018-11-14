@@ -116,19 +116,6 @@ namespace Rendering
       i.Complete ();
 
       RegisterRay ( RayType.unknown, level, p0, i );
-      
-      if ( MT.pointCloudCheckBox && !MT.pointCloudSavingInProgress && !MT.singleRayTracing )
-      {
-        foreach ( Intersection intersection in intersections )
-        {
-          if ( !intersection.completed )
-            intersection.Complete ();
-
-          double[] vertexColor = new double[3];
-          Array.Copy ( intersection.SurfaceColor, vertexColor, vertexColor.Length );
-          Master.singleton?.pointCloud?.AddToPointCloud ( intersection.CoordWorld, vertexColor, intersection.Normal, MT.threadID );
-        }
-      }
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode ();
@@ -137,6 +124,23 @@ namespace Rendering
       if ( i.Textures != null )
         foreach ( ITexture tex in i.Textures )
           hash = hash * HASH_TEXTURE + tex.Apply ( i );
+
+      if ( MT.pointCloudCheckBox && !MT.pointCloudSavingInProgress && !MT.singleRayTracing )
+      {
+        foreach ( Intersection intersection in intersections )
+        {
+          if ( !intersection.completed )
+            intersection.Complete ();
+
+          if ( intersection.Textures != null && !intersection.texturesApplied )
+            foreach ( ITexture tex in intersection.Textures )
+              tex.Apply ( intersection );
+
+          double[] vertexColor = new double[3];
+          Array.Copy ( intersection.SurfaceColor, vertexColor, vertexColor.Length );
+          Master.singleton?.pointCloud?.AddToPointCloud ( intersection.CoordWorld, vertexColor, intersection.Normal, MT.threadID );
+        }
+      }
 
       p1 = -p1; // viewing vector
       p1.Normalize ();
@@ -220,7 +224,7 @@ namespace Rendering
           return hash;
 
         // refracted ray:
-        if ( ( r = Geometry.SpecularRefraction ( i.Normal, i.Material.n, p1 ) ) == null )
+        if ( ( r = Geometry.SpecularRefraction ( i.Normal, i.Material.n, p1 ) ) == Vector3d.Zero )
           return hash;
 
         hash += HASH_REFRACT * shade ( level, newImportance, ref i.CoordWorld, ref r, comp );

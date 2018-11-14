@@ -39,7 +39,7 @@ namespace Rendering
     /// <summary>
     /// If positive, new scene & image-function & renderer has to be created..
     /// </summary>
-    protected bool dirty = true;
+    public bool dirty = true;
 
     /// <summary>
     /// Ray-based renderer in form of image function.
