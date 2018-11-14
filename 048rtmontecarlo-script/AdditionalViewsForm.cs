@@ -156,7 +156,7 @@ namespace Rendering
       SetTotalAndAverageAllRaysCount ();
 
       newImageAvailable[MapsTabControl.SelectedIndex] = false;
-    }  
+    }
 
     /// <summary>
     /// Displays depth in scene of selected pixel (clicked or hovered over while mouse down)

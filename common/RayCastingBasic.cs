@@ -1092,6 +1092,8 @@ namespace Rendering
       if ( ( ( ui + vi ) & 1 ) != 0 )
         Array.Copy ( Color2, inter.SurfaceColor, Math.Min ( Color2.Length, inter.SurfaceColor.Length ) );
 
+      inter.texturesApplied = true; // warning - this changes texturesApplied bool even when only one texture was applied - not all of them
+
       return ( ui + RandomStatic.numericRecipes ( vi ) );
     }
   }

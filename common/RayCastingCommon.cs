@@ -411,6 +411,7 @@ namespace Rendering
     public static long countIntersections = 0L;
 
     public bool completed = false;
+    public bool textureApplied = false; // warning - this bool is changed even when only one texture was applied - not all of them
 
     public Intersection ( ISolid s )
     {
