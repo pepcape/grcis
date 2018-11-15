@@ -772,7 +772,7 @@ namespace Rendering
 
     /// <summary>
     /// Called when any key is pressed;
-    /// Used for zoom using keys
+    /// Used for zoom using keys, PictureBox reset and browsing image history
     /// </summary>
     /// <param name="sender">Not needed</param>
     /// <param name="e">Needed to get pressed key</param>
@@ -782,8 +782,19 @@ namespace Rendering
         panAndZoom.Reset ();
 
       panAndZoom.KeyDownRegistration ( e.KeyCode, ModifierKeys );
-    }
 
+      switch ( e.KeyCode )
+      {
+        case Keys.D when panAndZoom.NextImageAvailable ():
+          panAndZoom.SetNextImageFromHistory ();
+          SetPreviousAndNextImageButtons ();
+          break;
+        case Keys.A when panAndZoom.PreviousImageAvailable ():
+          panAndZoom.SetPreviousImageFromHistory ();
+          SetPreviousAndNextImageButtons ();
+          break;
+      }
+    }
 
     /// <summary>
     /// Called every time main picture box is needed to be re-painted

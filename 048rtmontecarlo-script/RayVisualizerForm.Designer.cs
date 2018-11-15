@@ -36,7 +36,6 @@
       this.checkAmbient = new System.Windows.Forms.CheckBox();
       this.checkShaders = new System.Windows.Forms.CheckBox();
       this.checkGlobalColor = new System.Windows.Forms.CheckBox();
-      this.checkTexture = new System.Windows.Forms.CheckBox();
       this.checkVsync = new System.Windows.Forms.CheckBox();
       this.checkTwosided = new System.Windows.Forms.CheckBox();
       this.checkWireframe = new System.Windows.Forms.CheckBox();
@@ -160,17 +159,6 @@
       this.checkGlobalColor.TabIndex = 51;
       this.checkGlobalColor.Text = "GlobalC";
       this.checkGlobalColor.UseVisualStyleBackColor = true;
-      // 
-      // checkTexture
-      // 
-      this.checkTexture.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.checkTexture.AutoSize = true;
-      this.checkTexture.Location = new System.Drawing.Point(108, 469);
-      this.checkTexture.Name = "checkTexture";
-      this.checkTexture.Size = new System.Drawing.Size(62, 17);
-      this.checkTexture.TabIndex = 50;
-      this.checkTexture.Text = "Texture";
-      this.checkTexture.UseVisualStyleBackColor = true;
       // 
       // checkVsync
       // 
@@ -380,7 +368,6 @@
       this.Controls.Add(this.checkAmbient);
       this.Controls.Add(this.checkShaders);
       this.Controls.Add(this.checkGlobalColor);
-      this.Controls.Add(this.checkTexture);
       this.Controls.Add(this.checkVsync);
       this.Controls.Add(this.checkTwosided);
       this.Controls.Add(this.checkWireframe);
@@ -407,7 +394,6 @@
 		private System.Windows.Forms.CheckBox checkAmbient;
 		private System.Windows.Forms.CheckBox checkShaders;
 		private System.Windows.Forms.CheckBox checkGlobalColor;
-		private System.Windows.Forms.CheckBox checkTexture;
 		private System.Windows.Forms.CheckBox checkVsync;
 		private System.Windows.Forms.CheckBox checkTwosided;
 		private System.Windows.Forms.CheckBox checkWireframe;
