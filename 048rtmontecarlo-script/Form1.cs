@@ -37,7 +37,7 @@ namespace Rendering
     protected volatile int selectedScene = 0;
 
     /// <summary>
-    /// If positive, new scene & image-function & renderer has to be created..
+    /// If positive, new scene & image-function & renderer has to be created.
     /// </summary>
     public bool dirty = true;
 
@@ -507,7 +507,9 @@ namespace Rendering
 
         panAndZoom.SetNewImage ( panAndZoom.image, true );
 
-        SetPreviousAndNextImageButtons ();        
+        SetPreviousAndNextImageButtons ();
+
+        dirty = true;
       }
     }
 

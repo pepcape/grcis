@@ -199,8 +199,6 @@ namespace Rendering
 
         if ( !string.IsNullOrEmpty ( scriptSource ) )
         {
-          Form1.singleton.dirty = true;
-
           message?.Invoke ( $"Compiling and running scene script '{name}' ({++count}).." );
 
           // interpret the CS-script defining the scene:

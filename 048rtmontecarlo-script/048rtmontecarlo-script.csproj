@@ -326,6 +326,7 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="fragment.glsl" />
     <None Include="packages.config" />
     <None Include="Properties\DataSources\RenderClientsForm.datasource" />
     <None Include="Properties\Settings.settings">
@@ -338,6 +339,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="MonteCarloRT.cs" />
+    <None Include="vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7">
