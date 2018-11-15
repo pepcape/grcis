@@ -488,7 +488,8 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Catches +/PageUp for zoom in or -/PageDown for zoom out of image in picture box
+    /// Called when any key is pressed;
+    /// Used for zoom using keys, PictureBox reset and browsing image history
     /// </summary>
     /// <param name="sender">Not needed</param>
     /// <param name="e">Needed to get pressed key</param>
@@ -498,6 +499,18 @@ namespace Rendering
         PanAndZoomControls[MapsTabControl.SelectedIndex].Reset ();
 
       PanAndZoomControls [MapsTabControl.SelectedIndex].KeyDownRegistration ( e.KeyCode, ModifierKeys );
+
+      switch ( e.KeyCode )
+      {
+        case Keys.D when PanAndZoomControls[MapsTabControl.SelectedIndex].NextImageAvailable ():
+          PanAndZoomControls[MapsTabControl.SelectedIndex].SetNextImageFromHistory ();
+          SetPreviousAndNextImageButtons ();
+          break;
+        case Keys.A when PanAndZoomControls[MapsTabControl.SelectedIndex].PreviousImageAvailable ():
+          PanAndZoomControls[MapsTabControl.SelectedIndex].SetPreviousImageFromHistory ();
+          SetPreviousAndNextImageButtons ();
+          break;
+      }
     }
 
     /// <summary>
