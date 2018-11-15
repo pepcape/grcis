@@ -106,7 +106,7 @@ namespace Rendering
 
       if ( i == null ) // no intersection -> background color
       {
-        RegisterRay ( RayType.rayVisualizerNormal, level, p0, direction * 1000 );
+        RegisterRay ( RayType.rayVisualizerNormal, level, p0, direction * 1000 ); 
 
         Array.Copy ( scene.BackgroundColor, color, bands );
         return 1L;
@@ -132,7 +132,7 @@ namespace Rendering
           if ( !intersection.completed )
             intersection.Complete ();
 
-          if ( intersection.Textures != null && !intersection.texturesApplied )
+          if ( intersection.Textures != null && !intersection.textureApplied )
             foreach ( ITexture tex in intersection.Textures )
               tex.Apply ( intersection );
 

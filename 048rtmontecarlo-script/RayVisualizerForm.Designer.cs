@@ -141,6 +141,8 @@
       // 
       this.checkShaders.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkShaders.AutoSize = true;
+      this.checkShaders.Checked = true;
+      this.checkShaders.CheckState = System.Windows.Forms.CheckState.Checked;
       this.checkShaders.Location = new System.Drawing.Point(12, 541);
       this.checkShaders.Name = "checkShaders";
       this.checkShaders.Size = new System.Drawing.Size(53, 17);

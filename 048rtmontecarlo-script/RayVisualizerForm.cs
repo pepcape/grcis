@@ -237,7 +237,7 @@ namespace Rendering
     {
       if ( AllignCameraCheckBox.Checked && e.Button == trackBall.Button )
       {
-        MessageBox.Show ( "You can not use mouse to rotate scene while \"Keep alligned\" box is checked." );
+        MessageBox.Show ( @"You can not use mouse to rotate scene while ""Keep alligned"" box is checked." );
         return;
       }
 
@@ -297,9 +297,7 @@ namespace Rendering
     private void AllignCamera ( object sender, EventArgs e )
     {
       if ( RayVisualizer.singleton?.rays.Count < 2 )
-      {
         return;
-      }
 
       trackBall.Center = (Vector3) RayVisualizer.singleton.rays [ 1 ];
       trackBall.Reset ( (Vector3) ( RayVisualizer.singleton.rays [ 1 ] - RayVisualizer.singleton.rays [ 0 ] ) );
@@ -331,7 +329,7 @@ namespace Rendering
 				canShaders = SetupShaders ();
 
 			// texture
-			texName = GenerateTexture ();
+			//texName = GenerateTexture ();
 		}
 
 		/// <summary>
@@ -495,8 +493,8 @@ namespace Rendering
       // default program:
 		  GlProgramInfo pi = new GlProgramInfo ( "default", new GlShaderInfo[]
 			{
-		new GlShaderInfo ( ShaderType.VertexShader, "vertex.glsl", "048rtmontecarlo-script" ),
-		new GlShaderInfo ( ShaderType.FragmentShader, "fragment.glsl", "048rtmontecarlo-script" )
+		    new GlShaderInfo ( ShaderType.VertexShader, "vertex.glsl", "048rtmontecarlo-script" ),
+		    new GlShaderInfo ( ShaderType.FragmentShader, "fragment.glsl", "048rtmontecarlo-script" )
 			} );
 
 			programs[pi.name] = pi;
@@ -526,7 +524,7 @@ namespace Rendering
 
 			frameCounter++;
 			useShaders = ( scene != null ) &&
-						 scene.Triangles > 0 &&
+						 //scene.Triangles > 0 &&
 						 useVBO &&
 						 canShaders &&
 						 activeProgram != null &&
@@ -827,35 +825,128 @@ namespace Rendering
 			}
 			else // actual scene and ray visualization
 			{
-        bool renderFirst = true;
+			  //GL.BindBuffer ( BufferTarget.ArrayBuffer, VBOid[0] );
+			  IntPtr p = IntPtr.Zero;
 
-				if ( AllignCameraCheckBox.Checked )
-				{
-					AllignCamera ( null, null );
-					renderFirst = false;
-				}
+        if ( useShaders )
+        {
+          SetVertexPointer ( false );
+          SetVertexAttrib ( true );
 
-				FillSceneObjects ();
-				BoundingBoxesVisualization ();
+          // using GLSL shaders:
+          GL.UseProgram ( activeProgram.Id );
 
-				RenderRays ( renderFirst );
-				RenderCamera ();
-				RenderLightSources ();
+          // uniforms:
+          Matrix4 modelView  = trackBall.ModelView;
+          Matrix4 projection = trackBall.Projection;
+          Vector3 eye        = trackBall.Eye;
 
-			  if ( pointCloudVBO != 0 && PointCloudCheckBox.Checked )
-			  {
-			    GL.EnableClientState ( ArrayCap.VertexArray );
-			    GL.EnableClientState ( ArrayCap.ColorArray );
-			    GL.EnableClientState ( ArrayCap.NormalArray );
+          GL.UniformMatrix4 ( activeProgram.GetUniform ( "matrixModelView" ), false, ref modelView );
+          GL.UniformMatrix4 ( activeProgram.GetUniform ( "matrixProjection" ), false, ref projection );
 
-          GL.VertexPointer ( 3, VertexPointerType.Float, 9 * sizeof ( float ), 0 );
-			    GL.ColorPointer ( 3, ColorPointerType.Float, 9 * sizeof ( float ), 3 * sizeof ( float ) );
-			    GL.NormalPointer ( NormalPointerType.Float, 9 * sizeof ( float ), 6 * sizeof ( float ) );
+          GL.Uniform3 ( activeProgram.GetUniform ( "globalAmbient" ), ref globalAmbient );
+          GL.Uniform3 ( activeProgram.GetUniform ( "lightColor" ), ref whiteLight );
+          GL.Uniform3 ( activeProgram.GetUniform ( "lightPosition" ), ref lightPosition );
+          GL.Uniform3 ( activeProgram.GetUniform ( "eyePosition" ), ref eye );
+          GL.Uniform3 ( activeProgram.GetUniform ( "Ka" ), ref matAmbient );
+          GL.Uniform3 ( activeProgram.GetUniform ( "Kd" ), ref matDiffuse );
+          GL.Uniform3 ( activeProgram.GetUniform ( "Ks" ), ref matSpecular );
+          GL.Uniform1 ( activeProgram.GetUniform ( "shininess" ), matShininess );
+
+          // color handling:
+          bool useGlobalColor = checkGlobalColor.Checked;
+          if ( !scene.HasColors () )
+            useGlobalColor = true;
+          GL.Uniform1 ( activeProgram.GetUniform ( "globalColor" ), useGlobalColor ? 1 : 0 );
+
+          // shading:
+          bool shadingPhong   = checkPhong.Checked;
+          bool shadingGouraud = checkSmooth.Checked;
+          if ( !shadingGouraud )
+            shadingPhong = false;
+          GL.Uniform1 ( activeProgram.GetUniform ( "shadingPhong" ), shadingPhong ? 1 : 0 );
+          GL.Uniform1 ( activeProgram.GetUniform ( "shadingGouraud" ), shadingGouraud ? 1 : 0 );
+          GL.Uniform1 ( activeProgram.GetUniform ( "useAmbient" ), checkAmbient.Checked ? 1 : 0 );
+          GL.Uniform1 ( activeProgram.GetUniform ( "useDiffuse" ), checkDiffuse.Checked ? 1 : 0 );
+          GL.Uniform1 ( activeProgram.GetUniform ( "useSpecular" ), checkSpecular.Checked ? 1 : 0 );
+          GlInfo.LogError ( "set-uniforms" );
+
+          // texture handling:
+          bool useTexture = checkTexture.Checked;
+          if ( !scene.HasTxtCoords () || texName == 0 )
+            useTexture = false;
+          GL.Uniform1 ( activeProgram.GetUniform ( "useTexture" ), useTexture ? 1 : 0 );
+          GL.Uniform1 ( activeProgram.GetUniform ( "texSurface" ), 0 );
+          if ( useTexture )
+          {
+            GL.ActiveTexture ( TextureUnit.Texture0 );
+            GL.BindTexture ( TextureTarget.Texture2D, texName );
+          }
+
+          GlInfo.LogError ( "set-texture" );
+
+          stride = 9 * sizeof ( float );
 
           GL.BindBuffer ( BufferTarget.ArrayBuffer, pointCloudVBO );
-			    GL.Color4 ( Color.Red );
-			    GL.DrawArrays ( PrimitiveType.Points, 0, pointCloud.numberOfElements );
-			  }			  
+
+          /*if ( activeProgram.HasAttribute ( "texCoords" ) )
+            GL.VertexAttribPointer ( activeProgram.GetAttribute ( "texCoords" ), 2, VertexAttribPointerType.Float, false, stride, p );
+          if ( scene.HasTxtCoords () )
+            p += Vector2.SizeInBytes;*/
+
+          GL.VertexAttribPointer ( activeProgram.GetAttribute ( "position" ), 3, VertexAttribPointerType.Float, false, stride, p );
+          p += Vector3.SizeInBytes;
+
+          if ( activeProgram.HasAttribute ( "color" ) )
+            GL.VertexAttribPointer ( activeProgram.GetAttribute ( "color" ), 3, VertexAttribPointerType.Float, false, stride, p );
+          if ( scene.HasColors () )
+            p += Vector3.SizeInBytes;
+
+          if ( activeProgram.HasAttribute ( "normal" ) )
+            GL.VertexAttribPointer ( activeProgram.GetAttribute ( "normal" ), 3, VertexAttribPointerType.Float, false, stride, p );
+          if ( scene.HasNormals () )
+            p += Vector3.SizeInBytes;
+
+
+          GlInfo.LogError ( "set-attrib-pointers" );
+
+
+          bool renderFirst = true;
+
+          if ( AllignCameraCheckBox.Checked )
+          {
+            AllignCamera ( null, null );
+            renderFirst = false;
+          }
+
+          //FillSceneObjects ();
+          //BoundingBoxesVisualization ();
+
+          //RenderRays ( renderFirst );
+          //RenderCamera ();
+          //RenderLightSources ();
+
+          if ( pointCloudVBO != 0 && PointCloudCheckBox.Checked )
+          {
+            //GL.EnableClientState ( ArrayCap.VertexArray );
+            //GL.EnableClientState ( ArrayCap.ColorArray );
+            //GL.EnableClientState ( ArrayCap.NormalArray );
+
+            //GL.VertexPointer ( 3, VertexPointerType.Float, 9 * sizeof ( float ), 0 );
+            //GL.ColorPointer ( 3, ColorPointerType.Float, 9 * sizeof ( float ), 3 * sizeof ( float ) );
+            //GL.NormalPointer ( NormalPointerType.Float, 9 * sizeof ( float ), 6 * sizeof ( float ) );
+
+            
+            GL.DrawArrays ( PrimitiveType.Points, 0, pointCloud.numberOfElements );
+          }
+
+
+
+          // cleanup:
+          GL.UseProgram ( 0 );
+          if ( useTexture )
+            GL.BindTexture ( TextureTarget.Texture2D, 0 );
+        }        
 			}
 
 			// Support: axes

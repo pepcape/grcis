@@ -40,6 +40,8 @@
       this.RayVisualiserButton = new System.Windows.Forms.Button();
       this.RenderClientsButton = new System.Windows.Forms.Button();
       this.ResetButton = new System.Windows.Forms.Button();
+      this.NextImageButton = new System.Windows.Forms.Button();
+      this.PreviousImageButton = new System.Windows.Forms.Button();
       this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
       this.buttonRender = new System.Windows.Forms.Button();
       this.buttonStop = new System.Windows.Forms.Button();
@@ -63,8 +65,6 @@
       this.labelElapsed = new System.Windows.Forms.Label();
       this.labelSample = new System.Windows.Forms.Label();
       this.notificationIcon = new System.Windows.Forms.NotifyIcon(this.components);
-      this.PreviousImageButton = new System.Windows.Forms.Button();
-      this.NextImageButton = new System.Windows.Forms.Button();
       this.tableLayoutPanel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.tableLayoutPanel2.SuspendLayout();
@@ -191,7 +191,7 @@
       this.RayVisualiserButton.Name = "RayVisualiserButton";
       this.RayVisualiserButton.Size = new System.Drawing.Size(92, 23);
       this.RayVisualiserButton.TabIndex = 6;
-      this.RayVisualiserButton.Text = "Ray Visualiser";
+      this.RayVisualiserButton.Text = "Ray Visualizer";
       this.RayVisualiserButton.UseVisualStyleBackColor = true;
       this.RayVisualiserButton.Click += new System.EventHandler(this.RayVisualiserButton_Click);
       // 
@@ -216,6 +216,30 @@
       this.ResetButton.Text = "Reset";
       this.ResetButton.UseVisualStyleBackColor = true;
       this.ResetButton.Click += new System.EventHandler(this.ResetButton_Click);
+      // 
+      // NextImageButton
+      // 
+      this.NextImageButton.Enabled = false;
+      this.NextImageButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.NextImageButton.Location = new System.Drawing.Point(70, 3);
+      this.NextImageButton.Name = "NextImageButton";
+      this.NextImageButton.Size = new System.Drawing.Size(54, 23);
+      this.NextImageButton.TabIndex = 11;
+      this.NextImageButton.Text = ">>";
+      this.NextImageButton.UseVisualStyleBackColor = true;
+      this.NextImageButton.Click += new System.EventHandler(this.NextImageButton_Click);
+      // 
+      // PreviousImageButton
+      // 
+      this.PreviousImageButton.Enabled = false;
+      this.PreviousImageButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.PreviousImageButton.Location = new System.Drawing.Point(10, 3);
+      this.PreviousImageButton.Name = "PreviousImageButton";
+      this.PreviousImageButton.Size = new System.Drawing.Size(54, 23);
+      this.PreviousImageButton.TabIndex = 10;
+      this.PreviousImageButton.Text = "<<";
+      this.PreviousImageButton.UseVisualStyleBackColor = true;
+      this.PreviousImageButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
       // 
       // flowLayoutPanel3
       // 
@@ -502,30 +526,6 @@
       // 
       this.notificationIcon.Text = "048 Monte Carlo RT script";
       this.notificationIcon.Visible = true;
-      // 
-      // PreviousImageButton
-      // 
-      this.PreviousImageButton.Enabled = false;
-      this.PreviousImageButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.PreviousImageButton.Location = new System.Drawing.Point(10, 3);
-      this.PreviousImageButton.Name = "PreviousImageButton";
-      this.PreviousImageButton.Size = new System.Drawing.Size(54, 23);
-      this.PreviousImageButton.TabIndex = 10;
-      this.PreviousImageButton.Text = "<<";
-      this.PreviousImageButton.UseVisualStyleBackColor = true;
-      this.PreviousImageButton.Click += new System.EventHandler(this.PreviousImageButton_Click);
-      // 
-      // NextImageButton
-      // 
-      this.NextImageButton.Enabled = false;
-      this.NextImageButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.NextImageButton.Location = new System.Drawing.Point(70, 3);
-      this.NextImageButton.Name = "NextImageButton";
-      this.NextImageButton.Size = new System.Drawing.Size(54, 23);
-      this.NextImageButton.TabIndex = 11;
-      this.NextImageButton.Text = ">>";
-      this.NextImageButton.UseVisualStyleBackColor = true;
-      this.NextImageButton.Click += new System.EventHandler(this.NextImageButton_Click);
       // 
       // Form1
       // 
