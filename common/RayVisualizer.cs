@@ -1,6 +1,7 @@
 ﻿#define USE_INVALIDATE
 
 using System.Collections.Generic;
+using System.Windows.Forms;
 using OpenTK;
 
 namespace Rendering
@@ -11,6 +12,8 @@ namespace Rendering
   public class RayVisualizer
   {
     public static RayVisualizer singleton;
+
+    public RayVisualizerForm form;
 
     internal List<Vector3d> rays;
     internal List<Vector3d> shadowRays;
@@ -28,6 +31,8 @@ namespace Rendering
     {
       rays       = new List<Vector3d> ( initialListCapacity );
       shadowRays = new List<Vector3d> ( initialListCapacity );
+
+      singleton = this;
     }
 
     /// <summary>
@@ -75,19 +80,22 @@ namespace Rendering
         return (Vector3d) position * axesCorrectionVector;
     }
 
-    public static IRayScene rayScene;
-    public static float[] backgroundColor;
+    public IRayScene rayScene;
+    public int[] backgroundColor;
     /// <summary>
     /// Called when there is a new scene about to be rendered
     /// </summary>
     /// <param name="scene">Scene which is about to be rendered</param>
-    public static void UpdateRayScene ( IRayScene scene )
+    public void UpdateRayScene ( IRayScene scene )
     {
       rayScene = scene;
-      singleton?.rays?.Clear ();
+      rays?.Clear ();
       singleton?.shadowRays?.Clear ();
 
-      backgroundColor = new float[] { (float) scene.BackgroundColor [0], (float) scene.BackgroundColor [1], (float) scene.BackgroundColor [2] };
+      backgroundColor = new int[] { (int) scene.BackgroundColor[0] * 255, (int) scene.BackgroundColor[1] * 255, (int) scene.BackgroundColor[2] * 255 };
+
+      form?.Invoke ( (MethodInvoker) delegate { form.UpdateRayScene ( scene ); } );
+      
     }
   }
 }

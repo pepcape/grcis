@@ -81,6 +81,7 @@ namespace Rendering
 
     private readonly PanAndZoomSupport panAndZoom;
 
+    private RayVisualizer rayVisualizer;
     public Form1 ( string[] args )
     {
       singleton = this;
@@ -115,6 +116,8 @@ namespace Rendering
       AdditionalViews.singleton.SetNewDimensions ( ImageWidth, ImageHeight ); //makes all maps to initialize again
 
       panAndZoom = new PanAndZoomSupport ( pictureBox1, image, SetWindowTitleSuffix );
+
+      rayVisualizer = new RayVisualizer ();
     }
 
     /// <summary>
@@ -364,6 +367,8 @@ namespace Rendering
       IImageFunction imf = getImageFunction ( sc, width, height );
       IRenderer      r   = getRenderer ( imf, width, height );
 
+      rayVisualizer.UpdateRayScene ( sc );
+
       Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads, pointCloudCheckBox.Checked );
       Master.singleton.progressData = progress;
       Master.singleton.InitializeAssignments ( newImage, sc, r );
@@ -499,8 +504,8 @@ namespace Rendering
 
         if ( Master.singleton.pointCloud == null || Master.singleton.pointCloud.IsCloudEmpty )
           savePointCloudButton.Enabled = false;
-        else if ( RayVisualizerForm.singleton != null )
-          RayVisualizerForm.singleton.PointCloudButton.Enabled = true;
+        else if ( rayVisualizer.form != null )
+          rayVisualizer.form.PointCloudButton.Enabled = true;
           
 
         AdditionalViewsForm.singleton?.NewImageRendered ();
@@ -672,17 +677,17 @@ namespace Rendering
     }
 
     private void RayVisualiserButton_Click ( object sender, EventArgs e )
-    {
-      if ( RayVisualizerForm.singleton != null )
+    {  
+      if ( rayVisualizer.form != null )
       {
-        RayVisualizerForm.singleton.Activate ();
+        rayVisualizer.form.Activate ();
 
         return; //only one instance of RayVisualizerForm can exist at the time
       }
 
       Cursor.Current = Cursors.WaitCursor;
 
-      RayVisualizerForm rayVisualizerForm = new RayVisualizerForm ();
+      RayVisualizerForm rayVisualizerForm = new RayVisualizerForm ( rayVisualizer );
       rayVisualizerForm.Show ();
     }
 

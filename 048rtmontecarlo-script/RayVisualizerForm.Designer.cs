@@ -37,8 +37,6 @@
       this.checkShaders = new System.Windows.Forms.CheckBox();
       this.checkGlobalColor = new System.Windows.Forms.CheckBox();
       this.checkVsync = new System.Windows.Forms.CheckBox();
-      this.checkTwosided = new System.Windows.Forms.CheckBox();
-      this.checkWireframe = new System.Windows.Forms.CheckBox();
       this.checkSmooth = new System.Windows.Forms.CheckBox();
       this.labelFPS = new System.Windows.Forms.Label();
       this.NormalRaysCheckBox = new System.Windows.Forms.CheckBox();
@@ -77,7 +75,7 @@
       // 
       this.checkAxes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkAxes.AutoSize = true;
-      this.checkAxes.Location = new System.Drawing.Point(202, 541);
+      this.checkAxes.Location = new System.Drawing.Point(194, 521);
       this.checkAxes.Name = "checkAxes";
       this.checkAxes.Size = new System.Drawing.Size(49, 17);
       this.checkAxes.TabIndex = 57;
@@ -103,7 +101,7 @@
       this.checkSpecular.AutoSize = true;
       this.checkSpecular.Checked = true;
       this.checkSpecular.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkSpecular.Location = new System.Drawing.Point(202, 516);
+      this.checkSpecular.Location = new System.Drawing.Point(108, 516);
       this.checkSpecular.Name = "checkSpecular";
       this.checkSpecular.Size = new System.Drawing.Size(68, 17);
       this.checkSpecular.TabIndex = 55;
@@ -116,7 +114,7 @@
       this.checkDiffuse.AutoSize = true;
       this.checkDiffuse.Checked = true;
       this.checkDiffuse.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkDiffuse.Location = new System.Drawing.Point(202, 493);
+      this.checkDiffuse.Location = new System.Drawing.Point(108, 493);
       this.checkDiffuse.Name = "checkDiffuse";
       this.checkDiffuse.Size = new System.Drawing.Size(59, 17);
       this.checkDiffuse.TabIndex = 54;
@@ -129,7 +127,7 @@
       this.checkAmbient.AutoSize = true;
       this.checkAmbient.Checked = true;
       this.checkAmbient.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkAmbient.Location = new System.Drawing.Point(202, 469);
+      this.checkAmbient.Location = new System.Drawing.Point(108, 469);
       this.checkAmbient.Name = "checkAmbient";
       this.checkAmbient.Size = new System.Drawing.Size(64, 17);
       this.checkAmbient.TabIndex = 53;
@@ -153,7 +151,7 @@
       // 
       this.checkGlobalColor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkGlobalColor.AutoSize = true;
-      this.checkGlobalColor.Location = new System.Drawing.Point(108, 492);
+      this.checkGlobalColor.Location = new System.Drawing.Point(12, 516);
       this.checkGlobalColor.Name = "checkGlobalColor";
       this.checkGlobalColor.Size = new System.Drawing.Size(63, 17);
       this.checkGlobalColor.TabIndex = 51;
@@ -166,36 +164,12 @@
       this.checkVsync.AutoSize = true;
       this.checkVsync.Checked = true;
       this.checkVsync.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkVsync.Location = new System.Drawing.Point(108, 515);
+      this.checkVsync.Location = new System.Drawing.Point(12, 493);
       this.checkVsync.Name = "checkVsync";
       this.checkVsync.Size = new System.Drawing.Size(60, 17);
       this.checkVsync.TabIndex = 49;
       this.checkVsync.Text = "V-Sync";
       this.checkVsync.UseVisualStyleBackColor = true;
-      // 
-      // checkTwosided
-      // 
-      this.checkTwosided.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.checkTwosided.AutoSize = true;
-      this.checkTwosided.Checked = true;
-      this.checkTwosided.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkTwosided.Location = new System.Drawing.Point(12, 516);
-      this.checkTwosided.Name = "checkTwosided";
-      this.checkTwosided.Size = new System.Drawing.Size(60, 17);
-      this.checkTwosided.TabIndex = 48;
-      this.checkTwosided.Text = "2-sided";
-      this.checkTwosided.UseVisualStyleBackColor = true;
-      // 
-      // checkWireframe
-      // 
-      this.checkWireframe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.checkWireframe.AutoSize = true;
-      this.checkWireframe.Location = new System.Drawing.Point(12, 493);
-      this.checkWireframe.Name = "checkWireframe";
-      this.checkWireframe.Size = new System.Drawing.Size(74, 17);
-      this.checkWireframe.TabIndex = 47;
-      this.checkWireframe.Text = "Wireframe";
-      this.checkWireframe.UseVisualStyleBackColor = true;
       // 
       // checkSmooth
       // 
@@ -214,7 +188,7 @@
       // 
       this.labelFPS.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.labelFPS.AutoSize = true;
-      this.labelFPS.Location = new System.Drawing.Point(292, 545);
+      this.labelFPS.Location = new System.Drawing.Point(191, 544);
       this.labelFPS.Name = "labelFPS";
       this.labelFPS.Size = new System.Drawing.Size(33, 13);
       this.labelFPS.TabIndex = 58;
@@ -325,7 +299,7 @@
       // 
       this.PointCloudButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
       this.PointCloudButton.Enabled = false;
-      this.PointCloudButton.Location = new System.Drawing.Point(295, 470);
+      this.PointCloudButton.Location = new System.Drawing.Point(194, 469);
       this.PointCloudButton.Name = "PointCloudButton";
       this.PointCloudButton.Size = new System.Drawing.Size(102, 23);
       this.PointCloudButton.TabIndex = 67;
@@ -338,7 +312,7 @@
       this.PointCloudCheckBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
       this.PointCloudCheckBox.AutoSize = true;
       this.PointCloudCheckBox.Enabled = false;
-      this.PointCloudCheckBox.Location = new System.Drawing.Point(295, 499);
+      this.PointCloudCheckBox.Location = new System.Drawing.Point(194, 498);
       this.PointCloudCheckBox.Name = "PointCloudCheckBox";
       this.PointCloudCheckBox.Size = new System.Drawing.Size(79, 17);
       this.PointCloudCheckBox.TabIndex = 68;
@@ -369,8 +343,6 @@
       this.Controls.Add(this.checkShaders);
       this.Controls.Add(this.checkGlobalColor);
       this.Controls.Add(this.checkVsync);
-      this.Controls.Add(this.checkTwosided);
-      this.Controls.Add(this.checkWireframe);
       this.Controls.Add(this.checkSmooth);
       this.Controls.Add(this.glControl1);
       this.MinimumSize = new System.Drawing.Size(1000, 500);
@@ -395,8 +367,6 @@
 		private System.Windows.Forms.CheckBox checkShaders;
 		private System.Windows.Forms.CheckBox checkGlobalColor;
 		private System.Windows.Forms.CheckBox checkVsync;
-		private System.Windows.Forms.CheckBox checkTwosided;
-		private System.Windows.Forms.CheckBox checkWireframe;
 		private System.Windows.Forms.CheckBox checkSmooth;
 		private System.Windows.Forms.Label labelFPS;
 		private System.Windows.Forms.CheckBox NormalRaysCheckBox;

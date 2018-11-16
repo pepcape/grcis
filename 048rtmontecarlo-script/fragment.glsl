@@ -6,6 +6,7 @@
 //---------------------------------------------------------------
 #version 130
 
+in vec2 varTexCoords;
 in vec3 varNormal;
 in vec3 varWorld;
 in vec3 varColor;
@@ -19,7 +20,9 @@ uniform vec3 Ka;
 uniform vec3 Kd;
 uniform vec3 Ks;
 uniform float shininess;
+uniform bool useTexture;
 uniform bool globalColor;
+uniform sampler2D texSurface;
 uniform bool useAmbient;
 uniform bool useDiffuse;
 uniform bool useSpecular;
@@ -47,16 +50,20 @@ void main ()
       cosa = 0.0;
 
     vec3 ka, kd;
-    if ( globalColor )
+    if ( useTexture )
     {
-      ka = Ka;
-      kd = Kd;
+      ka = kd = vec3( texture2D( texSurface, varTexCoords ) );
     }
     else
-    {
-      ka = kd = varColor;
-    }
-      
+      if ( globalColor )
+      {
+        ka = Ka;
+        kd = Kd;
+      }
+      else
+      {
+        ka = kd = varColor;
+      }
 
     fragColor = vec3( 0.0 );
     if ( useAmbient )
