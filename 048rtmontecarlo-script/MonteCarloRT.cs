@@ -52,8 +52,7 @@ namespace Rendering
     /// </summary>
     public static IRayScene getScene ()
     {
-      IRayScene scene = Form1.singleton.SceneByComboBox ();
-      RayVisualizer.UpdateRayScene ( scene );
+      IRayScene scene = Form1.singleton.SceneByComboBox ();     
       return scene;
     }
 

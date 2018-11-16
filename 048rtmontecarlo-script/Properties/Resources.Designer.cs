@@ -59,5 +59,15 @@ namespace _048rtmontecarlo.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Logo_CGG {
+            get {
+                object obj = ResourceManager.GetObject("Logo_CGG", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
