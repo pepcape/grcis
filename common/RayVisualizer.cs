@@ -15,8 +15,8 @@ namespace Rendering
 
     public RayVisualizerForm form;
 
-    internal List<Vector3d> rays;
-    internal List<Vector3d> shadowRays;
+    internal List<Vector3> rays;
+    internal List<Vector3> shadowRays;
 
     private static readonly Vector3d axesCorrectionVector = new Vector3d ( 1, 1, -1 );
 
@@ -29,8 +29,8 @@ namespace Rendering
     /// </summary>
     public RayVisualizer ()
     {
-      rays       = new List<Vector3d> ( initialListCapacity );
-      shadowRays = new List<Vector3d> ( initialListCapacity );
+      rays       = new List<Vector3> ( initialListCapacity );
+      shadowRays = new List<Vector3> ( initialListCapacity );
 
       singleton = this;
     }
@@ -42,8 +42,8 @@ namespace Rendering
     /// <param name="rayTarget">Position of the end of ray</param>
     public void RegisterRay ( Vector3d rayOrigin, Vector3d rayTarget )
     {
-      rays.Add ( AxesCorrector ( rayOrigin ) );
-      rays.Add ( AxesCorrector ( rayTarget ) );
+      rays.Add ( (Vector3) AxesCorrector ( rayOrigin ) );
+      rays.Add ( (Vector3) AxesCorrector ( rayTarget ) );
     }
 
     /// <summary>
@@ -53,8 +53,8 @@ namespace Rendering
     /// <param name="rayTarget">Position of the end of ray - position of light source</param>
     public void RegisterShadowRay ( Vector3d rayOrigin, Vector3d rayTarget )
     {
-      shadowRays.Add ( AxesCorrector ( rayOrigin ) );
-      shadowRays.Add ( AxesCorrector ( rayTarget ) );
+      shadowRays.Add ( (Vector3) AxesCorrector ( rayOrigin ) );
+      shadowRays.Add ( (Vector3) AxesCorrector ( rayTarget ) );
     }
 
     /// <summary>
@@ -62,8 +62,13 @@ namespace Rendering
     /// </summary>
     public void Reset ()
     {
-      rays       = new List<Vector3d> ( initialListCapacity );
-      shadowRays = new List<Vector3d> ( initialListCapacity );
+      rays       = new List<Vector3> ( initialListCapacity );
+      shadowRays = new List<Vector3> ( initialListCapacity );
+    }
+
+    public void AddingRaysFinished ()
+    {
+      form.InitializeRaysVBO ( rays, shadowRays );
     }
 
     /// <summary>
@@ -77,7 +82,7 @@ namespace Rendering
       if ( position == null )
         return new Vector3d ( 0, 0, 0 );
       else
-        return (Vector3d) position * axesCorrectionVector;
+        return position.Value * axesCorrectionVector;
     }
 
     public IRayScene rayScene;

@@ -155,8 +155,6 @@ namespace Rendering
     {
       panAndZoom.SetNewImage( newImage, false );
 
-      //bakImage?.Dispose ();
-
       bakImage = newImage;
     }
 
@@ -517,7 +515,7 @@ namespace Rendering
     private void singleSample ( int x, int y )
     {
       MT.singleRayTracing = true;
-      RayVisualizer.singleton?.Reset ();
+      rayVisualizer.Reset ();
 
       // determine output image size:
       int width                 = ImageWidth;
@@ -536,6 +534,8 @@ namespace Rendering
       labelSample.Text = string.Format ( CultureInfo.InvariantCulture,
                                          "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                          x, y, color[0], color[1], color[2], hash );
+
+      rayVisualizer.AddingRaysFinished ();
 
       MT.singleRayTracing = false;
     }

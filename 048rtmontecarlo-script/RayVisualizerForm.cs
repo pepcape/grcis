@@ -85,7 +85,7 @@ namespace Rendering
     private GlProgram activeProgram = null;
 
     // appearance:
-    private Vector3 globalAmbient = new Vector3 ( 0.2f, 0.2f, 0.2f );
+    private Vector3 globalAmbient = new Vector3 ( 0.3f, 0.3f, 0.3f );
     private Vector3 matAmbient    = new Vector3 ( 0.8f, 0.6f, 0.2f );
     private Vector3 matDiffuse    = new Vector3 ( 0.8f, 0.6f, 0.2f );
     private Vector3 matSpecular   = new Vector3 ( 0.8f, 0.8f, 0.8f );
@@ -264,7 +264,7 @@ namespace Rendering
       trackBall.Reset ( (Vector3) ( rayVisualizer.rays [ 1 ] - rayVisualizer.rays [ 0 ] ) );
 
       double distanceOfEye = Vector3.Distance ( trackBall.Center, trackBall.Eye );
-      double distanceOfCamera = Vector3d.Distance ( rayVisualizer.rays [ 1 ], rayVisualizer.rays [ 0 ]) * 0.9;
+      double distanceOfCamera = Vector3.Distance ( rayVisualizer.rays [ 1 ], rayVisualizer.rays [ 0 ]) * 0.9;
 
       trackBall.Zoom = (float) (distanceOfEye / distanceOfCamera);
     }
@@ -556,9 +556,11 @@ namespace Rendering
         GL.Uniform3 ( activeProgram.GetUniform ( "Ks" ), ref matSpecular );
         GL.Uniform1 ( activeProgram.GetUniform ( "shininess" ), matShininess );
 
-        //FillSceneObjects ();
+        FillSceneObjects ();
         //BoundingBoxesVisualization ();
-        RenderRays ( renderFirst );
+
+        if ( NormalRaysCheckBox.Checked || ShadowRaysCheckBox.Checked )
+          RenderRays ( renderFirst );
 
         // actual rendering
         if ( checkAxes.Checked )
@@ -743,7 +745,7 @@ namespace Rendering
 
       GlInfo.LogError ( "set-attrib-pointers" );      
 
-      GL.LineWidth ( 2.0f );
+      GL.LineWidth ( 4.0f );
 
       GL.DrawArrays ( PrimitiveType.Lines, 0, 6 );
     }
@@ -801,48 +803,60 @@ namespace Rendering
     /// </summary>
     /// <param name="renderFirst">FALSE if first ray should not be rendered (used when camera is perpendicular with this first ray)</param>
     private void RenderRays ( bool renderFirst )
-		{
-			SetVertexPointer ( false );
-			SetVertexAttrib ( false );
+    {
+      SetVertexPointer ( false );
+      SetVertexAttrib ( true );
 
-			GL.LineWidth ( 2.0f );
+      // color handling:
+      GL.Uniform1 ( activeProgram.GetUniform ( "globalColor" ), 0 );
 
-			GL.Begin ( PrimitiveType.Lines );
+      // shading:
+      GL.Uniform1 ( activeProgram.GetUniform ( "useTexture" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "shadingPhong" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "shadingGouraud" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "useAmbient" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "useDiffuse" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "useSpecular" ), 0 );
+      GlInfo.LogError ( "set-uniforms" );
 
-			if ( NormalRaysCheckBox.Checked ) // Render normal rays
-			{
-				int offset = 0;
+      const int stride = 6 * sizeof ( float );
 
-				if ( !renderFirst )
-				{
-					offset = 2;
-				}
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, raysVBO );
 
-				GL.Color3 ( Color.Red );
-				for ( int i = offset; i < rayVisualizer.rays.Count; i += 2 )
-				{
-					GL.Vertex3 ( rayVisualizer.rays[i] );
-					GL.Vertex3 ( rayVisualizer.rays[i + 1] );
-				}
-			}
+      // positions
+      if ( activeProgram.HasAttribute ( "position" ) )
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "position" ), 3, VertexAttribPointerType.Float, false, stride,
+                                 (IntPtr) 0 );
 
-			if ( ShadowRaysCheckBox.Checked ) // Render shadow rays
-			{
-				GL.Color3 ( Color.Yellow );
-				for ( int i = 0; i < rayVisualizer.shadowRays.Count; i += 2 )
-				{
-					GL.Vertex3 ( rayVisualizer.shadowRays[i] );
-					GL.Vertex3 ( rayVisualizer.shadowRays[i + 1] );
-				}
-			}
+      // texture coordinate
+      if ( activeProgram.HasAttribute ( "color" ) )
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "color" ), 3, VertexAttribPointerType.Float, false, stride,
+                                 (IntPtr) ( 3 * sizeof ( float ) ) );
 
-			GL.End ();
-		}
+      // Ignored attributes
+      if ( activeProgram.HasAttribute ( "texCoords" ) )
+        GL.DisableVertexAttribArray ( activeProgram.GetAttribute ( "texCoords" ) );
+      if ( activeProgram.HasAttribute ( "normal" ) )
+        GL.DisableVertexAttribArray ( activeProgram.GetAttribute ( "normal" ) );
 
-		/// <summary>
-		/// Renders representation of camera (initially at position of rayOrigin of first primary ray)
-		/// </summary>
-		private void RenderCameraOLD ()
+      GlInfo.LogError ( "set-attrib-pointers" );
+
+      GL.LineWidth ( 3.0f );
+
+      if ( NormalRaysCheckBox.Checked )
+        if ( renderFirst )
+          GL.DrawArrays ( PrimitiveType.Lines, 0, rays.Count );
+        else
+          GL.DrawArrays ( PrimitiveType.Lines, 2, rays.Count - 2 );
+
+      if ( ShadowRaysCheckBox.Checked )
+        GL.DrawArrays ( PrimitiveType.Lines, rays.Count, shadowRays.Count );
+    }
+
+    /// <summary>
+    /// Renders representation of camera (initially at position of rayOrigin of first primary ray)
+    /// </summary>
+    private void RenderCameraOLD ()
 		{
 			if ( rayVisualizer.rays.Count == 0 || !CameraCheckBox.Checked )
 				return;
@@ -858,6 +872,14 @@ namespace Rendering
       SetVertexPointer ( false );
       SetVertexAttrib ( true );
 
+      Matrix4 translation = Matrix4.CreateTranslation ( rays [0] );
+
+      Matrix4 modelView  = trackBall.ModelView;
+
+      modelView *= translation;
+
+      GL.UniformMatrix4 ( activeProgram.GetUniform ( "matrixModelView" ), false, ref modelView );
+
       // color handling:
       GL.Uniform1 ( activeProgram.GetUniform ( "globalColor" ), 0 );
 
@@ -872,7 +894,7 @@ namespace Rendering
 
       const int stride = 5 * sizeof ( float );
 
-      GL.BindBuffer ( BufferTarget.ArrayBuffer, cameraVBO );
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, videoCameraVBO );
 
       GL.BindTexture ( TextureTarget.Texture2D, videoCameraTextureID );
 
@@ -952,7 +974,7 @@ namespace Rendering
     /// <param name="position">Position in space</param>
     /// <param name="size">Size of cube</param>
     /// <param name="color">Uniform color of cube</param>
-    private void RenderCube ( Vector3d position, float size, Color color )
+    private void RenderCube ( Vector3 position, float size, Color color )
 		{
 			SetVertexPointer ( false );
 			SetVertexAttrib ( false );
@@ -961,35 +983,35 @@ namespace Rendering
 			GL.Color3 ( color );
 
 
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Right Of The Quad (Top)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, -1.0f ) * size + position ) ); // Top Left Of The Quad (Top)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, 1.0f ) * size + position ) );  // Bottom Left Of The Quad (Top)
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, 1.0f ) * size + position ) );   // Bottom Right Of The Quad (Top)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Right Of The Quad (Top)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, 1.0f, -1.0f ) * size + position ) ); // Top Left Of The Quad (Top)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, 1.0f, 1.0f ) * size + position ) );  // Bottom Left Of The Quad (Top)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, 1.0f, 1.0f ) * size + position ) );   // Bottom Right Of The Quad (Top)
 
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, 1.0f ) * size + position ) );   // Top Right Of The Quad (Bottom)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, 1.0f ) * size + position ) );  // Top Left Of The Quad (Bottom)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Left Of The Quad (Bottom)
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * size + position ) );  // Bottom Right Of The Quad (Bottom)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, -1.0f, 1.0f ) * size + position ) );   // Top Right Of The Quad (Bottom)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, -1.0f, 1.0f ) * size + position ) );  // Top Left Of The Quad (Bottom)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Left Of The Quad (Bottom)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, -1.0f, -1.0f ) * size + position ) );  // Bottom Right Of The Quad (Bottom)
 
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, 1.0f ) * size + position ) );   // Top Right Of The Quad (Front)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, 1.0f ) * size + position ) );  // Top Left Of The Quad (Front)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, 1.0f ) * size + position ) ); // Bottom Left Of The Quad (Front)
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, 1.0f ) * size + position ) );  // Bottom Right Of The Quad (Front)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, 1.0f, 1.0f ) * size + position ) );   // Top Right Of The Quad (Front)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, 1.0f, 1.0f ) * size + position ) );  // Top Left Of The Quad (Front)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, -1.0f, 1.0f ) * size + position ) ); // Bottom Left Of The Quad (Front)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, -1.0f, 1.0f ) * size + position ) );  // Bottom Right Of The Quad (Front)
 
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * size + position ) );  // Bottom Left Of The Quad (Back)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Right Of The Quad (Back)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Right Of The Quad (Back)
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, -1.0f ) * size + position ) );   // Top Left Of The Quad (Back)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, -1.0f, -1.0f ) * size + position ) );  // Bottom Left Of The Quad (Back)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Right Of The Quad (Back)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Right Of The Quad (Back)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, 1.0f, -1.0f ) * size + position ) );   // Top Left Of The Quad (Back)
 
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, 1.0f ) * size + position ) );   // Top Right Of The Quad (Left)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Left Of The Quad (Left)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Left Of The Quad (Left)
-			GL.Vertex3 ( ( new Vector3d ( -1.0f, -1.0f, 1.0f ) * size + position ) );  // Bottom Right Of The Quad (Left)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, 1.0f, 1.0f ) * size + position ) );   // Top Right Of The Quad (Left)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Left Of The Quad (Left)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Left Of The Quad (Left)
+			GL.Vertex3 ( ( new Vector3 ( -1.0f, -1.0f, 1.0f ) * size + position ) );  // Bottom Right Of The Quad (Left)
 
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Right Of The Quad (Right)
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, 1.0f, 1.0f ) * size + position ) );   // Top Left Of The Quad (Right)
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, 1.0f ) * size + position ) );  // Bottom Left Of The Quad (Right)
-			GL.Vertex3 ( ( new Vector3d ( 1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Right Of The Quad (Right)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, 1.0f, -1.0f ) * size + position ) );  // Top Right Of The Quad (Right)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, 1.0f, 1.0f ) * size + position ) );   // Top Left Of The Quad (Right)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, -1.0f, 1.0f ) * size + position ) );  // Bottom Left Of The Quad (Right)
+			GL.Vertex3 ( ( new Vector3 ( 1.0f, -1.0f, -1.0f ) * size + position ) ); // Bottom Right Of The Quad (Right)
 
 			GL.End ();
 
@@ -1307,6 +1329,9 @@ namespace Rendering
     /// </summary>
     private void InitializePointCloudVBO ()
     {
+      if ( pointCloudVBO != 0 )
+        GL.DeleteBuffer ( pointCloudVBO );
+
       pointCloudVBO = GL.GenBuffer ();
       GL.BindBuffer ( BufferTarget.ArrayBuffer, pointCloudVBO );
 
@@ -1365,6 +1390,9 @@ namespace Rendering
       if ( rayScene?.Sources == null )
         return;
 
+      if ( lightSourcesVBO != 0 )
+        GL.DeleteBuffer ( lightSourcesVBO );
+
       const int stride = 20 * sizeof ( float );
 
       Vector3d[] lightPositions = ( from lightSource in rayScene.Sources where lightSource.position != null select lightSource.position.Value ).ToArray ();
@@ -1402,6 +1430,9 @@ namespace Rendering
     /// </summary>
     private void InitializeAxesVBO ()
     {
+      if ( axesVBO != 0 )
+        GL.DeleteBuffer ( axesVBO );
+
       axesVBO = GL.GenBuffer ();
       GL.BindBuffer ( BufferTarget.ArrayBuffer, axesVBO );
 
@@ -1416,7 +1447,7 @@ namespace Rendering
       GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( points.Length * 3 * sizeof ( float ) ), points, BufferUsageHint.StaticDraw );
     }
 
-    private int cameraVBO;
+    private int videoCameraVBO;
     private const float videoCameraSize = 1.0f;
     /// <summary>
     /// Initializes VBO for Video Camera
@@ -1428,8 +1459,11 @@ namespace Rendering
     /// </summary>
     private void InitializeVideoCameraVBO ()
     {
-      cameraVBO = GL.GenBuffer ();
-      GL.BindBuffer ( BufferTarget.ArrayBuffer, cameraVBO );
+      if ( videoCameraVBO != 0 )
+        GL.DeleteBuffer ( videoCameraVBO );
+
+      videoCameraVBO = GL.GenBuffer ();
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, videoCameraVBO );
 
       float[] lightBillboard =
       {
@@ -1441,6 +1475,50 @@ namespace Rendering
       };
 
       GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( lightBillboard.Length * sizeof ( float ) ), lightBillboard, BufferUsageHint.DynamicDraw );
+    }
+
+    private List<Vector3> rays = new List<Vector3>();
+    private List<Vector3> shadowRays = new List<Vector3>();
+    private readonly Vector3 rayColor = new Vector3 ( 1.0f, 0.0f, 0.0f );
+    private readonly Vector3 shadowRayColor = new Vector3 ( 1.0f, 1.0f, 0.0f );
+    private int raysVBO;
+    /// <summary>
+    /// Initializes VBO for normal and shadow rays
+    /// X, Y, Z, R, G, B
+    /// 2 points for each ray (start and end of line)
+    /// None of the attributes are expected to change - rather whole VBO is re-allocated again when new rays are available
+    /// Normal rays have different color than shadow rays
+    /// </summary>
+    /// <param name="newRays">List of Vector3 denoting position of normal rays - both start and end of each ray</param>
+    /// <param name="newShadowRays">List of Vector3 denoting position of shadow rays - both start and end of each shadow ray</param>
+    public void InitializeRaysVBO ( List<Vector3> newRays, List<Vector3> newShadowRays )
+    {
+      if ( raysVBO != 0 )
+        GL.DeleteBuffer ( raysVBO );
+
+      this.rays = newRays;
+      this.shadowRays = newShadowRays;
+
+      raysVBO = GL.GenBuffer ();
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, raysVBO );       
+
+      Vector3[] temp = new Vector3[( newRays.Count + newShadowRays.Count ) * 2];
+
+      for ( int i = 0; i < newRays.Count; i++ )
+      {
+        temp [i * 2] = newRays [i];
+        temp [i * 2 + 1] = rayColor;
+      }
+
+      for ( int i = 0; i < newShadowRays.Count; i++ )
+      {
+        temp[newRays.Count * 2 + i * 2] = newShadowRays[i];
+        temp[newRays.Count * 2 + i * 2 + 1] = shadowRayColor;
+      }
+
+      int size = ( newRays.Count + newShadowRays.Count ) * 3 * 2 * sizeof ( float );
+
+      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( size ), temp, BufferUsageHint.StaticDraw );
     }
   }
 }
