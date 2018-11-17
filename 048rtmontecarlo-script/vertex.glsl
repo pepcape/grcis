@@ -42,8 +42,9 @@ void main ()
   varNormal = normal;
   varWorld  = position.xyz;
 
-  // vertex-based shading:
-  if ( shadingPhong )
+  if ( !shadingPhong && !shadingGouraud )
+    varColor = flatColor = color;
+  else if ( shadingPhong )  // vertex-based shading:
     varColor = flatColor = color;
   else
   {

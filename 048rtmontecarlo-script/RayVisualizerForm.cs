@@ -246,24 +246,24 @@ namespace Rendering
     {
       Form1.singleton.RayVisualiserButton.Enabled = true;
 
-      rayVisualizer.form = null;
+      rayVisualizer.form = null; // removes itself from associated RayVisualizer
     }
 
     /// <summary>
     /// Moves camera so that primary ray is perpendicular to screen
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Not needed</param>
     private void AllignCamera ( object sender, EventArgs e )
     {
-      if ( RayVisualizer.singleton?.rays.Count < 2 )
+      if ( rayVisualizer.rays.Count < 2 )
         return;
 
-      trackBall.Center = (Vector3) RayVisualizer.singleton.rays [ 1 ];
-      trackBall.Reset ( (Vector3) ( RayVisualizer.singleton.rays [ 1 ] - RayVisualizer.singleton.rays [ 0 ] ) );
+      trackBall.Center = (Vector3) rayVisualizer.rays [ 1 ];
+      trackBall.Reset ( (Vector3) ( rayVisualizer.rays [ 1 ] - rayVisualizer.rays [ 0 ] ) );
 
       double distanceOfEye = Vector3.Distance ( trackBall.Center, trackBall.Eye );
-      double distanceOfCamera = Vector3d.Distance ( RayVisualizer.singleton.rays [ 1 ], RayVisualizer.singleton.rays [ 0 ]) * 0.9;
+      double distanceOfCamera = Vector3d.Distance ( rayVisualizer.rays [ 1 ], rayVisualizer.rays [ 0 ]) * 0.9;
 
       trackBall.Zoom = (float) (distanceOfEye / distanceOfCamera);
     }
@@ -274,10 +274,10 @@ namespace Rendering
 			GlInfo.LogGLProperties ();
 
 			// general OpenGL
-			glControl1.VSync = checkVsync.Checked;
-			GL.ClearColor ( Color.Black );
 			GL.Enable ( EnableCap.DepthTest );
-			GL.ShadeModel ( ShadingModel.Flat );
+		  GL.Enable ( EnableCap.Blend );
+		  GL.BlendFunc ( BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha );
+      GL.ShadeModel ( ShadingModel.Flat );
 
 			// VBO initialization
 			VBOid = new uint[2];
@@ -287,6 +287,10 @@ namespace Rendering
 			// shaders
 			if ( useVBO )
 				canShaders = SetupShaders ();
+
+		  InitializeAxesVBO ();
+		  InitializeVideoCameraVBO ();
+
 		}
 
 		/// <summary>
@@ -341,16 +345,24 @@ namespace Rendering
 		}
 
     private int lightSourceTextureID;
-    private int cameraTextureID;
+    private int videoCameraTextureID;
+    /// <summary>
+    /// Initializes all needed textures from files and assigns associated texture IDs
+    /// </summary>
     private void InitializeTextures ()
     {
       GL.Enable ( EnableCap.Texture2D );
 
       lightSourceTextureID = LoadTexture ( "./Resources/LightSource.png" );
-      cameraTextureID = LoadTexture( "./Resources/VideoCamera.png" );
+      videoCameraTextureID = LoadTexture( "./Resources/VideoCamera.png" );
     }
 
-    private int LoadTexture ( string file )
+    /// <summary>
+    /// Loads texture from external image file, generates new OpenGL texture based on it and returns ID to this texture
+    /// </summary>
+    /// <param name="file">Path to file</param>
+    /// <returns>Texture ID to new texture</returns>
+    private static int LoadTexture ( string file )
     {
       Bitmap bitmap = new Bitmap(file);
 
@@ -375,6 +387,45 @@ namespace Rendering
       return tex;
     }
 
+    /// <summary>
+    /// Enables/disables vertex attributes
+    /// </summary>
+    /// <param name="on">TRUE to enable; FALSE to disable</param>
+    private void SetVertexAttrib ( bool on )
+    {
+      if ( activeProgram != null )
+        if ( on )
+          activeProgram.EnableVertexAttribArrays ();
+        else
+          activeProgram.DisableVertexAttribArrays ();
+    }
+
+    /// <summary>
+    /// Enables/disables vertex pointers
+    /// </summary>
+    /// <param name="on">TRUE to enable; FALSE to disable</param>
+    private static void SetVertexPointer ( bool on )
+    {
+      if ( on )
+      {
+        GL.EnableClientState ( ArrayCap.VertexArray );
+        GL.EnableClientState ( ArrayCap.TextureCoordArray );
+        GL.EnableClientState ( ArrayCap.NormalArray );
+        GL.EnableClientState ( ArrayCap.ColorArray );
+      }
+      else
+      {
+        GL.DisableClientState ( ArrayCap.VertexArray );
+        GL.DisableClientState ( ArrayCap.TextureCoordArray );
+        GL.DisableClientState ( ArrayCap.NormalArray );
+        GL.DisableClientState ( ArrayCap.ColorArray );
+      }
+    }
+
+    /// <summary>
+    /// Preparations before rendering scene itself
+    /// Called every frame
+    /// </summary>
     private void Render ()
 		{
 			if ( !loaded )
@@ -385,9 +436,10 @@ namespace Rendering
 		  if ( rayVisualizer.backgroundColor == null )
 		    backgroundColor = defaultBackgroundColor;
 		  else
-		    backgroundColor = Color.FromArgb ( ( RayVisualizer.singleton.backgroundColor [0] ),
-		                                       ( RayVisualizer.singleton.backgroundColor [1] ),
-		                                       ( RayVisualizer.singleton.backgroundColor [2] ) );
+		    backgroundColor = Color.FromArgb ( 0,
+		                                       ( rayVisualizer.backgroundColor [0] ),
+		                                       ( rayVisualizer.backgroundColor [1] ),
+		                                       ( rayVisualizer.backgroundColor [2] ) );
 
 		  GL.ClearColor ( backgroundColor );
 
@@ -399,9 +451,11 @@ namespace Rendering
 
 			GL.Clear ( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
 			GL.ShadeModel ( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
-		  GL.PolygonMode ( MaterialFace.FrontAndBack, PolygonMode.Fill );   
+		  GL.PolygonMode ( MaterialFace.FrontAndBack, PolygonMode.Fill );
 
-			trackBall.GLsetCamera ();
+		  glControl1.VSync = checkVsync.Checked;
+
+      trackBall.GLsetCamera ();
 
 			RenderScene ();
 
@@ -465,55 +519,11 @@ namespace Rendering
 			}
 		}
 
-		// attribute/vertex arrays:
-    private bool vertexAttribOn  = false;
-    private bool vertexPointerOn = false;
-
-		private void SetVertexAttrib ( bool on )
-		{
-			if ( vertexAttribOn == on )
-				return;
-
-			if ( activeProgram != null )
-				if ( on )
-					activeProgram.EnableVertexAttribArrays ();
-				else
-					activeProgram.DisableVertexAttribArrays ();
-
-			vertexAttribOn = on;
-		}
-
-		private void SetVertexPointer ( bool on )
-		{
-			if ( vertexPointerOn == on )
-				return;
-
-			if ( on )
-			{
-				GL.EnableClientState ( ArrayCap.VertexArray );
-				GL.EnableClientState ( ArrayCap.TextureCoordArray );
-				GL.EnableClientState ( ArrayCap.NormalArray );
-				GL.EnableClientState ( ArrayCap.ColorArray );
-			}
-			else
-			{
-				GL.DisableClientState ( ArrayCap.VertexArray );
-				GL.DisableClientState ( ArrayCap.TextureCoordArray );
-				GL.DisableClientState ( ArrayCap.NormalArray );
-				GL.DisableClientState ( ArrayCap.ColorArray );
-			}
-
-			vertexPointerOn = on;
-		}
-
 		/// <summary>
-		/// Rendering code itself (separated for clarity).
+		/// Rendering code itself (separated for clarity)
 		/// </summary>
 		private void RenderScene ()
-		{
-		  glControl1.VSync = checkVsync.Checked;
-
-      // Scene rendering:
+		{	 
       if ( useShaders )
       {
         bool renderFirst = true;
@@ -522,16 +532,10 @@ namespace Rendering
         {
           AllignCamera ( null, null );
           renderFirst = false;
-        }      
+        }                
 
-        //FillSceneObjects ();
-        //BoundingBoxesVisualization ();
-
-        RenderRays ( renderFirst );
-        RenderCamera ();       
-
-        //SetVertexPointer ( false );
-        //SetVertexAttrib ( true );
+        SetVertexPointer ( false );
+        SetVertexAttrib ( true );
 
         // using GLSL shaders:
         GL.UseProgram ( activeProgram.Id );
@@ -553,47 +557,40 @@ namespace Rendering
         GL.Uniform3 ( activeProgram.GetUniform ( "Ks" ), ref matSpecular );
         GL.Uniform1 ( activeProgram.GetUniform ( "shininess" ), matShininess );
 
-        RenderPointCloud ();
+        //FillSceneObjects ();
+        //BoundingBoxesVisualization ();
+        RenderRays ( renderFirst );
 
-        RenderLightSources ();
-      
-        // cleanup:
+        // actual rendering
+        if ( checkAxes.Checked )
+          RenderAxes ();       
+
+        if ( pointCloudVBO != 0 && PointCloudCheckBox.Checked )
+          RenderPointCloud ();
+
+        if ( rayScene?.Sources != null && LightSourcesCheckBox.Checked && lightSourcesVBO != 0 )
+          RenderLightSources ();
+
+        if ( rayVisualizer.rays.Count != 0 && CameraCheckBox.Checked )
+          RenderVideoCamera ();
+
+        // clean-up
         GL.UseProgram ( 0 );
       }
       else
       {
-        throw new NotImplementedException ();
-      }
-
-
-      // Support: axes
-      if ( checkAxes.Checked )
-			{
-				float origWidth = GL.GetFloat ( GetPName.LineWidth );
-				float origPoint = GL.GetFloat ( GetPName.PointSize );
-
-				// axes:
-				RenderAxes ();
-
-				// Support: pointing
-				if ( pointOrigin != null )
-				{
-					RenderPointing ();
-				}
-
-				// Support: frustum
-				if ( frustumFrame.Count >= 8 )
-				{
-					RenderFrustum ();
-				}
-
-				GL.LineWidth ( origWidth );
-				GL.PointSize ( origPoint );
-			}
+        //throw new NotImplementedException ();
+      }      
 		}
 
+    /// <summary>
+    /// Renders point cloud
+    /// </summary>
     private void RenderPointCloud ()
     {
+      SetVertexPointer ( false );
+      SetVertexAttrib ( true );
+
       // color handling:
       bool useGlobalColor = checkGlobalColor.Checked;
       GL.Uniform1 ( activeProgram.GetUniform ( "globalColor" ), useGlobalColor ? 1 : 0 );
@@ -613,35 +610,32 @@ namespace Rendering
       GL.Uniform1 ( activeProgram.GetUniform ( "useSpecular" ), checkSpecular.Checked ? 1 : 0 );
       GlInfo.LogError ( "set-uniforms" );
 
-      const int pointCloudVBOStride = 9 * sizeof ( float );
+      const int stride = 9 * sizeof ( float );
 
-      if ( pointCloudVBO != 0 && PointCloudCheckBox.Checked )
-      {
-        GL.BindBuffer ( BufferTarget.ArrayBuffer, pointCloudVBO );
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, pointCloudVBO );
 
-        // positions
-        if ( activeProgram.HasAttribute ( "position" ) )
-          GL.VertexAttribPointer ( activeProgram.GetAttribute ( "position" ), 3, VertexAttribPointerType.Float, false, pointCloudVBOStride, 
-                                   (IntPtr) 0 );
+      // positions
+      if ( activeProgram.HasAttribute ( "position" ) )
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "position" ), 3, VertexAttribPointerType.Float, false, stride,
+                                 (IntPtr) 0 );
 
-        // colors
-        if ( activeProgram.HasAttribute ( "color" ) )
-          GL.VertexAttribPointer ( activeProgram.GetAttribute ( "color" ), 3, VertexAttribPointerType.Float, false, pointCloudVBOStride,
-                                   (IntPtr) ( 3 * sizeof ( float ) ) );
+      // colors
+      if ( activeProgram.HasAttribute ( "color" ) )
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "color" ), 3, VertexAttribPointerType.Float, false, stride,
+                                 (IntPtr) ( 3 * sizeof ( float ) ) );
 
-        // normals
-        if ( activeProgram.HasAttribute ( "normal" ) )
-          GL.VertexAttribPointer ( activeProgram.GetAttribute ( "normal" ), 3, VertexAttribPointerType.Float, false, pointCloudVBOStride,
-                                   (IntPtr) ( 6 * sizeof ( float ) ) );
+      // normals
+      if ( activeProgram.HasAttribute ( "normal" ) )
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "normal" ), 3, VertexAttribPointerType.Float, false, stride,
+                                 (IntPtr) ( 6 * sizeof ( float ) ) );
 
-        // texture coordinates - ignored
-        if ( activeProgram.HasAttribute ( "texCoords" ) )
-          GL.DisableVertexAttribArray ( activeProgram.GetAttribute ( "texCoords" ) );
+      // texture coordinates - ignored
+      if ( activeProgram.HasAttribute ( "texCoords" ) )
+        GL.DisableVertexAttribArray ( activeProgram.GetAttribute ( "texCoords" ) );
 
-        GlInfo.LogError ( "set-attrib-pointers" );
+      GlInfo.LogError ( "set-attrib-pointers" );
 
-        GL.DrawArrays ( PrimitiveType.Points, 0, pointCloud.numberOfElements );
-      }
+      GL.DrawArrays ( PrimitiveType.Points, 0, pointCloud.numberOfElements );
     }
 
     private void RenderPointing ()
@@ -708,27 +702,54 @@ namespace Rendering
 			GL.End ();
 		}
 
-		private void RenderAxes ()
-		{
-			GL.LineWidth ( 2.0f );
-			GL.Begin ( PrimitiveType.Lines );
+    /// <summary>
+    /// Renders 3 axes in origin
+    /// </summary>
+    private void RenderAxes ()
+    {
+      SetVertexPointer ( false );
+      SetVertexAttrib ( true );
 
-			GL.Color3 ( 1.0f, 0.1f, 0.1f );
-			GL.Vertex3 ( center );
-			GL.Vertex3 ( center + new Vector3 ( 1.5f, 0.0f, 0.0f ) * diameter );
+      // color handling:
+      GL.Uniform1 ( activeProgram.GetUniform ( "globalColor" ), 0 );
 
-			GL.Color3 ( 0.0f, 1.0f, 0.0f );
-			GL.Vertex3 ( center );
-			GL.Vertex3 ( center + new Vector3 ( 0.0f, 1.5f, 0.0f ) * diameter );
+      // shading:
+      GL.Uniform1 ( activeProgram.GetUniform ( "useTexture" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "shadingPhong" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "shadingGouraud" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "useAmbient" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "useDiffuse" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "useSpecular" ), 0 );
+      GlInfo.LogError ( "set-uniforms" );
 
-			GL.Color3 ( 0.2f, 0.2f, 1.0f );
-			GL.Vertex3 ( center );
-			GL.Vertex3 ( center + new Vector3 ( 0.0f, 0.0f, 1.5f ) * diameter );
+      const int stride = 6 * sizeof ( float );
 
-			GL.End ();
-		}
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, axesVBO );
 
-		private void RenderPlaceholderScene ()
+      // positions
+      if ( activeProgram.HasAttribute ( "position" ) )
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "position" ), 3, VertexAttribPointerType.Float, false, stride,
+                                 (IntPtr) 0 );
+
+      // texture coordinate
+      if ( activeProgram.HasAttribute ( "color" ) )
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "color" ), 3, VertexAttribPointerType.Float, false, stride,
+                                 (IntPtr) ( 3 * sizeof ( float ) ) );
+
+      // Ignored attributes
+      if ( activeProgram.HasAttribute ( "texCoords" ) )
+        GL.DisableVertexAttribArray ( activeProgram.GetAttribute ( "texCoords" ) );
+      if ( activeProgram.HasAttribute ( "normal" ) )
+        GL.DisableVertexAttribArray ( activeProgram.GetAttribute ( "normal" ) );
+
+      GlInfo.LogError ( "set-attrib-pointers" );      
+
+      GL.LineWidth ( 2.0f );
+
+      GL.DrawArrays ( PrimitiveType.Lines, 0, 6 );
+    }
+
+    private void RenderPlaceholderScene ()
 		{
 			SetVertexPointer ( false );
 			SetVertexAttrib ( false );
@@ -776,10 +797,11 @@ namespace Rendering
 			triangleCounter += 12;
 		}
 
-		/// <summary>
-		/// Renders all normal and shadow rays (further selection done via check boxes)
-		/// </summary>
-		private void RenderRays ( bool renderFirst )
+    /// <summary>
+    /// Renders all normal and shadow rays (further selection done via check boxes)
+    /// </summary>
+    /// <param name="renderFirst">FALSE if first ray should not be rendered (used when camera is perpendicular with this first ray)</param>
+    private void RenderRays ( bool renderFirst )
 		{
 			SetVertexPointer ( false );
 			SetVertexAttrib ( false );
@@ -798,20 +820,20 @@ namespace Rendering
 				}
 
 				GL.Color3 ( Color.Red );
-				for ( int i = offset; i < RayVisualizer.singleton.rays.Count; i += 2 )
+				for ( int i = offset; i < rayVisualizer.rays.Count; i += 2 )
 				{
-					GL.Vertex3 ( RayVisualizer.singleton.rays[i] );
-					GL.Vertex3 ( RayVisualizer.singleton.rays[i + 1] );
+					GL.Vertex3 ( rayVisualizer.rays[i] );
+					GL.Vertex3 ( rayVisualizer.rays[i + 1] );
 				}
 			}
 
 			if ( ShadowRaysCheckBox.Checked ) // Render shadow rays
 			{
 				GL.Color3 ( Color.Yellow );
-				for ( int i = 0; i < RayVisualizer.singleton.shadowRays.Count; i += 2 )
+				for ( int i = 0; i < rayVisualizer.shadowRays.Count; i += 2 )
 				{
-					GL.Vertex3 ( RayVisualizer.singleton.shadowRays[i] );
-					GL.Vertex3 ( RayVisualizer.singleton.shadowRays[i + 1] );
+					GL.Vertex3 ( rayVisualizer.shadowRays[i] );
+					GL.Vertex3 ( rayVisualizer.shadowRays[i + 1] );
 				}
 			}
 
@@ -821,37 +843,67 @@ namespace Rendering
 		/// <summary>
 		/// Renders representation of camera (initially at position of rayOrigin of first primary ray)
 		/// </summary>
-		private void RenderCamera ()
+		private void RenderCameraOLD ()
 		{
-			if ( RayVisualizer.singleton.rays.Count == 0 || !CameraCheckBox.Checked )
+			if ( rayVisualizer.rays.Count == 0 || !CameraCheckBox.Checked )
 				return;
 
-			RenderCube ( RayVisualizer.singleton.rays[0], 0.2f, Color.Turquoise );
-		}
-
-		/// <summary>
-		/// Renders representation of all light sources (except those in with null as position - usually ambient and directional lights which position does not matter)
-		/// </summary>
-		private void RenderLightSourcesOLD ()
-		{
-			if ( rayScene?.Sources == null || !LightSourcesCheckBox.Checked )
-				return;
-
-			foreach ( ILightSource lightSource in rayScene.Sources )
-			{
-				if ( lightSource.position != null )
-					RenderCube ( RayVisualizer.AxesCorrector ( lightSource.position ), 0.07f, Color.Yellow );
-			}
+			RenderCube ( rayVisualizer.rays[0], 0.2f, Color.Turquoise );
 		}
 
     /// <summary>
-    /// Renders representation of all light sources (except those in with null as position - usually ambient and directional lights which position does not matter)
+    /// Renders representation of camera (initially at position of rayOrigin of first primary ray)
+    /// </summary>
+    private void RenderVideoCamera ()
+    {
+      SetVertexPointer ( false );
+      SetVertexAttrib ( true );
+
+      // color handling:
+      GL.Uniform1 ( activeProgram.GetUniform ( "globalColor" ), 0 );
+
+      // shading:
+      GL.Uniform1 ( activeProgram.GetUniform ( "useTexture" ), 1 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "shadingPhong" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "shadingGouraud" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "useAmbient" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "useDiffuse" ), 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "useSpecular" ), 0 );
+      GlInfo.LogError ( "set-uniforms" );
+
+      const int stride = 5 * sizeof ( float );
+
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, cameraVBO );
+
+      GL.BindTexture ( TextureTarget.Texture2D, videoCameraTextureID );
+
+      // positions
+      if ( activeProgram.HasAttribute ( "position" ) )
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "position" ), 3, VertexAttribPointerType.Float, false, stride,
+                                 (IntPtr) 0 );
+
+      // texture coordinate
+      if ( activeProgram.HasAttribute ( "texCoords" ) )
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "texCoords" ), 2, VertexAttribPointerType.Float, false, stride,
+                                 (IntPtr) ( 3 * sizeof ( float ) ) );
+
+      // Ignored attributes
+      if ( activeProgram.HasAttribute ( "color" ) )
+        GL.DisableVertexAttribArray ( activeProgram.GetAttribute ( "color" ) );
+      if ( activeProgram.HasAttribute ( "normal" ) )
+        GL.DisableVertexAttribArray ( activeProgram.GetAttribute ( "normal" ) );
+
+      GlInfo.LogError ( "set-attrib-pointers" );
+
+      GL.DrawArrays ( PrimitiveType.Quads, 0, 4 );
+    }
+
+    /// <summary>
+    /// Renders representation of all light sources (except those in with null as position
+    /// - usually ambient and directional lights which position does not matter)
     /// </summary>
     private void RenderLightSources ()
     {
-      if ( rayScene?.Sources == null || !LightSourcesCheckBox.Checked || lightSourcesVBO == 0 )
-        return;
-
       SetVertexPointer ( false );
       SetVertexAttrib ( true );
 
@@ -867,7 +919,7 @@ namespace Rendering
       GL.Uniform1 ( activeProgram.GetUniform ( "useSpecular" ), 0 );
       GlInfo.LogError ( "set-uniforms" );
 
-      const int lightSourcesVBOStride = 5 * sizeof ( float );
+      const int stride = 5 * sizeof ( float );
 
       GL.BindBuffer ( BufferTarget.ArrayBuffer, lightSourcesVBO );
 
@@ -875,12 +927,12 @@ namespace Rendering
 
       // positions
       if ( activeProgram.HasAttribute ( "position" ) )
-        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "position" ), 3, VertexAttribPointerType.Float, false, lightSourcesVBOStride,
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "position" ), 3, VertexAttribPointerType.Float, false, stride,
                                  (IntPtr) 0 );
 
       // texture coordinate
       if ( activeProgram.HasAttribute ( "texCoords" ) )
-        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "texCoords" ), 2, VertexAttribPointerType.Float, false, lightSourcesVBOStride,
+        GL.VertexAttribPointer ( activeProgram.GetAttribute ( "texCoords" ), 2, VertexAttribPointerType.Float, false, stride,
                                  (IntPtr) ( 3 * sizeof ( float ) ) );
 
       // Ignored attributes
@@ -1143,10 +1195,10 @@ namespace Rendering
 		/// </summary>
 		private void FillSceneObjects ()
 		{
-		  if ( RayVisualizer.singleton.rayScene == rayScene ) // prevents filling whole list in case scene did not change (most of the time)
+		  if ( rayVisualizer.rayScene == rayScene ) // prevents filling whole list in case scene did not change (most of the time)
 		    return;
 		  else
-		    rayScene = RayVisualizer.singleton.rayScene;
+		    rayScene = rayVisualizer.rayScene;
 
       if ( !( rayScene.Intersectable is DefaultSceneNode root ) )
       {
@@ -1250,6 +1302,9 @@ namespace Rendering
 
     /// <summary>
     /// Initializes Vertex Buffer Object (VBO) for point cloud
+    /// X, Y, Z, R, G, B, nX, nY, nZ
+    /// Expected is number of points in small millions
+    /// No attributes are expected to change
     /// </summary>
     private void InitializePointCloudVBO ()
     {
@@ -1261,6 +1316,7 @@ namespace Rendering
       GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( size ), IntPtr.Zero, BufferUsageHint.StaticDraw );
 
       int currentLength = 0;
+
       foreach ( List<float> list in pointCloud.cloud )
       {      
         GL.BufferSubData ( BufferTarget.ArrayBuffer, (IntPtr) currentLength, (IntPtr) ( list.Count * sizeof ( float ) ) - 1, list.ToArray () );
@@ -1276,6 +1332,11 @@ namespace Rendering
       WireframeBoundingBoxesCheckBox.Enabled = BoundingBoxesCheckBox.Checked;
     }
 
+    /// <summary>
+    /// Called when scene has changed
+    /// Sets new light sources and sets GUI (must be invoked if called from different thread)
+    /// </summary>
+    /// <param name="newScene">New IRayScene</param>
     public void UpdateRayScene ( IRayScene newScene )
     {
       rayScene = newScene;
@@ -1292,20 +1353,27 @@ namespace Rendering
 
     private int lightSourcesVBO;
     private int usableLightSources;
-
+    private const float lightSize = 1.0f;
+    /// <summary>
+    /// Initializes VBO for light sources
+    /// X, Y, Z, u, v
+    /// 1 quad per light source
+    /// Coordinates are expected to change with every camera move - used as billboarding (technically only rotation is changed)
+    /// Texture mapping is not expected to change
+    /// </summary>
     private void InitializeLightSourcesVBO ()
     {
       if ( rayScene?.Sources == null )
         return;
 
-      const int lightSourcesVBOStride = 20 * sizeof ( float );
+      const int stride = 20 * sizeof ( float );
 
       Vector3d[] lightPositions = ( from lightSource in rayScene.Sources where lightSource.position != null select lightSource.position.Value ).ToArray ();
 
       lightSourcesVBO = GL.GenBuffer ();
       GL.BindBuffer ( BufferTarget.ArrayBuffer, lightSourcesVBO );
 
-      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( lightPositions.Length * lightSourcesVBOStride ), IntPtr.Zero, BufferUsageHint.StaticDraw );
+      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( lightPositions.Length * stride ), IntPtr.Zero, BufferUsageHint.DynamicDraw );
 
       for ( int i = 0; i < lightPositions.Length; i++ )
       {
@@ -1313,17 +1381,67 @@ namespace Rendering
 
         float[] lightBillboard = 
         {
-          // positions                        // texture coords
-          corrected.X + 5.0f, corrected.Y + 5.0f, corrected.Z + 0.0f,      1.0f, 1.0f,  // top right
-          corrected.X + 5.0f, corrected.Y - 5.0f, corrected.Z + 0.0f,      1.0f, 0.0f,  // bottom right
-          corrected.X - 5.0f, corrected.Y - 5.0f, corrected.Z + 0.0f,      0.0f, 0.0f,  // bottom left
-          corrected.X - 5.0f, corrected.Y + 5.0f, corrected.Z + 0.0f,      0.0f, 1.0f,  // top left
+          // positions                                                                // texture coords
+          corrected.X + lightSize / 2, corrected.Y + lightSize / 2, corrected.Z,      1.0f, 0.0f,
+          corrected.X + lightSize / 2, corrected.Y - lightSize / 2, corrected.Z,      1.0f, 1.0f,
+          corrected.X - lightSize / 2, corrected.Y - lightSize / 2, corrected.Z,      0.0f, 1.0f,
+          corrected.X - lightSize / 2, corrected.Y + lightSize / 2, corrected.Z,      0.0f, 0.0f,
         };
 
-        GL.BufferSubData ( BufferTarget.ArrayBuffer, (IntPtr) ( i * lightSourcesVBOStride ), (IntPtr) lightSourcesVBOStride, lightBillboard );      
+        GL.BufferSubData ( BufferTarget.ArrayBuffer, (IntPtr) ( i * stride ), (IntPtr) stride, lightBillboard );      
       }
 
       usableLightSources = lightPositions.Length;
+    }
+
+    private int axesVBO;
+    /// <summary>
+    /// Initializes VBO for axes
+    /// Vector3s is form of: start of line (XYZ) - color if start(RGB) - end of line(XYZ) - color of end(RGB)
+    /// 6 points = 3 lines in total
+    /// Coordinates nor colors are not expected to change at all - center is in (0, 0, 0)
+    /// </summary>
+    private void InitializeAxesVBO ()
+    {
+      axesVBO = GL.GenBuffer ();
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, axesVBO );
+
+      Vector3[] points =
+      {
+        // start of line (XYZ) - color if start ( RGB ) - end of line ( XYZ) -color of end ( RGB)
+        center, new Vector3 ( 1.0f, 0.1f, 0.1f ), center + new Vector3 ( 1.5f, 0.0f, 0.0f ) * diameter, new Vector3 ( 1.0f, 0.1f, 0.1f ), // Red axis
+        center, new Vector3 ( 0.0f, 1.0f, 0.0f ), center + new Vector3 ( 0.0f, 1.5f, 0.0f ) * diameter, new Vector3 ( 0.0f, 1.0f, 0.0f ), // Green axis
+        center, new Vector3 ( 0.2f, 0.2f, 1.0f ), center + new Vector3 ( 0.0f, 0.0f, 1.5f ) * diameter, new Vector3 ( 0.2f, 0.2f, 1.0f ), // Blue axis
+      };
+
+      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( points.Length * 3 * sizeof ( float ) ), points, BufferUsageHint.StaticDraw );
+    }
+
+    private int cameraVBO;
+    private const float videoCameraSize = 1.0f;
+    /// <summary>
+    /// Initializes VBO for Video Camera
+    /// X, Y, Z, u, v
+    /// 1 quad per video camera (usually only one)
+    /// Coordinates are expected to change with each new ray - initially set to (0, 0, 0) so transforms can be easily applied
+    ///                              ...and each camera move - used as billboarding (technically only rotation is changed)
+    /// Texture mapping is not expected to change
+    /// </summary>
+    private void InitializeVideoCameraVBO ()
+    {
+      cameraVBO = GL.GenBuffer ();
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, cameraVBO );
+
+      float[] lightBillboard =
+      {
+        // positions                                        // texture coords
+        videoCameraSize / 2, videoCameraSize / 2, 0.0f,     1.0f, 0.0f,
+        videoCameraSize / 2, -videoCameraSize / 2, 0.0f,    1.0f, 1.0f,
+        -videoCameraSize / 2, -videoCameraSize / 2, 0.0f,   0.0f, 1.0f,
+        -videoCameraSize / 2, videoCameraSize / 2, 0.0f,    0.0f, 0.0f,
+      };
+
+      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( lightBillboard.Length * sizeof ( float ) ), lightBillboard, BufferUsageHint.DynamicDraw );
     }
   }
 }

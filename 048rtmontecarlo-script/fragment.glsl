@@ -29,11 +29,20 @@ uniform bool useSpecular;
 uniform bool shadingPhong;
 uniform bool shadingGouraud;
 
-out vec3 fragColor;
+out vec4 fragColor;
 
 void main ()
 {
-  if ( shadingPhong )
+  if ( !shadingPhong && !shadingGouraud )
+  {
+    if ( useTexture )
+    {
+      fragColor = vec4( texture2D( texSurface, varTexCoords ) );
+    }
+    else
+      fragColor = vec4( varColor, 1.0 );
+  }
+  else if ( shadingPhong )
   {
     // Phong shading (interpolation of normals):
     vec3 P = varWorld;
@@ -49,33 +58,33 @@ void main ()
     else
       cosa = 0.0;
 
-    vec3 ka, kd;
+    vec4 ka, kd;
     if ( useTexture )
     {
-      ka = kd = vec3( texture2D( texSurface, varTexCoords ) );
+      ka = kd = vec4( texture2D( texSurface, varTexCoords ) );
     }
     else
       if ( globalColor )
       {
-        ka = Ka;
-        kd = Kd;
+        ka = vec4( Ka, 1.0 );
+        kd = vec4( Kd, 1.0 );
       }
       else
       {
-        ka = kd = varColor;
+        ka = kd = vec4( varColor, 1.0 );
       }
 
-    fragColor = vec3( 0.0 );
+    fragColor = vec4( 0.0, 0.0, 0.0, 1.0 );
     if ( useAmbient )
-      fragColor += ka * globalAmbient;
+      fragColor += ka * vec4( globalAmbient, 1.0 );
     if ( useDiffuse )
-      fragColor += kd * lightColor * cosa;
+      fragColor += kd * vec4( lightColor, 1.0 ) * cosa;
     if ( useSpecular )
-      fragColor += Ks * lightColor * cosb;
+      fragColor += vec4( Ks, 1.0 ) * vec4( lightColor, 1.0 ) * cosb;
   }
   else
     if ( shadingGouraud )     // Gouraud shading (interpolation of colors):
-      fragColor = varColor;
+      fragColor = vec4( varColor, 1.0 );
     else                      // flat shading (constant color):
-      fragColor = flatColor;
+      fragColor = vec4( flatColor, 1.0 );
 }
