@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Threading;
@@ -10,6 +9,7 @@ using System.Windows.Forms;
 using GuiSupport;
 using MathSupport;
 using Utilities;
+using _048rtmontecarlo.Properties;
 
 namespace Rendering
 {
@@ -98,16 +98,7 @@ namespace Rendering
       SetOptions ( args );
       buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
 
-      Image image = null;
-
-      try
-      {
-        image = Image.FromFile ( "Logo-CGG.png" );
-      }
-      catch ( Exception )
-      {
-        image = null;
-      }
+      Image image = Resources.CGG_Logo;
 
       if ( AdditionalViews.singleton == null )
         AdditionalViews.singleton = new AdditionalViews ( collectDataCheckBox, Notification );

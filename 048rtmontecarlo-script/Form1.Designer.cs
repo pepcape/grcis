@@ -29,7 +29,6 @@
     private void InitializeComponent ()
     {
       this.components = new System.ComponentModel.Container();
-      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
       this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
       this.pictureBox1 = new System.Windows.Forms.PictureBox();
       this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
@@ -95,17 +94,17 @@
       this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29F));
       this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
       this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29F));
-      this.tableLayoutPanel1.Size = new System.Drawing.Size(904, 632);
+      this.tableLayoutPanel1.Size = new System.Drawing.Size(909, 632);
       this.tableLayoutPanel1.TabIndex = 0;
       // 
       // pictureBox1
       // 
       this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.pictureBox1.InitialImage = ((System.Drawing.Image)(resources.GetObject("pictureBox1.InitialImage")));
+      this.pictureBox1.InitialImage = null;
       this.pictureBox1.Location = new System.Drawing.Point(0, 0);
       this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
       this.pictureBox1.Name = "pictureBox1";
-      this.pictureBox1.Size = new System.Drawing.Size(904, 519);
+      this.pictureBox1.Size = new System.Drawing.Size(909, 519);
       this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
       this.pictureBox1.TabIndex = 51;
       this.pictureBox1.TabStop = false;
@@ -117,8 +116,8 @@
       // tableLayoutPanel2
       // 
       this.tableLayoutPanel2.ColumnCount = 2;
-      this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
-      this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 75F));
+      this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
+      this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 80F));
       this.tableLayoutPanel2.Controls.Add(this.flowLayoutPanel1, 1, 0);
       this.tableLayoutPanel2.Controls.Add(this.flowLayoutPanel3, 0, 0);
       this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -127,7 +126,7 @@
       this.tableLayoutPanel2.Name = "tableLayoutPanel2";
       this.tableLayoutPanel2.RowCount = 1;
       this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel2.Size = new System.Drawing.Size(904, 29);
+      this.tableLayoutPanel2.Size = new System.Drawing.Size(909, 29);
       this.tableLayoutPanel2.TabIndex = 5;
       // 
       // flowLayoutPanel1
@@ -142,10 +141,10 @@
       this.flowLayoutPanel1.Controls.Add(this.PreviousImageButton);
       this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-      this.flowLayoutPanel1.Location = new System.Drawing.Point(226, 0);
+      this.flowLayoutPanel1.Location = new System.Drawing.Point(181, 0);
       this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-      this.flowLayoutPanel1.Size = new System.Drawing.Size(678, 29);
+      this.flowLayoutPanel1.Size = new System.Drawing.Size(728, 29);
       this.flowLayoutPanel1.TabIndex = 4;
       this.flowLayoutPanel1.WrapContents = false;
       // 
@@ -153,11 +152,14 @@
       // 
       this.buttonSave.Enabled = false;
       this.buttonSave.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.buttonSave.Location = new System.Drawing.Point(597, 3);
+      this.buttonSave.Image = global::_048rtmontecarlo.Properties.Resources.Save_16x;
+      this.buttonSave.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+      this.buttonSave.Location = new System.Drawing.Point(641, 3);
       this.buttonSave.Name = "buttonSave";
-      this.buttonSave.Size = new System.Drawing.Size(78, 23);
+      this.buttonSave.Size = new System.Drawing.Size(84, 23);
       this.buttonSave.TabIndex = 4;
       this.buttonSave.Text = "Save image";
+      this.buttonSave.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.buttonSave.UseVisualStyleBackColor = true;
       this.buttonSave.Click += new System.EventHandler(this.buttonSave_Click);
       // 
@@ -165,18 +167,21 @@
       // 
       this.savePointCloudButton.Enabled = false;
       this.savePointCloudButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.savePointCloudButton.Location = new System.Drawing.Point(495, 3);
+      this.savePointCloudButton.Image = global::_048rtmontecarlo.Properties.Resources.Save_16x;
+      this.savePointCloudButton.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+      this.savePointCloudButton.Location = new System.Drawing.Point(526, 3);
       this.savePointCloudButton.Name = "savePointCloudButton";
-      this.savePointCloudButton.Size = new System.Drawing.Size(96, 23);
+      this.savePointCloudButton.Size = new System.Drawing.Size(109, 23);
       this.savePointCloudButton.TabIndex = 8;
       this.savePointCloudButton.Text = "Save point cloud";
+      this.savePointCloudButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.savePointCloudButton.UseVisualStyleBackColor = true;
       this.savePointCloudButton.Click += new System.EventHandler(this.SavePointCloudButton_Click);
       // 
       // AdvancedToolsButton
       // 
       this.AdvancedToolsButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.AdvancedToolsButton.Location = new System.Drawing.Point(382, 3);
+      this.AdvancedToolsButton.Location = new System.Drawing.Point(413, 3);
       this.AdvancedToolsButton.Name = "AdvancedToolsButton";
       this.AdvancedToolsButton.Size = new System.Drawing.Size(107, 23);
       this.AdvancedToolsButton.TabIndex = 5;
@@ -187,7 +192,7 @@
       // RayVisualiserButton
       // 
       this.RayVisualiserButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.RayVisualiserButton.Location = new System.Drawing.Point(284, 3);
+      this.RayVisualiserButton.Location = new System.Drawing.Point(315, 3);
       this.RayVisualiserButton.Name = "RayVisualiserButton";
       this.RayVisualiserButton.Size = new System.Drawing.Size(92, 23);
       this.RayVisualiserButton.TabIndex = 6;
@@ -198,7 +203,7 @@
       // RenderClientsButton
       // 
       this.RenderClientsButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.RenderClientsButton.Location = new System.Drawing.Point(179, 3);
+      this.RenderClientsButton.Location = new System.Drawing.Point(210, 3);
       this.RenderClientsButton.Name = "RenderClientsButton";
       this.RenderClientsButton.Size = new System.Drawing.Size(99, 23);
       this.RenderClientsButton.TabIndex = 7;
@@ -209,7 +214,7 @@
       // ResetButton
       // 
       this.ResetButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.ResetButton.Location = new System.Drawing.Point(130, 3);
+      this.ResetButton.Location = new System.Drawing.Point(161, 3);
       this.ResetButton.Name = "ResetButton";
       this.ResetButton.Size = new System.Drawing.Size(43, 23);
       this.ResetButton.TabIndex = 9;
@@ -221,7 +226,7 @@
       // 
       this.NextImageButton.Enabled = false;
       this.NextImageButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.NextImageButton.Location = new System.Drawing.Point(70, 3);
+      this.NextImageButton.Location = new System.Drawing.Point(101, 3);
       this.NextImageButton.Name = "NextImageButton";
       this.NextImageButton.Size = new System.Drawing.Size(54, 23);
       this.NextImageButton.TabIndex = 11;
@@ -233,7 +238,7 @@
       // 
       this.PreviousImageButton.Enabled = false;
       this.PreviousImageButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.PreviousImageButton.Location = new System.Drawing.Point(10, 3);
+      this.PreviousImageButton.Location = new System.Drawing.Point(41, 3);
       this.PreviousImageButton.Name = "PreviousImageButton";
       this.PreviousImageButton.Size = new System.Drawing.Size(54, 23);
       this.PreviousImageButton.TabIndex = 10;
@@ -249,7 +254,7 @@
       this.flowLayoutPanel3.Location = new System.Drawing.Point(0, 0);
       this.flowLayoutPanel3.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-      this.flowLayoutPanel3.Size = new System.Drawing.Size(226, 29);
+      this.flowLayoutPanel3.Size = new System.Drawing.Size(181, 29);
       this.flowLayoutPanel3.TabIndex = 5;
       this.flowLayoutPanel3.WrapContents = false;
       // 
@@ -292,7 +297,7 @@
       this.flowLayoutPanel2.Location = new System.Drawing.Point(0, 554);
       this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
       this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-      this.flowLayoutPanel2.Size = new System.Drawing.Size(904, 29);
+      this.flowLayoutPanel2.Size = new System.Drawing.Size(909, 29);
       this.flowLayoutPanel2.TabIndex = 1;
       // 
       // buttonRes
@@ -444,7 +449,7 @@
       this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.panel1.Location = new System.Drawing.Point(3, 522);
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(898, 29);
+      this.panel1.Size = new System.Drawing.Size(903, 29);
       this.panel1.TabIndex = 3;
       // 
       // textParam
@@ -453,7 +458,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
       this.textParam.Location = new System.Drawing.Point(272, 5);
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(623, 20);
+      this.textParam.Size = new System.Drawing.Size(628, 20);
       this.textParam.TabIndex = 49;
       // 
       // label3
@@ -499,7 +504,7 @@
       this.tableLayoutPanel3.Name = "tableLayoutPanel3";
       this.tableLayoutPanel3.RowCount = 1;
       this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel3.Size = new System.Drawing.Size(904, 20);
+      this.tableLayoutPanel3.Size = new System.Drawing.Size(909, 20);
       this.tableLayoutPanel3.TabIndex = 4;
       // 
       // labelElapsed
@@ -516,7 +521,7 @@
       // 
       this.labelSample.Anchor = System.Windows.Forms.AnchorStyles.Left;
       this.labelSample.AutoSize = true;
-      this.labelSample.Location = new System.Drawing.Point(605, 3);
+      this.labelSample.Location = new System.Drawing.Point(609, 3);
       this.labelSample.Name = "labelSample";
       this.labelSample.Size = new System.Drawing.Size(45, 13);
       this.labelSample.TabIndex = 23;
@@ -531,7 +536,7 @@
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(904, 632);
+      this.ClientSize = new System.Drawing.Size(909, 632);
       this.Controls.Add(this.tableLayoutPanel1);
       this.MinimumSize = new System.Drawing.Size(680, 300);
       this.Name = "Form1";

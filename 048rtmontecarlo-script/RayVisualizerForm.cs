@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Linq;
+using _048rtmontecarlo.Properties;
 
 namespace Rendering
 {
@@ -353,19 +354,17 @@ namespace Rendering
     {
       GL.Enable ( EnableCap.Texture2D );
 
-      lightSourceTextureID = LoadTexture ( "./Resources/LightSource.png" );
-      videoCameraTextureID = LoadTexture( "./Resources/VideoCamera.png" );
+      lightSourceTextureID = LoadTexture ( Resources.LightSource );
+      videoCameraTextureID = LoadTexture ( Resources.VideoCamera );
     }
 
     /// <summary>
     /// Loads texture from external image file, generates new OpenGL texture based on it and returns ID to this texture
     /// </summary>
-    /// <param name="file">Path to file</param>
+    /// <param name="bitmap">Bitmap to use for texture</param>
     /// <returns>Texture ID to new texture</returns>
-    private static int LoadTexture ( string file )
+    private static int LoadTexture ( Bitmap bitmap )
     {
-      Bitmap bitmap = new Bitmap(file);
-
       GL.Hint ( HintTarget.PerspectiveCorrectionHint, HintMode.Nicest );
 
       GL.GenTextures ( 1, out int tex );
