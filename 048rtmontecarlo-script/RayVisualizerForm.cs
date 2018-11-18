@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Linq;
+using OpenTK.Graphics;
 using _048rtmontecarlo.Properties;
 
 namespace Rendering
@@ -443,7 +444,7 @@ namespace Rendering
 
 			frameCounter++;
 		  useShaders = useVBO &&
-		               canShaders &&
+                   canShaders &&
 		               activeProgram != null &&
 		               checkShaders.Checked;
 
@@ -868,6 +869,10 @@ namespace Rendering
     /// </summary>
     private void RenderVideoCamera ()
     {
+      if ( rays == null || rays.Count == 0 )
+        return;
+
+
       SetVertexPointer ( false );
       SetVertexAttrib ( true );
 
@@ -1577,6 +1582,47 @@ namespace Rendering
       int size = ( newRays.Count + newShadowRays.Count ) * 3 * 2 * sizeof ( float );
 
       GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( size ), temp, BufferUsageHint.StaticDraw );
+    }
+
+    public Bitmap TakeScreenshot ()
+    {
+      if ( GraphicsContext.CurrentContext == null )
+        throw new GraphicsContextMissingException ();
+
+      int w = glControl1.ClientSize.Width;
+      int h = glControl1.ClientSize.Height;
+
+      Bitmap bitmap = new Bitmap(w, h);
+
+      BitmapData data = bitmap.LockBits ( glControl1.ClientRectangle, System.Drawing.Imaging.ImageLockMode.WriteOnly, 
+                                       System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+
+      GL.ReadPixels ( 0, 0, w, h, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0 );
+
+      bitmap.UnlockBits ( data );
+      bitmap.RotateFlip ( RotateFlipType.RotateNoneFlipY );
+
+      return bitmap;
+    }
+
+    private void SaveScreenshotButton_Click ( object sender, EventArgs e )
+    {
+      Image outputImage = TakeScreenshot ();
+
+      if ( outputImage == null )
+        return;
+
+      SaveFileDialog sfd = new SaveFileDialog
+      {
+        Title = @"Save PNG file",
+        Filter = @"PNG Files|*.png",
+        AddExtension = true,
+        FileName = "Screenshot"
+      };
+      if ( sfd.ShowDialog () != DialogResult.OK )
+        return;
+
+      outputImage.Save ( sfd.FileName, ImageFormat.Png );
     }
   }
 }

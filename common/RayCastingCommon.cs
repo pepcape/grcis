@@ -458,6 +458,7 @@ namespace Rendering
 
       completed = true;
     }
+
     public static Intersection FirstIntersection ( LinkedList<Intersection> list, ref Vector3d p1 )
     {
       if ( list == null || list.Count < 1 )

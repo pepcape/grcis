@@ -755,7 +755,8 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
-    public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
+    public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 ) 
+      // THIS METHOD IS NOT 100% CORRECT (some intersections are incorrect (completely random locations) and some have incorrect T parameter)
     {
       CSGInnerNode.countBoundingBoxes++;
       if ( wrapper.Intersect ( p0, p1 ) == null )
@@ -795,14 +796,12 @@ namespace Rendering
       //Debug.Assert( (nRoots % 2 == 0), "Roots(" + nRoots + "): " + roots[ 0 ] + " " + roots[ 1 ] + " " + roots[ 2 ] + " " + roots[ 3 ] );
 
       LinkedList<Intersection> result = new LinkedList<Intersection> ();
-      Intersection             ix;
       for ( j = 0; j < nRoots; j++ )
       {
         double t = roots [ j ];
-        ix   = new Intersection ( this );
+        Intersection ix = new Intersection ( this );
         ix.T = t;
-        ix.Enter =
-          ix.Front = ( j % 2 == 0 );
+        ix.Enter = ix.Front = ( j % 2 == 0 );
         ix.CoordLocal = p0 + t * p1;
 
         result.AddLast ( ix );
