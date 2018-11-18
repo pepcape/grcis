@@ -106,7 +106,7 @@ namespace Rendering
 
       if ( i == null ) // no intersection -> background color
       {
-        RegisterRay ( RayType.rayVisualizerNormal, level, p0, direction * 1000 ); 
+        RegisterRay ( RayType.rayVisualizerNormal, level, p0, direction * 100000 ); 
 
         Array.Copy ( scene.BackgroundColor, color, bands );
         return 1L;
