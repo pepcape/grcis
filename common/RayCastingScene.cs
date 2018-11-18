@@ -482,33 +482,30 @@ namespace Rendering
           // result .. empty so far
           result.Clear ();
 
-          double       lowestT    = Double.NegativeInfinity;
-          Intersection leftFirst  = ( left.First == null ) ? null : left.First.Value;
-          Intersection rightFirst = ( partial.First == null ) ? null : partial.First.Value;
+          Intersection leftFirst  = left.First?.Value;
+          Intersection rightFirst = partial.First?.Value;
           // initial inside status values:
           bool insideLeft   = ( leftFirst != null && !leftFirst.Enter );
           bool insideRight  = ( rightFirst != null && !rightFirst.Enter );
           bool insideResult = bop.Result ( insideLeft, insideRight );
           // merge behavior:
-          bool minLeft  = ( leftFirst != null && leftFirst.T == lowestT );
-          bool minRight = ( rightFirst != null && rightFirst.T == lowestT );
 
           while ( leftFirst != null || rightFirst != null )
           {
-            double leftVal  = ( leftFirst != null ) ? leftFirst.T : double.PositiveInfinity;
-            double rightVal = ( rightFirst != null ) ? rightFirst.T : double.PositiveInfinity;
-            lowestT = Math.Min ( leftVal, rightVal );
-            Debug.Assert ( !Double.IsInfinity ( lowestT ) );
+            double leftVal  = leftFirst?.T ?? double.PositiveInfinity;
+            double rightVal = rightFirst?.T ?? double.PositiveInfinity;
+            double lowestT    = Math.Min ( leftVal, rightVal );
+            Debug.Assert ( !double.IsInfinity ( lowestT ) );
 
-            minLeft  = leftVal == lowestT;
-            minRight = rightVal == lowestT;
+            bool minLeft = leftVal == lowestT;
+            bool minRight = rightVal == lowestT;
 
             Intersection first = null;
             if ( minRight )
             {
               first = rightFirst;
               partial.RemoveFirst ();
-              rightFirst  = ( partial.First == null ) ? null : partial.First.Value;
+              rightFirst  = partial.First?.Value;
               insideRight = first.Enter;
             }
 
@@ -516,7 +513,7 @@ namespace Rendering
             {
               first = leftFirst;
               left.RemoveFirst ();
-              leftFirst  = ( left.First == null ) ? null : left.First.Value;
+              leftFirst  = left.First?.Value;
               insideLeft = first.Enter;
             }
 

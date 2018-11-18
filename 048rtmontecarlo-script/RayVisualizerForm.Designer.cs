@@ -49,6 +49,7 @@
       this.WireframeBoundingBoxesCheckBox = new System.Windows.Forms.CheckBox();
       this.PointCloudButton = new System.Windows.Forms.Button();
       this.PointCloudCheckBox = new System.Windows.Forms.CheckBox();
+      this.SaveScreenshotButton = new System.Windows.Forms.Button();
       this.SuspendLayout();
       // 
       // glControl1
@@ -319,11 +320,23 @@
       this.PointCloudCheckBox.Text = "Point cloud";
       this.PointCloudCheckBox.UseVisualStyleBackColor = true;
       // 
+      // SaveScreenshotButton
+      // 
+      this.SaveScreenshotButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+      this.SaveScreenshotButton.Location = new System.Drawing.Point(875, 535);
+      this.SaveScreenshotButton.Name = "SaveScreenshotButton";
+      this.SaveScreenshotButton.Size = new System.Drawing.Size(97, 23);
+      this.SaveScreenshotButton.TabIndex = 69;
+      this.SaveScreenshotButton.Text = "Save Screenshot";
+      this.SaveScreenshotButton.UseVisualStyleBackColor = true;
+      this.SaveScreenshotButton.Click += new System.EventHandler(this.SaveScreenshotButton_Click);
+      // 
       // RayVisualizerForm
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(984, 570);
+      this.Controls.Add(this.SaveScreenshotButton);
       this.Controls.Add(this.PointCloudCheckBox);
       this.Controls.Add(this.PointCloudButton);
       this.Controls.Add(this.WireframeBoundingBoxesCheckBox);
@@ -379,5 +392,6 @@
 		private System.Windows.Forms.CheckBox WireframeBoundingBoxesCheckBox;
     private System.Windows.Forms.CheckBox PointCloudCheckBox;
     public System.Windows.Forms.Button PointCloudButton;
+    private System.Windows.Forms.Button SaveScreenshotButton;
   }
 }
