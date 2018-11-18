@@ -876,7 +876,21 @@ namespace Rendering
 
       Matrix4 modelView  = trackBall.ModelView;
 
-      modelView *= translation;
+      /*modelView[0, 0] = 1;
+      modelView[0, 1] = 0;
+      modelView[0, 2] = 0;
+
+      modelView[1, 0] = 0;
+      modelView[1, 1] = 1;
+      modelView[1, 2] = 0;
+
+      modelView[2, 0] = 0;
+      modelView[2, 1] = 0;
+      modelView[2, 2] = 1;
+
+      modelView = Matrix4.CreateScale ( trackBall.Zoom / diameter ) * modelView;*/
+
+      modelView = translation * modelView;
 
       GL.UniformMatrix4 ( activeProgram.GetUniform ( "matrixModelView" ), false, ref modelView );
 

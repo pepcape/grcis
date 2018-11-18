@@ -36,9 +36,7 @@ void main ()
   if ( !shadingPhong && !shadingGouraud )
   {
     if ( useTexture )
-    {
       fragColor = vec4( texture2D( texSurface, varTexCoords ) );
-    }
     else
       fragColor = vec4( varColor, 1.0 );
   }
