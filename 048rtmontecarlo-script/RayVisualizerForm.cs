@@ -1,7 +1,6 @@
 ﻿using MathSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using Scene3D;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
@@ -569,7 +568,7 @@ namespace Rendering
         if ( pointCloudVBO != 0 && PointCloudCheckBox.Checked )
           RenderPointCloud ();
 
-        if ( rayScene?.Sources != null && LightSourcesCheckBox.Checked && lightSourcesVBO != 0 )
+        if ( scene?.Sources != null && LightSourcesCheckBox.Checked && lightSourcesVBO != 0 )
           RenderLightSources ();
 
         if ( rayVisualizer.rays.Count != 0 && CameraCheckBox.Checked )
@@ -872,25 +871,12 @@ namespace Rendering
       SetVertexPointer ( false );
       SetVertexAttrib ( true );
 
+      // billboarding
       Matrix4 translation = Matrix4.CreateTranslation ( rays [0] );
-
       Matrix4 modelView  = trackBall.ModelView;
 
-      /*modelView[0, 0] = 1;
-      modelView[0, 1] = 0;
-      modelView[0, 2] = 0;
-
-      modelView[1, 0] = 0;
-      modelView[1, 1] = 1;
-      modelView[1, 2] = 0;
-
-      modelView[2, 0] = 0;
-      modelView[2, 1] = 0;
-      modelView[2, 2] = 1;
-
-      modelView = Matrix4.CreateScale ( trackBall.Zoom / diameter ) * modelView;*/
-
       modelView = translation * modelView;
+      modelView = ApplyBillboarding ( modelView );
 
       GL.UniformMatrix4 ( activeProgram.GetUniform ( "matrixModelView" ), false, ref modelView );
 
@@ -931,6 +917,24 @@ namespace Rendering
       GlInfo.LogError ( "set-attrib-pointers" );
 
       GL.DrawArrays ( PrimitiveType.Quads, 0, 4 );
+    }
+
+    private Matrix4 ApplyBillboarding ( Matrix4 modelView )
+    {
+      modelView [0, 0] = 1;
+      modelView [0, 1] = 0;
+      modelView [0, 2] = 0;
+
+      modelView [1, 0] = 0;
+      modelView [1, 1] = 1;
+      modelView [1, 2] = 0;
+
+      modelView [2, 0] = 0;
+      modelView [2, 1] = 0;
+      modelView [2, 2] = 1;
+
+      modelView = Matrix4.CreateScale ( trackBall.Zoom / diameter ) * modelView;
+      return modelView;
     }
 
     /// <summary>
@@ -978,7 +982,23 @@ namespace Rendering
 
       GlInfo.LogError ( "set-attrib-pointers" );
 
-      GL.DrawArrays ( PrimitiveType.Quads, 0, usableLightSources * 4 );
+      foreach ( ILightSource lightSource in scene.Sources )
+      {
+        if ( lightSource.position == null )
+          continue;
+
+        // billboarding
+        Matrix4 translation = Matrix4.CreateTranslation ( (Vector3) RayVisualizer.AxesCorrector ( lightSource.position ) );
+        Matrix4 modelView  = trackBall.ModelView;
+
+        modelView = translation * modelView;
+        modelView = ApplyBillboarding ( modelView );
+
+        GL.UniformMatrix4 ( activeProgram.GetUniform ( "matrixModelView" ), false, ref modelView );
+
+        //drawing
+        GL.DrawArrays ( PrimitiveType.Quads, 0, 4 );
+      }     
     }
 
     /// <summary>
@@ -1224,18 +1244,18 @@ namespace Rendering
 		}
 
     private List<SceneObject> sceneObjects;
-    private IRayScene rayScene;
+    private IRayScene scene;
 		/// <summary>
 		/// Fills sceneObjects list with objects from current scene
 		/// </summary>
 		private void FillSceneObjects ()
 		{
-		  if ( rayVisualizer.rayScene == rayScene ) // prevents filling whole list in case scene did not change (most of the time)
+		  if ( rayVisualizer.rayScene == scene ) // prevents filling whole list in case scene did not change (most of the time)
 		    return;
 		  else
-		    rayScene = rayVisualizer.rayScene;
+		    scene = rayVisualizer.rayScene;
 
-      if ( !( rayScene.Intersectable is DefaultSceneNode root ) )
+      if ( !( scene.Intersectable is DefaultSceneNode root ) )
       {
         sceneObjects = null;
         return;
@@ -1377,7 +1397,7 @@ namespace Rendering
     /// <param name="newScene">New IRayScene</param>
     public void UpdateRayScene ( IRayScene newScene )
     {
-      rayScene = newScene;
+      scene = newScene;
 
       InitializeLightSourcesVBO ();
 
@@ -1395,13 +1415,39 @@ namespace Rendering
     /// <summary>
     /// Initializes VBO for light sources
     /// X, Y, Z, u, v
+    /// 1 quad total - this VBO is expected to be called for each light with different view model matrices
+    /// No attributes are expected to change
+    /// </summary>
+    private void InitializeLightSourcesVBO ()
+    {
+      if ( lightSourcesVBO != 0 )
+        GL.DeleteBuffer ( lightSourcesVBO );
+
+      lightSourcesVBO = GL.GenBuffer ();
+      GL.BindBuffer ( BufferTarget.ArrayBuffer, lightSourcesVBO );
+
+      float[] billboard =
+      {
+        // positions                            // texture coords
+        lightSize / 2, lightSize / 2, 0.0f,     1.0f, 0.0f,
+        lightSize / 2, -lightSize / 2, 0.0f,    1.0f, 1.0f,
+        -lightSize / 2, -lightSize / 2, 0.0f,   0.0f, 1.0f,
+        -lightSize / 2, lightSize / 2, 0.0f,    0.0f, 0.0f,
+      };
+
+      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( billboard.Length * sizeof ( float ) ), billboard, BufferUsageHint.StaticDraw );
+    }
+
+    /// <summary>
+    /// Initializes VBO for light sources
+    /// X, Y, Z, u, v
     /// 1 quad per light source
     /// Coordinates are expected to change with every camera move - used as billboarding (technically only rotation is changed)
     /// Texture mapping is not expected to change
     /// </summary>
-    private void InitializeLightSourcesVBO ()
+    private void InitializeLightSourcesVBO_OLD ()
     {
-      if ( rayScene?.Sources == null )
+      if ( scene?.Sources == null )
         return;
 
       if ( lightSourcesVBO != 0 )
@@ -1409,7 +1455,7 @@ namespace Rendering
 
       const int stride = 20 * sizeof ( float );
 
-      Vector3d[] lightPositions = ( from lightSource in rayScene.Sources where lightSource.position != null select lightSource.position.Value ).ToArray ();
+      Vector3d[] lightPositions = ( from lightSource in scene.Sources where lightSource.position != null select lightSource.position.Value ).ToArray ();
 
       lightSourcesVBO = GL.GenBuffer ();
       GL.BindBuffer ( BufferTarget.ArrayBuffer, lightSourcesVBO );
@@ -1440,7 +1486,7 @@ namespace Rendering
     /// Initializes VBO for axes
     /// Vector3s is form of: start of line (XYZ) - color if start(RGB) - end of line(XYZ) - color of end(RGB)
     /// 6 points = 3 lines in total
-    /// Coordinates nor colors are not expected to change at all - center is in (0, 0, 0)
+    /// No attributes are expected to change - center is in (0, 0, 0)
     /// </summary>
     private void InitializeAxesVBO ()
     {
@@ -1466,10 +1512,8 @@ namespace Rendering
     /// <summary>
     /// Initializes VBO for Video Camera
     /// X, Y, Z, u, v
-    /// 1 quad per video camera (usually only one)
-    /// Coordinates are expected to change with each new ray - initially set to (0, 0, 0) so transforms can be easily applied
-    ///                              ...and each camera move - used as billboarding (technically only rotation is changed)
-    /// Texture mapping is not expected to change
+    /// 1 quad total
+    /// No attributes are expected to change
     /// </summary>
     private void InitializeVideoCameraVBO ()
     {
@@ -1479,7 +1523,7 @@ namespace Rendering
       videoCameraVBO = GL.GenBuffer ();
       GL.BindBuffer ( BufferTarget.ArrayBuffer, videoCameraVBO );
 
-      float[] lightBillboard =
+      float[] billboard =
       {
         // positions                                        // texture coords
         videoCameraSize / 2, videoCameraSize / 2, 0.0f,     1.0f, 0.0f,
@@ -1488,7 +1532,7 @@ namespace Rendering
         -videoCameraSize / 2, videoCameraSize / 2, 0.0f,    0.0f, 0.0f,
       };
 
-      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( lightBillboard.Length * sizeof ( float ) ), lightBillboard, BufferUsageHint.DynamicDraw );
+      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( billboard.Length * sizeof ( float ) ), billboard, BufferUsageHint.DynamicDraw );
     }
 
     private List<Vector3> rays = new List<Vector3>();
