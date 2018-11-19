@@ -10,12 +10,20 @@ namespace Scene3D
     #region Form initialization
 
     /// <summary>
-    /// Optional data initialization.
+    /// Optional form-data initialization.
     /// </summary>
-    public static void InitParams ( out string param, out string name )
+    /// <param name="name">Return your full name.</param>
+    /// <param name="param">Optional text to initialize the form's text-field.</param>
+    /// <param name="tooltip">Optional tooltip = param help.</param>
+    public static void InitParams ( out string name, out string param, out string tooltip )
     {
+      // {{
+
+      name = "Josef Pelikán";
       param = "";
-      name  = "Josef Pelikán";
+      tooltip = "nothing yet..";
+
+      // }}
     }
 
     #endregion
@@ -30,7 +38,11 @@ namespace Scene3D
 
     public Construction ()
     {
+      // {{
+
       // !!! Any one-time initialization code goes here..
+
+      // }}
     }
 
     #endregion
@@ -46,14 +58,14 @@ namespace Scene3D
     /// <returns>Number of generated faces (0 in case of failure)</returns>
     public int AddMesh ( SceneBrep scene, Matrix4 m, string param )
     {
-      // !!!{{ TODO: put your Mesh-construction code here
+      // {{ TODO: put your Mesh-construction code here
 
       // if there will be large number of new vertices, reserve space for them to save time:
       scene.Reserve( 4 );
 
       return CreateTetrahedron( scene, m, Vector3.Zero, 1.0f );
 
-      // !!!}}
+      // }}
     }
 
     private int CreateTetrahedron ( SceneBrep scene, Matrix4 m, Vector3 center, float size )

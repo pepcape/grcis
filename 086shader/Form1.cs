@@ -34,6 +34,9 @@ namespace _086shader
     float near = 0.1f;
     float far  = 5.0f;
 
+    /// <summary>
+    /// Light source position in the world-space.
+    /// </summary>
     Vector3 light = new Vector3( -2, 1, 1 );
 
     /// <summary>
@@ -62,6 +65,14 @@ namespace _086shader
     /// </summary>
     Trackball tb = null;
 
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
+    string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
     ToolTip tt = new ToolTip();
 
     public Form1 ()
@@ -70,8 +81,9 @@ namespace _086shader
 
       string param;
       string name;
-      Construction.InitParams( out param, out name );
-      textParam.Text = param ?? "";
+      Construction.InitParams( out name, out param, out tooltip );
+      textParam.Text = param;
+
       Text += " (" + rev + ") '" + name + '\'';
 
       // Trackball:
@@ -187,7 +199,7 @@ namespace _086shader
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      bool doCheck = false;
+      bool doCheck = checkCorner.Checked;
 
       scene.Reset();
       Construction cn = new Construction();
@@ -345,23 +357,37 @@ namespace _086shader
            scene.Triangles < 1 ) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
-      sfd.Title = "Save PLY file";
-      sfd.Filter = "PLY Files|*.ply";
+      sfd.Title = "Save OBJ/PLY file";
+      sfd.Filter = "OBJ Files|*.obj|PLY Files|*.ply";
       sfd.AddExtension = true;
       sfd.FileName = "";
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      StanfordPly plyWriter   = new StanfordPly();
-      plyWriter.TextFormat    = true;
-      plyWriter.NativeNewLine = true;
-      plyWriter.Orientation   = checkOrientation.Checked;
-      //plyWriter.DoNormals     = false;
-      //plyWriter.DoTxtCoords   = false;
-      plyWriter.DoColors      = false;
-      using ( StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) ) )
+      if ( sfd.FileName.EndsWith( ".ply" ) )
       {
-        plyWriter.WriteBrep( writer, scene );
+        // Stanford PLY format.
+        StanfordPly plyWriter = new StanfordPly();
+        plyWriter.TextFormat = true;
+        plyWriter.NativeNewLine = true;
+        plyWriter.Orientation = checkOrientation.Checked;
+        //plyWriter.DoNormals     = false;
+        //plyWriter.DoTxtCoords   = false;
+        plyWriter.DoColors = false;
+        using ( StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) ) )
+        {
+          plyWriter.WriteBrep( writer, scene );
+        }
+      }
+      else
+      {
+        // Wavefront OBJ format.
+        WavefrontObj objWriter = new WavefrontObj();
+        objWriter.MirrorConversion = true;
+        using ( StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) ) )
+        {
+          objWriter.WriteBrep( writer, scene );
+        }
       }
     }
 
@@ -369,6 +395,11 @@ namespace _086shader
     {
       tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
                (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( tooltip, (IWin32Window)sender, 10, -25, 4000 );
     }
   }
 }
