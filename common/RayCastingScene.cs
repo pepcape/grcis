@@ -133,7 +133,7 @@ namespace Rendering
   [Serializable]
   public abstract class DefaultSceneNode: ISceneNode
   {
-    public static float infinityPlaceholder = float.PositiveInfinity;
+    public static float infinityPlaceholder = 100000;
       
     protected LinkedList<ISceneNode> children;
 
