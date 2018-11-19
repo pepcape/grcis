@@ -54,6 +54,7 @@
       this.buttonExportPly = new System.Windows.Forms.Button();
       this.checkOrientation = new System.Windows.Forms.CheckBox();
       this.checkAxes = new System.Windows.Forms.CheckBox();
+      this.checkCorner = new System.Windows.Forms.CheckBox();
       ((System.ComponentModel.ISupportInitialize)(this.numericSensitivity)).BeginInit();
       this.SuspendLayout();
       // 
@@ -164,6 +165,7 @@
       this.textParam.Size = new System.Drawing.Size(353, 20);
       this.textParam.TabIndex = 29;
       this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
+      this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
       // 
       // label3
       // 
@@ -351,7 +353,7 @@
       this.buttonExportPly.Name = "buttonExportPly";
       this.buttonExportPly.Size = new System.Drawing.Size(84, 23);
       this.buttonExportPly.TabIndex = 43;
-      this.buttonExportPly.Text = "Export PLY";
+      this.buttonExportPly.Text = "Export 3D";
       this.buttonExportPly.UseVisualStyleBackColor = true;
       this.buttonExportPly.Click += new System.EventHandler(this.buttonExportPly_Click);
       // 
@@ -377,11 +379,23 @@
       this.checkAxes.Text = "Axes";
       this.checkAxes.UseVisualStyleBackColor = true;
       // 
+      // checkCorner
+      // 
+      this.checkCorner.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkCorner.AutoSize = true;
+      this.checkCorner.Location = new System.Drawing.Point(484, 408);
+      this.checkCorner.Name = "checkCorner";
+      this.checkCorner.Size = new System.Drawing.Size(116, 17);
+      this.checkCorner.TabIndex = 46;
+      this.checkCorner.Text = "Check corner-table";
+      this.checkCorner.UseVisualStyleBackColor = true;
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(844, 469);
+      this.Controls.Add(this.checkCorner);
       this.Controls.Add(this.checkAxes);
       this.Controls.Add(this.checkOrientation);
       this.Controls.Add(this.buttonExportPly);
@@ -447,6 +461,7 @@
     private System.Windows.Forms.Button buttonExportPly;
     private System.Windows.Forms.CheckBox checkOrientation;
     private System.Windows.Forms.CheckBox checkAxes;
+    private System.Windows.Forms.CheckBox checkCorner;
   }
 }
 
