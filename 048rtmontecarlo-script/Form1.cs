@@ -356,7 +356,7 @@ namespace Rendering
       IImageFunction imf = getImageFunction ( sc, width, height );
       IRenderer      r   = getRenderer ( imf, width, height );
 
-      rayVisualizer.UpdateRayScene ( sc );
+      rayVisualizer.UpdateScene ( sc );
 
       Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads, pointCloudCheckBox.Checked );
       Master.singleton.progressData = progress;

@@ -85,22 +85,25 @@ namespace Rendering
         return position.Value * axesCorrectionVector;
     }
 
-    public IRayScene rayScene;
+    public IRayScene scene;
     public int[] backgroundColor;
     /// <summary>
-    /// Called when there is a new scene about to be rendered
+    /// Called when there is new scene about to be rendered
     /// </summary>
-    /// <param name="scene">Scene which is about to be rendered</param>
-    public void UpdateRayScene ( IRayScene scene )
+    /// <param name="newScene">New scene</param>
+    public void UpdateScene ( IRayScene newScene )
     {
-      rayScene = scene;
+      scene = newScene;
       rays?.Clear ();
       singleton?.shadowRays?.Clear ();
 
-      backgroundColor = new int[] { (int) scene.BackgroundColor[0] * 255, (int) scene.BackgroundColor[1] * 255, (int) scene.BackgroundColor[2] * 255 };
+      backgroundColor = new int[] { (int) newScene.BackgroundColor[0] * 255, (int) newScene.BackgroundColor[1] * 255, (int) newScene.BackgroundColor[2] * 255 };
 
-      form?.Invoke ( (MethodInvoker) delegate { form.UpdateRayScene ( scene ); } );
-      
+      if ( form != null )
+        if ( form.InvokeRequired )
+          form?.Invoke ( (MethodInvoker) delegate { form.UpdateScene ( newScene ); } );
+        else
+          form.UpdateScene ( newScene );      
     }
   }
 }
