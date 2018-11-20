@@ -97,7 +97,12 @@ namespace Rendering
       rays?.Clear ();
       singleton?.shadowRays?.Clear ();
 
-      backgroundColor = new int[] { (int) newScene.BackgroundColor[0] * 255, (int) newScene.BackgroundColor[1] * 255, (int) newScene.BackgroundColor[2] * 255 };
+      backgroundColor = new int[] 
+      {
+        (int) ( newScene.BackgroundColor [0] * 255 ),
+        (int) ( newScene.BackgroundColor [1] * 255 ),
+        (int) ( newScene.BackgroundColor [2] * 255 )
+      };
 
       if ( form != null )
         if ( form.InvokeRequired )
