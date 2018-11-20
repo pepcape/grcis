@@ -231,8 +231,6 @@ namespace Rendering
       trackBall.Zoom = (float) (distanceOfEye / distanceOfCamera);
     }
 
-    private uint[] VBOid = null;
-
     private void InitOpenGL ()
 		{
 			// log OpenGL info
@@ -382,12 +380,12 @@ namespace Rendering
 		  if ( rayVisualizer.backgroundColor == null )
 		    backgroundColor = defaultBackgroundColor;
 		  else
-		    backgroundColor = Color.FromArgb ( 0,
-		                                       ( rayVisualizer.backgroundColor [0] ),
-		                                       ( rayVisualizer.backgroundColor [1] ),
-		                                       ( rayVisualizer.backgroundColor [2] ) );
+		    backgroundColor = Color.FromArgb ( ( rayVisualizer.backgroundColor[0] ),
+		                                       ( rayVisualizer.backgroundColor[1] ),
+		                                       ( rayVisualizer.backgroundColor[2] ) );
 
-		  GL.ClearColor ( backgroundColor );
+
+      GL.ClearColor ( backgroundColor );
 
 			frameCounter++;
 		  useShaders = canShaders &&
