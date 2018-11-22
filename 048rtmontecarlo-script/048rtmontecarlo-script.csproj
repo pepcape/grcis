@@ -360,7 +360,6 @@
   <ItemGroup>
     <None Include="Resources\CGG Logo.png" />
     <Content Include="Resources\LightSource.png" />
-    <Content Include="Resources\Logo-CGG.png" />
     <Content Include="Resources\Save_16x.png" />
     <Content Include="Resources\VideoCamera.png" />
   </ItemGroup>
