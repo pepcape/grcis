@@ -8,7 +8,6 @@ using OpenglSupport;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
-using System.Linq;
 using OpenTK.Graphics;
 using _048rtmontecarlo.Properties;
 
@@ -41,7 +40,6 @@ namespace Rendering
 
     private Vector3? pointOrigin = null;
     private Vector3  pointTarget;
-    private Vector3  eye;
 
     private bool pointDirty = false;
 
@@ -76,15 +74,13 @@ namespace Rendering
 
     private long   lastFPSTime     = 0L;
     private int    frameCounter    = 0;
-    private long   triangleCounter = 0L;
     private double lastFPS         = 0.0;
-    private double lastTPS         = 0.0;
 
     private readonly Color defaultBackgroundColor = Color.Black;
 
     private readonly RayVisualizer rayVisualizer;
 
-    private List<int> allVBOs = new List<int> ();
+    private readonly List<int> allVBOs = new List<int> ();
 
     public RayVisualizerForm ( RayVisualizer rayVisualizer )
     {    
@@ -122,7 +118,7 @@ namespace Rendering
       if ( rayVisualizer.scene != null )
       {
         scene = rayVisualizer.scene;
-        newSceneVBOInitialization ();
+        NewSceneVBOInitialization ();
       }
     }
 
@@ -169,7 +165,6 @@ namespace Rendering
           pointOrigin = screenToWorld ( e.X, e.Y, 0.0f );
           pointTarget = screenToWorld ( e.X, e.Y, 1.0f );
 
-          eye        = trackBall.Eye;
           pointDirty = true;
         }
     }
@@ -424,18 +419,12 @@ namespace Rendering
 				if ( now - lastFPSTime > 5000000 ) // more than 0.5 sec
 				{
 					lastFPS = 0.5 * lastFPS + 0.5 * ( frameCounter * 1.0e7 / ( now - lastFPSTime ) );
-					lastTPS = 0.5 * lastTPS + 0.5 * ( triangleCounter * 1.0e7 / ( now - lastFPSTime ) );
 					lastFPSTime = now;
 					frameCounter = 0;
-					triangleCounter = 0L;
 
-					if ( lastTPS < 5.0e5 )
-						labelFPS.Text = string.Format ( CultureInfo.InvariantCulture, "FPS: {0:f1}, TPS: {1:f0}k",
-														lastFPS, ( lastTPS * 1.0e-3 ) );
-					else
-						labelFPS.Text = string.Format ( CultureInfo.InvariantCulture, "FPS: {0:f1}, TPS: {1:f1}m",
-														lastFPS, ( lastTPS * 1.0e-6 ) );
-				}
+				  labelFPS.Text = string.Format ( CultureInfo.InvariantCulture, "FPS: {0:f1}",
+				                                  lastFPS );
+        }
 
 				// pointing:
 				if ( pointOrigin != null &&
@@ -533,15 +522,9 @@ namespace Rendering
       GL.Uniform1 ( activeProgram.GetUniform ( "globalColor" ), useGlobalColor ? 1 : 0 );
 
       // shading:
-      bool shadingPhong = checkPhong.Checked;
-      bool shadingGouraud = checkSmooth.Checked;
-
-      if ( !shadingGouraud )
-        shadingPhong = false;
-
       GL.Uniform1 ( activeProgram.GetUniform ( "useTexture" ), 0 );
-      GL.Uniform1 ( activeProgram.GetUniform ( "shadingPhong" ), shadingPhong ? 1 : 0 );
-      GL.Uniform1 ( activeProgram.GetUniform ( "shadingGouraud" ), shadingGouraud ? 1 : 0 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "shadingPhong" ), 1 );
+      GL.Uniform1 ( activeProgram.GetUniform ( "shadingGouraud" ), 0 );
       GL.Uniform1 ( activeProgram.GetUniform ( "useAmbient" ), checkAmbient.Checked ? 1 : 0 );
       GL.Uniform1 ( activeProgram.GetUniform ( "useDiffuse" ), checkDiffuse.Checked ? 1 : 0 );
       GL.Uniform1 ( activeProgram.GetUniform ( "useSpecular" ), checkSpecular.Checked ? 1 : 0 );
@@ -1098,7 +1081,7 @@ namespace Rendering
     {
       scene = newScene;
 
-      newSceneVBOInitialization ();
+      NewSceneVBOInitialization ();
 
       PointCloudButton.Enabled = false;
       PointCloudCheckBox.Enabled = false;
@@ -1108,7 +1091,11 @@ namespace Rendering
       WireframeBoundingBoxesCheckBox.Enabled = true;
     }
 
-    private void newSceneVBOInitialization ()
+    /// <summary>
+    /// Should be called every time new scene is about to be rendered
+    /// Prepares all needed VBOs for a new scene (lights and bounding boxes)
+    /// </summary>
+    private void NewSceneVBOInitialization ()
     {
       updatingScene = true;
 

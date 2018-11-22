@@ -30,7 +30,6 @@
 		{
       this.glControl1 = new OpenTK.GLControl();
       this.checkAxes = new System.Windows.Forms.CheckBox();
-      this.checkPhong = new System.Windows.Forms.CheckBox();
       this.checkSpecular = new System.Windows.Forms.CheckBox();
       this.checkDiffuse = new System.Windows.Forms.CheckBox();
       this.checkAmbient = new System.Windows.Forms.CheckBox();
@@ -83,19 +82,6 @@
       this.checkAxes.Text = "Axes";
       this.checkAxes.UseVisualStyleBackColor = true;
       // 
-      // checkPhong
-      // 
-      this.checkPhong.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.checkPhong.AutoSize = true;
-      this.checkPhong.Checked = true;
-      this.checkPhong.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkPhong.Location = new System.Drawing.Point(108, 541);
-      this.checkPhong.Name = "checkPhong";
-      this.checkPhong.Size = new System.Drawing.Size(57, 17);
-      this.checkPhong.TabIndex = 56;
-      this.checkPhong.Text = "Phong";
-      this.checkPhong.UseVisualStyleBackColor = true;
-      // 
       // checkSpecular
       // 
       this.checkSpecular.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -141,11 +127,11 @@
       this.checkShaders.AutoSize = true;
       this.checkShaders.Checked = true;
       this.checkShaders.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkShaders.Location = new System.Drawing.Point(12, 541);
+      this.checkShaders.Location = new System.Drawing.Point(108, 539);
       this.checkShaders.Name = "checkShaders";
-      this.checkShaders.Size = new System.Drawing.Size(53, 17);
+      this.checkShaders.Size = new System.Drawing.Size(60, 17);
       this.checkShaders.TabIndex = 52;
-      this.checkShaders.Text = "GLSL";
+      this.checkShaders.Text = "Shader";
       this.checkShaders.UseVisualStyleBackColor = true;
       // 
       // checkGlobalColor
@@ -154,9 +140,9 @@
       this.checkGlobalColor.AutoSize = true;
       this.checkGlobalColor.Location = new System.Drawing.Point(12, 516);
       this.checkGlobalColor.Name = "checkGlobalColor";
-      this.checkGlobalColor.Size = new System.Drawing.Size(63, 17);
+      this.checkGlobalColor.Size = new System.Drawing.Size(82, 17);
       this.checkGlobalColor.TabIndex = 51;
-      this.checkGlobalColor.Text = "GlobalC";
+      this.checkGlobalColor.Text = "Global color";
       this.checkGlobalColor.UseVisualStyleBackColor = true;
       // 
       // checkVsync
@@ -349,7 +335,6 @@
       this.Controls.Add(this.NormalRaysCheckBox);
       this.Controls.Add(this.labelFPS);
       this.Controls.Add(this.checkAxes);
-      this.Controls.Add(this.checkPhong);
       this.Controls.Add(this.checkSpecular);
       this.Controls.Add(this.checkDiffuse);
       this.Controls.Add(this.checkAmbient);
@@ -373,7 +358,6 @@
 
 		private OpenTK.GLControl glControl1;
 		private System.Windows.Forms.CheckBox checkAxes;
-		private System.Windows.Forms.CheckBox checkPhong;
 		private System.Windows.Forms.CheckBox checkSpecular;
 		private System.Windows.Forms.CheckBox checkDiffuse;
 		private System.Windows.Forms.CheckBox checkAmbient;

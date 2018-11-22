@@ -5,10 +5,10 @@ using OpenTK.Graphics.OpenGL;
 
 namespace MathSupport
 {
-  class Ellipse
+  internal class Ellipse
   {
-    float   a, b, c;
-    Vector3 center;
+    private float   a, b, c;
+    private Vector3 center;
 
     // Sphere constructor
     public Ellipse ( float r, Vector3 center ): this ( r, r, r, center ) { }
@@ -81,13 +81,7 @@ namespace MathSupport
     /// <summary>
     /// Scene diameter (for default zoom factor only).
     /// </summary>
-    private float diameter = 5.0f;
-
-    public float Diameter
-    {
-      get { return diameter; }
-      set { diameter = value; }
-    }
+    public float Diameter { get; set; }
 
     /// <summary>
     /// Current camera position (world coords).
@@ -124,14 +118,14 @@ namespace MathSupport
       Button      = MouseButtons.Left;
     }
 
-    Matrix4 prevRotation = Matrix4.Identity;
-    Matrix4 rotation     = Matrix4.Identity;
+    private Matrix4 prevRotation = Matrix4.Identity;
+    private Matrix4 rotation     = Matrix4.Identity;
 
-    Ellipse  ellipse;
-    Vector3? a, b;
+    private Ellipse  ellipse;
+    private Vector3? a, b;
 
-    Matrix4 perspectiveProjection;
-    Matrix4 ortographicProjection;
+    private Matrix4 perspectiveProjection;
+    private Matrix4 ortographicProjection;
 
     /// <summary>
     /// Perspective / orthographic projection?
@@ -184,8 +178,8 @@ namespace MathSupport
       }
 
       float minSize = 2.0f * Math.Min ( width, height );
-      ortographicProjection = Matrix4.CreateOrthographic ( diameter * width / minSize,
-                                                           diameter * height / minSize,
+      ortographicProjection = Matrix4.CreateOrthographic ( Diameter * width / minSize,
+                                                           Diameter * height / minSize,
                                                            near, far );
       GLsetProjection ();
       setEllipse ( width, height );
@@ -207,7 +201,7 @@ namespace MathSupport
       get
       {
         return Matrix4.CreateTranslation ( -Center ) *
-               Matrix4.CreateScale ( Zoom / diameter ) *
+               Matrix4.CreateScale ( Zoom / Diameter ) *
                prevRotation *
                rotation *
                Matrix4.CreateTranslation ( 0.0f, 0.0f, -1.5f );
@@ -223,7 +217,7 @@ namespace MathSupport
 
         return Matrix4.CreateTranslation ( 0.0f, 0.0f, 1.5f ) *
                rot *
-               Matrix4.CreateScale ( diameter / Zoom ) *
+               Matrix4.CreateScale ( Diameter / Zoom ) *
                Matrix4.CreateTranslation ( Center );
       }
     }
