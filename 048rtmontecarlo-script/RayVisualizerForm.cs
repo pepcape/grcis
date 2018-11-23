@@ -56,7 +56,7 @@ namespace Rendering
     /// <summary>
     /// Global GLSL program repository.
     /// </summary>
-    private Dictionary<string, GlProgramInfo> programs = new Dictionary<string, GlProgramInfo> ();
+    private readonly Dictionary<string, GlProgramInfo> programs = new Dictionary<string, GlProgramInfo> ();
 
     /// <summary>
     /// Current (active) GLSL program.
@@ -119,7 +119,7 @@ namespace Rendering
       {
         scene = rayVisualizer.scene;
         NewSceneVBOInitialization ();
-      }
+      }    
     }
 
     private void glControl1_Resize ( object sender, EventArgs e )
@@ -217,8 +217,8 @@ namespace Rendering
       if ( rayVisualizer.rays.Count < 2 )
         return;
 
-      trackBall.Center = (Vector3) rayVisualizer.rays [ 1 ];
-      trackBall.Reset ( (Vector3) ( rayVisualizer.rays [ 1 ] - rayVisualizer.rays [ 0 ] ) );
+      trackBall.Center = rayVisualizer.rays [ 1 ];
+      trackBall.Reset ( ( rayVisualizer.rays [ 1 ] - rayVisualizer.rays [ 0 ] ) );
 
       double distanceOfEye = Vector3.Distance ( trackBall.Center, trackBall.Eye );
       double distanceOfCamera = Vector3.Distance ( rayVisualizer.rays [ 1 ], rayVisualizer.rays [ 0 ]) * 0.9;
@@ -242,6 +242,7 @@ namespace Rendering
 
       InitializeAxesVBO ();
 		  InitializeVideoCameraVBO ();
+		  InitializeRaysVBO ();
 		}
 
 		/// <summary>
@@ -653,14 +654,17 @@ namespace Rendering
       GL.LineWidth ( 3.0f );
 
       // draw
-      if ( NormalRaysCheckBox.Checked )
-        if ( renderFirst )
-          GL.DrawArrays ( PrimitiveType.Lines, 0, rays.Count );
-        else
-          GL.DrawArrays ( PrimitiveType.Lines, 2, rays.Count - 2 );
+      lock ( updatingRays )
+      {
+        if ( NormalRaysCheckBox.Checked )
+          if ( renderFirst )
+            GL.DrawArrays ( PrimitiveType.Lines, 0, rays.Count );
+          else
+            GL.DrawArrays ( PrimitiveType.Lines, 2, rays.Count - 2 );
 
-      if ( ShadowRaysCheckBox.Checked )
-        GL.DrawArrays ( PrimitiveType.Lines, rays.Count, shadowRays.Count );
+        if ( ShadowRaysCheckBox.Checked )
+          GL.DrawArrays ( PrimitiveType.Lines, rays.Count, shadowRays.Count );
+      }
     }
 
     /// <summary>
@@ -1072,6 +1076,7 @@ namespace Rendering
 		}
 
     private bool updatingScene;
+    private readonly object updatingRays = new object();
     /// <summary>
     /// Called when scene has changed
     /// Sets new light sources and sets GUI (must be invoked if called from different thread)
@@ -1235,24 +1240,35 @@ namespace Rendering
     /// Initializes VBO for normal and shadow rays
     /// X, Y, Z, R, G, B
     /// 2 points for each ray (start and end of line)
-    /// None of the attributes are expected to change - rather whole VBO is re-allocated again when new rays are available
+    /// VBO is allocated once with enough memory for over 20 000 rays and rewritten with UpdateRaysVBO
+    /// Normal rays have different color than shadow rays
+    /// </summary>
+    private void InitializeRaysVBO ()
+    {
+      GenerateAndBindVBO ( ref raysVBO );     
+
+      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( 1000 * 1000 ), IntPtr.Zero, BufferUsageHint.StaticDraw ); // 1 MB is enough for over 20 000 rays at once
+    }
+
+    /// <summary>
+    /// Updates VBO for normal and shadow rays
+    /// X, Y, Z, R, G, B
+    /// 2 points for each ray (start and end of line)
     /// Normal rays have different color than shadow rays
     /// </summary>
     /// <param name="newRays">List of Vector3 denoting position of normal rays - both start and end of each ray</param>
     /// <param name="newShadowRays">List of Vector3 denoting position of shadow rays - both start and end of each shadow ray</param>
-    public void InitializeRaysVBO ( List<Vector3> newRays, List<Vector3> newShadowRays )
+    public void UpdateRaysVBO ( List<Vector3> newRays, List<Vector3> newShadowRays )
     {
-      GenerateAndBindVBO ( ref raysVBO );
-
       rays = newRays;
-      shadowRays = newShadowRays;      
+      shadowRays = newShadowRays;
 
       Vector3[] temp = new Vector3[( newRays.Count + newShadowRays.Count ) * 2];
 
       for ( int i = 0; i < newRays.Count; i++ )
       {
-        temp [i * 2] = newRays [i];
-        temp [i * 2 + 1] = rayColor;
+        temp[i * 2] = newRays[i];
+        temp[i * 2 + 1] = rayColor;
       }
 
       for ( int i = 0; i < newShadowRays.Count; i++ )
@@ -1263,7 +1279,12 @@ namespace Rendering
 
       int size = ( newRays.Count + newShadowRays.Count ) * 3 * 2 * sizeof ( float );
 
-      GL.BufferData ( BufferTarget.ArrayBuffer, (IntPtr) ( size ), temp, BufferUsageHint.StaticDraw );
+      lock ( updatingRays )
+      {
+        GL.BindBuffer ( BufferTarget.ArrayBuffer, raysVBO );
+
+        GL.BufferSubData ( BufferTarget.ArrayBuffer, IntPtr.Zero, (IntPtr) size, temp );
+      }
     }
 
     private int boundingBoxesVBO;

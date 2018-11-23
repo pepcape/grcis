@@ -68,7 +68,7 @@ namespace Rendering
 
     public void AddingRaysFinished ()
     {
-      form?.InitializeRaysVBO ( rays, shadowRays );
+      form?.UpdateRaysVBO ( rays, shadowRays );
     }
 
     /// <summary>
