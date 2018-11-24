@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Text;
 using System.Threading;
 using OpenTK;
 using OpenTK.Graphics;
@@ -530,8 +529,7 @@ namespace OpenglSupport
     /// </summary>
     public bool CompileShader ( ShaderType type, string source )
     {
-      if ( source == null ||
-           source.Length == 0 )
+      if ( string.IsNullOrEmpty ( source ) )
       {
         Status  = 0;
         Message = "Empty shader source.";
@@ -877,7 +875,7 @@ namespace OpenglSupport
     /// <param name="ptsize">Use point-size/line-width attribute?</param>
     /// <returns>Data size of the vertex-set (in bytes).</returns>
     unsafe int PointVertices ( ref float* ptr, ref uint origin, out int stride, bool txt, bool col, bool normal,
-                               bool       ptsize );
+                               bool ptsize );
   }
 
 
@@ -1333,6 +1331,70 @@ namespace OpenglSupport
       }
 
       return total;
+    }
+  }
+
+
+  public static class Transformations
+  {
+    /// <summary>
+    /// Applies transformation matrix to vector
+    /// </summary>
+    /// <param name="vector">1x3 vector</param>
+    /// <param name="transformation">4x4 transformation matrix</param>
+    /// <returns>Transformed vector 1x3</returns>
+    public static Vector3d ApplyTransformation ( Vector3d vector, Matrix4d transformation )
+    {
+      Vector4d transformedVector = MultiplyVectorByMatrix ( new Vector4d ( vector, 1 ), transformation ); //( vector, 1 ) is extenstion [x  y  z] -> [x  y  z  1]
+
+      return new Vector3d ( transformedVector.X / transformedVector.W, //[x  y  z  w] -> [x/w  y/w  z/w]
+                            transformedVector.Y / transformedVector.W,
+                            transformedVector.Z / transformedVector.W );
+    }
+
+    public static Vector3d ApplyTransformation ( Vector3d vector, Matrix4 transformation )
+    {
+      Vector4d transformedVector = MultiplyVectorByMatrix ( new Vector4d ( vector, 1 ), transformation ); //( vector, 1 ) is extenstion [x  y  z] -> [x  y  z  1]
+
+      return new Vector3d ( transformedVector.X / transformedVector.W, //[x  y  z  w] -> [x/w  y/w  z/w]
+                            transformedVector.Y / transformedVector.W,
+                            transformedVector.Z / transformedVector.W );
+    }
+
+    /// <summary>
+    /// Multiplication of Vector4d and Matrix4d
+    /// </summary>
+    /// <param name="vector">Vector 1x4 on left side</param>
+    /// <param name="matrix">Matrix 4x4 on right side</param>
+    /// <returns>Result of multiplication - 1x4 vector</returns>
+    public static Vector4d MultiplyVectorByMatrix ( Vector4d vector, Matrix4d matrix )
+    {
+      Vector4d result = new Vector4d (0, 0, 0, 0);
+
+      for ( int i = 0; i < 4; i++ )
+      {
+        for ( int j = 0; j < 4; j++ )
+        {
+          result[i] += vector[j] * matrix[j, i];
+        }
+      }
+
+      return result;
+    }
+
+    public static Vector4d MultiplyVectorByMatrix ( Vector4d vector, Matrix4 matrix )
+    {
+      Vector4d result = new Vector4d (0, 0, 0, 0);
+
+      for ( int i = 0; i < 4; i++ )
+      {
+        for ( int j = 0; j < 4; j++ )
+        {
+          result[i] += vector[j] * matrix[j, i];
+        }
+      }
+
+      return result;
     }
   }
 }

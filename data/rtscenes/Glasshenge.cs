@@ -19,7 +19,7 @@ scene.Intersectable = root;
 scene.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
 
 // Camera:
-scene.Camera = new CustomCamera (new Vector3d(0.0, 2.0, 4.0),
+scene.Camera = new FishEyeCamera (new Vector3d(0.0, 2.0, 4.0),
                                  new Vector3d(0.0, 0.0, 1.0),
                                  360);
 
@@ -114,9 +114,10 @@ root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateT
 
 
 /// <summary>
-/// Angular fish-eye based camera. Produced image is circle in square (aspect ration always 1:1).
+/// Angular fish-eye based camera with adjustable viewing angle
+/// Produced image is circle in square (aspect ration always 1:1)
 /// </summary>
-public class CustomCamera : ICamera
+public class FishEyeCamera : ICamera
   {
     protected double width;
     protected double height;
@@ -131,7 +132,7 @@ public class CustomCamera : ICamera
     /// <param name="cen">Position of camera.</param>
     /// <param name="dir">View direction (must not be zero).</param>
     /// <param name="aper">Viewing angle of camera. Can be up to 360 thanks to fish-eye characteristics.</param>
-    public CustomCamera(Vector3d cen, Vector3d dir, double aper)
+    public FishEyeCamera(Vector3d cen, Vector3d dir, double aper)
     {
       center = cen;
       direction = dir;

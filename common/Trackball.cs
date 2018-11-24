@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -99,7 +100,32 @@ namespace MathSupport
     /// <summary>
     /// Zoom factor (multiplication).
     /// </summary>
-    public float Zoom { get; set; }
+    public float Zoom { get; set; }    
+
+    private readonly Vector3 absoluteUp = new Vector3 ( 0, 1, 0 );
+    /// <summary>
+    /// Camera RIGHT vector - not rotated (parallel to world axes)
+    /// </summary>
+    public Vector3 Right
+    {
+      get { return Vector3.Normalize ( Vector3.Cross ( absoluteUp, Direction ) ); }
+    }
+
+    /// <summary>
+    /// Camera UP vector - not rotated (parallel to world axes)
+    /// </summary>
+    public Vector3 Up
+    {
+      get { return Vector3.Normalize ( Vector3.Cross ( Direction, Right ) ); }
+    }
+
+    /// <summary>
+    /// Camera direction vector
+    /// </summary>
+    public Vector3 Direction
+    {
+      get { return Vector3.Normalize ( Center - Eye ); }
+    }
 
     /// <summary>
     /// Which mouse button is used for trackball movement?
@@ -110,8 +136,8 @@ namespace MathSupport
     {
       Center      = cent;
       Diameter    = diam;
-      MinZoom     = 0.1f;
-      MaxZoom     = 20.0f;
+      MinZoom     = 0.05f;
+      MaxZoom     = 100.0f;
       Zoom        = 1.0f;
       Fov         = 1.0f;
       Perspective = true;
@@ -381,8 +407,39 @@ namespace MathSupport
     /// <returns>True if handled.</returns>
     public bool KeyDown ( KeyEventArgs e )
     {
-      // nothing yet
-      return false;
+      switch ( e.KeyCode )
+      {
+        case Keys.W:
+          MoveCenter ( movementDirection.Forward );
+          return true;
+
+        case Keys.S:
+          MoveCenter ( movementDirection.Backwards );
+          return true;
+
+        case Keys.A:
+          MoveCenter ( movementDirection.Left );
+          return true;
+
+        case Keys.D:
+          MoveCenter ( movementDirection.Right );
+          return true;
+       
+        case Keys.E:
+          MoveCenter ( movementDirection.Up );
+          return true;
+
+        case Keys.Q:
+          MoveCenter ( movementDirection.Down );
+          return true;
+
+        case Keys.R:
+          MoveCenter ( movementDirection.Reset );
+          return true;
+
+        default:
+          return false;
+      }
     }
 
     /// <summary>
@@ -391,14 +448,118 @@ namespace MathSupport
     /// <returns>True if handled.</returns>
     public bool KeyUp ( KeyEventArgs e )
     {
-      if ( e.KeyCode == Keys.O )
+      switch ( e.KeyCode )
       {
-        e.Handled = true;
-        GLtogglePerspective ();
-        return true;
+        case Keys.O:
+          e.Handled = true;
+          GLtogglePerspective ();
+          return true;
+
+        default:
+          return false;
+      }
+    }
+
+    private const float moveFactor = 0.5f;
+
+    /// <summary>
+    /// Moves Center by moveChange in specified direction (absolute in world coordinates)
+    /// Movement is relative to current camera direction (Eye - Center)
+    /// Direction.Reset sets Center to origin (0, 0, 0)
+    /// </summary>
+    /// <param name="movementDirection">Direction to move Center to</param>
+    private void MoveCenter ( movementDirection movementDirection )
+    {
+      Vector3 movement = new Vector3( 0, 0, 0 );
+
+      switch ( movementDirection )
+      {
+        case movementDirection.Left:
+          movement += Right * moveFactor;
+          break;
+
+        case movementDirection.Right:
+          movement -= Right * moveFactor;
+          break;
+
+        case movementDirection.Forward:
+          movement += Direction * moveFactor;
+          break;
+
+        case movementDirection.Backwards:
+          movement -= Direction * moveFactor;
+          break;
+
+        case movementDirection.Up:
+          movement += Up * moveFactor;
+          break;
+
+        case movementDirection.Down:
+          movement -= Up * moveFactor;
+          break;
+
+        case movementDirection.Reset:
+          Center = new Vector3 ( 0, 0, 0 );
+          break;
       }
 
-      return false;
+      Center = Center + movement;
     }
+
+    private const float moveChange = 0.4f;
+    /// <summary>
+    /// Moves Center by moveChange in specified direction (absolute in world coordinates)
+    /// Movement is alligned with absolute world coodinates and current position of camera does not matter
+    /// Direction.Reset sets Center to origin (0, 0, 0)
+    /// </summary>
+    /// <param name="movementDirection">Direction to move Center to</param>
+    private void MoveCenterByAxes ( movementDirection movementDirection )
+    {
+      Vector3 movement = new Vector3();
+
+      switch ( movementDirection )
+      {
+        case movementDirection.Left:
+          movement.X = -moveChange;
+          break;
+
+        case movementDirection.Right:
+          movement.X = moveChange;
+          break;
+
+        case movementDirection.Forward:
+          movement.Z = -moveChange;
+          break;
+
+        case movementDirection.Backwards:
+          movement.Z = moveChange;
+          break;
+
+        case movementDirection.Up:
+          movement.Y = moveChange;
+          break;
+
+        case movementDirection.Down:
+          movement.Y = -moveChange;
+          break;
+
+        case movementDirection.Reset:
+          Center = new Vector3 ( 0, 0, 0 );
+          break;
+      }
+
+      Center = Center + movement;
+    }
+
+    private enum movementDirection
+    {
+      Left,
+      Right,
+      Forward,
+      Backwards,
+      Up,
+      Down,
+      Reset
+    };
   }
 }
