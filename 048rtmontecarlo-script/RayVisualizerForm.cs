@@ -119,7 +119,7 @@ namespace Rendering
       {
         scene = rayVisualizer.scene;
         NewSceneVBOInitialization ();
-      }    
+      }
     }
 
     private void glControl1_Resize ( object sender, EventArgs e )
@@ -197,7 +197,7 @@ namespace Rendering
 
     private void glControl1_KeyUp ( object sender, KeyEventArgs e )
     {
-      trackBall.KeyUp ( e );      
+      e.Handled = trackBall.KeyUp ( e );
     }
 
     private void RayVisualizerForm_FormClosed ( object sender, FormClosedEventArgs e )
@@ -931,51 +931,16 @@ namespace Rendering
 
       for ( int i = 0; i < verticesPositionAndColor.Length; i += 2)
       {
-        verticesPositionAndColor [i] = (Vector3)RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( cubeVertices[i / 2 * 3],
-                                                                                                                   cubeVertices[i / 2 * 3 + 1],
-                                                                                                                   cubeVertices[i / 2 * 3 + 2] ), 
-                                                                                                    transformation ) );
+        verticesPositionAndColor [i] = (Vector3) RayVisualizer.AxesCorrector ( Transformations.ApplyTransformation ( new Vector3d ( cubeVertices [i / 2 * 3],
+                                                                                                                                  cubeVertices [i / 2 * 3 + 1],
+                                                                                                                                  cubeVertices
+                                                                                                                                    [i / 2 * 3 + 2] ),
+                                                                                                                   transformation ) );
         verticesPositionAndColor [i + 1] = new Vector3 ( color );
       }
 
       return verticesPositionAndColor;
     }
-
-    /// <summary>
-    /// Applies transformation matrix to vector
-    /// </summary>
-    /// <param name="vector">1x3 vector</param>
-    /// <param name="transformation">4x4 transformation matrix</param>
-    /// <returns>Transformed vector 1x3</returns>
-    public Vector3d ApplyTransformation ( Vector3d vector, Matrix4d transformation )
-		{
-			Vector4d transformedVector = MultiplyVectorByMatrix ( new Vector4d ( vector, 1 ), transformation ); //( vector, 1 ) is extenstion [x  y  z] -> [x  y  z  1]
-
-			return new Vector3d ( transformedVector.X / transformedVector.W, //[x  y  z  w] -> [x/w  y/w  z/w]
-								  transformedVector.Y / transformedVector.W,
-								  transformedVector.Z / transformedVector.W );
-		}
-
-		/// <summary>
-		/// Multiplication of Vector4d and Matrix4d
-		/// </summary>
-		/// <param name="vector">Vector 1x4 on left side</param>
-		/// <param name="matrix">Matrix 4x4 on right side</param>
-		/// <returns>Result of multiplication - 1x4 vector</returns>
-		public Vector4d MultiplyVectorByMatrix ( Vector4d vector, Matrix4d matrix )
-		{
-			Vector4d result = new Vector4d (0, 0, 0, 0);
-
-			for ( int i = 0; i < 4; i++ )
-			{
-				for ( int j = 0; j < 4; j++ )
-				{
-					result[i] += vector[j] * matrix[j, i];
-				}
-			}
-
-			return result;
-		}
 
     /// <summary>
     /// Linearly generates shade of gray between approximately [0.25, 0.25, 0.25] and [0.75, 0.75, 0.75] (in 0 to 1 for RGB channels)
@@ -1317,10 +1282,10 @@ namespace Rendering
 
           Vector3[] verticesAndColors = new Vector3[]
           {
-            (Vector3) RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c2.Z ), sceneObject.transformation ) ), color,
-            (Vector3) RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c2.Z ), sceneObject.transformation ) ), color,
-            (Vector3) RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c1.Z ), sceneObject.transformation ) ), color,
-            (Vector3) RayVisualizer.AxesCorrector ( ApplyTransformation ( new Vector3d ( c1.X, c2.Y, c1.Z ), sceneObject.transformation ) ), color,
+            (Vector3) RayVisualizer.AxesCorrector ( Transformations.ApplyTransformation ( new Vector3d ( c1.X, c1.Y, c2.Z ), sceneObject.transformation ) ), color,
+            (Vector3) RayVisualizer.AxesCorrector ( Transformations.ApplyTransformation ( new Vector3d ( c2.X, c1.Y, c2.Z ), sceneObject.transformation ) ), color,
+            (Vector3) RayVisualizer.AxesCorrector ( Transformations.ApplyTransformation ( new Vector3d ( c2.X, c2.Y, c1.Z ), sceneObject.transformation ) ), color,
+            (Vector3) RayVisualizer.AxesCorrector ( Transformations.ApplyTransformation ( new Vector3d ( c1.X, c2.Y, c1.Z ), sceneObject.transformation ) ), color,
           };
 
           toBeBuffer.AddRange ( verticesAndColors );
@@ -1360,37 +1325,13 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Takes screenshot of OpenGL window
-    /// </summary>
-    /// <returns>Bitmap representing screenshot</returns>
-    public Bitmap TakeScreenshot ()
-    {
-      if ( GraphicsContext.CurrentContext == null )
-        throw new GraphicsContextMissingException ();
-
-      int width = glControl1.ClientSize.Width;
-      int height = glControl1.ClientSize.Height;
-
-      Bitmap bitmap = new Bitmap(width, height);
-
-      BitmapData data = bitmap.LockBits ( glControl1.ClientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
-
-      GL.ReadPixels ( 0, 0, width, height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0 );
-
-      bitmap.UnlockBits ( data );
-      bitmap.RotateFlip ( RotateFlipType.RotateNoneFlipY );
-
-      return bitmap;
-    }
-
-    /// <summary>
     /// Takes screenshot of OpenGL window, opens save file dialog window and save screenshot as .PNG image
     /// </summary>
     /// <param name="sender">Not needed</param>
     /// <param name="e">Not needed</param>
     private void SaveScreenshotButton_Click ( object sender, EventArgs e )
     {
-      Image outputImage = TakeScreenshot ();
+      Image outputImage = Snapshots.TakeScreenshot ( glControl1 );
 
       if ( outputImage == null )
         return;
