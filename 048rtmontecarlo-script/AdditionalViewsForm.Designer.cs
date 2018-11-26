@@ -1117,8 +1117,8 @@
       this.MinimumSize = new System.Drawing.Size(600, 470);
       this.Name = "AdditionalViewsForm";
       this.Text = "Additional Views";
-      this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.AdvancedToolsForm_FormClosed);
-      this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AdvancedToolsForm_KeyDown);
+      this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.AdditionalViewsForm_FormClosed);
+      this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AdditionalViewsForm_KeyDown);
       this.MapsTabControl.ResumeLayout(false);
       this.DepthMapTab.ResumeLayout(false);
       this.DepthMapLayoutPanel.ResumeLayout(false);

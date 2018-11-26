@@ -30,10 +30,14 @@ namespace Rendering
 	  private readonly CheckBox collectDataCheckBox;
 	  private readonly Action<string, string, int> notification;
 
+    public AdditionalViewsForm form;
+
 	  public AdditionalViews ( CheckBox collectDataCheckBox , Action<string, string, int> notification )
 	  {
       this.collectDataCheckBox = collectDataCheckBox;
       this.notification = notification;
+
+      singleton = this;
     }
 
     internal void Initialize ()
@@ -52,9 +56,7 @@ namespace Rendering
       foreach ( FieldInfo fieldInfo in typeof ( AdditionalViews ).GetFields () )
       {
         if ( typeof ( IMap ).IsAssignableFrom ( fieldInfo.FieldType ) )
-        {
           allMaps.Add ( (IMap) fieldInfo.GetValue ( singleton ) );
-        }
       }
     }
 
@@ -64,7 +66,7 @@ namespace Rendering
     /// <param name="level">To differentiate between primary and all rays</param>
     /// <param name="rayOrigin">Origin of ray / Centre of camera</param>
     /// <param name="firstIntersection">First element of array of Intersections</param>
-    public void Register ( int level, Vector3d rayOrigin, Rendering.Intersection firstIntersection )
+    public void Register ( int level, Vector3d rayOrigin, Intersection firstIntersection )
     {
       if ( !collectDataCheckBox.Checked )
         return;
@@ -82,7 +84,8 @@ namespace Rendering
       if ( depthMap.mapArray == null )
         depthMap.Initialize ();
 
-      if ( normalMapRelative.mapArray == null || normalMapRelative.intersectionMapArray == null ||
+      if ( normalMapRelative.mapArray == null || 
+           normalMapRelative.intersectionMapArray == null || 
            normalMapAbsolute.mapArray == null )
       {
         normalMapRelative.Initialize ();
@@ -104,12 +107,9 @@ namespace Rendering
         // register primary rays (those with level 0)
         primaryRaysMap.mapArray [ MT.x, MT.y ] += 1; // do not use ++ instead - causes problems with strong type T in Map<T>
 
-        if ( firstIntersection != null )
-        {
-          // register normal vector
-          normalMapRelative.intersectionMapArray [ MT.x, MT.y ] += firstIntersection.CoordWorld;
-          normalMapRelative.mapArray [ MT.x, MT.y ]             += firstIntersection.Normal;
-        }
+        // register normal vector
+        normalMapRelative.intersectionMapArray[MT.x, MT.y] += firstIntersection.CoordWorld;
+        normalMapRelative.mapArray[MT.x, MT.y] += firstIntersection.Normal;
       }
 
       // register all rays
@@ -156,10 +156,7 @@ namespace Rendering
 
       public override double GetValueAtCoordinates ( int x, int y )
       {
-        if ( mapArray [ x, y ] >= maxValue )
-          return double.PositiveInfinity;
-        else
-          return mapArray [ x, y ];
+        return mapArray [ x, y ] >= maxValue ? double.PositiveInfinity : mapArray [ x, y ];
       }
     }
 
@@ -193,8 +190,7 @@ namespace Rendering
     /// </summary>
     public class NormalMap: Map<Vector3d, double>
     {
-      delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector );
-
+      private delegate Color AppropriateColor ( Vector3d normalVector, Vector3d intersectionVector );
 
       private readonly AppropriateColor appropriateColor;
 
@@ -233,9 +229,7 @@ namespace Rendering
       public override void RenderMap ()
       {
         if ( mapImageWidth == 0 || mapImageHeight == 0 )
-        {
           Initialize ();
-        }
 
         if ( !wasAveraged )
         {
@@ -273,14 +267,10 @@ namespace Rendering
         Vector3d relativeNormalVector = rayOrigin - intersectionVector - normalVector;
 
         if ( normalVector == Vector3d.Zero )
-        {
           return Color.Black;
-        }
 
         if ( relativeNormalVector != Vector3d.Zero )
-        {
           relativeNormalVector.Normalize ();
-        }
 
         int red   = (int) ( ( relativeNormalVector.X + 1 ) * 127.5 );
         int green = (int) ( ( relativeNormalVector.Y + 1 ) * 127.5 );
@@ -289,12 +279,10 @@ namespace Rendering
         return Color.FromArgb ( red, green, blue );
       }
 
-      private Color GetAppropriateColorAbsolute ( Vector3d normalVector, Vector3d intersectionVector )
+      private static Color GetAppropriateColorAbsolute ( Vector3d normalVector, Vector3d intersectionVector )
       {
         if ( normalVector == Vector3d.Zero )
-        {
           return Color.Black;
-        }
 
         normalVector.Normalize ();
 
@@ -312,11 +300,9 @@ namespace Rendering
         double colorValue = angle / 90 * 240;
 
         if ( double.IsNaN ( colorValue ) )
-        {
           return Color.FromArgb ( 1, 1, 1, 1 );
-        }
-
-        return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
+        else
+          return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
       }
 
       public new void Reset ()
@@ -327,10 +313,12 @@ namespace Rendering
       }
     }
 
+
     /// <summary>
     /// Base class for all maps
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">Type of value stored in map</typeparam>
+    /// <typeparam name="U">Type of value returned when asked for value at specific location (usually same as T)</typeparam>
     public abstract class Map<T, U>: IMap
     {
       // Image width and heightin pixels, 0 for default value (according to panel size)
@@ -411,9 +399,7 @@ namespace Rendering
         FieldInfo field = typeof ( T ).GetField ( name, BindingFlags.Public | BindingFlags.Static );
 
         if ( field == null )
-        {
           throw new InvalidOperationException ( "Invalid type argument for NumericUpDown<T>: " + typeof ( T ).Name );
-        }
 
         return (T) field.GetValue ( null );
       }
@@ -447,13 +433,13 @@ namespace Rendering
         for ( int i = 0; i < mapImageWidth; i++ )
           for ( int j = 0; j < mapImageHeight; j++ )
             if ( singleton.primaryRaysMap.mapArray [ i, j ] != 0 )
-              DivideArray ( i, j ); // Separate method for division because of strongly typed T
+              DivideArray ( i, j ); // Separate method for division because of generic T
 
         wasAveraged = true;
       }
 
       /// <summary>
-      /// Implementation of standard division operator (needed because of strongly typed T)
+      /// Implementation of standard division operator (needed because of generic T)
       /// </summary>
       protected abstract void DivideArray ( int x, int y );
 
@@ -464,23 +450,22 @@ namespace Rendering
       public Bitmap GetBitmap ()
       {
         if ( mapBitmap == null )
-        {
           RenderMap ();
-        }
 
         return mapBitmap;
       }
 
       /// <summary>
-      /// Used by Form1 to display info for mouse down and mouse move while mouse down
+      /// Used by AdditionalViewsForm to display info for mouse down and mouse move while mouse down
       /// </summary>
       /// <param name="x">X coordinate of cursor relative to bitmap/mapArray</param>
       /// <param name="y">Y coordinate of cursor relative to bitmap/mapArray</param>
-      /// <returns>Returns dynamic because some map classes does not return their T type</returns>
+      /// <returns>Return U - in most maps it is same as T</returns>
       public abstract U GetValueAtCoordinates ( int x, int y );
 
       /// <summary>
       /// Sets minimal and maximal values found in mapArray
+      /// Must be overriden if T is not IComparable
       /// </summary>
       /// <typeparam name="T">Type IComparable</typeparam>
       protected virtual void SetMinimumAndMaximum ()
@@ -514,6 +499,7 @@ namespace Rendering
           AddExtension = true,
           FileName = mapName + ".csv"
         };
+
         if ( sfd.ShowDialog () != DialogResult.OK )
           return;
 
@@ -585,8 +571,8 @@ namespace Rendering
 
       if ( double.IsNaN ( colorValue ) )  // this happens in case minValue and maxValue are same
         return Color.Red;
-
-      return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
+      else
+        return Arith.HSVToColor ( 240 - colorValue, 1, 1 );
     }
 
     /// <summary>
@@ -693,7 +679,7 @@ namespace Rendering
 /// <summary>
 /// Interface for all maps
 /// </summary>
-interface IMap
+internal interface IMap
 {
   void Initialize ( int formImageWidth = 0, int formImageHeight = 0 );
 

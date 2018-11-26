@@ -95,7 +95,7 @@ namespace Rendering
     {
       scene = newScene;
       rays?.Clear ();
-      singleton?.shadowRays?.Clear ();
+      shadowRays?.Clear ();
 
       backgroundColor = new int[] 
       {

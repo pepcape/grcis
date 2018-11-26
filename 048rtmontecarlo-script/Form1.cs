@@ -29,8 +29,6 @@ namespace Rendering
     /// </summary>
     public Dictionary<string, object> sceneRepository = null;
 
-    public Scripts MyScenes;
-
     /// <summary>
     /// Index of the current (selected) scene.
     /// </summary>
@@ -80,8 +78,10 @@ namespace Rendering
     protected string formTitle;
 
     private readonly PanAndZoomSupport panAndZoom;
+    private readonly RayVisualizer rayVisualizer;
+    private readonly AdditionalViews additionalViews;
+    private Master master;
 
-    private RayVisualizer rayVisualizer;
     public Form1 ( string[] args )
     {
       singleton = this;
@@ -98,13 +98,13 @@ namespace Rendering
       SetOptions ( args );
       buttonRes.Text = FormResolution.GetLabel ( ref ImageWidth, ref ImageHeight );
 
-      Image image = Resources.CGG_Logo;
+      Image image = Resources.CGG_Logo; // placeholder image for PictureBox
 
-      if ( AdditionalViews.singleton == null )
-        AdditionalViews.singleton = new AdditionalViews ( collectDataCheckBox, Notification );
 
-      AdditionalViews.singleton.Initialize ();
-      AdditionalViews.singleton.SetNewDimensions ( ImageWidth, ImageHeight ); //makes all maps to initialize again
+      additionalViews = new AdditionalViews ( collectDataCheckBox, Notification );
+
+      additionalViews.Initialize ();
+      additionalViews.SetNewDimensions ( ImageWidth, ImageHeight ); //makes all maps to initialize again
 
       panAndZoom = new PanAndZoomSupport ( pictureBox1, image, SetWindowTitleSuffix );
 
@@ -117,39 +117,24 @@ namespace Rendering
     /// </summary>
     public IRayScene SceneByComboBox ()
     {
-      string sceneName = (string) comboScene.Items [ selectedScene ];
+      string sceneName = (string) ComboScene.Items [ selectedScene ];
 
       if ( sceneRepository.TryGetValue ( sceneName, out object definition ) )
-        return Scripts.SceneFromObject ( sceneName, definition, textParam.Text, SetText );
+        return Scripts.SceneFromObject ( sceneName, definition, TextParam.Text, SetText );
 
       // fallback to a default scene;
       return Scenes.DefaultScene ();
     }
 
-    public ComboBox ComboScene
-    {
-      get { return comboScene; }
-    }
+    public ComboBox ComboScene { get; private set; }
 
-    public NumericUpDown NumericSupersampling
-    {
-      get { return numericSupersampling; }
-    }
+    public NumericUpDown NumericSupersampling { get; private set; }
 
-    public CheckBox CheckJitter
-    {
-      get { return checkJitter; }
-    }
+    public CheckBox CheckJitter { get; private set; }
 
-    public CheckBox CheckMultithreading
-    {
-      get { return checkMultithreading; }
-    }
+    public CheckBox CheckMultithreading { get; private set; }
 
-    public TextBox TextParam
-    {
-      get { return textParam; }
-    }
+    public TextBox TextParam { get; private set; }
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
@@ -242,7 +227,7 @@ namespace Rendering
 
     private IRenderer getRenderer ( IImageFunction imf, int width, int height )
     {
-      IRenderer rend = FormSupport.getRenderer ( imf, (int) numericSupersampling.Value, checkJitter.Checked ? 1.0 : 0.0,
+      IRenderer rend = FormSupport.getRenderer ( imf, (int) NumericSupersampling.Value, CheckJitter.Checked ? 1.0 : 0.0,
                                                  TextParam.Text );
       rend.Width = width;
       rend.Height = height;
@@ -253,9 +238,9 @@ namespace Rendering
     }
 
     /// <summary>
-    /// [Re]-renders the whole image (in separate thread).
+    /// [Re]-renders the whole image (in separate thread). OLD VERSION!!!
     /// </summary>
-    private void RenderImage ()
+    private void RenderImage_OLD ()
     {
       Cursor.Current = Cursors.WaitCursor;
 
@@ -270,7 +255,7 @@ namespace Rendering
 
       Bitmap newImage = new Bitmap ( width, height, PixelFormat.Format24bppRgb );
 
-      int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
+      int threads = CheckMultithreading.Checked ? Environment.ProcessorCount : 1;
       int t; // thread ordinal number
 
       WorkerThreadInit[] wti = new WorkerThreadInit[threads];
@@ -335,7 +320,10 @@ namespace Rendering
       StopRendering ();
     }
 
-    private void RenderImage2 ()
+    /// <summary>
+    /// [Re]-renders the whole image (in separate thread)
+    /// </summary>
+    private void RenderImage ()
     {
       Cursor.Current = Cursors.WaitCursor;
 
@@ -350,7 +338,7 @@ namespace Rendering
 
       Bitmap newImage = new Bitmap ( width, height, PixelFormat.Format24bppRgb );
 
-      int threads = checkMultithreading.Checked ? Environment.ProcessorCount : 1;
+      int threads = CheckMultithreading.Checked ? Environment.ProcessorCount : 1;
 
       IRayScene      sc  = FormSupport.getScene ();
       IImageFunction imf = getImageFunction ( sc, width, height );
@@ -358,12 +346,12 @@ namespace Rendering
 
       rayVisualizer.UpdateScene ( sc );
 
-      Master.singleton = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads, pointCloudCheckBox.Checked );
-      Master.singleton.progressData = progress;
-      Master.singleton.InitializeAssignments ( newImage, sc, r );
+      master = new Master ( newImage, sc, r, RenderClientsForm.instance?.clients, threads, pointCloudCheckBox.Checked );
+      master.progressData = progress;
+      master.InitializeAssignments ( newImage, sc, r );
 
       if ( pointCloudCheckBox.Checked )
-        Master.singleton.pointCloud.SetNecessaryFields ( PointCloudSavingStart, PointCloudSavingEnd, Notification, Invoke );
+        master.pointCloud.SetNecessaryFields ( PointCloudSavingStart, PointCloudSavingEnd, Notification, Invoke );
 
       progress.SyncInterval = ( ( width * (long) height ) > ( 2L << 20 ) ) ? 3000L : 1000L;
       progress.Reset ();
@@ -372,7 +360,7 @@ namespace Rendering
       lock ( sw )
         sw.Restart ();
 
-      Master.singleton.StartThreads ();
+      master.StartThreads ();
 
       long elapsed;
       lock ( sw )
@@ -399,16 +387,16 @@ namespace Rendering
 
     private void SetGUI ( bool enable )
     {
-      numericSupersampling.Enabled =
-      checkJitter.Enabled =
+      NumericSupersampling.Enabled =
+      CheckJitter.Enabled =
       checkShadows.Enabled =
       checkReflections.Enabled =
       checkReflections.Enabled =
       checkRefractions.Enabled =
-      checkMultithreading.Enabled =
+      CheckMultithreading.Enabled =
       buttonRender.Enabled =
-      comboScene.Enabled =
-      textParam.Enabled =
+      ComboScene.Enabled =
+      TextParam.Enabled =
       buttonRes.Enabled =
       pointCloudCheckBox.Enabled =
       collectDataCheckBox.Enabled =
@@ -425,8 +413,7 @@ namespace Rendering
     }
 
 
-    delegate void SetImageCallback ( Bitmap newImage );
-
+    private delegate void SetImageCallback ( Bitmap newImage );
 
     public Stopwatch GetStopwatch ()
     {
@@ -460,7 +447,7 @@ namespace Rendering
     }
 
 
-    delegate void StopRenderingCallback ();
+    private delegate void StopRenderingCallback ();
 
     /// <summary>
     /// Called to stop rendering and at the end of successful rendering 
@@ -486,8 +473,8 @@ namespace Rendering
         // GUI stuff:
         SetGUI ( true );
 
-        AdditionalViewsForm.singleton?.RenderButtonsEnabled ( true );
-        AdditionalViewsForm.singleton?.ExportDataButtonsEnabled ( true );
+        additionalViews.form?.RenderButtonsEnabled ( true );
+        additionalViews.form?.ExportDataButtonsEnabled ( true );
         MT.renderingInProgress = false;
         MT.sceneRendered = true;
 
@@ -495,9 +482,9 @@ namespace Rendering
           savePointCloudButton.Enabled = false;
         else if ( rayVisualizer.form != null )
           rayVisualizer.form.PointCloudButton.Enabled = true;
-          
 
-        AdditionalViewsForm.singleton?.NewImageRendered ();
+
+        additionalViews.form?.NewImageRendered ();
 
         panAndZoom.SetNewImage ( panAndZoom.image, true );
 
@@ -552,7 +539,7 @@ namespace Rendering
             switch ( opts[0] )
             {
               case "jittering":
-                checkJitter.Checked = Util.positive ( opts[1] );
+                CheckJitter.Checked = Util.positive ( opts[1] );
                 break;
 
               case "shadows":
@@ -568,13 +555,13 @@ namespace Rendering
                 break;
 
               case "multi-threading":
-                checkMultithreading.Checked = Util.positive ( opts[1] );
+                CheckMultithreading.Checked = Util.positive ( opts[1] );
                 break;
 
               case "supersampling":
               {
                 if ( int.TryParse ( opts[1], out int v ) )
-                  numericSupersampling.Text = v.ToString ();
+                  NumericSupersampling.Text = v.ToString ();
               }
               break;
             }
@@ -596,11 +583,11 @@ namespace Rendering
     {
       if ( collectDataCheckBox.Checked )
       {
-        AdditionalViews.singleton.SetNewDimensions ( ImageWidth, ImageHeight );
-        AdditionalViews.singleton.NewRenderInitialization ();
+        additionalViews.SetNewDimensions ( ImageWidth, ImageHeight );
+        additionalViews.NewRenderInitialization ();
       }
-      else if ( !AdditionalViews.singleton.mapsEmpty )
-        AdditionalViewsForm.singleton?.ExportDataButtonsEnabled ( true );
+      else if ( !additionalViews.mapsEmpty )
+        additionalViews.form?.ExportDataButtonsEnabled ( true );
 
       if ( aThread != null )
         return;
@@ -608,7 +595,7 @@ namespace Rendering
       // GUI stuff:
       SetGUI ( false );
 
-      AdditionalViewsForm.singleton?.RenderButtonsEnabled ( false );
+      additionalViews.form?.RenderButtonsEnabled ( false );
       MT.renderingInProgress = true;
       Statistics.Reset ();
 
@@ -616,7 +603,7 @@ namespace Rendering
         progress.Continue = true;
 
       SetText ( "Wait a moment.." );
-      aThread = new Thread ( new ThreadStart ( this.RenderImage2 ) );
+      aThread = new Thread ( new ThreadStart ( this.RenderImage ) );
       aThread.Start ();
     }
 
@@ -645,7 +632,7 @@ namespace Rendering
 
     private void comboScene_SelectedIndexChanged ( object sender, EventArgs e )
     {
-      selectedScene = comboScene.SelectedIndex;
+      selectedScene = ComboScene.SelectedIndex;
       dirty = true;
     }
 
@@ -654,16 +641,16 @@ namespace Rendering
       dirty = true;
     }
 
-    private void AdvancedToolsButton_Click ( object sender, EventArgs e )
+    private void AdditionalViewsButton_Click ( object sender, EventArgs e )
     {
-      if ( AdditionalViewsForm.singleton != null )
+      if ( additionalViews.form != null )
       {
-        AdditionalViewsForm.singleton.Activate ();
+        additionalViews.form.Activate ();
 
         return; //only one instance of Form1 can exist at the time
       }
 
-      AdditionalViewsForm additionalViewsForm = new AdditionalViewsForm ();
+      AdditionalViewsForm additionalViewsForm = new AdditionalViewsForm ( additionalViews );
       additionalViewsForm.Show ();
     }
 
@@ -820,7 +807,7 @@ namespace Rendering
       if ( sfd.ShowDialog () != DialogResult.OK )
         return;
 
-      AdditionalViews.singleton?.pointCloud?.SaveToPLYFile ( sfd.FileName );
+      additionalViews?.pointCloud?.SaveToPLYFile ( sfd.FileName );
     }
 
     /// <summary>
