@@ -35,7 +35,7 @@
       this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
       this.buttonSave = new System.Windows.Forms.Button();
       this.savePointCloudButton = new System.Windows.Forms.Button();
-      this.AdvancedToolsButton = new System.Windows.Forms.Button();
+      this.AdditionalViewsButton = new System.Windows.Forms.Button();
       this.RayVisualiserButton = new System.Windows.Forms.Button();
       this.RenderClientsButton = new System.Windows.Forms.Button();
       this.ResetButton = new System.Windows.Forms.Button();
@@ -47,18 +47,18 @@
       this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
       this.buttonRes = new System.Windows.Forms.Button();
       this.label2 = new System.Windows.Forms.Label();
-      this.numericSupersampling = new System.Windows.Forms.NumericUpDown();
-      this.checkJitter = new System.Windows.Forms.CheckBox();
+      this.NumericSupersampling = new System.Windows.Forms.NumericUpDown();
+      this.CheckJitter = new System.Windows.Forms.CheckBox();
       this.checkShadows = new System.Windows.Forms.CheckBox();
       this.checkReflections = new System.Windows.Forms.CheckBox();
       this.checkRefractions = new System.Windows.Forms.CheckBox();
-      this.checkMultithreading = new System.Windows.Forms.CheckBox();
+      this.CheckMultithreading = new System.Windows.Forms.CheckBox();
       this.pointCloudCheckBox = new System.Windows.Forms.CheckBox();
       this.collectDataCheckBox = new System.Windows.Forms.CheckBox();
       this.panel1 = new System.Windows.Forms.Panel();
-      this.textParam = new System.Windows.Forms.TextBox();
+      this.TextParam = new System.Windows.Forms.TextBox();
       this.label3 = new System.Windows.Forms.Label();
-      this.comboScene = new System.Windows.Forms.ComboBox();
+      this.ComboScene = new System.Windows.Forms.ComboBox();
       this.label1 = new System.Windows.Forms.Label();
       this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
       this.labelElapsed = new System.Windows.Forms.Label();
@@ -70,7 +70,7 @@
       this.flowLayoutPanel1.SuspendLayout();
       this.flowLayoutPanel3.SuspendLayout();
       this.flowLayoutPanel2.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.numericSupersampling)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.NumericSupersampling)).BeginInit();
       this.panel1.SuspendLayout();
       this.tableLayoutPanel3.SuspendLayout();
       this.SuspendLayout();
@@ -133,7 +133,7 @@
       // 
       this.flowLayoutPanel1.Controls.Add(this.buttonSave);
       this.flowLayoutPanel1.Controls.Add(this.savePointCloudButton);
-      this.flowLayoutPanel1.Controls.Add(this.AdvancedToolsButton);
+      this.flowLayoutPanel1.Controls.Add(this.AdditionalViewsButton);
       this.flowLayoutPanel1.Controls.Add(this.RayVisualiserButton);
       this.flowLayoutPanel1.Controls.Add(this.RenderClientsButton);
       this.flowLayoutPanel1.Controls.Add(this.ResetButton);
@@ -178,16 +178,16 @@
       this.savePointCloudButton.UseVisualStyleBackColor = true;
       this.savePointCloudButton.Click += new System.EventHandler(this.SavePointCloudButton_Click);
       // 
-      // AdvancedToolsButton
+      // AdditionalViewsButton
       // 
-      this.AdvancedToolsButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.AdvancedToolsButton.Location = new System.Drawing.Point(413, 3);
-      this.AdvancedToolsButton.Name = "AdvancedToolsButton";
-      this.AdvancedToolsButton.Size = new System.Drawing.Size(107, 23);
-      this.AdvancedToolsButton.TabIndex = 5;
-      this.AdvancedToolsButton.Text = "Additional Views";
-      this.AdvancedToolsButton.UseVisualStyleBackColor = true;
-      this.AdvancedToolsButton.Click += new System.EventHandler(this.AdvancedToolsButton_Click);
+      this.AdditionalViewsButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.AdditionalViewsButton.Location = new System.Drawing.Point(413, 3);
+      this.AdditionalViewsButton.Name = "AdditionalViewsButton";
+      this.AdditionalViewsButton.Size = new System.Drawing.Size(107, 23);
+      this.AdditionalViewsButton.TabIndex = 5;
+      this.AdditionalViewsButton.Text = "Additional Views";
+      this.AdditionalViewsButton.UseVisualStyleBackColor = true;
+      this.AdditionalViewsButton.Click += new System.EventHandler(this.AdditionalViewsButton_Click);
       // 
       // RayVisualiserButton
       // 
@@ -285,12 +285,12 @@
       // 
       this.flowLayoutPanel2.Controls.Add(this.buttonRes);
       this.flowLayoutPanel2.Controls.Add(this.label2);
-      this.flowLayoutPanel2.Controls.Add(this.numericSupersampling);
-      this.flowLayoutPanel2.Controls.Add(this.checkJitter);
+      this.flowLayoutPanel2.Controls.Add(this.NumericSupersampling);
+      this.flowLayoutPanel2.Controls.Add(this.CheckJitter);
       this.flowLayoutPanel2.Controls.Add(this.checkShadows);
       this.flowLayoutPanel2.Controls.Add(this.checkReflections);
       this.flowLayoutPanel2.Controls.Add(this.checkRefractions);
-      this.flowLayoutPanel2.Controls.Add(this.checkMultithreading);
+      this.flowLayoutPanel2.Controls.Add(this.CheckMultithreading);
       this.flowLayoutPanel2.Controls.Add(this.pointCloudCheckBox);
       this.flowLayoutPanel2.Controls.Add(this.collectDataCheckBox);
       this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -324,22 +324,22 @@
       // 
       // numericSupersampling
       // 
-      this.numericSupersampling.Anchor = System.Windows.Forms.AnchorStyles.Left;
-      this.numericSupersampling.Location = new System.Drawing.Point(177, 4);
-      this.numericSupersampling.Maximum = new decimal(new int[] {
+      this.NumericSupersampling.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.NumericSupersampling.Location = new System.Drawing.Point(177, 4);
+      this.NumericSupersampling.Maximum = new decimal(new int[] {
             10000,
             0,
             0,
             0});
-      this.numericSupersampling.Minimum = new decimal(new int[] {
+      this.NumericSupersampling.Minimum = new decimal(new int[] {
             1,
             0,
             0,
             0});
-      this.numericSupersampling.Name = "numericSupersampling";
-      this.numericSupersampling.Size = new System.Drawing.Size(52, 20);
-      this.numericSupersampling.TabIndex = 45;
-      this.numericSupersampling.Value = new decimal(new int[] {
+      this.NumericSupersampling.Name = "NumericSupersampling";
+      this.NumericSupersampling.Size = new System.Drawing.Size(52, 20);
+      this.NumericSupersampling.TabIndex = 45;
+      this.NumericSupersampling.Value = new decimal(new int[] {
             1,
             0,
             0,
@@ -347,17 +347,17 @@
       // 
       // checkJitter
       // 
-      this.checkJitter.Anchor = System.Windows.Forms.AnchorStyles.Left;
-      this.checkJitter.AutoSize = true;
-      this.checkJitter.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-      this.checkJitter.Checked = true;
-      this.checkJitter.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkJitter.Location = new System.Drawing.Point(235, 6);
-      this.checkJitter.Name = "checkJitter";
-      this.checkJitter.Size = new System.Drawing.Size(59, 17);
-      this.checkJitter.TabIndex = 49;
-      this.checkJitter.Text = "jittering";
-      this.checkJitter.UseVisualStyleBackColor = true;
+      this.CheckJitter.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.CheckJitter.AutoSize = true;
+      this.CheckJitter.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.CheckJitter.Checked = true;
+      this.CheckJitter.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.CheckJitter.Location = new System.Drawing.Point(235, 6);
+      this.CheckJitter.Name = "CheckJitter";
+      this.CheckJitter.Size = new System.Drawing.Size(59, 17);
+      this.CheckJitter.TabIndex = 49;
+      this.CheckJitter.Text = "jittering";
+      this.CheckJitter.UseVisualStyleBackColor = true;
       // 
       // checkShadows
       // 
@@ -403,15 +403,15 @@
       // 
       // checkMultithreading
       // 
-      this.checkMultithreading.Anchor = System.Windows.Forms.AnchorStyles.Left;
-      this.checkMultithreading.AutoSize = true;
-      this.checkMultithreading.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-      this.checkMultithreading.Location = new System.Drawing.Point(535, 6);
-      this.checkMultithreading.Name = "checkMultithreading";
-      this.checkMultithreading.Size = new System.Drawing.Size(94, 17);
-      this.checkMultithreading.TabIndex = 50;
-      this.checkMultithreading.Text = "multi-threading";
-      this.checkMultithreading.UseVisualStyleBackColor = true;
+      this.CheckMultithreading.Anchor = System.Windows.Forms.AnchorStyles.Left;
+      this.CheckMultithreading.AutoSize = true;
+      this.CheckMultithreading.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.CheckMultithreading.Location = new System.Drawing.Point(535, 6);
+      this.CheckMultithreading.Name = "CheckMultithreading";
+      this.CheckMultithreading.Size = new System.Drawing.Size(94, 17);
+      this.CheckMultithreading.TabIndex = 50;
+      this.CheckMultithreading.Text = "multi-threading";
+      this.CheckMultithreading.UseVisualStyleBackColor = true;
       // 
       // pointCloudCheckBox
       // 
@@ -442,9 +442,9 @@
       // 
       // panel1
       // 
-      this.panel1.Controls.Add(this.textParam);
+      this.panel1.Controls.Add(this.TextParam);
       this.panel1.Controls.Add(this.label3);
-      this.panel1.Controls.Add(this.comboScene);
+      this.panel1.Controls.Add(this.ComboScene);
       this.panel1.Controls.Add(this.label1);
       this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.panel1.Location = new System.Drawing.Point(3, 522);
@@ -454,12 +454,12 @@
       // 
       // textParam
       // 
-      this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+      this.TextParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.textParam.Location = new System.Drawing.Point(272, 5);
-      this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(628, 20);
-      this.textParam.TabIndex = 49;
+      this.TextParam.Location = new System.Drawing.Point(272, 5);
+      this.TextParam.Name = "TextParam";
+      this.TextParam.Size = new System.Drawing.Size(628, 20);
+      this.TextParam.TabIndex = 49;
       // 
       // label3
       // 
@@ -473,13 +473,13 @@
       // 
       // comboScene
       // 
-      this.comboScene.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-      this.comboScene.FormattingEnabled = true;
-      this.comboScene.Location = new System.Drawing.Point(50, 5);
-      this.comboScene.Name = "comboScene";
-      this.comboScene.Size = new System.Drawing.Size(155, 21);
-      this.comboScene.TabIndex = 47;
-      this.comboScene.SelectedIndexChanged += new System.EventHandler(this.comboScene_SelectedIndexChanged);
+      this.ComboScene.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.ComboScene.FormattingEnabled = true;
+      this.ComboScene.Location = new System.Drawing.Point(50, 5);
+      this.ComboScene.Name = "ComboScene";
+      this.ComboScene.Size = new System.Drawing.Size(155, 21);
+      this.ComboScene.TabIndex = 47;
+      this.ComboScene.SelectedIndexChanged += new System.EventHandler(this.comboScene_SelectedIndexChanged);
       // 
       // label1
       // 
@@ -552,7 +552,7 @@
       this.flowLayoutPanel3.ResumeLayout(false);
       this.flowLayoutPanel2.ResumeLayout(false);
       this.flowLayoutPanel2.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.numericSupersampling)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.NumericSupersampling)).EndInit();
       this.panel1.ResumeLayout(false);
       this.panel1.PerformLayout();
       this.tableLayoutPanel3.ResumeLayout(false);
@@ -567,16 +567,11 @@
     private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
     private System.Windows.Forms.Button buttonRes;
     private System.Windows.Forms.Label label2;
-    private System.Windows.Forms.NumericUpDown numericSupersampling;
-    private System.Windows.Forms.CheckBox checkJitter;
     private System.Windows.Forms.CheckBox checkShadows;
     private System.Windows.Forms.CheckBox checkReflections;
     private System.Windows.Forms.CheckBox checkRefractions;
-    private System.Windows.Forms.CheckBox checkMultithreading;
     private System.Windows.Forms.Panel panel1;
-    private System.Windows.Forms.TextBox textParam;
     private System.Windows.Forms.Label label3;
-    private System.Windows.Forms.ComboBox comboScene;
     private System.Windows.Forms.Label label1;
     private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
     private System.Windows.Forms.Label labelSample;
@@ -589,7 +584,7 @@
     private System.Windows.Forms.Button buttonRender;
     private System.Windows.Forms.Button buttonStop;
     private System.Windows.Forms.PictureBox pictureBox1;
-    private System.Windows.Forms.Button AdvancedToolsButton;
+    private System.Windows.Forms.Button AdditionalViewsButton;
     public System.Windows.Forms.CheckBox pointCloudCheckBox;
     private System.Windows.Forms.NotifyIcon notificationIcon;
     public System.Windows.Forms.Button RayVisualiserButton;

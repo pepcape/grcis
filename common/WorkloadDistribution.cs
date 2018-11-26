@@ -80,7 +80,9 @@ namespace Rendering
       {
         if ( AdditionalViews.singleton != null )
           pointCloud = AdditionalViews.singleton.pointCloud;
-      }      
+      }
+
+      singleton = this;
     }
 
     /// <summary>

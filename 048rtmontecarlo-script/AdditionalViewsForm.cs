@@ -12,22 +12,27 @@ namespace Rendering
   {   
     public static AdditionalViewsForm singleton;
 
-    private readonly PanAndZoomSupport[] PanAndZoomControls;
+    private readonly PanAndZoomSupport[] panAndZoomControls;
 
     private bool[] newImageAvailable;
+
+    private AdditionalViews additionalViews;
 
     /// <summary>
     /// Constructor which sets location of Form1 window and initializes AdditionalViews class
     /// </summary>
-    public AdditionalViewsForm ()
+    public AdditionalViewsForm ( AdditionalViews additionalViews )
     {
       singleton = this;
+
+      this.additionalViews = additionalViews;
+      additionalViews.form = this;
 
       InitializeComponent ();
 
       SetFormPosition ();
 
-      if ( AdditionalViews.singleton.mapsEmpty || MT.renderingInProgress )
+      if ( additionalViews.mapsEmpty || MT.renderingInProgress )
       {
         RenderButtonsEnabled ( false );
         ExportDataButtonsEnabled ( false );
@@ -38,7 +43,7 @@ namespace Rendering
         ExportDataButtonsEnabled ( true );
       }
 
-      PanAndZoomControls = new PanAndZoomSupport[MapsTabControl.TabCount];
+      panAndZoomControls = new PanAndZoomSupport[MapsTabControl.TabCount];
 
       for ( int i = 0; i < MapsTabControl.TabCount; i++ )
       {
@@ -48,7 +53,7 @@ namespace Rendering
         pictureBox.MouseWheel += new MouseEventHandler ( pictureBox_MouseWheel );
         pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
 
-        PanAndZoomControls [i] = new PanAndZoomSupport ( pictureBox, null, SetWindowTitleSuffix );
+        panAndZoomControls [i] = new PanAndZoomSupport ( pictureBox, null, SetWindowTitleSuffix );
       }
 
       newImageAvailable = new bool[MapsTabControl.TabCount];
@@ -91,9 +96,11 @@ namespace Rendering
       }
     }
 
-    private void AdvancedToolsForm_FormClosed ( object sender, FormClosedEventArgs e )
+    private void AdditionalViewsForm_FormClosed ( object sender, FormClosedEventArgs e )
     {
 			singleton = null;
+
+      additionalViews.form = null; // removes itself from associated AdditionalViews
     }
 
     /// <summary>
@@ -106,7 +113,7 @@ namespace Rendering
     {
       string mapName = MapsTabControl.SelectedTab.Tag.ToString ();
 
-      Bitmap outputImage = (Bitmap) PanAndZoomControls [MapsTabControl.SelectedIndex].image;
+      Bitmap outputImage = (Bitmap) panAndZoomControls [MapsTabControl.SelectedIndex].image;
 
       if ( outputImage == null )
         return;
@@ -145,7 +152,7 @@ namespace Rendering
 
       ( map as IMap ).RenderMap ();
 
-      PanAndZoomControls [MapsTabControl.SelectedIndex].SetNewImage ( ( map as IMap ).GetBitmap (), true );
+      panAndZoomControls [MapsTabControl.SelectedIndex].SetNewImage ( ( map as IMap ).GetBitmap (), true );
 
       SaveButtonsEnabled ( true, tabPage );
       ResetButtonsEnabled ( true, tabPage );
@@ -207,7 +214,7 @@ namespace Rendering
     {
       Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ( "en-GB" ); // needed for dot as decimal separator in float
 
-      double depth = AdditionalViews.singleton.depthMap.GetValueAtCoordinates ( X, Y );
+      double depth = additionalViews.depthMap.GetValueAtCoordinates ( X, Y );
 
       DepthMap_Coordinates.Text = $"X: {X}\r\nY: {Y}\r\nDepth: {depth:0.00}";
     }
@@ -225,7 +232,7 @@ namespace Rendering
 
       string fieldName = char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 );
 
-      AdditionalViews.RaysMap raysMap = AdditionalViews.singleton.GetType ().GetField ( fieldName ).GetValue ( AdditionalViews.singleton ) as AdditionalViews.RaysMap;
+      AdditionalViews.RaysMap raysMap = additionalViews.GetType ().GetField ( fieldName ).GetValue ( additionalViews ) as AdditionalViews.RaysMap;
 
 
       string fieldNameCamelCase = char.ToUpper ( fieldName [ 0 ] ) + fieldName.Substring ( 1 );
@@ -245,7 +252,7 @@ namespace Rendering
     /// <param name="Y">Relative Y coordinate of curson on image</param>
     private void NormalMapDisplayStats ( int X, int Y )
     {
-      double angle = AdditionalViews.singleton.normalMapRelative.GetValueAtCoordinates ( X, Y );
+      double angle = additionalViews.normalMapRelative.GetValueAtCoordinates ( X, Y );
 
       char degreesChar = '°';
       if ( double.IsInfinity ( angle ) || double.IsNaN ( angle ) )
@@ -263,9 +270,9 @@ namespace Rendering
     /// <param name="displayStats">DisplayStats method to use</param>
     private void CommonMouseDown ( MouseEventArgs e, Action<int, int> displayStats )
     {
-      bool condition = PanAndZoomControls [MapsTabControl.SelectedIndex].image != null && e.Button == MouseButtons.Left;
+      bool condition = panAndZoomControls [MapsTabControl.SelectedIndex].image != null && e.Button == MouseButtons.Left;
 
-      PanAndZoomControls[MapsTabControl.SelectedIndex].MouseDownRegistration ( e, displayStats, condition, ModifierKeys, out Cursor cursor );
+      panAndZoomControls[MapsTabControl.SelectedIndex].MouseDownRegistration ( e, displayStats, condition, ModifierKeys, out Cursor cursor );
 
       if ( cursor != null )
         Cursor = cursor;
@@ -278,9 +285,9 @@ namespace Rendering
     /// <param name="displayStats">DisplayStats method to use</param>
     private void CommonMouseMove ( MouseEventArgs e, Action<int, int> displayStats )
     {
-      bool condition = PanAndZoomControls [MapsTabControl.SelectedIndex].image != null && e.Button == MouseButtons.Left;
+      bool condition = panAndZoomControls [MapsTabControl.SelectedIndex].image != null && e.Button == MouseButtons.Left;
 
-      PanAndZoomControls[MapsTabControl.SelectedIndex].MouseMoveRegistration ( e, displayStats, condition, ModifierKeys, out Cursor cursor );
+      panAndZoomControls[MapsTabControl.SelectedIndex].MouseMoveRegistration ( e, displayStats, condition, ModifierKeys, out Cursor cursor );
 
       if ( cursor != null )
         Cursor = cursor;
@@ -293,7 +300,7 @@ namespace Rendering
     /// <param name="e">Needed for mouse button detection and cursor location</param>
     private void CommonMouseUp ( object sender, MouseEventArgs e )
     {
-      PanAndZoomControls [MapsTabControl.SelectedIndex].MouseUpRegistration ( out Cursor cursor );
+      panAndZoomControls [MapsTabControl.SelectedIndex].MouseUpRegistration ( out Cursor cursor );
 
       Cursor = cursor;
     }
@@ -305,7 +312,7 @@ namespace Rendering
     /// <param name="e">Used for cursor location</param>
     private void pictureBox_MouseWheel ( object sender, MouseEventArgs e )
     {
-      PanAndZoomControls [MapsTabControl.SelectedIndex].MouseWheelRegistration ( e, ModifierKeys );
+      panAndZoomControls [MapsTabControl.SelectedIndex].MouseWheelRegistration ( e, ModifierKeys );
     }
 
     /// <summary>
@@ -313,10 +320,11 @@ namespace Rendering
     /// </summary>
     public void SetTotalAndAveragePrimaryRaysCount ()
     {
-      TotalPrimaryRaysCount.Text = $"Total primary rays count: {Statistics.primaryRaysCount:n0}";
+      TotalPrimaryRaysCount.Text = 
+        $@"Total primary rays count: {Statistics.primaryRaysCount:n0}";
 
       AveragePrimaryRaysCount.Text =
-        $"Average primary rays count per pixel: {Statistics.primaryRaysCount / ( PrimaryRaysMapPictureBox.Width * PrimaryRaysMapPictureBox.Height ):n0}";
+        $@"Average primary rays count per pixel: {Statistics.primaryRaysCount / ( PrimaryRaysMapPictureBox.Width * PrimaryRaysMapPictureBox.Height ):n0}";
     }
 
     /// <summary>
@@ -324,9 +332,11 @@ namespace Rendering
     /// </summary>
     public void SetTotalAndAverageAllRaysCount ()
     {
-      TotalAllRaysCount.Text = $"Total rays count: {Statistics.allRaysCount:n0}";
+      TotalAllRaysCount.Text = 
+        $@"Total rays count: {Statistics.allRaysCount:n0}";
 
-      AverageAllRaysCount.Text = $"Average rays count per pixel: {Statistics.allRaysCount / ( AllRaysMapPictureBox.Width * AllRaysMapPictureBox.Height ):n0}";
+      AverageAllRaysCount.Text = 
+        $@"Average rays count per pixel: {Statistics.allRaysCount / ( AllRaysMapPictureBox.Width * AllRaysMapPictureBox.Height ):n0}";
     }
 
     /// <summary>
@@ -396,8 +406,8 @@ namespace Rendering
     {
       TabPage tabPage = MapsTabControl.SelectedTab;
 
-      PreviousImageButtonsEnabled ( PanAndZoomControls[MapsTabControl.SelectedIndex].PreviousImageAvailable (), tabPage );
-      NextImageButtonsEnabled ( PanAndZoomControls [MapsTabControl.SelectedIndex].NextImageAvailable (), tabPage );
+      PreviousImageButtonsEnabled ( panAndZoomControls[MapsTabControl.SelectedIndex].PreviousImageAvailable (), tabPage );
+      NextImageButtonsEnabled ( panAndZoomControls [MapsTabControl.SelectedIndex].NextImageAvailable (), tabPage );
     }
 
     /// <summary>
@@ -457,7 +467,7 @@ namespace Rendering
 
       string mapName = tabPage.Tag.ToString ();
 
-      object map = AdditionalViews.singleton.GetType ().GetField ( char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( AdditionalViews.singleton );
+      object map = additionalViews.GetType ().GetField ( char.ToLower ( mapName [ 0 ] ) + mapName.Substring ( 1 ) ).GetValue ( additionalViews );
 
       ( map as IMap ).ExportData ( mapName );
     }
@@ -484,7 +494,7 @@ namespace Rendering
     /// <param name="e">Needed to get Graphics class associated with PictureBox</param>
     private void PictureBox_Paint ( object sender, PaintEventArgs e )
     {
-      PanAndZoomControls [MapsTabControl.SelectedIndex].Paint ( e );
+      panAndZoomControls [MapsTabControl.SelectedIndex].Paint ( e );
     }
 
     /// <summary>
@@ -493,21 +503,21 @@ namespace Rendering
     /// </summary>
     /// <param name="sender">Not needed</param>
     /// <param name="e">Needed to get pressed key</param>
-    private void AdvancedToolsForm_KeyDown ( object sender, KeyEventArgs e )
+    private void AdditionalViewsForm_KeyDown ( object sender, KeyEventArgs e )
     {
       if ( e.KeyCode == Keys.R )
-        PanAndZoomControls[MapsTabControl.SelectedIndex].Reset ();
+        panAndZoomControls[MapsTabControl.SelectedIndex].Reset ();
 
-      PanAndZoomControls [MapsTabControl.SelectedIndex].KeyDownRegistration ( e.KeyCode, ModifierKeys );
+      panAndZoomControls [MapsTabControl.SelectedIndex].KeyDownRegistration ( e.KeyCode, ModifierKeys );
 
       switch ( e.KeyCode )
       {
-        case Keys.D when PanAndZoomControls[MapsTabControl.SelectedIndex].NextImageAvailable ():
-          PanAndZoomControls[MapsTabControl.SelectedIndex].SetNextImageFromHistory ();
+        case Keys.D when panAndZoomControls[MapsTabControl.SelectedIndex].NextImageAvailable ():
+          panAndZoomControls[MapsTabControl.SelectedIndex].SetNextImageFromHistory ();
           SetPreviousAndNextImageButtons ();
           break;
-        case Keys.A when PanAndZoomControls[MapsTabControl.SelectedIndex].PreviousImageAvailable ():
-          PanAndZoomControls[MapsTabControl.SelectedIndex].SetPreviousImageFromHistory ();
+        case Keys.A when panAndZoomControls[MapsTabControl.SelectedIndex].PreviousImageAvailable ():
+          panAndZoomControls[MapsTabControl.SelectedIndex].SetPreviousImageFromHistory ();
           SetPreviousAndNextImageButtons ();
           break;
       }
@@ -521,7 +531,7 @@ namespace Rendering
     /// <param name="e">Not needed</param>
     private void ResetZoomAndPanButton_Click ( object sender, EventArgs e )
     {
-      PanAndZoomControls[MapsTabControl.SelectedIndex].Reset ();
+      panAndZoomControls[MapsTabControl.SelectedIndex].Reset ();
     }
 
     /// <summary>
@@ -550,7 +560,7 @@ namespace Rendering
     /// <param name="e">Not needed</param>
     private void PreviousImageButton_Click ( object sender, EventArgs e )
     {
-      PanAndZoomControls [MapsTabControl.SelectedIndex].SetPreviousImageFromHistory ();
+      panAndZoomControls [MapsTabControl.SelectedIndex].SetPreviousImageFromHistory ();
 
       SetPreviousAndNextImageButtons ();
     }
@@ -562,7 +572,7 @@ namespace Rendering
     /// <param name="e">Not needed</param>
     private void NextImageButton_Click ( object sender, EventArgs e )
     {
-      PanAndZoomControls[MapsTabControl.SelectedIndex].SetNextImageFromHistory ();
+      panAndZoomControls[MapsTabControl.SelectedIndex].SetNextImageFromHistory ();
 
       SetPreviousAndNextImageButtons ();
     }
