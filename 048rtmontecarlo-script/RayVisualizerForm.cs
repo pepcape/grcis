@@ -105,7 +105,7 @@ namespace Rendering
 
     private void glControl1_Load ( object sender, EventArgs e )
     {
-      InitOpenGL ();
+      InitializeOpenGL ();
 
       trackBall.GLsetupViewport ( glControl1.Width, glControl1.Height, near, far );
 
@@ -226,7 +226,7 @@ namespace Rendering
       trackBall.Zoom = (float) (distanceOfEye / distanceOfCamera);
     }
 
-    private void InitOpenGL ()
+    private void InitializeOpenGL ()
 		{
 			// log OpenGL info
 			GlInfo.LogGLProperties ();
@@ -321,8 +321,8 @@ namespace Rendering
 
       GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Linear );
       GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Linear );
-      GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat );
-      GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat );
+      GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.ClampToEdge );
+      GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.ClampToEdge );
 
       return tex;
     }
@@ -494,12 +494,11 @@ namespace Rendering
         if ( sceneObjects != null && sceneObjects.Count != 0 && BoundingBoxesCheckBox.Checked )
           RenderBoundingBoxes ();
 
-        // light sources and camera should be rendered as last because of alpha channel
         if ( scene?.Sources != null && LightSourcesCheckBox.Checked && lightSourcesVBO != 0 )
           RenderLightSources ();
 
         if ( rayVisualizer.rays.Count != 0 && CameraCheckBox.Checked )
-          RenderVideoCamera ();      
+          RenderVideoCamera ();
 
         // clean-up
         GL.UseProgram ( 0 );
