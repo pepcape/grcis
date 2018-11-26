@@ -38,7 +38,8 @@ void main ()
     if ( useTexture )
     {
       fragColor = vec4( texture2D( texSurface, varTexCoords ) );
-      if ( fragColor.w == 0.0 )
+
+      if ( fragColor.w < 0.01 )
         discard;
     }      
     else
@@ -55,16 +56,16 @@ void main ()
 
     float cosb = 0.0;
     float cosa = dot( N, L );
+
     if ( cosa > 0.0 )
       cosb = pow( max( dot( N, H ), 0.0 ), shininess );
     else
       cosa = 0.0;
 
     vec4 ka, kd;
+
     if ( useTexture )
-    {
       ka = kd = vec4( texture2D( texSurface, varTexCoords ) );
-    }
     else
       if ( globalColor )
       {
@@ -72,15 +73,16 @@ void main ()
         kd = vec4( Kd, 1.0 );
       }
       else
-      {
         ka = kd = vec4( varColor, 1.0 );
-      }
 
     fragColor = vec4( 0.0, 0.0, 0.0, 1.0 );
+
     if ( useAmbient )
       fragColor += ka * vec4( globalAmbient, 1.0 );
+
     if ( useDiffuse )
       fragColor += kd * vec4( lightColor, 1.0 ) * cosa;
+
     if ( useSpecular )
       fragColor += vec4( Ks, 1.0 ) * vec4( lightColor, 1.0 ) * cosb;
   }

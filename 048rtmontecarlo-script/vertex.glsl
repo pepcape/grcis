@@ -57,27 +57,30 @@ void main ()
 
     float cosb = 0.0;
     float cosa = dot( N, L );
+
     if ( cosa > 0.0 )
       cosb = pow( max( dot( N, H ), 0.0 ), shininess );
     else
       cosa = 0.0;
 
     vec3 ka, kd;
+
     if ( globalColor )
     {
       ka = Ka;
       kd = Kd;
     }
     else
-    {
       ka = kd = color;
-    }
 
     vec3 col = vec3( 0.0 );
+
     if ( useAmbient )
       col += ka * globalAmbient;
+
     if ( useDiffuse )
       col += kd * lightColor * cosa;
+      
     if ( useSpecular )
       col += Ks * lightColor * cosb;
 
