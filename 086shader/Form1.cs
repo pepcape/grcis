@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -202,6 +203,10 @@ namespace _086shader
       bool doCheck = checkCorner.Checked;
 
       scene.Reset();
+
+      Stopwatch sw = new Stopwatch();
+      sw.Start();
+
       Construction cn = new Construction();
 
       int faces = cn.AddMesh( scene, Matrix4.Identity, textParam.Text );
@@ -236,6 +241,9 @@ namespace _086shader
         diameter = scene.GetDiameter( out center );
       }
 
+      sw.Stop();
+      long elapsed = sw.ElapsedMilliseconds;
+
       scene.BuildCornerTable();
       int errors = doCheck ? scene.CheckCornerTable( null ) : 0;
       scene.GenerateColors( 12 );
@@ -245,7 +253,7 @@ namespace _086shader
       SetLight( diameter, ref light );
       tb.Reset();
 
-      labelFile.Text = string.Format( "{0} faces ({1} rep), {2} errors", scene.Triangles, faces, errors );
+      labelFile.Text = $"{scene.Triangles}f ({faces}rep), {scene.Vertices}v, {errors}err, {elapsed}ms";
       PrepareDataBuffers();
       glControl1.Invalidate();
 
