@@ -1,6 +1,4 @@
-﻿// author: Josef Pelikan
-
-#define USE_INVALIDATE
+﻿#define USE_INVALIDATE
 
 using System;
 using System.Collections.Generic;
@@ -76,13 +74,13 @@ namespace _086shader
         if (checkAnimation.Checked &&
             animation)
         {
-          double camTime = now / 10000000.0 - timeOrigin;
+          double camTime = now / 10000000.0 - timeOrigin;     // camera time in seconds.
           if ( camTime > cam.MaxTime )
           {
+            // Cyclic camera animation.
             camTime    -= cam.MaxTime - cam.MinTime;
             timeOrigin += cam.MaxTime - cam.MinTime;
           }
-
           cam.Time = camTime;
 
           SetStatus();
@@ -340,19 +338,31 @@ namespace _086shader
       float minZoom = tb.MinZoom;
       float maxZoom = tb.MaxZoom;
       if ( Util.TryParse( p, "minZoom", ref minZoom ) )
+      {
         tb.MinZoom = Math.Max( 1.0e-4f, minZoom );
+        camera.MinZoom = Math.Max( 1.0e-4f, minZoom );
+      }
       if ( Util.TryParse( p, "maxZoom", ref maxZoom ) )
+      {
         tb.MaxZoom = Arith.Clamp( maxZoom, minZoom, 1.0e6f );
+        camera.MaxZoom = Arith.Clamp( maxZoom, minZoom, 1.0e6f );
+      }
 
       // trackball: zoom
       float zoom = tb.Zoom;
       if ( Util.TryParse( p, "zoom", ref zoom ) )
+      {
         tb.Zoom = Arith.Clamp( zoom, tb.MinZoom, tb.MaxZoom );
+        camera.Zoom = Arith.Clamp( zoom, tb.MinZoom, tb.MaxZoom );
+      }
 
       // rendering: perspective/orthographic projection
       bool perspective = tb.UsePerspective;
       if ( Util.TryParse( p, "perspective", ref perspective ) )
+      {
         tb.UsePerspective = perspective;
+        camera.UsePerspective = perspective;
+      }
 
       // rendering: vertical field-of-view
       float fov = tb.Fov;

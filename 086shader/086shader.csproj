@@ -107,7 +107,7 @@
       <Link>WavefrontObj.cs</Link>
     </Compile>
     <Compile Include="Camera.cs" />
-    <Compile Include="Construction.MatusGolias.cs" />
+    <Compile Include="Construction.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
