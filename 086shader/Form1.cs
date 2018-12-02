@@ -62,9 +62,19 @@ namespace _086shader
     bool loaded = false;
 
     /// <summary>
+    /// Current camera handling object.
+    /// </summary>
+    IRealtimeCamera cam = null;
+
+    /// <summary>
     /// Associated Trackball instance.
     /// </summary>
     Trackball tb = null;
+
+    /// <summary>
+    /// Associated realtime camera object.
+    /// </summary>
+    IRealtimeCamera camera = null;
 
     /// <summary>
     /// Param string tooltip = help.
@@ -88,7 +98,7 @@ namespace _086shader
       Text += " (" + rev + ") '" + name + '\'';
 
       // Trackball:
-      tb = new Trackball( center, diameter );
+      cam = tb = new Trackball( center, diameter );
 
       InitShaderRepository();
     }
@@ -97,7 +107,7 @@ namespace _086shader
     {
       InitOpenGL();
       UpdateParams( textParam.Text );
-      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+      cam.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
 
       loaded = true;
       Application.Idle += new EventHandler( Application_Idle );
@@ -107,7 +117,7 @@ namespace _086shader
     {
       if ( !loaded ) return;
 
-      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+      cam.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       glControl1.Invalidate();
     }
 
@@ -145,10 +155,10 @@ namespace _086shader
       scene.ComputeNormals();
 
       UpdateParams( textParam.Text );
-      tb.Center   = center;
-      tb.Diameter = diameter;
+      cam.Center   = center;
+      cam.Diameter = diameter;
       SetLight( diameter, ref light );
-      tb.Reset();
+      cam.Reset();
 
       labelFile.Text = string.Format( "{0}: {1}v, {2}e({3}), {4}f",
                                       ofd.SafeFileName, scene.Vertices,
@@ -248,10 +258,10 @@ namespace _086shader
       int errors = doCheck ? scene.CheckCornerTable( null ) : 0;
       scene.GenerateColors( 12 );
       UpdateParams( textParam.Text );
-      tb.Center   = center;
-      tb.Diameter = diameter;
+      cam.Center   = center;
+      cam.Diameter = diameter;
       SetLight( diameter, ref light );
-      tb.Reset();
+      cam.Reset();
 
       labelFile.Text = $"{scene.Triangles}f ({faces}rep), {scene.Vertices}v, {errors}err, {elapsed}ms";
       PrepareDataBuffers();
@@ -297,40 +307,40 @@ namespace _086shader
 
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( !tb.MouseDown( e ) )
+      if ( !cam.MouseDown( e ) )
         if ( checkAxes.Checked )
         {
           // pointing to the scene:
           pointOrigin = screenToWorld( e.X, e.Y, 0.0f );
           pointTarget = screenToWorld( e.X, e.Y, 1.0f );
-          eye         = tb.Eye;
+          eye         = cam.Eye;
           pointDirty  = true;
         }
     }
 
     private void glControl1_MouseUp ( object sender, MouseEventArgs e )
     {
-      tb.MouseUp( e );
+      cam.MouseUp( e );
     }
 
     private void glControl1_MouseMove ( object sender, MouseEventArgs e )
     {
-      tb.MouseMove( e );
+      cam.MouseMove( e );
     }
 
     private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
     {
-      tb.MouseWheel( e );
+      cam.MouseWheel( e );
     }
 
     private void glControl1_KeyDown ( object sender, KeyEventArgs e )
     {
-      tb.KeyDown( e );
+      cam.KeyDown( e );
     }
 
     private void glControl1_KeyUp ( object sender, KeyEventArgs e )
     {
-      if ( !tb.KeyUp( e ) )
+      if ( !cam.KeyUp( e ) )
         if ( e.KeyCode == Keys.F )
         {
           e.Handled = true;
@@ -356,7 +366,7 @@ namespace _086shader
 
     private void buttonReset_Click ( object sender, EventArgs e )
     {
-      tb.Reset();
+      cam.Reset();
     }
 
     private void buttonExportPly_Click ( object sender, EventArgs e )

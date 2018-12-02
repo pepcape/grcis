@@ -319,29 +319,29 @@ namespace _086shader
         return;
 
       // trackball: zoom limits
-      float minZoom = tb.MinZoom;
-      float maxZoom = tb.MaxZoom;
+      float minZoom = cam.MinZoom;
+      float maxZoom = cam.MaxZoom;
       if ( Util.TryParse( p, "minZoom", ref minZoom ) )
-        tb.MinZoom = Math.Max( 1.0e-4f, minZoom );
+        cam.MinZoom = Math.Max( 1.0e-4f, minZoom );
       if ( Util.TryParse( p, "maxZoom", ref maxZoom ) )
-        tb.MaxZoom = Arith.Clamp( maxZoom, minZoom, 1.0e6f );
+        cam.MaxZoom = Arith.Clamp( maxZoom, minZoom, 1.0e6f );
 
       // trackball: zoom
-      float zoom = tb.Zoom;
+      float zoom = cam.Zoom;
       if ( Util.TryParse( p, "zoom", ref zoom ) )
-        tb.Zoom = Arith.Clamp( zoom, tb.MinZoom, tb.MaxZoom );
+        cam.Zoom = Arith.Clamp( zoom, cam.MinZoom, cam.MaxZoom );
 
       // rendering: perspective/orthographic projection
-      bool perspective = tb.Perspective;
+      bool perspective = cam.UsePerspective;
       if ( Util.TryParse( p, "perspective", ref perspective ) )
-        tb.Perspective = perspective;
+        cam.UsePerspective = perspective;
 
       // rendering: vertical field-of-view
-      float fov = tb.Fov;
+      float fov = cam.Fov;
       if ( !Util.TryParse( p, "fov", ref fov ) )
       {
-        tb.Fov = Arith.Clamp( fov, 0.1f, 2.0f );
-        tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+        cam.Fov = Arith.Clamp( fov, 0.1f, 2.0f );
+        cam.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       }
 
       // rendering: background color
@@ -359,7 +359,7 @@ namespace _086shader
       {
         if ( light.Length < 1.0e-3f )
           light = new Vector3( -2, 1, 1 );
-        SetLight( tb.Eye.Z * 0.5f, ref light );
+        SetLight( cam.Eye.Z * 0.5f, ref light );
       }
 
       // shading: global material color
@@ -471,7 +471,7 @@ namespace _086shader
       else
         GL.Enable( EnableCap.CullFace );
 
-      tb.GLsetCamera();
+      cam.GLsetCamera();
       RenderScene();
 
       glControl1.SwapBuffers();
@@ -500,9 +500,9 @@ namespace _086shader
           GL.UseProgram( activeProgram.Id );
 
           // uniforms:
-          Matrix4 modelView  = tb.ModelView;
-          Matrix4 projection = tb.Projection;
-          Vector3 eye        = tb.Eye;
+          Matrix4 modelView  = cam.ModelView;
+          Matrix4 projection = cam.Projection;
+          Vector3 eye        = cam.Eye;
           GL.UniformMatrix4( activeProgram.GetUniform( "matrixModelView" ),  false, ref modelView );
           GL.UniformMatrix4( activeProgram.GetUniform( "matrixProjection" ), false, ref projection );
 
