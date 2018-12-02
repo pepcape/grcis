@@ -7,7 +7,7 @@ using Utilities;
 
 namespace _086shader
 {
-  public class AnimatedCamera : DefaultRealtimeCamera
+  public class AnimatedCamera : DefaultDynamicCamera
   {
     /// <summary>
     /// Optional form-data initialization.
@@ -26,6 +26,11 @@ namespace _086shader
       // }}
     }
 
+    /// <summary>
+    /// Called after form's Param field is changed.
+    /// </summary>
+    /// <param name="param">String parameters from the form.</param>
+    /// <param name="cameraFile">Optional file-name of your custom camera definition (camera script?).</param>
     public override void Update ( string param, string cameraFile )
     {
       // {{ Put your parameter-parsing code here
@@ -57,6 +62,8 @@ namespace _086shader
     /// </summary>
     float radius = 1.0f;
 
+    /// <param name="param">String parameters from the form.</param>
+    /// <param name="cameraFile">Optional file-name of your custom camera definition (camera script?).</param>
     public AnimatedCamera ( string param, string cameraFile = "" )
     {
       // {{ Put your camera initialization code here
@@ -68,6 +75,9 @@ namespace _086shader
 
     Matrix4 perspectiveProjection;
 
+    /// <summary>
+    /// Returns Projection matrix. Must be implemented.
+    /// </summary>
     public override Matrix4 Projection
     {
       get
@@ -77,7 +87,8 @@ namespace _086shader
     }
 
     /// <summary>
-    /// Sets up a projective viewport
+    /// Called every time a viewport is changed.
+    /// It is possible to ignore some arguments in case of scripted camera.
     /// </summary>
     public override void GLsetupViewport ( int width, int height, float near = 0.01f, float far = 1000.0f )
     {
@@ -89,6 +100,9 @@ namespace _086shader
       GLsetProjection();
     }
 
+    /// <summary>
+    /// I'm using internal ModelView matrix computation.
+    /// </summary>
     Matrix4 computeModelView ()
     {
       double t = (Time - MinTime) * 2 * Math.PI / (MaxTime - MinTime);
@@ -99,6 +113,9 @@ namespace _086shader
       return Matrix4.LookAt( eye, Center, Vector3.UnitY );
     }
 
+    /// <summary>
+    /// Crucial property = is called in every frame.
+    /// </summary>
     public override Matrix4 ModelView
     {
       get
@@ -107,6 +124,9 @@ namespace _086shader
       }
     }
 
+    /// <summary>
+    /// Crucial property = is called in every frame.
+    /// </summary>
     public override Matrix4 ModelViewInv
     {
       get
