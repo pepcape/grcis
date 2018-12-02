@@ -33,8 +33,8 @@ namespace _086shader
     /// </summary>
     float diameter = 4.0f;
 
-    float near = 0.1f;
-    float far  = 5.0f;
+    float near = 0.01f;
+    float far  = 50.0f;
 
     /// <summary>
     /// Light source position in the world-space.
@@ -89,7 +89,7 @@ namespace _086shader
 
     bool animation = false;
 
-    string modelStatus = "-- default --";
+    string modelStatus = "-- cube --";
 
     /// <summary>
     /// Param string tooltip = help.
@@ -125,12 +125,20 @@ namespace _086shader
       InitShaderRepository();
     }
 
+    private void SetupViewport ()
+    {
+      near = diameter * 0.05f;
+      far  = diameter * 5.0f;
+
+      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+      camera.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+    }
+
     private void glControl1_Load ( object sender, EventArgs e )
     {
       InitOpenGL();
       UpdateParams( textParam.Text );
-      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
-      camera.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+      SetupViewport();
 
       loaded = true;
       Application.Idle += new EventHandler( Application_Idle );
@@ -140,8 +148,7 @@ namespace _086shader
     {
       if ( !loaded ) return;
 
-      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
-      camera.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+      SetupViewport();
       glControl1.Invalidate();
     }
 
@@ -184,6 +191,7 @@ namespace _086shader
 
       scene.BuildCornerTable();
       diameter = scene.GetDiameter( out center );
+      SetupViewport();
       scene.GenerateColors( 12 );
       scene.ComputeNormals();
 
@@ -285,6 +293,7 @@ namespace _086shader
 
         diameter = scene.GetDiameter( out center );
       }
+      SetupViewport();
 
       sw.Stop();
       long elapsed = sw.ElapsedMilliseconds;

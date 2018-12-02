@@ -117,9 +117,9 @@
       this.labelFile.AutoSize = true;
       this.labelFile.Location = new System.Drawing.Point(546, 380);
       this.labelFile.Name = "labelFile";
-      this.labelFile.Size = new System.Drawing.Size(57, 13);
+      this.labelFile.Size = new System.Drawing.Size(49, 13);
       this.labelFile.TabIndex = 11;
-      this.labelFile.Text = "-- default --";
+      this.labelFile.Text = "-- cube --";
       this.labelFile.MouseHover += new System.EventHandler(this.labelFile_MouseHover);
       // 
       // textParam
@@ -327,11 +327,11 @@
       // 
       this.checkOrientation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.checkOrientation.AutoSize = true;
-      this.checkOrientation.Location = new System.Drawing.Point(716, 408);
+      this.checkOrientation.Location = new System.Drawing.Point(677, 408);
       this.checkOrientation.Name = "checkOrientation";
-      this.checkOrientation.Size = new System.Drawing.Size(39, 17);
+      this.checkOrientation.Size = new System.Drawing.Size(77, 17);
       this.checkOrientation.TabIndex = 22;
-      this.checkOrientation.Text = "Ori";
+      this.checkOrientation.Text = "Orientation";
       this.checkOrientation.UseVisualStyleBackColor = true;
       // 
       // checkAxes
@@ -349,7 +349,7 @@
       // 
       this.checkCorner.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkCorner.AutoSize = true;
-      this.checkCorner.Location = new System.Drawing.Point(484, 408);
+      this.checkCorner.Location = new System.Drawing.Point(477, 408);
       this.checkCorner.Name = "checkCorner";
       this.checkCorner.Size = new System.Drawing.Size(116, 17);
       this.checkCorner.TabIndex = 18;
@@ -382,7 +382,7 @@
       // 
       this.checkAnimation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.checkAnimation.AutoSize = true;
-      this.checkAnimation.Location = new System.Drawing.Point(638, 408);
+      this.checkAnimation.Location = new System.Drawing.Point(600, 408);
       this.checkAnimation.Name = "checkAnimation";
       this.checkAnimation.Size = new System.Drawing.Size(72, 17);
       this.checkAnimation.TabIndex = 27;
