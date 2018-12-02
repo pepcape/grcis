@@ -5,105 +5,340 @@ using OpenTK.Graphics.OpenGL;
 
 namespace MathSupport
 {
-  class Ellipse
-  {
-    float a, b, c;
-    Vector3 center;
-
-    // Sphere constructor
-    public Ellipse ( float r, Vector3 center ) : this( r, r, r, center )
-    {
-    }
-
-    // Ellipse constructor
-    public Ellipse ( float a, float b, float c, Vector3 center )
-    {
-      this.a = a;
-      this.b = b;
-      this.c = c;
-      this.center = center;
-    }
-
-    // "polar coordinates" method
-    public Vector3 IntersectionI ( float x, float y )
-    {
-      Vector3d o = new Vector3d( 0, 0, -c );
-      Vector3d m = new Vector3d( x - center.X, y - center.Y, c );
-      Vector3d v = o - m;
-      v.Normalize();
-      double A = v.X * v.X * b * b * c * c + v.Y * v.Y * a * a * c * c + v.Z * v.Z * a * a * b * b;
-      double B = 2 * (v.X * b * b * c * c + v.Y * a * a * c * c + v.Z * a * a * b * b);
-      double C = v.X * v.X * b * b * c * c + v.Y * v.Y * a * a * c * c + v.Z * a * a * b * b - a * a * b * b * c * c;
-      double D = Math.Sqrt( B * B - 4 * A * C );
-      double t = (-B - D) / (2 * A);
-      double X = m.X + t * v.X;
-      double Y = m.Y + t * v.Y;
-      double Z = m.Z + t * v.Z;
-      return new Vector3( (float)X, -(float)Y, (float)Z );
-    }
-
-    // "parallel rays" method
-    public Vector3? Intersection ( float x, float y, bool restricted )
-    {
-      x -= center.X;
-      y -= center.Y;
-
-      if ( (x < -a) || (x > a) || (y < -b) || (y > b) )
-      {
-        float x1 = (float)Math.Sqrt( (a * a * b * b * y * y) / (b * b * y * y + x * x) );
-        float x2 = -x1;
-        float y1 = (y * x1) / -x;
-        float y2 = (y * x2) / -x;
-        if ( Math.Abs( x - x1 ) < Math.Abs( x - x2 ) )
-          return new Vector3( x1, y1, 0 );
-        else
-          return new Vector3( x2, y2, 0 );
-      }
-
-      float z = (1 - (x * x) / (a * a) - (y * y) / (b * b)) * c * c;
-      if ( z < 0 )
-        return null;
-      z = (float)Math.Sqrt( z );
-      return new Vector3( x, -y, z );
-    }
-  }
-
-  /// <summary>
-  /// Trackball interactive 3D scene navigation
-  /// Original code: Matyas Brenner
-  /// </summary>
-  public class Trackball
+  public interface IRealtimeCamera
   {
     /// <summary>
-    /// Center of the rotation (world coords).
+    /// Center of the scene in world coordinates (rotation center if applicable).
     /// </summary>
-    public Vector3 Center
+    Vector3 Center
     {
       get;
       set;
     }
 
     /// <summary>
-    /// Scene diameter (for default zoom factor only).
+    /// Scene diameter in world coordinates (for default zoom).
     /// </summary>
-    private float diameter = 5.0f;
-
-    public float Diameter
+    float Diameter
     {
-      get
-      {
-        return diameter;
-      }
-      set
-      {
-        diameter = value;
-      }
+      get;
+      set;
     }
 
     /// <summary>
-    /// Current camera position (world coords).
+    /// Zoom factor (multiplication).
     /// </summary>
-    public Vector3 Eye
+    float Zoom
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Zoom factor lower bound (if applicable).
+    /// </summary>
+    float MinZoom
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Zoom factor upper bound (if applicable).
+    /// </summary>
+    float MaxZoom
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Camera time (in seconds).
+    /// </summary>
+    double Time
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Camera time lower bound (in seconds).
+    /// </summary>
+    double MinTime
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Camera time upper bound (in seconds).
+    /// </summary>
+    double MaxTime
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Resets the camera (whatever it means).
+    /// </summary>
+    void Reset ();
+
+    /// <summary>
+    /// Setup of a camera called for every frame prior to any rendering.
+    /// </summary>
+    void GLsetCamera ();
+
+    /// <summary>
+    /// Sets projection matrix to the openGL system.
+    /// </summary>
+    void GLsetProjection ();
+
+    /// <summary>
+    /// Toggles perspective/orthographic projection.
+    /// </summary>
+    void GLtogglePerspective ();
+
+    /// <summary>
+    /// Sets up a projective viewport.
+    /// Can ignore all the arguments in case of scripted camera.
+    /// </summary>
+    /// <param name="width">Viewport width in pixels.</param>
+    /// <param name="height">Viewport height in pixels.</param>
+    /// <param name="near">Near frustum distance if applicable.</param>
+    /// <param name="far">Far frustum distance if applicable.</param>
+    void GLsetupViewport ( int width, int height, float near = 0.01f, float far = 1000.0f );
+
+    /// <summary>
+    /// Gets a current model-view transformation matrix.
+    /// </summary>
+    Matrix4 ModelView
+    {
+      get;
+    }
+
+    /// <summary>
+    /// Perspective / orthographic projection?
+    /// </summary>
+    bool UsePerspective
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Gets a current projection matrix. 
+    /// </summary>
+    Matrix4 Projection
+    {
+      get;
+    }
+
+    /// <summary>
+    /// Gets a current eye/camera position in world coordinates.
+    /// </summary>
+    Vector3 Eye
+    {
+      get;
+    }
+
+    /// <summary>
+    /// Vertical field-of-view angle in radians.
+    /// </summary>
+    float Fov
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Handle keyboard-key down.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    bool KeyDown ( KeyEventArgs e );
+
+    /// <summary>
+    /// Handle keyboard-key up.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    bool KeyUp ( KeyEventArgs e );
+
+    /// <summary>
+    /// Handles mouse-button down.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    bool MouseDown ( MouseEventArgs e );
+
+    /// <summary>
+    /// Handles mouse-button up.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    bool MouseUp ( MouseEventArgs e );
+
+    /// <summary>
+    /// Handles mouse move.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    bool MouseMove ( MouseEventArgs e );
+
+    /// <summary>
+    /// Handles mouse-wheel change.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    bool MouseWheel ( MouseEventArgs e );
+  }
+
+  public class DefaultRealtimeCamera : IRealtimeCamera
+  {
+    /// <summary>
+    /// Center of the scene in world coordinates (rotation center if applicable).
+    /// </summary>
+    public virtual Vector3 Center
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Scene diameter in world coordinates (for default zoom).
+    /// </summary>
+    public virtual float Diameter
+    {
+      get;
+      set;
+    } = 5.0f;
+
+    /// <summary>
+    /// Zoom factor (multiplication).
+    /// </summary>
+    public virtual float Zoom
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Zoom factor lower bound (if applicable).
+    /// </summary>
+    public virtual float MinZoom
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Zoom factor upper bound (if applicable).
+    /// </summary>
+    public virtual float MaxZoom
+    {
+      get;
+      set;
+    }
+
+    /// <summary>
+    /// Camera time (in seconds).
+    /// </summary>
+    public virtual double Time
+    {
+      get;
+      set;
+    } = 0.0;
+
+    /// <summary>
+    /// Camera time lower bound (in seconds).
+    /// </summary>
+    public virtual double MinTime
+    {
+      get;
+      set;
+    } = 0.0;
+
+    /// <summary>
+    /// Camera time upper bound (in seconds).
+    /// </summary>
+    public virtual double MaxTime
+    {
+      get;
+      set;
+    } = 1.0;
+
+    /// <summary>
+    /// Resets the camera (whatever it means).
+    /// </summary>
+    public virtual void Reset ()
+    {
+    }
+
+    /// <summary>
+    /// Setup of a camera called for every frame prior to any rendering.
+    /// </summary>
+    public virtual void GLsetCamera ()
+    {
+    }
+
+    /// <summary>
+    /// Sets projection matrix to the openGL system.
+    /// </summary>
+    public virtual void GLsetProjection ()
+    {
+    }
+
+    /// <summary>
+    /// Toggles perspective/orthographic projection.
+    /// </summary>
+    public virtual void GLtogglePerspective ()
+    {
+    }
+
+    /// <summary>
+    /// Sets up a projective viewport.
+    /// Can ignore all the arguments in case of scripted camera.
+    /// </summary>
+    /// <param name="width">Viewport width in pixels.</param>
+    /// <param name="height">Viewport height in pixels.</param>
+    /// <param name="near">Near frustum distance if applicable.</param>
+    /// <param name="far">Far frustum distance if applicable.</param>
+    public virtual void GLsetupViewport ( int width, int height, float near = 0.01f, float far = 1000.0f )
+    {
+    }
+
+    /// <summary>
+    /// Gets a current model-view transformation matrix.
+    /// </summary>
+    public virtual Matrix4 ModelView
+    {
+      get;
+    }
+
+    /// <summary>
+    /// Gets a current model-view transformation matrix.
+    /// </summary>
+    public virtual Matrix4 ModelViewInv
+    {
+      get;
+    }
+
+    /// <summary>
+    /// Perspective / orthographic projection?
+    /// </summary>
+    public virtual bool UsePerspective
+    {
+      get;
+      set;
+    } = true;
+
+    /// <summary>
+    /// Gets a current projection matrix. 
+    /// </summary>
+    public virtual Matrix4 Projection
+    {
+      get;
+    }
+
+    /// <summary>
+    /// Gets a current eye/camera position in world coordinates.
+    /// </summary>
+    public virtual Vector3 Eye
     {
       get
       {
@@ -114,19 +349,134 @@ namespace MathSupport
     /// <summary>
     /// Vertical field-of-view angle in radians.
     /// </summary>
-    public float Fov
+    public virtual float Fov
     {
       get;
       set;
     }
 
     /// <summary>
-    /// Zoom factor (multiplication).
+    /// Handle keyboard-key down.
     /// </summary>
-    public float Zoom
+    /// <returns>True if handled.</returns>
+    public virtual bool KeyDown ( KeyEventArgs e )
     {
-      get;
-      set;
+      return false;
+    }
+
+    /// <summary>
+    /// Handle keyboard-key up.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public virtual bool KeyUp ( KeyEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles mouse-button down.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public virtual bool MouseDown ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles mouse-button up.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public virtual bool MouseUp ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles mouse move.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public virtual bool MouseMove ( MouseEventArgs e )
+    {
+      return false;
+    }
+
+    /// <summary>
+    /// Handles mouse-wheel change.
+    /// </summary>
+    /// <returns>True if handled.</returns>
+    public virtual bool MouseWheel ( MouseEventArgs e )
+    {
+      return false;
+    }
+  }
+
+  /// <summary>
+  /// Trackball interactive 3D scene navigation
+  /// Original code: Matyas Brenner
+  /// </summary>
+  public class Trackball : DefaultRealtimeCamera
+  {
+    class Ellipse
+    {
+      float a, b, c;
+      Vector3 center;
+
+      // Sphere constructor
+      public Ellipse ( float r, Vector3 center ) : this( r, r, r, center )
+      {
+      }
+
+      // Ellipse constructor
+      public Ellipse ( float a, float b, float c, Vector3 center )
+      {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.center = center;
+      }
+
+      // "polar coordinates" method
+      public Vector3 IntersectionI ( float x, float y )
+      {
+        Vector3d o = new Vector3d( 0, 0, -c );
+        Vector3d m = new Vector3d( x - center.X, y - center.Y, c );
+        Vector3d v = o - m;
+        v.Normalize();
+        double A = v.X * v.X * b * b * c * c + v.Y * v.Y * a * a * c * c + v.Z * v.Z * a * a * b * b;
+        double B = 2 * (v.X * b * b * c * c + v.Y * a * a * c * c + v.Z * a * a * b * b);
+        double C = v.X * v.X * b * b * c * c + v.Y * v.Y * a * a * c * c + v.Z * a * a * b * b - a * a * b * b * c * c;
+        double D = Math.Sqrt( B * B - 4 * A * C );
+        double t = (-B - D) / (2 * A);
+        double X = m.X + t * v.X;
+        double Y = m.Y + t * v.Y;
+        double Z = m.Z + t * v.Z;
+        return new Vector3( (float)X, -(float)Y, (float)Z );
+      }
+
+      // "parallel rays" method
+      public Vector3? Intersection ( float x, float y, bool restricted )
+      {
+        x -= center.X;
+        y -= center.Y;
+
+        if ( (x < -a) || (x > a) || (y < -b) || (y > b) )
+        {
+          float x1 = (float)Math.Sqrt( (a * a * b * b * y * y) / (b * b * y * y + x * x) );
+          float x2 = -x1;
+          float y1 = (y * x1) / -x;
+          float y2 = (y * x2) / -x;
+          if ( Math.Abs( x - x1 ) < Math.Abs( x - x2 ) )
+            return new Vector3( x1, y1, 0 );
+          else
+            return new Vector3( x2, y2, 0 );
+        }
+
+        float z = (1 - (x * x) / (a * a) - (y * y) / (b * b)) * c * c;
+        if ( z < 0 )
+          return null;
+        z = (float)Math.Sqrt( z );
+        return new Vector3( x, -y, z );
+      }
     }
 
     /// <summary>
@@ -140,14 +490,14 @@ namespace MathSupport
 
     public Trackball ( Vector3 cent, float diam =5.0f )
     {
-      Center      =  cent;
-      Diameter    =  diam;
-      MinZoom     =  0.1f;
-      MaxZoom     = 20.0f;
-      Zoom        =  1.0f;
-      Fov         =  1.0f;
-      Perspective =  true;
-      Button      = MouseButtons.Left;
+      Center         =  cent;
+      Diameter       =  diam;
+      MinZoom        =  0.1f;
+      MaxZoom        = 20.0f;
+      Zoom           =  1.0f;
+      Fov            =  1.0f;
+      UsePerspective =  true;
+      Button         = MouseButtons.Left;
     }
 
     Matrix4 prevRotation = Matrix4.Identity;
@@ -158,15 +508,6 @@ namespace MathSupport
 
     Matrix4 perspectiveProjection;
     Matrix4 ortographicProjection;
-
-    /// <summary>
-    /// Perspective / orthographic projection?
-    /// </summary>
-    public bool Perspective
-    {
-      get;
-      set;
-    }
 
     public Matrix4 PerspectiveProjection
     {
@@ -184,30 +525,18 @@ namespace MathSupport
       }
     }
 
-    public Matrix4 Projection
+    public override Matrix4 Projection
     {
       get
       {
-        return Perspective ? perspectiveProjection : ortographicProjection;
+        return UsePerspective ? perspectiveProjection : ortographicProjection;
       }
-    }
-
-    public float MinZoom
-    {
-      get;
-      set;
-    }
-
-    public float MaxZoom
-    {
-      get;
-      set;
     }
 
     /// <summary>
     /// Sets up a projective viewport
     /// </summary>
-    public void GLsetupViewport ( int width, int height, float near =0.01f, float far =1000.0f )
+    public override void GLsetupViewport ( int width, int height, float near =0.01f, float far =1000.0f )
     {
       // 1. set ViewPort transform:
       GL.Viewport( 0, 0, width, height );
@@ -215,8 +544,8 @@ namespace MathSupport
       // 2. set projection matrix
       perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( Fov, width / (float)height, near, far );
       float minSize = 2.0f * Math.Min( width, height );
-      ortographicProjection = Matrix4.CreateOrthographic( diameter * width / minSize,
-                                                          diameter * height / minSize,
+      ortographicProjection = Matrix4.CreateOrthographic( Diameter * width / minSize,
+                                                          Diameter * height / minSize,
                                                           near, far );
       GLsetProjection();
       setEllipse( width, height );
@@ -225,7 +554,7 @@ namespace MathSupport
     /// <summary>
     /// Setup of a camera called for every frame prior to any rendering.
     /// </summary>
-    public void GLsetCamera ()
+    public override void GLsetCamera ()
     {
       // not needed if shaders are active .. but doesn't make any harm..
       Matrix4 modelview = ModelView;
@@ -233,19 +562,19 @@ namespace MathSupport
       GL.LoadMatrix( ref modelview );
     }
 
-    public Matrix4 ModelView
+    public override Matrix4 ModelView
     {
       get
       {
         return Matrix4.CreateTranslation( -Center ) *
-               Matrix4.CreateScale( Zoom / diameter ) *
+               Matrix4.CreateScale( Zoom / Diameter ) *
                prevRotation *
                rotation *
                Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
       }
     }
 
-    public Matrix4 ModelViewInv
+    public override Matrix4 ModelViewInv
     {
       get
       {
@@ -254,7 +583,7 @@ namespace MathSupport
 
         return Matrix4.CreateTranslation( 0.0f, 0.0f, 1.5f ) *
                rot *
-               Matrix4.CreateScale( diameter / Zoom ) *
+               Matrix4.CreateScale( Diameter / Zoom ) *
                Matrix4.CreateTranslation( Center );
       }
     }
@@ -262,7 +591,7 @@ namespace MathSupport
     /// <summary>
     /// Resets the camera - it will look in the negative Z direction. Y axis will point upwards.
     /// </summary>
-    public void Reset ()
+    public override void Reset ()
     {
       Zoom         = 1.0f;
       rotation     = Matrix4.Identity;
@@ -337,17 +666,20 @@ namespace MathSupport
       return Matrix4.CreateFromAxisAngle( axis, angle );
     }
 
-    public void GLtogglePerspective ()
+    public override void GLtogglePerspective ()
     {
-      Perspective = !Perspective;
+      UsePerspective = !UsePerspective;
       GLsetProjection();
     }
 
-    public void GLsetProjection ()
+    /// <summary>
+    /// Sets projection matrix to the openGL system.
+    /// </summary>
+    public override void GLsetProjection ()
     {
       // not needed if shaders are active .. but doesn't make any harm..
       GL.MatrixMode( MatrixMode.Projection );
-      if ( Perspective )
+      if ( UsePerspective )
         GL.LoadMatrix( ref perspectiveProjection );
       else
         GL.LoadMatrix( ref ortographicProjection );
@@ -359,7 +691,7 @@ namespace MathSupport
     /// Handles mouse-button down.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public bool MouseDown ( MouseEventArgs e )
+    public override bool MouseDown ( MouseEventArgs e )
     {
       if ( e.Button != Button )
         return false;
@@ -372,7 +704,7 @@ namespace MathSupport
     /// Handles mouse-button up.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public bool MouseUp ( MouseEventArgs e )
+    public override bool MouseUp ( MouseEventArgs e )
     {
       if ( e.Button != Button )
         return false;
@@ -388,7 +720,7 @@ namespace MathSupport
     /// Handles mouse move.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public bool MouseMove ( MouseEventArgs e )
+    public override bool MouseMove ( MouseEventArgs e )
     {
       if ( e.Button != Button )
         return false;
@@ -402,7 +734,7 @@ namespace MathSupport
     /// Handles mouse-wheel change.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public bool MouseWheel ( MouseEventArgs e )
+    public override bool MouseWheel ( MouseEventArgs e )
     {
       float dZoom = -e.Delta / 120.0f;
       Zoom *= (float)Math.Pow( 1.04, dZoom );
@@ -416,7 +748,7 @@ namespace MathSupport
     /// Handle keyboard-key down.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public bool KeyDown ( KeyEventArgs e )
+    public override bool KeyDown ( KeyEventArgs e )
     {
       // nothing yet
       return false;
@@ -426,7 +758,7 @@ namespace MathSupport
     /// Handle keyboard-key up.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public bool KeyUp ( KeyEventArgs e )
+    public override bool KeyUp ( KeyEventArgs e )
     {
       if ( e.KeyCode == Keys.O )
       {
