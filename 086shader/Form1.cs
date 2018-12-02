@@ -63,9 +63,9 @@ namespace _086shader
     bool loaded = false;
 
     /// <summary>
-    /// Current camera handling object.
+    /// Current dynamic camera object.
     /// </summary>
-    IRealtimeCamera cam = null;
+    IDynamicCamera cam = null;
 
     /// <summary>
     /// Associated Trackball instance.
@@ -78,9 +78,9 @@ namespace _086shader
     string cameraDefinition;
 
     /// <summary>
-    /// Associated realtime camera object.
+    /// Associated animation camera object.
     /// </summary>
-    IRealtimeCamera camera = null;
+    IDynamicCamera camera = null;
 
     /// <summary>
     /// Real-time = timeOrigin => time in the [MinTime, MaxTime] interal
@@ -105,31 +105,40 @@ namespace _086shader
     {
       InitializeComponent();
 
+      // I'm going to merge init data from Construction and AnimatedCamera.
       string cparam;
       string cname;
       string ctooltip;
       Construction.InitParams( out cname, out cparam, out ctooltip );
+
       string mparam;
       string mname;
       string mtooltip;
       AnimatedCamera.InitParams( out mname, out mparam, out mtooltip );
+
       tooltip = ctooltip + '\n' + mtooltip;
       textParam.Text = cparam + ", " + mparam;
 
       Text += " (" + rev + ") '" + cname + ',' + mname + '\'';
 
-      // Trackball:
+      // Default = Trackball.
       cam = tb = new Trackball( center, diameter );
       camera = new AnimatedCamera( textParam.Text );
 
       InitShaderRepository();
     }
 
+    /// <summary>
+    /// Current system time in seconds.
+    /// </summary>
     private static double nowInSeconds ()
     {
       return DateTime.Now.Ticks / 10000000.0;
     }
 
+    /// <summary>
+    /// Viewport-change handling (both animation camera and Trackball must be notified).
+    /// </summary>
     private void SetupViewport ()
     {
       tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
@@ -164,6 +173,9 @@ namespace _086shader
       glControl1.VSync = checkVsync.Checked;
     }
 
+    /// <summary>
+    /// Sets the status line (behaves differently in animation and Trackball modes).
+    /// </summary>
     private void SetStatus ()
     {
       if ( checkAnimation.Checked )
@@ -502,7 +514,7 @@ namespace _086shader
 
       if ( animation )
       {
-        // There should be camera.Time now.
+        // camera.Time should be valid now.
         timeOrigin = nowInSeconds() - camera.Time;
 
         buttonStartStop.Text = "Stop";

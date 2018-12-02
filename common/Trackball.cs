@@ -5,7 +5,10 @@ using OpenTK.Graphics.OpenGL;
 
 namespace MathSupport
 {
-  public interface IRealtimeCamera
+  /// <summary>
+  /// Camera for realtime (OpenGL) applications, animation, etc.
+  /// </summary>
+  public interface IDynamicCamera
   {
     /// <summary>
     /// Center of the scene in world coordinates (rotation center if applicable).
@@ -107,8 +110,8 @@ namespace MathSupport
     void GLtogglePerspective ();
 
     /// <summary>
-    /// Sets up a projective viewport.
-    /// Can ignore all the arguments in case of scripted camera.
+    /// Called every time a viewport is changed.
+    /// It is possible to ignore some arguments in case of scripted camera.
     /// </summary>
     /// <param name="width">Viewport width in pixels.</param>
     /// <param name="height">Viewport height in pixels.</param>
@@ -195,7 +198,11 @@ namespace MathSupport
     bool MouseWheel ( MouseEventArgs e );
   }
 
-  public class DefaultRealtimeCamera : IRealtimeCamera
+  /// <summary>
+  /// Basic IDynamicCamera implementation with reasonable properties/functions.
+  /// It can save your effort if you derive your own class from it.
+  /// </summary>
+  public class DefaultDynamicCamera : IDynamicCamera
   {
     /// <summary>
     /// Center of the scene in world coordinates (rotation center if applicable).
@@ -302,6 +309,7 @@ namespace MathSupport
     /// </summary>
     public virtual void GLsetProjection ()
     {
+      // Actually not needed if shaders are active..
     }
 
     /// <summary>
@@ -314,8 +322,8 @@ namespace MathSupport
     }
 
     /// <summary>
-    /// Sets up a projective viewport.
-    /// Can ignore all the arguments in case of scripted camera.
+    /// Called every time a viewport is changed.
+    /// It is possible to ignore some arguments in case of scripted camera.
     /// </summary>
     /// <param name="width">Viewport width in pixels.</param>
     /// <param name="height">Viewport height in pixels.</param>
@@ -437,7 +445,7 @@ namespace MathSupport
   /// Trackball interactive 3D scene navigation
   /// Original code: Matyas Brenner
   /// </summary>
-  public class Trackball : DefaultRealtimeCamera
+  public class Trackball : DefaultDynamicCamera
   {
     class Ellipse
     {
@@ -540,7 +548,7 @@ namespace MathSupport
     }
 
     /// <summary>
-    /// Sets up a projective viewport
+    /// Called every time a viewport is changed.
     /// </summary>
     public override void GLsetupViewport ( int width, int height, float near =0.01f, float far =1000.0f )
     {
@@ -668,7 +676,7 @@ namespace MathSupport
     /// </summary>
     public override void GLsetProjection ()
     {
-      // not needed if shaders are active .. but doesn't make any harm..
+      // Actually not needed if shaders are active .. but doesn't make any harm..
       GL.MatrixMode( MatrixMode.Projection );
       if ( UsePerspective )
         GL.LoadMatrix( ref perspectiveProjection );

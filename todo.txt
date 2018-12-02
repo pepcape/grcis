@@ -68,6 +68,7 @@
 113graph (R2->R graph in 3D using OpenGL, 2017)
 114transition (2D image -> 2D image transition, 2018)
 115colormandala (cyclic color-map for mandala-style images, 2018)
+116 (task only, animated realtime camera, 2018)
 
 ================================================================================
   DONE:
