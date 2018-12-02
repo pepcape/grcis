@@ -222,7 +222,7 @@ namespace MathSupport
     {
       get;
       set;
-    }
+    } = 1.0f;
 
     /// <summary>
     /// Zoom factor lower bound (if applicable).

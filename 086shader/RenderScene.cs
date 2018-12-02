@@ -371,7 +371,7 @@ namespace _086shader
       if ( !Util.TryParse( p, "fov", ref fov ) )
       {
         tb.Fov = Arith.Clamp( fov, 0.1f, 2.0f );
-        tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+        tb.GLsetupViewport( glControl1.Width, glControl1.Height, 0.02f, 5.0f );
         camera.Fov = tb.Fov;
         camera.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       }
