@@ -125,6 +125,11 @@ namespace _086shader
       InitShaderRepository();
     }
 
+    private static double nowInSeconds ()
+    {
+      return DateTime.Now.Ticks / 10000000.0;
+    }
+
     private void SetupViewport ()
     {
       near = diameter * 0.05f;
@@ -487,6 +492,7 @@ namespace _086shader
     private void buttonReset_Click ( object sender, EventArgs e )
     {
       cam.Reset();
+      timeOrigin = nowInSeconds() - camera.Time;
     }
 
     private void buttonStartStop_Click ( object sender, EventArgs e )
@@ -495,11 +501,14 @@ namespace _086shader
 
       if ( animation )
       {
-        double now = DateTime.Now.Ticks / 10000000.0;
-
         // There should be camera.Time now.
-        timeOrigin = now - camera.Time;
+        timeOrigin = nowInSeconds() - camera.Time;
+
+        buttonStartStop.Text = "Stop";
       }
+      else
+        buttonStartStop.Text = "Start";
+
     }
 
     private void checkAnimation_CheckedChanged ( object sender, EventArgs e )

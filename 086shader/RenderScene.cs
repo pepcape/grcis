@@ -89,7 +89,7 @@ namespace _086shader
         // FPS.
         if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
         {
-          lastFps = 0.5 * lastFps + 0.5 * (frameCounter * 1.0e7 / (now - lastFpsTime));
+          lastFps = 0.5 * lastFps + 0.5 * (frameCounter    * 1.0e7 / (now - lastFpsTime));
           lastTps = 0.5 * lastTps + 0.5 * (triangleCounter * 1.0e7 / (now - lastFpsTime));
           lastFpsTime = now;
           frameCounter = 0;
@@ -103,7 +103,7 @@ namespace _086shader
                                            lastFps, (lastTps * 1.0e-6) );
         }
 
-        // pointing:
+        // Pointing.
         if ( pointOrigin != null &&
              pointDirty )
         {
@@ -149,25 +149,25 @@ namespace _086shader
     /// </summary>
     void InitOpenGL ()
     {
-      // log OpenGL info just for curiosity:
+      // Log OpenGL info just for curiosity.
       GlInfo.LogGLProperties();
 
-      // general OpenGL:
+      // General OpenGL.
       glControl1.VSync = true;
       GL.ClearColor( Color.DarkBlue );
       GL.Enable( EnableCap.DepthTest );
       GL.ShadeModel( ShadingModel.Flat );
 
-      // VBO init:
+      // VBO init.
       VBOid = new uint[ 2 ];
       GL.GenBuffers( 2, VBOid );
       useVBO = (GL.GetError() == ErrorCode.NoError);
 
-      // shaders:
+      // Shaders.
       if ( useVBO )
         canShaders = SetupShaders();
 
-      // texture:
+      // Texture.
       texName = GenerateTexture();
     }
 
@@ -200,7 +200,7 @@ namespace _086shader
     /// <returns>Texture handle.</returns>
     int GenerateTexture ()
     {
-      // generated texture:
+      // Generated (procedural) texture.
       const int TEX_SIZE = 128;
       const int TEX_CHECKER_SIZE = 8;
       Vector3 colWhite = new Vector3( 0.85f, 0.75f, 0.30f );
@@ -218,12 +218,14 @@ namespace _086shader
           int i = y * TEX_SIZE + x;
           bool odd = ((x / TEX_CHECKER_SIZE + y / TEX_CHECKER_SIZE) & 1) > 0;
           data[ i ] = odd ? colBlack : colWhite;
-          // add some fancy shading on the edges:
+
+          // Add some fancy shading on the edges.
           if ( (x % TEX_CHECKER_SIZE) == 0 || (y % TEX_CHECKER_SIZE) == 0 )
             data[ i ] += colShade;
           if ( ((x + 1) % TEX_CHECKER_SIZE) == 0 || ((y + 1) % TEX_CHECKER_SIZE) == 0 )
             data[ i ] -= colShade;
-          // add top-half texture markers:
+
+          // Add top-half texture markers.
           if ( y < TEX_SIZE / 2 )
           {
             if ( x % TEX_CHECKER_SIZE == TEX_CHECKER_SIZE / 2 &&
@@ -265,7 +267,7 @@ namespace _086shader
            scene != null &&
            scene.Triangles > 0 )
       {
-        // Vertex array: color [normal] coord
+        // Vertex array: color [normal] coord.
         GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
         int vertexBufferSize = scene.VertexBufferSize( true, true, true, true );
         GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)vertexBufferSize, IntPtr.Zero, BufferUsageHint.StaticDraw );
@@ -278,7 +280,7 @@ namespace _086shader
         GL.BindBuffer( BufferTarget.ArrayBuffer, 0 );
         GlInfo.LogError( "fill vertex-buffer" );
 
-        // Index buffer
+        // Index buffer.
         GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
         GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)(scene.Triangles * 3 * sizeof( uint )), IntPtr.Zero, BufferUsageHint.StaticDraw );
         videoMemoryPtr = GL.MapBuffer( BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly );
@@ -304,7 +306,7 @@ namespace _086shader
       }
     }
 
-    // appearance:
+    // Appearance.
     Vector3 globalAmbient = new Vector3(   0.2f,  0.2f,  0.2f );
     Vector3 matAmbient    = new Vector3(   0.8f,  0.6f,  0.2f );
     Vector3 matDiffuse    = new Vector3(   0.8f,  0.6f,  0.2f );
@@ -329,12 +331,12 @@ namespace _086shader
     /// <param name="param">User-provided parameter string.</param>
     void UpdateParams ( string param )
     {
-      // input params:
+      // Input params.
       Dictionary<string, string> p = Util.ParseKeyValueList( param );
       if ( p.Count == 0 )
         return;
 
-      // trackball: zoom limits
+      // Trackball: zoom limits.
       float minZoom = tb.MinZoom;
       float maxZoom = tb.MaxZoom;
       if ( Util.TryParse( p, "minZoom", ref minZoom ) )
@@ -348,7 +350,7 @@ namespace _086shader
         camera.MaxZoom = Arith.Clamp( maxZoom, minZoom, 1.0e6f );
       }
 
-      // trackball: zoom
+      // Trackball: zoom.
       float zoom = tb.Zoom;
       if ( Util.TryParse( p, "zoom", ref zoom ) )
       {
@@ -356,7 +358,7 @@ namespace _086shader
         camera.Zoom = Arith.Clamp( zoom, tb.MinZoom, tb.MaxZoom );
       }
 
-      // rendering: perspective/orthographic projection
+      // Rendering: perspective/orthographic projection.
       bool perspective = tb.UsePerspective;
       if ( Util.TryParse( p, "perspective", ref perspective ) )
       {
@@ -364,7 +366,7 @@ namespace _086shader
         camera.UsePerspective = perspective;
       }
 
-      // rendering: vertical field-of-view
+      // Rendering: vertical field-of-view.
       float fov = tb.Fov;
       if ( !Util.TryParse( p, "fov", ref fov ) )
       {
@@ -374,17 +376,17 @@ namespace _086shader
         camera.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       }
 
-      // rendering: background color
+      // Rendering: background color.
       Vector3 col = Vector3.Zero;
       if ( Geometry.TryParse( p, "backgr", ref col ) )
         GL.ClearColor( col.X, col.Y, col.Z, 1.0f );
 
-      // rendering: line width
+      // Rendering: line width.
       fov = 1.0f;
       if ( Util.TryParse( p, "line", ref fov ) )
         GL.LineWidth( Math.Max( 0.0f, fov ) );
 
-      // shading: relative light position
+      // Shading: relative light position.
       if ( Geometry.TryParse( p, "light", ref light ) )
       {
         if ( light.Length < 1.0e-3f )
@@ -392,21 +394,21 @@ namespace _086shader
         SetLight( cam.Eye.Z * 0.5f, ref light );
       }
 
-      // shading: global material color
+      // Shading: global material color.
       if ( Geometry.TryParse( p, "color", ref matAmbient ) )
         matDiffuse = matAmbient;
 
-      // shading: global ambient coeff
+      // Shading: global ambient coeff.
       fov = 0.2f;
       if ( Util.TryParse( p, "Ka", ref fov ) )
         globalAmbient.X = globalAmbient.Y = globalAmbient.Z = Util.Clamp( fov, 0.0f, 1.0f );
 
-      // shading: shininess
+      // Shading: shininess.
       if ( !Util.TryParse( p, "shininess", ref matShininess ) )
         matShininess = Arith.Clamp( matShininess, 1.0f, 1.0e4f );
     }
 
-    // attribute/vertex arrays:
+    // Attribute/vertex arrays.
     bool vertexAttribOn  = false;
     bool vertexPointerOn = false;
 
@@ -458,7 +460,7 @@ namespace _086shader
       programs.Clear();
       GlProgramInfo pi;
 
-      // default program:
+      // Default program.
       pi = new GlProgramInfo( "default", new GlShaderInfo[] {
         new GlShaderInfo( ShaderType.VertexShader, "vertex.glsl", "086shader" ),
         new GlShaderInfo( ShaderType.FragmentShader, "fragment.glsl", "086shader" ) } );
@@ -512,7 +514,7 @@ namespace _086shader
     /// </summary>
     void RenderScene ()
     {
-      // Scene rendering:
+      // Scene rendering.
       if ( scene != null &&
            scene.Triangles > 0 &&        // scene is nonempty => render it
            useVBO )
@@ -526,10 +528,10 @@ namespace _086shader
           SetVertexPointer( false );
           SetVertexAttrib( true );
 
-          // using GLSL shaders:
+          // Using GLSL shaders.
           GL.UseProgram( activeProgram.Id );
 
-          // uniforms:
+          // Uniforms.
           Matrix4 modelView  = cam.ModelView;
           Matrix4 projection = cam.Projection;
           Vector3 eye        = cam.Eye;
@@ -545,13 +547,13 @@ namespace _086shader
           GL.Uniform3( activeProgram.GetUniform( "Ks" ),            ref matSpecular );
           GL.Uniform1( activeProgram.GetUniform( "shininess" ),     matShininess );
 
-          // color handling:
+          // Color handling.
           bool useGlobalColor = checkGlobalColor.Checked;
           if ( !scene.HasColors() )
             useGlobalColor = true;
           GL.Uniform1( activeProgram.GetUniform( "globalColor" ), useGlobalColor ? 1 : 0 );
 
-          // shading:
+          // Shading.
           bool shadingPhong = checkPhong.Checked;
           bool shadingGouraud = checkSmooth.Checked;
           if ( !shadingGouraud )
@@ -563,7 +565,7 @@ namespace _086shader
           GL.Uniform1( activeProgram.GetUniform( "useSpecular" ), checkSpecular.Checked ? 1 : 0 );
           GlInfo.LogError( "set-uniforms" );
 
-          // texture handling:
+          // Texture handling.
           bool useTexture = checkTexture.Checked;
           if ( !scene.HasTxtCoords() ||
                texName == 0 )
@@ -595,14 +597,14 @@ namespace _086shader
           GL.VertexAttribPointer( activeProgram.GetAttribute( "position" ), 3, VertexAttribPointerType.Float, false, stride, p );
           GlInfo.LogError( "set-attrib-pointers" );
 
-          // index buffer
+          // Index buffer.
           GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
 
-          // engage!
+          // Engage!
           GL.DrawElements( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
           GlInfo.LogError( "draw-elements-shader" );
 
-          // cleanup:
+          // Cleanup.
           GL.UseProgram( 0 );
           if ( useTexture )
             GL.BindTexture( TextureTarget.Texture2D, 0 );
@@ -612,7 +614,7 @@ namespace _086shader
           SetVertexAttrib( false );
           SetVertexPointer( true );
 
-          // texture handling:
+          // Texture handling.
           bool useTexture = checkTexture.Checked;
           if ( !scene.HasTxtCoords() ||
                texName == 0 )
@@ -625,7 +627,7 @@ namespace _086shader
             GL.TexEnv( TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvMode, (int)TextureEnvMode.Replace );
           }
 
-          // using FFP:
+          // Using FFP.
           if ( scene.HasTxtCoords() )
           {
             GL.TexCoordPointer( 2, TexCoordPointerType.Float, stride, p );
@@ -646,10 +648,10 @@ namespace _086shader
 
           GL.VertexPointer( 3, VertexPointerType.Float, stride, p );
 
-          // index buffer
+          // Index buffer.
           GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
 
-          // engage!
+          // Engage!
           GL.DrawElements( PrimitiveType.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, IntPtr.Zero );
           GlInfo.LogError( "draw-elements-ffp" );
 
@@ -710,13 +712,13 @@ namespace _086shader
         triangleCounter += 12;
       }
 
-      // Support: axes
+      // Support: axes.
       if ( checkAxes.Checked )
       {
         float origWidth = GL.GetFloat( GetPName.LineWidth );
         float origPoint = GL.GetFloat( GetPName.PointSize );
 
-        // axes:
+        // Axes.
         GL.LineWidth( 2.0f );
         GL.Begin( PrimitiveType.Lines );
 
@@ -734,7 +736,7 @@ namespace _086shader
 
         GL.End();
 
-        // Support: pointing
+        // Support: pointing.
         if ( pointOrigin != null )
         {
           GL.Begin( PrimitiveType.Lines );
@@ -759,7 +761,7 @@ namespace _086shader
           GL.End();
         }
 
-        // Support: frustum
+        // Support: frustum.
         if ( frustumFrame.Count >= 8 )
         {
           GL.LineWidth( 2.0f );
