@@ -80,6 +80,13 @@ namespace MathSupport
     }
 
     /// <summary>
+    /// Update the camera instance.
+    /// </summary>
+    /// <param name="param">Text param from the UI.</param>
+    /// <param name="cameraFile">Optional camera definition file.</param>
+    void Update ( string param, string cameraFile );
+
+    /// <summary>
     /// Resets the camera (whatever it means).
     /// </summary>
     void Reset ();
@@ -263,10 +270,20 @@ namespace MathSupport
     } = 1.0;
 
     /// <summary>
+    /// Update the camera instance.
+    /// </summary>
+    /// <param name="param">Text param from the UI.</param>
+    /// <param name="cameraFile">Optional camera definition file.</param>
+    public virtual void Update ( string param, string cameraFile )
+    {
+    }
+
+    /// <summary>
     /// Resets the camera (whatever it means).
     /// </summary>
     public virtual void Reset ()
     {
+      Time = MinTime;
     }
 
     /// <summary>
@@ -274,6 +291,10 @@ namespace MathSupport
     /// </summary>
     public virtual void GLsetCamera ()
     {
+      // not needed if shaders are active .. but doesn't make any harm..
+      Matrix4 modelview = ModelView;
+      GL.MatrixMode( MatrixMode.Modelview );
+      GL.LoadMatrix( ref modelview );
     }
 
     /// <summary>
@@ -288,6 +309,8 @@ namespace MathSupport
     /// </summary>
     public virtual void GLtogglePerspective ()
     {
+      UsePerspective = !UsePerspective;
+      GLsetProjection();
     }
 
     /// <summary>
@@ -353,7 +376,7 @@ namespace MathSupport
     {
       get;
       set;
-    }
+    } = 1.0f;
 
     /// <summary>
     /// Handle keyboard-key down.
@@ -495,7 +518,6 @@ namespace MathSupport
       MinZoom        =  0.1f;
       MaxZoom        = 20.0f;
       Zoom           =  1.0f;
-      Fov            =  1.0f;
       UsePerspective =  true;
       Button         = MouseButtons.Left;
     }
@@ -508,22 +530,6 @@ namespace MathSupport
 
     Matrix4 perspectiveProjection;
     Matrix4 ortographicProjection;
-
-    public Matrix4 PerspectiveProjection
-    {
-      get
-      {
-        return perspectiveProjection;
-      }
-    }
-
-    public Matrix4 OrthographicProjection
-    {
-      get
-      {
-        return ortographicProjection;
-      }
-    }
 
     public override Matrix4 Projection
     {
@@ -549,17 +555,6 @@ namespace MathSupport
                                                           near, far );
       GLsetProjection();
       setEllipse( width, height );
-    }
-
-    /// <summary>
-    /// Setup of a camera called for every frame prior to any rendering.
-    /// </summary>
-    public override void GLsetCamera ()
-    {
-      // not needed if shaders are active .. but doesn't make any harm..
-      Matrix4 modelview = ModelView;
-      GL.MatrixMode( MatrixMode.Modelview );
-      GL.LoadMatrix( ref modelview );
     }
 
     public override Matrix4 ModelView
@@ -593,6 +588,7 @@ namespace MathSupport
     /// </summary>
     public override void Reset ()
     {
+      base.Reset();
       Zoom         = 1.0f;
       rotation     = Matrix4.Identity;
       prevRotation = Matrix4.Identity;
@@ -604,8 +600,9 @@ namespace MathSupport
     /// <param name="rot">Matrix of rotation from view direction to the negative Z axis (must be matrix of rotation).</param>
     public void Reset ( Matrix4 rot )
     {
-      Zoom = 1.0f;
-      rotation = Matrix4.Identity;
+      base.Reset();
+      Zoom         = 1.0f;
+      rotation     = Matrix4.Identity;
       prevRotation = rot;
     }
 
@@ -664,12 +661,6 @@ namespace MathSupport
       if ( sensitive )
         angle *= 0.4f;
       return Matrix4.CreateFromAxisAngle( axis, angle );
-    }
-
-    public override void GLtogglePerspective ()
-    {
-      UsePerspective = !UsePerspective;
-      GLsetProjection();
     }
 
     /// <summary>

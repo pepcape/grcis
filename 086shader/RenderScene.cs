@@ -71,6 +71,24 @@ namespace _086shader
 #endif
 
         long now = DateTime.Now.Ticks;
+
+        // Camera animation.
+        if (checkAnimation.Checked &&
+            animation)
+        {
+          double camTime = now / 10000000.0 - timeOrigin;
+          if ( camTime > cam.MaxTime )
+          {
+            camTime    -= cam.MaxTime - cam.MinTime;
+            timeOrigin += cam.MaxTime - cam.MinTime;
+          }
+
+          cam.Time = camTime;
+
+          SetStatus();
+        }
+
+        // FPS.
         if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
         {
           lastFps = 0.5 * lastFps + 0.5 * (frameCounter * 1.0e7 / (now - lastFpsTime));
@@ -319,29 +337,31 @@ namespace _086shader
         return;
 
       // trackball: zoom limits
-      float minZoom = cam.MinZoom;
-      float maxZoom = cam.MaxZoom;
+      float minZoom = tb.MinZoom;
+      float maxZoom = tb.MaxZoom;
       if ( Util.TryParse( p, "minZoom", ref minZoom ) )
-        cam.MinZoom = Math.Max( 1.0e-4f, minZoom );
+        tb.MinZoom = Math.Max( 1.0e-4f, minZoom );
       if ( Util.TryParse( p, "maxZoom", ref maxZoom ) )
-        cam.MaxZoom = Arith.Clamp( maxZoom, minZoom, 1.0e6f );
+        tb.MaxZoom = Arith.Clamp( maxZoom, minZoom, 1.0e6f );
 
       // trackball: zoom
-      float zoom = cam.Zoom;
+      float zoom = tb.Zoom;
       if ( Util.TryParse( p, "zoom", ref zoom ) )
-        cam.Zoom = Arith.Clamp( zoom, cam.MinZoom, cam.MaxZoom );
+        tb.Zoom = Arith.Clamp( zoom, tb.MinZoom, tb.MaxZoom );
 
       // rendering: perspective/orthographic projection
-      bool perspective = cam.UsePerspective;
+      bool perspective = tb.UsePerspective;
       if ( Util.TryParse( p, "perspective", ref perspective ) )
-        cam.UsePerspective = perspective;
+        tb.UsePerspective = perspective;
 
       // rendering: vertical field-of-view
-      float fov = cam.Fov;
+      float fov = tb.Fov;
       if ( !Util.TryParse( p, "fov", ref fov ) )
       {
-        cam.Fov = Arith.Clamp( fov, 0.1f, 2.0f );
-        cam.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+        tb.Fov = Arith.Clamp( fov, 0.1f, 2.0f );
+        tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+        camera.Fov = tb.Fov;
+        camera.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       }
 
       // rendering: background color
