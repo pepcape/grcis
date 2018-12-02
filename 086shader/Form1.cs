@@ -33,8 +33,8 @@ namespace _086shader
     /// </summary>
     float diameter = 4.0f;
 
-    float near = 0.01f;
-    float far  = 50.0f;
+    float near =   0.05f;     // 5cm
+    float far  = 200.0f;      // 200m
 
     /// <summary>
     /// Light source position in the world-space.
@@ -132,9 +132,6 @@ namespace _086shader
 
     private void SetupViewport ()
     {
-      near = diameter * 0.05f;
-      far  = diameter * 5.0f;
-
       tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
       camera.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
     }
@@ -194,24 +191,27 @@ namespace _086shader
       objReader.TextureUpsideDown = checkOrientation.Checked;
       objReader.ReadBrep( ofd.FileName, scene );
 
+      // Scene postprocessing.
       scene.BuildCornerTable();
-      diameter = scene.GetDiameter( out center );
-      SetupViewport();
       scene.GenerateColors( 12 );
       scene.ComputeNormals();
+      diameter = scene.GetDiameter( out center );
 
+      // Viewport update.
       UpdateParams( textParam.Text );
       tb.Center       = center;
       tb.Diameter     = diameter;
+      tb.Reset();
       camera.Center   = center;
       camera.Diameter = diameter;
-      SetLight( diameter, ref light );
-      tb.Reset();
       camera.Reset();
+      SetupViewport();
+      SetLight( diameter, ref light );
 
       modelStatus = $"{ofd.SafeFileName}: {scene.Vertices}v, {scene.statEdges}e({scene.statShared}), {scene.Triangles}f";
       labelFile.Text = modelStatus;
 
+      // Prepare rendering system.
       PrepareDataBuffers();
       glControl1.Invalidate();
     }
@@ -256,8 +256,6 @@ namespace _086shader
 
     private void buttonGenerate_Click ( object sender, EventArgs e )
     {
-      Cursor.Current = Cursors.WaitCursor;
-
       bool doCheck = checkCorner.Checked;
 
       scene.Reset();
@@ -298,29 +296,32 @@ namespace _086shader
 
         diameter = scene.GetDiameter( out center );
       }
-      SetupViewport();
 
       sw.Stop();
       long elapsed = sw.ElapsedMilliseconds;
 
+      // Scene postprocessing.
       scene.BuildCornerTable();
       int errors = doCheck ? scene.CheckCornerTable( null ) : 0;
       scene.GenerateColors( 12 );
+
+      // Viewport update.
       UpdateParams( textParam.Text );
       tb.Center       = center;
       tb.Diameter     = diameter;
+      tb.Reset();
       camera.Center   = center;
       camera.Diameter = diameter;
-      SetLight( diameter, ref light );
-      tb.Reset();
       camera.Reset();
+      SetupViewport();
+      SetLight( diameter, ref light );
 
       modelStatus = $"{scene.Triangles}f ({faces}rep), {scene.Vertices}v, {errors}err, {elapsed}ms";
       labelFile.Text = modelStatus;
+
+      // Prepare rendering system.
       PrepareDataBuffers();
       glControl1.Invalidate();
-
-      Cursor.Current = Cursors.Default;
     }
 
     private void textParam_KeyPress ( object sender, System.Windows.Forms.KeyPressEventArgs e )
