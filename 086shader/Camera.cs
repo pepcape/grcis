@@ -20,7 +20,7 @@ namespace _086shader
       // {{
 
       name    = "Josef Pelikán";
-      param   = "period=5.0, rad=2.0";
+      param   = "period=10.0, rad=2.0";
       tooltip = "period=<cam period in seconds>, rad=<cam radius in scene diameters>";
 
       // }}
@@ -57,11 +57,6 @@ namespace _086shader
     /// </summary>
     float radius = 1.0f;
 
-    public override void Reset ()
-    {
-      Time = MinTime;
-    }
-
     public AnimatedCamera ( string param, string cameraFile = "" )
     {
       // {{ Put your camera initialization code here
@@ -94,11 +89,13 @@ namespace _086shader
       GLsetProjection();
     }
 
-    Matrix4 computeMV ()
+    Matrix4 computeModelView ()
     {
       double t = (Time - MinTime) * 2 * Math.PI / (MaxTime - MinTime);
       double r = radius * 0.5 * Diameter;
-      Vector3 eye = Center + new Vector3( (float)(Math.Sin( t ) * r), 0.0f, (float)(Math.Cos( t ) * r) );
+      Vector3 eye = Center + new Vector3( (float)(Math.Sin( t ) * r),
+                                          (float)(Math.Sin( t + 1.0 ) * r * 0.2),
+                                          (float)(Math.Cos( t ) * r) );
       return Matrix4.LookAt( eye, Center, Vector3.UnitY );
     }
 
@@ -106,7 +103,7 @@ namespace _086shader
     {
       get
       {
-        return computeMV();
+        return computeModelView();
       }
     }
 
@@ -114,7 +111,7 @@ namespace _086shader
     {
       get
       {
-        return computeMV().Inverted();
+        return computeModelView().Inverted();
       }
     }
   }
