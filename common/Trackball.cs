@@ -128,6 +128,14 @@ namespace MathSupport
     }
 
     /// <summary>
+    /// Gets inverted model-view transformation matrix.
+    /// </summary>
+    Matrix4 ModelViewInv
+    {
+      get;
+    }
+
+    /// <summary>
     /// Perspective / orthographic projection?
     /// </summary>
     bool UsePerspective
