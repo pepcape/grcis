@@ -505,6 +505,7 @@ namespace _086shader
     private void buttonReset_Click ( object sender, EventArgs e )
     {
       cam.Reset();
+      cam.Update( textParam.Text, cameraDefinition );
       timeOrigin = nowInSeconds() - camera.Time;
     }
 
@@ -533,6 +534,7 @@ namespace _086shader
       cam.Center   = center;
       cam.Diameter = diameter;
       cam.Reset();
+      cam.Update( textParam.Text, cameraDefinition );
 
       SetStatus();
 
