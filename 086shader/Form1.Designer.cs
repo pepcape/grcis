@@ -359,6 +359,7 @@
       // buttonStartStop
       // 
       this.buttonStartStop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonStartStop.Enabled = false;
       this.buttonStartStop.Location = new System.Drawing.Point(677, 434);
       this.buttonStartStop.Name = "buttonStartStop";
       this.buttonStartStop.Size = new System.Drawing.Size(73, 23);
@@ -370,6 +371,7 @@
       // buttonLoadCamera
       // 
       this.buttonLoadCamera.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.buttonLoadCamera.Enabled = false;
       this.buttonLoadCamera.Location = new System.Drawing.Point(598, 434);
       this.buttonLoadCamera.Name = "buttonLoadCamera";
       this.buttonLoadCamera.Size = new System.Drawing.Size(71, 23);

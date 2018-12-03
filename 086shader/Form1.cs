@@ -535,6 +535,10 @@ namespace _086shader
       cam.Reset();
 
       SetStatus();
+
+      // GUI.
+      buttonStartStop.Enabled =
+      buttonLoadCamera.Enabled = checkAnimation.Checked;
     }
   }
 }
