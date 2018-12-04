@@ -371,7 +371,6 @@
       // buttonLoadCamera
       // 
       this.buttonLoadCamera.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.buttonLoadCamera.Enabled = false;
       this.buttonLoadCamera.Location = new System.Drawing.Point(598, 434);
       this.buttonLoadCamera.Name = "buttonLoadCamera";
       this.buttonLoadCamera.Size = new System.Drawing.Size(71, 23);
