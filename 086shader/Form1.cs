@@ -478,7 +478,7 @@ namespace _086shader
 
     private void textParam_MouseHover ( object sender, EventArgs e )
     {
-      tt.Show( tooltip, (IWin32Window)sender, 10, -25, 4000 );
+      tt.Show( tooltip, (IWin32Window)sender, 10, -65, 4000 );
     }
 
     private void buttonLoadCamera_Click ( object sender, EventArgs e )
@@ -539,6 +539,7 @@ namespace _086shader
       SetStatus();
 
       // GUI.
+      buttonStartStop.Text = "Start";
       buttonStartStop.Enabled =
       buttonLoadCamera.Enabled = checkAnimation.Checked;
     }
