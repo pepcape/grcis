@@ -540,8 +540,7 @@ namespace _086shader
 
       // GUI.
       buttonStartStop.Text = "Start";
-      buttonStartStop.Enabled =
-      buttonLoadCamera.Enabled = checkAnimation.Checked;
+      buttonStartStop.Enabled = checkAnimation.Checked;
     }
   }
 }
