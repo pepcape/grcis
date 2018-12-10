@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using MathSupport;
-using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Utilities;
@@ -53,7 +52,14 @@ namespace _096puzzle
     /// </summary>
     Trackball tb = null;
 
+    /// <summary>
+    /// Cached tooltip string.
+    /// </summary>
     string tooltip;
+
+    /// <summary>
+    /// Shared global ToolTip instance.
+    /// </summary>
     ToolTip tt = new ToolTip();
 
     public Form1 ()
@@ -62,13 +68,13 @@ namespace _096puzzle
 
       string param;
       string name;
-      InitParams( out param, out tooltip, out name, out center, out diameter );
+      InitParams( out name, out param, out tooltip, out center, out diameter );
       textParam.Text = param ?? "";
       Text += " (" + rev + ") '" + name + '\'';
 
-      // Trackball:
+      // Trackball.
       tb = new Trackball( center, diameter );
-      //tb.Button = MouseButtons.Right;
+      tb.Button = MouseButtons.Left;
     }
 
     private void glControl1_Load ( object sender, EventArgs e )
@@ -104,8 +110,7 @@ namespace _096puzzle
       if ( e.KeyChar == (char)Keys.Enter )
       {
         e.Handled = true;
-        if ( puz != null )
-          puz.Update( textParam.Text );
+        UpdateSimulation();
       }
     }
 
@@ -122,7 +127,7 @@ namespace _096puzzle
     }
 
     /// <summary>
-    /// Unproject support
+    /// Unproject support.
     /// </summary>
     Vector3 screenToWorld ( int x, int y, float z =0.0f )
     {
@@ -135,33 +140,35 @@ namespace _096puzzle
 
     private void glControl1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( !tb.MouseDown( e ) )
-        if ( checkDebug.Checked )
-        {
-          // pointing to the scene:
-          pointOrigin = screenToWorld( e.X, e.Y, 0.0f );
-          pointTarget = screenToWorld( e.X, e.Y, 1.0f );
-          pointDirty = true;
-        }
-        else
-          MouseButtonDown( e );
+      if ( !MouseButtonDown( e ) )
+        tb.MouseDown( e );
+
+      if ( checkDebug.Checked &&
+           e.Button != tb.Button )
+      {
+        // Pointing to the scene.
+        pointOrigin = screenToWorld( e.X, e.Y, 0.0f );
+        pointTarget = screenToWorld( e.X, e.Y, 1.0f );
+        pointDirty  = true;
+      }
     }
 
     private void glControl1_MouseUp ( object sender, MouseEventArgs e )
     {
-      if ( !tb.MouseUp( e ) )
-        MouseButtonUp( e );
+      if ( !MouseButtonUp( e ) )
+        tb.MouseUp( e );
     }
 
     private void glControl1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( !tb.MouseMove( e ) )
-        MousePointerMove( e );
+      if ( !MousePointerMove( e ) )
+        tb.MouseMove( e );
     }
 
     private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
     {
-      tb.MouseWheel( e );
+      if ( !MouseWheelChange(e) )
+        tb.MouseWheel( e );
     }
 
     private void glControl1_KeyDown ( object sender, KeyEventArgs e )
@@ -171,7 +178,13 @@ namespace _096puzzle
 
     private void glControl1_KeyUp ( object sender, KeyEventArgs e )
     {
+      // Simulation has the priority.
+      if ( KeyHandle( e ) )
+        return;
+
+      // Trackball is next.
       if ( !tb.KeyUp( e ) )
+        // 'F' for frustum visualization.
         if ( e.KeyCode == Keys.F )
         {
           e.Handled = true;
@@ -193,8 +206,6 @@ namespace _096puzzle
             frustumFrame.Add( screenToWorld( R, B, F ) );
           }
         }
-        else
-          KeyHandle( e );
     }
 
     private void buttonResetCam_Click ( object sender, EventArgs e )

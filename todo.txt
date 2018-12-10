@@ -26,13 +26,13 @@
 001colormap (color-map scheme, 2010-)
 ...
 004hdr (HDR image acquisition, 2010-2017)
-005denoise (denoising of B/W image, 2010-2018)
+005denoise (denoising of B/W image, 2010, ..?, 2018)
 ...
 035plasma (2D plasma simulation, 2014, 2018)
 ...
 051colormap (color-map derived from an image, 2012-2017)
 ...
-057scene (procedural 3D scene, 2010-2017)
+057scene (procedural 3D scene, 2010-2017, 2018)
 ...
 082circles (dots only, 2015, 2018)
 083animation (animation using dots, 2015, 2018)
@@ -44,7 +44,7 @@
 093animation (lines only animation, 2016)
 094tonemapping (2016, 2018)
 095
-096puzzle (2016)
+096puzzle (Rubik cube, 2016, 2018)
 097
 098svg (maze, 2017)
 099lines (horizontal/vertical lines only, 2017)
