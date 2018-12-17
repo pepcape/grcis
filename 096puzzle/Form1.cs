@@ -80,7 +80,9 @@ namespace _096puzzle
     private void glControl1_Load ( object sender, EventArgs e )
     {
       InitOpenGL();
+
       InitSimulation( textParam.Text );
+
       tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
 
       loaded = true;
