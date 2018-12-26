@@ -519,10 +519,13 @@ namespace _086shader
         timeOrigin = nowInSeconds() - camera.Time;
 
         buttonStartStop.Text = "Stop";
+        buttonLoadCamera.Enabled = false;
       }
       else
+      {
         buttonStartStop.Text = "Start";
-
+        buttonLoadCamera.Enabled = true;
+      }
     }
 
     private void checkAnimation_CheckedChanged ( object sender, EventArgs e )
@@ -541,6 +544,7 @@ namespace _086shader
       // GUI.
       buttonStartStop.Text = "Start";
       buttonStartStop.Enabled = checkAnimation.Checked;
+      buttonLoadCamera.Enabled = true;
     }
   }
 }
