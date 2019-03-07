@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 using MathSupport;
@@ -31,9 +33,12 @@ namespace _086shader
     /// </summary>
     float diameter = 4.0f;
 
-    float near = 0.1f;
-    float far  = 5.0f;
+    float near =   0.05f;     // 5cm
+    float far  = 200.0f;      // 200m
 
+    /// <summary>
+    /// Light source position in the world-space.
+    /// </summary>
     Vector3 light = new Vector3( -2, 1, 1 );
 
     /// <summary>
@@ -58,33 +63,93 @@ namespace _086shader
     bool loaded = false;
 
     /// <summary>
+    /// Current dynamic camera object.
+    /// </summary>
+    IDynamicCamera cam = null;
+
+    /// <summary>
     /// Associated Trackball instance.
     /// </summary>
     Trackball tb = null;
 
+    /// <summary>
+    /// Camera definition file-name.
+    /// </summary>
+    string cameraDefinition;
+
+    /// <summary>
+    /// Associated animation camera object.
+    /// </summary>
+    IDynamicCamera camera = null;
+
+    /// <summary>
+    /// Real-time = timeOrigin => time in the [MinTime, MaxTime] interal
+    /// </summary>
+    double timeOrigin = 0.0;
+
+    bool animation = false;
+
+    string modelStatus = "-- cube --";
+
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
+    string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
     ToolTip tt = new ToolTip();
 
     public Form1 ()
     {
       InitializeComponent();
 
-      string param;
-      string name;
-      Construction.InitParams( out param, out name );
-      textParam.Text = param ?? "";
-      Text += " (" + rev + ") '" + name + '\'';
+      // I'm going to merge init data from Construction and AnimatedCamera.
+      string cparam;
+      string cname;
+      string ctooltip;
+      Construction.InitParams( out cname, out cparam, out ctooltip );
 
-      // Trackball:
-      tb = new Trackball( center, diameter );
+      string mparam;
+      string mname;
+      string mtooltip;
+      AnimatedCamera.InitParams( out mname, out mparam, out mtooltip );
+
+      tooltip = ctooltip + '\n' + mtooltip;
+      textParam.Text = cparam + ", " + mparam;
+
+      Text += " (" + rev + ") '" + cname + ',' + mname + '\'';
+
+      // Default = Trackball.
+      cam = tb = new Trackball( center, diameter );
+      camera = new AnimatedCamera( textParam.Text );
 
       InitShaderRepository();
+    }
+
+    /// <summary>
+    /// Current system time in seconds.
+    /// </summary>
+    private static double nowInSeconds ()
+    {
+      return DateTime.Now.Ticks / 10000000.0;
+    }
+
+    /// <summary>
+    /// Viewport-change handling (both animation camera and Trackball must be notified).
+    /// </summary>
+    private void SetupViewport ()
+    {
+      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+      camera.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
     }
 
     private void glControl1_Load ( object sender, EventArgs e )
     {
       InitOpenGL();
       UpdateParams( textParam.Text );
-      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+      SetupViewport();
 
       loaded = true;
       Application.Idle += new EventHandler( Application_Idle );
@@ -94,7 +159,7 @@ namespace _086shader
     {
       if ( !loaded ) return;
 
-      tb.GLsetupViewport( glControl1.Width, glControl1.Height, near, far );
+      SetupViewport();
       glControl1.Invalidate();
     }
 
@@ -106,6 +171,18 @@ namespace _086shader
     private void checkVsync_CheckedChanged ( object sender, EventArgs e )
     {
       glControl1.VSync = checkVsync.Checked;
+    }
+
+    /// <summary>
+    /// Sets the status line (behaves differently in animation and Trackball modes).
+    /// </summary>
+    private void SetStatus ()
+    {
+      if ( checkAnimation.Checked )
+        labelFile.Text = string.Format( CultureInfo.InvariantCulture, "{0:f2}s - {1:f2}s - {2:f2}s",
+                                        cam.MinTime, cam.Time, cam.MaxTime );
+      else
+        labelFile.Text = modelStatus;
     }
 
     private void buttonOpen_Click ( object sender, EventArgs e )
@@ -126,21 +203,27 @@ namespace _086shader
       objReader.TextureUpsideDown = checkOrientation.Checked;
       objReader.ReadBrep( ofd.FileName, scene );
 
+      // Scene postprocessing.
       scene.BuildCornerTable();
-      diameter = scene.GetDiameter( out center );
       scene.GenerateColors( 12 );
       scene.ComputeNormals();
+      diameter = scene.GetDiameter( out center );
 
+      // Viewport update.
       UpdateParams( textParam.Text );
-      tb.Center   = center;
-      tb.Diameter = diameter;
-      SetLight( diameter, ref light );
+      tb.Center       = center;
+      tb.Diameter     = diameter;
       tb.Reset();
+      camera.Center   = center;
+      camera.Diameter = diameter;
+      camera.Reset();
+      SetupViewport();
+      SetLight( diameter, ref light );
 
-      labelFile.Text = string.Format( "{0}: {1}v, {2}e({3}), {4}f",
-                                      ofd.SafeFileName, scene.Vertices,
-                                      scene.statEdges, scene.statShared,
-                                      scene.Triangles );
+      modelStatus = $"{ofd.SafeFileName}: {scene.Vertices}v, {scene.statEdges}e({scene.statShared}), {scene.Triangles}f";
+      labelFile.Text = modelStatus;
+
+      // Prepare rendering system.
       PrepareDataBuffers();
       glControl1.Invalidate();
     }
@@ -185,11 +268,13 @@ namespace _086shader
 
     private void buttonGenerate_Click ( object sender, EventArgs e )
     {
-      Cursor.Current = Cursors.WaitCursor;
-
-      bool doCheck = false;
+      bool doCheck = checkCorner.Checked;
 
       scene.Reset();
+
+      Stopwatch sw = new Stopwatch();
+      sw.Start();
+
       Construction cn = new Construction();
 
       int faces = cn.AddMesh( scene, Matrix4.Identity, textParam.Text );
@@ -224,20 +309,31 @@ namespace _086shader
         diameter = scene.GetDiameter( out center );
       }
 
+      sw.Stop();
+      long elapsed = sw.ElapsedMilliseconds;
+
+      // Scene postprocessing.
       scene.BuildCornerTable();
       int errors = doCheck ? scene.CheckCornerTable( null ) : 0;
       scene.GenerateColors( 12 );
-      UpdateParams( textParam.Text );
-      tb.Center   = center;
-      tb.Diameter = diameter;
-      SetLight( diameter, ref light );
-      tb.Reset();
 
-      labelFile.Text = string.Format( "{0} faces ({1} rep), {2} errors", scene.Triangles, faces, errors );
+      // Viewport update.
+      UpdateParams( textParam.Text );
+      tb.Center       = center;
+      tb.Diameter     = diameter;
+      tb.Reset();
+      camera.Center   = center;
+      camera.Diameter = diameter;
+      camera.Reset();
+      SetupViewport();
+      SetLight( diameter, ref light );
+
+      modelStatus = $"{scene.Triangles}f ({faces}rep), {scene.Vertices}v, {errors}err, {elapsed}ms";
+      labelFile.Text = modelStatus;
+
+      // Prepare rendering system.
       PrepareDataBuffers();
       glControl1.Invalidate();
-
-      Cursor.Current = Cursors.Default;
     }
 
     private void textParam_KeyPress ( object sender, System.Windows.Forms.KeyPressEventArgs e )
@@ -283,7 +379,7 @@ namespace _086shader
           // pointing to the scene:
           pointOrigin = screenToWorld( e.X, e.Y, 0.0f );
           pointTarget = screenToWorld( e.X, e.Y, 1.0f );
-          eye         = tb.Eye;
+          eye         = cam.Eye;
           pointDirty  = true;
         }
     }
@@ -334,34 +430,43 @@ namespace _086shader
         }
     }
 
-    private void buttonReset_Click ( object sender, EventArgs e )
-    {
-      tb.Reset();
-    }
-
     private void buttonExportPly_Click ( object sender, EventArgs e )
     {
       if ( scene == null ||
            scene.Triangles < 1 ) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
-      sfd.Title = "Save PLY file";
-      sfd.Filter = "PLY Files|*.ply";
+      sfd.Title = "Save OBJ/PLY file";
+      sfd.Filter = "OBJ Files|*.obj|PLY Files|*.ply";
       sfd.AddExtension = true;
       sfd.FileName = "";
       if ( sfd.ShowDialog() != DialogResult.OK )
         return;
 
-      StanfordPly plyWriter   = new StanfordPly();
-      plyWriter.TextFormat    = true;
-      plyWriter.NativeNewLine = true;
-      plyWriter.Orientation   = checkOrientation.Checked;
-      //plyWriter.DoNormals     = false;
-      //plyWriter.DoTxtCoords   = false;
-      plyWriter.DoColors      = false;
-      using ( StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) ) )
+      if ( sfd.FileName.EndsWith( ".ply" ) )
       {
-        plyWriter.WriteBrep( writer, scene );
+        // Stanford PLY format.
+        StanfordPly plyWriter = new StanfordPly();
+        plyWriter.TextFormat = true;
+        plyWriter.NativeNewLine = true;
+        plyWriter.Orientation = checkOrientation.Checked;
+        //plyWriter.DoNormals     = false;
+        //plyWriter.DoTxtCoords   = false;
+        plyWriter.DoColors = false;
+        using ( StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) ) )
+        {
+          plyWriter.WriteBrep( writer, scene );
+        }
+      }
+      else
+      {
+        // Wavefront OBJ format.
+        WavefrontObj objWriter = new WavefrontObj();
+        objWriter.MirrorConversion = true;
+        using ( StreamWriter writer = new StreamWriter( new FileStream( sfd.FileName, FileMode.Create ) ) )
+        {
+          objWriter.WriteBrep( writer, scene );
+        }
       }
     }
 
@@ -369,6 +474,77 @@ namespace _086shader
     {
       tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
                (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( tooltip, (IWin32Window)sender, 10, -65, 4000 );
+    }
+
+    private void buttonLoadCamera_Click ( object sender, EventArgs e )
+    {
+      OpenFileDialog ofd = new OpenFileDialog();
+
+      ofd.Title = "Open Camera Definition File";
+      ofd.Filter = "Text Files|*.txt" +
+          "|All types|*.*";
+
+      ofd.FilterIndex = 0;
+      ofd.FileName = "";
+      if ( ofd.ShowDialog() != DialogResult.OK )
+      {
+        cameraDefinition = "";
+        return;
+      }
+
+      cameraDefinition = ofd.FileName;
+      if ( camera != null )
+        camera.Update( textParam.Text, cameraDefinition );
+    }
+
+    private void buttonReset_Click ( object sender, EventArgs e )
+    {
+      cam.Reset();
+      cam.Update( textParam.Text, cameraDefinition );
+      timeOrigin = nowInSeconds() - camera.Time;
+    }
+
+    private void buttonStartStop_Click ( object sender, EventArgs e )
+    {
+      animation = !animation;
+
+      if ( animation )
+      {
+        // camera.Time should be valid now.
+        timeOrigin = nowInSeconds() - camera.Time;
+
+        buttonStartStop.Text = "Stop";
+        buttonLoadCamera.Enabled = false;
+      }
+      else
+      {
+        buttonStartStop.Text = "Start";
+        buttonLoadCamera.Enabled = true;
+      }
+    }
+
+    private void checkAnimation_CheckedChanged ( object sender, EventArgs e )
+    {
+      animation = false;
+
+      cam = checkAnimation.Checked ? camera : tb;
+
+      cam.Center   = center;
+      cam.Diameter = diameter;
+      cam.Reset();
+      cam.Update( textParam.Text, cameraDefinition );
+
+      SetStatus();
+
+      // GUI.
+      buttonStartStop.Text = "Start";
+      buttonStartStop.Enabled = checkAnimation.Checked;
+      buttonLoadCamera.Enabled = true;
     }
   }
 }

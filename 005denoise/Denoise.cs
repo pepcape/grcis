@@ -15,12 +15,17 @@ namespace _005denoise
     /// <summary>
     /// Optional data initialization.
     /// </summary>
+    /// <param name="name">Return your full name.</param>
+    /// <param name="param">Optional text to initialize the form's text-field.</param>
+    /// <param name="tooltip">Optional tooltip = param help.</param>
     public static void InitParams ( out string name, out string param, out string tooltip )
     {
       // {{
-      name = "Josef Pelikán";
-      param = "d=3, par=true";
+
+      name    = "Josef Pelikán";
+      param   = "d=3, par=true";
       tooltip = "d=<int> .. window diameter in pixels, mode={min|max|mid|median}, par=<bool>";
+
       // }}
     }
 
@@ -246,7 +251,7 @@ namespace _005denoise
     /// <summary>
     /// [Re-]initialization.
     /// </summary>
-    /// <param name="maxValue">If negative, the old histogram domain is preserved.</param>
+    /// <param name="maxValue">If negative, the old histogram domain is kept.</param>
     public void init ( int maxValue = -1 )
     {
       if ( maxValue >= 0 &&
