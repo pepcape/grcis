@@ -5,12 +5,13 @@ using System.Windows.Forms;
 using Scene3D;
 using System.Globalization;
 using System.Drawing.Imaging;
+using Utilities;
 
 namespace _035plasma
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split( ' ' )[ 1 ];
+    static readonly string rev = Util.SetVersion( "$Rev$" );
 
     /// <summary>
     /// Global thread variable. Valid while the simulation is in progress..
@@ -38,6 +39,16 @@ namespace _035plasma
     protected int height;
 
     /// <summary>
+    /// Cached Params:
+    /// </summary>
+    protected string param;
+
+    /// <summary>
+    /// True if param changed => simulation should 
+    /// </summary>
+    protected bool paramDirty = false;
+
+    /// <summary>
     /// Save individual frames?
     /// </summary>
     protected bool saveFrames;
@@ -46,6 +57,37 @@ namespace _035plasma
     /// Just for fun..
     /// </summary>
     protected FpsMeter fps = new FpsMeter();
+
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
+    string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
+    ToolTip tt = new ToolTip();
+
+    public Form1 ()
+    {
+      InitializeComponent();
+
+      string par, name;
+      Simulation.InitParams( out name, out width, out height, out par, out tooltip );
+      textParam.Text    = param = par;
+      numericXres.Value = width;
+      numericYres.Value = height;
+
+      Text += " (" + rev + ") '" + name + '\'';
+    }
+
+    protected void EnableGui ( bool enable )
+    {
+      buttonStart.Enabled =
+      buttonReset.Enabled = enable;
+
+      buttonStop.Enabled = !enable;
+    }
 
     delegate void SetImageCallback ( Bitmap newImage );
 
@@ -86,7 +128,8 @@ namespace _035plasma
 
     protected void StopSimulation ()
     {
-      if ( sim == null || aThread == null ) return;
+      if ( sim == null ||
+           aThread == null ) return;
 
       if ( buttonStart.InvokeRequired )
       {
@@ -101,24 +144,18 @@ namespace _035plasma
         aThread = null;
 
         // GUI stuff:
-        buttonStart.Enabled = true;
-        buttonReset.Enabled = true;
-        buttonStop.Enabled = false;
+        EnableGui( true );
       }
     }
 
-    public Form1 ()
-    {
-      InitializeComponent();
-      Text += " (rev: " + rev + ')';
-    }
-
-    public void Simulation ()
+    public void RunSimulation ()
     {
       if ( sim == null ||
            sim.Width != width ||
            sim.Height != height )
-        sim = new Simulation( width, height );
+        sim = new Simulation( width, height, param );
+      else
+        sim.Change( param );
 
       fps.Start();
       float fp = 0.0f;
@@ -151,17 +188,16 @@ namespace _035plasma
     {
       if ( aThread != null ) return;
 
-      buttonStart.Enabled = false;
-      buttonReset.Enabled = false;
-      buttonStop.Enabled  = true;
+      EnableGui( false );
       cont = true;
 
-      // simulation properties:
-      width = (int)numericXres.Value;
-      height = (int)numericYres.Value;
+      // Simulation properties.
+      width      = (int)numericXres.Value;
+      height     = (int)numericYres.Value;
+      param      = textParam.Text;
       saveFrames = checkAnim.Checked;
 
-      aThread = new Thread( new ThreadStart( this.Simulation ) );
+      aThread = new Thread( new ThreadStart( RunSimulation ) );
       aThread.Start();
     }
 
@@ -172,10 +208,15 @@ namespace _035plasma
 
     private void buttonReset_Click ( object sender, EventArgs e )
     {
-      if ( sim == null || aThread != null )
+      if ( sim == null ||
+           aThread != null )
         return;
 
-      sim.Reset();
+      width  = (int)numericXres.Value;
+      height = (int)numericYres.Value;
+      param  = textParam.Text;
+      sim.Reset( width, height, param );
+
       SetText( "Frame: 0 (FPS = 0.0)" );
     }
 
@@ -186,23 +227,43 @@ namespace _035plasma
 
     private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
     {
-      if ( sim != null && e.Button == MouseButtons.Left )
-        if ( sim.MouseMove( e.Location ) && aThread == null )
+      if ( sim != null &&
+           e.Button != MouseButtons.None )
+        if ( sim.MouseMove( e.Location, e.Button, ModifierKeys ) &&
+             aThread == null )
           SetImage( sim.Visualize() );
     }
 
     private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
     {
-      if ( sim != null && e.Button == MouseButtons.Left )
-        if ( sim.MouseDown( e.Location ) && aThread == null )
+      if ( sim != null )
+        if ( sim.MouseDown( e.Location, e.Button, ModifierKeys ) &&
+             aThread == null )
           SetImage( sim.Visualize() );
     }
 
     private void pictureBox1_MouseUp ( object sender, MouseEventArgs e )
     {
-      if ( sim != null && e.Button == MouseButtons.Left )
-        if ( sim.MouseUp( e.Location ) && aThread == null )
+      if ( sim != null )
+        if ( sim.MouseUp( e.Location, e.Button, ModifierKeys ) &&
+             aThread == null )
           SetImage( sim.Visualize() );
+    }
+
+    private void textParam_MouseHover ( object sender, EventArgs e )
+    {
+      tt.Show( tooltip, (IWin32Window)sender, 10, -25, 4000 );
+    }
+
+    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    {
+      if ( e.KeyChar == (char)Keys.Enter )
+      {
+        e.Handled = true;
+        param = textParam.Text;
+        if ( sim != null )
+          sim.Change( param );
+      }
     }
   }
 }

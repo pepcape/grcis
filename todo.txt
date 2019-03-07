@@ -23,16 +23,23 @@
 ================================================================================
   Directory:
 ================================================================================
-001colormap (color-map scheme, 2010-)
+001colormap -> 033colormap (color-map scheme, 2010)
 ...
 004hdr (HDR image acquisition, 2010-2017)
-005denoise (denoising of B/W image, 2010-2018)
+005denoise (denoising of B/W image, 2010, ..?, 2018)
+...
+010quadtree -> 055quadtree (quadtree image encoding, 2010)
+...
+013scene -> 057scene (procedural 3D scene, 2010)
+...
+015avatar -> 056avatar ()
 ...
 035plasma (2D plasma simulation, 2014, 2018)
 ...
 051colormap (color-map derived from an image, 2012-2017)
 ...
-057scene (procedural 3D scene, 2010-2017)
+057scene (procedural 3D scene, 2012-2017, 2018)
+058marbles (3D physical simulation, 2012-2016, 2018)
 ...
 082circles (dots only, 2015, 2018)
 083animation (animation using dots, 2015, 2018)
@@ -44,7 +51,7 @@
 093animation (lines only animation, 2016)
 094tonemapping (2016, 2018)
 095
-096puzzle (2016)
+096puzzle (Rubik cube, 2016, 2018)
 097
 098svg (maze, 2017)
 099lines (horizontal/vertical lines only, 2017)
@@ -68,6 +75,7 @@
 113graph (R2->R graph in 3D using OpenGL, 2017)
 114transition (2D image -> 2D image transition, 2018)
 115colormandala (cyclic color-map for mandala-style images, 2018)
+116 (task only, animated realtime camera, 2018)
 
 ================================================================================
   DONE:

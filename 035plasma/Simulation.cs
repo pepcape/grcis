@@ -1,24 +1,43 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Windows.Forms;
 
 namespace _035plasma
 {
   public class Simulation
   {
     /// <summary>
+    /// Optional form-data initialization.
+    /// </summary>
+    /// <param name="name">Return your full name.</param>
+    /// <param name="width">Simulation field's width in pixels.</param>
+    /// <param name="height">Simulation field's height in pixels.</param>
+    /// <param name="param">Optional text to initialize the form's text-field.</param>
+    /// <param name="tooltip">Optional tooltip = param help.</param>
+    public static void InitParams ( out string name, out int width, out int height, out string param, out string tooltip )
+    {
+      // {{
+
+      name    = "Josef Pelikán";
+      width   = 640;
+      height  = 360;
+      param   = "";
+      tooltip = "nothing yet..";
+
+      // }}
+    }
+
+    /// <summary>
     /// Prime-time initialization.
     /// </summary>
     /// <param name="width">Visualization bitmap width.</param>
     /// <param name="height">Visualization bitmap height.</param>
-    public Simulation ( int width, int height )
+    /// <param name="param">Optional text parameter from the form.</param>
+    public Simulation ( int width, int height, string param )
     {
-      Width  = width;
-      Height = height;
       Radius = 3;
-      Reset();
+      Reset( width, height, param );
     }
 
     /// <summary>
@@ -49,20 +68,34 @@ namespace _035plasma
     }
 
     /// <summary>
+    /// Simulation parameter change.
+    /// </summary>
+    /// <param name="param">Optional text parameter from the form.</param>
+    public void Change ( string param )
+    {
+      // {{ TODO: put your simulation-param change here
+
+      // }}
+    }
+
+    /// <summary>
     /// Simulation reset.
     /// Can be called at any time after instance construction.
     /// </summary>
-    public void Reset ()
+    /// <param name="width">Visualization bitmap width.</param>
+    /// <param name="height">Visualization bitmap height.</param>
+    /// <param name="param">Optional text parameter from the form.</param>
+    public void Reset ( int width, int height, string param )
     {
-      // !!!{{ TODO: put your simulation-reset code here
+      // {{ TODO: put your simulation-reset code here
 
       Frame     = 0;
-      simWidth  = Width;     /* might be a fraction of rendering size.. */
-      simHeight = Height;    /* might be a fraction of rendering size.. */
-      s = new float[ simHeight, simWidth ];
-      rnd = new Random();    /* add seed-initialization here? */
+      simWidth  = Width = width;    // might be a fraction of rendering size..
+      simHeight = Height = height;  // might be a fraction of rendering size..
+      s         = new float[ simHeight, simWidth ];
+      rnd       = new Random();     // add seed-initialization here?
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -78,12 +111,12 @@ namespace _035plasma
     /// Support draw function (feel free to override/remove it).
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
-    protected void Draw ( Point location )
+    protected void Draw ( Point location, float color )
     {
-      // !!!{{ TODO: put your drawing code here
+      // {{ TODO: put your drawing code here
 
-      int x = location.X;                /* do proper coordinate-transform here! */
-      int y = location.Y;                /* do proper coordinate-transform here! */
+      int x = location.X;                // do proper coordinate-transform here!
+      int y = location.Y;                // do proper coordinate-transform here!
       if ( x < Radius )
         x = Radius;
       if ( x > simWidth - Radius )
@@ -95,9 +128,9 @@ namespace _035plasma
 
       for ( int i = y - Radius; i < y + Radius; i++ )
         for ( int j = x - Radius; j < x + Radius; j++ )
-          s[ i, j ] = 1.0f;              /* permanent white color .. 1.0f .. see Simulate() */
+          s[ i, j ] = color;             // permanent white color .. 1.0f .. see Simulate()
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -105,15 +138,17 @@ namespace _035plasma
     /// Draws permanent 1.0f rectangle in pilot implementation.
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
+    /// <param name="mb">Which mouse button was pressed?</param>
+    /// <param name="altKeys">Which control keys were down?</param>
     /// <returns>True if the visualization bitmap was altered.</returns>
-    public bool MouseDown ( Point location )
+    public bool MouseDown ( Point location, MouseButtons mb, Keys altKeys )
     {
-      // !!!{{ TODO: put your drawing logic here
+      // {{ TODO: put your drawing logic here
 
-      Draw( location );
+      Draw( location, (altKeys & Keys.Shift) > 0 ? 0.0f : 1.0f );
       return true;
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -121,15 +156,17 @@ namespace _035plasma
     /// Draws permanent 1.0f rectangle in pilot implementation.
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
+    /// <param name="mb">Which mouse button was released?</param>
+    /// <param name="altKeys">Which control keys were down?</param>
     /// <returns>True if the visualization bitmap was altered.</returns>
-    public bool MouseUp ( Point location )
+    public bool MouseUp ( Point location, MouseButtons mb, Keys altKeys )
     {
-      // !!!{{ TODO: put your drawing logic here
+      // {{ TODO: put your drawing logic here
 
-      Draw( location );
+      Draw( location, (altKeys & Keys.Shift) > 0 ? 0.0f : 1.0f );
       return true;
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -137,15 +174,17 @@ namespace _035plasma
     /// Draws permanent 1.0f rectangle in pilot implementation.
     /// </summary>
     /// <param name="location">Mouse pointer location.</param>
+    /// <param name="mb">Which mouse buttons are down?</param>
+    /// <param name="altKeys">Which control keys were down?</param>
     /// <returns>True if the visualization bitmap was altered.</returns>
-    public bool MouseMove ( Point location )
+    public bool MouseMove ( Point location, MouseButtons mb, Keys altKeys )
     {
-      // !!!{{ TODO: put your drawing logic here
+      // {{ TODO: put your drawing logic here
 
-      Draw( location );
+      Draw( location, (altKeys & Keys.Shift) > 0 ? 0.0f : 1.0f );
       return true;
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -174,16 +213,16 @@ namespace _035plasma
     /// </summary>
     public void Simulate ()
     {
-      // !!!{{ TODO: put your simulation code here
+      // {{ TODO: put your simulation code here
 
       for ( int i = 0; i < simHeight; i++ )
         for ( int j = 0; j < simWidth; j++ )
-          if ( s[ i, j ] != 1.0f )       /* permanent white color */
+          if ( s[ i, j ] != 1.0f )          // permanent white color
             s[ i, j ] = (float)rnd.NextDouble();
 
       Frame++;
 
-      // !!!}}
+      // }}
     }
 
     /// <summary>
@@ -192,7 +231,7 @@ namespace _035plasma
     /// <returns>Visualization bitmap.</returns>
     public Bitmap Visualize ()
     {
-      // !!!{{ TODO: put your visualization code here
+      // {{ TODO: put your visualization code here
 
       PixelFormat fmt = PixelFormat.Format24bppRgb;
       int dO = Image.GetPixelFormatSize( fmt ) / 8;
@@ -219,7 +258,7 @@ namespace _035plasma
 
       return result;
 
-      // !!!}}
+      // }}
     }
   }
 }
