@@ -70,9 +70,9 @@ namespace _062animation
 
       Dictionary<string, object> outParam = new Dictionary<string, object>();
       outParam[ "Start" ] = 0.0;
-      outParam[ "End" ] = 20.0;
+      outParam[ "End" ]   = 20.0;
       IRayScene scene = Scripts.SceneFromObject( new AnimatedRayScene(), Path.GetFileName( sceneFileName ), sceneFileName, textParam.Text,
-                                                 ( sc ) => AnimatedScene.Init( sc, textParam.Text ), str => SetText( str ), outParam );
+                                                 ( sc ) => AnimatedScene.Init( sc, textParam.Text ), SetText, outParam );
       object to;
       double td;
       if ( outParam.TryGetValue( "Start", out to ) &&
