@@ -331,8 +331,9 @@
       this.Controls.Add(this.panel1);
       this.MinimumSize = new System.Drawing.Size(720, 300);
       this.Name = "Form1";
-      this.Text = "063 image-function animation";
+      this.Text = "063 image-function [animation]";
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+      this.Load += new System.EventHandler(this.Form1_Load);
       this.panel1.ResumeLayout(false);
       this.panel1.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
