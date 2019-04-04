@@ -50,6 +50,27 @@ namespace _063animation
     /// </summary>
     public int ImageHeight = 480;
 
+    private void SetGui (bool render)
+    {
+      IImageFunction imf = FormSupport.getImageFunction( textParam.Text, data );
+      bool canAnimate = (imf != null) &&
+                        (imf is ITimeDependent);
+
+      buttonRenderAnim.Enabled = render && canAnimate;
+      buttonRender.Enabled     = render;
+      buttonRes.Enabled        = render;
+      buttonStop.Enabled       = !render;
+
+      numTime.Enabled          = canAnimate;
+      numFrom.Enabled          = canAnimate;
+      numTo.Enabled            = canAnimate;
+      numFps.Enabled           = canAnimate;
+      label1.Enabled           = canAnimate;
+      label2.Enabled           = canAnimate;
+      label3.Enabled           = canAnimate;
+      label4.Enabled           = canAnimate;
+    }
+
     /// <summary>
     /// Redraws the whole image.
     /// </summary>
@@ -57,9 +78,7 @@ namespace _063animation
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      buttonRender.Enabled = false;
-      buttonRenderAnim.Enabled = false;
-      buttonRes.Enabled = false;
+      SetGui( false );
 
       width = ImageWidth;
       if ( width <= 0 ) width = panel1.Width;
@@ -98,9 +117,7 @@ namespace _063animation
 
       pictureBox1.Image = outputImage;
 
-      buttonRender.Enabled = true;
-      buttonRenderAnim.Enabled = true;
-      buttonRes.Enabled = true;
+      SetGui( true );
 
       Cursor.Current = Cursors.Default;
     }
@@ -156,10 +173,7 @@ namespace _063animation
         aThread = null;
 
         // GUI stuff:
-        buttonRenderAnim.Enabled = true;
-        buttonRender.Enabled = true;
-        buttonRes.Enabled = true;
-        buttonStop.Enabled = false;
+        SetGui( true );
       }
     }
 
@@ -195,6 +209,11 @@ namespace _063animation
     private void buttonStop_Click ( object sender, EventArgs e )
     {
       StopAnimation();
+    }
+
+    private void Form1_Load ( object sender, EventArgs e )
+    {
+      SetGui( true );
     }
 
     private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
@@ -293,10 +312,7 @@ namespace _063animation
       if ( aThread != null )
         return;
 
-      buttonRenderAnim.Enabled = false;
-      buttonRender.Enabled = false;
-      buttonRes.Enabled = false;
-      buttonStop.Enabled = true;
+      SetGui( false );
       lock ( progress )
       {
         progress.Continue = true;
@@ -341,6 +357,11 @@ namespace _063animation
     /// </summary>
     protected void RenderAnimation ()
     {
+      IImageFunction imf = FormSupport.getImageFunction( textParam.Text, data );
+      if ( imf == null ||
+          !(imf is ITimeDependent) )
+        return;
+
       Cursor.Current = Cursors.WaitCursor;
 
       int threads = Environment.ProcessorCount;
