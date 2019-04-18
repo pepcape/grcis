@@ -82,11 +82,13 @@ namespace Rendering
 
     private readonly List<int> allVBOs = new List<int> ();
 
-    public RayVisualizerForm ( RayVisualizer rayVisualizer )
-    {    
-      Form1.singleton.RayVisualiserButton.Enabled = false;
+    private Action formClosedCallback;
 
+    public RayVisualizerForm ( RayVisualizer rayVisualizer, Action formClosedCallback )
+    {    
       trackBall = new Trackball ( center, diameter );
+
+      this.formClosedCallback = formClosedCallback;
 
       InitShaderRepository ();      
 
@@ -202,7 +204,7 @@ namespace Rendering
 
     private void RayVisualizerForm_FormClosed ( object sender, FormClosedEventArgs e )
     {
-      Form1.singleton.RayVisualiserButton.Enabled = true;
+      formClosedCallback ();
 
       rayVisualizer.form = null; // removes itself from associated RayVisualizer
     }
