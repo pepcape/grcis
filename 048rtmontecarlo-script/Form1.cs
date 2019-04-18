@@ -126,15 +126,15 @@ namespace Rendering
       return Scenes.DefaultScene();
     }
 
-    public ComboBox ComboScene { get; private set; }
+    public ComboBox ComboScene;
 
-    public NumericUpDown NumericSupersampling { get; private set; }
+    public NumericUpDown NumericSupersampling;
 
-    public CheckBox CheckJitter { get; private set; }
+    public CheckBox CheckJitter;
 
-    public CheckBox CheckMultithreading { get; private set; }
+    public CheckBox CheckMultithreading;
 
-    public TextBox TextParam { get; private set; }
+    public TextBox TextParam;
 
     private void setImage ( ref Bitmap bakImage, Bitmap newImage )
     {
@@ -645,6 +645,10 @@ namespace Rendering
       }
 
       AdditionalViewsForm additionalViewsForm = new AdditionalViewsForm( additionalViews );
+      additionalViewsForm.mapSavedCallback = (filename) =>
+      {
+        Notification ( @"File succesfully saved", $"Image file \"{filename}\" succesfully saved.", 30000 );
+      };
       additionalViewsForm.Show();
     }
 
@@ -658,7 +662,10 @@ namespace Rendering
 
       Cursor.Current = Cursors.WaitCursor;
 
-      RayVisualizerForm rayVisualizerForm = new RayVisualizerForm( rayVisualizer );
+      RayVisualizerForm rayVisualizerForm = new RayVisualizerForm( rayVisualizer, () =>
+      {
+        RayVisualiserButton.Enabled = true;
+      } );
       rayVisualizerForm.Show();
     }
 

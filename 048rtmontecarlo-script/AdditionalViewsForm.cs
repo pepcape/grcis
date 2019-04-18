@@ -21,7 +21,7 @@ namespace Rendering
     /// <summary>
     /// Constructor which sets location of Form1 window and initializes AdditionalViews class
     /// </summary>
-    public AdditionalViewsForm ( AdditionalViews additionalViews )
+    public AdditionalViewsForm ( AdditionalViews additionalViews, Form otherForm )
     {
       singleton = this;
 
@@ -30,7 +30,7 @@ namespace Rendering
 
       InitializeComponent ();
 
-      SetFormPosition ();
+      SetFormPosition ( otherForm );
 
       if ( additionalViews.mapsEmpty || MT.renderingInProgress )
       {
@@ -64,35 +64,40 @@ namespace Rendering
       KeyPreview = true;
     }
 
-    /// <summary>
-    /// Sets location of Form1 (Additional Views) to either right or left of Form1 (Main) 
-    /// depending on position of Form1 (whether it is close to right edge of primary screen)
-    /// </summary>
-    private void SetFormPosition ()
+        public AdditionalViewsForm(AdditionalViews additionalViews)
+        {
+            this.additionalViews = additionalViews;
+        }
+
+        /// <summary>
+        /// Sets location of Form1 (Additional Views) to either right or left of Form1 (Main) 
+        /// depending on position of Form1 (whether it is close to right edge of primary screen)
+        /// </summary>
+        private void SetFormPosition ( Form otherForm )
     {
       this.StartPosition = FormStartPosition.Manual;
 
-      if ( ( Form1.singleton.Location.X - this.Width < 0 ) &&
-           ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width > SystemInformation.VirtualScreen.Width ) )
+      if ( ( otherForm.Location.X - this.Width < 0 ) &&
+           ( otherForm.Location.X + otherForm.Width + this.Width > SystemInformation.VirtualScreen.Width ) )
       {
         this.Location =
           new Point ( Screen.PrimaryScreen.WorkingArea.Width / 2 - this.Width / 2,
                       Screen.PrimaryScreen.WorkingArea.Height / 2 -
                       this.Height / 2 ); // place in the middle of screen if no space around Form1 is available
       }
-      else if ( Form1.singleton.Location.X + Form1.singleton.Width + this.Width <
+      else if ( otherForm.Location.X + otherForm.Width + this.Width <
                 Screen.PrimaryScreen.WorkingArea.Width ||
-                Form1.singleton.Location.X - this.Width < 0 )
+                otherForm.Location.X - this.Width < 0 )
       {
         this.Location =
-          new Point ( Form1.singleton.Location.X + Form1.singleton.Width,
-                      Form1.singleton.Location.Y ); // place to the right of Form1
+          new Point ( otherForm.Location.X + otherForm.Width,
+                      otherForm.Location.Y ); // place to the right of Form1
       }
       else
       {
         this.Location =
-          new Point ( Form1.singleton.Location.X - this.Width,
-                      Form1.singleton.Location.Y ); // place to the left of Form1
+          new Point ( otherForm.Location.X - this.Width,
+                      otherForm.Location.Y ); // place to the left of Form1
       }
     }
 
@@ -102,6 +107,8 @@ namespace Rendering
 
       additionalViews.form = null; // removes itself from associated AdditionalViews
     }
+
+    public Action<string> mapSavedCallback;
 
     /// <summary>
     /// Universal method for saving maps to .png format
@@ -130,7 +137,7 @@ namespace Rendering
         return;
 
       outputImage.Save ( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
-      Form1.singleton?.Notification ( @"File succesfully saved", $"Image file \"{sfd.FileName}\" succesfully saved.", 30000 );
+      mapSavedCallback ( sfd.FileName );     
     }
 
     /// <summary>
