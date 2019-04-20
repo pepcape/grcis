@@ -143,7 +143,7 @@ namespace Rendering
     {
       MT.InitThreadData ();
 
-      while ( finishedAssignments < totalNumberOfAssignments )
+      while ( !availableAssignments.IsEmpty || finishedAssignments < totalNumberOfAssignments - threads)
       {
         availableAssignments.TryDequeue ( out Assignment newAssignment );
 
