@@ -473,8 +473,7 @@ namespace Rendering
         MT.renderingInProgress = false;
         MT.sceneRendered = true;
 
-        if ( Master.singleton.pointCloud == null ||
-             Master.singleton.pointCloud.IsCloudEmpty )
+        if ( Master.singleton != null && ( Master.singleton.pointCloud == null || Master.singleton.pointCloud.IsCloudEmpty ) )
           savePointCloudButton.Enabled = false;
         else if ( rayVisualizer.form != null )
           rayVisualizer.form.PointCloudButton.Enabled = true;
