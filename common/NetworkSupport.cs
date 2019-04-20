@@ -23,7 +23,7 @@ public static class NetworkSupport
   public static void SendObject<T> ( T objectToSend, NetworkStream stream )
   {
 	  MemoryStream memoryStream = new MemoryStream ();
-    BinaryFormatter formatter    = new BinaryFormatter ();
+    BinaryFormatter formatter = new BinaryFormatter ();
 
 	  if ( customBinder != null )
 		  formatter.Binder = customBinder;   
@@ -44,14 +44,13 @@ public static class NetworkSupport
   {
     byte[] receiveBuffer = ReceiveByteArray ( stream );
 
-    MemoryStream    memoryStream = new MemoryStream ( receiveBuffer );
+    MemoryStream memoryStream = new MemoryStream ( receiveBuffer );
 	  BinaryFormatter formatter    = new BinaryFormatter ();
 
 	  if ( customBinder != null )
 		  formatter.Binder = customBinder;
-	  
-
-    memoryStream.Position = 0;    
+			
+    memoryStream.Position = 0;    		
 
 	  T receivedObject = (T)formatter.Deserialize ( memoryStream );
 

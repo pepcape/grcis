@@ -57,6 +57,9 @@ namespace Rendering
           DoShadows = true;
     }
 
+    [NonSerialized]
+    public AbstractRayRegisterer rayRegisterer;
+
     /// <summary>
     /// Computes one image sample. Internal integration support.
     /// </summary>
@@ -106,7 +109,7 @@ namespace Rendering
 
       if ( i == null ) // no intersection -> background color
       {
-        RegisterRay ( RayType.rayVisualizerNormal, level, p0, direction * 100000 ); 
+        rayRegisterer?.RegisterRay( AbstractRayRegisterer.RayType.rayVisualizerNormal, level, p0, direction * 100000 ); 
 
         Array.Copy ( scene.BackgroundColor, color, bands );
         return 1L;
@@ -115,7 +118,7 @@ namespace Rendering
       // there was at least one intersection
       i.Complete ();
 
-      RegisterRay ( RayType.unknown, level, p0, i );
+      rayRegisterer?.RegisterRay ( AbstractRayRegisterer.RayType.unknown, level, p0, i );
 
       // hash code for adaptive supersampling:
       long hash = i.Solid.GetHashCode ();
@@ -161,7 +164,7 @@ namespace Rendering
 
           if ( MT.singleRayTracing && source.position != null )
             // register shadow ray for RayVisualizer
-            RegisterRay ( RayType.rayVisualizerShadow, i.CoordWorld, (Vector3d) source.position );        
+            rayRegisterer?.RegisterRay ( AbstractRayRegisterer.RayType.rayVisualizerShadow, i.CoordWorld, (Vector3d) source.position );        
 
           if ( intensity != null )
           {
@@ -234,73 +237,5 @@ namespace Rendering
 
       return hash;
     }
-
-
-    /// <summary>
-    /// Translate function for several ray register methods from AdditionalViews and RayVisualizer
-    /// Be careful with params - not type safe
-    /// </summary>
-    /// <param name="rayType">RayType which chooses method to be called</param>
-    /// <param name="parameters">All possible parameters that can be passed to individual ray register methods</param>
-    private void RegisterRay ( RayType rayType, params object[] parameters )
-    {
-      if ( rayType == RayType.unknown )
-        rayType = DetermineRayType ();
-
-      switch ( rayType )
-      {
-        //ray for statistics and maps (AdditionalViews)
-        case RayType.mapsNormal:
-          //register ray for statistics and maps
-	        if ( AdditionalViews.singleton != null)
-		        AdditionalViews.singleton.Register ( (int) parameters[0], (Vector3d) parameters[1], (Intersection) parameters[2] );         
-          break;
-
-        //ray for RayVisualizer
-        case RayType.rayVisualizerNormal:
-          if ( !MT.singleRayTracing )
-            return;
-          if ( parameters[2] is Vector3d vector )
-            RayVisualizer.singleton?.RegisterRay ( (Vector3d) parameters[1], vector );
-          if ( parameters[2] is Intersection intersection )
-            RayVisualizer.singleton?.RegisterRay ( (Vector3d) parameters[1], intersection.CoordWorld );
-          break;
-
-        //shadow ray for RayVisualizer
-        case RayType.rayVisualizerShadow:         
-          if ( !MT.singleRayTracing )
-            return;
-          RayVisualizer.singleton?.RegisterShadowRay ( (Vector3d) parameters [0], (Vector3d) parameters [1] );
-          break;
-      }	    
-    }
-
-    /// <summary>
-    /// Determined whether ray comes from normal rendering or single ray rendering (for information about pixel and RayVisualizer)
-    /// </summary>
-    /// <returns>Returns chosen RayType</returns>
-    private RayType DetermineRayType ()
-    {
-      if ( MT.singleRayTracing )
-      {
-        return RayType.rayVisualizerNormal;
-      }
-      else
-      {
-        return RayType.mapsNormal;
-      }
-    }
-
-    /// <summary>
-    /// Types of rays
-    /// Unknown used when further classification of it is needed and will be changed later
-    /// </summary>
-    enum RayType
-    {
-      rayVisualizerNormal,
-      rayVisualizerShadow,
-      mapsNormal,
-      unknown
-    };
   }
 }

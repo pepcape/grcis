@@ -58,8 +58,9 @@ namespace Rendering
     /// <param name="clientsCollection">Collection of Clients to get their IP addresses - names are only for user</param>
     /// <param name="threads">Number of threads to be used for rendering</param>
     /// <param name="newPointCloud">Bool whether new point cloud should be created</param>
-
-    public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer, IEnumerable<Client> clientsCollection, int threads, bool newPointCloud )
+    /// <param name="pointCloudStorage">External storage of point cloud data</param>
+    public Master ( Bitmap bitmap, IRayScene scene, IRenderer renderer, IEnumerable<Client> clientsCollection, 
+                    int threads, bool newPointCloud, ref PointCloud pointCloudStorage)
     {
       finishedAssignments = 0;
    
@@ -74,12 +75,11 @@ namespace Rendering
       if ( newPointCloud && !MT.pointCloudSavingInProgress )
       {
         pointCloud = new PointCloud ( threads );
-        AdditionalViews.singleton.pointCloud = pointCloud;
+        pointCloudStorage = pointCloud;
       }
       else
       {
-        if ( AdditionalViews.singleton != null )
-          pointCloud = AdditionalViews.singleton.pointCloud;
+        pointCloud = pointCloudStorage;
       }
 
       singleton = this;
@@ -129,7 +129,7 @@ namespace Rendering
         foreach ( NetworkWorker worker in networkWorkers ) // properly closes connections (and also sockets and streams) to all clients
         {
           worker.SendSpecialAssignment ( Assignment.AssignmentType.Ending );
-          worker.client.Close ();
+          //worker.client.Close ();
         }
       }
     }

@@ -335,7 +335,9 @@ namespace RenderClient
 
       private Thread[] pool;
 
-      public ClientMaster ( Bitmap bitmap, IRayScene scene, IRenderer renderer ) : base ( bitmap, scene, renderer, null, 1, false )
+	    private static PointCloud dummy; // do not use; dummy object to pass to base constructor
+
+      public ClientMaster ( Bitmap bitmap, IRayScene scene, IRenderer renderer ) : base ( bitmap, scene, renderer, null, 1, false, ref dummy )
       {
         availableAssignments = new ConcurrentQueue<Assignment> ();
 
