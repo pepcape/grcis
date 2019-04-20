@@ -219,6 +219,7 @@ namespace Rendering
         rt.DoShadows     = checkShadows.Checked;
         rt.DoReflections = checkReflections.Checked;
         rt.DoRefractions = checkRefractions.Checked;
+        rt.rayRegisterer = new MainRayRegisterer ( additionalViews, rayVisualizer );
       }
 
       return imf;
@@ -345,12 +346,12 @@ namespace Rendering
 
       rayVisualizer.UpdateScene( sc );
 
-      master = new Master( newImage, sc, r, RenderClientsForm.instance?.clients, threads, pointCloudCheckBox.Checked );
+      master = new Master( newImage, sc, r, RenderClientsForm.instance?.clients, threads, pointCloudCheckBox.Checked, ref AdditionalViews.singleton.pointCloud );
       master.progressData = progress;
       master.InitializeAssignments( newImage, sc, r );
 
       if ( pointCloudCheckBox.Checked )
-        master.pointCloud.SetNecessaryFields( PointCloudSavingStart, PointCloudSavingEnd, Notification, Invoke );
+        master.pointCloud?.SetNecessaryFields( PointCloudSavingStart, PointCloudSavingEnd, Notification, Invoke );
 
       progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 3000L : 1000L;
       progress.Reset();

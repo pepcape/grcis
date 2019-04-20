@@ -197,6 +197,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\AbstractRayRegisterer.cs">
+      <Link>AbstractRayRegisterer.cs</Link>
+    </Compile>
     <Compile Include="..\common\AdditionalViews.cs">
       <Link>AdditionalViews.cs</Link>
     </Compile>
@@ -282,6 +285,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="MainRayRegisterer.cs" />
     <Compile Include="PanAndZoomSupport.cs" />
     <Compile Include="RayVisualizerForm.cs">
       <SubType>Form</SubType>
