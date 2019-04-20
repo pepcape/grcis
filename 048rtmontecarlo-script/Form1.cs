@@ -644,7 +644,7 @@ namespace Rendering
         return; // only one instance of Form1 can exist at the time
       }
 
-      AdditionalViewsForm additionalViewsForm = new AdditionalViewsForm( additionalViews );
+      AdditionalViewsForm additionalViewsForm = new AdditionalViewsForm( additionalViews, this );
       additionalViewsForm.mapSavedCallback = (filename) =>
       {
         Notification ( @"File succesfully saved", $"Image file \"{filename}\" succesfully saved.", 30000 );
