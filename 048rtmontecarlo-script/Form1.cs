@@ -434,6 +434,9 @@ namespace Rendering
 
     public void SetText ( string text )
     {
+      if ( MT.singleRayTracing )
+          return;
+
       if ( labelElapsed.InvokeRequired )
       {
         SetTextCallback st = new SetTextCallback( SetText );
