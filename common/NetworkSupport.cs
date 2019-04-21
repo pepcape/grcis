@@ -282,14 +282,14 @@ public static class NetworkSupport
 		{
 			string currentAssembly = Assembly.GetExecutingAssembly().FullName;
 
-			string typeToGet = String.Format ( "{0}, {1}", typeName, currentAssembly );
+			string typeToGet = $"{typeName}, {currentAssembly}";
 
 			if ( typeToGet.Contains ( "`" ) )  //char ` is used in full type name of generic classes - they need special treatment when changing their assembly name 
 			{
 				string temp = typeof ( LinkedList<ILightSource> ).AssemblyQualifiedName;
         string systemAssembly = temp.Substring (temp.IndexOf(", System, Version=") + 2);
 
-        typeToGet = String.Format ( "{0}, {1}", typeName, systemAssembly );
+        typeToGet = $"{typeName}, {systemAssembly}";
 
 				typeToGet = typeToGet.Replace ( senderAssembly, targetAssembly);
 			}			

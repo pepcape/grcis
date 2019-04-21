@@ -68,31 +68,19 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\OpenTK.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTK.GLControl, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\OpenTK.GLControl.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Collections.Immutable.1.4.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Interactive, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>packages\System.Interactive.3.1.1\lib\net45\System.Interactive.dll</HintPath>
-    </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\048rtmontecarlo-script\PanAndZoomSupport.cs">
-      <Link>PanAndZoomSupport.cs</Link>
-    </Compile>
     <Compile Include="..\common\AbstractRayRegisterer.cs">
       <Link>AbstractRayRegisterer.cs</Link>
     </Compile>
@@ -107,9 +95,6 @@
     </Compile>
     <Compile Include="..\common\NetworkSupport.cs">
       <Link>NetworkSupport.cs</Link>
-    </Compile>
-    <Compile Include="..\common\OpenglSupport.cs">
-      <Link>OpenglSupport.cs</Link>
     </Compile>
     <Compile Include="..\common\PointCloud.cs">
       <Link>PointCloud.cs</Link>
@@ -147,9 +132,6 @@
     <Compile Include="..\common\Scene.cs">
       <Link>Scene.cs</Link>
     </Compile>
-    <Compile Include="..\common\Trackball.cs">
-      <Link>Trackball.cs</Link>
-    </Compile>
     <Compile Include="..\common\Util.cs">
       <Link>Util.cs</Link>
     </Compile>
@@ -164,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

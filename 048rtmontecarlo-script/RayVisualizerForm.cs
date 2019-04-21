@@ -8,7 +8,6 @@ using OpenglSupport;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
-using OpenTK.Graphics;
 using _048rtmontecarlo.Properties;
 
 namespace Rendering
