@@ -233,11 +233,13 @@ namespace Rendering
           if ( ok )
           {
             message?.Invoke( $"Script '{name}' finished ok, rendering.." );
+
             return globals.scene;
           }
         }
 
         message?.Invoke( "Using default scene.." );
+
         defaultScene( sc );
         return sc;
       }
@@ -247,8 +249,7 @@ namespace Rendering
       else
         ispd?.Invoke( sc, par );
 
-      if ( !MT.singleRayTracing )
-        message?.Invoke( $"Rendering '{name}' ({++count}).." );
+      message?.Invoke( $"Rendering '{name}' ({++count}).." );
       return sc;
     }
   }

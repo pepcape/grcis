@@ -19,6 +19,8 @@ namespace RenderClient
       Console.SetWindowSize ( Math.Min ( 85, Console.LargestWindowWidth ),
                               Math.Min ( 50, Console.LargestWindowHeight ) );
 
+	    Console.Title = "Render Client";
+
       RenderClient.Start ();
     }
   }
@@ -26,7 +28,7 @@ namespace RenderClient
   /// <summary>
   /// Takes care of connection and communication with server
   /// </summary>
-  static class RenderClient
+  internal static class RenderClient
   {
     private const  int           port = 5411; // randomly chosen port - should be above 5000 and with bit of luck, it will not interfere with any other prorgam
     private static NetworkStream stream;
@@ -116,7 +118,7 @@ namespace RenderClient
 		    ExchangeNecessaryInfo ();
 
 		    Thread receiver = new Thread ( ReceiveAssignments );
-		    receiver.Name     = "AssignmentReceiver";
+		    receiver.Name = "AssignmentReceiver";
 		    receiver.Priority = ThreadPriority.BelowNormal;
 		    receiver.Start ();
 
