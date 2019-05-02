@@ -233,13 +233,11 @@ namespace Rendering
           if ( ok )
           {
             message?.Invoke( $"Script '{name}' finished ok, rendering.." );
-
             return globals.scene;
           }
         }
 
         message?.Invoke( "Using default scene.." );
-
         defaultScene( sc );
         return sc;
       }
