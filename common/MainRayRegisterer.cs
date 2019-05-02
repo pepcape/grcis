@@ -1,7 +1,10 @@
 using OpenTK;
 using Rendering;
 
-
+/// <summary>
+/// Implementation of AbstractRayRegisterer
+/// Registers rays to both AdditionalViews for maps and to RayVisualizer
+/// </summary>
 class MainRayRegisterer: AbstractRayRegisterer
 {
   private readonly AdditionalViews additionalViews;
