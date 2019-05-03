@@ -106,8 +106,8 @@ Right.InsertChild(c,Matrix4d.Scale(0.5, 5.0, 1.7) * Matrix4d.RotateZ(4.7) * Matr
 
 // Infinite plane with checker:
 Plane pl = new Plane();
-pl.SetAttribute( PropertyName.COLOR, new double[] { 0.3, 0.0, 0.0 } );
-pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 0.6, 0.6, new double[] { 0.0, 0.0, 0.0 } ) );
+pl.SetAttribute( PropertyName.COLOR, new double[] { 0.9, 0.8, 0.1 } );
+pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 0.6, 0.6, new double[] { 0.1, 0.1, 1.0 } ) );
 root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
 
 
