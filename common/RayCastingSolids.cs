@@ -937,6 +937,7 @@ namespace Rendering
   /// Support data container, holds info about one (subdivided) Bezier patch and its AABB.
   /// Static shareable data, multi-thread safe.
   /// </summary>
+  [Serializable]
   class BezierPatch: ICloneable
   {
     /// <summary>

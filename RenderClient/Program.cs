@@ -59,7 +59,7 @@ namespace RenderClient
     /// </summary>
     private static void ConnectToServer ()
     {
-	    NetworkSupport.NecessaryNetworkSettings ( port, Protocol.Tcp, "RenderClient (TCP)");  //sets port-forwarding    
+	    //NetworkSupport.NecessaryNetworkSettings ( port, Protocol.Tcp, "RenderClient (TCP)");  //sets port-forwarding    
 
       if ( stream != null )	// connection already exists
         return; 

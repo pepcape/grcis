@@ -125,10 +125,9 @@ namespace Rendering
       
       if ( networkWorkers?.Count > 0 )
       {
-        foreach ( NetworkWorker worker in networkWorkers ) // properly closes connections (and also sockets and streams) to all clients
+        foreach ( NetworkWorker worker in networkWorkers ) // sends ending assignment to all clients
         {
           worker.SendSpecialAssignment ( Assignment.AssignmentType.Ending );
-          //worker.client.Close ();
         }
       }
     }
@@ -142,7 +141,7 @@ namespace Rendering
     {
       MT.InitThreadData ();
 
-      while ( !availableAssignments.IsEmpty || finishedAssignments < totalNumberOfAssignments - threads)
+      while ( !availableAssignments.IsEmpty || finishedAssignments < totalNumberOfAssignments - threads || NetworkWorker.assignmentsAtClients > 0 )
       {
         availableAssignments.TryDequeue ( out Assignment newAssignment );
 
@@ -312,7 +311,7 @@ namespace Rendering
     public NetworkStream stream;
 
     public int threadCountAtClient;
-    private static int assignmentsAtClients;
+    public static int assignmentsAtClients;
 
     private readonly List<Assignment> unfinishedAssignments = new List<Assignment>();
 
@@ -383,7 +382,7 @@ namespace Rendering
       threadCountAtClient = NetworkSupport.ReceiveInt ( stream );
     }
 
-
+    
     private const int bufferSize = ( Master.assignmentSize * Master.assignmentSize * 3 + 2) * sizeof ( float );
     /// <summary>
     /// Asynchronous image receiver uses NetworkStream.ReadAsync
@@ -430,13 +429,16 @@ namespace Rendering
         Master.singleton.finishedAssignments++;
 
         //takes care of increasing assignmentRoundsFinished by the ammount of finished rendering rounds on RenderClient
-        Assignment currentAssignment = unfinishedAssignments.Find ( a => a.x1 == (int) coordinates [ 0 ] && a.y1 == (int) coordinates [ 1 ]  );
-        int        roundsFinished    = (int) Math.Log ( currentAssignment.stride, 2 ) + 1; // stride goes from 8 > 4 > 2 > 1 (1 step = 1 rendering round)
-        Master.singleton.assignmentRoundsFinished += roundsFinished;
+        lock (unfinishedAssignments)
+        {
+          Assignment currentAssignment = unfinishedAssignments.Find(a => a.x1 == (int)coordinates[0] && a.y1 == (int)coordinates[1]);
+          int roundsFinished = (int)Math.Log(currentAssignment.stride, 2) + 1; // stride goes from 8 > 4 > 2 > 1 (1 step = 1 rendering round)
+          Master.singleton.assignmentRoundsFinished += roundsFinished;
 
-        assignmentsAtClients--;
+          assignmentsAtClients--;
 
-        RemoveAssignmentFromUnfinishedAssignments ( (int) coordinates[0], (int) coordinates[1] );
+          RemoveAssignmentFromUnfinishedAssignments((int)coordinates[0], (int)coordinates[1]);
+        }        
 
         TryToGetNewAssignment ();
       }
@@ -514,6 +516,7 @@ namespace Rendering
       foreach ( Assignment unfinishedAssignment in unfinishedAssignments )
       {
         Master.singleton.availableAssignments.Enqueue ( unfinishedAssignment );
+        assignmentsAtClients--;
       }
     }
 
