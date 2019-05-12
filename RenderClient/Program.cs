@@ -137,8 +137,7 @@ namespace RenderClient
     {
 	    CancellationTokenSource source = new CancellationTokenSource();
 	    CancellationToken token = source.Token;
-
-	  
+  
 			Task exit = new Task( () =>
 			{
 				Console.WriteLine ( "Press ESC to exit or wait for new render work from server." );
@@ -204,31 +203,38 @@ namespace RenderClient
     {
       while ( true )
       {
-        if ( stream.DataAvailable )
-        {
-          Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( stream );         
+	      try
+	      {
+		      if (stream.DataAvailable)
+		      {
+			      Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment>(stream);
 
-          if ( newAssignment.type == Assignment.AssignmentType.Ending ) // Ending assignment signals end of rendering
-          {
-            finished = true;  // signal for threads in Consume method
+			      if (newAssignment.type == Assignment.AssignmentType.Ending) // Ending assignment signals end of rendering
+			      {
+				      finished = true; // signal for threads in Consume method
 
-            lock ( consoleLock )
-            {
-              Console.ForegroundColor = ConsoleColor.Red;
-              Console.WriteLine ( "\nRendering on server finished or no more assignments are expected to be received.\n" );
-            }
+				      lock (consoleLock)
+				      {
+					      Console.ForegroundColor = ConsoleColor.Red;
+					      Console.WriteLine("\nRendering on server finished or no more assignments are expected to be received.\n");
+				      }
 
-	          return;
-          }
+				      return;
+			      }
 
-          lock ( consoleLock )
-          {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine ( @"Data for assignment [{0}, {1}, {2}, {3}] received and deserialized.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
-          }        
+			      lock (consoleLock)
+			      {
+				      Console.ForegroundColor = ConsoleColor.Green;
+				      Console.WriteLine(@"Data for assignment [{0}, {1}, {2}, {3}] received and deserialized.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2);
+			      }
 
-          ClientMaster.singleton.availableAssignments.Enqueue ( newAssignment ); // adds new assignment to the queue; it is later taken from there by thread in Consume method
-        }
+			      ClientMaster.singleton.availableAssignments.Enqueue(newAssignment); // adds new assignment to the queue; it is later taken from there by thread in Consume method
+		      }
+                }
+	      catch ( ObjectDisposedException )
+	      {
+		      ConnectionLost ();
+	      }    
       }
     }
 
