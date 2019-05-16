@@ -19,7 +19,7 @@ namespace _063animation
 
       Form1 f = Form1.singleton;
 
-      f.textParam.Text = "slant=0.0,prefix=out,bg=[0.05;0.0;0.0],fg=[1.0;1.0;0.8]";
+      f.textParam.Text = "h=0.0,slant=0.0,prefix=out,bg=[0.05;0.0;0.0],fg=[1.0;1.0;0.8]";
 
       // single frame:
       f.ImageWidth = 640;
@@ -314,6 +314,13 @@ namespace _063animation
       mul = frequency / width;
     }
 
+    // Height is from [0.0, 1.0]
+    protected void setHeight ( double h )
+    {
+      frequency = 100.0 + Util.Clamp( h, 0.0, 1.0 ) * 9900.0;
+      setup();
+    }
+
     /// <summary>
     /// Domain width.
     /// </summary>
@@ -430,6 +437,11 @@ namespace _063animation
       // slant version of the checkerboard:
       if ( Util.TryParse( p, "slant", ref slant ) )
         setSlant( slant );
+
+      // height from 0.0 to 1.0:
+      double h = 0.0;
+      if ( Util.TryParse( p, "h", ref h ) )
+        setHeight( h );
 
       // background color:
       Vector3 col = Vector3.Zero;

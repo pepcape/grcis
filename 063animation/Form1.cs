@@ -85,7 +85,7 @@ namespace _063animation
       height = ImageHeight;
       if ( height <= 0 ) height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      Bitmap im = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
       MT.InitThreadData();
 
       if ( data == null )
@@ -110,12 +110,16 @@ namespace _063animation
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height );
+      rend.RenderRectangle( im, 0, 0, width, height );
 
       sw.Stop();
       labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
 
-      pictureBox1.Image = outputImage;
+      SetImage( (Bitmap)im.Clone() );
+
+      string fileName = Util.FileNameString( textParam.Text ) + ".png";
+      im.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+      im.Dispose();
 
       SetGui( true );
 
