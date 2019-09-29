@@ -44,7 +44,7 @@ namespace Scene3D
 
     public WavefrontObj ()
     {
-      MirrorConversion = false;
+      MirrorConversion  = false;
       TextureUpsideDown = false;
     }
 
@@ -66,12 +66,13 @@ namespace Scene3D
         return SceneBrep.NULL;
 
       StreamReader reader;
-      if ( fileName.EndsWith( ".gz" ) )
-        reader = new StreamReader( new GZipStream( new FileStream( fileName, FileMode.Open ), CompressionMode.Decompress ) );
+      if ( fileName.EndsWith ( ".gz" ) )
+        reader = new StreamReader ( new GZipStream ( new FileStream ( fileName, FileMode.Open ),
+                                                     CompressionMode.Decompress ) );
       else
-        reader = new StreamReader( new FileStream( fileName, FileMode.Open ) );
-      int faces = ReadBrep( reader, scene );
-      reader.Close();
+        reader = new StreamReader ( new FileStream ( fileName, FileMode.Open ) );
+      int faces = ReadBrep ( reader, scene );
+      reader.Close ();
 
       return faces;
     }
@@ -86,9 +87,9 @@ namespace Scene3D
     {
       if ( reader == null ) return SceneBrep.NULL;
 
-      Debug.Assert( scene != null );
-      scene.Reset();
-      return ReadBrep( reader, scene, Matrix4.Identity );
+      Debug.Assert ( scene != null );
+      scene.Reset ();
+      return ReadBrep ( reader, scene, Matrix4.Identity );
     }
 
     /// <summary>
@@ -102,58 +103,58 @@ namespace Scene3D
     {
       if ( reader == null ) return SceneBrep.NULL;
 
-      Debug.Assert( scene != null );
-      int v0 = scene.Vertices;
+      Debug.Assert ( scene != null );
+      int v0         = scene.Vertices;
       int lastVertex = v0 - 1;
 
       int faces = 0;
 
-      List<Vector2> txtCoords = new List<Vector2>( 256 );
-      List<Vector3> normals = new List<Vector3>( 256 );
-      int lastTxtCoord = -1;
-      int lastNormal = -1;
-      int[] f = new int[ 3 ];
+      List<Vector2> txtCoords    = new List<Vector2> ( 256 );
+      List<Vector3> normals      = new List<Vector3> ( 256 );
+      int           lastTxtCoord = -1;
+      int           lastNormal   = -1;
+      int[]         f            = new int[3];
 
       do
       {
-        string line = reader.ReadLine();
+        string line = reader.ReadLine ();
         if ( line == null ) break;
 
-        int commentPos = line.IndexOf( COMMENT );
+        int commentPos = line.IndexOf ( COMMENT );
         if ( commentPos >= 0 )
-          line = line.Substring( 0, commentPos );
+          line = line.Substring ( 0, commentPos );
 
-        string[] tokens = line.Split( DELIMITERS , StringSplitOptions.RemoveEmptyEntries );
+        string[] tokens = line.Split ( DELIMITERS, StringSplitOptions.RemoveEmptyEntries );
         if ( tokens.Length < 1 ) continue;
 
-        switch ( tokens[ 0 ] )
+        switch ( tokens [ 0 ] )
         {
           case VERTEX:
             if ( tokens.Length < 4 ) continue;
 
             Vector3 coord;
-            if ( !float.TryParse( tokens[ 1 ], NumberStyles.Float, CultureInfo.InvariantCulture, out coord.X ) ||
-                 !float.TryParse( tokens[ 2 ], NumberStyles.Float, CultureInfo.InvariantCulture, out coord.Y ) ||
-                 !float.TryParse( tokens[ 3 ], NumberStyles.Float, CultureInfo.InvariantCulture, out coord.Z ) )
+            if ( !float.TryParse ( tokens [ 1 ], NumberStyles.Float, CultureInfo.InvariantCulture, out coord.X ) ||
+                 !float.TryParse ( tokens [ 2 ], NumberStyles.Float, CultureInfo.InvariantCulture, out coord.Y ) ||
+                 !float.TryParse ( tokens [ 3 ], NumberStyles.Float, CultureInfo.InvariantCulture, out coord.Z ) )
               continue;
 
             if ( MirrorConversion )
               coord.Z = -coord.Z;
-            lastVertex = scene.AddVertex( Vector3.TransformPosition( coord, m ) );
+            lastVertex = scene.AddVertex ( Vector3.TransformPosition ( coord, m ) );
             break;
 
           case VERTEX_TEXTURE:
             if ( tokens.Length < 3 ) continue;
 
             Vector2 txtCoord;
-            if ( !float.TryParse( tokens[1], NumberStyles.Float, CultureInfo.InvariantCulture, out txtCoord.X ) ||
-                 !float.TryParse( tokens[2], NumberStyles.Float, CultureInfo.InvariantCulture, out txtCoord.Y ) )
+            if ( !float.TryParse ( tokens [ 1 ], NumberStyles.Float, CultureInfo.InvariantCulture, out txtCoord.X ) ||
+                 !float.TryParse ( tokens [ 2 ], NumberStyles.Float, CultureInfo.InvariantCulture, out txtCoord.Y ) )
               continue;
 
             if ( TextureUpsideDown )
               txtCoord.Y = 1.0f - txtCoord.Y;
 
-            txtCoords.Add( txtCoord );
+            txtCoords.Add ( txtCoord );
             lastTxtCoord++;
             break;
 
@@ -161,14 +162,14 @@ namespace Scene3D
             if ( tokens.Length < 4 ) continue;
 
             Vector3 norm;
-            if ( !float.TryParse( tokens[ 1 ], NumberStyles.Float, CultureInfo.InvariantCulture, out norm.X ) ||
-                 !float.TryParse( tokens[ 2 ], NumberStyles.Float, CultureInfo.InvariantCulture, out norm.Y ) ||
-                 !float.TryParse( tokens[ 3 ], NumberStyles.Float, CultureInfo.InvariantCulture, out norm.Z ) )
+            if ( !float.TryParse ( tokens [ 1 ], NumberStyles.Float, CultureInfo.InvariantCulture, out norm.X ) ||
+                 !float.TryParse ( tokens [ 2 ], NumberStyles.Float, CultureInfo.InvariantCulture, out norm.Y ) ||
+                 !float.TryParse ( tokens [ 3 ], NumberStyles.Float, CultureInfo.InvariantCulture, out norm.Z ) )
               continue;
 
             if ( MirrorConversion )
               norm.Z = -norm.Z;
-            normals.Add( Vector3.TransformNormal( norm, m ) );
+            normals.Add ( Vector3.TransformNormal ( norm, m ) );
             lastNormal++;
             break;
 
@@ -176,46 +177,46 @@ namespace Scene3D
             if ( tokens.Length < 4 ) continue;
             int N = tokens.Length - 1;
             if ( f.Length < N )
-              f = new int[ N ];
+              f = new int[N];
             int i;
 
-            for ( i = 0; i < N; i++ )       // read indices for one vertex
+            for ( i = 0; i < N; i++ ) // read indices for one vertex
             {
-              string[] vt = tokens[ i + 1 ].Split( '/' );
-              int ti, ni;
-              ti = ni = 0;                  // 0 => value not present
+              string[] vt = tokens [ i + 1 ].Split ( '/' );
+              int      ti, ni;
+              ti = ni = 0; // 0 => value not present
 
               // 0 .. vertex coord index
-              if ( !int.TryParse( vt[ 0 ], out f[ i ] ) ||
-                   f[ i ] == 0 )
+              if ( !int.TryParse ( vt [ 0 ], out f [ i ] ) ||
+                   f [ i ] == 0 )
                 break;
 
-              if ( f[ i ] > 0 )
-                f[ i ] = v0 + f[ i ] - 1;
+              if ( f [ i ] > 0 )
+                f [ i ] = v0 + f [ i ] - 1;
               else
-                f[ i ] = lastVertex + 1 - f[ i ];
+                f [ i ] = lastVertex + 1 - f [ i ];
 
               if ( vt.Length > 1 )
               {
                 // 1 .. texture coord index (not yet)
-                if ( !int.TryParse( vt[ 1 ], out ti ) ) ti = 0;
+                if ( !int.TryParse ( vt [ 1 ], out ti ) ) ti = 0;
 
                 if ( vt.Length > 2 )
                 {
                   // 2 .. normal vector index
-                  if ( !int.TryParse( vt[ 2 ], out ni ) ) ni = 0;
+                  if ( !int.TryParse ( vt [ 2 ], out ni ) ) ni = 0;
                 }
               }
 
               // there was a texture coord..
               if ( ti != 0 )
               {
-                if( ti > 0 )
+                if ( ti > 0 )
                   ti--;
                 else
                   ti = lastTxtCoord + 1 - ti;
                 if ( ti >= 0 && ti < txtCoords.Count )
-                  scene.SetTxtCoord( f[i], txtCoords[ti] );
+                  scene.SetTxtCoord ( f [ i ], txtCoords [ ti ] );
               }
 
               // there was a normal..
@@ -226,21 +227,20 @@ namespace Scene3D
                 else
                   ni = lastNormal + 1 - ni;
                 if ( ni >= 0 && ni < normals.Count )
-                  scene.SetNormal( f[ i ], normals[ ni ] );
+                  scene.SetNormal ( f [ i ], normals [ ni ] );
               }
             }
 
             N = i;
             for ( i = 1; i < N - 1; i++ )
             {
-              scene.AddTriangle( f[ 0 ], f[ i ], f[ i + 1 ] );
+              scene.AddTriangle ( f [ 0 ], f [ i ], f [ i + 1 ] );
               faces++;
             }
 
             break;
         }
-      }
-      while ( !reader.EndOfStream );
+      } while ( !reader.EndOfStream );
 
       return faces;
     }
@@ -257,32 +257,34 @@ namespace Scene3D
       int i;
       for ( i = 0; i < scene.Vertices; i++ )
       {
-        Vector3 v = scene.GetVertex( i );
-        writer.WriteLine( string.Format( CultureInfo.InvariantCulture, "{0} {1} {2} {3}", new object[] { VERTEX, v.X, v.Y, v.Z } ) );
+        Vector3 v = scene.GetVertex ( i );
+        writer.WriteLine ( string.Format ( CultureInfo.InvariantCulture, "{0} {1} {2} {3}",
+                                           new object[] { VERTEX, v.X, v.Y, v.Z } ) );
       }
 
       bool hasNormals = scene.Normals > 0;
       if ( hasNormals )
         for ( i = 0; i < scene.Vertices; i++ )
         {
-          Vector3 n = scene.GetNormal( i );
-          writer.WriteLine( string.Format( CultureInfo.InvariantCulture, "{0} {1} {2} {3}", new object[] { VERTEX_NORMAL, n.X, n.Y, n.Z } ) );
+          Vector3 n = scene.GetNormal ( i );
+          writer.WriteLine ( string.Format ( CultureInfo.InvariantCulture, "{0} {1} {2} {3}",
+                                             new object[] { VERTEX_NORMAL, n.X, n.Y, n.Z } ) );
         }
 
       for ( i = 0; i < scene.Triangles; i++ )
       {
         int A, B, C;
-        scene.GetTriangleVertices( i, out A, out B, out C );
-        A++; B++; C++;
+        scene.GetTriangleVertices ( i, out A, out B, out C );
+        A++;
+        B++;
+        C++;
         if ( hasNormals )
-          writer.WriteLine( "{0} {1}//{1} {2}//{2} {3}//{3}", FACE, A, B, C );
+          writer.WriteLine ( "{0} {1}//{1} {2}//{2} {3}//{3}", FACE, A, B, C );
         else
-          writer.WriteLine( "{0} {1} {2} {3}", FACE, A, B, C );
+          writer.WriteLine ( "{0} {1} {2} {3}", FACE, A, B, C );
       }
-
     }
 
     #endregion
-
   }
 }

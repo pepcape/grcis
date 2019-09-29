@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -145,7 +146,7 @@ namespace MathSupport
     }
 
     /// <summary>
-    /// Gets a current projection matrix. 
+    /// Gets a current projection matrix.
     /// </summary>
     Matrix4 Projection
     {
@@ -367,7 +368,7 @@ namespace MathSupport
     } = true;
 
     /// <summary>
-    /// Gets a current projection matrix. 
+    /// Gets a current projection matrix.
     /// </summary>
     public virtual Matrix4 Projection
     {
@@ -457,8 +458,8 @@ namespace MathSupport
   {
     class Ellipse
     {
-      float a, b, c;
-      Vector3 center;
+      private float   a, b, c;
+      private Vector3 center;
 
       // Sphere constructor
       public Ellipse ( float r, Vector3 center ) : this( r, r, r, center )
@@ -518,6 +519,32 @@ namespace MathSupport
       }
     }
 
+    private readonly Vector3 absoluteUp = new Vector3 ( 0, 1, 0 );
+
+    /// <summary>
+    /// Camera RIGHT vector - not rotated (parallel to world axes)
+    /// </summary>
+    public Vector3 Right
+    {
+      get { return Vector3.Normalize ( Vector3.Cross ( absoluteUp, Direction ) ); }
+    }
+
+    /// <summary>
+    /// Camera UP vector - not rotated (parallel to world axes)
+    /// </summary>
+    public Vector3 Up
+    {
+      get { return Vector3.Normalize ( Vector3.Cross ( Direction, Right ) ); }
+    }
+
+    /// <summary>
+    /// Camera direction vector
+    /// </summary>
+    public Vector3 Direction
+    {
+      get { return Vector3.Normalize ( Center - Eye ); }
+    }
+
     /// <summary>
     /// Which mouse button is used for trackball movement?
     /// </summary>
@@ -531,21 +558,21 @@ namespace MathSupport
     {
       Center         =  cent;
       Diameter       =  diam;
-      MinZoom        =  0.1f;
-      MaxZoom        = 20.0f;
-      Zoom           =  1.0f;
+      MinZoom        =  0.05f;
+      MaxZoom        = 100.0f;
+      Zoom           =   1.0f;
       UsePerspective =  true;
       Button         = MouseButtons.Left;
     }
 
-    Matrix4 prevRotation = Matrix4.Identity;
-    Matrix4 rotation     = Matrix4.Identity;
+    private Matrix4 prevRotation = Matrix4.Identity;
+    private Matrix4 rotation     = Matrix4.Identity;
 
-    Ellipse ellipse;
-    Vector3? a, b;
+    private Ellipse  ellipse;
+    private Vector3? a, b;
 
-    Matrix4 perspectiveProjection;
-    Matrix4 ortographicProjection;
+    private Matrix4 perspectiveProjection;
+    private Matrix4 ortographicProjection;
 
     public override Matrix4 Projection
     {
@@ -564,7 +591,25 @@ namespace MathSupport
       GL.Viewport( 0, 0, width, height );
 
       // 2. set projection matrix
-      perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( Fov, width / (float)height, near, far );
+      // 2a. perspective
+      if ( float.IsPositiveInfinity( far ) )
+      {
+        float viewAngleVertical = (float) ( Fov * 180 / Math.PI );
+        float f = (float) ( 1.0 / Math.Tan ( viewAngleVertical / 2.0 ) );
+        float aspect = width / (float) height;
+
+        //perspectiveProjection = new Matrix4 ( focalLength, 0, 0, 0, 0, focalLength / ratio, 0, 0, 0, 0, -1, -2 * near, 0, 0, -1, 0 );
+        perspectiveProjection = new Matrix4 ( f / aspect, 0.0f, 0.0f, 0.0f,
+                                              0.0f, f, 0.0f, 0.0f,
+                                              0.0f, 0.0f, -1.0f, -1.0f,
+                                              0.0f, 0.0f, -2.0f * near, 0.0f );
+      }
+      else
+      {
+        perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView ( Fov, width / (float) height, near, far );
+      }
+
+      // 2b. orthographic
       float minSize = 2.0f * Math.Min( width, height );
       ortographicProjection = Matrix4.CreateOrthographic( Diameter * width / minSize,
                                                           Diameter * height / minSize,
@@ -731,7 +776,7 @@ namespace MathSupport
     {
       if ( e.Button != Button )
         return false;
-       
+
       b = ellipse.IntersectionI( e.X, e.Y );
       rotation = calculateRotation( a, b, (Control.ModifierKeys & Keys.Shift) != Keys.None );
       return true;
@@ -757,8 +802,39 @@ namespace MathSupport
     /// <returns>True if handled.</returns>
     public override bool KeyDown ( KeyEventArgs e )
     {
-      // nothing yet
-      return false;
+      switch ( e.KeyCode )
+      {
+        case Keys.W:
+          MoveCenter ( movementDirection.Forward );
+          return true;
+
+        case Keys.S:
+          MoveCenter ( movementDirection.Backwards );
+          return true;
+
+        case Keys.A:
+          MoveCenter ( movementDirection.Left );
+          return true;
+
+        case Keys.D:
+          MoveCenter ( movementDirection.Right );
+          return true;
+
+        case Keys.E:
+          MoveCenter ( movementDirection.Up );
+          return true;
+
+        case Keys.Q:
+          MoveCenter ( movementDirection.Down );
+          return true;
+
+        case Keys.R:
+          MoveCenter ( movementDirection.Reset );
+          return true;
+
+        default:
+          return false;
+      }
     }
 
     /// <summary>
@@ -767,14 +843,118 @@ namespace MathSupport
     /// <returns>True if handled.</returns>
     public override bool KeyUp ( KeyEventArgs e )
     {
-      if ( e.KeyCode == Keys.O )
+      switch ( e.KeyCode )
       {
-        e.Handled = true;
-        GLtogglePerspective();
-        return true;
+        case Keys.O:
+          e.Handled = true;
+          GLtogglePerspective ();
+          return true;
+
+        default:
+          return false;
+      }
+    }
+
+    private const float moveFactor = 0.5f;
+
+    /// <summary>
+    /// Moves Center by moveChange in specified direction (absolute in world coordinates)
+    /// Movement is relative to current camera direction (Eye - Center)
+    /// Direction.Reset sets Center to origin (0, 0, 0)
+    /// </summary>
+    /// <param name="movementDirection">Direction to move Center to</param>
+    private void MoveCenter ( movementDirection movementDirection )
+    {
+      Vector3 movement = new Vector3( 0, 0, 0 );
+
+      switch ( movementDirection )
+      {
+        case movementDirection.Left:
+          movement += Right * moveFactor;
+          break;
+
+        case movementDirection.Right:
+          movement -= Right * moveFactor;
+          break;
+
+        case movementDirection.Forward:
+          movement += Direction * moveFactor;
+          break;
+
+        case movementDirection.Backwards:
+          movement -= Direction * moveFactor;
+          break;
+
+        case movementDirection.Up:
+          movement += Up * moveFactor;
+          break;
+
+        case movementDirection.Down:
+          movement -= Up * moveFactor;
+          break;
+
+        case movementDirection.Reset:
+          Center = new Vector3 ( 0, 0, 0 );
+          break;
       }
 
-      return false;
+      Center = Center + movement;
     }
+
+    private const float moveChange = 0.4f;
+    /// <summary>
+    /// Moves Center by moveChange in specified direction (absolute in world coordinates)
+    /// Movement is alligned with absolute world coodinates and current position of camera does not matter
+    /// Direction.Reset sets Center to origin (0, 0, 0)
+    /// </summary>
+    /// <param name="movementDirection">Direction to move Center to</param>
+    private void MoveCenterByAxes ( movementDirection movementDirection )
+    {
+      Vector3 movement = new Vector3();
+
+      switch ( movementDirection )
+      {
+        case movementDirection.Left:
+          movement.X = -moveChange;
+          break;
+
+        case movementDirection.Right:
+          movement.X = moveChange;
+          break;
+
+        case movementDirection.Forward:
+          movement.Z = -moveChange;
+          break;
+
+        case movementDirection.Backwards:
+          movement.Z = moveChange;
+          break;
+
+        case movementDirection.Up:
+          movement.Y = moveChange;
+          break;
+
+        case movementDirection.Down:
+          movement.Y = -moveChange;
+          break;
+
+        case movementDirection.Reset:
+          Center = new Vector3 ( 0, 0, 0 );
+          break;
+      }
+
+      Center = Center + movement;
+    }
+
+    private enum movementDirection
+    {
+      Left,
+      Right,
+      Forward,
+      Backwards,
+      Up,
+      Down,
+      Reset
+    };
   }
 }
