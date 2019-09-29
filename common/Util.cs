@@ -198,6 +198,26 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Converts a string into a correct file-name.
+    /// </summary>
+    public static string FileNameString ( string s )
+    {
+      StringBuilder sb = new StringBuilder();
+
+      foreach ( char ch in s )
+        if ( ch == '/' || ch == '\\' || ch == '?' || ch == '%' ||
+             ch == '*' || ch == ':'  || ch == '|' || ch == '"' ||
+             ch == '<' || ch == '>'  || ch == ' ' )
+        {
+          //sb.Append( '_' );
+        }
+        else
+          sb.Append( ch );
+
+      return sb.Length == 0 ? "_" : sb.ToString();
+    }
+
+    /// <summary>
     /// Hexa-coded color, not quoted.
     /// </summary>
     /// <returns>#RRGGBB</returns>
