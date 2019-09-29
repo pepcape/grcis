@@ -220,8 +220,7 @@ namespace Rendering
           Globals globals = new Globals { sceneName = name, scene = sc, param = par, outParam = outPar ?? new Dictionary<string, object>() };
           try
           {
-            var task = CSharpScript.RunAsync( scriptSource, globals: globals,
-                                              options: ScriptOptions.Default.WithReferences( assemblies ).AddImports( imports ) );
+            var task = CSharpScript.RunAsync( scriptSource, globals: globals, options: ScriptOptions.Default.WithReferences( assemblies ).AddImports( imports ) );
             Task.WaitAll( task );
           }
           catch ( CompilationErrorException e )

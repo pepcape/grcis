@@ -606,7 +606,7 @@ namespace MathSupport
       }
       else
       {
-        perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView ( Fov, width / (float) height, near, far );
+        perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( Fov, width / (float) height, near, far );
       }
 
       // 2b. orthographic
