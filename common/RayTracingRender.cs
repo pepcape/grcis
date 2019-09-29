@@ -74,7 +74,8 @@ namespace Rendering
       // initial color = black
       Array.Clear ( color, 0, color.Length );
 
-      if ( !scene.Camera.GetRay ( x, y, out Vector3d p0, out Vector3d p1 ) )
+      Vector3d p0, p1;
+      if ( !scene.Camera.GetRay( x, y, out p0, out p1 ) )
         return 11L;
 
       long hash = shade ( 0, 1.0, ref p0, ref p1, color );
@@ -84,7 +85,7 @@ namespace Rendering
 
     /// <summary>
     /// Recursive shading function - computes color contribution of the given ray (shot from the
-    /// origin 'rayOrigin' into direction vector 'p1''). Recursion is stopped
+    /// origin 'p0' into direction vector 'p1''). Recursion is stopped
     /// by a hybrid method: 'importance' and 'level' are checked.
     /// Internal integration support.
     /// </summary>
@@ -94,7 +95,8 @@ namespace Rendering
     /// <param name="p1">Ray direction vector.</param>
     /// <param name="color">Result color.</param>
     /// <returns>Hash-value (ray sub-signature) used for adaptive subsampling.</returns>
-    protected virtual long shade ( int level, double importance, ref Vector3d p0, ref Vector3d p1, double[] color )
+    protected virtual long shade ( int level, double importance, ref Vector3d p0, ref Vector3d p1,
+                                   double[] color )
     {
       Vector3d direction = p1;
 

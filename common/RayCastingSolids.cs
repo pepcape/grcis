@@ -141,7 +141,6 @@ namespace Rendering
       NegativeZ
     };
 
-
     protected static Vector3d[] Normals =
     {
       new Vector3d ( 1, 0, 0 ),
@@ -1286,8 +1285,7 @@ namespace Rendering
             bi.final = 0;
             Vector3d[] cp = bi.patch.p;
             CSGInnerNode.countTriangles++;
-            bi.t = Geometry.RayTriangleIntersection ( ref p0, ref p1, ref cp [ 12 ], ref cp [ 3 ], ref cp [ 0 ],
-                                                      out bi.uv );
+            bi.t = Geometry.RayTriangleIntersection( ref p0, ref p1, ref cp[ 12 ], ref cp[ 3 ], ref cp[ 0 ], out bi.uv );
             if ( !Double.IsInfinity ( bi.t ) )
             {
               bi.final = 1;
@@ -1297,8 +1295,7 @@ namespace Rendering
             else
             {
               CSGInnerNode.countTriangles++;
-              bi.t = Geometry.RayTriangleIntersection ( ref p0, ref p1, ref cp [ 12 ], ref cp [ 15 ], ref cp [ 3 ],
-                                                        out bi.uv );
+              bi.t = Geometry.RayTriangleIntersection( ref p0, ref p1, ref cp[ 12 ], ref cp[ 15 ], ref cp[ 3 ], out bi.uv );
               if ( !Double.IsInfinity ( bi.t ) )
               {
                 bi.final = 2;
