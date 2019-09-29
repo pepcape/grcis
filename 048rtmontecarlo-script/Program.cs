@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace _048rtmontecarlo
+namespace Rendering
 {
   static class Program
   {
@@ -11,9 +11,9 @@ namespace _048rtmontecarlo
     [STAThread]
     static void Main ( string[] args )
     {
-      Application.EnableVisualStyles();
-      Application.SetCompatibleTextRenderingDefault( false );
-      Application.Run( new Form1( args ) );
+      Application.EnableVisualStyles ();
+      Application.SetCompatibleTextRenderingDefault ( false );
+      Application.Run ( new Form1 ( args ) );
     }
   }
 }

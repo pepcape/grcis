@@ -13,8 +13,8 @@ namespace MathSupport
   {
     public static T Clamp<T> ( T val, T min, T max ) where T : IComparable<T>
     {
-      if ( val.CompareTo( min ) < 0 ) return min;
-      if ( val.CompareTo( max ) > 0 ) return max;
+      if ( val.CompareTo ( min ) < 0 ) return min;
+      if ( val.CompareTo ( max ) > 0 ) return max;
       return val;
     }
 
@@ -25,67 +25,69 @@ namespace MathSupport
         e = -e;
         a = 1.0 / a;
       }
-      double acc = ((e & 1) != 0) ? a : 1.0;
-      while ( (e >>= 1) != 0 )
+
+      double acc = ( ( e & 1 ) != 0 ) ? a : 1.0;
+      while ( ( e >>= 1 ) != 0 )
       {
         a *= a;
-        if ( (e & 1) != 0 )
+        if ( ( e & 1 ) != 0 )
           acc *= a;
       }
+
       return acc;
     }
 
     public static int Mod ( int a, int b )
     {
-      return ((a < 0) ? ((a + 1) % b + b - 1) : (a % b));
+      return ( ( a < 0 ) ? ( ( a + 1 ) % b + b - 1 ) : ( a % b ) );
     }
 
     public static double DegreeToRadian ( double deg )
     {
-      return( deg * Math.PI / 180.0 );
+      return ( deg * Math.PI / 180.0 );
     }
 
     public static double RadianToDegree ( double rad )
     {
-      return( rad * 180.0 / Math.PI );
+      return ( rad * 180.0 / Math.PI );
     }
 
     public static void ColorToHSV ( Color color, out double hue, out double saturation, out double value )
     {
-      int max = Math.Max( color.R, Math.Max( color.G, color.B ) );
-      int min = Math.Min( color.R, Math.Min( color.G, color.B ) );
+      int max = Math.Max ( color.R, Math.Max ( color.G, color.B ) );
+      int min = Math.Min ( color.R, Math.Min ( color.G, color.B ) );
 
-      hue = color.GetHue();
-      saturation = (max == 0) ? 0.0 : 1.0 - min / (double)max;
-      value = max / 255.0;
+      hue        = color.GetHue ();
+      saturation = ( max == 0 ) ? 0.0 : 1.0 - min / (double) max;
+      value      = max / 255.0;
     }
 
     public static Color HSVToColor ( double hue, double saturation, double value )
     {
-      int hi = Convert.ToInt32( Math.Floor( hue / 60.0 ) );
-      hi = (hi < 0) ? (hi % 6 + 6) % 6 : hi % 6;
-      double f = hue / 60.0 - Math.Floor( hue / 60.0 );
+      int hi = Convert.ToInt32 ( Math.Floor ( hue / 60.0 ) );
+      hi = ( hi < 0 ) ? ( hi % 6 + 6 ) % 6 : hi % 6;
+      double f = hue / 60.0 - Math.Floor ( hue / 60.0 );
 
       value *= 255.0;
-      int v = Clamp( Convert.ToInt32( value ), 0, 255 );
-      int p = Clamp( Convert.ToInt32( value * (1.0 - saturation) ), 0, 255 );
-      int q = Clamp( Convert.ToInt32( value * (1.0 - f * saturation) ), 0, 255 );
-      int t = Clamp( Convert.ToInt32( value * (1.0 - (1.0 - f) * saturation) ), 0, 255 );
+      int v = Clamp ( Convert.ToInt32 ( value ), 0, 255 );
+      int p = Clamp ( Convert.ToInt32 ( value * ( 1.0 - saturation ) ), 0, 255 );
+      int q = Clamp ( Convert.ToInt32 ( value * ( 1.0 - f * saturation ) ), 0, 255 );
+      int t = Clamp ( Convert.ToInt32 ( value * ( 1.0 - ( 1.0 - f ) * saturation ) ), 0, 255 );
 
       switch ( hi )
       {
         case 0:
-          return Color.FromArgb( v, t, p );
+          return Color.FromArgb ( v, t, p );
         case 1:
-          return Color.FromArgb( q, v, p );
+          return Color.FromArgb ( q, v, p );
         case 2:
-          return Color.FromArgb( p, v, t );
+          return Color.FromArgb ( p, v, t );
         case 3:
-          return Color.FromArgb( p, q, v );
+          return Color.FromArgb ( p, q, v );
         case 4:
-          return Color.FromArgb( t, p, v );
+          return Color.FromArgb ( t, p, v );
         default:
-          return Color.FromArgb( v, p, q );
+          return Color.FromArgb ( v, p, q );
       }
     }
 
@@ -95,9 +97,9 @@ namespace MathSupport
 
       double fx, fy, fz, xr, yr, zr;
       double eps = 216.0 / 24389.0;
-      double k = 24389.0 / 27.0;
+      double k   = 24389.0 / 27.0;
 
-      double Xr = 0.964221;  // reference white D50
+      double Xr = 0.964221; // reference white D50
       double Yr = 1.0;
       double Zr = 0.825211;
 
@@ -110,21 +112,21 @@ namespace MathSupport
       if ( r <= 0.04045 )
         r = r / 12;
       else
-        r = Math.Pow( (r + 0.055) / 1.055, 2.4 );
+        r = Math.Pow ( ( r + 0.055 ) / 1.055, 2.4 );
 
       if ( g <= 0.04045 )
         g = g / 12;
       else
-        g = Math.Pow( (g + 0.055) / 1.055, 2.4 );
+        g = Math.Pow ( ( g + 0.055 ) / 1.055, 2.4 );
 
       if ( b <= 0.04045 )
         b = b / 12;
       else
-        b = (float)Math.Pow( (b + 0.055) / 1.055, 2.4 );
+        b = (float) Math.Pow ( ( b + 0.055 ) / 1.055, 2.4 );
 
       double X = 0.436052025 * r + 0.385081593 * g + 0.143087414 * b;
-      double Y = 0.222491598 * r + 0.71688606  * g + 0.060621486 * b;
-      double Z = 0.013929122 * r + 0.097097002 * g + 0.71418547  * b;
+      double Y = 0.222491598 * r + 0.71688606 * g + 0.060621486 * b;
+      double Z = 0.013929122 * r + 0.097097002 * g + 0.71418547 * b;
 
       // XYZ to Lab
       xr = X / Xr;
@@ -132,23 +134,23 @@ namespace MathSupport
       zr = Z / Zr;
 
       if ( xr > eps )
-        fx = Math.Pow( xr, 1.0 / 3.0 );
+        fx = Math.Pow ( xr, 1.0 / 3.0 );
       else
-        fx = (k * xr + 16.0) / 116.0;
+        fx = ( k * xr + 16.0 ) / 116.0;
 
       if ( yr > eps )
-        fy = Math.Pow( yr, 1.0 / 3.0 );
+        fy = Math.Pow ( yr, 1.0 / 3.0 );
       else
-        fy = (k * yr + 16.0) / 116.0;
+        fy = ( k * yr + 16.0 ) / 116.0;
 
       if ( zr > eps )
-        fz = Math.Pow( zr, 1.0 / 3.0 );
+        fz = Math.Pow ( zr, 1.0 / 3.0 );
       else
-        fz = (k * zr + 16.0) / 116.0;
+        fz = ( k * zr + 16.0 ) / 116.0;
 
-      L = (116.0 * fy) - 16.0;
-      A = 500.0 * (fx - fy);
-      B = 200.0 * (fy - fz);
+      L = ( 116.0 * fy ) - 16.0;
+      A = 500.0 * ( fx - fy );
+      B = 200.0 * ( fy - fz );
     }
 
     /// <summary>
@@ -157,19 +159,19 @@ namespace MathSupport
     public static void RGBeToRGB ( byte[] rgbe, int startRgbe, float[] rgb, int startRgb )
     {
       if ( rgbe == null || startRgbe + 4 > rgbe.Length ||
-           rgb == null  || startRgb + 3 > rgb.Length )
+           rgb == null || startRgb + 3 > rgb.Length )
         return;
 
-      if ( rgbe[ startRgbe + 3 ] == 0 )
-        rgb[ startRgb     ] =
-        rgb[ startRgb + 1 ] =
-        rgb[ startRgb + 2 ] = 0.0f;
+      if ( rgbe [ startRgbe + 3 ] == 0 )
+        rgb [ startRgb ] =
+          rgb [ startRgb + 1 ] =
+            rgb [ startRgb + 2 ] = 0.0f;
       else
       {
-        double f = Pow( 2.0, rgbe[ startRgbe + 3 ] - 136 );
-        rgb[ startRgb ]     = (float)((rgbe[ startRgbe     ] + 0.5) * f);
-        rgb[ startRgb + 1 ] = (float)((rgbe[ startRgbe + 1 ] + 0.5) * f);
-        rgb[ startRgb + 2 ] = (float)((rgbe[ startRgbe + 2 ] + 0.5) * f);
+        double f = Pow ( 2.0, rgbe [ startRgbe + 3 ] - 136 );
+        rgb [ startRgb ]     = (float) ( ( rgbe [ startRgbe ] + 0.5 ) * f );
+        rgb [ startRgb + 1 ] = (float) ( ( rgbe [ startRgbe + 1 ] + 0.5 ) * f );
+        rgb [ startRgb + 2 ] = (float) ( ( rgbe [ startRgbe + 2 ] + 0.5 ) * f );
       }
     }
 
@@ -182,34 +184,35 @@ namespace MathSupport
            startRgbe + 4 > rgbe.Length )
         return;
 
-      double m = Math.Max( Math.Max( R, G ), B );
+      double m = Math.Max ( Math.Max ( R, G ), B );
 
       if ( m < 1.0e-32 )
-        rgbe[ startRgbe     ] =
-        rgbe[ startRgbe + 1 ] =
-        rgbe[ startRgbe + 2 ] =
-        rgbe[ startRgbe + 3 ] = 0;
+        rgbe [ startRgbe ] =
+          rgbe [ startRgbe + 1 ] =
+            rgbe [ startRgbe + 2 ] =
+              rgbe [ startRgbe + 3 ] = 0;
       else
       {
-        int exp = 128;
+        int    exp = 128;
         double mul = 255.9999;
         while ( m < 0.5 )
         {
           mul *= 2.0;
-          m *= 2.0;
+          m   *= 2.0;
           exp--;
         }
+
         while ( m >= 1.0 )
         {
           mul *= 0.5;
-          m *= 0.5;
+          m   *= 0.5;
           exp++;
         }
 
-        rgbe[ startRgbe     ] = (byte)(R * mul);
-        rgbe[ startRgbe + 1 ] = (byte)(G * mul);
-        rgbe[ startRgbe + 2 ] = (byte)(B * mul);
-        rgbe[ startRgbe + 3 ] = (byte)exp;
+        rgbe [ startRgbe ]     = (byte) ( R * mul );
+        rgbe [ startRgbe + 1 ] = (byte) ( G * mul );
+        rgbe [ startRgbe + 2 ] = (byte) ( B * mul );
+        rgbe [ startRgbe + 3 ] = (byte) exp;
       }
     }
 
@@ -228,82 +231,70 @@ namespace MathSupport
     public static double RaySegment2D ( double ox, double oy, double dx, double dy,
                                         double ax, double ay, double bx, double by )
     {
-      double nx = ay - by;
-      double ny = bx - ax;
+      double nx  = ay - by;
+      double ny  = bx - ax;
       double den = nx * dx + ny * dy;
       if ( den > -2.0 * double.Epsilon &&
            den < 2.0 * double.Epsilon )
         return double.NegativeInfinity;
 
-      double t = (nx * (ax - ox) + ny * (ay - oy)) / den;
+      double t = ( nx * ( ax - ox ) + ny * ( ay - oy ) ) / den;
       double resol;
 
-      if ( Math.Abs( ny ) > Math.Abs( nx ) )
-      {                                     // use X coordinate
+      if ( Math.Abs ( ny ) > Math.Abs ( nx ) )
+      {
+        // use X coordinate
         resol = ox + t * dx;
-        if ( resol < Math.Min( ax, bx ) ||
-             resol > Math.Max( ax, bx ) )
+        if ( resol < Math.Min ( ax, bx ) ||
+             resol > Math.Max ( ax, bx ) )
           return double.NegativeInfinity;
       }
       else
-      {                                     // use Y coordinate
+      {
+        // use Y coordinate
         resol = oy + t * dy;
-        if ( resol < Math.Min( ay, by ) ||
-             resol > Math.Max( ay, by ) )
+        if ( resol < Math.Min ( ay, by ) ||
+             resol > Math.Max ( ay, by ) )
           return double.NegativeInfinity;
       }
 
       return t;
     }
+
+
   }
+
 
   /// <summary>
   /// Data class keeping info about current progress of a computation.
   /// </summary>
+  [Serializable]
   public class Progress
   {
     /// <summary>
     /// Relative amount of work finished so far (0.0f to 1.0f).
     /// </summary>
-    public float Finished
-    {
-      get;
-      set;
-    }
+    public float Finished { get; set; }
 
     /// <summary>
     /// Optional message. Any string.
     /// </summary>
-    public string Message
-    {
-      get;
-      set;
-    }
+    public string Message { get; set; }
 
     /// <summary>
     /// Continue in an associated computation.
     /// </summary>
-    public bool Continue
-    {
-      get;
-      set;
-    }
+    public bool Continue { get; set; }
 
     /// <summary>
     /// Sync interval in milliseconds.
     /// </summary>
-    public long SyncInterval
-    {
-      get;
-      set;
-    }
+    public long SyncInterval { get; set; }
 
     /// <summary>
     /// Any message from computing unit to the GUI main.
     /// </summary>
-    public virtual void Sync ( object msg )
-    {
-    }
+    public virtual void Sync ( object msg ) { }
 
     /// <summary>
     /// Set all the harmless values.
@@ -316,6 +307,7 @@ namespace MathSupport
       SyncInterval = 8000L;
     }
   }
+
 
   /// <summary>
   /// Real polynomial up to the 4th degree.
@@ -359,22 +351,22 @@ namespace MathSupport
 
     public Polynomial ( double a, double b, double c, double d, double e )
     {
-      Set( a, b, c, d, e );
+      Set ( a, b, c, d, e );
     }
 
     public Polynomial ( double a, double b, double c, double d )
     {
-      Set( a, b, c, d );
+      Set ( a, b, c, d );
     }
 
     public Polynomial ( double a, double b, double c )
     {
-      Set( a, b, c );
+      Set ( a, b, c );
     }
 
     public static Polynomial NullPolynomial ()
     {
-      return new Polynomial();
+      return new Polynomial ();
     }
 
     public void Set ( double a, double b, double c, double d, double e )
@@ -411,9 +403,9 @@ namespace MathSupport
         return u;
       // Null polynomial
       if ( e == 0.0 )
-        return NullPolynomial();
+        return NullPolynomial ();
 
-      Polynomial r = new Polynomial( u );
+      Polynomial r = new Polynomial ( u );
       r.A *= e;
       r.B *= e;
       r.C *= e;
@@ -429,7 +421,7 @@ namespace MathSupport
 
     public static Polynomial operator / ( Polynomial p, double a )
     {
-      return p * (1.0 / a);
+      return p * ( 1.0 / a );
     }
 
     /// <summary>
@@ -444,29 +436,32 @@ namespace MathSupport
       {
         if ( B == 0.0 )
           return 0;
-        y[ 0 ] = y[ 1 ] = -A / B;
+        y [ 0 ] = y [ 1 ] = -A / B;
         return 1;
       }
+
       d = B * B - 4.0 * C * A;
       if ( d < 0.0 )
         return 0;
-      if ( Math.Abs( d ) < COEFF_LIMIT )
+      if ( Math.Abs ( d ) < COEFF_LIMIT )
       {
-        y[ 0 ] = y[ 1 ] = -0.5 * B / A;
+        y [ 0 ] = y [ 1 ] = -0.5 * B / A;
         return 1;
       }
-      d = Math.Sqrt( d );
+
+      d = Math.Sqrt ( d );
       t = 0.5 / A;
       if ( t > 0.0 )
       {
-        y[ 0 ] = (-B - d) * t;
-        y[ 1 ] = (-B + d) * t;
+        y [ 0 ] = ( -B - d ) * t;
+        y [ 1 ] = ( -B + d ) * t;
       }
       else
       {
-        y[ 0 ] = (-B + d) * t;
-        y[ 1 ] = (-B - d) * t;
+        y [ 0 ] = ( -B + d ) * t;
+        y [ 1 ] = ( -B - d ) * t;
       }
+
       return 2;
     }
 
@@ -477,11 +472,11 @@ namespace MathSupport
     /// <returns>Number of real roots.</returns>
     public int SolveCubic ( double[] y )
     {
-      double Q, R, Q3, R2, sQ, d, an, theta;
+      double Q,  R,  Q3, R2, sQ, d, an, theta;
       double A2, a1, a2, a3;
 
-      if ( Math.Abs( D ) < EPSILON )
-        return SolveQuadratic( y );
+      if ( Math.Abs ( D ) < EPSILON )
+        return SolveQuadratic ( y );
 
       if ( D != 1.0 )
       {
@@ -498,9 +493,9 @@ namespace MathSupport
 
       A2 = a1 * a1;
 
-      Q = (A2 - 3.0 * a2) / 9.0;
+      Q = ( A2 - 3.0 * a2 ) / 9.0;
 
-      R = (a1 * (A2 - 4.5 * a2) + 13.5 * a3) / 27.0;
+      R = ( a1 * ( A2 - 4.5 * a2 ) + 13.5 * a3 ) / 27.0;
 
       Q3 = Q * Q * Q;
 
@@ -514,25 +509,25 @@ namespace MathSupport
       {
         // Three real roots
 
-        d = R / Math.Sqrt( Q3 );
+        d = R / Math.Sqrt ( Q3 );
 
-        theta = Math.Acos( d ) / 3.0;
+        theta = Math.Acos ( d ) / 3.0;
 
-        sQ = -2.0 * Math.Sqrt( Q );
+        sQ = -2.0 * Math.Sqrt ( Q );
 
-        y[ 0 ] = sQ * Math.Cos( theta ) - an;
-        y[ 1 ] = sQ * Math.Cos( theta + PI_2_3 ) - an;
-        y[ 2 ] = sQ * Math.Cos( theta + PI_4_3 ) - an;
+        y [ 0 ] = sQ * Math.Cos ( theta ) - an;
+        y [ 1 ] = sQ * Math.Cos ( theta + PI_2_3 ) - an;
+        y [ 2 ] = sQ * Math.Cos ( theta + PI_4_3 ) - an;
 
         return 3;
       }
 
-      sQ = Math.Pow( Math.Sqrt( R2 - Q3 ) + Math.Abs( R ), 1.0 / 3.0 );
+      sQ = Math.Pow ( Math.Sqrt ( R2 - Q3 ) + Math.Abs ( R ), 1.0 / 3.0 );
 
       if ( R < 0 )
-        y[ 0 ] = (sQ + Q / sQ) - an;
+        y [ 0 ] = ( sQ + Q / sQ ) - an;
       else
-        y[ 0 ] = -(sQ + Q / sQ) - an;
+        y [ 0 ] = -( sQ + Q / sQ ) - an;
 
       return 1;
     }
@@ -545,20 +540,20 @@ namespace MathSupport
     /// <returns>Number of real roots.</returns>
     public int SolveQuartic ( double[] results )
     {
-      double[] roots = new double[ 3 ];
-      double c12, z, p, q, q1, q2, r, d1, d2;
-      double c1, c2, c3, c4;
-      int i;
+      double[] roots = new double[3];
+      double   c12, z,  p,  q, q1, q2, r, d1, d2;
+      double   c1,  c2, c3, c4;
+      int      i;
 
       // See if the higher order term has vanished
-      if ( Math.Abs( E ) < COEFF_LIMIT )
-        return SolveCubic( results );
+      if ( Math.Abs ( E ) < COEFF_LIMIT )
+        return SolveCubic ( results );
 
       // See if the constant term has vanished
-      if ( Math.Abs( A ) < COEFF_LIMIT )
+      if ( Math.Abs ( A ) < COEFF_LIMIT )
       {
-        Polynomial y = new Polynomial( E, D, C, B );
-        return y.SolveCubic( results );
+        Polynomial y = new Polynomial ( E, D, C, B );
+        return y.SolveCubic ( results );
         // !!! and what happened to a zero root?
       }
 
@@ -580,15 +575,15 @@ namespace MathSupport
 
       // Compute the cubic resolvant
       c12 = c1 * c1;
-      p = -0.375 * c12 + c2;
-      q = 0.125 * c12 * c1 - 0.5 * c1 * c2 + c3;
-      r = -0.01171875 * c12 * c12 + 0.0625 * c12 * c2 - 0.25 * c1 * c3 + c4;
+      p   = -0.375 * c12 + c2;
+      q   = 0.125 * c12 * c1 - 0.5 * c1 * c2 + c3;
+      r   = -0.01171875 * c12 * c12 + 0.0625 * c12 * c2 - 0.25 * c1 * c3 + c4;
 
-      Polynomial cubic = new Polynomial( 0.5 * r * p - 0.125 * q * q, -r, -0.5 * p, 1.0 );
+      Polynomial cubic = new Polynomial ( 0.5 * r * p - 0.125 * q * q, -r, -0.5 * p, 1.0 );
 
-      i = cubic.SolveCubic( roots );
+      i = cubic.SolveCubic ( roots );
       if ( i > 0 )
-        z = roots[ 0 ];
+        z = roots [ 0 ];
       else
         return 0;
 
@@ -607,50 +602,51 @@ namespace MathSupport
         d2 = z * z - r;
         if ( d2 < 0.0 )
           return 0;
-        d2 = Math.Sqrt( d2 );
+        d2 = Math.Sqrt ( d2 );
       }
       else
       {
-        d1 = Math.Sqrt( d1 );
+        d1 = Math.Sqrt ( d1 );
         d2 = 0.5 * q / d1;
       }
 
       // Set up useful values for the quadratic factors
       q1 = d1 * d1;
       q2 = -0.25 * c1;
-      i = 0;
+      i  = 0;
 
       // Solve the first quadratic
-      p = q1 - 4.0 * (z - d2);
+      p = q1 - 4.0 * ( z - d2 );
       if ( p == 0 )
       {
-        results[ i++ ] = -0.5 * d1 - q2;
-        results[ i++ ] = -0.5 * d1 - q2;
+        results [ i++ ] = -0.5 * d1 - q2;
+        results [ i++ ] = -0.5 * d1 - q2;
       }
       else if ( p > 0 )
       {
-        p = Math.Sqrt( p );
-        results[ i++ ] = -0.5 * (d1 + p) + q2;
-        results[ i++ ] = -0.5 * (d1 - p) + q2;
+        p               = Math.Sqrt ( p );
+        results [ i++ ] = -0.5 * ( d1 + p ) + q2;
+        results [ i++ ] = -0.5 * ( d1 - p ) + q2;
       }
 
       // Solve the second quadratic
-      p = q1 - 4.0 * (z + d2);
+      p = q1 - 4.0 * ( z + d2 );
       if ( p == 0 )
       {
-        results[ i++ ] = 0.5 * d1 - q2;
-        results[ i++ ] = 0.5 * d1 - q2;
+        results [ i++ ] = 0.5 * d1 - q2;
+        results [ i++ ] = 0.5 * d1 - q2;
       }
       else if ( p > 0 )
       {
-        p = Math.Sqrt( p );
-        results[ i++ ] = 0.5 * (d1 + p) + q2;
-        results[ i++ ] = 0.5 * (d1 - p) + q2;
+        p               = Math.Sqrt ( p );
+        results [ i++ ] = 0.5 * ( d1 + p ) + q2;
+        results [ i++ ] = 0.5 * ( d1 - p ) + q2;
       }
 
       return i;
     }
   }
+
 
   /// <summary>
   /// Simple static pseudo-random generators.
@@ -658,8 +654,8 @@ namespace MathSupport
   /// </summary>
   public class RandomStatic
   {
-    protected const long BITS_32  = 0xffffffffL;
-    protected const long BITS_31  = 0x7fffffffL;
+    protected const long BITS_32 = 0xffffffffL;
+    protected const long BITS_31 = 0x7fffffffL;
 
     /// <summary>
     /// LCG pseudo-random generator from "Numeric Recipes in C".
@@ -668,7 +664,7 @@ namespace MathSupport
     /// <returns>The next pseudo-random number in the sequence.</returns>
     public static long numericRecipes ( long v )
     {
-      return( (v * 1664525L + 1013904223L) & BITS_32 );
+      return ( ( v * 1664525L + 1013904223L ) & BITS_32 );
     }
 
     public static long numericRecipesMax ()
@@ -684,7 +680,7 @@ namespace MathSupport
     /// <returns>The next pseudo-random number in the sequence.</returns>
     public static long ibmRandu ( long v )
     {
-      return( (v * 65539L) & BITS_31 );
+      return ( ( v * 65539L ) & BITS_31 );
     }
 
     public static long ibmRanduMax ()
@@ -703,7 +699,7 @@ namespace MathSupport
     /// <returns>The next pseudo-random number in the sequence.</returns>
     public static long parkMiller ( long v )
     {
-      return( (v * 16807L) % BITS_31 );
+      return ( ( v * 16807L ) % BITS_31 );
     }
 
     public static long parkMillerMax ()
@@ -718,7 +714,7 @@ namespace MathSupport
     /// <returns>The next pseudo-random number in the sequence.</returns>
     public static long maple ( long v )
     {
-      return( (v * 427419669081L) % 999999999989L );
+      return ( ( v * 427419669081L ) % 999999999989L );
     }
 
     public static long mapleMax ()
@@ -726,6 +722,7 @@ namespace MathSupport
       return 999999999989L;
     }
   }
+
 
   /// <summary>
   /// Generic Heap data structure with fast GetMin(), RemoveMin() and Add() operations.
@@ -737,56 +734,53 @@ namespace MathSupport
 
     public int Count
     {
-      get
-      {
-        return arr.Count;
-      }
+      get { return arr.Count; }
     }
 
     public HeapMin ()
     {
-      arr = new List<T>();
+      arr = new List<T> ();
     }
 
     public HeapMin ( ICollection<T> c )
-      : this()
+      : this ()
     {
       foreach ( T i in c )
-        Add( i );
+        Add ( i );
     }
 
     public void Add ( T i )
     {
-      arr.Add( i );
+      arr.Add ( i );
       if ( arr.Count > 1 )
-        CheckUp( arr.Count - 1 );
+        CheckUp ( arr.Count - 1 );
     }
 
     public T GetMin ()
     {
       if ( arr.Count > 0 )
-        return arr[ 0 ];
+        return arr [ 0 ];
       else
-        return default( T );
+        return default ( T );
     }
 
     public T RemoveMin ()
     {
       if ( arr.Count == 0 )
-        return default( T );
-      T min = arr[ 0 ];
-      arr[ 0 ] = arr[ arr.Count - 1 ];
-      arr.RemoveAt( arr.Count - 1 );
+        return default ( T );
+      T min = arr [ 0 ];
+      arr [ 0 ] = arr [ arr.Count - 1 ];
+      arr.RemoveAt ( arr.Count - 1 );
       if ( arr.Count > 1 )
-        CheckDown( 0 );
+        CheckDown ( 0 );
       return min;
     }
 
     protected void Swap ( int i, int j )
     {
-      T ti = arr[ i ];
-      arr[ i ] = arr[ j ];
-      arr[ j ] = ti;
+      T ti = arr [ i ];
+      arr [ i ] = arr [ j ];
+      arr [ j ] = ti;
     }
 
     protected void CheckDown ( int i )
@@ -798,111 +792,104 @@ namespace MathSupport
           return;
 
         if ( s + 1 < arr.Count &&
-             arr[ s ].CompareTo( arr[ s + 1 ] ) > 0 )
+             arr [ s ].CompareTo ( arr [ s + 1 ] ) > 0 )
           s++;
 
-        if ( arr[ i ].CompareTo( arr[ s ] ) <= 0 )
+        if ( arr [ i ].CompareTo ( arr [ s ] ) <= 0 )
           return;
 
-        Swap( i, s );
+        Swap ( i, s );
         i = s;
-      }
-      while ( true );
+      } while ( true );
     }
 
     protected void CheckUp ( int i )
     {
       while ( i > 0 )
       {
-        int p = (i - 1) / 2;
-        if ( arr[ p ].CompareTo( arr[ i ] ) <= 0 )
+        int p = ( i - 1 ) / 2;
+        if ( arr [ p ].CompareTo ( arr [ i ] ) <= 0 )
           return;
 
-        Swap( p, i );
+        Swap ( p, i );
         i = p;
       }
     }
   }
 
+
   /// <summary>
   /// Generic Heap data structure with fast GetTop(), RemoveTop(), SwapTop() and Add() operations.
   /// </summary>
   /// <typeparam name="T">Object type to be stored in the heap.</typeparam>
-  public class HeapTop<T> : IEnumerable<T>
+  public class HeapTop<T>: IEnumerable<T>
   {
     protected List<T> arr;
 
     /// <summary>
     /// Top = minimum (according to this comparer).
     /// </summary>
-    public IComparer<T> Comp
-    {
-      get;
-      set;
-    }
+    public IComparer<T> Comp { get; set; }
 
-    public T this[ int index ]
+    public T this [ int index ]
     {
-      get { return arr[ index ]; }
-      set { arr[ index ] = value; }
+      get { return arr [ index ]; }
+      set { arr [ index ] = value; }
     }
 
     public IEnumerator<T> GetEnumerator ()
     {
-      return arr.GetEnumerator();
+      return arr.GetEnumerator ();
     }
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator ()
     {
-      return GetEnumerator();
+      return GetEnumerator ();
     }
 
     public int Count
     {
-      get
-      {
-        return arr.Count;
-      }
+      get { return arr.Count; }
     }
 
-    public HeapTop ( IComparer<T> co =null )
+    public HeapTop ( IComparer<T> co = null )
     {
-      arr = new List<T>();
+      arr  = new List<T> ();
       Comp = co;
     }
 
-    public HeapTop ( ICollection<T> c, IComparer<T> co =null )
-      : this( co )
+    public HeapTop ( ICollection<T> c, IComparer<T> co = null )
+      : this ( co )
     {
       foreach ( T i in c )
-        Add( i );
+        Add ( i );
     }
 
     public void Add ( T t )
     {
-      arr.Add( t );
+      arr.Add ( t );
       if ( arr.Count > 1 )
-        CheckUp( arr.Count - 1 );
+        CheckUp ( arr.Count - 1 );
     }
 
     public T GetTop ()
     {
       if ( arr.Count > 0 )
-        return arr[ 0 ];
+        return arr [ 0 ];
       else
-        return default( T );
+        return default ( T );
     }
 
     public T RemoveTop ()
     {
       if ( arr.Count == 0 )
-        return default( T );
+        return default ( T );
 
-      T top = arr[ 0 ];
-      arr[ 0 ] = arr[ arr.Count - 1 ];
-      arr.RemoveAt( arr.Count - 1 );
+      T top = arr [ 0 ];
+      arr [ 0 ] = arr [ arr.Count - 1 ];
+      arr.RemoveAt ( arr.Count - 1 );
       if ( arr.Count > 1 )
-        CheckDown( 0 );
+        CheckDown ( 0 );
 
       return top;
     }
@@ -911,21 +898,21 @@ namespace MathSupport
     {
       if ( arr.Count == 0 )
       {
-        Add( t );
-        return default( T );
+        Add ( t );
+        return default ( T );
       }
 
-      T top = arr[ 0 ];
-      arr[ 0 ] = t;
+      T top = arr [ 0 ];
+      arr [ 0 ] = t;
       if ( arr.Count > 1 )
-        CheckDown( 0 );
+        CheckDown ( 0 );
 
       return top;
     }
 
     public void Clear ()
     {
-      arr.Clear();
+      arr.Clear ();
     }
 
     public void Sort ()
@@ -934,19 +921,19 @@ namespace MathSupport
         return;
 
       for ( int i = 1; i < arr.Count; i++ )
-        CheckUp( i );
+        CheckUp ( i );
     }
 
     protected void Swap ( int i, int j )
     {
-      T ti = arr[ i ];
-      arr[ i ] = arr[ j ];
-      arr[ j ] = ti;
+      T ti = arr [ i ];
+      arr [ i ] = arr [ j ];
+      arr [ j ] = ti;
     }
 
     public void CheckDown ( int i )
     {
-      Debug.Assert( Comp != null );
+      Debug.Assert ( Comp != null );
       do
       {
         int s = i + i + 1;
@@ -954,33 +941,33 @@ namespace MathSupport
           return;
 
         if ( s + 1 < arr.Count &&
-             Comp.Compare( arr[ s ], arr[ s + 1 ] ) > 0 )
+             Comp.Compare ( arr [ s ], arr [ s + 1 ] ) > 0 )
           s++;
 
-        if ( Comp.Compare( arr[ i ], arr[ s ] ) <= 0 )
+        if ( Comp.Compare ( arr [ i ], arr [ s ] ) <= 0 )
           return;
 
-        Swap( i, s );
+        Swap ( i, s );
         i = s;
-      }
-      while ( true );
+      } while ( true );
     }
 
     protected void CheckUp ( int i )
     {
-      Debug.Assert( Comp != null );
+      Debug.Assert ( Comp != null );
 
       while ( i > 0 )
       {
-        int p = (i - 1) / 2;
-        if ( Comp.Compare( arr[ p ], arr[ i ] ) <= 0 )
+        int p = ( i - 1 ) / 2;
+        if ( Comp.Compare ( arr [ p ], arr [ i ] ) <= 0 )
           return;
 
-        Swap( p, i );
+        Swap ( p, i );
         i = p;
       }
     }
   }
+
 
   /// <summary>
   /// Integer implementation of the Summed-area table (a.k.a. Integral Image)
@@ -988,54 +975,53 @@ namespace MathSupport
   /// </summary>
   public class SummedAreaTableLong
   {
-    public long[ , ] table = null;
+    public long[,] table = null;
 
-    public SummedAreaTableLong ()
-    {
-    }
+    public SummedAreaTableLong () { }
 
     public SummedAreaTableLong ( int xres, int yres )
     {
-      table = new long[ xres, yres ];
+      table = new long[xres, yres];
     }
 
     public void ComputeTable ()
     {
-      Debug.Assert( table != null );
+      Debug.Assert ( table != null );
 
-      int xres = table.GetLength( 0 );
-      int yres = table.GetLength( 1 );
+      int xres = table.GetLength ( 0 );
+      int yres = table.GetLength ( 1 );
       int x, y;
 
       // 1st row:
       for ( y = 1; y < yres; y++ )
-        table[ 0, y ] += table[ 0, y - 1 ];
+        table [ 0, y ] += table [ 0, y - 1 ];
 
       // rest of the rows:
       for ( x = 1; x < xres; x++ )
       {
-        table[ x, 0 ] += table[ x - 1, 0 ];
+        table [ x, 0 ] += table [ x - 1, 0 ];
         for ( y = 1; y < yres; y++ )
-          table[ x, y ] += table[ x - 1, y ] + table[ x, y - 1 ] - table[ x - 1, y - 1 ];
+          table [ x, y ] += table [ x - 1, y ] + table [ x, y - 1 ] - table [ x - 1, y - 1 ];
       }
     }
 
     public long Sum ( int x1, int x2, int y1, int y2 )
     {
-      Debug.Assert( x1 >= 0  && x1 < table.GetLength( 0 ) );
-      Debug.Assert( x2 >= x1 && x2 < table.GetLength( 0 ) );
-      Debug.Assert( y1 >= 0  && y1 < table.GetLength( 1 ) );
-      Debug.Assert( y2 >= y1 && y2 < table.GetLength( 1 ) );
+      Debug.Assert ( x1 >= 0 && x1 < table.GetLength ( 0 ) );
+      Debug.Assert ( x2 >= x1 && x2 < table.GetLength ( 0 ) );
+      Debug.Assert ( y1 >= 0 && y1 < table.GetLength ( 1 ) );
+      Debug.Assert ( y2 >= y1 && y2 < table.GetLength ( 1 ) );
 
       x1--;
       y1--;
-      long A = (x1 < 0 || y1 < 0) ? 0L : table[ x1, y1 ];
-      long B = (y1 < 0)           ? 0L : table[ x2, y1 ];
-      long C = (x1 < 0)           ? 0L : table[ x1, y2 ];
-      long D =                           table[ x2, y2 ];
+      long A = ( x1 < 0 || y1 < 0 ) ? 0L : table [ x1, y1 ];
+      long B = ( y1 < 0 ) ? 0L : table [ x2, y1 ];
+      long C = ( x1 < 0 ) ? 0L : table [ x1, y2 ];
+      long D = table [ x2, y2 ];
       return D - B - C + A;
     }
   }
+
 
   /// <summary>
   /// Integer implementation of the Summed-area table (a.k.a. Integral Image)
@@ -1043,54 +1029,53 @@ namespace MathSupport
   /// </summary>
   public class SummedAreaTableInt
   {
-    public int[ , ] table = null;
+    public int[,] table = null;
 
-    public SummedAreaTableInt ()
-    {
-    }
+    public SummedAreaTableInt () { }
 
     public SummedAreaTableInt ( int xres, int yres )
     {
-      table = new int[ xres, yres ];
+      table = new int[xres, yres];
     }
 
     public void ComputeTable ()
     {
-      Debug.Assert( table != null );
+      Debug.Assert ( table != null );
 
-      int xres = table.GetLength( 0 );
-      int yres = table.GetLength( 1 );
+      int xres = table.GetLength ( 0 );
+      int yres = table.GetLength ( 1 );
       int x, y;
 
       // 1st row:
       for ( y = 1; y < yres; y++ )
-        table[ 0, y ] += table[ 0, y - 1 ];
+        table [ 0, y ] += table [ 0, y - 1 ];
 
       // rest of the rows:
       for ( x = 1; x < xres; x++ )
       {
-        table[ x, 0 ] += table[ x - 1, 0 ];
+        table [ x, 0 ] += table [ x - 1, 0 ];
         for ( y = 1; y < yres; y++ )
-          table[ x, y ] += table[ x - 1, y ] + table[ x, y - 1 ] - table[ x - 1, y - 1 ];
+          table [ x, y ] += table [ x - 1, y ] + table [ x, y - 1 ] - table [ x - 1, y - 1 ];
       }
     }
 
     public int Sum ( int x1, int x2, int y1, int y2 )
     {
-      Debug.Assert( x1 >= 0 && x1 < table.GetLength( 0 ) );
-      Debug.Assert( x2 >= x1 && x2 < table.GetLength( 0 ) );
-      Debug.Assert( y1 >= 0 && y1 < table.GetLength( 1 ) );
-      Debug.Assert( y2 >= y1 && y2 < table.GetLength( 1 ) );
+      Debug.Assert ( x1 >= 0 && x1 < table.GetLength ( 0 ) );
+      Debug.Assert ( x2 >= x1 && x2 < table.GetLength ( 0 ) );
+      Debug.Assert ( y1 >= 0 && y1 < table.GetLength ( 1 ) );
+      Debug.Assert ( y2 >= y1 && y2 < table.GetLength ( 1 ) );
 
       x1--;
       y1--;
-      int A = (x1 < 0 || y1 < 0) ? 0 : table[ x1, y1 ];
-      int B = (y1 < 0)           ? 0 : table[ x2, y1 ];
-      int C = (x1 < 0)           ? 0 : table[ x1, y2 ];
-      int D =                          table[ x2, y2 ];
+      int A = ( x1 < 0 || y1 < 0 ) ? 0 : table [ x1, y1 ];
+      int B = ( y1 < 0 ) ? 0 : table [ x2, y1 ];
+      int C = ( x1 < 0 ) ? 0 : table [ x1, y2 ];
+      int D = table [ x2, y2 ];
       return D - B - C + A;
     }
   }
+
 
   /// <summary>
   /// Mitchell-style generator for 2D sample sets.
@@ -1102,6 +1087,7 @@ namespace MathSupport
     /// Sample generator in 2D.
     /// </summary>
     public delegate PointF SampleGenerator ();
+
 
     /// <summary>
     /// Set of already accepted samples.
@@ -1118,22 +1104,22 @@ namespace MathSupport
     /// </summary>
     public SampleGenerator Generator = null;
 
-    public Mitchell2D ( SampleGenerator g, int k =5 )
+    public Mitchell2D ( SampleGenerator g, int k = 5 )
     {
       Generator = g;
-      K = Math.Max( 1, k );
+      K         = Math.Max ( 1, k );
 
-      samples = new List<PointF>();
+      samples = new List<PointF> ();
     }
 
-    public void Reset ( SampleGenerator g =null, int k =0 )
+    public void Reset ( SampleGenerator g = null, int k = 0 )
     {
       if ( g != null )
         Generator = g;
       if ( k > 0 )
         K = k;
 
-      samples.Clear();
+      samples.Clear ();
     }
 
     /// <summary>
@@ -1150,32 +1136,34 @@ namespace MathSupport
       {
         int ns = i * K;
 
-        float maxDist = 0.0f;
+        float  maxDist   = 0.0f;
         PointF maxSample = PointF.Empty;
         for ( int j = 0; j++ < ns; )
         {
-          PointF c = Generator();
-          float minDist = float.MaxValue;
+          PointF c       = Generator ();
+          float  minDist = float.MaxValue;
           foreach ( var sample in samples )
           {
-            float dx = sample.X - c.X;
-            float dy = sample.Y - c.Y;
+            float dx   = sample.X - c.X;
+            float dy   = sample.Y - c.Y;
             float dist = dx * dx + dy * dy;
             if ( dist < minDist )
               minDist = dist;
           }
+
           if ( minDist > maxDist )
           {
-            maxDist = minDist;
+            maxDist   = minDist;
             maxSample = c;
           }
         }
-        samples.Add( maxSample );
+
+        samples.Add ( maxSample );
         i++;
         lastMaxDist = 0.9f * lastMaxDist + 0.1f * maxDist;
       }
 
-      return (float)Math.Sqrt( lastMaxDist );
+      return (float) Math.Sqrt ( lastMaxDist );
     }
   }
 }
