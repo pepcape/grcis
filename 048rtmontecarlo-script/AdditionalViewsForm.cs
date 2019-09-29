@@ -21,7 +21,9 @@ namespace Rendering
     /// <summary>
     /// Constructor which sets location of Form1 window and initializes AdditionalViews class
     /// </summary>
-    public AdditionalViewsForm ( AdditionalViews additionalViews, Form otherForm )
+    public AdditionalViewsForm (
+      AdditionalViews additionalViews,
+      Form otherForm)
     {
       singleton = this;
 
