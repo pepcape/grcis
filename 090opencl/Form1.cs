@@ -69,9 +69,17 @@ namespace _090opencl
       InitShaderRepository();
 
       // OpenCL GUI elements:
-      object[] availablePlatforms = new object[ ComputePlatform.Platforms.Count ];
-      for ( int i = 0; i < availablePlatforms.Length; i++ )
-        availablePlatforms[ i ] = ComputePlatform.Platforms[ i ].Name;
+
+      int platforms = ComputePlatform.Platforms.Count;
+      if ( platforms == 0 )
+      {
+        platforms = 1;
+        checkOpenCL.Enabled = false;
+      }
+
+      object[] availablePlatforms = new object[ platforms ];
+      for ( int i = 0; i < platforms; i++ )
+        availablePlatforms[i] = (i < ComputePlatform.Platforms.Count) ? ComputePlatform.Platforms[ i ].Name : "- no OpenCL available -";
 
       comboBoxPlatform.Items.AddRange( availablePlatforms );
       comboBoxPlatform.SelectedIndex = 0;
@@ -124,13 +132,19 @@ namespace _090opencl
     private void comboBoxPlatform_SelectedIndexChanged ( object sender, EventArgs e )
     {
       clDirty = true;
+      comboBoxDevice.Items.Clear();
+      if ( comboBoxPlatform.SelectedIndex >= ComputePlatform.Platforms.Count )
+      {
+        clPlatform = null;
+        return;
+      }
+
       clPlatform = ComputePlatform.Platforms[ comboBoxPlatform.SelectedIndex ];
 
       object[] availableDevices = new object[ clPlatform.Devices.Count ];
       for ( int i = 0; i < availableDevices.Length; i++ )
         availableDevices[ i ] = clPlatform.Devices[ i ].Name;
 
-      comboBoxDevice.Items.Clear();
       comboBoxDevice.Items.AddRange( availableDevices );
       comboBoxDevice.SelectedIndex = 0;
     }
@@ -138,6 +152,15 @@ namespace _090opencl
     public void SetupClContext ()
     {
       CanUseDouble = CanUseInterop = false;
+
+      if ( clPlatform == null ||
+           comboBoxDevice.SelectedIndex >= clPlatform.Devices.Count )
+      {
+        clDevice = null;
+        clContext = null;
+        return;
+      }
+
       try
       {
         clDevice = clPlatform.Devices[ comboBoxDevice.SelectedIndex ];

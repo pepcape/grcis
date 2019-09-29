@@ -524,6 +524,13 @@ namespace _090opencl
 
       if ( clContext == null )
         SetupClContext();
+      if ( clContext == null )   // to be sure
+      {
+        Util.Log( "OpenCL error" );
+        clImage = null;
+        clDirty = true;
+        return;
+      }
 
       GL.BindTexture( TextureTarget.Texture2D, 0 );
       GL.Finish();
