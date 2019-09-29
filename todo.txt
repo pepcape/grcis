@@ -3,6 +3,20 @@
 ================================================================================
   ($Rev$ $Date$)
 ================================================================================
+After merge from rt+ branch:
+----------------------------
+- check code format in:
+  common/Scene.cs,
+  common/WavefrontObj.cs,
+  common/RayCastingCommon.cs,
+  common/RayCastingBasic.cs,
+  common/RayCastingSolids.cs,
+  common/RayTracingRender.cs,
+  common/Trackball.cs,
+  common/RayCastingRender.cs
+
+Old tasks:
+----------
 - 016videoslow: zkontrolovat Bitmap.Dispose()
 - zkontrolovat po zmenach 12. 11. 2015:
   059-080  (setImage(), resetImage()..)

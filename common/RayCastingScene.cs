@@ -1,9 +1,8 @@
-﻿using System;
+﻿using MathSupport;
+using OpenTK;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTK;
-using MathSupport;
-using Utilities;
 
 // Interfaces and objects for ray-based rendering.
 namespace Rendering
@@ -18,7 +17,6 @@ namespace Rendering
     Difference,
     Xor,
   }
-
 
   /// <summary>
   /// Builtin
@@ -45,7 +43,6 @@ namespace Rendering
     /// </summary>
     public static string MATERIAL = "material";
   }
-
 
   /// <summary>
   /// General scene node (hierarchical 3D scene used in ray-based rendering).
@@ -82,21 +79,21 @@ namespace Rendering
     /// </summary>
     /// <param name="name">Attribute name.</param>
     /// <returns>Attribute value or null if not found.</returns>
-    object GetAttribute ( string name );
+    object GetAttribute (string name);
 
     /// <summary>
     /// Retrieves value of the given Attribute. Looks only in this node.
     /// </summary>
     /// <param name="name">Attribute name.</param>
     /// <returns>Attribute value or null if not found.</returns>
-    object GetLocalAttribute ( string name );
+    object GetLocalAttribute (string name);
 
     /// <summary>
     /// Sets the new value of the given attribute.
     /// </summary>
     /// <param name="name">Attribute name.</param>
     /// <param name="value">Attribute value.</param>
-    void SetAttribute ( string name, object value );
+    void SetAttribute (string name, object value);
 
     /// <summary>
     /// Returns transform from the Local space (Solid) to the World space.
@@ -117,34 +114,32 @@ namespace Rendering
     LinkedList<ITexture> GetTextures ();
   }
 
-
   /// <summary>
   /// Elementary solid - atomic building block of a scene.
   /// </summary>
-  public interface ISolid: ISceneNode
+  public interface ISolid : ISceneNode
   {
-    void GetBoundingBox ( out Vector3d corner1, out Vector3d corner2);
+    void GetBoundingBox (out Vector3d corner1, out Vector3d corner2);
   }
-
 
   /// <summary>
   /// Common code for ISceneNode.
   /// </summary>
   [Serializable]
-  public abstract class DefaultSceneNode: ISceneNode
+  public abstract class DefaultSceneNode : ISceneNode
   {
     public static float infinityPlaceholder = 100000;
-      
+
     protected LinkedList<ISceneNode> children;
 
     public ICollection<ISceneNode> Children
     {
-      get { return children; }
+      get => children;
       set
       {
-        children.Clear ();
-        foreach ( ISceneNode sn in value )
-          children.AddLast ( sn );
+        children.Clear();
+        foreach (ISceneNode sn in value)
+          children.AddLast(sn);
       }
     }
 
@@ -158,34 +153,32 @@ namespace Rendering
 
     protected Dictionary<string, object> attributes;
 
-    public object GetAttribute ( string name )
+    public object GetAttribute (string name)
     {
-      if ( attributes != null )
+      if (attributes != null)
       {
         object result;
-        if ( attributes.TryGetValue ( name, out result ) )
+        if (attributes.TryGetValue(name, out result))
           return result;
       }
 
-      if ( Parent != null ) return Parent.GetAttribute ( name );
-      return null;
+      return Parent?.GetAttribute(name);
     }
 
-    public object GetLocalAttribute ( string name )
+    public object GetLocalAttribute (string name)
     {
       object result;
-      if ( attributes == null ||
-           !attributes.TryGetValue ( name, out result ) )
-        return null;
-
-      return result;
+      return attributes == null ||
+           !attributes.TryGetValue(name, out result)
+        ? null
+        : result;
     }
 
-    public void SetAttribute ( string name, object value )
+    public void SetAttribute (string name, object value)
     {
-      if ( attributes == null )
-        attributes = new Dictionary<string, object> ();
-      attributes [ name ] = value;
+      if (attributes == null)
+        attributes = new Dictionary<string, object>();
+      attributes[name] = value;
     }
 
     /// <summary>
@@ -193,13 +186,13 @@ namespace Rendering
     /// </summary>
     /// <param name="ch">Child node to add.</param>
     /// <param name="toParent">Transform from local space of the child to the parent's space.</param>
-    public virtual void InsertChild ( ISceneNode ch, Matrix4d toParent )
+    public virtual void InsertChild (ISceneNode ch, Matrix4d toParent)
     {
-      children.AddLast ( ch );
+      children.AddLast(ch);
       ch.ToParent = toParent;
-      toParent.Invert ();
+      toParent.Invert();
       ch.FromParent = toParent;
-      ch.Parent     = this;
+      ch.Parent = this;
     }
 
     /// <summary>
@@ -208,8 +201,7 @@ namespace Rendering
     /// <returns>Transform matrix.</returns>
     public Matrix4d ToWorld ()
     {
-      if ( Parent == null ) return Matrix4d.Identity;
-      return ( ToParent * Parent.ToWorld () );
+      return Parent == null ? Matrix4d.Identity : ToParent * Parent.ToWorld();
     }
 
     /// <summary>
@@ -218,8 +210,7 @@ namespace Rendering
     /// <returns>Transform matrix.</returns>
     public Matrix4d ToObject ()
     {
-      if ( ObjectRoot || Parent == null ) return Matrix4d.Identity;
-      return ( ToParent * Parent.ToObject () );
+      return ObjectRoot || Parent == null ? Matrix4d.Identity : ToParent * Parent.ToObject();
     }
 
     /// <summary>
@@ -229,24 +220,25 @@ namespace Rendering
     public LinkedList<ITexture> GetTextures ()
     {
       LinkedList<ITexture> result = null;
-      if ( Parent != null )
-        result = Parent.GetTextures ();
+      if (Parent != null)
+        result = Parent.GetTextures();
 
       object local = GetLocalAttribute ( PropertyName.TEXTURE );
-      if ( local == null ) return result;
+      if (local == null)
+        return result;
 
-      if ( local is ITexture )
+      if (local is ITexture)
       {
-        if ( result == null )
-          result = new LinkedList<ITexture> ();
-        result.AddLast ( (ITexture) local );
+        if (result == null)
+          result = new LinkedList<ITexture>();
+        result.AddLast((ITexture)local);
       }
-      else if ( local is IEnumerable<ITexture> )
-        if ( result == null )
-          result = new LinkedList<ITexture> ( (IEnumerable<ITexture>) local );
+      else if (local is IEnumerable<ITexture>)
+        if (result == null)
+          result = new LinkedList<ITexture>((IEnumerable<ITexture>)local);
         else
-          foreach ( ITexture tex in (IEnumerable<ITexture>) local )
-            result.AddLast ( tex );
+          foreach (ITexture tex in (IEnumerable<ITexture>)local)
+            result.AddLast(tex);
 
       return result;
     }
@@ -257,68 +249,68 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
-    public virtual LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
+    public virtual LinkedList<Intersection> Intersect (Vector3d p0, Vector3d p1)
     {
-      if ( children == null || children.Count == 0 )
+      if (children == null || children.Count == 0)
         return null;
 
       ISceneNode child  = children.First.Value;
-      Vector3d   origin = Vector3d.TransformPosition ( p0, child.FromParent );
-      Vector3d   dir    = Vector3d.TransformVector ( p1, child.FromParent );
+      Vector3d   origin = Vector3d.TransformPosition( p0, child.FromParent );
+      Vector3d   dir    = Vector3d.TransformVector( p1, child.FromParent );
       // ray in local child's coords: [ origin, dir ]
 
-      return child.Intersect ( origin, dir );
+      return child.Intersect(origin, dir);
     }
 
     /// <summary>
     /// Complete all relevant items in the given Intersection object.
     /// </summary>
     /// <param name="inter">Intersection instance to complete.</param>
-    public virtual void CompleteIntersection ( Intersection inter ) { }
+    public virtual void CompleteIntersection (Intersection inter)
+    {}
 
     public DefaultSceneNode ()
     {
-      children   = new LinkedList<ISceneNode> ();
+      children   = new LinkedList<ISceneNode>();
       attributes = null;
       ObjectRoot = false;
     }
 
-    public void ShareCloneChildren ( DefaultSceneNode n )
+    public void ShareCloneChildren (DefaultSceneNode n)
     {
-      foreach ( var child in children )
+      foreach (var child in children)
       {
         ITimeDependent cha = child as ITimeDependent;
-        n.InsertChild ( ( cha == null ) ? child : (ISceneNode) cha.Clone (), child.ToParent );
+        n.InsertChild((cha == null) ? child : (ISceneNode)cha.Clone(), child.ToParent);
       }
     }
 
-    public void ShareCloneAttributes ( DefaultSceneNode n )
+    public void ShareCloneAttributes (DefaultSceneNode n)
     {
-      if ( attributes == null ||
-           attributes.Count == 0 )
+      if (attributes == null ||
+          attributes.Count == 0)
         n.attributes = null;
       else
       {
-        n.attributes = new Dictionary<string, object> ();
-        foreach ( var kvp in attributes )
+        n.attributes = new Dictionary<string, object>();
+        foreach (var kvp in attributes)
         {
           ICloneable vala = kvp.Value as ICloneable;
-          n.attributes.Add ( kvp.Key, ( vala == null ) ? kvp.Value : vala.Clone () );
+          n.attributes.Add(kvp.Key, (vala == null) ? kvp.Value : vala.Clone());
 #if DEBUG
-          if ( vala != null )
-            Util.Log ( "Clone Attribute: " + kvp.Key );
+          if (vala != null)
+            Util.Log("Clone Attribute: " + kvp.Key);
 #endif
         }
       }
     }
   }
 
-
   /// <summary>
   /// CSG set operations in a inner scene node..
   /// </summary>
   [Serializable]
-  public class CSGInnerNode: DefaultSceneNode
+  public class CSGInnerNode : DefaultSceneNode
   {
     /// <summary>
     /// Delegate function for boolean operations
@@ -361,54 +353,37 @@ namespace Rendering
     /// </summary>
     public static long countFaces = 0L;
 
-    public CSGInnerNode ( SetOperation op )
+    public CSGInnerNode (SetOperation op)
     {
-      /*switch ( op )
+      switch (op)
       {
         case SetOperation.Intersection:
-          bop = ( x, y ) => x && y;
+          bop = new OperationIntersection();
           break;
         case SetOperation.Difference:
-          bop = ( x, y ) => x && !y;
+          bop = new OperationDifference();
           break;
         case SetOperation.Xor:
-          bop = ( x, y ) => x ^ y;
+          bop = new OperationXor();
           break;
         case SetOperation.Union:
         default:
-          bop = ( x, y ) => x || y;
+          bop = new OperationUnion();
           break;
-      }*/
+      }
 
-	    switch ( op )
-	    {
-		    case SetOperation.Intersection:
-			    bop = new OperationIntersection ();
-			    break;
-		    case SetOperation.Difference:
-			    bop = new OperationDifference ();
-			    break;
-		    case SetOperation.Xor:
-			    bop = new OperationXor ();
-			    break;
-		    case SetOperation.Union:
-		    default:
-			    bop = new OperationUnion ();
-			    break;
-	    }
-
-      // set accelerator flags:
-      shortCurcuit = !( bop.Result ( false, false ) || bop.Result ( false, true ) ); // does empty left operand kill the result?
-      trivial      = bop.Result ( true, false ) && !bop.Result ( false, false );     // empty right operand doesn't change anything..
+      // Set accelerator flags.
+      shortCurcuit = !(bop.Result(false, false) || bop.Result(false, true));  // does empty left operand kill the result?
+      trivial      = bop.Result(true, false) && !bop.Result(false, false);    // empty right operand doesn't change anything..
     }
 
-    protected CSGInnerNode ( Operation _bop )
+    protected CSGInnerNode (Operation _bop)
     {
       bop = _bop;
 
       // set accelerator flags:
-      shortCurcuit = !( bop.Result ( false, false ) || bop.Result ( false, true ) ); // does empty left operand kill the result?
-      trivial      = bop.Result ( true, false ) && !bop.Result ( false, false );     // empty right operand doesn't change anything..
+      shortCurcuit = !(bop.Result(false, false) || bop.Result(false, true));  // does empty left operand kill the result?
+      trivial      = bop.Result(true, false) && !bop.Result(false, false);    // empty right operand doesn't change anything..
     }
 
     /// <summary>
@@ -417,15 +392,15 @@ namespace Rendering
     public static void ResetStatistics ()
     {
       Intersection.countRays =
-        Intersection.countIntersections =
-          countBoundingBoxes =
-            countTriangles = 0L;
+      Intersection.countIntersections =
+      countBoundingBoxes =
+      countTriangles = 0L;
     }
 
     /// <summary>
     /// Not to be modified!
     /// </summary>
-    protected static LinkedList<Intersection> emptyResult = new LinkedList<Intersection> ();
+    protected static LinkedList<Intersection> emptyResult = new LinkedList<Intersection>();
 
     /// <summary>
     /// Computes the complete intersection of the given ray with the object.
@@ -433,15 +408,15 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
-    public override LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 )
+    public override LinkedList<Intersection> Intersect (Vector3d p0, Vector3d p1)
     {
-      if ( children == null || children.Count == 0 )
+      if (children == null || children.Count == 0)
         return null;
 
-      if ( BoundingVolume != null )
+      if (BoundingVolume != null)
       {
         countBoundingBoxes++;
-        if ( BoundingVolume.Intersect ( p0, p1 ) < -0.5 )
+        if (BoundingVolume.Intersect(p0, p1) < -0.5)
           return null;
       }
 
@@ -450,84 +425,84 @@ namespace Rendering
 
       bool leftOp = true; // the 1st pass => left operand
 
-      foreach ( ISceneNode child in children )
+      foreach (ISceneNode child in children)
       {
-        Vector3d origin = Vector3d.TransformPosition ( p0, child.FromParent );
-        Vector3d dir    = Vector3d.TransformVector ( p1, child.FromParent );
+        Vector3d origin = Vector3d.TransformPosition( p0, child.FromParent );
+        Vector3d dir    = Vector3d.TransformVector( p1, child.FromParent );
         // ray in local child's coords: [ origin, dir ]
 
-        LinkedList<Intersection> partial = child.Intersect ( origin, dir );
-        if ( partial == null )
-          partial = leftOp ? new LinkedList<Intersection> () : emptyResult;
-        else if ( child is ISolid )
+        LinkedList<Intersection> partial = child.Intersect( origin, dir );
+        if (partial == null)
+          partial = leftOp ? new LinkedList<Intersection>() : emptyResult;
+        else if (child is ISolid)
           Intersection.countIntersections += partial.Count;
 
-        if ( leftOp )
+        if (leftOp)
         {
           leftOp = false;
           result = partial;
-          left   = new LinkedList<Intersection> ();
+          left = new LinkedList<Intersection>();
         }
         else
         {
-          if ( trivial && partial.Count == 0 )
+          if (trivial && partial.Count == 0)
             continue;
 
           // resolve one binary operation (result := left # partial):
           {
             LinkedList<Intersection> tmp = left;
-            left   = result;
+            left = result;
             result = tmp;
           }
           // result .. empty so far
-          result.Clear ();
+          result.Clear();
 
           Intersection leftFirst  = left.First?.Value;
           Intersection rightFirst = partial.First?.Value;
           // initial inside status values:
-          bool insideLeft   = ( leftFirst != null && !leftFirst.Enter );
-          bool insideRight  = ( rightFirst != null && !rightFirst.Enter );
-          bool insideResult = bop.Result ( insideLeft, insideRight );
+          bool insideLeft   = leftFirst != null && !leftFirst.Enter;
+          bool insideRight  = rightFirst != null && !rightFirst.Enter;
+          bool insideResult = bop.Result(insideLeft, insideRight);
           // merge behavior:
 
-          while ( leftFirst != null || rightFirst != null )
+          while (leftFirst != null || rightFirst != null)
           {
-            double leftVal  = leftFirst?.T ?? double.PositiveInfinity;
+            double leftVal  = leftFirst?.T  ?? double.PositiveInfinity;
             double rightVal = rightFirst?.T ?? double.PositiveInfinity;
-            double lowestT    = Math.Min ( leftVal, rightVal );
-            Debug.Assert ( !double.IsInfinity ( lowestT ) );
+            double lowestT  = Math.Min(leftVal, rightVal);
+            Debug.Assert(!double.IsInfinity(lowestT));
 
-            bool minLeft = leftVal == lowestT;
+            bool minLeft  = leftVal == lowestT;
             bool minRight = rightVal == lowestT;
 
             Intersection first = null;
-            if ( minRight )
+            if (minRight)
             {
               first = rightFirst;
-              partial.RemoveFirst ();
-              rightFirst  = partial.First?.Value;
+              partial.RemoveFirst();
+              rightFirst = partial.First?.Value;
               insideRight = first.Enter;
             }
 
-            if ( minLeft )
+            if (minLeft)
             {
               first = leftFirst;
-              left.RemoveFirst ();
-              leftFirst  = left.First?.Value;
+              left.RemoveFirst();
+              leftFirst = left.First?.Value;
               insideLeft = first.Enter;
             }
 
-            bool newResult = bop.Result ( insideLeft, insideRight );
+            bool newResult = bop.Result(insideLeft, insideRight);
 
-            if ( newResult != insideResult )
+            if (newResult != insideResult)
             {
               first.Enter = insideResult = newResult;
-              result.AddLast ( first );
+              result.AddLast(first);
             }
           }
         }
 
-        if ( shortCurcuit && result.Count == 0 )
+        if (shortCurcuit && result.Count == 0)
           break;
       }
 
@@ -535,12 +510,11 @@ namespace Rendering
     }
   }
 
-
   /// <summary>
   /// Default scene class for ray-based rendering.
   /// </summary>
   [System.Serializable]
-  public class DefaultRayScene: IRayScene
+  public class DefaultRayScene : IRayScene
   {
     /// <summary>
     /// Scene model (whatever is able to compute ray intersections).
@@ -563,11 +537,10 @@ namespace Rendering
     public ICollection<ILightSource> Sources { get; set; }
   }
 
-
   /// <summary>
   /// Base implementation of time-dependent Ray-scene.
   /// </summary>
-  public class AnimatedRayScene: DefaultRayScene, ITimeDependent
+  public class AnimatedRayScene : DefaultRayScene, ITimeDependent
   {
     /// <summary>
     /// Starting (minimal) time in seconds.
@@ -588,25 +561,25 @@ namespace Rendering
     /// Changes the current time - internal routine.
     /// Override it if you need time-dependent background color..
     /// </summary>
-    protected virtual void setTime ( double newTime )
+    protected virtual void setTime (double newTime)
     {
-      time = Arith.Clamp ( newTime, Start, End );
+      time = Arith.Clamp(newTime, Start, End);
 
       // Time-dependent scene?
       ITimeDependent intersectable = Intersectable as ITimeDependent;
-      if ( intersectable != null )
+      if (intersectable != null)
         intersectable.Time = time;
 
       // Time-dependent camera?
       ITimeDependent camera = Camera as ITimeDependent;
-      if ( camera != null )
+      if (camera != null)
         camera.Time = time;
 
       // Time-dependent light sources?
-      foreach ( ILightSource light in Sources )
+      foreach (ILightSource light in Sources)
       {
         ITimeDependent li = light as ITimeDependent;
-        if ( li != null )
+        if (li != null)
           li.Time = time;
       }
     }
@@ -616,8 +589,8 @@ namespace Rendering
     /// </summary>
     public double Time
     {
-      get { return time; }
-      set { setTime ( value ); }
+      get => time;
+      set => setTime(value);
     }
 
     /// <summary>
@@ -627,32 +600,32 @@ namespace Rendering
     public virtual object Clone ()
     {
 #if DEBUG
-      Util.Log ( "Clone: AnimatedRayScene" );
+      Util.Log("Clone: AnimatedRayScene");
 #endif
       AnimatedRayScene sc = new AnimatedRayScene ();
 
-      ITimeDependent intersectable = Intersectable as ITimeDependent;
-      sc.Intersectable = ( intersectable == null ) ? Intersectable : (IIntersectable) intersectable.Clone ();
+      sc.Intersectable = Intersectable;
+      if (sc.Intersectable is ITimeDependent intersectable)
+        sc.Intersectable = (IIntersectable)intersectable.Clone();
 
-      sc.BackgroundColor = (double[]) BackgroundColor.Clone ();
+      sc.BackgroundColor = (double[])BackgroundColor.Clone();
 
-      ITimeDependent camera = Camera as ITimeDependent;
-      sc.Camera = ( camera == null ) ? Camera : (ICamera) camera.Clone ();
+      sc.Camera = Camera;
+      if (sc.Camera is ITimeDependent camera)
+        sc.Camera = (ICamera)camera.Clone();
 
       ILightSource[] tmp = new ILightSource[Sources.Count];
-      Sources.CopyTo ( tmp, 0 );
-      for ( int i = 0; i < tmp.Length; i++ )
+      Sources.CopyTo(tmp, 0);
+      for (int i = 0; i < tmp.Length; i++)
       {
-        ITimeDependent source = tmp [ i ] as ITimeDependent;
-        if ( source != null )
-          tmp [ i ] = (ILightSource) source.Clone ();
+        if (tmp[i] is ITimeDependent source)
+          tmp[i] = (ILightSource)source.Clone();
       }
-
-      sc.Sources = new LinkedList<ILightSource> ( tmp );
+      sc.Sources = new LinkedList<ILightSource>(tmp);
 
       sc.Start = Start;
-      sc.End   = End;
-      sc.setTime ( Time ); // propagates the current time to all time-dependent components..
+      sc.End = End;
+      sc.setTime(Time); // propagates the current time to all time-dependent components..
 
       return sc;
     }
@@ -668,45 +641,33 @@ namespace Rendering
     }
   }
 
-	[Serializable]
+  [Serializable]
   public abstract class Operation
-	{
-		public abstract bool Result (bool x, bool y);
-	}
+  {
+    public abstract bool Result (bool x, bool y);
+  }
 
-	[Serializable]
-  public class OperationUnion: Operation
-	{
-		public override bool Result ( bool x, bool y )
-		{
-			return x || y;
-		}
-	}
+  [Serializable]
+  public class OperationUnion : Operation
+  {
+    public override bool Result (bool x, bool y) => x || y;
+  }
 
-	[Serializable]
+  [Serializable]
   public class OperationIntersection : Operation
-	{
-		public override bool Result ( bool x, bool y )
-		{
-			return x && y;
-		}
-	}
+  {
+    public override bool Result (bool x, bool y) => x && y;
+  }
 
-	[Serializable]
+  [Serializable]
   public class OperationDifference : Operation
-	{
-		public override bool Result ( bool x, bool y )
-		{
-			return x && !y;
-		}
-	}
+  {
+    public override bool Result (bool x, bool y) => x && !y;
+  }
 
-	[Serializable]
+  [Serializable]
   public class OperationXor : Operation
-	{
-		public override bool Result ( bool x, bool y )
-		{
-			return x ^ y;
-		}
-	}
+  {
+    public override bool Result (bool x, bool y) => x ^ y;
+  }
 }
