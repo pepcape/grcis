@@ -52,7 +52,7 @@ namespace Rendering
     /// </summary>
     public static IRayScene getScene ()
     {
-      IRayScene scene = Form1.singleton.SceneByComboBox ();     
+      IRayScene scene = Form1.singleton.SceneByComboBox();     
       return scene;
     }
 
@@ -119,7 +119,8 @@ namespace Rendering
   public class AdaptiveSupersampling: SupersamplingImageSynthesizer
   {
     public AdaptiveSupersampling ()
-      : base ( 16 ) { }
+      : base ( 16 )
+    {}
 
     /// <summary>
     /// Renders the single pixel of an image (using required super-sampling).

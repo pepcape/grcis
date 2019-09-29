@@ -166,8 +166,7 @@ namespace Rendering
 
     double[] ColorReflection ( Intersection intersection, Vector3d input, Vector3d output, ReflectionComponent comp );
 
-    double[] ColorReflection ( IMaterial           material, Vector3d normal, Vector3d input, Vector3d output,
-                               ReflectionComponent comp );
+    double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output, ReflectionComponent comp );
   }
 
   /// <summary>
@@ -535,7 +534,7 @@ namespace Rendering
     public static void InitThreadData ()
     {
       if ( rnd == null )
-        rnd = new RandomJames ();
+        rnd = new RandomJames( Thread.CurrentThread.GetHashCode() ^ DateTime.Now.Ticks );
 
       // Put TLS data init here..
     }
