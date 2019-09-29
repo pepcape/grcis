@@ -112,13 +112,7 @@ namespace Utilities
         // Create that expression here.
         System.Linq.Expressions.Expression<Func<T>> e = System.Linq.Expressions.Expression.Lambda<Func<T>> (
                                                                                                             // The default value, always get what the *code* tells us.
-                                                                                                            System
-                                                                                                             .Linq
-                                                                                                             .Expressions
-                                                                                                             .Expression
-                                                                                                             .Default ( typeof
-                                                                                                                        ( T
-                                                                                                                        ) )
+          System.Linq.Expressions.Expression.Default( typeof( T ) )
                                                                                                            );
 
         // Compile and return the value.
@@ -287,8 +281,7 @@ namespace Utilities
 
     public static string d3LinearPalette ( int size, int[] colors )
     {
-      return d3LinearPalette ( size, colors [ 0 ], colors [ 1 ], colors [ 2 ], colors [ 3 ], colors [ 4 ],
-                               colors [ 5 ] );
+      return d3LinearPalette( size, colors[ 0 ], colors[ 1 ], colors[ 2 ], colors[ 3 ], colors[ 4 ], colors[ 5 ] );
     }
 
     public static string d3DiscretePalette ( ICollection<Tuple<byte, byte, byte>> table )
@@ -350,8 +343,7 @@ namespace Utilities
 
       DateTime result;
       if ( DateTime.TryParse ( s, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out result ) ||
-           DateTime.TryParseExact ( s, DATE_FORMATS, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal,
-                                    out result ) )
+           DateTime.TryParseExact( s, DATE_FORMATS, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result ) )
         result = result.ToUniversalTime ();
 
       if ( result < DATE_EPSILON )
@@ -364,8 +356,7 @@ namespace Utilities
     {
       if ( string.IsNullOrEmpty ( s ) ||
            ( !DateTime.TryParse ( s, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out dt ) &&
-             !DateTime.TryParseExact ( s, DATE_FORMATS, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal,
-                                       out dt ) ) )
+            !DateTime.TryParseExact( s, DATE_FORMATS, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out dt )) )
       {
         dt = DateTime.MinValue;
         return false;
@@ -1596,9 +1587,7 @@ namespace Utilities
     /// <param name="start">Where to start..</param>
     /// <param name="separator">Optional specification of the separator character.</param>
     /// <param name="keepEmpty">Keep empty values?</param>
-    public static void ParseList ( List<KeyValuePair<string, string>> list, string prefix, string str,
-                                   int                                start,
-                                   bool                               keepEmpty = false, char separator = '&' )
+    public static void ParseList ( List<KeyValuePair<string, string>> list, string prefix, string str, int start, bool keepEmpty =false, char separator ='&' )
     {
       int len = str.Length;
       while ( start < len )
@@ -2137,9 +2126,7 @@ namespace Utilities
     /// <param name="comp">Comparison object or null for sorting by frequency.</param>
     /// <param name="label">Delegate for labeling histogram bins (can be null).</param>
     /// <param name="label">Delegate for histogram bins description (can be null).</param>
-    public void Print ( StringBuilder sb, int limit = 0, bool percent = false,
-                        bool          perCum = false,
-                        IComparer<T>  comp   = null, BinLabel label = null, Description descr = null )
+    public void Print ( StringBuilder sb, int limit = 0, bool percent = false, bool perCum = false, IComparer<T> comp = null, BinLabel label = null, Description descr = null )
     {
       double multi = 100.0 / Math.Max ( 1L, Total () );
       if ( limit == 0 )
@@ -2233,9 +2220,7 @@ namespace Utilities
     /// <param name="comp">Comparison object or null for sorting by frequency.</param>
     /// <param name="label">Delegate for labeling histogram bins (can be null).</param>
     /// <param name="label">Delegate for histogram bins description (can be null).</param>
-    public void Print ( TextWriter   o, int limit = 0, bool percent = false,
-                        bool         perCum = false,
-                        IComparer<T> comp   = null, BinLabel label = null, Description descr = null )
+    public void Print ( TextWriter o, int limit = 0, bool percent = false, bool perCum = false, IComparer<T> comp = null, BinLabel label = null, Description descr = null )
     {
       StringBuilder sb = new StringBuilder ();
       Print ( sb, limit, percent, perCum, comp, label, descr );
@@ -2252,9 +2237,7 @@ namespace Utilities
     /// <param name="comp">Comparison object or null for sorting by frequency.</param>
     /// <param name="label">Delegate for labeling histogram bins (can be null).</param>
     /// <param name="label">Delegate for histogram bins description (can be null).</param>
-    public void PrintHtml ( StringBuilder sb, int limit = 0, bool percent = false,
-                            bool          perCum = false,
-                            IComparer<T>  comp   = null, BinLabel label = null, Description descr = null )
+    public void PrintHtml ( StringBuilder sb, int limit = 0, bool percent = false, bool perCum = false, IComparer<T> comp = null, BinLabel label = null, Description descr = null )
     {
       double multi = 100.0 / Math.Max ( 1L, Total () );
       if ( limit == 0 )
@@ -2376,16 +2359,12 @@ namespace Utilities
       return ( key * BinSize ).ToString ();
     }
 
-    public new void Print ( TextWriter     o, int limit = 0, bool percent = false,
-                            bool           perCum = false,
-                            IComparer<int> comp   = null, BinLabel label = null, Description descr = null )
+    public new void Print ( TextWriter o, int limit =0, bool percent =false, bool perCum =false, IComparer<int> comp =null, BinLabel label =null, Description descr =null )
     {
       base.Print ( o, limit, percent, perCum, comp, label ?? DefaultLabel, descr );
     }
 
-    public new void PrintHtml ( StringBuilder  sb, int limit = 0, bool percent = false,
-                                bool           perCum = false,
-                                IComparer<int> comp   = null, BinLabel label = null, Description descr = null )
+    public new void PrintHtml ( StringBuilder sb, int limit =0, bool percent =false, bool perCum =false, IComparer<int> comp =null, BinLabel label =null, Description descr =null )
     {
       base.PrintHtml ( sb, limit, percent, perCum, comp, label ?? DefaultLabel, descr );
     }
@@ -2414,16 +2393,12 @@ namespace Utilities
       return ( key * BinSize ).ToString ();
     }
 
-    public new void Print ( TextWriter      o, int limit = 0, bool percent = false,
-                            bool            perCum = false,
-                            IComparer<long> comp   = null, BinLabel label = null, Description descr = null )
+    public new void Print ( TextWriter o, int limit = 0, bool percent =false, bool perCum =false, IComparer<long> comp =null, BinLabel label =null, Description descr =null )
     {
       base.Print ( o, limit, percent, perCum, comp, label ?? DefaultLabel, descr );
     }
 
-    public new void PrintHtml ( StringBuilder   sb, int limit = 0, bool percent = false,
-                                bool            perCum = false,
-                                IComparer<long> comp   = null, BinLabel label = null, Description descr = null )
+    public new void PrintHtml ( StringBuilder sb, int limit = 0, bool percent =false, bool perCum =false, IComparer<long> comp =null, BinLabel label =null, Description descr =null )
     {
       base.PrintHtml ( sb, limit, percent, perCum, comp, label ?? DefaultLabel, descr );
     }
@@ -2441,6 +2416,7 @@ namespace Utilities
     /// Sparse 2D frequency table.
     /// </summary>
     //public Dictionary<Tsec, Histogram<Tpri>> table = new Dictionary<Tsec, Histogram<Tpri>>();
+
     public long Inc ( Tpri key1, Tsec key2 )
     {
       if ( key1 == null ||

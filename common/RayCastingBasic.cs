@@ -579,7 +579,8 @@ namespace Rendering
       dy     =  -top * ( 2.0 * halfHeight / height );
     }
 
-    public StaticCamera () { }
+    public StaticCamera ()
+    {}
 
     /// <summary>
     /// Initializing constructor, able to set all camera parameters.
@@ -677,8 +678,8 @@ namespace Rendering
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
     public virtual double[] GetIntensity ( Intersection intersection, out Vector3d dir )
     {
-      dir = (Vector3d) position - intersection.CoordWorld;
-      if ( Vector3d.Dot ( dir, intersection.Normal ) <= 0.0 )
+      dir = (Vector3d)position - intersection.CoordWorld;
+      if ( Vector3d.Dot( dir, intersection.Normal ) <= 0.0 )
         return null;
 
       return intensity;
@@ -696,7 +697,8 @@ namespace Rendering
 
     public Vector3d? position { get; set; }
 
-    public AmbientLightSource () { }
+    public AmbientLightSource ()
+    {}
 
     public AmbientLightSource ( double intens )
     {
@@ -716,7 +718,6 @@ namespace Rendering
       return intensity;
     }
   }
-
 
   /// <summary>
   /// Rectangle light source with intensity attenuation.
@@ -739,7 +740,6 @@ namespace Rendering
     /// Can be "null" for no dimming..
     /// </summary>
     public double[] Dim { get; set; }
-
 
     /// <summary>
     /// Support data container for sampling states.
@@ -799,10 +799,9 @@ namespace Rendering
         }
 
         // TODO: do something like:
-        sample = (Vector3d) source.position + u * source.width + v * source.height;
+        sample = (Vector3d)source.position + u * source.width + v * source.height;
       }
     }
-
 
     /// <summary>
     /// Set of sampling states (one per random-generator instance / thread).
@@ -952,7 +951,8 @@ namespace Rendering
       n     = 1.5;
     }
 
-    public PhongMaterial (): this ( new double[] { 1.0, 0.9, 0.4 }, 0.2, 0.7, 0.2, 16 ) { }
+    public PhongMaterial (): this ( new double[] { 1.0, 0.9, 0.4 }, 0.2, 0.7, 0.2, 16 )
+    {}
 
     public object Clone ()
     {
@@ -972,14 +972,12 @@ namespace Rendering
       return new PhongMaterial ();
     }
 
-    public double[] ColorReflection ( Intersection        intersection, Vector3d input, Vector3d output,
-                                      ReflectionComponent comp )
+    public double[] ColorReflection ( Intersection intersection, Vector3d input, Vector3d output, ReflectionComponent comp )
     {
       return ColorReflection ( intersection.Material, intersection.Normal, input, output, comp );
     }
 
-    public double[] ColorReflection ( IMaterial           material, Vector3d normal, Vector3d input, Vector3d output,
-                                      ReflectionComponent comp )
+    public double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output, ReflectionComponent comp )
     {
       if ( !( material is PhongMaterial ) ) return null;
 
