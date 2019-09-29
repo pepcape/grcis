@@ -534,7 +534,7 @@ namespace Rendering
     public static void InitThreadData ()
     {
       if ( rnd == null )
-        rnd = new RandomJames( Thread.CurrentThread.GetHashCode() ^ DateTime.Now.Ticks );
+        rnd = new RandomJames(System.Threading.Thread.CurrentThread.GetHashCode() ^ DateTime.Now.Ticks);
 
       // Put TLS data init here..
     }
@@ -545,7 +545,10 @@ namespace Rendering
     /// <param name="_x">Horizontal pixel coordinate.</param>
     /// <param name="_y">Vertical pixel coordnate.</param>
     /// <param name="tot">Designed supersampling factor.</param>
-    public static void StartPixel ( int _x, int _y, int tot )
+    public static void StartPixel (
+      int _x,
+      int _y,
+      int tot)
     {
       x     = _x;
       y     = _y;
