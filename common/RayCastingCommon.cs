@@ -34,16 +34,14 @@ namespace Rendering
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="color">Computed sample color.</param>
     /// <returns>Hash-value used for adaptive subsampling.</returns>
-    long GetSample ( double x, double y, double[] color );
+    long GetSample (double x, double y, double[] color);
   }
-
 
   /// <summary>
   /// Delegate function for thread-selection.
   /// </summary>
   /// <param name="unit">Number of working unit (thread selected for unit==0 is leader).</param>
-  public delegate bool ThreadSelector ( long unit );
-
+  public delegate bool ThreadSelector (long unit);
 
   /// <summary>
   /// Algorithm capable of synthesizing raster image from virtual 3D scene.
@@ -82,13 +80,13 @@ namespace Rendering
     /// <param name="x">Horizontal coordinate.</param>
     /// <param name="y">Vertical coordinate.</param>
     /// <param name="color">Computed pixel color.</param>
-    void RenderPixel ( int x, int y, double[] color );
+    void RenderPixel (int x, int y, double[] color);
 
     /// <summary>
     /// Renders the given rectangle into the given raster image.
     /// </summary>
     /// <param name="image">Pre-initialized raster image.</param>
-    void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2 );
+    void RenderRectangle (Bitmap image, int x1, int y1, int x2, int y2);
 
     /// <summary>
     /// Renders the given rectangle into the given raster image.
@@ -96,7 +94,7 @@ namespace Rendering
     /// </summary>
     /// <param name="image">Pre-initialized raster image.</param>
     /// <param name="sel">Selector for this working thread.</param>
-    void RenderRectangle ( Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel );
+    void RenderRectangle (Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel);
   }
 
   /// <summary>
@@ -127,7 +125,7 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>True if the ray (viewport position) is valid.</returns>
-    bool GetRay ( double x, double y, out Vector3d p0, out Vector3d p1 );
+    bool GetRay (double x, double y, out Vector3d p0, out Vector3d p1);
   }
 
   /// <summary>
@@ -142,7 +140,7 @@ namespace Rendering
     /// <param name="intersection">Scene point (only world coordinates and normal vector are needed).</param>
     /// <param name="dir">Direction to the source is set here (zero vector for omnidirectional source). Not normalized!</param>
     /// <returns>Intensity vector in current color space or null if the point is not lit.</returns>
-    double[] GetIntensity ( Intersection intersection, out Vector3d dir );
+    double[] GetIntensity (Intersection intersection, out Vector3d dir);
 
     Vector3d? position { get; set; }
   }
@@ -164,16 +162,16 @@ namespace Rendering
   {
     IMaterial DefaultMaterial ();
 
-    double[] ColorReflection ( Intersection intersection, Vector3d input, Vector3d output, ReflectionComponent comp );
+    double[] ColorReflection (Intersection intersection, Vector3d input, Vector3d output, ReflectionComponent comp);
 
-    double[] ColorReflection ( IMaterial material, Vector3d normal, Vector3d input, Vector3d output, ReflectionComponent comp );
+    double[] ColorReflection (IMaterial material, Vector3d normal, Vector3d input, Vector3d output, ReflectionComponent comp);
   }
 
   /// <summary>
   /// Abstract material description.
   /// Each IReflectionModel should define its own derivation with specific properties.
   /// </summary>
-  public interface IMaterial: ICloneable
+  public interface IMaterial : ICloneable
   {
     /// <summary>
     /// Base surface color.
@@ -202,13 +200,13 @@ namespace Rendering
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
-    LinkedList<Intersection> Intersect ( Vector3d p0, Vector3d p1 );
+    LinkedList<Intersection> Intersect (Vector3d p0, Vector3d p1);
 
     /// <summary>
     /// Complete all relevant items in the given Intersection object.
     /// </summary>
     /// <param name="inter">Intersection instance to complete.</param>
-    void CompleteIntersection ( Intersection inter );
+    void CompleteIntersection (Intersection inter);
   }
 
   /// <summary>
@@ -223,7 +221,7 @@ namespace Rendering
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Negative number (-1.0) if there is no intersection, zero if the origin is inside the solid,
     /// otherwise the closest intersection point.</returns>
-    double Intersect ( Vector3d p0, Vector3d p1 );
+    double Intersect (Vector3d p0, Vector3d p1);
   }
 
   /// <summary>
@@ -237,7 +235,7 @@ namespace Rendering
     /// </summary>
     /// <param name="inter">Data object to modify.</param>
     /// <returns>Hash value (texture signature) for adaptive subsampling.</returns>
-    long Apply ( Intersection inter );
+    long Apply (Intersection inter);
   }
 
   /// <summary>
@@ -270,7 +268,7 @@ namespace Rendering
   /// Abstract time-dependency of an object.
   /// Each instance has to be able to clone itself (multi-thread implementations).
   /// </summary>
-  public interface ITimeDependent: ICloneable
+  public interface ITimeDependent : ICloneable
   {
     /// <summary>
     /// Starting (minimal) time in seconds.
@@ -295,7 +293,7 @@ namespace Rendering
   /// <summary>
   /// Intersection of a ray with a solid surface.
   /// </summary>
-  public class Intersection: IComparable
+  public class Intersection : IComparable
   {
     /// <summary>
     /// True if the ray enters a solid interior of an object here (transition from an air to solid material).
@@ -410,9 +408,11 @@ namespace Rendering
     public static long countIntersections = 0L;
 
     public bool completed = false;
-    public bool textureApplied = false; // warning - this bool is changed even when only one texture was applied - not all of them
 
-    public Intersection ( ISolid s )
+    // Warning - this bool is changed even when only one texture was applied - not all of them.
+    public bool textureApplied = false;
+
+    public Intersection (ISolid s)
     {
       Solid = s;
     }
@@ -422,50 +422,50 @@ namespace Rendering
     /// </summary>
     public void Complete ()
     {
-      if ( Solid != null )
+      if (Solid != null)
       {
         // world coordinates:
-        LocalToWorld = Solid.ToWorld ();
+        LocalToWorld = Solid.ToWorld();
         WorldToLocal = LocalToWorld;
-        WorldToLocal.Invert ();
-        Vector3d.TransformPosition ( ref CoordLocal, ref LocalToWorld, out CoordWorld );
+        WorldToLocal.Invert();
+        Vector3d.TransformPosition(ref CoordLocal, ref LocalToWorld, out CoordWorld);
 
         // object coordinates:
-        LocalToObject = Solid.ToObject ();
-        Vector3d.TransformPosition ( ref CoordLocal, ref LocalToObject, out CoordObject );
+        LocalToObject = Solid.ToObject();
+        Vector3d.TransformPosition(ref CoordLocal, ref LocalToObject, out CoordObject);
 
         // appearance:
-        ReflectanceModel = (IReflectanceModel) Solid.GetAttribute ( PropertyName.REFLECTANCE_MODEL );
-        if ( ReflectanceModel == null )
-          ReflectanceModel = new PhongModel ();
-        Material = (IMaterial) Solid.GetAttribute ( PropertyName.MATERIAL );
-        if ( Material == null )
-          Material = ReflectanceModel.DefaultMaterial ();
+        ReflectanceModel = (IReflectanceModel)Solid.GetAttribute(PropertyName.REFLECTANCE_MODEL);
+        if (ReflectanceModel == null)
+          ReflectanceModel = new PhongModel();
+        Material = (IMaterial)Solid.GetAttribute(PropertyName.MATERIAL);
+        if (Material == null)
+          Material = ReflectanceModel.DefaultMaterial();
         double[] col = (double[]) Solid.GetAttribute ( PropertyName.COLOR );
-        SurfaceColor = (double[]) ( ( col != null ) ? col.Clone () : Material.Color.Clone () );
-        Textures     = Solid.GetTextures ();
+        SurfaceColor = (double[])((col != null) ? col.Clone() : Material.Color.Clone());
+        Textures = Solid.GetTextures();
 
         // Solid is responsible for completing remaining values:
-        Solid.CompleteIntersection ( this );
-        Normal.Normalize ();
-        if ( Enter != Front )
-          Vector3d.Multiply ( ref Normal, -1.0, out Normal );
+        Solid.CompleteIntersection(this);
+        Normal.Normalize();
+        if (Enter != Front)
+          Vector3d.Multiply(ref Normal, -1.0, out Normal);
       }
 
-      if ( SurfaceColor == null )
+      if (SurfaceColor == null)
         SurfaceColor = new double[] { 0.0, 0.2, 0.3 };
 
       completed = true;
     }
 
-    public static Intersection FirstIntersection ( LinkedList<Intersection> list, ref Vector3d p1 )
+    public static Intersection FirstIntersection (LinkedList<Intersection> list, ref Vector3d p1)
     {
-      if ( list == null || list.Count < 1 )
+      if (list == null || list.Count < 1)
         return null;
 
       double p1Squared = p1.X * p1.X + p1.Y * p1.Y + p1.Z * p1.Z;
-      foreach ( Intersection i in list )
-        if ( i.T > 0.0 && i.T * i.T * p1Squared > 1.0e-8 )
+      foreach (Intersection i in list)
+        if (i.T > 0.0 && i.T * i.T * p1Squared > 1.0e-8)
           return i;
 
       return null;
@@ -476,13 +476,14 @@ namespace Rendering
     /// Uses local-space epsilon tolerance and provided direction vector.
     /// </summary>
     /// <returns>True if this intersection is far than t.</returns>
-    public bool Far ( double t, ref Vector3d p1 )
+    public bool Far (double t, ref Vector3d p1)
     {
-      if ( T <= t ) return false;
+      if (T <= t)
+        return false;
 
       double p1Squared = p1.X * p1.X + p1.Y * p1.Y + p1.Z * p1.Z;
       t = T - t;
-      return ( t * t * p1Squared > 1.0e-8 );
+      return (t * t * p1Squared > 1.0e-8);
     }
 
     /// <summary>
@@ -490,10 +491,10 @@ namespace Rendering
     /// </summary>
     /// <param name="obj">Instance to be compared to..</param>
     /// <returns>-1, 0 or 1.</returns>
-    public int CompareTo ( object obj )
+    public int CompareTo (object obj)
     {
       Intersection i = (Intersection) obj;
-      return T.CompareTo ( i.T );
+      return T.CompareTo(i.T);
     }
   }
 
@@ -533,7 +534,7 @@ namespace Rendering
     /// </summary>
     public static void InitThreadData ()
     {
-      if ( rnd == null )
+      if (rnd == null)
         rnd = new RandomJames(System.Threading.Thread.CurrentThread.GetHashCode() ^ DateTime.Now.Ticks);
 
       // Put TLS data init here..
@@ -572,11 +573,11 @@ namespace Rendering
 
     public static int allRaysCount;
 
-    public static void IncrementRaysCounters ( int amount, bool primary )
+    public static void IncrementRaysCounters (int amount, bool primary)
     {
       allRaysCount += amount;
 
-      if ( primary )
+      if (primary)
       {
         primaryRaysCount += amount;
       }
