@@ -3,6 +3,7 @@ using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Utilities;
 
 // Interfaces and objects for ray-based rendering.
 namespace Rendering

@@ -551,9 +551,9 @@ namespace Rendering
       int _y,
       int tot)
     {
-      x     = _x;
-      y     = _y;
-      rank  = 0;
+      x = _x;
+      y = _y;
+      rank = 0;
       total = tot;
     }
 

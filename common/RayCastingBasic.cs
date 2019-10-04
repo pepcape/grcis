@@ -98,7 +98,7 @@ namespace Rendering
     {
       bool lead = sel ( 0L );
       if (lead &&
-           ProgressData != null)
+          ProgressData != null)
         lock (ProgressData)
         {
           ProgressData.Finished = 0.0f;

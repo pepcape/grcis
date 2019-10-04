@@ -9,7 +9,7 @@ namespace Rendering
   /// Ray-tracing rendering (w all secondary rays).
   /// </summary>
   [Serializable]
-  public class RayTracing: RayCasting
+  public class RayTracing : RayCasting
   {
     /// <summary>
     /// Hash-multiplier for refracted rays.
@@ -47,7 +47,7 @@ namespace Rendering
     /// </summary>
     public bool DoShadows { get; set; }
 
-    public RayTracing ( IRayScene sc )
+    public RayTracing (IRayScene sc)
       : base(sc)
     {
       MaxLevel      = 12;
@@ -102,7 +102,7 @@ namespace Rendering
                                   double importance,
                                   ref Vector3d p0,
                                   ref Vector3d p1,
-                                  double[] color )
+                                  double[] color)
     {
       Vector3d direction = p1;
 
@@ -115,7 +115,7 @@ namespace Rendering
       Intersection i = Intersection.FirstIntersection(intersections, ref p1);
       int b;
 
-      if ( i == null )
+      if (i == null)
       {
         // No intersection -> background color
         rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.rayVisualizerNormal, level, p0, direction * 100000);
@@ -173,7 +173,7 @@ namespace Rendering
 
           if (MT.singleRayTracing && source.position != null)
             // Register shadow ray for RayVisualizer.
-            rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.rayVisualizerShadow, i.CoordWorld, (Vector3d) source.position);
+            rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.rayVisualizerShadow, i.CoordWorld, (Vector3d)source.position);
 
           if (intensity != null)
           {
