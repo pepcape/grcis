@@ -27,7 +27,7 @@ namespace MathSupport
     {
       normal.Normalize();
       input.Normalize();
-      double d = Vector3d.Dot ( normal, input );
+      double d = Vector3d.Dot(normal, input);
 
       if (d < 0.0) // (N*L) should be > 0.0 (N and L in the same half-space)
       {
@@ -37,7 +37,7 @@ namespace MathSupport
       else
         n = 1.0 / n;
 
-      double cos2 = 1.0 - n * n * ( 1.0 - d * d );
+      double cos2 = 1.0 - n * n * (1.0 - d * d);
       if (cos2 <= 0.0)
         return Vector3d.Zero; // total reflection
 
@@ -54,9 +54,9 @@ namespace MathSupport
     /// <param name="p2">Second axis perpendicular to p.</param>
     public static void GetAxes (ref Vector3d p, out Vector3d p1, out Vector3d p2)
     {
-      double ax = Math.Abs ( p.X );
-      double ay = Math.Abs ( p.Y );
-      double az = Math.Abs ( p.Z );
+      double ax = Math.Abs(p.X);
+      double ay = Math.Abs(p.Y);
+      double az = Math.Abs(p.Z);
 
       if (ax >= az &&
            ay >= az)
@@ -94,7 +94,7 @@ namespace MathSupport
     /// <returns></returns>
     public static Vector3d RandomDirectionNormal (RandomJames rnd, double variance)
     {
-      // result: [0,0,1] * rotX( deviation ) * rotZ( orientation )
+      // result: [0,0,1] * rotX(deviation) * rotZ(orientation)
 
       double   deviation   = rnd.Normal(0.0, variance);
       double   orientation = rnd.RandomDouble(0.0, Math.PI);
@@ -114,18 +114,17 @@ namespace MathSupport
     public static Vector3d RandomDirectionNormal (RandomJames rnd, Vector3d dir, double variance)
     {
       // Matrix3d fromz: [0,0,1] -> dir
-      // Vector4d delta: [0,0,1] * rotX( deviation ) * rotZ( orientation )
+      // Vector4d delta: [0,0,1] * rotX(deviation) * rotZ(orientation)
       // result: delta * fromz
 
       dir.Normalize();
       Vector3d axis1, axis2;
       GetAxes(ref dir, out axis1, out axis2);
-      Matrix4d fromz = new Matrix4d ( new Vector4d ( axis1 ), new Vector4d ( axis2 ), new Vector4d ( dir ),
-                                      Vector4d.UnitW );
+      Matrix4d fromz = new Matrix4d(new Vector4d(axis1), new Vector4d(axis2), new Vector4d(dir), Vector4d.UnitW );
       //fromz.Transpose();
-      double   deviation   = rnd.Normal ( 0.0, variance );
-      double   orientation = rnd.RandomDouble ( 0.0, Math.PI );
-      Matrix4d mat         = Matrix4d.CreateRotationX ( deviation ) * Matrix4d.CreateRotationZ ( orientation ) * fromz;
+      double   deviation   = rnd.Normal(0.0, variance);
+      double   orientation = rnd.RandomDouble(0.0, Math.PI);
+      Matrix4d mat         = Matrix4d.CreateRotationX(deviation) * Matrix4d.CreateRotationZ(orientation) * fromz;
 
       return new Vector3d(mat.Row2); // [0,0,1] * mat
     }
@@ -214,7 +213,7 @@ namespace MathSupport
       if (!rec.TryGetValue(key, out sval))
         return false;
 
-      float[] vec = TryParseFloatVector ( sval );
+      float[] vec = TryParseFloatVector(sval);
       if (vec == null ||
           vec.Length < 3)
         return false;
@@ -235,7 +234,7 @@ namespace MathSupport
       if (!rec.TryGetValue(key, out sval))
         return false;
 
-      float[] vec = TryParseFloatVector ( sval );
+      float[] vec = TryParseFloatVector(sval);
       if (vec == null ||
           vec.Length < 2)
         return false;
@@ -255,7 +254,7 @@ namespace MathSupport
       if (!rec.TryGetValue(key, out sval))
         return false;
 
-      double[] vec = TryParseDoubleVector ( sval );
+      double[] vec = TryParseDoubleVector(sval);
       if (vec == null ||
           vec.Length < 2)
         return false;
@@ -286,8 +285,8 @@ namespace MathSupport
       float z = 0.0f)
     {
       Vector4 vec;
-      vec.X = 2.0f * x / (float)width - 1;
-      vec.Y = 2.0f * y / (float)height - 1;
+      vec.X = 2.0f * x / width - 1.0f;
+      vec.Y = 2.0f * y / height - 1.0f;
       vec.Z = z;
       vec.W = 1.0f;
 
