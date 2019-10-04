@@ -15,8 +15,7 @@ namespace MathSupport
     /// </summary>
     Vector3 Center
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -24,8 +23,7 @@ namespace MathSupport
     /// </summary>
     float Diameter
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -33,8 +31,7 @@ namespace MathSupport
     /// </summary>
     float Zoom
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -42,8 +39,7 @@ namespace MathSupport
     /// </summary>
     float MinZoom
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -51,8 +47,7 @@ namespace MathSupport
     /// </summary>
     float MaxZoom
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -60,8 +55,7 @@ namespace MathSupport
     /// </summary>
     double Time
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -69,8 +63,7 @@ namespace MathSupport
     /// </summary>
     double MinTime
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -78,8 +71,7 @@ namespace MathSupport
     /// </summary>
     double MaxTime
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -140,8 +132,7 @@ namespace MathSupport
     /// </summary>
     bool UsePerspective
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -165,8 +156,7 @@ namespace MathSupport
     /// </summary>
     float Fov
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -217,8 +207,7 @@ namespace MathSupport
     /// </summary>
     public virtual Vector3 Center
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -226,8 +215,7 @@ namespace MathSupport
     /// </summary>
     public virtual float Diameter
     {
-      get;
-      set;
+      get; set;
     } = 5.0f;
 
     /// <summary>
@@ -235,8 +223,7 @@ namespace MathSupport
     /// </summary>
     public virtual float Zoom
     {
-      get;
-      set;
+      get; set;
     } = 1.0f;
 
     /// <summary>
@@ -244,8 +231,7 @@ namespace MathSupport
     /// </summary>
     public virtual float MinZoom
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -253,8 +239,7 @@ namespace MathSupport
     /// </summary>
     public virtual float MaxZoom
     {
-      get;
-      set;
+      get; set;
     }
 
     /// <summary>
@@ -262,8 +247,7 @@ namespace MathSupport
     /// </summary>
     public virtual double Time
     {
-      get;
-      set;
+      get; set;
     } = 0.0;
 
     /// <summary>
@@ -271,8 +255,7 @@ namespace MathSupport
     /// </summary>
     public virtual double MinTime
     {
-      get;
-      set;
+      get; set;
     } = 0.0;
 
     /// <summary>
@@ -280,8 +263,7 @@ namespace MathSupport
     /// </summary>
     public virtual double MaxTime
     {
-      get;
-      set;
+      get; set;
     } = 1.0;
 
     /// <summary>
@@ -361,8 +343,7 @@ namespace MathSupport
     /// </summary>
     public virtual bool UsePerspective
     {
-      get;
-      set;
+      get; set;
     } = true;
 
     /// <summary>
@@ -383,8 +364,7 @@ namespace MathSupport
     /// </summary>
     public virtual float Fov
     {
-      get;
-      set;
+      get; set;
     } = 1.0f;
 
     /// <summary>
@@ -532,8 +512,7 @@ namespace MathSupport
     /// </summary>
     public MouseButtons Button
     {
-      get;
-      set;
+      get; set;
     }
 
     public Trackball (Vector3 cent, float diam = 5.0f)
@@ -556,13 +535,7 @@ namespace MathSupport
     private Matrix4 perspectiveProjection;
     private Matrix4 ortographicProjection;
 
-    public override Matrix4 Projection
-    {
-      get
-      {
-        return UsePerspective ? perspectiveProjection : ortographicProjection;
-      }
-    }
+    public override Matrix4 Projection => UsePerspective ? perspectiveProjection : ortographicProjection;
 
     /// <summary>
     /// Called every time a viewport is changed.
@@ -600,17 +573,12 @@ namespace MathSupport
       setEllipse(width, height);
     }
 
-    public override Matrix4 ModelView
-    {
-      get
-      {
-        return Matrix4.CreateTranslation(-Center) *
+    public override Matrix4 ModelView =>
+               Matrix4.CreateTranslation(-Center) *
                Matrix4.CreateScale(Zoom / Diameter) *
                prevRotation *
                rotation *
                Matrix4.CreateTranslation(0.0f, 0.0f, -1.5f);
-      }
-    }
 
     public override Matrix4 ModelViewInv
     {
