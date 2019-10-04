@@ -8,11 +8,10 @@ namespace Scene3D
 {
   using Edge = KeyValuePair<int, int>;
 
-
   /// <summary>
   /// B-rep 3D scene with associated corner-table (Jarek Rossignac).
   /// </summary>
-  public partial class SceneBrep: ICloneable
+  public partial class SceneBrep : ICloneable
   {
     #region Constants
 
@@ -65,26 +64,27 @@ namespace Scene3D
 
     public SceneBrep ()
     {
-      Reset ();
+      Reset();
     }
 
     #endregion
 
     object ICloneable.Clone ()
     {
-      return this.Clone ();
+      return this.Clone();
     }
 
     public SceneBrep Clone ()
     {
-      SceneBrep tmp = new SceneBrep ();
-      tmp.geometry = new List<Vector3> ( geometry );
-      if ( normals != null ) tmp.normals         = new List<Vector3> ( normals );
-      if ( colors != null ) tmp.colors           = new List<Vector3> ( colors );
-      if ( txtCoords != null ) tmp.txtCoords     = new List<Vector2> ( txtCoords );
-      if ( vertexPtr != null ) tmp.vertexPtr     = new List<int> ( vertexPtr );
-      if ( oppositePtr != null ) tmp.oppositePtr = new List<int> ( oppositePtr );
-      tmp.BuildCornerTable ();
+      SceneBrep tmp = new SceneBrep();
+      tmp.geometry = new List<Vector3>(geometry);
+      if (normals != null)     tmp.normals = new List<Vector3>(normals);
+      if (colors != null)      tmp.colors = new List<Vector3>(colors);
+      if (txtCoords != null)   tmp.txtCoords = new List<Vector2>(txtCoords);
+      if (vertexPtr != null)   tmp.vertexPtr = new List<int>(vertexPtr);
+      if (oppositePtr != null) tmp.oppositePtr = new List<int>(oppositePtr);
+
+      tmp.BuildCornerTable();
       return tmp;
     }
 
@@ -95,11 +95,11 @@ namespace Scene3D
     /// </summary>
     public void Reset ()
     {
-      geometry    = new List<Vector3> ( 256 );
+      geometry    = new List<Vector3>(256);
       normals     = null;
       colors      = null;
       txtCoords   = null;
-      vertexPtr   = new List<int> ( 256 );
+      vertexPtr   = new List<int>(256);
       oppositePtr = null;
     }
 
@@ -107,86 +107,70 @@ namespace Scene3D
     /// Reserve space for additional vertices.
     /// </summary>
     /// <param name="additionalVertices">Number of new vertices going to be inserted.</param>
-    public void Reserve ( int additionalVertices )
+    public void Reserve (int additionalVertices)
     {
-      if ( additionalVertices < 0 )
+      if (additionalVertices < 0)
         return;
 
       int newReserve = geometry.Count + additionalVertices;
       geometry.Capacity = newReserve;
-      if ( normals != null )
-        normals.Capacity = newReserve;
-      if ( colors != null )
-        colors.Capacity = newReserve;
-      if ( txtCoords != null )
-        txtCoords.Capacity = newReserve;
+      if (normals != null)   normals.Capacity = newReserve;
+      if (colors != null)    colors.Capacity = newReserve;
+      if (txtCoords != null) txtCoords.Capacity = newReserve;
 
-      newReserve         = vertexPtr.Count + additionalVertices * 3;
+      newReserve = vertexPtr.Count + additionalVertices * 3;
       vertexPtr.Capacity = newReserve;
-      if ( oppositePtr != null )
-        oppositePtr.Capacity = newReserve;
+      if (oppositePtr != null) oppositePtr.Capacity = newReserve;
     }
 
     /// <summary>
     /// Current number of vertices in the scene.
     /// </summary>
-    public int Vertices
-    {
-      get { return ( geometry == null ) ? 0 : geometry.Count; }
-    }
+    public int Vertices => (geometry == null) ? 0 : geometry.Count;
 
     /// <summary>
     /// Current number of normal vectors in the scene (should be 0 or the same as Vertices).
     /// </summary>
-    public int Normals
-    {
-      get { return ( normals == null ) ? 0 : normals.Count; }
-    }
+    public int Normals => (normals == null) ? 0 : normals.Count;
 
     public bool HasNormals ()
     {
-      return ( normals != null );
+      return normals != null;
     }
 
     public int NormalBytes ()
     {
-      return ( ( normals != null ) ? 3 * sizeof ( float ) : 0 );
+      return (normals != null) ? 3 * sizeof(float) : 0;
     }
 
     /// <summary>
     /// Current number of vertex colors in the scene (should be 0 or the same as Vertices).
     /// </summary>
-    public int Colors
-    {
-      get { return ( colors == null ) ? 0 : colors.Count; }
-    }
+    public int Colors => (colors == null) ? 0 : colors.Count;
 
     public bool HasColors ()
     {
-      return ( colors != null );
+      return colors != null;
     }
 
     public int ColorBytes ()
     {
-      return ( ( colors != null ) ? 3 * sizeof ( float ) : 0 );
+      return (colors != null) ? 3 * sizeof(float) : 0;
     }
 
     /// <summary>
     /// Current number of texture coordinates in the scene (should be 0 or the same as Vertices).
     /// </summary>
-    public int TxtCoords
-    {
-      get { return ( txtCoords == null ) ? 0 : txtCoords.Count; }
-    }
+    public int TxtCoords => (txtCoords == null) ? 0 : txtCoords.Count;
 
     public bool HasTxtCoords ()
     {
-      return ( txtCoords != null );
+      return txtCoords != null;
     }
 
     public int TxtCoordsBytes ()
     {
-      return ( ( txtCoords != null ) ? 2 * sizeof ( float ) : 0 );
+      return (txtCoords != null) ? 2 * sizeof(float) : 0;
     }
 
     /// <summary>
@@ -196,8 +180,9 @@ namespace Scene3D
     {
       get
       {
-        if ( vertexPtr == null ) return 0;
-        Debug.Assert ( vertexPtr.Count % 3 == 0, "Invalid V[] size" );
+        if (vertexPtr == null)
+          return 0;
+        Debug.Assert(vertexPtr.Count % 3 == 0, "Invalid V[] size");
         return vertexPtr.Count / 3;
       }
     }
@@ -205,39 +190,36 @@ namespace Scene3D
     /// <summary>
     /// Current number of corners in the scene (# of triangles times three).
     /// </summary>
-    public int Corners
-    {
-      get { return ( vertexPtr == null ) ? 0 : vertexPtr.Count; }
-    }
+    public int Corners => (vertexPtr == null) ? 0 : vertexPtr.Count;
 
     /// <summary>
     /// Add a new vertex defined by its 3D coordinate.
     /// </summary>
     /// <param name="v">Vertex coordinate in the object space</param>
     /// <returns>Vertex handle</returns>
-    public int AddVertex ( Vector3 v )
+    public int AddVertex (Vector3 v)
     {
-      Debug.Assert ( geometry != null );
+      Debug.Assert(geometry != null);
 
       int handle = geometry.Count;
-      geometry.Add ( v );
+      geometry.Add(v);
 
-      if ( normals != null )
+      if (normals != null)
       {
-        Debug.Assert ( normals.Count == handle, "Invalid N[] size" );
-        normals.Add ( Vector3.UnitY );
+        Debug.Assert(normals.Count == handle, "Invalid N[] size");
+        normals.Add(Vector3.UnitY);
       }
 
-      if ( colors != null )
+      if (colors != null)
       {
-        Debug.Assert ( colors.Count == handle, "Invalid C[] size" );
-        colors.Add ( Vector3.One );
+        Debug.Assert(colors.Count == handle, "Invalid C[] size");
+        colors.Add(Vector3.One);
       }
 
-      if ( txtCoords != null )
+      if (txtCoords != null)
       {
-        Debug.Assert ( txtCoords.Count == handle, "Invalid T[] size" );
-        txtCoords.Add ( Vector2.Zero );
+        Debug.Assert(txtCoords.Count == handle, "Invalid T[] size");
+        txtCoords.Add(Vector2.Zero);
       }
 
       return handle;
@@ -248,18 +230,20 @@ namespace Scene3D
     /// </summary>
     /// <param name="v">Vertex handle</param>
     /// <returns>Object-space coordinates</returns>
-    public Vector3 GetVertex ( int v )
+    public Vector3 GetVertex (int v)
     {
-      Debug.Assert ( geometry != null, "Invalid G[]" );
-      Debug.Assert ( 0 <= v && v < geometry.Count, "Invalid vertex handle" );
-      return geometry [ v ];
+      Debug.Assert(geometry != null, "Invalid G[]");
+      Debug.Assert(0 <= v && v < geometry.Count, "Invalid vertex handle");
+
+      return geometry[v];
     }
 
-    public void SetVertex ( int v, Vector3 pos )
+    public void SetVertex (int v, Vector3 pos)
     {
-      Debug.Assert ( geometry != null, "Invalid G[]" );
-      Debug.Assert ( 0 <= v && v < geometry.Count, "Invalid vertex handle" );
-      geometry [ v ] = pos;
+      Debug.Assert(geometry != null, "Invalid G[]");
+      Debug.Assert(0 <= v && v < geometry.Count, "Invalid vertex handle");
+
+      geometry[v] = pos;
     }
 
     /// <summary>
@@ -267,19 +251,19 @@ namespace Scene3D
     /// </summary>
     /// <param name="v">Vertex handle</param>
     /// <param name="normal">New normal vector</param>
-    public void SetNormal ( int v, Vector3 normal )
+    public void SetNormal (int v, Vector3 normal)
     {
-      Debug.Assert ( geometry != null, "Invalid G[]" );
-      Debug.Assert ( 0 <= v && v < geometry.Count, "Invalid vertex handle" );
+      Debug.Assert(geometry != null, "Invalid G[]");
+      Debug.Assert(0 <= v && v < geometry.Count, "Invalid vertex handle");
 
-      if ( normals == null )
+      if (normals == null)
       {
-        normals = new List<Vector3> ( geometry.Count );
-        for ( int i = 0; i < geometry.Count; i++ )
-          normals.Add ( Vector3.UnitX );
+        normals = new List<Vector3>(geometry.Count);
+        for (int i = 0; i < geometry.Count; i++)
+          normals.Add(Vector3.UnitX);
       }
 
-      normals [ v ] = normal;
+      normals[v] = normal;
     }
 
     /// <summary>
@@ -287,11 +271,12 @@ namespace Scene3D
     /// </summary>
     /// <param name="v">Vertex handle</param>
     /// <returns>Normal vector</returns>
-    public Vector3 GetNormal ( int v )
+    public Vector3 GetNormal (int v)
     {
-      Debug.Assert ( normals != null, "Invalid N[]" );
-      Debug.Assert ( 0 <= v && v < normals.Count, "Invalid vertex handle" );
-      return normals [ v ];
+      Debug.Assert(normals != null, "Invalid N[]");
+      Debug.Assert(0 <= v && v < normals.Count, "Invalid vertex handle");
+
+      return normals[v];
     }
 
     /// <summary>
@@ -299,19 +284,19 @@ namespace Scene3D
     /// </summary>
     /// <param name="v">Vertex handle</param>
     /// <param name="color">New vertex color</param>
-    public void SetColor ( int v, Vector3 color )
+    public void SetColor (int v, Vector3 color)
     {
-      Debug.Assert ( geometry != null, "Invalid G[]" );
-      Debug.Assert ( 0 <= v && v < geometry.Count, "Invalid vertex handle" );
+      Debug.Assert(geometry != null, "Invalid G[]");
+      Debug.Assert(0 <= v && v < geometry.Count, "Invalid vertex handle");
 
-      if ( colors == null )
+      if (colors == null)
       {
-        colors = new List<Vector3> ( geometry.Count );
-        for ( int i = 0; i < geometry.Count; i++ )
-          colors.Add ( Vector3.One );
+        colors = new List<Vector3>(geometry.Count);
+        for (int i = 0; i < geometry.Count; i++)
+          colors.Add(Vector3.One);
       }
 
-      colors [ v ] = color;
+      colors[v] = color;
     }
 
     /// <summary>
@@ -319,11 +304,12 @@ namespace Scene3D
     /// </summary>
     /// <param name="v">Vertex handle</param>
     /// <returns>Vertex color</returns>
-    public Vector3 GetColor ( int v )
+    public Vector3 GetColor (int v)
     {
-      Debug.Assert ( colors != null, "Invalid C[]" );
-      Debug.Assert ( 0 <= v && v < colors.Count, "Invalid vertex handle" );
-      return colors [ v ];
+      Debug.Assert(colors != null, "Invalid C[]");
+      Debug.Assert(0 <= v && v < colors.Count, "Invalid vertex handle");
+
+      return colors[v];
     }
 
     /// <summary>
@@ -331,19 +317,19 @@ namespace Scene3D
     /// </summary>
     /// <param name="v">Vertex handle</param>
     /// <param name="txt">New texture coordinate</param>
-    public void SetTxtCoord ( int v, Vector2 txt )
+    public void SetTxtCoord (int v, Vector2 txt)
     {
-      Debug.Assert ( geometry != null, "Invalid G[]" );
-      Debug.Assert ( 0 <= v && v < geometry.Count, "Invalid vertex handle" );
+      Debug.Assert(geometry != null, "Invalid G[]");
+      Debug.Assert(0 <= v && v < geometry.Count, "Invalid vertex handle");
 
-      if ( txtCoords == null )
+      if (txtCoords == null)
       {
-        txtCoords = new List<Vector2> ( geometry.Count );
-        for ( int i = 0; i < geometry.Count; i++ )
-          txtCoords.Add ( Vector2.Zero );
+        txtCoords = new List<Vector2>(geometry.Count);
+        for (int i = 0; i < geometry.Count; i++)
+          txtCoords.Add(Vector2.Zero);
       }
 
-      txtCoords [ v ] = txt;
+      txtCoords[v] = txt;
     }
 
     /// <summary>
@@ -351,11 +337,12 @@ namespace Scene3D
     /// </summary>
     /// <param name="v">Vertex handle</param>
     /// <returns>Texture coordinate</returns>
-    public Vector2 GetTxtCoord ( int v )
+    public Vector2 GetTxtCoord (int v)
     {
-      Debug.Assert ( txtCoords != null, "Invalid T[]" );
-      Debug.Assert ( 0 <= v && v < txtCoords.Count, "Invalid vertex handle" );
-      return txtCoords [ v ];
+      Debug.Assert(txtCoords != null, "Invalid T[]");
+      Debug.Assert(0 <= v && v < txtCoords.Count, "Invalid vertex handle");
+
+      return txtCoords[v];
     }
 
     /// <summary>
@@ -365,26 +352,26 @@ namespace Scene3D
     /// <param name="v2">Handle of the 2nd vertex</param>
     /// <param name="v3">Handle of the 3rd vertex</param>
     /// <returns>Triangle handle</returns>
-    public int AddTriangle ( int v1, int v2, int v3 )
+    public int AddTriangle (int v1, int v2, int v3)
     {
-      Debug.Assert ( geometry != null, "Invalid G[] size" );
-      Debug.Assert ( geometry.Count > v1 &&
-                     geometry.Count > v2 &&
-                     geometry.Count > v3, "Invalid vertex handle" );
-      Debug.Assert ( vertexPtr != null && ( vertexPtr.Count % 3 == 0 ),
-                     "Invalid corner-table (V[] size)" );
+      Debug.Assert(geometry != null, "Invalid G[] size");
+      Debug.Assert(geometry.Count > v1 &&
+                   geometry.Count > v2 &&
+                   geometry.Count > v3, "Invalid vertex handle");
+      Debug.Assert(vertexPtr != null && (vertexPtr.Count % 3 == 0),
+                   "Invalid corner-table (V[] size)");
 
       int handle1 = vertexPtr.Count;
-      vertexPtr.Add ( v1 );
-      vertexPtr.Add ( v2 );
-      vertexPtr.Add ( v3 );
+      vertexPtr.Add(v1);
+      vertexPtr.Add(v2);
+      vertexPtr.Add(v3);
 
-      if ( oppositePtr != null )
+      if (oppositePtr != null)
       {
-        Debug.Assert ( oppositePtr.Count == handle1, "Invalid O[] size" );
-        oppositePtr.Add ( NULL );
-        oppositePtr.Add ( NULL );
-        oppositePtr.Add ( NULL );
+        Debug.Assert(oppositePtr.Count == handle1, "Invalid O[] size");
+        oppositePtr.Add(NULL);
+        oppositePtr.Add(NULL);
+        oppositePtr.Add(NULL);
       }
 
       return handle1 / 3;
@@ -397,16 +384,16 @@ namespace Scene3D
     /// <param name="v1">Variable to receive the 1st vertex handle</param>
     /// <param name="v2">Variable to receive the 2nd vertex handle</param>
     /// <param name="v3">Variable to receive the 3rd vertex handle</param>
-    public void GetTriangleVertices ( int tr, out int v1, out int v2, out int v3 )
+    public void GetTriangleVertices (int tr, out int v1, out int v2, out int v3)
     {
-      Debug.Assert ( geometry != null, "Invalid G[] size" );
+      Debug.Assert(geometry != null, "Invalid G[] size");
       tr *= 3;
-      Debug.Assert ( vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
-                     "Invalid triangle handle" );
+      Debug.Assert(vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
+                   "Invalid triangle handle");
 
-      v1 = vertexPtr [ tr ];
-      v2 = vertexPtr [ tr + 1 ];
-      v3 = vertexPtr [ tr + 2 ];
+      v1 = vertexPtr[tr];
+      v2 = vertexPtr[tr + 1];
+      v3 = vertexPtr[tr + 2];
     }
 
     /// <summary>
@@ -416,19 +403,19 @@ namespace Scene3D
     /// <param name="v2">New handle of the 2nd vertex</param>
     /// <param name="v3">New handle of the 3rd vertex</param>
     /// <returns>Triangle handle</returns>
-    public void SetTriangleVertices ( int tr, int v1, int v2, int v3 )
+    public void SetTriangleVertices (int tr, int v1, int v2, int v3)
     {
-      Debug.Assert ( geometry != null, "Invalid G[] size" );
+      Debug.Assert(geometry != null, "Invalid G[] size");
       tr *= 3;
-      Debug.Assert ( vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
-                     "Invalid triangle handle" );
-      Debug.Assert ( geometry.Count > v1 &&
-                     geometry.Count > v2 &&
-                     geometry.Count > v3, "Invalid vertex handle" );
+      Debug.Assert(vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
+                   "Invalid triangle handle");
+      Debug.Assert(geometry.Count > v1 &&
+                   geometry.Count > v2 &&
+                   geometry.Count > v3, "Invalid vertex handle");
 
-      vertexPtr [ tr ]     = v1;
-      vertexPtr [ tr + 1 ] = v2;
-      vertexPtr [ tr + 2 ] = v3;
+      vertexPtr[tr] = v1;
+      vertexPtr[tr + 1] = v2;
+      vertexPtr[tr + 2] = v3;
     }
 
     /// <summary>
@@ -438,19 +425,19 @@ namespace Scene3D
     /// <param name="v1">Variable to receive the 1st vertex coordinates</param>
     /// <param name="v2">Variable to receive the 2nd vertex coordinates</param>
     /// <param name="v3">Variable to receive the 3rd vertex coordinates</param>
-    public void GetTriangleVertices ( int tr, out Vector3 v1, out Vector3 v2, out Vector3 v3 )
+    public void GetTriangleVertices (int tr, out Vector3 v1, out Vector3 v2, out Vector3 v3)
     {
-      Debug.Assert ( geometry != null, "Invalid G[] size" );
+      Debug.Assert(geometry != null, "Invalid G[] size");
       tr *= 3;
-      Debug.Assert ( vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
-                     "Invalid triangle handle" );
+      Debug.Assert(vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
+                   "Invalid triangle handle");
 
-      int h1 = vertexPtr [ tr ];
-      int h2 = vertexPtr [ tr + 1 ];
-      int h3 = vertexPtr [ tr + 2 ];
-      v1 = ( h1 < 0 || h1 >= geometry.Count ) ? Vector3.Zero : geometry [ h1 ];
-      v2 = ( h2 < 0 || h2 >= geometry.Count ) ? Vector3.Zero : geometry [ h2 ];
-      v3 = ( h3 < 0 || h3 >= geometry.Count ) ? Vector3.Zero : geometry [ h3 ];
+      int h1 = vertexPtr[tr];
+      int h2 = vertexPtr[tr + 1];
+      int h3 = vertexPtr[tr + 2];
+      v1 = (h1 < 0 || h1 >= geometry.Count) ? Vector3.Zero : geometry[h1];
+      v2 = (h2 < 0 || h2 >= geometry.Count) ? Vector3.Zero : geometry[h2];
+      v3 = (h3 < 0 || h3 >= geometry.Count) ? Vector3.Zero : geometry[h3];
     }
 
     /// <summary>
@@ -460,19 +447,19 @@ namespace Scene3D
     /// <param name="v1">Variable to receive the 1st vertex coordinates</param>
     /// <param name="v2">Variable to receive the 2nd vertex coordinates</param>
     /// <param name="v3">Variable to receive the 3rd vertex coordinates</param>
-    public void GetTriangleVertices ( int tr, out Vector4 v1, out Vector4 v2, out Vector4 v3 )
+    public void GetTriangleVertices (int tr, out Vector4 v1, out Vector4 v2, out Vector4 v3)
     {
-      Debug.Assert ( geometry != null, "Invalid G[] size" );
+      Debug.Assert(geometry != null, "Invalid G[] size");
       tr *= 3;
-      Debug.Assert ( vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
-                     "Invalid triangle handle" );
+      Debug.Assert(vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
+                   "Invalid triangle handle");
 
-      int h1 = vertexPtr [ tr ];
-      int h2 = vertexPtr [ tr + 1 ];
-      int h3 = vertexPtr [ tr + 2 ];
-      v1 = new Vector4 ( ( h1 < 0 || h1 >= geometry.Count ) ? Vector3.Zero : geometry [ h1 ], 1.0f );
-      v2 = new Vector4 ( ( h2 < 0 || h2 >= geometry.Count ) ? Vector3.Zero : geometry [ h2 ], 1.0f );
-      v3 = new Vector4 ( ( h3 < 0 || h3 >= geometry.Count ) ? Vector3.Zero : geometry [ h3 ], 1.0f );
+      int h1 = vertexPtr[tr];
+      int h2 = vertexPtr[tr + 1];
+      int h3 = vertexPtr[tr + 2];
+      v1 = new Vector4((h1 < 0 || h1 >= geometry.Count) ? Vector3.Zero : geometry[h1], 1.0f);
+      v2 = new Vector4((h2 < 0 || h2 >= geometry.Count) ? Vector3.Zero : geometry[h2], 1.0f);
+      v3 = new Vector4((h3 < 0 || h3 >= geometry.Count) ? Vector3.Zero : geometry[h3], 1.0f);
     }
 
     /// <summary>
@@ -481,31 +468,31 @@ namespace Scene3D
     /// <param name="tr">Triangle handle</param>
     /// <param name="min">Minimum-vertex of the AABB</param>
     /// <param name="max">Maximum-vertex of the AABB</param>
-    public void TriangleBoundingBox ( int tr, ref Vector3 min, ref Vector3 max )
+    public void TriangleBoundingBox (int tr, ref Vector3 min, ref Vector3 max)
     {
       Vector3 a, b, c;
-      GetTriangleVertices ( tr, out a, out b, out c );
+      GetTriangleVertices(tr, out a, out b, out c);
 
-      if ( a.X < min.X ) min.X = a.X;
-      if ( a.X > max.X ) max.X = a.X;
-      if ( a.Y < min.Y ) min.Y = a.Y;
-      if ( a.Y > max.Y ) max.Y = a.Y;
-      if ( a.Z < min.Z ) min.Z = a.Z;
-      if ( a.Z > max.Z ) max.Z = a.Z;
+      if (a.X < min.X) min.X = a.X;
+      if (a.X > max.X) max.X = a.X;
+      if (a.Y < min.Y) min.Y = a.Y;
+      if (a.Y > max.Y) max.Y = a.Y;
+      if (a.Z < min.Z) min.Z = a.Z;
+      if (a.Z > max.Z) max.Z = a.Z;
 
-      if ( b.X < min.X ) min.X = b.X;
-      if ( b.X > max.X ) max.X = b.X;
-      if ( b.Y < min.Y ) min.Y = b.Y;
-      if ( b.Y > max.Y ) max.Y = b.Y;
-      if ( b.Z < min.Z ) min.Z = b.Z;
-      if ( b.Z > max.Z ) max.Z = b.Z;
+      if (b.X < min.X) min.X = b.X;
+      if (b.X > max.X) max.X = b.X;
+      if (b.Y < min.Y) min.Y = b.Y;
+      if (b.Y > max.Y) max.Y = b.Y;
+      if (b.Z < min.Z) min.Z = b.Z;
+      if (b.Z > max.Z) max.Z = b.Z;
 
-      if ( c.X < min.X ) min.X = c.X;
-      if ( c.X > max.X ) max.X = c.X;
-      if ( c.Y < min.Y ) min.Y = c.Y;
-      if ( c.Y > max.Y ) max.Y = c.Y;
-      if ( c.Z < min.Z ) min.Z = c.Z;
-      if ( c.Z > max.Z ) max.Z = c.Z;
+      if (c.X < min.X) min.X = c.X;
+      if (c.X > max.X) max.X = c.X;
+      if (c.Y < min.Y) min.Y = c.Y;
+      if (c.Y > max.Y) max.Y = c.Y;
+      if (c.Z < min.Z) min.Z = c.Z;
+      if (c.Z > max.Z) max.Z = c.Z;
     }
 
     /// <summary>
@@ -516,19 +503,19 @@ namespace Scene3D
     /// <param name="col">Use vertex colors?</param>
     /// <param name="norm">Use normal vectors?</param>
     /// <returns>Buffer size in bytes</returns>
-    public int VertexBufferSize ( bool vertices, bool txt, bool col, bool norm )
+    public int VertexBufferSize (bool vertices, bool txt, bool col, bool norm)
     {
-      Debug.Assert ( geometry != null, "Invalid G[]" );
+      Debug.Assert(geometry != null, "Invalid G[]");
 
       int size = 0;
-      if ( vertices )
-        size += Vertices * 3 * sizeof ( float );
-      if ( txt && TxtCoords > 0 )
-        size += Vertices * 2 * sizeof ( float );
-      if ( col && Colors > 0 )
-        size += Vertices * 3 * sizeof ( float );
-      if ( norm && Normals > 0 )
-        size += Vertices * 3 * sizeof ( float );
+      if (vertices)
+        size += Vertices * 3 * sizeof(float);
+      if (txt && TxtCoords > 0)
+        size += Vertices * 2 * sizeof(float);
+      if (col && Colors > 0)
+        size += Vertices * 3 * sizeof(float);
+      if (norm && Normals > 0)
+        size += Vertices * 3 * sizeof(float);
 
       return size;
     }
@@ -542,65 +529,67 @@ namespace Scene3D
     /// <param name="col">Use vertex colors?</param>
     /// <param name="norm">Use normal vectors?</param>
     /// <returns>Stride (vertex size) in bytes</returns>
-    public unsafe int FillVertexBuffer ( float* ptr, bool vertices, bool txt, bool col, bool norm )
+    public unsafe int FillVertexBuffer (float* ptr, bool vertices, bool txt, bool col, bool norm)
     {
-      if ( geometry == null ) return 0;
+      if (geometry == null)
+        return 0;
 
-      if ( txt && TxtCoords < Vertices )
+      if (txt && TxtCoords < Vertices)
         txt = false;
 
-      if ( col && Colors < Vertices )
+      if (col && Colors < Vertices)
         col = false;
 
-      if ( norm && Normals < Vertices )
+      if (norm && Normals < Vertices)
         norm = false;
 
       int i;
-      for ( i = 0; i < Vertices; i++ )
+      for (i = 0; i < Vertices; i++)
       {
         // GL_T2F_C3F_N3F_V3F
 
-        if ( txt )
+        if (txt)
         {
-          *ptr++ = txtCoords [ i ].X;
-          *ptr++ = txtCoords [ i ].Y;
+          *ptr++ = txtCoords[i].X;
+          *ptr++ = txtCoords[i].Y;
         }
 
-        if ( col )
+        if (col)
         {
-          *ptr++ = colors [ i ].X;
-          *ptr++ = colors [ i ].Y;
-          *ptr++ = colors [ i ].Z;
+          *ptr++ = colors[i].X;
+          *ptr++ = colors[i].Y;
+          *ptr++ = colors[i].Z;
         }
 
-        if ( norm )
+        if (norm)
         {
-          *ptr++ = normals [ i ].X;
-          *ptr++ = normals [ i ].Y;
-          *ptr++ = normals [ i ].Z;
+          *ptr++ = normals[i].X;
+          *ptr++ = normals[i].Y;
+          *ptr++ = normals[i].Z;
         }
 
-        if ( vertices )
+        if (vertices)
         {
-          *ptr++ = geometry [ i ].X;
-          *ptr++ = geometry [ i ].Y;
-          *ptr++ = geometry [ i ].Z;
+          *ptr++ = geometry[i].X;
+          *ptr++ = geometry[i].Y;
+          *ptr++ = geometry[i].Z;
         }
       }
 
-      return sizeof ( float ) * ( ( txt ? 2 : 0 ) + ( col ? 3 : 0 ) + ( norm ? 3 : 0 ) + ( vertices ? 3 : 0 ) );
+      return sizeof(float) * ((txt ? 2 : 0) + (col ? 3 : 0) + (norm ? 3 : 0) + (vertices ? 3 : 0));
     }
 
     /// <summary>
     /// Fills index data into provided memory array (VBO after MapBuffer).
     /// </summary>
     /// <param name="ptr">Memory pointer</param>
-    public unsafe void FillIndexBuffer ( uint* ptr )
+    public unsafe void FillIndexBuffer (uint* ptr)
     {
-      if ( vertexPtr == null ) return;
+      if (vertexPtr == null)
+        return;
 
-      foreach ( int i in vertexPtr )
-        *ptr++ = (uint) i;
+      foreach (int i in vertexPtr)
+        *ptr++ = (uint)i;
     }
 
     /// <summary>
@@ -608,11 +597,11 @@ namespace Scene3D
     /// </summary>
     /// <param name="center">Center point</param>
     /// <returns>Diameter</returns>
-    public float GetDiameter ( out Vector3 center )
+    public float GetDiameter (out Vector3 center)
     {
-      if ( Vertices < 2 )
+      if (Vertices < 2)
       {
-        center = ( Vertices == 1 ) ? GetVertex ( 0 ) : Vector3.Zero;
+        center = (Vertices == 1) ? GetVertex(0) : Vector3.Zero;
         return 4.0f;
       }
 
@@ -628,41 +617,41 @@ namespace Scene3D
       float  maxz = float.MinValue;
       int    i;
 
-      for ( i = 0; i < Vertices; i++ )
+      for (i = 0; i < Vertices; i++)
       {
         Vector3 vi = GetVertex ( i );
         cx += vi.X;
         cy += vi.Y;
         cz += vi.Z;
-        if ( vi.X < minx ) minx = vi.X;
-        if ( vi.Y < miny ) miny = vi.Y;
-        if ( vi.Z < minz ) minz = vi.Z;
-        if ( vi.X > maxx ) maxx = vi.X;
-        if ( vi.Y > maxy ) maxy = vi.Y;
-        if ( vi.Z > maxz ) maxz = vi.Z;
+        if (vi.X < minx) minx = vi.X;
+        if (vi.Y < miny) miny = vi.Y;
+        if (vi.Z < minz) minz = vi.Z;
+        if (vi.X > maxx) maxx = vi.X;
+        if (vi.Y > maxy) maxy = vi.Y;
+        if (vi.Z > maxz) maxz = vi.Z;
       }
 
-      center = new Vector3 ( (float) ( cx / Vertices ),
-                             (float) ( cy / Vertices ),
-                             (float) ( cz / Vertices ) );
-      return (float) Math.Sqrt ( ( maxx - minx ) * ( maxx - minx ) +
-                                 ( maxy - miny ) * ( maxy - miny ) +
-                                 ( maxz - minz ) * ( maxz - minz ) );
+      center = new Vector3((float)(cx / Vertices),
+                           (float)(cy / Vertices),
+                           (float)(cz / Vertices));
+      return (float)Math.Sqrt((maxx - minx) * (maxx - minx) +
+                              (maxy - miny) * (maxy - miny) +
+                              (maxz - minz) * (maxz - minz));
     }
 
     /// <summary>
     /// Generate random vertex colors.
     /// </summary>
     /// <param name="seed">Random seed</param>
-    public void GenerateColors ( int seed )
+    public void GenerateColors (int seed)
     {
-      Random rnd = new Random ( seed );
+      Random rnd = new Random(seed);
 
-      if ( colors == null )
-        colors = new List<Vector3> ( geometry.Count );
+      if (colors == null)
+        colors = new List<Vector3>(geometry.Count);
 
-      while ( Colors < Vertices )
-        colors.Add ( new Vector3 ( (float) rnd.NextDouble (), (float) rnd.NextDouble (), (float) rnd.NextDouble () ) );
+      while (Colors < Vertices)
+        colors.Add(new Vector3((float)rnd.NextDouble(), (float)rnd.NextDouble(), (float)rnd.NextDouble()));
     }
 
     /// <summary>
@@ -671,32 +660,33 @@ namespace Scene3D
     /// </summary>
     public void ComputeNormals ()
     {
-      if ( vertexPtr == null ) return;
+      if (vertexPtr == null)
+        return;
 
-      normals = new List<Vector3> ( new Vector3[geometry.Count] );
+      normals = new List<Vector3>(new Vector3[geometry.Count]);
       int[] n = new int[geometry.Count];
       int   ai, bi, ci;
 
-      for ( int i = 0; i < vertexPtr.Count; i += 3 ) // process one triangle
+      for (int i = 0; i < vertexPtr.Count; i += 3) // process one triangle
       {
-        Vector3 A = geometry [ ai = cVertex ( i ) ];
-        Vector3 c = geometry [ bi = cVertex ( i + 1 ) ] - A;
-        Vector3 b = geometry [ ci = cVertex ( i + 2 ) ] - A;
-        A              =  Vector3.Cross ( c, b ).Normalized ();
-        normals [ ai ] += A;
-        n [ ai ]++;
-        normals [ bi ] += A;
-        n [ bi ]++;
-        normals [ ci ] += A;
-        n [ ci ]++;
+        Vector3 A = geometry[ai = cVertex(i)];
+        Vector3 c = geometry[bi = cVertex(i + 1)] - A;
+        Vector3 b = geometry[ci = cVertex(i + 2)] - A;
+        A = Vector3.Cross(c, b).Normalized();
+        normals[ai] += A;
+        n[ai]++;
+        normals[bi] += A;
+        n[bi]++;
+        normals[ci] += A;
+        n[ci]++;
       }
 
       // average the normals:
-      for ( int i = 0; i < geometry.Count; i++ )
-        if ( n [ i ] > 0 )
+      for (int i = 0; i < geometry.Count; i++)
+        if (n[i] > 0)
         {
-          normals [ i ] /= n [ i ];
-          normals [ i ].Normalize ();
+          normals[i] /= n[i];
+          normals[i].Normalize();
         }
     }
 
@@ -709,46 +699,47 @@ namespace Scene3D
     /// </summary>
     public void BuildCornerTable ()
     {
-      if ( geometry == null || geometry.Count < 1 ||
-           vertexPtr == null || vertexPtr.Count < 1 )
+      if (geometry == null || geometry.Count < 1 ||
+          vertexPtr == null || vertexPtr.Count < 1)
       {
-        Reset ();
+        Reset();
         return;
       }
 
       int n = vertexPtr.Count;
-      oppositePtr = new List<int> ( n );
-      for ( int i = 0; i < n; i++ )
-        oppositePtr.Add ( NULL );
+      oppositePtr = new List<int>(n);
+      for (int i = 0; i < n; i++)
+        oppositePtr.Add(NULL);
       Dictionary<Edge, int> edges = new Dictionary<Edge, int> ();
 
       statEdges = statShared = 0;
-      for ( int i = 0; i < n; i++ ) // process one corner
+      for (int i = 0; i < n; i++) // process one corner
       {
-        int cmin = cVertex ( cPrev ( i ) );
-        int cmax = cVertex ( cNext ( i ) );
-        if ( cmin < 0 || cmax < 0 ) continue;
+        int cmin = cVertex(cPrev(i));
+        int cmax = cVertex(cNext(i));
+        if (cmin < 0 || cmax < 0)
+          continue;
 
-        if ( cmin > cmax )
+        if (cmin > cmax)
         {
           int tmp = cmin;
           cmin = cmax;
           cmax = tmp;
         }
 
-        Edge edge = new Edge ( cmin, cmax );
-        if ( edges.ContainsKey ( edge ) )
+        Edge edge = new Edge(cmin, cmax);
+        if (edges.ContainsKey(edge))
         {
-          int other = edges [ edge ];
-          Debug.Assert ( oppositePtr [ other ] == NULL );
-          oppositePtr [ other ] = i;
-          oppositePtr [ i ]     = other;
-          edges.Remove ( edge );
+          int other = edges[edge];
+          Debug.Assert(oppositePtr[other] == NULL);
+          oppositePtr[other] = i;
+          oppositePtr[i] = other;
+          edges.Remove(edge);
           statShared++;
         }
         else
         {
-          edges.Add ( edge, i );
+          edges.Add(edge, i);
           statEdges++;
         }
       }
@@ -759,7 +750,7 @@ namespace Scene3D
     /// </summary>
     /// <param name="c">Corner handle</param>
     /// <returns>Triangle handle</returns>
-    public static int cTriangle ( int c )
+    public static int cTriangle (int c)
     {
       return c / 3;
     }
@@ -769,7 +760,7 @@ namespace Scene3D
     /// </summary>
     /// <param name="tr">Triangle handle</param>
     /// <returns>Corner handle</returns>
-    public static int tCorner ( int tr )
+    public static int tCorner (int tr)
     {
       return tr * 3;
     }
@@ -779,9 +770,9 @@ namespace Scene3D
     /// </summary>
     /// <param name="c">Corner handle</param>
     /// <returns>Handle of the next corner</returns>
-    public static int cNext ( int c )
+    public static int cNext (int c)
     {
-      return ( c % 3 == 2 ) ? c - 2 : c + 1;
+      return (c % 3 == 2) ? c - 2 : c + 1;
     }
 
     /// <summary>
@@ -789,9 +780,9 @@ namespace Scene3D
     /// </summary>
     /// <param name="c">Corner handle</param>
     /// <returns>Handle of the previous corner</returns>
-    public static int cPrev ( int c )
+    public static int cPrev (int c)
     {
-      return ( c % 3 == 0 ) ? c + 2 : c - 1;
+      return (c % 3 == 0) ? c + 2 : c - 1;
     }
 
     /// <summary>
@@ -799,14 +790,15 @@ namespace Scene3D
     /// </summary>
     /// <param name="c">Corner handle</param>
     /// <returns>Associated vertex's handle</returns>
-    public int cVertex ( int c )
+    public int cVertex (int c)
     {
-      if ( c < 0 ) return NULL;
+      if (c < 0)
+        return NULL;
 
-      Debug.Assert ( vertexPtr != null, "Invalid V[] array" );
-      Debug.Assert ( c < vertexPtr.Count, "Invalid corner handle" );
+      Debug.Assert(vertexPtr != null, "Invalid V[] array");
+      Debug.Assert(c < vertexPtr.Count, "Invalid corner handle");
 
-      return vertexPtr [ c ];
+      return vertexPtr[c];
     }
 
     /// <summary>
@@ -814,14 +806,15 @@ namespace Scene3D
     /// </summary>
     /// <param name="c">Corner handle</param>
     /// <returns>Handle of the opposite corner</returns>
-    public int cOpposite ( int c )
+    public int cOpposite (int c)
     {
-      if ( c < 0 ) return NULL;
+      if (c < 0)
+        return NULL;
 
-      Debug.Assert ( oppositePtr != null, "Invalid O[] array" );
-      Debug.Assert ( c < oppositePtr.Count, "Invalid corner handle" );
+      Debug.Assert(oppositePtr != null, "Invalid O[] array");
+      Debug.Assert(c < oppositePtr.Count, "Invalid corner handle");
 
-      return oppositePtr [ c ];
+      return oppositePtr[c];
     }
 
     /// <summary>
@@ -829,9 +822,9 @@ namespace Scene3D
     /// </summary>
     /// <param name="c">Corner handle</param>
     /// <returns>Corner handle of the "right" triangle</returns>
-    public int cRight ( int c )
+    public int cRight (int c)
     {
-      return cOpposite ( cNext ( c ) );
+      return cOpposite(cNext(c));
     }
 
     /// <summary>
@@ -839,9 +832,9 @@ namespace Scene3D
     /// </summary>
     /// <param name="c">Corner handle</param>
     /// <returns>Corner handle of the "left" triangle</returns>
-    public int cLeft ( int c )
+    public int cLeft (int c)
     {
-      return cOpposite ( cPrev ( c ) );
+      return cOpposite(cPrev(c));
     }
 
     /// <summary>
@@ -851,75 +844,75 @@ namespace Scene3D
     /// <param name="errors">Optional output stream for detailed error messages</param>
     /// <param name="thorough">Do thorough checks? (might be too strict and too memory intensive in many cases)</param>
     /// <returns>Number of errors/inconsistencies (0 if everything is Ok)</returns>
-    public int CheckCornerTable ( StreamWriter errors, bool thorough = false )
+    public int CheckCornerTable (StreamWriter errors, bool thorough = false)
     {
-      if ( errors == null )
+      if (errors == null)
       {
-        errors           = new StreamWriter ( Console.OpenStandardOutput () );
+        errors = new StreamWriter(Console.OpenStandardOutput());
         errors.AutoFlush = true;
-        Console.SetOut ( errors );
+        Console.SetOut(errors);
       }
 
       int errCount = 0;
       Action<string> log = ( s ) =>
       {
         errCount++;
-        errors.WriteLine ( s );
+        errors.WriteLine(s);
       };
 
       // 1. check trivial things such as in 1 triangle, all corners and all vertexes are disjont,
       //    cNext and cPevious, etc
-      for ( int i = 0; i < Corners; i++ )
+      for (int i = 0; i < Corners; i++)
       {
-        int r1 = cNext ( i );
-        int r2 = cNext ( r1 );
-        int r3 = cNext ( r2 );
+        int r1 = cNext(i);
+        int r2 = cNext(r1);
+        int r3 = cNext(r2);
 
-        if ( i == r1 || r1 == r2 || r2 == i || i != r3 )
-          log ( "cNext not working properly for corner " + i );
+        if (i == r1 || r1 == r2 || r2 == i || i != r3)
+          log("cNext not working properly for corner " + i);
 
-        if ( i != cPrev ( r1 ) || r1 != cPrev ( r2 ) || r2 != cPrev ( i ) )
-          log ( "cPrev not working properly for corner " + i );
+        if (i != cPrev(r1) || r1 != cPrev(r2) || r2 != cPrev(i))
+          log("cPrev not working properly for corner " + i);
 
-        int v0 = cVertex ( i );
-        int v1 = cVertex ( r1 );
-        int v2 = cVertex ( r2 );
-        if ( v0 == v1 || v1 == v2 || v2 == v0 )
-          log ( "Duplicate vertex in triangle with corner " + i );
+        int v0 = cVertex(i);
+        int v1 = cVertex(r1);
+        int v2 = cVertex(r2);
+        if (v0 == v1 || v1 == v2 || v2 == v0)
+          log("Duplicate vertex in triangle with corner " + i);
       }
 
       // 2. check corner <-> opposite validity
-      for ( int i = 0; i < Corners; i++ )
+      for (int i = 0; i < Corners; i++)
       {
-        int other = cOpposite ( i );
-        if ( other != NULL )
-          if ( cOpposite ( other ) != i )
-            log ( "Corner " + i + " has an opposite " + other + " but not vice versa!" );
+        int other = cOpposite(i);
+        if (other != NULL)
+          if (cOpposite(other) != i)
+            log("Corner " + i + " has an opposite " + other + " but not vice versa!");
           else
           {
             // while we are at it, check if 2 corners are linked as opposite
             // they also have same neighbour vertexes
             int a, b, c, d;
-            a = cVertex ( cNext ( i ) );
-            b = cVertex ( cPrev ( i ) );
-            c = cVertex ( cNext ( other ) );
-            d = cVertex ( cPrev ( other ) );
-            bool correct     = ( a == d ) && ( b == c );
-            bool semiCorrect = ( a == c ) && ( b == d );
+            a = cVertex(cNext(i));
+            b = cVertex(cPrev(i));
+            c = cVertex(cNext(other));
+            d = cVertex(cPrev(other));
+            bool correct     = (a == d) && (b == c);
+            bool semiCorrect = (a == c) && (b == d);
 
-            if ( !correct )
-              if ( semiCorrect )
+            if (!correct)
+              if (semiCorrect)
                 // this is the case where the triangles indeed have same neighbours,
                 // but one is facing the other way than the other (and that is at least suspicious)
                 //  makes sense only for one-sided faces, disable this otherwise
-                log ( "Opposite corners " + i + " and " + other +
-                      " have the same neighbour, but are facing opposite directions!" );
+                log("Opposite corners " + i + " and " + other +
+                    " have the same neighbour, but are facing opposite directions!");
               else
-                log ( "Opposite corners " + i + " and " + other + " does not have the same neighbours!" );
+                log("Opposite corners " + i + " and " + other + " does not have the same neighbours!");
           }
       }
 
-      if ( thorough )
+      if (thorough)
       {
         // 3. now let's check that the cRight works properly
         //    we will use cPrev(cOpposite(cPrev()))
@@ -927,33 +920,33 @@ namespace Scene3D
         //    if triangles have both faces (front and back) visible, this test doesn't make much sence
         int[] temp = new int[Triangles + 1]; // corners will be saved here
 
-        for ( int i = 0; i < Corners; i++ )
+        for (int i = 0; i < Corners; i++)
         {
-          temp [ 0 ] = i;
-          for ( int j = 0; j < Triangles; j++ )
+          temp[0] = i;
+          for (int j = 0; j < Triangles; j++)
           {
-            int right = cOpposite ( cPrev ( temp [ j ] ) );
-            if ( right != NULL )
+            int right = cOpposite(cPrev(temp[j]));
+            if (right != NULL)
             {
-              right          = cPrev ( right );
-              temp [ j + 1 ] = right;
+              right = cPrev(right);
+              temp[j + 1] = right;
             }
 
-            if ( right == i || right == NULL )
+            if (right == i || right == NULL)
             {
               // test vertex equality
-              for ( int k = 0; k < j - 1; k++ )
-                if ( cVertex ( temp [ k ] ) != cVertex ( temp [ k + 1 ] ) )
-                  log ( "Traversing right corners from " + i + " resolved into differrent vertices at " + temp [ k ] );
+              for (int k = 0; k < j - 1; k++)
+                if (cVertex(temp[k]) != cVertex(temp[k + 1]))
+                  log("Traversing right corners from " + i + " resolved into differrent vertices at " + temp[k]);
 
               break;
             }
 
-            for ( int k = 0; k <= j; k++ )
-              if ( temp [ k ] == right )
+            for (int k = 0; k <= j; k++)
+              if (temp[k] == right)
               {
-                log ( "Starting in corner " + i + " we went right into corner " + right +
-                      " twice before returning to " + i );
+                log("Starting in corner " + i + " we went right into corner " + right +
+                      " twice before returning to " + i);
                 j = Triangles;
                 break;
               }
@@ -966,35 +959,35 @@ namespace Scene3D
         // for edge i<j, at position [i,j] is which corner is first found opposite corner to this edge
         // at position [j,i] is how many edges in triangles are there
 
-        for ( int i = 0; i < Corners; i++ )
+        for (int i = 0; i < Corners; i++)
         {
-          int a = cVertex ( cNext ( i ) );
-          int b = cVertex ( cPrev ( i ) );
+          int a = cVertex(cNext(i));
+          int b = cVertex(cPrev(i));
           // ensure a < b
-          if ( a > b )
+          if (a > b)
           {
             int tmp = a;
             a = b;
             b = tmp;
           }
 
-          if ( arr [ b, a ] == 0 )
+          if (arr[b, a] == 0)
           {
             // for the 1st time at this edge
-            arr [ a, b ] = i;
-            arr [ b, a ] = 1;
+            arr[a, b] = i;
+            arr[b, a] = 1;
           }
-          else if ( arr [ b, a ] == 1 )
+          else if (arr[b, a] == 1)
           {
             // for the 2nd time at this edge
-            if ( cOpposite ( i ) != arr [ a, b ] )
-              log ( "Corners " + i + " and " + arr [ a, b ] +
-                    " have the same opposite side, but are not linked together!" );
-            arr [ b, a ] = 2;
+            if (cOpposite(i) != arr[a, b])
+              log("Corners " + i + " and " + arr[a, b] +
+                  " have the same opposite side, but are not linked together!");
+            arr[b, a] = 2;
           }
           else
             // broken 2-manifold
-            log ( "Corner " + i + " has an opposide side thas was already used at least twice, 2-manifold is broken!" );
+            log("Corner " + i + " has an opposide side thas was already used at least twice, 2-manifold is broken!");
         }
       }
 

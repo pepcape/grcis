@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows.Forms;
-using OpenglSupport;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -88,7 +87,7 @@ namespace MathSupport
     /// </summary>
     /// <param name="param">Text param from the UI.</param>
     /// <param name="cameraFile">Optional camera definition file.</param>
-    void Update ( string param, string cameraFile );
+    void Update (string param, string cameraFile);
 
     /// <summary>
     /// Resets the camera (whatever it means).
@@ -118,7 +117,7 @@ namespace MathSupport
     /// <param name="height">Viewport height in pixels.</param>
     /// <param name="near">Near frustum distance if applicable.</param>
     /// <param name="far">Far frustum distance if applicable.</param>
-    void GLsetupViewport ( int width, int height, float near = 0.01f, float far = 1000.0f );
+    void GLsetupViewport (int width, int height, float near = 0.01f, float far = 1000.0f);
 
     /// <summary>
     /// Gets a current model-view transformation matrix.
@@ -174,37 +173,37 @@ namespace MathSupport
     /// Handle keyboard-key down.
     /// </summary>
     /// <returns>True if handled.</returns>
-    bool KeyDown ( KeyEventArgs e );
+    bool KeyDown (KeyEventArgs e);
 
     /// <summary>
     /// Handle keyboard-key up.
     /// </summary>
     /// <returns>True if handled.</returns>
-    bool KeyUp ( KeyEventArgs e );
+    bool KeyUp (KeyEventArgs e);
 
     /// <summary>
     /// Handles mouse-button down.
     /// </summary>
     /// <returns>True if handled.</returns>
-    bool MouseDown ( MouseEventArgs e );
+    bool MouseDown (MouseEventArgs e);
 
     /// <summary>
     /// Handles mouse-button up.
     /// </summary>
     /// <returns>True if handled.</returns>
-    bool MouseUp ( MouseEventArgs e );
+    bool MouseUp (MouseEventArgs e);
 
     /// <summary>
     /// Handles mouse move.
     /// </summary>
     /// <returns>True if handled.</returns>
-    bool MouseMove ( MouseEventArgs e );
+    bool MouseMove (MouseEventArgs e);
 
     /// <summary>
     /// Handles mouse-wheel change.
     /// </summary>
     /// <returns>True if handled.</returns>
-    bool MouseWheel ( MouseEventArgs e );
+    bool MouseWheel (MouseEventArgs e);
   }
 
   /// <summary>
@@ -290,7 +289,7 @@ namespace MathSupport
     /// </summary>
     /// <param name="param">Text param from the UI.</param>
     /// <param name="cameraFile">Optional camera definition file.</param>
-    public virtual void Update ( string param, string cameraFile )
+    public virtual void Update (string param, string cameraFile)
     {
     }
 
@@ -309,8 +308,8 @@ namespace MathSupport
     {
       // not needed if shaders are active .. but doesn't make any harm..
       Matrix4 modelview = ModelView;
-      GL.MatrixMode( MatrixMode.Modelview );
-      GL.LoadMatrix( ref modelview );
+      GL.MatrixMode(MatrixMode.Modelview);
+      GL.LoadMatrix(ref modelview);
     }
 
     /// <summary>
@@ -338,9 +337,8 @@ namespace MathSupport
     /// <param name="height">Viewport height in pixels.</param>
     /// <param name="near">Near frustum distance if applicable.</param>
     /// <param name="far">Far frustum distance if applicable.</param>
-    public virtual void GLsetupViewport ( int width, int height, float near = 0.01f, float far = 1000.0f )
-    {
-    }
+    public virtual void GLsetupViewport (int width, int height, float near = 0.01f, float far = 1000.0f)
+    {}
 
     /// <summary>
     /// Gets a current model-view transformation matrix.
@@ -378,13 +376,7 @@ namespace MathSupport
     /// <summary>
     /// Gets a current eye/camera position in world coordinates.
     /// </summary>
-    public virtual Vector3 Eye
-    {
-      get
-      {
-        return Vector3.TransformPosition( Vector3.Zero, ModelViewInv );
-      }
-    }
+    public virtual Vector3 Eye => Vector3.TransformPosition(Vector3.Zero, ModelViewInv);
 
     /// <summary>
     /// Vertical field-of-view angle in radians.
@@ -399,7 +391,7 @@ namespace MathSupport
     /// Handle keyboard-key down.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public virtual bool KeyDown ( KeyEventArgs e )
+    public virtual bool KeyDown (KeyEventArgs e)
     {
       return false;
     }
@@ -408,7 +400,7 @@ namespace MathSupport
     /// Handle keyboard-key up.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public virtual bool KeyUp ( KeyEventArgs e )
+    public virtual bool KeyUp (KeyEventArgs e)
     {
       return false;
     }
@@ -417,7 +409,7 @@ namespace MathSupport
     /// Handles mouse-button down.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public virtual bool MouseDown ( MouseEventArgs e )
+    public virtual bool MouseDown (MouseEventArgs e)
     {
       return false;
     }
@@ -426,7 +418,7 @@ namespace MathSupport
     /// Handles mouse-button up.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public virtual bool MouseUp ( MouseEventArgs e )
+    public virtual bool MouseUp (MouseEventArgs e)
     {
       return false;
     }
@@ -435,7 +427,7 @@ namespace MathSupport
     /// Handles mouse move.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public virtual bool MouseMove ( MouseEventArgs e )
+    public virtual bool MouseMove (MouseEventArgs e)
     {
       return false;
     }
@@ -444,7 +436,7 @@ namespace MathSupport
     /// Handles mouse-wheel change.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public virtual bool MouseWheel ( MouseEventArgs e )
+    public virtual bool MouseWheel (MouseEventArgs e)
     {
       return false;
     }
@@ -462,12 +454,11 @@ namespace MathSupport
       private Vector3 center;
 
       // Sphere constructor
-      public Ellipse ( float r, Vector3 center ) : this( r, r, r, center )
-      {
-      }
+      public Ellipse (float r, Vector3 center) : this(r, r, r, center)
+      {}
 
       // Ellipse constructor
-      public Ellipse ( float a, float b, float c, Vector3 center )
+      public Ellipse (float a, float b, float c, Vector3 center)
       {
         this.a = a;
         this.b = b;
@@ -476,74 +467,65 @@ namespace MathSupport
       }
 
       // "polar coordinates" method
-      public Vector3 IntersectionI ( float x, float y )
+      public Vector3 IntersectionI (float x, float y)
       {
-        Vector3d o = new Vector3d( 0, 0, -c );
-        Vector3d m = new Vector3d( x - center.X, y - center.Y, c );
+        Vector3d o = new Vector3d(0, 0, -c);
+        Vector3d m = new Vector3d(x - center.X, y - center.Y, c);
         Vector3d v = o - m;
         v.Normalize();
         double A = v.X * v.X * b * b * c * c + v.Y * v.Y * a * a * c * c + v.Z * v.Z * a * a * b * b;
         double B = 2 * (v.X * b * b * c * c + v.Y * a * a * c * c + v.Z * a * a * b * b);
         double C = v.X * v.X * b * b * c * c + v.Y * v.Y * a * a * c * c + v.Z * a * a * b * b - a * a * b * b * c * c;
-        double D = Math.Sqrt( B * B - 4 * A * C );
+        double D = Math.Sqrt(B * B - 4 * A * C);
         double t = (-B - D) / (2 * A);
         double X = m.X + t * v.X;
         double Y = m.Y + t * v.Y;
         double Z = m.Z + t * v.Z;
-        return new Vector3( (float)X, -(float)Y, (float)Z );
+        return new Vector3((float)X, -(float)Y, (float)Z);
       }
 
       // "parallel rays" method
-      public Vector3? Intersection ( float x, float y, bool restricted )
+      public Vector3? Intersection (float x, float y, bool restricted)
       {
         x -= center.X;
         y -= center.Y;
 
-        if ( (x < -a) || (x > a) || (y < -b) || (y > b) )
+        if ((x < -a) || (x > a) || (y < -b) || (y > b))
         {
-          float x1 = (float)Math.Sqrt( (a * a * b * b * y * y) / (b * b * y * y + x * x) );
+          float x1 = (float)Math.Sqrt(a * a * b * b * y * y / (b * b * y * y + x * x));
           float x2 = -x1;
-          float y1 = (y * x1) / -x;
-          float y2 = (y * x2) / -x;
-          if ( Math.Abs( x - x1 ) < Math.Abs( x - x2 ) )
-            return new Vector3( x1, y1, 0 );
+          float y1 = y * x1 / -x;
+          float y2 = y * x2 / -x;
+          if (Math.Abs(x - x1) < Math.Abs(x - x2))
+            return new Vector3(x1, y1, 0);
           else
-            return new Vector3( x2, y2, 0 );
+            return new Vector3(x2, y2, 0);
         }
 
-        float z = (1 - (x * x) / (a * a) - (y * y) / (b * b)) * c * c;
-        if ( z < 0 )
+        float z = (1.0f - x * x / (a * a) - y * y / (b * b)) * c * c;
+        if (z < 0)
           return null;
-        z = (float)Math.Sqrt( z );
-        return new Vector3( x, -y, z );
+        z = (float)Math.Sqrt(z);
+        return new Vector3(x, -y, z);
       }
     }
 
-    private readonly Vector3 absoluteUp = new Vector3 ( 0, 1, 0 );
+    private readonly Vector3 absoluteUp = new Vector3(0, 1, 0);
 
     /// <summary>
     /// Camera RIGHT vector - not rotated (parallel to world axes)
     /// </summary>
-    public Vector3 Right
-    {
-      get { return Vector3.Normalize ( Vector3.Cross ( absoluteUp, Direction ) ); }
-    }
+    public Vector3 Right => Vector3.Normalize(Vector3.Cross(absoluteUp, Direction));
 
     /// <summary>
     /// Camera UP vector - not rotated (parallel to world axes)
     /// </summary>
-    public Vector3 Up
-    {
-      get { return Vector3.Normalize ( Vector3.Cross ( Direction, Right ) ); }
-    }
+    public Vector3 Up => Vector3.Normalize(Vector3.Cross(Direction, Right));
 
     /// <summary>
     /// Camera direction vector
     /// </summary>
-    public Vector3 Direction
-    {
-      get { return Vector3.Normalize ( Center - Eye ); }
-    }
+    public Vector3 Direction => Vector3.Normalize(Center - Eye);
 
     /// <summary>
     /// Which mouse button is used for trackball movement?
@@ -554,15 +536,15 @@ namespace MathSupport
       set;
     }
 
-    public Trackball ( Vector3 cent, float diam =5.0f )
+    public Trackball (Vector3 cent, float diam = 5.0f)
     {
-      Center         =  cent;
-      Diameter       =  diam;
-      MinZoom        =  0.05f;
-      MaxZoom        = 100.0f;
-      Zoom           =   1.0f;
-      UsePerspective =  true;
-      Button         = MouseButtons.Left;
+      Center = cent;
+      Diameter = diam;
+      MinZoom = 0.05f;
+      MaxZoom = 100.0f;
+      Zoom = 1.0f;
+      UsePerspective = true;
+      Button = MouseButtons.Left;
     }
 
     private Matrix4 prevRotation = Matrix4.Identity;
@@ -585,48 +567,48 @@ namespace MathSupport
     /// <summary>
     /// Called every time a viewport is changed.
     /// </summary>
-    public override void GLsetupViewport ( int width, int height, float near =0.01f, float far =1000.0f )
+    public override void GLsetupViewport (int width, int height, float near = 0.01f, float far = 1000.0f)
     {
       // 1. set ViewPort transform:
-      GL.Viewport( 0, 0, width, height );
+      GL.Viewport(0, 0, width, height);
 
       // 2. set projection matrix
       // 2a. perspective
-      if ( float.IsPositiveInfinity( far ) )
+      if (float.IsPositiveInfinity(far))
       {
-        float viewAngleVertical = (float) ( Fov * 180 / Math.PI );
-        float f = (float) ( 1.0 / Math.Tan ( viewAngleVertical / 2.0 ) );
-        float aspect = width / (float) height;
+        float viewAngleVertical = (float)(Fov * 180 / Math.PI);
+        float f = (float)(1.0 / Math.Tan(viewAngleVertical / 2.0));
+        float aspect = width / (float)height;
 
         //perspectiveProjection = new Matrix4 ( focalLength, 0, 0, 0, 0, focalLength / ratio, 0, 0, 0, 0, -1, -2 * near, 0, 0, -1, 0 );
-        perspectiveProjection = new Matrix4 ( f / aspect, 0.0f, 0.0f, 0.0f,
-                                              0.0f, f, 0.0f, 0.0f,
-                                              0.0f, 0.0f, -1.0f, -1.0f,
-                                              0.0f, 0.0f, -2.0f * near, 0.0f );
+        perspectiveProjection = new Matrix4(f / aspect, 0.0f,  0.0f,        0.0f,
+                                                  0.0f,   f,   0.0f,        0.0f,
+                                                  0.0f, 0.0f, -1.0f,       -1.0f,
+                                                  0.0f, 0.0f, -2.0f * near, 0.0f);
       }
       else
       {
-        perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView( Fov, width / (float) height, near, far );
+        perspectiveProjection = Matrix4.CreatePerspectiveFieldOfView(Fov, width / (float)height, near, far);
       }
 
       // 2b. orthographic
-      float minSize = 2.0f * Math.Min( width, height );
-      ortographicProjection = Matrix4.CreateOrthographic( Diameter * width / minSize,
-                                                          Diameter * height / minSize,
-                                                          near, far );
+      float minSize = 2.0f * Math.Min(width, height);
+      ortographicProjection = Matrix4.CreateOrthographic(Diameter * width / minSize,
+                                                         Diameter * height / minSize,
+                                                         near, far);
       GLsetProjection();
-      setEllipse( width, height );
+      setEllipse(width, height);
     }
 
     public override Matrix4 ModelView
     {
       get
       {
-        return Matrix4.CreateTranslation( -Center ) *
-               Matrix4.CreateScale( Zoom / Diameter ) *
+        return Matrix4.CreateTranslation(-Center) *
+               Matrix4.CreateScale(Zoom / Diameter) *
                prevRotation *
                rotation *
-               Matrix4.CreateTranslation( 0.0f, 0.0f, -1.5f );
+               Matrix4.CreateTranslation(0.0f, 0.0f, -1.5f);
       }
     }
 
@@ -637,10 +619,10 @@ namespace MathSupport
         Matrix4 rot = prevRotation * rotation;
         rot.Transpose();
 
-        return Matrix4.CreateTranslation( 0.0f, 0.0f, 1.5f ) *
+        return Matrix4.CreateTranslation(0.0f, 0.0f, 1.5f) *
                rot *
-               Matrix4.CreateScale( Diameter / Zoom ) *
-               Matrix4.CreateTranslation( Center );
+               Matrix4.CreateScale(Diameter / Zoom) *
+               Matrix4.CreateTranslation(Center);
       }
     }
 
@@ -650,8 +632,8 @@ namespace MathSupport
     public override void Reset ()
     {
       base.Reset();
-      Zoom         = 1.0f;
-      rotation     = Matrix4.Identity;
+      Zoom = 1.0f;
+      rotation = Matrix4.Identity;
       prevRotation = Matrix4.Identity;
     }
 
@@ -659,11 +641,11 @@ namespace MathSupport
     /// Resets the camera by a caller-provided rotational matrix.
     /// </summary>
     /// <param name="rot">Matrix of rotation from view direction to the negative Z axis (must be matrix of rotation).</param>
-    public void Reset ( Matrix4 rot )
+    public void Reset (Matrix4 rot)
     {
       base.Reset();
-      Zoom         = 1.0f;
-      rotation     = Matrix4.Identity;
+      Zoom = 1.0f;
+      rotation = Matrix4.Identity;
       prevRotation = rot;
     }
 
@@ -671,57 +653,57 @@ namespace MathSupport
     /// Resets the camera to look at the required direction. Y axis will point upwards.
     /// </summary>
     /// <param name="dir">Required view direction.</param>
-    public void Reset ( Vector3 dir )
+    public void Reset (Vector3 dir)
     {
       dir.Normalize();
-      if ( Geometry.IsZero( dir.Length ) )
+      if (Geometry.IsZero(dir.Length))
       {
         Reset();
         return;
       }
 
       // 1. rotation around vertical (Y) axis
-      float len = (float)Math.Sqrt( dir.X * dir.X + dir.Z * dir.Z );
+      float len = (float)Math.Sqrt(dir.X * dir.X + dir.Z * dir.Z);
       Matrix4 roty = Matrix4.Identity;
-      if ( !Geometry.IsZero( len ) )
+      if (!Geometry.IsZero(len))
       {
         roty.M11 = roty.M33 = -dir.Z / len;
         roty.M13 = -(roty.M31 = dir.X / len);
       }
 
       // 2. rotation around X axis (to look in the negative Z direction)
-      float len2 = (float)Math.Sqrt( len * len + dir.Y * dir.Y );
+      float len2 = (float)Math.Sqrt(len * len + dir.Y * dir.Y);
       Matrix4 rotx = Matrix4.Identity;
-      if ( !Geometry.IsZero( len2 ) )
+      if (!Geometry.IsZero(len2))
       {
         rotx.M22 = rotx.M33 = len / len2;
         rotx.M23 = -(rotx.M32 = dir.Y / len2);
       }
 
-      Reset( roty * rotx );
+      Reset(roty * rotx);
     }
 
-    private void setEllipse ( int width, int height )
+    private void setEllipse (int width, int height)
     {
       width  /= 2;
       height /= 2;
 
-      ellipse = new Ellipse( Math.Min( width, height ), new Vector3( width, height, 0 ) );
+      ellipse = new Ellipse(Math.Min(width, height), new Vector3(width, height, 0));
     }
 
-    private Matrix4 calculateRotation ( Vector3? a, Vector3? b, bool sensitive )
+    private Matrix4 calculateRotation (Vector3? a, Vector3? b, bool sensitive)
     {
-      if ( !a.HasValue || !b.HasValue )
+      if (!a.HasValue || !b.HasValue)
         return rotation;
 
-      if ( a.Value == b.Value )
+      if (a.Value == b.Value)
         return Matrix4.Identity;
 
-      Vector3 axis = Vector3.Cross( a.Value, b.Value );
-      float angle = Vector3.CalculateAngle( a.Value, b.Value );
-      if ( sensitive )
+      Vector3 axis = Vector3.Cross(a.Value, b.Value);
+      float angle = Vector3.CalculateAngle(a.Value, b.Value);
+      if (sensitive)
         angle *= 0.4f;
-      return Matrix4.CreateFromAxisAngle( axis, angle );
+      return Matrix4.CreateFromAxisAngle(axis, angle);
     }
 
     /// <summary>
@@ -730,11 +712,11 @@ namespace MathSupport
     public override void GLsetProjection ()
     {
       // Actually not needed if shaders are active .. but doesn't make any harm..
-      GL.MatrixMode( MatrixMode.Projection );
-      if ( UsePerspective )
-        GL.LoadMatrix( ref perspectiveProjection );
+      GL.MatrixMode(MatrixMode.Projection);
+      if (UsePerspective)
+        GL.LoadMatrix(ref perspectiveProjection);
       else
-        GL.LoadMatrix( ref ortographicProjection );
+        GL.LoadMatrix(ref ortographicProjection);
     }
 
     //--- GUI interaction ---
@@ -743,12 +725,12 @@ namespace MathSupport
     /// Handles mouse-button down.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public override bool MouseDown ( MouseEventArgs e )
+    public override bool MouseDown (MouseEventArgs e)
     {
-      if ( e.Button != Button )
+      if (e.Button != Button)
         return false;
 
-      a = ellipse.IntersectionI( e.X, e.Y );
+      a = ellipse.IntersectionI(e.X, e.Y);
       return true;
     }
 
@@ -756,9 +738,9 @@ namespace MathSupport
     /// Handles mouse-button up.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public override bool MouseUp ( MouseEventArgs e )
+    public override bool MouseUp (MouseEventArgs e)
     {
-      if ( e.Button != Button )
+      if (e.Button != Button)
         return false;
 
       prevRotation *= rotation;
@@ -772,13 +754,13 @@ namespace MathSupport
     /// Handles mouse move.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public override bool MouseMove ( MouseEventArgs e )
+    public override bool MouseMove (MouseEventArgs e)
     {
-      if ( e.Button != Button )
+      if (e.Button != Button)
         return false;
 
-      b = ellipse.IntersectionI( e.X, e.Y );
-      rotation = calculateRotation( a, b, (Control.ModifierKeys & Keys.Shift) != Keys.None );
+      b = ellipse.IntersectionI(e.X, e.Y);
+      rotation = calculateRotation(a, b, (Control.ModifierKeys & Keys.Shift) != Keys.None);
       return true;
     }
 
@@ -786,13 +768,13 @@ namespace MathSupport
     /// Handles mouse-wheel change.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public override bool MouseWheel ( MouseEventArgs e )
+    public override bool MouseWheel (MouseEventArgs e)
     {
       float dZoom = -e.Delta / 120.0f;
-      Zoom *= (float)Math.Pow( 1.04, dZoom );
+      Zoom *= (float)Math.Pow(1.04, dZoom);
 
       // zoom bounds:
-      Zoom = Arith.Clamp( Zoom, MinZoom, MaxZoom );
+      Zoom = Arith.Clamp(Zoom, MinZoom, MaxZoom);
       return true;
     }
 
@@ -800,36 +782,36 @@ namespace MathSupport
     /// Handle keyboard-key down.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public override bool KeyDown ( KeyEventArgs e )
+    public override bool KeyDown (KeyEventArgs e)
     {
-      switch ( e.KeyCode )
+      switch (e.KeyCode)
       {
         case Keys.W:
-          MoveCenter ( movementDirection.Forward );
+          MoveCenter(movementDirection.Forward);
           return true;
 
         case Keys.S:
-          MoveCenter ( movementDirection.Backwards );
+          MoveCenter(movementDirection.Backwards);
           return true;
 
         case Keys.A:
-          MoveCenter ( movementDirection.Left );
+          MoveCenter(movementDirection.Left);
           return true;
 
         case Keys.D:
-          MoveCenter ( movementDirection.Right );
+          MoveCenter(movementDirection.Right);
           return true;
 
         case Keys.E:
-          MoveCenter ( movementDirection.Up );
+          MoveCenter(movementDirection.Up);
           return true;
 
         case Keys.Q:
-          MoveCenter ( movementDirection.Down );
+          MoveCenter(movementDirection.Down);
           return true;
 
         case Keys.R:
-          MoveCenter ( movementDirection.Reset );
+          MoveCenter(movementDirection.Reset);
           return true;
 
         default:
@@ -841,13 +823,13 @@ namespace MathSupport
     /// Handle keyboard-key up.
     /// </summary>
     /// <returns>True if handled.</returns>
-    public override bool KeyUp ( KeyEventArgs e )
+    public override bool KeyUp (KeyEventArgs e)
     {
-      switch ( e.KeyCode )
+      switch (e.KeyCode)
       {
         case Keys.O:
           e.Handled = true;
-          GLtogglePerspective ();
+          GLtogglePerspective();
           return true;
 
         default:
@@ -863,11 +845,11 @@ namespace MathSupport
     /// Direction.Reset sets Center to origin (0, 0, 0)
     /// </summary>
     /// <param name="movementDirection">Direction to move Center to</param>
-    private void MoveCenter ( movementDirection movementDirection )
+    private void MoveCenter (movementDirection movementDirection)
     {
-      Vector3 movement = new Vector3( 0, 0, 0 );
+      Vector3 movement = new Vector3(0, 0, 0);
 
-      switch ( movementDirection )
+      switch (movementDirection)
       {
         case movementDirection.Left:
           movement += Right * moveFactor;
@@ -894,25 +876,26 @@ namespace MathSupport
           break;
 
         case movementDirection.Reset:
-          Center = new Vector3 ( 0, 0, 0 );
+          Center = new Vector3(0, 0, 0);
           break;
       }
 
-      Center = Center + movement;
+      Center += movement;
     }
 
     private const float moveChange = 0.4f;
+
     /// <summary>
     /// Moves Center by moveChange in specified direction (absolute in world coordinates)
     /// Movement is alligned with absolute world coodinates and current position of camera does not matter
     /// Direction.Reset sets Center to origin (0, 0, 0)
     /// </summary>
     /// <param name="movementDirection">Direction to move Center to</param>
-    private void MoveCenterByAxes ( movementDirection movementDirection )
+    private void MoveCenterByAxes (movementDirection movementDirection)
     {
       Vector3 movement = new Vector3();
 
-      switch ( movementDirection )
+      switch (movementDirection)
       {
         case movementDirection.Left:
           movement.X = -moveChange;
@@ -939,7 +922,7 @@ namespace MathSupport
           break;
 
         case movementDirection.Reset:
-          Center = new Vector3 ( 0, 0, 0 );
+          Center = new Vector3(0, 0, 0);
           break;
       }
 
