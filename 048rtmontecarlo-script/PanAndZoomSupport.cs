@@ -13,14 +13,14 @@ namespace Rendering
 
     private readonly PictureBox pictureBox;
     private float zoom;
-    
+
     public Image image;
     private readonly Action<string> setWindowTitleSuffix;
 
     private PointF mouseDown;
 
     private float imageX;
-    private float imageY;   
+    private float imageY;
     private float startX;
     private float startY;
 
@@ -30,16 +30,19 @@ namespace Rendering
     private int historyIndex;
     public byte historyCapacity = defaultHistoryCapacity;
 
+    // Memory consumption!
     private const byte defaultHistoryCapacity = 5;
+
     /// <summary>
     /// Default constructor
     /// </summary>
     /// <param name="pictureBox">Picturebox to apply to zoom and pan</param>
     /// <param name="image">Image of picturebox</param>
     /// <param name="setWindowTitleSuffix">Delegate to method which displays current zoom factor</param>
-    public PanAndZoomSupport ( PictureBox pictureBox,
-                               Image image,
-                               Action<string> setWindowTitleSuffix )
+    public PanAndZoomSupport (
+      PictureBox pictureBox,
+      Image image,
+      Action<string> setWindowTitleSuffix)
     {
       this.pictureBox = pictureBox;
       this.image = image;
@@ -47,7 +50,7 @@ namespace Rendering
 
       zoom = 1;
 
-      history = new List<Image>( defaultHistoryCapacity );
+      history = new List<Image>(defaultHistoryCapacity);
       historyIndex = -1;
     }
 
@@ -56,19 +59,23 @@ namespace Rendering
     /// </summary>
     /// <param name="zoomIn">TRUE for zoom in; otherwise zoom out</param>
     /// <param name="modifierKeys">Currently pressed keys - used for detection of Shift key for faster zooming</param>
-    public void ZoomToMiddle ( bool zoomIn, Keys modifierKeys )
+    public void ZoomToMiddle (
+      bool zoomIn,
+      Keys modifierKeys)
     {
       PointF middle = new PointF
       {
-        X = ( imageX * zoom + ( ( image.Width * zoom ) / 2f ) ),
-        Y = ( imageY * zoom + ( ( image.Height * zoom ) / 2f ) )
+        X =  imageX * zoom + 0.5f * image.Width  * zoom,
+        Y =  imageY * zoom + 0.5f * image.Height * zoom 
       };
 
-      ZoomToPosition ( zoomIn, middle, modifierKeys );
+      ZoomToPosition(zoomIn, middle, modifierKeys);
     }
 
     private const float zoomFactorNormal = 0.15f;
+
     private const float zoomFactorFast = 0.45f;
+
     /// <summary>
     /// Changes global variable zoom to indicate current zoom level of picture in main picture box; 
     /// Variable zoom can be equal 1 (no zoom), less than 1 (zoom out) or greater than 1 (zoom in)
@@ -77,20 +84,22 @@ namespace Rendering
     /// <param name="position">Position to zoom to/zoom out from - usually cursor position (relative to picturebox, not to image)
     /// or middle of picture in case of zoom by keys</param>
     /// <param name="modifierKeys">Currently pressed keys - used for detection of Shift key for faster zooming</param>
-    public void ZoomToPosition ( bool zoomIn, PointF position, Keys modifierKeys )
+    public void ZoomToPosition (
+      bool zoomIn,
+      PointF position,
+      Keys modifierKeys)
     {
-      float oldzoom    = zoom;
+      float oldzoom = zoom;
       float zoomFactor = zoomFactorNormal;
 
-      if ( modifierKeys.HasFlag ( Keys.Shift ) ) // holding down the Shift key makes zoom in/out faster
+      if (modifierKeys.HasFlag(Keys.Shift)) // holding down the Shift key makes zoom in/out faster
         zoomFactor = zoomFactorFast;
 
-      if ( zoomIn )
-        zoom += zoomFactor;
-      else
-        zoom -= zoomFactor;
+      zoom += zoomIn
+        ?  zoomFactor
+        : -zoomFactor;
 
-      ClampZoom ();
+      ClampZoom();
 
       float x = position.X;
       float y = position.Y;
@@ -104,9 +113,9 @@ namespace Rendering
       imageX = newImageX - oldImageX + imageX;
       imageY = newImageY - oldImageY + imageY;
 
-      pictureBox.Refresh ();
+      pictureBox.Refresh();
 
-      setWindowTitleSuffix ( $" Zoom: {(int) ( zoom * 100 )}%" );
+      setWindowTitleSuffix($" Zoom: {(int)(zoom * 100)}%");
     }
 
     /// <summary>
@@ -115,15 +124,17 @@ namespace Rendering
     /// <param name="absoluteX">Absolute X position of cursor (technically relative to picture box)</param>
     /// <param name="absoluteY">Absolute Y position of cursor (technically relative to picture box)</param>
     /// <returns>Relative location of cursor in terms of actual rendered picture; (NaN, NaN) if relative position would be outside of picture</returns>
-    public PointF GetRelativeCursorLocation ( int absoluteX, int absoluteY )
+    public PointF GetRelativeCursorLocation (
+      int absoluteX,
+      int absoluteY)
     {
-      float X = ( absoluteX - ( imageX * zoom ) ) / zoom;
-      float Y = ( absoluteY - ( imageY * zoom ) ) / zoom;
+      float X = (absoluteX -  imageX * zoom) / zoom;
+      float Y = (absoluteY -  imageY * zoom) / zoom;
 
-      if ( X < 0 || X >= image.Width || Y < 0 || Y >= image.Height )
-        return new PointF ( float.NaN, float.NaN ); // cursor is outside of image
+      if (X < 0 || X >= image.Width || Y < 0 || Y >= image.Height)
+        return new PointF(float.NaN, float.NaN); // cursor is outside of image
       else
-        return new PointF ( X, Y );
+        return new PointF(X, Y);
     }
 
     /// <summary>
@@ -134,19 +145,24 @@ namespace Rendering
     /// <param name="condition">Condition which determines whether action should be invoked (usually right mouse button pressed etc.)</param>
     /// <param name="modifierKeys">ModifierKeys property</param>
     /// <param name="cursor">Cursor property passed by ref so it can be changed</param>
-    public void MouseDownRegistration ( MouseEventArgs e, Action<int, int> action, bool condition, Keys modifierKeys, out Cursor cursor )
+    public void OnMouseDown (
+      MouseEventArgs e,
+      Action<int, int> action,
+      bool condition,
+      Keys modifierKeys,
+      out Cursor cursor)
     {
       cursor = null;
 
-      if ( condition )
+      if (condition)
       {
-        PointF relative = GetRelativeCursorLocation ( e.X, e.Y );
+        PointF relative = GetRelativeCursorLocation(e.X, e.Y);
 
-        if ( !float.IsNaN ( relative.X ) )
-          action ( (int) relative.X, (int) relative.Y );
+        if (!float.IsNaN(relative.X))
+          action((int)relative.X, (int)relative.Y);
       }
 
-      if ( !modifierKeys.HasFlag ( Keys.Control ) && e.Button == MouseButtons.Left && !mousePressed ) //holding down CTRL key prevents panning
+      if (!modifierKeys.HasFlag(Keys.Control) && e.Button == MouseButtons.Left && !mousePressed) //holding down CTRL key prevents panning
       {
         mousePressed = true;
         mouseDown = e.Location;
@@ -156,7 +172,7 @@ namespace Rendering
       else
       {
         cursor = Cursors.Cross;
-      }      
+      }
     }
 
     /// <summary>
@@ -167,29 +183,34 @@ namespace Rendering
     /// <param name="condition">Condition which determines whether action should be invoked (usually right mouse button pressed etc.)</param>
     /// <param name="modifierKeys">ModifierKeys property</param>
     /// <param name="cursor">Cursor property passed by ref so it can be changed</param>
-    public void MouseMoveRegistration ( MouseEventArgs e, Action<int, int> action, bool condition, Keys modifierKeys, out Cursor cursor )
+    public void OnMouseMove (
+      MouseEventArgs e,
+      Action<int, int> action,
+      bool condition,
+      Keys modifierKeys,
+      out Cursor cursor)
     {
       cursor = null;
 
-      if ( condition )
+      if (condition)
       {
-        PointF relative = GetRelativeCursorLocation ( e.X, e.Y );
+        PointF relative = GetRelativeCursorLocation(e.X, e.Y);
 
-        if ( !float.IsNaN ( relative.X ) && !mousePressed )
-          action ( (int) relative.X, (int) relative.Y );
+        if (!float.IsNaN(relative.X) && !mousePressed)
+          action((int)relative.X, (int)relative.Y);
       }
 
-      if ( mousePressed && e.Button == MouseButtons.Left )
+      if (mousePressed && e.Button == MouseButtons.Left)
       {
         cursor = Cursors.NoMove2D;
 
         float deltaX = e.Location.X - mouseDown.X;
         float deltaY = e.Location.Y - mouseDown.Y;
 
-        imageX = startX + ( deltaX / zoom );
-        imageY = startY + ( deltaY / zoom );
+        imageX = startX + deltaX / zoom;
+        imageY = startY + deltaY / zoom;
 
-        pictureBox.Refresh ();
+        pictureBox.Refresh();
       }
     }
 
@@ -197,7 +218,8 @@ namespace Rendering
     /// Should be called from MouseUp event of PictureBox
     /// </summary>
     /// <param name="cursor">Cursor property passed by ref so it can be changed</param>
-    public void MouseUpRegistration ( out Cursor cursor )
+    public void OnMouseUp (
+      out Cursor cursor)
     {
       mousePressed = false;
 
@@ -209,17 +231,19 @@ namespace Rendering
     /// </summary>
     /// <param name="e">Needed for mouse wheel delta value and cursor position</param>
     /// <param name="modifierKeys">ModifierKeys - needed for later Shift/Ctrl key check</param>
-    public void MouseWheelRegistration ( MouseEventArgs e , Keys modifierKeys )
+    public void OnMouseWheel (
+      MouseEventArgs e,
+      Keys modifierKeys)
     {
-      PointF relative = GetRelativeCursorLocation ( e.Location.X, e.Location.Y );
+      PointF relative = GetRelativeCursorLocation(e.Location.X, e.Location.Y);
 
-      if ( float.IsNaN ( relative.X ) ) // prevents scrolling if cursor is outside of image
+      if (float.IsNaN(relative.X)) // prevents scrolling if cursor is outside of image
         return;
 
-      if ( e.Delta > 0 )
-        ZoomToPosition ( true, e.Location, modifierKeys );
-      else if ( e.Delta < 0 )
-        ZoomToPosition ( false, e.Location, modifierKeys );
+      if (e.Delta > 0)
+        ZoomToPosition(true, e.Location, modifierKeys);
+      else if (e.Delta < 0)
+        ZoomToPosition(false, e.Location, modifierKeys);
     }
 
     /// <summary>
@@ -228,38 +252,41 @@ namespace Rendering
     /// </summary>
     /// <param name="keys">Key which caused KeyDown event</param>
     /// <param name="modifierKeys">ModifierKeys - needed for later Shift/Ctrl key check</param>
-    public void KeyDownRegistration ( Keys keys, Keys modifierKeys )
+    public void OnKeyDown (
+      Keys keys,
+      Keys modifierKeys)
     {
-      switch ( keys )
+      switch (keys)
       {
         case Keys.Add:
         case Keys.PageUp:
-          ZoomToMiddle ( true, modifierKeys );
+          ZoomToMiddle(true, modifierKeys);
           break;
         case Keys.Subtract:
         case Keys.PageDown:
-          ZoomToMiddle ( false, modifierKeys );
+          ZoomToMiddle(false, modifierKeys);
           break;
       }
-    }   
+    }
 
     /// <summary>
     /// Should be called from Paint event of PictureBox
     /// </summary>
     /// <param name="e">Needed to get Graphics class associated with PictureBox</param>
-    public void Paint ( PaintEventArgs e )
+    public void OnPaint (
+      PaintEventArgs e)
     {
-      if ( image == null )
+      if (image == null)
         return;
 
       e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
       e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
       e.Graphics.SmoothingMode = SmoothingMode.None;
 
-      OutOfScreenFix ();
+      OutOfScreenFix();
 
-      e.Graphics.ScaleTransform ( zoom, zoom );
-      e.Graphics.DrawImage ( image, imageX, imageY );
+      e.Graphics.ScaleTransform(zoom, zoom);
+      e.Graphics.DrawImage(image, imageX, imageY);
     }
 
     /// <summary>
@@ -267,21 +294,24 @@ namespace Rendering
     /// </summary>
     /// <param name="newImage">New image to set for PictureBox</param>
     /// <param name="saveToHistory">TRUE to make this new image to save to history</param>
-    public void SetNewImage ( Image newImage, bool saveToHistory )
+    public void SetNewImage (
+      Image newImage,
+      bool saveToHistory)
     {
-      if ( newImage == null )
+      if (newImage == null)
         return;
 
-      if ( saveToHistory )
+      if (saveToHistory)
       {
-        if ( history.Count == historyCapacity && historyCapacity != 0)
-          history.RemoveAt ( 0 );
+        if (history.Count == historyCapacity &&
+            historyCapacity != 0)
+          history.RemoveAt(0);
 
-        history.Add ( newImage );
-        historyIndex = history.Count - 1;     
+        history.Add(newImage);
+        historyIndex = history.Count - 1;
       }
 
-      SetImage ( newImage );
+      SetImage(newImage);
     }
 
     /// <summary>
@@ -291,7 +321,7 @@ namespace Rendering
     {
       historyIndex++;
 
-      SetImage ( history[historyIndex] );
+      SetImage(history[historyIndex]);
     }
 
     /// <summary>
@@ -301,38 +331,32 @@ namespace Rendering
     {
       historyIndex--;
 
-      SetImage ( history [historyIndex] );
+      SetImage(history[historyIndex]);
     }
 
     /// <summary>
     /// Next image availability
     /// </summary>
     /// <returns>TRUE if there is available next (newer than current one) image in history</returns>
-    public bool NextImageAvailable ()
-    {
-      return historyIndex + 1 < history.Count;
-    }
+    public bool NextImageAvailable => historyIndex + 1 < history.Count;
 
     /// <summary>
     /// Previous image availability
     /// </summary>
     /// <returns>TRUE if there is available previous (older than current one) image in history</returns>
-    public bool PreviousImageAvailable ()
-    {
-      return historyIndex > 0;
-    }
+    public bool PreviousImageAvailable => historyIndex > 0;
 
     /// <summary>
     /// Common set-image method for setting new image directly or from history
     /// Clamps zoom and makes PictureBox to refresh
     /// </summary>
     /// <param name="newImage">Image to set as active</param>
-    private void SetImage ( Image newImage )
+    private void SetImage (Image newImage)
     {
       image = newImage;
-      OutOfScreenFix ();
-      ClampZoom ();
-      pictureBox.Invalidate ();
+      OutOfScreenFix();
+      ClampZoom();
+      pictureBox.Invalidate();
     }
 
     /// <summary>
@@ -347,17 +371,17 @@ namespace Rendering
       float width  = image.Width * zoom;
       float height = image.Height * zoom;
 
-      if ( absoluteX > pictureBox.Width - border )
-        imageX = ( pictureBox.Width - border ) / zoom;
+      if (absoluteX > pictureBox.Width - border)
+        imageX = (pictureBox.Width - border) / zoom;
 
-      if ( absoluteY > pictureBox.Height - border )
-        imageY = ( pictureBox.Height - border ) / zoom;
+      if (absoluteY > pictureBox.Height - border)
+        imageY = (pictureBox.Height - border) / zoom;
 
-      if ( absoluteX + width < border )
-        imageX = ( border - width ) / zoom;
+      if (absoluteX + width < border)
+        imageX = (border - width) / zoom;
 
-      if ( absoluteY + height < border )
-        imageY = ( border - height ) / zoom;
+      if (absoluteY + height < border)
+        imageY = (border - height) / zoom;
     }
 
     /// <summary>
@@ -366,8 +390,8 @@ namespace Rendering
     /// <returns>Clamped zoom</returns>
     public void ClampZoom ()
     {
-      float minZoomFactor = minimalAbsoluteSizeInPixels / Math.Min ( image.Width, image.Height );
-      zoom = Math.Max ( zoom, minZoomFactor );
+      float minZoomFactor = minimalAbsoluteSizeInPixels / Math.Min(image.Width, image.Height);
+      zoom = Math.Max(zoom, minZoomFactor);
     }
 
     /// <summary>
@@ -381,9 +405,9 @@ namespace Rendering
       imageX = 0;
       imageY = 0;
 
-      pictureBox.Refresh ();
+      pictureBox.Refresh();
 
-      setWindowTitleSuffix ( " Zoom: 100%" );
+      setWindowTitleSuffix(" Zoom: 100%");
     }
   }
 }
