@@ -3,17 +3,6 @@
 ================================================================================
   ($Rev$ $Date$)
 ================================================================================
-After merge from rt+ branch:
-----------------------------
-- check code format in:
-  common/Scene.cs,
-  common/WavefrontObj.cs,
-  common/RayCastingCommon.cs,
-  common/RayCastingBasic.cs,
-  common/RayCastingSolids.cs,
-  common/RayTracingRender.cs,
-  common/Trackball.cs,
-  common/RayCastingRender.cs
 
 Old tasks:
 ----------
