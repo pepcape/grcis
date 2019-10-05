@@ -704,7 +704,7 @@ namespace Rendering
                        MT.sceneRendered &&
                        !MT.renderingInProgress;
 
-      panAndZoom.MouseDownRegistration(e, singleSample, condition, ModifierKeys, out Cursor cursor);
+      panAndZoom.OnMouseDown(e, singleSample, condition, ModifierKeys, out Cursor cursor);
 
       if (cursor != null)
         Cursor = cursor;
@@ -722,7 +722,7 @@ namespace Rendering
                        MT.sceneRendered &&
                        !MT.renderingInProgress;
 
-      panAndZoom.MouseMoveRegistration(e, singleSample, condition, ModifierKeys, out Cursor cursor);
+      panAndZoom.OnMouseMove(e, singleSample, condition, ModifierKeys, out Cursor cursor);
 
       if (cursor != null)
         Cursor = cursor;
@@ -735,7 +735,7 @@ namespace Rendering
     /// <param name="e">Not needed</param>
     private void pictureBox1_MouseUp (object sender, MouseEventArgs e)
     {
-      panAndZoom.MouseUpRegistration(out Cursor cursor);
+      panAndZoom.OnMouseUp(out Cursor cursor);
 
       Cursor = cursor;
     }
@@ -747,7 +747,7 @@ namespace Rendering
     /// <param name="e">Needed for mouse wheel delta value and cursor location</param>
     private void pictureBox1_MouseWheel (object sender, MouseEventArgs e)
     {
-      panAndZoom.MouseWheelRegistration(e, ModifierKeys);
+      panAndZoom.OnMouseWheel(e, ModifierKeys);
     }
 
     /// <summary>
@@ -778,16 +778,16 @@ namespace Rendering
       if (e.KeyCode == Keys.R)
         panAndZoom.Reset();
 
-      panAndZoom.KeyDownRegistration(e.KeyCode, ModifierKeys);
+      panAndZoom.OnKeyDown(e.KeyCode, ModifierKeys);
 
       switch (e.KeyCode)
       {
-        case Keys.D when panAndZoom.NextImageAvailable():
+        case Keys.D when panAndZoom.NextImageAvailable:
           panAndZoom.SetNextImageFromHistory();
           SetPreviousAndNextImageButtons();
           break;
 
-        case Keys.A when panAndZoom.PreviousImageAvailable():
+        case Keys.A when panAndZoom.PreviousImageAvailable:
           panAndZoom.SetPreviousImageFromHistory();
           SetPreviousAndNextImageButtons();
           break;
@@ -802,7 +802,7 @@ namespace Rendering
     /// <param name="e">Needed to get Graphics class associated with PictureBox</param>
     private void pictureBox1_Paint (object sender, PaintEventArgs e)
     {
-      panAndZoom.Paint(e);
+      panAndZoom.OnPaint(e);
     }
 
     /// <summary>
@@ -904,8 +904,8 @@ namespace Rendering
 
     private void SetPreviousAndNextImageButtons ()
     {
-      NextImageButton.Enabled = panAndZoom.NextImageAvailable();
-      PreviousImageButton.Enabled = panAndZoom.PreviousImageAvailable();
+      NextImageButton.Enabled = panAndZoom.NextImageAvailable;
+      PreviousImageButton.Enabled = panAndZoom.PreviousImageAvailable;
     }
   }
 }
