@@ -56,7 +56,10 @@ namespace Rendering
         pictureBox.MouseWheel += new MouseEventHandler(pictureBox_MouseWheel);
         pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
 
-        panAndZoomControls[i] = new PanAndZoomSupport(pictureBox, null, SetWindowTitleSuffix);
+        panAndZoomControls[i] = new PanAndZoomSupport(pictureBox, null, SetWindowTitleSuffix)
+        {
+          Button = MouseButtons.Right
+        };
       }
 
       newImageAvailable = new bool[MapsTabControl.TabCount];
@@ -244,11 +247,9 @@ namespace Rendering
 
       AdditionalViews.RaysMap raysMap = additionalViews.GetType().GetField(fieldName).GetValue(additionalViews) as AdditionalViews.RaysMap;
 
-
       string fieldNameCamelCase = char.ToUpper(fieldName[0]) + fieldName.Substring(1);
 
       Label label = tabPage.Controls.Find(fieldNameCamelCase + "Coordinates", true).FirstOrDefault () as Label;
-
 
       int raysCount = raysMap.GetValueAtCoordinates(X, Y);
 
@@ -265,7 +266,8 @@ namespace Rendering
       double angle = additionalViews.normalMapRelative.GetValueAtCoordinates(X, Y);
 
       char degreesChar = '°';
-      if (double.IsInfinity(angle) || double.IsNaN(angle))
+      if (double.IsInfinity(angle) ||
+          double.IsNaN(angle))
         degreesChar = '\0';
 
       NormalMapRelativeCoordinates.Text =
@@ -280,7 +282,8 @@ namespace Rendering
     /// <param name="displayStats">DisplayStats method to use</param>
     private void CommonMouseDown (MouseEventArgs e, Action<int, int> displayStats)
     {
-      bool condition = panAndZoomControls[MapsTabControl.SelectedIndex].image != null && e.Button == MouseButtons.Left;
+      bool condition = panAndZoomControls[MapsTabControl.SelectedIndex].image != null &&
+                       e.Button == panAndZoomControls[MapsTabControl.SelectedIndex].Button;
 
       panAndZoomControls[MapsTabControl.SelectedIndex].OnMouseDown(e, displayStats, condition, ModifierKeys, out Cursor cursor);
 
@@ -295,7 +298,8 @@ namespace Rendering
     /// <param name="displayStats">DisplayStats method to use</param>
     private void CommonMouseMove (MouseEventArgs e, Action<int, int> displayStats)
     {
-      bool condition = panAndZoomControls [MapsTabControl.SelectedIndex].image != null && e.Button == MouseButtons.Left;
+      bool condition = panAndZoomControls[MapsTabControl.SelectedIndex].image != null &&
+                       e.Button == panAndZoomControls[MapsTabControl.SelectedIndex].Button;
 
       panAndZoomControls[MapsTabControl.SelectedIndex].OnMouseMove(e, displayStats, condition, ModifierKeys, out Cursor cursor);
 

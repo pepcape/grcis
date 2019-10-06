@@ -34,6 +34,14 @@ namespace Rendering
     private const byte defaultHistoryCapacity = 5;
 
     /// <summary>
+    /// Which mouse button is used for panning?
+    /// </summary>
+    public MouseButtons Button
+    {
+      get; set;
+    }
+
+    /// <summary>
     /// Default constructor
     /// </summary>
     /// <param name="pictureBox">Picturebox to apply to zoom and pan</param>
@@ -47,6 +55,7 @@ namespace Rendering
       this.pictureBox = pictureBox;
       this.image = image;
       this.setWindowTitleSuffix = setWindowTitleSuffix;
+      Button = MouseButtons.Left;
 
       zoom = 1;
 
@@ -162,7 +171,10 @@ namespace Rendering
           action((int)relative.X, (int)relative.Y);
       }
 
-      if (!modifierKeys.HasFlag(Keys.Control) && e.Button == MouseButtons.Left && !mousePressed) //holding down CTRL key prevents panning
+      // Holding down CTRL key prevents panning.
+      if (!modifierKeys.HasFlag(Keys.Control) &&
+          e.Button == Button &&
+          !mousePressed)
       {
         mousePressed = true;
         mouseDown = e.Location;
@@ -200,7 +212,8 @@ namespace Rendering
           action((int)relative.X, (int)relative.Y);
       }
 
-      if (mousePressed && e.Button == MouseButtons.Left)
+      if (mousePressed &&
+          e.Button == Button)
       {
         cursor = Cursors.NoMove2D;
 

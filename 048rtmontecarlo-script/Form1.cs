@@ -99,14 +99,20 @@ namespace Rendering
       SetOptions(args);
       buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
 
-      Image image = Resources.CGG_Logo; // placeholder image for PictureBox
+      // Placeholder image for PictureBox.
+      Image image = Resources.CGG_Logo;
 
       additionalViews = new AdditionalViews(collectDataCheckBox, Notification);
 
       additionalViews.Initialize();
-      additionalViews.SetNewDimensions(ImageWidth, ImageHeight); // makes all maps to initialize again
+      // Makes all maps to initialize again.
+      additionalViews.SetNewDimensions(ImageWidth, ImageHeight);
 
-      panAndZoom = new PanAndZoomSupport(pictureBox1, image, SetWindowTitleSuffix);
+      // Default PaZ button = Right.
+      panAndZoom = new PanAndZoomSupport(pictureBox1, image, SetWindowTitleSuffix)
+      {
+        Button = MouseButtons.Right
+      };
 
       rayVisualizer = new RayVisualizer();
     }
@@ -700,7 +706,7 @@ namespace Rendering
     private void pictureBox1_MouseDown (object sender, MouseEventArgs e)
     {
       bool condition = aThread == null &&
-                       e.Button == MouseButtons.Left &&
+                       e.Button == panAndZoom.Button &&
                        MT.sceneRendered &&
                        !MT.renderingInProgress;
 
@@ -718,7 +724,7 @@ namespace Rendering
     private void pictureBox1_MouseMove (object sender, MouseEventArgs e)
     {
       bool condition = aThread == null &&
-                       e.Button == MouseButtons.Left &&
+                       e.Button == panAndZoom.Button &&
                        MT.sceneRendered &&
                        !MT.renderingInProgress;
 
