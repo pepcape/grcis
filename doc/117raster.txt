@@ -1,0 +1,49 @@
+2D raster image processing
+==========================
+Possible tasks:
+
+. local histogram (graph, txt list..)
+
+. color average in a pixel neighbourhood (inverse halftoning)
+
+. alpha green screen separation (antialiasing)
+
+. transparent image resize (consistently updating the alpha channel)
+
+. silhouette segmentation (user-assisted)
+  https://pdfs.semanticscholar.org/7c3b/fcda9e16ab3a997a943700126581bdc817f5.pdf
+  https://hal.archives-ouvertes.fr/hal-01252859/file/Coniglio_ACIVS2015.pdf
+
+. 16M color image
+
+. window filters: artistic, noise reduction, etc.
+
+--------------------------------------------------------------
+
+Mosaic
+Effect
+Phase
+
+Modular system for building individual filters using a set of building-blocks
+Motivation:
+. artistic filter based on median applied on special shapes
+  (pixel + neighbourhood -> median -> effect)
+
+Individual concepts:
+--------------------
+1. rozdeleni obrazku na disjunktni oblasti
+2. prirazeni okoli (mnozina pixelu) kazdemu pixelu.
+  2a. pixel neni soucasti mnoziny
+  2b. pixel je soucasti mnoziny (2a->2b is easy)
+3. permutace pixelu
+  3a. [skoro] souvisla, skoro kazdy pixel se posune na nove misto vedle
+  3b. nesouvisla, kazdy pixel se posune nekam daleko
+4. transfer funkce jednoho pixelu (radiometrie) a->b
+5. vypocet barvy pixelu na zaklade mnoziny jinych pixelu
+  5a. mnozina je opatrena vahami
+  5b. vahy jsou zalozeny na nejake geometricke metrice
+6. pixel + mnozina -> nova barva pixelu
+  6a. vahy ve mnozine pixelu
+7. pohybove pole: kazdy pixel se vezme odnekud (backward image warping)
+8. neco zalozeneho na plasma dynamickem 2D poli
+  (promyslet)
