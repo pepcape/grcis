@@ -1,0 +1,31 @@
+Ordered list (HeapMin) sorted by T:
+-----------------------------------
+A. bezier patch:
+  control points, minimax box (compatible with RayBoxIntersection())
+  closest intersection with a ray T
+
+B. actual intersection T (created by RayTriangleIntersection())
+  interpolated normal vector (not yet?)
+  coordinates of an intersection (not yet?)
+  d  c
+  a  b
+  Two triangles: abc, acd
+
+Algorithm:
+----------
+0. create the A. record for each patch,
+  filter out patches not intersected by the ray..
+  put all intersected patches into the list
+
+1. while "list is not empty" do
+
+2. fetch the first item of the list
+   if this is the B. item, finalize it and return
+
+3. else divide the patch into two halves (according the greatest coordinate variance)
+   intersect both of them with the ray,
+   insert relevant record[s] back into the list
+
+4. if an A. record is too small (too flat, ..), convert it into a B. record
+
+5. endwhile
