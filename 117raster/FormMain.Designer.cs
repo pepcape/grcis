@@ -47,13 +47,15 @@
       this.pictureBoxMain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.pictureBoxMain.Location = new System.Drawing.Point(13, 13);
+      this.pictureBoxMain.Location = new System.Drawing.Point(5, 5);
       this.pictureBoxMain.Name = "pictureBoxMain";
-      this.pictureBoxMain.Size = new System.Drawing.Size(859, 439);
+      this.pictureBoxMain.Size = new System.Drawing.Size(874, 450);
       this.pictureBoxMain.TabIndex = 0;
       this.pictureBoxMain.TabStop = false;
+      this.pictureBoxMain.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxMain_Paint);
       this.pictureBoxMain.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxMain_MouseDown);
       this.pictureBoxMain.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBoxMain_MouseMove);
+      this.pictureBoxMain.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBoxMain_MouseUp);
       // 
       // label1
       // 
@@ -68,7 +70,7 @@
       // comboBoxModule
       // 
       this.comboBoxModule.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.comboBoxModule.FormattingEnabled = true;
+      this.comboBoxModule.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
       this.comboBoxModule.Location = new System.Drawing.Point(65, 469);
       this.comboBoxModule.Name = "comboBoxModule";
       this.comboBoxModule.Size = new System.Drawing.Size(216, 21);
@@ -183,8 +185,10 @@
       this.Text = "117 raster";
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
       this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormMain_FormClosed);
+      this.Load += new System.EventHandler(this.FormMain_Load);
       this.DragDrop += new System.Windows.Forms.DragEventHandler(this.FormMain_DragDrop);
       this.DragEnter += new System.Windows.Forms.DragEventHandler(this.FormMain_DragEnter);
+      this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
       ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMain)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
