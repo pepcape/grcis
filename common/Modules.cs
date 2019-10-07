@@ -2,27 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace Utilities
+namespace Modules
 {
   public interface IRasterModule : ICloneable
   {
-    string Author
-    {
-      get;
-    }
+    string Author { get; }
 
-    string Name
-    {
-      get;
-    }
+    string Name { get; }
 
     /// <summary>
     /// Tooltip for Param (text parameters).
     /// </summary>
-    string Tooltip
-    {
-      get;
-    }
+    string Tooltip { get; }
 
     /// <summary>
     /// Param string was changed in the client/caller.
@@ -53,11 +44,15 @@ namespace Utilities
     Bitmap OutputImage ();
   }
 
-  public abstract class DefaultRasterModule
+  public abstract class DefaultRasterModule : IRasterModule
   {
     // Author & Name are mandatory.
 
     public virtual string Tooltip => "-- no param --";
+
+    public abstract string Author { get; }
+
+    public abstract string Name { get; }
 
     /// <summary>
     /// Param string was changed in the client/caller.
@@ -89,6 +84,10 @@ namespace Utilities
     /// Can return null if the module doesn't compute an output image.
     /// </summary>
     public virtual Bitmap OutputImage () => null;
+
+    public abstract void InputImage (Bitmap inputImage);
+
+    public abstract object Clone ();
   }
 
   public class ModuleRegistry
@@ -106,6 +105,11 @@ namespace Utilities
     public static IRasterModule CreateModule (string name)
     {
       return reg.ContainsKey(name) ? (IRasterModule)reg[name].Clone() : null;
+    }
+
+    public static ICollection<string> RegisteredModuleNames ()
+    {
+      return reg.Keys;
     }
   }
 }

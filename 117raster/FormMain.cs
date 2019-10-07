@@ -1,4 +1,5 @@
 ﻿using _117raster.Properties;
+using Modules;
 using Rendering;
 using System;
 using System.Collections.Generic;
@@ -57,9 +58,15 @@ namespace _117raster
     /// </summary>
     ToolTip tt = new ToolTip();
 
+    IRasterModule currModule = null;
+
     public FormMain ()
     {
       InitializeComponent();
+
+      // Touch all modules and force their registration.
+      // !!! TODO: automatic registration ???
+      new ModuleGlobalHistogram();
 
       titlePrefix = Text += " (" + rev + ")";
       SetWindowTitleSuffix(" Zoom: 100%");
@@ -73,6 +80,11 @@ namespace _117raster
         Button = MouseButtons.Right
       };
       panAndZoom.ZoomToMiddle(0, ModifierKeys);
+
+      // Modules registry => combo-box.
+      foreach (string key in ModuleRegistry.RegisteredModuleNames())
+        comboBoxModule.Items.Add(key);
+      comboBoxModule.SelectedIndex = 0;
     }
 
     private static void setImage (ref Bitmap bakImage, Bitmap newImage)
@@ -306,6 +318,17 @@ namespace _117raster
       pictureBoxMain.SizeMode = PictureBoxSizeMode.Zoom;
       pictureBoxMain.MouseWheel += new MouseEventHandler(pictureBoxMain_MouseWheel);
       KeyPreview = true;
+    }
+
+    private void buttonModule_Click (object sender, EventArgs e)
+    {
+      int selectedModule = comboBoxModule.SelectedIndex;
+      string moduleName = (string)comboBoxModule.Items[selectedModule];
+      IRasterModule module = ModuleRegistry.CreateModule(moduleName);
+      currModule = module;
+      module.InitWindow();
+      if (inputImage != null)
+        module.InputImage(inputImage);
     }
   }
 }

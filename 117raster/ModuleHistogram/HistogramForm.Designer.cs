@@ -1,4 +1,4 @@
-﻿namespace _066histogram
+﻿namespace Modules
 {
   partial class HistogramForm
   {
