@@ -21,10 +21,21 @@ namespace Modules
     void UpdateParam (string par);
 
     /// <summary>
-    /// Activates/creates a new window.
+    /// Activates/creates a new GUI window.
     /// Resets the input window.
     /// </summary>
-    void InitWindow ();
+    /// <param name="moduleManager">Reference to the module manager.</param>
+    void InitWindow (IRasterModuleManager moduleManager);
+
+    /// <summary>
+    /// Called after an associated GUI window (the last of associated GUI windows) is closed.
+    /// </summary>
+    void OnWindowClose ();
+
+    /// <summary>
+    /// Returns true if there is at least one active GUI window associted with this module.
+    /// </summary>
+    bool HasActiveWindow { get; }
 
     /// <summary>
     /// The input image was changed in the client/caller.
@@ -35,7 +46,7 @@ namespace Modules
     /// Action performed at the given pixel.
     /// Non-mandatory.
     /// </summary>
-    void Action (int x, int y);
+    void PixelAction (int x, int y);
 
     /// <summary>
     /// Returns current output image.
@@ -46,13 +57,11 @@ namespace Modules
 
   public abstract class DefaultRasterModule : IRasterModule
   {
-    // Author & Name are mandatory.
-
-    public virtual string Tooltip => "-- no param --";
-
     public abstract string Author { get; }
 
     public abstract string Name { get; }
+
+    public virtual string Tooltip => "-- no params --";
 
     /// <summary>
     /// Param string was changed in the client/caller.
@@ -62,12 +71,26 @@ namespace Modules
     {}
 
     /// <summary>
-    /// Activates/creates a new window.
-    /// Resets the input window.
-    /// Default behavior: no module window.
+    /// Activates/creates a new GUI window.
+    /// Resets the input image.
+    /// Default behavior: windowless module.
     /// </summary>
-    public virtual void InitWindow ()
+    /// <param name="moduleManager">Reference to the module manager.</param>
+    public virtual void InitWindow (IRasterModuleManager moduleManager)
     {}
+
+    /// <summary>
+    /// Called after an associated window (the last of associated windows) is closed.
+    /// Default behavior: nothing.
+    /// </summary>
+    public virtual void OnWindowClose ()
+    {}
+
+    /// <summary>
+    /// Returns true if there is at least one active GUI window associted with this module.
+    /// Default behavior: windowless module.
+    /// </summary>
+    public virtual bool HasActiveWindow => false;
 
     // InputImage() is mandatory.
 
@@ -76,7 +99,7 @@ namespace Modules
     /// Non-mandatory.
     /// Default behavior: no action.
     /// </summary>
-    public virtual void Action (int x, int y)
+    public virtual void PixelAction (int x, int y)
     {}
 
     /// <summary>
@@ -85,9 +108,32 @@ namespace Modules
     /// </summary>
     public virtual Bitmap OutputImage () => null;
 
+    /// <summary>
+    /// The input image was changed in the client/caller.
+    /// </summary>
     public abstract void InputImage (Bitmap inputImage);
 
     public abstract object Clone ();
+  }
+
+  public interface IRasterModuleManager
+  {
+    /// <summary>
+    /// [Re-]initializes raster module with the given name.
+    /// </summary>
+    /// <param name="moduleName"></param>
+    void InitModule (string moduleName);
+
+    /// <summary>
+    /// [Re-]initializes GUI window of the given module.
+    /// </summary>
+    void InitWindow (string moduleName);
+
+    /// <summary>
+    /// Called after an associated window (the last of associated windows) of the given module is closed.
+    /// Default behavior: nothing.
+    /// </summary>
+    void OnWindowClose (string moduleName);
   }
 
   public class ModuleRegistry
@@ -97,6 +143,10 @@ namespace Modules
     /// </summary>
     internal static Dictionary<string, IRasterModule> reg = new Dictionary<string, IRasterModule>();
 
+    /// <summary>
+    /// Register a new module.
+    /// </summary>
+    /// <param name="m">Instance of a new module.</param>
     public static void Register (IRasterModule m)
     {
       reg[m.Name] = m;

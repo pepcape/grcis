@@ -15,7 +15,7 @@ using Utilities;
 
 namespace _117raster
 {
-  public partial class FormMain : Form
+  public partial class FormMain : Form, IRasterModuleManager
   {
     static readonly string rev = Util.SetVersion("$Rev$");
 
@@ -326,7 +326,7 @@ namespace _117raster
       string moduleName = (string)comboBoxModule.Items[selectedModule];
       IRasterModule module = ModuleRegistry.CreateModule(moduleName);
       currModule = module;
-      module.InitWindow();
+      module.InitWindow(this);
       if (inputImage != null)
         module.InputImage(inputImage);
     }
