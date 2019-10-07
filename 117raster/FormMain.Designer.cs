@@ -85,6 +85,7 @@
       this.buttonModule.TabIndex = 3;
       this.buttonModule.Text = "Open module";
       this.buttonModule.UseVisualStyleBackColor = true;
+      this.buttonModule.Click += new System.EventHandler(this.buttonModule_Click);
       // 
       // labelStatus
       // 
