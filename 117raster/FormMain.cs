@@ -1,4 +1,6 @@
-﻿using System;
+﻿using _117raster.Properties;
+using Rendering;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -19,17 +21,31 @@ namespace _117raster
     /// <summary>
     /// Input image read from disk / drag-and-dropped.
     /// </summary>
-    protected Bitmap inputImage = null;
+    private Bitmap inputImage = null;
 
     /// <summary>
     /// Optional output image for 'input->output' template.
     /// </summary>
-    protected Bitmap outputImage = null;
+    private Bitmap outputImage = null;
 
     /// <summary>
-    /// Window title prefix.
+    /// Window title prefix (basic app title).
     /// </summary>
-    protected string titlePrefix = null;
+    private string titlePrefix = "";
+
+    /// <summary>
+    /// Middle part of the window title (file-name etc.).
+    /// </summary>
+    private string titleMiddle = "";
+
+    private void SetWindowTitleSuffix (string suffix) => Text = string.IsNullOrEmpty(suffix)
+      ? titlePrefix + titleMiddle
+      : titlePrefix + titleMiddle + ' ' + suffix;
+
+    /// <summary>
+    /// Object responsible for interactive pan-and-zoom (right mouse button, mouse wheel).
+    /// </summary>
+    private readonly PanAndZoomSupport panAndZoom;
 
     /// <summary>
     /// Param string tooltip = help.
@@ -46,6 +62,17 @@ namespace _117raster
       InitializeComponent();
 
       titlePrefix = Text += " (" + rev + ")";
+      SetWindowTitleSuffix(" Zoom: 100%");
+
+      // Placeholder image for PictureBox.
+      Image image = Resources.InitialImage;
+
+      // Default PaZ button = Right.
+      panAndZoom = new PanAndZoomSupport(pictureBoxMain, image, SetWindowTitleSuffix)
+      {
+        Button = MouseButtons.Right
+      };
+      panAndZoom.ZoomToMiddle(0, ModifierKeys);
     }
 
     private static void setImage (ref Bitmap bakImage, Bitmap newImage)
@@ -70,7 +97,7 @@ namespace _117raster
       }
       else
       {
-        pictureBoxMain.Image = newImage;
+        panAndZoom.SetNewImage(newImage, false);
         pictureBoxMain.BackColor = imageBoxBackground;
         setImage(ref outputImage, newImage);
       }
@@ -149,14 +176,14 @@ namespace _117raster
       if (inp == null)
         return false;
 
-      pictureBoxMain.Image = null;
+      //pictureBoxMain.Image = null;
       setImage(ref inputImage, inp);
       setImage(ref outputImage, null);
 
       //recompute();
+      titleMiddle = " [" + fn + ']';
       SetImage(inputImage);
-
-      Text = titlePrefix + ' ' + fn;
+      panAndZoom.ZoomToMiddle(0, ModifierKeys);
 
       return true;
     }
@@ -223,16 +250,62 @@ namespace _117raster
               (IWin32Window)sender, 10, -25, 2000);
     }
 
+    private void pictureBoxMain_Paint (object sender, PaintEventArgs e)
+    {
+      panAndZoom.OnPaint(e);
+    }
+
     private void pictureBoxMain_MouseDown (object sender, MouseEventArgs e)
     {
-      if (e.Button == MouseButtons.Left)
-        imageProbe(e.X, e.Y);
+      pictureBoxMain.Focus();
+
+      panAndZoom.OnMouseDown(e, imageProbe, e.Button == MouseButtons.Left, ModifierKeys, out Cursor cursor);
+
+      if (cursor != null)
+        Cursor = cursor;
+    }
+
+    private void pictureBoxMain_MouseUp (object sender, MouseEventArgs e)
+    {
+      panAndZoom.OnMouseUp(out Cursor cursor);
+
+      Cursor = cursor;
     }
 
     private void pictureBoxMain_MouseMove (object sender, MouseEventArgs e)
     {
-      if (e.Button == MouseButtons.Left)
-        imageProbe(e.X, e.Y);
+      panAndZoom.OnMouseMove(e, imageProbe, e.Button == MouseButtons.Left, ModifierKeys, out Cursor cursor);
+
+      if (cursor != null)
+        Cursor = cursor;
+    }
+
+    /// <summary>
+    /// Catches mouse wheel movement for zoom in/out of image in picture box
+    /// </summary>
+    /// <param name="sender">Not needed</param>
+    /// <param name="e">Needed for mouse wheel delta value and cursor location</param>
+    private void pictureBoxMain_MouseWheel (object sender, MouseEventArgs e)
+    {
+      panAndZoom.OnMouseWheel(e, ModifierKeys);
+    }
+
+    private void FormMain_KeyDown (object sender, KeyEventArgs e)
+    {
+      if (e.KeyCode == Keys.R)
+      {
+        panAndZoom.Reset();
+        e.Handled = true;
+      }
+
+      panAndZoom.OnKeyDown(e.KeyCode, ModifierKeys);
+    }
+
+    private void FormMain_Load (object sender, EventArgs e)
+    {
+      pictureBoxMain.SizeMode = PictureBoxSizeMode.Zoom;
+      pictureBoxMain.MouseWheel += new MouseEventHandler(pictureBoxMain_MouseWheel);
+      KeyPreview = true;
     }
   }
 }

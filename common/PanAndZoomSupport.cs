@@ -66,10 +66,10 @@ namespace Rendering
     /// <summary>
     /// Zooms in to/out from middle of image; Useful when zooming by keys
     /// </summary>
-    /// <param name="zoomIn">TRUE for zoom in; otherwise zoom out</param>
+    /// <param name="zoomIn">Negative for zoom out, positive for zoom in</param>
     /// <param name="modifierKeys">Currently pressed keys - used for detection of Shift key for faster zooming</param>
     public void ZoomToMiddle (
-      bool zoomIn,
+      int zoomIn,
       Keys modifierKeys)
     {
       PointF middle = new PointF
@@ -81,34 +81,37 @@ namespace Rendering
       ZoomToPosition(zoomIn, middle, modifierKeys);
     }
 
-    private const float zoomFactorNormal = 0.15f;
+    private const float zoomFactorNormal = 0.1f;
 
-    private const float zoomFactorFast = 0.45f;
+    private const float zoomFactorFast = 0.3f;
 
     /// <summary>
-    /// Changes global variable zoom to indicate current zoom level of picture in main picture box; 
-    /// Variable zoom can be equal 1 (no zoom), less than 1 (zoom out) or greater than 1 (zoom in)
+    /// Changes global variable zoom to indicate current zoom level of picture in main picture box.
     /// </summary>
-    /// <param name="zoomIn">TRUE if zoom in is desired; FALSE if zoom out is desired</param>
+    /// <param name="zoomIn">Negative for zoom out, positive for zoom in</param>
     /// <param name="position">Position to zoom to/zoom out from - usually cursor position (relative to picturebox, not to image)
     /// or middle of picture in case of zoom by keys</param>
     /// <param name="modifierKeys">Currently pressed keys - used for detection of Shift key for faster zooming</param>
     public void ZoomToPosition (
-      bool zoomIn,
+      int zoomIn,
       PointF position,
       Keys modifierKeys)
     {
       float oldzoom = zoom;
-      float zoomFactor = zoomFactorNormal;
 
-      if (modifierKeys.HasFlag(Keys.Shift)) // holding down the Shift key makes zoom in/out faster
-        zoomFactor = zoomFactorFast;
+      if (zoomIn != 0)
+      {
+        float zoomFactor = zoomFactorNormal;
 
-      zoom += zoomIn
-        ?  zoomFactor
-        : -zoomFactor;
+        if (modifierKeys.HasFlag(Keys.Shift)) // holding down the Shift key makes zoom in/out faster
+          zoomFactor = zoomFactorFast;
 
-      ClampZoom();
+        zoom += zoomIn > 0
+          ?  zoomFactor
+          : -zoomFactor;
+
+        ClampZoom();
+      }
 
       float x = position.X;
       float y = position.Y;
@@ -167,7 +170,8 @@ namespace Rendering
       {
         PointF relative = GetRelativeCursorLocation(e.X, e.Y);
 
-        if (!float.IsNaN(relative.X))
+        if (action != null &&
+            !float.IsNaN(relative.X))
           action((int)relative.X, (int)relative.Y);
       }
 
@@ -208,7 +212,9 @@ namespace Rendering
       {
         PointF relative = GetRelativeCursorLocation(e.X, e.Y);
 
-        if (!float.IsNaN(relative.X) && !mousePressed)
+        if (action != null &&
+            !float.IsNaN(relative.X) &&
+            !mousePressed)
           action((int)relative.X, (int)relative.Y);
       }
 
@@ -253,10 +259,7 @@ namespace Rendering
       if (float.IsNaN(relative.X)) // prevents scrolling if cursor is outside of image
         return;
 
-      if (e.Delta > 0)
-        ZoomToPosition(true, e.Location, modifierKeys);
-      else if (e.Delta < 0)
-        ZoomToPosition(false, e.Location, modifierKeys);
+      ZoomToPosition(e.Delta, e.Location, modifierKeys);
     }
 
     /// <summary>
@@ -273,11 +276,12 @@ namespace Rendering
       {
         case Keys.Add:
         case Keys.PageUp:
-          ZoomToMiddle(true, modifierKeys);
+          ZoomToMiddle(1, modifierKeys);
           break;
+
         case Keys.Subtract:
         case Keys.PageDown:
-          ZoomToMiddle(false, modifierKeys);
+          ZoomToMiddle(-1, modifierKeys);
           break;
       }
     }
