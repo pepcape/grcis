@@ -2,6 +2,8 @@
 ==========================
 Possible tasks:
 
+. global histogram (pilot module)
+
 . local histogram (graph, txt list..)
 
 . color average in a pixel neighbourhood (inverse halftoning)
