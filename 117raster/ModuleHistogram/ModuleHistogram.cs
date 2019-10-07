@@ -33,7 +33,8 @@ namespace Modules
           inImage != null)
       {
         hImage = new Bitmap(hForm.ClientSize.Width, hForm.ClientSize.Height, PixelFormat.Format24bppRgb);
-        ImageHistogram.ComputeHistogram(inImage, hImage, currParam);
+        ImageHistogram.ComputeHistogram(inImage, currParam);
+        ImageHistogram.DrawHistogram(hImage);
         hForm.SetResult(hImage);
       }
     }
@@ -70,7 +71,8 @@ namespace Modules
     /// Activates/creates a new window.
     /// Resets the input window.
     /// </summary>
-    public override void InitWindow ()
+    /// <param name="moduleManager">Reference to the module manager.</param>
+    public override void InitWindow (IRasterModuleManager moduleManager)
     {
       if (hForm == null)
       {
@@ -80,6 +82,23 @@ namespace Modules
 
       Recompute();
     }
+
+    /// <summary>
+    /// Called after an associated window (the last of associated windows) is closed.
+    /// </summary>
+    public override void OnWindowClose ()
+    {
+      if (hForm != null)
+      {
+        hForm.Hide();
+        hForm = null;
+      }
+    }
+
+    /// <summary>
+    /// Returns true if there is at least one active GUI window associted with this module.
+    /// </summary>
+    public override bool HasActiveWindow => hForm != null;
 
     /// <summary>
     /// The input image was changed in the client/caller.

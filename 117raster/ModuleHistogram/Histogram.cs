@@ -68,7 +68,7 @@ namespace Utilities
     /// </summary>
     /// <param name="input">Input image.</param>
     /// <param name="param">Textual parameter.</param>
-    public static void ComputeHistogram (Bitmap input, Bitmap graph, string param)
+    public static void ComputeHistogram (Bitmap input, string param)
     {
       // Text parameters:
       param = param.ToLower().Trim();
