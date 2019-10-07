@@ -80,8 +80,7 @@ Old tasks:
 115colormandala (cyclic color-map for mandala-style images, 2018)
 116 (task only, animated realtime camera, 2018)
 ----
-117raster0 (template for 2D raster image project) ?
-118raster1
+117raster (template for modular raster image project)
 ...
 
 ================================================================================

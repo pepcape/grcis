@@ -207,6 +207,9 @@
     <Compile Include="..\common\OpenglSupport.cs">
       <Link>OpenglSupport.cs</Link>
     </Compile>
+    <Compile Include="..\common\PanAndZoomSupport.cs">
+      <Link>PanAndZoomSupport.cs</Link>
+    </Compile>
     <Compile Include="..\common\PointCloud.cs">
       <Link>PointCloud.cs</Link>
     </Compile>
@@ -270,7 +273,6 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="PanAndZoomSupport.cs" />
     <Compile Include="RayVisualizerForm.cs">
       <SubType>Form</SubType>
     </Compile>
