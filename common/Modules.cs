@@ -28,6 +28,11 @@ namespace Modules
     void InitWindow (IRasterModuleManager moduleManager);
 
     /// <summary>
+    /// Deactivates/closes a GUI window of the module.
+    /// </summary>
+    void CloseWindow ();
+
+    /// <summary>
     /// Called after an associated GUI window (the last of associated GUI windows) is closed.
     /// </summary>
     void OnWindowClose ();
@@ -77,6 +82,13 @@ namespace Modules
     /// </summary>
     /// <param name="moduleManager">Reference to the module manager.</param>
     public virtual void InitWindow (IRasterModuleManager moduleManager)
+    {}
+
+    /// <summary>
+    /// Deactivates/closes a GUI window of the module.
+    /// Default behavior: windowless module.
+    /// </summary>
+    public virtual void CloseWindow ()
     {}
 
     /// <summary>

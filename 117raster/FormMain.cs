@@ -128,6 +128,32 @@ namespace _117raster
         labelStatus.Text = text;
     }
 
+    /// <summary>
+    /// [Re-]initializes raster module with the given name.
+    /// </summary>
+    /// <param name="moduleName"></param>
+    public void InitModule (string moduleName)
+    {
+      // !!! TODO
+    }
+
+    /// <summary>
+    /// [Re-]initializes GUI window of the given module.
+    /// </summary>
+    public void InitWindow (string moduleName)
+    {
+      // !!! TODO
+    }
+
+    /// <summary>
+    /// Called after an associated window (the last of associated windows) of the given module is closed.
+    /// Default behavior: nothing.
+    /// </summary>
+    public void OnWindowClose (string moduleName)
+    {
+      // !!! TODO
+    }
+
     private void imageProbe (int x, int y)
     {
       if (outputImage == null)
