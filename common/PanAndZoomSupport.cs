@@ -64,6 +64,16 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Prevents picture to be too small (minimum is absolute size of 20 pixels for width/height)
+    /// </summary>
+    /// <returns>Clamped zoom</returns>
+    private void ClampZoom ()
+    {
+      float minZoomFactor = minimalAbsoluteSizeInPixels / Math.Min(image.Width, image.Height);
+      zoom = Math.Max(zoom, minZoomFactor);
+    }
+
+    /// <summary>
     /// Zooms in to/out from middle of image; Useful when zooming by keys
     /// </summary>
     /// <param name="zoomIn">Negative for zoom out, positive for zoom in</param>
@@ -88,30 +98,17 @@ namespace Rendering
     /// <summary>
     /// Changes global variable zoom to indicate current zoom level of picture in main picture box.
     /// </summary>
-    /// <param name="zoomIn">Negative for zoom out, positive for zoom in</param>
+    /// <param name="newZoom">Negative for zoom out, positive for zoom in</param>
     /// <param name="position">Position to zoom to/zoom out from - usually cursor position (relative to picturebox, not to image)
     /// or middle of picture in case of zoom by keys</param>
-    /// <param name="modifierKeys">Currently pressed keys - used for detection of Shift key for faster zooming</param>
-    public void ZoomToPosition (
-      int zoomIn,
-      PointF position,
-      Keys modifierKeys)
+    public void UpdateZoom (
+      float newZoom,
+      PointF position)
     {
       float oldzoom = zoom;
+      zoom = newZoom;
 
-      if (zoomIn != 0)
-      {
-        float zoomFactor = zoomFactorNormal;
-
-        if (modifierKeys.HasFlag(Keys.Shift)) // holding down the Shift key makes zoom in/out faster
-          zoomFactor = zoomFactorFast;
-
-        zoom += zoomIn > 0
-          ?  zoomFactor
-          : -zoomFactor;
-
-        ClampZoom();
-      }
+      ClampZoom();
 
       float x = position.X;
       float y = position.Y;
@@ -128,6 +125,47 @@ namespace Rendering
       pictureBox.Refresh();
 
       setWindowTitleSuffix($" Zoom: {(int)(zoom * 100)}%");
+    }
+
+    public void UpdateZoomToMiddle (
+      float newZoom)
+    {
+      PointF middle = new PointF
+      {
+        X =  imageX * zoom + 0.5f * image.Width  * zoom,
+        Y =  imageY * zoom + 0.5f * image.Height * zoom
+      };
+
+      UpdateZoom(newZoom, middle);
+    }
+
+    /// <summary>
+    /// Changes global variable zoom to indicate current zoom level of picture in main picture box.
+    /// </summary>
+    /// <param name="zoomIn">Negative for zoom out, positive for zoom in</param>
+    /// <param name="position">Position to zoom to/zoom out from - usually cursor position (relative to picturebox, not to image)
+    /// or middle of picture in case of zoom by keys</param>
+    /// <param name="modifierKeys">Currently pressed keys - used for detection of Shift key for faster zooming</param>
+    public void ZoomToPosition (
+      int zoomIn,
+      PointF position,
+      Keys modifierKeys)
+    {
+      float newZoom = zoom;
+
+      if (zoomIn != 0)
+      {
+        float zoomFactor = zoomFactorNormal;
+
+        if (modifierKeys.HasFlag(Keys.Shift)) // holding down the Shift key makes zoom in/out faster
+          zoomFactor = zoomFactorFast;
+
+        newZoom += zoomIn > 0
+          ?  zoomFactor
+          : -zoomFactor;
+      }
+
+      UpdateZoom(newZoom, position);
     }
 
     /// <summary>
@@ -399,16 +437,6 @@ namespace Rendering
 
       if (absoluteY + height < border)
         imageY = (border - height) / zoom;
-    }
-
-    /// <summary>
-    /// Prevents picture to be too small (minimum is absolute size of 20 pixels for width/height)
-    /// </summary>
-    /// <returns>Clamped zoom</returns>
-    public void ClampZoom ()
-    {
-      float minZoomFactor = minimalAbsoluteSizeInPixels / Math.Min(image.Width, image.Height);
-      zoom = Math.Max(zoom, minZoomFactor);
     }
 
     /// <summary>

@@ -79,7 +79,7 @@ namespace _117raster
       {
         Button = MouseButtons.Right
       };
-      panAndZoom.ZoomToMiddle(0, ModifierKeys);
+      panAndZoom.UpdateZoomToMiddle(0.6f);
 
       // Modules registry => combo-box.
       foreach (string key in ModuleRegistry.RegisteredModuleNames())
