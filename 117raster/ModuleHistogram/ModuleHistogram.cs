@@ -72,7 +72,7 @@ namespace Modules
     /// Resets the input window.
     /// </summary>
     /// <param name="moduleManager">Reference to the module manager.</param>
-    public override void InitWindow (IRasterModuleManager moduleManager)
+    public override void ActivateWindow (IRasterModuleManager moduleManager)
     {
       if (hForm == null)
       {

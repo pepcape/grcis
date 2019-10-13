@@ -83,7 +83,7 @@
       this.buttonModule.Name = "buttonModule";
       this.buttonModule.Size = new System.Drawing.Size(108, 23);
       this.buttonModule.TabIndex = 3;
-      this.buttonModule.Text = "Open module";
+      this.buttonModule.Text = "Activate module";
       this.buttonModule.UseVisualStyleBackColor = true;
       this.buttonModule.Click += new System.EventHandler(this.buttonModule_Click);
       // 

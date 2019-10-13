@@ -352,7 +352,7 @@ namespace _117raster
       string moduleName = (string)comboBoxModule.Items[selectedModule];
       IRasterModule module = ModuleRegistry.CreateModule(moduleName);
       currModule = module;
-      module.InitWindow(this);
+      module.ActivateWindow(this);
       if (inputImage != null)
         module.InputImage(inputImage);
     }
