@@ -69,6 +69,9 @@
     <Compile Include="..\common\RasterDrawing.cs">
       <Link>RasterDrawing.cs</Link>
     </Compile>
+    <Compile Include="..\common\RasterImage.cs">
+      <Link>RasterImage.cs</Link>
+    </Compile>
     <Compile Include="..\common\Util.cs">
       <Link>Util.cs</Link>
     </Compile>

@@ -1,13 +1,27 @@
+using Raster;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace Modules
 {
-  public interface IRasterModule : ICloneable
+  /// <summary>
+  /// Notification handler for async operations.
+  /// </summary>
+  /// <param name="module"></param>
+  public delegate void NotifyHandler (IRasterModule module);
+
+  public interface IRasterModule
   {
+    /// <summary>
+    /// Author's full name.
+    /// </summary>
     string Author { get; }
 
+    /// <summary>
+    /// Name of the module (short enough to fit inside a list-boxes, etc.).
+    /// </summary>
     string Name { get; }
 
     /// <summary>
@@ -16,116 +30,290 @@ namespace Modules
     string Tooltip { get; }
 
     /// <summary>
-    /// Param string was changed in the client/caller.
+    /// Current 'Param' string is stored in the module.
+    /// Set reasonable initial value.
     /// </summary>
-    void UpdateParam (string par);
+    string Param { get; set; }
 
     /// <summary>
-    /// Activates/creates a new GUI window.
-    /// Resets the input window.
+    /// Optional mouse handler: button down
     /// </summary>
-    /// <param name="moduleManager">Reference to the module manager.</param>
-    void InitWindow (IRasterModuleManager moduleManager);
+    MouseEventHandler MouseDown { get; }
 
     /// <summary>
-    /// Deactivates/closes a GUI window of the module.
+    /// Optional mouse handler: button up
     /// </summary>
-    void CloseWindow ();
+    MouseEventHandler MouseUp { get; }
 
     /// <summary>
-    /// Called after an associated GUI window (the last of associated GUI windows) is closed.
+    /// Optional mouse handler: pointer move
     /// </summary>
-    void OnWindowClose ();
+    MouseEventHandler MouseMove { get; }
 
     /// <summary>
-    /// Returns true if there is at least one active GUI window associted with this module.
+    /// Optional mouse handler: wheel turn
     /// </summary>
-    bool HasActiveWindow { get; }
+    MouseEventHandler MouseWheel { get; }
 
     /// <summary>
-    /// The input image was changed in the client/caller.
+    /// Optional keyboard handler
     /// </summary>
-    void InputImage (Bitmap inputImage);
+    KeyEventHandler KeyDown { get; }
+
+    // Mandatory plain module-instance constructor should look like
+    // class Module : IRasterModule
+    // {
+    //   public Module ()
+    //   {
+    //     ...
+    //   }
+    //   ...
+    // }
 
     /// <summary>
-    /// Action performed at the given pixel.
-    /// Non-mandatory.
+    /// Usually read-only, optionally writable (client is defining number of inputs).
     /// </summary>
-    void PixelAction (int x, int y);
+    int InputSlots { get; set; }
 
     /// <summary>
-    /// Returns current output image.
-    /// Can return null if the module doesn't compute an output image.
+    /// Assigns an input raster image to the given slot.
+    /// Doesn't start computation (see #Update for this).
     /// </summary>
-    Bitmap OutputImage ();
+    /// <param name="inputImage">Input raster image (can be null).</param>
+    /// <param name="slot">Slot number from 0 to InputSlots-1.</param>
+    void SetInput (
+      Bitmap inputImage,
+      int slot = 0);
+
+    /// <summary>
+    /// Assigns an input HDR image to the given slot.
+    /// Doesn't start computation (see #Update for this).
+    /// </summary>
+    /// <param name="inputImage">Input HDR image (can be null).</param>
+    /// <param name="slot">Slot number from 0 to InputSlots-1.</param>
+    void SetInput (
+      FloatImage inputImage,
+      int slot = 0);
+
+    /// <summary>
+    /// Recompute the output image[s] according to input image[s].
+    /// Blocking (synchronous) function.
+    /// #GetOutput() functions can be called after that.
+    /// </summary>
+    void Update ();
+
+    /// <summary>
+    /// Asynchronous recomputing of the output image[s].
+    /// </summary>
+    /// <param name="notify">Optional notification handler.</param>
+    void UpdateAsync (
+      NotifyHandler notify = null
+      );
+
+    /// <summary>
+    /// Optional action performed at the given pixel.
+    /// Blocking (synchronous) function.
+    /// Logically equivalent to Update() but with potential local effect.
+    /// </summary>
+    void PixelUpdate (
+      int x,
+      int y);
+
+    /// <summary>
+    /// Async action performed at the given pixel.
+    /// Logically equivalent to UpdateAsync() but with potential local effect.
+    /// </summary>
+    /// <param name="notify">Optional notification handler.</param>
+    void PixelUpdateAsync (
+      int x,
+      int y,
+      NotifyHandler notify = null);
+
+    /// <summary>
+    /// Usually read-only, sometimes writable (client is defining number of outputs).
+    /// </summary>
+    int OutputSlots { get; set; }
+
+    /// <summary>
+    /// Returns an output raster image.
+    /// Can return null.
+    /// </summary>
+    /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
+    Bitmap GetOutput (
+      int slot = 0);
+
+    /// <summary>
+    /// Returns an output HDR image.
+    /// Can return null.
+    /// </summary>
+    /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
+    FloatImage GetOutputHDR (
+      int slot = 0);
+
+    /// <summary>
+    /// Returns true if there is an active GUI window associted with this module.
+    /// Open/close GUI window using the setter.
+    /// </summary>
+    bool GuiWindow { get; set; }
   }
 
   public abstract class DefaultRasterModule : IRasterModule
   {
+    /// <summary>
+    /// Author's full name.
+    /// Mandatory override.
+    /// </summary>
     public abstract string Author { get; }
 
+    /// <summary>
+    /// Name of the module (short enough to fit inside a list-boxes, etc.).
+    /// Mandatory override.
+    /// </summary>
     public abstract string Name { get; }
 
+    /// <summary>
+    /// Tooltip for Param (text parameters).
+    /// </summary>
     public virtual string Tooltip => "-- no params --";
 
     /// <summary>
-    /// Param string was changed in the client/caller.
-    /// Default behavior: do nothing.
+    /// Param string.
+    /// Default behavior: no parameter.
     /// </summary>
-    public virtual void UpdateParam (string par)
+    public virtual string Param { get; set; } = "";
+
+    /// <summary>
+    /// Optional mouse handler: button down
+    /// </summary>
+    public virtual MouseEventHandler MouseDown { get; } = null;
+
+    /// <summary>
+    /// Optional mouse handler: button up
+    /// </summary>
+    public virtual MouseEventHandler MouseUp { get; } = null;
+
+    /// <summary>
+    /// Optional mouse handler: pointer move
+    /// </summary>
+    public virtual MouseEventHandler MouseMove { get; } = null;
+
+    /// <summary>
+    /// Optional mouse handler: wheel turn
+    /// </summary>
+    public virtual MouseEventHandler MouseWheel { get; } = null;
+
+    /// <summary>
+    /// Optional keyboard handler
+    /// </summary>
+    public virtual KeyEventHandler KeyDown { get; } = null;
+
+    /// <summary>
+    /// Usually read-only, optionally writable (client is defining number of inputs).
+    /// </summary>
+    public virtual int InputSlots
+    {
+      get => InputSlots;
+      set => InputSlots = 1;
+    }
+
+    /// <summary>
+    /// Assigns an input raster image to the given slot.
+    /// Doesn't start computation (see #Update for this).
+    /// </summary>
+    /// <param name="inputImage">Input raster image (can be null).</param>
+    /// <param name="slot">Slot number from 0 to InputSlots-1.</param>
+    public virtual void SetInput (
+      Bitmap inputImage,
+      int slot = 0)
     {}
 
     /// <summary>
-    /// Activates/creates a new GUI window.
-    /// Resets the input image.
-    /// Default behavior: windowless module.
+    /// Assigns an input HDR image to the given slot.
+    /// Doesn't start computation (see #Update for this).
     /// </summary>
-    /// <param name="moduleManager">Reference to the module manager.</param>
-    public virtual void InitWindow (IRasterModuleManager moduleManager)
+    /// <param name="inputImage">Input HDR image (can be null).</param>
+    /// <param name="slot">Slot number from 0 to InputSlots-1.</param>
+    public virtual void SetInput (
+      FloatImage inputImage,
+      int slot = 0)
     {}
 
     /// <summary>
-    /// Deactivates/closes a GUI window of the module.
-    /// Default behavior: windowless module.
+    /// Recompute the output image[s] according to input image[s].
+    /// Blocking (synchronous) function.
+    /// #GetOutput() functions can be called after that.
     /// </summary>
-    public virtual void CloseWindow ()
+    public virtual void Update ()
     {}
 
     /// <summary>
-    /// Called after an associated window (the last of associated windows) is closed.
-    /// Default behavior: nothing.
+    /// Asynchronous recomputing of the output image[s].
     /// </summary>
-    public virtual void OnWindowClose ()
+    /// <param name="notify">Optional notification handler.</param>
+    public virtual void UpdateAsync (
+      NotifyHandler notify = null
+      )
+    {
+      // !!! TODO: default async implementation !!!
+    }
+
+    /// <summary>
+    /// Optional action performed at the given pixel.
+    /// Blocking (synchronous) function.
+    /// Logically equivalent to Update() but with potential local effect.
+    /// </summary>
+    public virtual void PixelUpdate (
+      int x,
+      int y)
     {}
 
     /// <summary>
-    /// Returns true if there is at least one active GUI window associted with this module.
-    /// Default behavior: windowless module.
+    /// Async action performed at the given pixel.
+    /// Logically equivalent to UpdateAsync() but with potential local effect.
     /// </summary>
-    public virtual bool HasActiveWindow => false;
-
-    // InputImage() is mandatory.
+    /// <param name="notify">Optional notification handler.</param>
+    public virtual void PixelUpdateAsync (
+      int x,
+      int y,
+      NotifyHandler notify = null)
+    {
+      // !!! TODO: default async implementation !!!
+    }
 
     /// <summary>
-    /// Action performed at the given pixel.
-    /// Non-mandatory.
-    /// Default behavior: no action.
+    /// Usually read-only, sometimes writable (client is defining number of outputs).
     /// </summary>
-    public virtual void PixelAction (int x, int y)
-    {}
+    public virtual int OutputSlots
+    {
+      get => OutputSlots;
+      set => OutputSlots = 1;
+    }
 
     /// <summary>
-    /// Returns current output image.
-    /// Can return null if the module doesn't compute an output image.
+    /// Returns an output raster image.
+    /// Can return null.
     /// </summary>
-    public virtual Bitmap OutputImage () => null;
+    /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
+    public virtual Bitmap GetOutput (
+      int slot = 0) => null;
 
     /// <summary>
-    /// The input image was changed in the client/caller.
+    /// Returns an output HDR image.
+    /// Can return null.
     /// </summary>
-    public abstract void InputImage (Bitmap inputImage);
+    /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
+    public virtual FloatImage GetOutputHDR (
+      int slot = 0) => null;
 
-    public abstract object Clone ();
+    /// <summary>
+    /// Returns true if there is an active GUI window associted with this module.
+    /// Open/close GUI window using the setter.
+    /// </summary>
+    public virtual bool GuiWindow
+    {
+      get => GuiWindow;
+      set => GuiWindow = false;
+    }
   }
 
   public interface IRasterModuleManager
@@ -134,18 +322,23 @@ namespace Modules
     /// [Re-]initializes raster module with the given name.
     /// </summary>
     /// <param name="moduleName"></param>
-    void InitModule (string moduleName);
+    void InitModule (
+      string moduleName,
+      string param);
 
     /// <summary>
     /// [Re-]initializes GUI window of the given module.
     /// </summary>
-    void InitWindow (string moduleName);
+    void ActivateWindow (
+      string moduleName,
+      string param);
 
     /// <summary>
-    /// Called after an associated window (the last of associated windows) of the given module is closed.
+    /// Called after an associated window of the given module is closed.
     /// Default behavior: nothing.
     /// </summary>
-    void OnWindowClose (string moduleName);
+    void OnWindowClose (
+      string moduleName);
   }
 
   public class ModuleRegistry
