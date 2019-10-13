@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
 using System.Text;
@@ -3231,6 +3232,38 @@ namespace Utilities
       }
 
       return true;
+    }
+  }
+
+  public static class TypeLoader
+  {
+    public static IEnumerable<Type> GetLoadableTypes (this Assembly assembly)
+    {
+      if (assembly == null)
+        throw new ArgumentNullException("assembly");
+
+      try
+      {
+        return assembly.GetTypes();
+      }
+      catch (ReflectionTypeLoadException e)
+      {
+        return e.Types.Where(t => t != null);
+      }
+    }
+
+    public static IEnumerable<Type> GetTypesWithInterface<Interface> ()
+    {
+      var it = typeof(Interface);
+      List<Type> result = new List<Type>();
+
+      foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+        result.AddRange(GetLoadableTypes(asm)
+          .Where(it.IsAssignableFrom)
+          .Where(t => !t.Equals(it))
+            .ToList());
+
+      return result;
     }
   }
 }
