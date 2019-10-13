@@ -44,7 +44,7 @@ namespace Modules
           backBuffer.Width != ClientSize.Width ||
           backBuffer.Height != ClientSize.Height)
       {
-        histogramModule.Recompute();
+        histogramModule.Update();
       }
     }
   }

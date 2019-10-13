@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using Utilities;
 
 namespace Modules
 {
@@ -185,27 +186,27 @@ namespace Modules
     /// <summary>
     /// Optional mouse handler: button down
     /// </summary>
-    public virtual MouseEventHandler MouseDown { get; } = null;
+    public virtual MouseEventHandler MouseDown => null;
 
     /// <summary>
     /// Optional mouse handler: button up
     /// </summary>
-    public virtual MouseEventHandler MouseUp { get; } = null;
+    public virtual MouseEventHandler MouseUp => null;
 
     /// <summary>
     /// Optional mouse handler: pointer move
     /// </summary>
-    public virtual MouseEventHandler MouseMove { get; } = null;
+    public virtual MouseEventHandler MouseMove => null;
 
     /// <summary>
     /// Optional mouse handler: wheel turn
     /// </summary>
-    public virtual MouseEventHandler MouseWheel { get; } = null;
+    public virtual MouseEventHandler MouseWheel => null;
 
     /// <summary>
     /// Optional keyboard handler
     /// </summary>
-    public virtual KeyEventHandler KeyDown { get; } = null;
+    public virtual KeyEventHandler KeyDown => null;
 
     /// <summary>
     /// Usually read-only, optionally writable (client is defining number of inputs).
@@ -316,50 +317,45 @@ namespace Modules
     }
   }
 
-  public interface IRasterModuleManager
-  {
-    /// <summary>
-    /// [Re-]initializes raster module with the given name.
-    /// </summary>
-    /// <param name="moduleName"></param>
-    void InitModule (
-      string moduleName,
-      string param);
-
-    /// <summary>
-    /// [Re-]initializes GUI window of the given module.
-    /// </summary>
-    void ActivateWindow (
-      string moduleName,
-      string param);
-
-    /// <summary>
-    /// Called after an associated window of the given module is closed.
-    /// Default behavior: nothing.
-    /// </summary>
-    void OnWindowClose (
-      string moduleName);
-  }
-
   public class ModuleRegistry
   {
     /// <summary>
     /// Module.Name => prototype class.
     /// </summary>
-    internal static Dictionary<string, IRasterModule> reg = new Dictionary<string, IRasterModule>();
+    internal static Dictionary<string, Type> reg = new Dictionary<string, Type>();
 
     /// <summary>
     /// Register a new module.
     /// </summary>
-    /// <param name="m">Instance of a new module.</param>
-    public static void Register (IRasterModule m)
+    public static void RegisterModules ()
     {
-      reg[m.Name] = m;
+      IEnumerable<Type> compatible = TypeLoader.GetTypesWithInterface<DefaultRasterModule>();
+      foreach (Type t in compatible)
+      {
+        var constructor = t.GetConstructor(null);
+        if (constructor != null)
+        {
+          IRasterModule rm = constructor.Invoke(null) as IRasterModule;
+          if (rm != null)
+            reg[rm.Name] = t;
+        }
+      }
     }
 
     public static IRasterModule CreateModule (string name)
     {
-      return reg.ContainsKey(name) ? (IRasterModule)reg[name].Clone() : null;
+      if (reg.ContainsKey(name))
+      {
+        var constructor = reg[name].GetConstructor(null);
+        if (constructor != null)
+        {
+          IRasterModule rm = constructor.Invoke(null) as IRasterModule;
+          if (rm != null)
+            return rm;
+        }
+      }
+
+      return null;
     }
 
     public static ICollection<string> RegisteredModuleNames ()

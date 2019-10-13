@@ -8,49 +8,49 @@ namespace Modules
 {
   public class ModuleGlobalHistogram : DefaultRasterModule
   {
-    static ModuleGlobalHistogram ()
+    public ModuleGlobalHistogram ()
     {
-      ModuleRegistry.Register(new ModuleGlobalHistogram());
+      // Inital values.
+      Param = "gray";
     }
 
-    public override string Author { get; } = "0Pilot";
-
-    public override string Name { get; } = "GlobalHistogram";
+    /// <summary>
+    /// Author's full name.
+    /// </summary>
+    public override string Author => "0Pilot";
 
     /// <summary>
-    /// Keywords can be separated by colons.
+    /// Name of the module (short enough to fit inside a list-boxes, etc.).
+    /// </summary>
+    public override string Name => "GlobalHistogram";
+
+    /// <summary>
+    /// Tooltip for Param (text parameters).
     /// </summary>
     public override string Tooltip => "{ red | green | blue | gray} [, sort] [, alt]";
 
     /// <summary>
-    /// Current Param value.
+    /// Current 'Param' string is stored in the module.
+    /// Set reasonable initial value.
     /// </summary>
-    protected string currParam = "";
-
-    public void Recompute ()
+    public override string Param
     {
-      if (hForm != null &&
-          inImage != null)
+      get => Param;
+      set
       {
-        hImage = new Bitmap(hForm.ClientSize.Width, hForm.ClientSize.Height, PixelFormat.Format24bppRgb);
-        ImageHistogram.ComputeHistogram(inImage, currParam);
-        ImageHistogram.DrawHistogram(hImage);
-        hForm.SetResult(hImage);
+        if (value != Param)
+        {
+          Param = value;
+
+          recompute();
+        }
       }
     }
 
     /// <summary>
-    /// Param string was changed in the client/caller.
+    /// Usually read-only, optionally writable (client is defining number of inputs).
     /// </summary>
-    public override void UpdateParam (string par)
-    {
-      if (par != currParam)
-      {
-        currParam = par;
-
-        Recompute();
-      }
-    }
+    public override int InputSlots => 1;
 
     /// <summary>
     /// Input raster image.
@@ -67,57 +67,59 @@ namespace Modules
     /// </summary>
     protected Bitmap hImage = null;
 
-    /// <summary>
-    /// Activates/creates a new window.
-    /// Resets the input window.
-    /// </summary>
-    /// <param name="moduleManager">Reference to the module manager.</param>
-    public override void ActivateWindow (IRasterModuleManager moduleManager)
+    protected void recompute ()
     {
-      if (hForm == null)
+      if (hForm   != null &&
+          inImage != null)
       {
-        hForm = new HistogramForm(this);
-        hForm.Show();
-      }
-
-      Recompute();
-    }
-
-    /// <summary>
-    /// Called after an associated window (the last of associated windows) is closed.
-    /// </summary>
-    public override void OnWindowClose ()
-    {
-      if (hForm != null)
-      {
-        hForm.Hide();
-        hForm = null;
+        hImage = new Bitmap(hForm.ClientSize.Width, hForm.ClientSize.Height, PixelFormat.Format24bppRgb);
+        ImageHistogram.ComputeHistogram(inImage, Param);
+        ImageHistogram.DrawHistogram(hImage);
+        hForm.SetResult(hImage);
       }
     }
 
     /// <summary>
-    /// Returns true if there is at least one active GUI window associted with this module.
+    /// Returns true if there is an active GUI window associted with this module.
+    /// Open/close GUI window using the setter.
     /// </summary>
-    public override bool HasActiveWindow => hForm != null;
+    public override bool GuiWindow
+    {
+      get => hForm != null;
+      set
+      {
+        if (value)
+        {
+          // Show GUI window.
+          if (hForm == null)
+          {
+            hForm = new HistogramForm(this);
+            hForm.Show();
+          }
+
+          recompute();
+        }
+        else
+        {
+          hForm.Hide();
+          hForm = null;
+        }
+      }
+    }
 
     /// <summary>
-    /// The input image was changed in the client/caller.
+    /// Assigns an input raster image to the given slot.
+    /// Doesn't start computation (see #Update for this).
     /// </summary>
-    public override void InputImage (Bitmap inputImage)
+    /// <param name="inputImage">Input raster image (can be null).</param>
+    /// <param name="slot">Slot number from 0 to InputSlots-1.</param>
+    public override void SetInput (
+      Bitmap inputImage,
+      int slot = 0)
     {
       inImage = inputImage;
 
-      Recompute();
-    }
-
-    public override object Clone ()
-    {
-      ModuleGlobalHistogram me = this;
-      return new ModuleGlobalHistogram()
-      {
-        inImage = me.inImage,
-        currParam = me.currParam
-      };
+      recompute();
     }
   }
 }

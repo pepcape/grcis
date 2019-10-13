@@ -15,7 +15,7 @@ using Utilities;
 
 namespace _117raster
 {
-  public partial class FormMain : Form, IRasterModuleManager
+  public partial class FormMain : Form
   {
     static readonly string rev = Util.SetVersion("$Rev$");
 
@@ -126,32 +126,6 @@ namespace _117raster
       }
       else
         labelStatus.Text = text;
-    }
-
-    /// <summary>
-    /// [Re-]initializes raster module with the given name.
-    /// </summary>
-    /// <param name="moduleName"></param>
-    public void InitModule (string moduleName)
-    {
-      // !!! TODO
-    }
-
-    /// <summary>
-    /// [Re-]initializes GUI window of the given module.
-    /// </summary>
-    public void InitWindow (string moduleName)
-    {
-      // !!! TODO
-    }
-
-    /// <summary>
-    /// Called after an associated window (the last of associated windows) of the given module is closed.
-    /// Default behavior: nothing.
-    /// </summary>
-    public void OnWindowClose (string moduleName)
-    {
-      // !!! TODO
     }
 
     private void imageProbe (int x, int y)
@@ -352,9 +326,9 @@ namespace _117raster
       string moduleName = (string)comboBoxModule.Items[selectedModule];
       IRasterModule module = ModuleRegistry.CreateModule(moduleName);
       currModule = module;
-      module.ActivateWindow(this);
+      module.GuiWindow = true;
       if (inputImage != null)
-        module.InputImage(inputImage);
+        module.SetInput(inputImage);
     }
   }
 }
