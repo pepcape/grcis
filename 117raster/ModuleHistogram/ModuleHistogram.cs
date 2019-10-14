@@ -8,11 +8,11 @@ namespace Modules
 {
   public class ModuleGlobalHistogram : DefaultRasterModule
   {
+    /// <summary>
+    /// Mandatory plain constructor.
+    /// </summary>
     public ModuleGlobalHistogram ()
-    {
-      // Inital values.
-      Param = "gray";
-    }
+    {}
 
     /// <summary>
     /// Author's full name.
@@ -29,7 +29,7 @@ namespace Modules
     /// </summary>
     public override string Tooltip => "{ red | green | blue | gray} [, sort] [, alt]";
 
-    protected string param;
+    protected string param = "gray";
 
     /// <summary>
     /// Current 'Param' string is stored in the module.
@@ -43,6 +43,7 @@ namespace Modules
         if (value != param)
         {
           param = value;
+          dirty = true;     // to recompute histogram table
 
           recompute();
         }
@@ -55,9 +56,19 @@ namespace Modules
     public override int InputSlots => 1;
 
     /// <summary>
+    /// Usually read-only, optionally writable (client is defining number of outputs).
+    /// </summary>
+    public override int OutputSlots => 0;
+
+    /// <summary>
     /// Input raster image.
     /// </summary>
     protected Bitmap inImage = null;
+
+    /// <summary>
+    /// True if the histogram needs recomputation.
+    /// </summary>
+    protected bool dirty = true;
 
     /// <summary>
     /// Active histogram view window.
@@ -75,7 +86,11 @@ namespace Modules
           inImage != null)
       {
         hImage = new Bitmap(hForm.ClientSize.Width, hForm.ClientSize.Height, PixelFormat.Format24bppRgb);
-        ImageHistogram.ComputeHistogram(inImage, Param);
+        if (dirty)
+        {
+          ImageHistogram.ComputeHistogram(inImage, Param);
+          dirty = false;
+        }
         ImageHistogram.DrawHistogram(hImage);
         hForm.SetResult(hImage);
       }
@@ -120,6 +135,7 @@ namespace Modules
       int slot = 0)
     {
       inImage = inputImage;
+      dirty   = true;     // to recompute histogram table
 
       recompute();
     }
@@ -132,6 +148,14 @@ namespace Modules
     public override void Update ()
     {
       recompute();
+    }
+
+    /// <summary>
+    /// Notification: form window has closed.
+    /// </summary>
+    public void OnFormClose ()
+    {
+      hForm = null;
     }
   }
 }

@@ -2,6 +2,7 @@ using Raster;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Utilities;
 
@@ -208,16 +209,10 @@ namespace Modules
     /// </summary>
     public virtual KeyEventHandler KeyDown => null;
 
-    protected int inputSlots = 1;
-
     /// <summary>
     /// Usually read-only, optionally writable (client is defining number of inputs).
     /// </summary>
-    public virtual int InputSlots
-    {
-      get => inputSlots;
-      set {}
-    }
+    public virtual int InputSlots { get; set; } = 1;
 
     /// <summary>
     /// Assigns an input raster image to the given slot.
@@ -257,7 +252,11 @@ namespace Modules
       NotifyHandler notify = null
       )
     {
-      // !!! TODO: default async implementation !!!
+      _ = Task.Factory.StartNew(() =>
+      {
+        Update();
+        notify?.Invoke(this);
+      });
     }
 
     /// <summary>
@@ -280,19 +279,17 @@ namespace Modules
       int y,
       NotifyHandler notify = null)
     {
-      // !!! TODO: default async implementation !!!
+      _ = Task.Factory.StartNew(() =>
+      {
+        PixelUpdate(x, y);
+        notify?.Invoke(this);
+      });
     }
-
-    protected int outputSlots = 1;
 
     /// <summary>
     /// Usually read-only, sometimes writable (client is defining number of outputs).
     /// </summary>
-    public virtual int OutputSlots
-    {
-      get => outputSlots;
-      set {}
-    }
+    public virtual int OutputSlots { get; set; } = 1;
 
     /// <summary>
     /// Returns an output raster image.
@@ -314,11 +311,7 @@ namespace Modules
     /// Returns true if there is an active GUI window associted with this module.
     /// Open/close GUI window using the setter.
     /// </summary>
-    public virtual bool GuiWindow
-    {
-      get => false;
-      set {}
-    }
+    public virtual bool GuiWindow { get; set; } = false;
   }
 
   public class ModuleRegistry
@@ -328,7 +321,10 @@ namespace Modules
     /// </summary>
     internal static Dictionary<string, Type> reg = null;
 
-    internal static Type[] voidArgs = new Type[0];
+    /// <summary>
+    /// Support constant.
+    /// </summary>
+    internal static readonly Type[] voidArgs = new Type[0];
 
     /// <summary>
     /// Register a new module.

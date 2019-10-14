@@ -21,18 +21,17 @@ namespace _117raster
 
     /// <summary>
     /// Input image read from disk / drag-and-dropped.
+    /// null if no input was defined yet (InitialImage is displayed instead).
     /// </summary>
     private Bitmap inputImage = null;
 
-    /// <summary>
-    /// Optional output image for 'input->output' template.
-    /// </summary>
-    private Bitmap outputImage = null;
+    private string inputImageFileName = "";
 
     /// <summary>
-    /// Image currently displayed on the form.
+    /// Optional output image for 'input->output' template.
+    /// null if there is no output (EmptyImage is displayed instead).
     /// </summary>
-    private Bitmap displayedImage = null;
+    private Bitmap outputImage = null;
 
     /// <summary>
     /// Window title prefix (basic app title).
@@ -77,26 +76,15 @@ namespace _117raster
     {
       InitializeComponent();
 
-      // Touch all modules and force their registration.
-      // !!! TODO: automatic registration ???
-      new ModuleGlobalHistogram();
-
       titlePrefix = Text += " (" + rev + ")";
       SetWindowTitleSuffix(" Zoom: 100%");
 
-      // Placeholder image for PictureBox.
-      displayedImage = Resources.InitialImage;
-
       // Default PaZ button = Right.
-      panAndZoom = new PanAndZoomSupport(pictureBoxMain, displayedImage, SetWindowTitleSuffix)
+      panAndZoom = new PanAndZoomSupport(pictureBoxMain, Resources.InitialImage, SetWindowTitleSuffix)
       {
         Button = MouseButtons.Right
       };
       panAndZoom.UpdateZoomToMiddle(0.6f);
-
-      // Empty input/output image.
-      inputImage  = Resources.InitialImage;
-      outputImage = Resources.EmptyImage;
 
       // Modules registry => combo-box.
       foreach (string key in ModuleRegistry.RegisteredModuleNames())
@@ -118,7 +106,8 @@ namespace _117raster
     delegate void SetImageCallback (Bitmap newImage);
 
     /// <summary>
-    /// Sets displayed image.
+    /// Sets new output image (async support).
+    /// Not used yet.
     /// </summary>
     protected void SetImage (Bitmap newImage)
     {
@@ -129,14 +118,20 @@ namespace _117raster
       }
       else
       {
-        displayedImage = newImage;
-        panAndZoom.SetNewImage(displayedImage);
+        outputImage?.Dispose();
+        outputImage = newImage;
+        panAndZoom.SetNewImage(outputImage);
         pictureBoxMain.BackColor = imageBoxBackground;
+        buttonSaveImage.Enabled = outputImage != null;
       }
     }
 
     delegate void SetTextCallback (string text);
 
+    /// <summary>
+    /// Sets label text (async support).
+    /// </summary>
+    /// <param name="text"></param>
     protected void SetText (string text)
     {
       if (labelStatus.InvokeRequired)
@@ -148,20 +143,36 @@ namespace _117raster
         labelStatus.Text = text;
     }
 
+    /// <summary>
+    /// Displays pixel coordinates & color in the status line.
+    /// </summary>
     private void imageProbe (int x, int y)
     {
-      if (displayedImage == null)
+      Bitmap image = checkBoxResult.Checked
+        ? outputImage
+        : inputImage;
+
+      if (image == null)
         return;
 
-      x = Util.Clamp(x, 0, displayedImage.Width - 1);
-      y = Util.Clamp(y, 0, displayedImage.Height - 1);
+      if ((ModifierKeys & Keys.Shift) > 0)
+      {
+        SetText(checkBoxResult.Checked
+          ? $"- [{image.Width}x{image.Height}]"
+          : $"{inputImageFileName} [{image.Width}x{image.Height}]");
 
-      Color c = displayedImage.GetPixel(x, y);
+        return;
+      }
+
+      x = Util.Clamp(x, 0, image.Width - 1);
+      y = Util.Clamp(y, 0, image.Height - 1);
+
+      Color c = image.GetPixel(x, y);
       StringBuilder sb = new StringBuilder();
       sb.AppendFormat(" image[{0},{1}] = ", x, y);
-      if (displayedImage.PixelFormat == PixelFormat.Format32bppArgb ||
-          displayedImage.PixelFormat == PixelFormat.Format64bppArgb ||
-          displayedImage.PixelFormat == PixelFormat.Format16bppArgb1555)
+      if (image.PixelFormat == PixelFormat.Format32bppArgb ||
+          image.PixelFormat == PixelFormat.Format64bppArgb ||
+          image.PixelFormat == PixelFormat.Format16bppArgb1555)
         sb.AppendFormat("[{0},{1},{2},{3}] = #{0:X02}{1:X02}{2:X02}{3:X02}", c.R, c.G, c.B, c.A);
       else
         sb.AppendFormat("[{0},{1},{2}] = #{0:X02}{1:X02}{2:X02}", c.R, c.G, c.B);
@@ -208,10 +219,13 @@ namespace _117raster
       if (inp == null)
         return false;
 
+      inputImageFileName = fn;
       setImage(ref inputImage, inp);
-      setImage(ref outputImage, Resources.EmptyImage);
+      setImage(ref outputImage, null);
+      buttonSaveImage.Enabled = false;
 
       titleMiddle = " [" + fn + ']';
+      SetText($"{fn} [{inp.Width}x{inp.Height}]");
 
       recompute();
 
@@ -222,13 +236,11 @@ namespace _117raster
     {
       if (checkBoxResult.Checked)
       {
-        if (outputImage != null)
-          SetImage(outputImage);
+        panAndZoom.SetNewImage(outputImage ?? Resources.EmptyImage);
       }
       else
       {
-        if (inputImage != null)
-          SetImage(inputImage);
+        panAndZoom.SetNewImage(inputImage ?? Resources.InitialImage);
       }
     }
 
@@ -248,11 +260,15 @@ namespace _117raster
         // Recompute.
         currModule.Update();
 
+        // Gui visible if applicable.
+        currModule.GuiWindow = true;
+
         // Update result image.
         oi = currModule.GetOutput(0);
       }
 
-      setImage(ref outputImage, oi ?? Resources.EmptyImage);
+      setImage(ref outputImage, oi);
+      buttonSaveImage.Enabled = oi != null;
 
       // Display input or output image.
       displayImage();
@@ -380,12 +396,20 @@ namespace _117raster
       int selectedModule = comboBoxModule.SelectedIndex;
       string moduleName = (string)comboBoxModule.Items[selectedModule];
 
+      // Backup data of the old module.
+      if (currModule != null)
+        currModule.Param = textBoxParam.Text;
+
       currModule = modules.ContainsKey(moduleName)
         ? modules[moduleName]
         : modules[moduleName] = ModuleRegistry.CreateModule(moduleName);
 
+      buttonRecompute.Enabled = true;
+
+      // Data of the new module.
       textBoxParam.Text = currModule.Param;
       tooltip = currModule.Tooltip;
+
       currModule.GuiWindow = true;
       if (inputImage != null)
         currModule.SetInput(inputImage);
@@ -394,6 +418,19 @@ namespace _117raster
     private void buttonRecompute_Click (object sender, EventArgs e)
     {
       recompute(textBoxParam.Text);
+    }
+
+    private void checkBoxResult_CheckedChanged (object sender, EventArgs e)
+    {
+      displayImage();
+    }
+
+    private void comboBoxModule_SelectedIndexChanged (object sender, EventArgs e)
+    {
+      int selectedModule = comboBoxModule.SelectedIndex;
+      string moduleName = (string)comboBoxModule.Items[selectedModule];
+
+      buttonRecompute.Enabled = modules.ContainsKey(moduleName);
     }
   }
 }

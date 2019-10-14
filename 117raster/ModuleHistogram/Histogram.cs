@@ -15,20 +15,22 @@ namespace Utilities
     // Histogram mode (0 .. red, 1 .. green, 2 .. blue, 3 .. gray)
     protected static int mode = 3;
 
-    // Graph appearance.
+    // Graph appearance (just an example of second visualization option
+    // read from param string).
     protected static bool alt = false;
 
     /// <summary>
     /// Draws the current histogram to the given raster image.
     /// </summary>
     /// <param name="graph">Result image (already scaled to the desired size).</param>
-    public static void DrawHistogram (Bitmap graph)
+    public static void DrawHistogram (
+      Bitmap graph)
     {
       if (histArray == null)
         return;
 
       float max = 0.0f;
-      foreach (var f in histArray)
+      foreach (int f in histArray)
         if (f > max)
           max = f;
 
@@ -68,7 +70,9 @@ namespace Utilities
     /// </summary>
     /// <param name="input">Input image.</param>
     /// <param name="param">Textual parameter.</param>
-    public static void ComputeHistogram (Bitmap input, string param)
+    public static void ComputeHistogram (
+      Bitmap input,
+      string param)
     {
       // Text parameters:
       param = param.ToLower().Trim();
