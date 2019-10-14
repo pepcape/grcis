@@ -27,7 +27,7 @@ namespace Modules
     /// <summary>
     /// Tooltip for Param (text parameters).
     /// </summary>
-    public override string Tooltip => "{ red | green | blue | gray} [sort] [alt]";
+    public override string Tooltip => "{red | green | blue | gray} [sort] [alt]";
 
     /// <summary>
     /// Default mode - gray.
@@ -171,9 +171,9 @@ namespace Modules
     }
 
     /// <summary>
-    /// Notification: form window has closed.
+    /// Notification: GUI window has been closed.
     /// </summary>
-    public void OnFormClose ()
+    public override void OnGuiWindowClose ()
     {
       hForm = null;
     }

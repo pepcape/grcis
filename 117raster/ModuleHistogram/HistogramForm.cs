@@ -10,7 +10,10 @@ namespace Modules
     /// </summary>
     protected Bitmap backBuffer = null;
 
-    protected ModuleGlobalHistogram histogramModule;
+    /// <summary>
+    /// Associated raster module (to be notified in case of form close).
+    /// </summary>
+    protected IRasterModule module;
 
     public void SetResult (Bitmap result)
     {
@@ -19,9 +22,9 @@ namespace Modules
       Invalidate();
     }
 
-    public HistogramForm (ModuleGlobalHistogram hModule)
+    public HistogramForm (IRasterModule hModule)
     {
-      histogramModule = hModule;
+      module = hModule;
 
       InitializeComponent();
     }
@@ -31,7 +34,7 @@ namespace Modules
       backBuffer?.Dispose();
       backBuffer = null;
 
-      histogramModule?.OnFormClose();
+      module?.OnGuiWindowClose();
     }
 
     private void HistogramForm_Paint (object sender, PaintEventArgs e)
@@ -48,7 +51,7 @@ namespace Modules
           backBuffer.Width  != ClientSize.Width ||
           backBuffer.Height != ClientSize.Height)
       {
-        histogramModule.Update();
+        module.Update();
       }
     }
   }

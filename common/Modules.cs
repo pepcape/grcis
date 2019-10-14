@@ -162,6 +162,11 @@ namespace Modules
     /// Open/close GUI window using the setter.
     /// </summary>
     bool GuiWindow { get; set; }
+
+    /// <summary>
+    /// Notification: GUI window has been closed.
+    /// </summary>
+    void OnGuiWindowClose ();
   }
 
   public abstract class DefaultRasterModule : IRasterModule
@@ -322,6 +327,13 @@ namespace Modules
     /// Open/close GUI window using the setter.
     /// </summary>
     public virtual bool GuiWindow { get; set; } = false;
+
+    /// <summary>
+    /// Notification: GUI window has been closed.
+    /// </summary>
+    public virtual void OnGuiWindowClose ()
+    {
+    }
   }
 
   public class ModuleRegistry
