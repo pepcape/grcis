@@ -113,6 +113,11 @@ namespace Modules
       );
 
     /// <summary>
+    /// PixelUpdate() is called after every user interaction.
+    /// </summary>
+    bool HasPixelUpdate { get; }
+ 
+    /// <summary>
     /// Optional action performed at the given pixel.
     /// Blocking (synchronous) function.
     /// Logically equivalent to Update() but with potential local effect.
@@ -258,6 +263,11 @@ namespace Modules
         notify?.Invoke(this);
       });
     }
+
+    /// <summary>
+    /// PixelUpdate() is called after every user interaction.
+    /// </summary>
+    public virtual bool HasPixelUpdate => false;
 
     /// <summary>
     /// Optional action performed at the given pixel.
