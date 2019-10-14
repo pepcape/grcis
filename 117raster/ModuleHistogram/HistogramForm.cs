@@ -15,6 +15,7 @@ namespace Modules
 
     public void SetResult (Bitmap result)
     {
+      backBuffer?.Dispose();
       backBuffer = result;
       Invalidate();
     }
@@ -28,6 +29,8 @@ namespace Modules
 
     private void HistogramForm_FormClosed (object sender, FormClosedEventArgs e)
     {
+      backBuffer?.Dispose();
+      backBuffer = null;
     }
 
     private void HistogramForm_Paint (object sender, PaintEventArgs e)
@@ -41,7 +44,7 @@ namespace Modules
     private void HistogramForm_Resize (object sender, System.EventArgs e)
     {
       if (backBuffer == null ||
-          backBuffer.Width != ClientSize.Width ||
+          backBuffer.Width  != ClientSize.Width ||
           backBuffer.Height != ClientSize.Height)
       {
         histogramModule.Update();
