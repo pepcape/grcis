@@ -27,8 +27,11 @@ namespace Modules
     /// <summary>
     /// Tooltip for Param (text parameters).
     /// </summary>
-    public override string Tooltip => "{ red | green | blue | gray} [, sort] [, alt]";
+    public override string Tooltip => "{ red | green | blue | gray} [sort] [alt]";
 
+    /// <summary>
+    /// Default mode - gray.
+    /// </summary>
     protected string param = "gray";
 
     /// <summary>
@@ -134,8 +137,8 @@ namespace Modules
       Bitmap inputImage,
       int slot = 0)
     {
+      dirty   = inImage != inputImage;     // to recompute histogram table
       inImage = inputImage;
-      dirty   = true;     // to recompute histogram table
 
       recompute();
     }
@@ -146,6 +149,23 @@ namespace Modules
     /// #GetOutput() functions can be called after that.
     /// </summary>
     public override void Update ()
+    {
+      recompute();
+    }
+
+    /// <summary>
+    /// PixelUpdate() is called after every user interaction.
+    /// </summary>
+    public override bool HasPixelUpdate => true;
+
+    /// <summary>
+    /// Optional action performed at the given pixel.
+    /// Blocking (synchronous) function.
+    /// Logically equivalent to Update() but with potential local effect.
+    /// </summary>
+    public override void PixelUpdate (
+      int x,
+      int y)
     {
       recompute();
     }

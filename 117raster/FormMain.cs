@@ -274,6 +274,36 @@ namespace _117raster
       displayImage();
     }
 
+    private void recomputePixel (
+      int x,
+      int y)
+    {
+      Bitmap oi = null;
+
+      if (currModule != null &&
+          inputImage != null)
+      {
+        // Set input.
+        currModule.SetInput(inputImage);
+        currModule.Param = textBoxParam.Text;
+
+        // Recompute locally.
+        currModule.PixelUpdate(x, y);
+
+        // Gui visible if applicable.
+        currModule.GuiWindow = true;
+
+        // Update result image.
+        oi = currModule.GetOutput(0);
+      }
+
+      setImage(ref outputImage, oi);
+      buttonSaveImage.Enabled = oi != null;
+
+      // Display input or output image.
+      displayImage();
+    }
+
     private void buttonSaveImage_Click (object sender, EventArgs e)
     {
       if (outputImage == null)
@@ -345,7 +375,17 @@ namespace _117raster
     {
       pictureBoxMain.Focus();
 
-      panAndZoom.OnMouseDown(e, imageProbe, e.Button == MouseButtons.Left, ModifierKeys, out Cursor cursor);
+      bool localUpdate = (currModule != null) &&
+                         currModule.HasPixelUpdate &&
+                         (ModifierKeys & Keys.Control) > 0;
+      Cursor cursor;
+
+      if (localUpdate)
+        panAndZoom.OnMouseDown(e, recomputePixel, e.Button == MouseButtons.Left,
+          ModifierKeys, out cursor);
+      else
+        panAndZoom.OnMouseDown(e, imageProbe, e.Button == MouseButtons.Left,
+          ModifierKeys, out cursor);
 
       if (cursor != null)
         Cursor = cursor;
