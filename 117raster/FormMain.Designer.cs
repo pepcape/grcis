@@ -76,6 +76,7 @@
       this.comboBoxModule.Name = "comboBoxModule";
       this.comboBoxModule.Size = new System.Drawing.Size(346, 21);
       this.comboBoxModule.TabIndex = 1;
+      this.comboBoxModule.SelectedIndexChanged += new System.EventHandler(this.comboBoxModule_SelectedIndexChanged);
       // 
       // buttonModule
       // 
@@ -114,6 +115,7 @@
       // buttonSaveImage
       // 
       this.buttonSaveImage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonSaveImage.Enabled = false;
       this.buttonSaveImage.Location = new System.Drawing.Point(322, 506);
       this.buttonSaveImage.Name = "buttonSaveImage";
       this.buttonSaveImage.Size = new System.Drawing.Size(86, 23);
@@ -125,6 +127,7 @@
       // buttonRecompute
       // 
       this.buttonRecompute.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonRecompute.Enabled = false;
       this.buttonRecompute.Location = new System.Drawing.Point(230, 506);
       this.buttonRecompute.Name = "buttonRecompute";
       this.buttonRecompute.Size = new System.Drawing.Size(82, 23);
@@ -143,6 +146,7 @@
       this.checkBoxResult.TabIndex = 6;
       this.checkBoxResult.Text = "result";
       this.checkBoxResult.UseVisualStyleBackColor = true;
+      this.checkBoxResult.CheckedChanged += new System.EventHandler(this.checkBoxResult_CheckedChanged);
       // 
       // label2
       // 

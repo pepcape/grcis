@@ -1,6 +1,5 @@
-﻿using System.Windows.Forms;
-using System.Drawing;
-using System.Drawing.Imaging;
+﻿using System.Drawing;
+using System.Windows.Forms;
 
 namespace Modules
 {
@@ -31,6 +30,8 @@ namespace Modules
     {
       backBuffer?.Dispose();
       backBuffer = null;
+
+      histogramModule?.OnFormClose();
     }
 
     private void HistogramForm_Paint (object sender, PaintEventArgs e)
