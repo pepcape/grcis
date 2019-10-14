@@ -208,13 +208,15 @@ namespace Modules
     /// </summary>
     public virtual KeyEventHandler KeyDown => null;
 
+    protected int inputSlots = 1;
+
     /// <summary>
     /// Usually read-only, optionally writable (client is defining number of inputs).
     /// </summary>
     public virtual int InputSlots
     {
-      get => InputSlots;
-      set => InputSlots = 1;
+      get => inputSlots;
+      set {}
     }
 
     /// <summary>
@@ -281,13 +283,15 @@ namespace Modules
       // !!! TODO: default async implementation !!!
     }
 
+    protected int outputSlots = 1;
+
     /// <summary>
     /// Usually read-only, sometimes writable (client is defining number of outputs).
     /// </summary>
     public virtual int OutputSlots
     {
-      get => OutputSlots;
-      set => OutputSlots = 1;
+      get => outputSlots;
+      set {}
     }
 
     /// <summary>
@@ -312,45 +316,54 @@ namespace Modules
     /// </summary>
     public virtual bool GuiWindow
     {
-      get => GuiWindow;
-      set => GuiWindow = false;
+      get => false;
+      set {}
     }
   }
 
   public class ModuleRegistry
   {
     /// <summary>
-    /// Module.Name => prototype class.
+    /// Module.Author + Name => Type.
     /// </summary>
-    internal static Dictionary<string, Type> reg = new Dictionary<string, Type>();
+    internal static Dictionary<string, Type> reg = null;
+
+    internal static Type[] voidArgs = new Type[0];
 
     /// <summary>
     /// Register a new module.
     /// </summary>
-    public static void RegisterModules ()
+    /// <param name="onlyDefault">True for modules inherited from 'DefaultRasterModule'.</param>
+    public static void RegisterModules (
+      bool onlyDefault = true)
     {
-      IEnumerable<Type> compatible = TypeLoader.GetTypesWithInterface<DefaultRasterModule>();
+      reg = new Dictionary<string, Type>();
+      IEnumerable<Type> compatible = onlyDefault
+        ? TypeLoader.GetTypesWithInterface<DefaultRasterModule>()
+        : TypeLoader.GetTypesWithInterface<IRasterModule>();
+
       foreach (Type t in compatible)
       {
-        var constructor = t.GetConstructor(null);
+        var constructor = t.GetConstructor(voidArgs);
         if (constructor != null)
         {
-          IRasterModule rm = constructor.Invoke(null) as IRasterModule;
-          if (rm != null)
-            reg[rm.Name] = t;
+          if (constructor.Invoke(voidArgs) is IRasterModule rm)
+            reg[rm.Author + '-' + rm.Name] = t;
         }
       }
     }
 
     public static IRasterModule CreateModule (string name)
     {
+      if (reg == null)
+        RegisterModules();
+
       if (reg.ContainsKey(name))
       {
-        var constructor = reg[name].GetConstructor(null);
+        var constructor = reg[name].GetConstructor(voidArgs);
         if (constructor != null)
         {
-          IRasterModule rm = constructor.Invoke(null) as IRasterModule;
-          if (rm != null)
+          if (constructor.Invoke(voidArgs) is IRasterModule rm)
             return rm;
         }
       }
@@ -360,6 +373,9 @@ namespace Modules
 
     public static ICollection<string> RegisteredModuleNames ()
     {
+      if (reg == null)
+        RegisterModules();
+
       return reg.Keys;
     }
   }

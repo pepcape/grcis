@@ -14,7 +14,11 @@ namespace Rendering
     private readonly PictureBox pictureBox;
     private float zoom;
 
-    public Image image;
+    /// <summary>
+    /// Copy (prevention of image.Dispose() outside of this class) of the image.
+    /// </summary>
+    private Image image = null;
+
     private readonly Action<string> setWindowTitleSuffix;
 
     private PointF mouseDown;
@@ -39,23 +43,22 @@ namespace Rendering
     public MouseButtons Button
     {
       get; set;
-    }
+    } = MouseButtons.Left;
 
     /// <summary>
     /// Default constructor
     /// </summary>
-    /// <param name="pictureBox">Picturebox to apply to zoom and pan</param>
-    /// <param name="image">Image of picturebox</param>
-    /// <param name="setWindowTitleSuffix">Delegate to method which displays current zoom factor</param>
+    /// <param name="pictureBox">PictureBox to apply to zoom and pan.</param>
+    /// <param name="im">Image for pictureBox.</param>
+    /// <param name="setWindowTitleSuffix">Delegate to method which displays current zoom factor.</param>
     public PanAndZoomSupport (
       PictureBox pictureBox,
-      Image image,
+      Image im,
       Action<string> setWindowTitleSuffix)
     {
       this.pictureBox = pictureBox;
-      this.image = image;
+      setImage(im);
       this.setWindowTitleSuffix = setWindowTitleSuffix;
-      Button = MouseButtons.Left;
 
       zoom = 1;
 
@@ -69,6 +72,9 @@ namespace Rendering
     /// <returns>Clamped zoom</returns>
     private void ClampZoom ()
     {
+      if (image == null)
+        return;
+
       float minZoomFactor = minimalAbsoluteSizeInPixels / Math.Min(image.Width, image.Height);
       zoom = Math.Max(zoom, minZoomFactor);
     }
@@ -82,6 +88,9 @@ namespace Rendering
       int zoomIn,
       Keys modifierKeys)
     {
+      if (image == null)
+        return;
+
       PointF middle = new PointF
       {
         X =  imageX * zoom + 0.5f * image.Width  * zoom,
@@ -130,6 +139,9 @@ namespace Rendering
     public void UpdateZoomToMiddle (
       float newZoom)
     {
+      if (image == null)
+        return;
+
       PointF middle = new PointF
       {
         X =  imageX * zoom + 0.5f * image.Width  * zoom,
@@ -181,7 +193,9 @@ namespace Rendering
       float X = (absoluteX -  imageX * zoom) / zoom;
       float Y = (absoluteY -  imageY * zoom) / zoom;
 
-      if (X < 0 || X >= image.Width || Y < 0 || Y >= image.Height)
+      if (image == null ||
+          X < 0 || X >= image.Width ||
+          Y < 0 || Y >= image.Height)
         return new PointF(float.NaN, float.NaN); // cursor is outside of image
       else
         return new PointF(X, Y);
@@ -351,10 +365,13 @@ namespace Rendering
     /// <param name="saveToHistory">TRUE to make this new image to save to history</param>
     public void SetNewImage (
       Image newImage,
-      bool saveToHistory)
+      bool saveToHistory = false)
     {
       if (newImage == null)
         return;
+
+      setImage(newImage);
+      // Now 'image' contains copy of the new image..
 
       if (saveToHistory)
       {
@@ -362,11 +379,11 @@ namespace Rendering
             historyCapacity != 0)
           history.RemoveAt(0);
 
-        history.Add(newImage);
+        history.Add(image);
         historyIndex = history.Count - 1;
       }
 
-      SetImage(newImage);
+      selectImage(image);
     }
 
     /// <summary>
@@ -376,7 +393,7 @@ namespace Rendering
     {
       historyIndex++;
 
-      SetImage(history[historyIndex]);
+      selectImage(history[historyIndex]);
     }
 
     /// <summary>
@@ -386,7 +403,7 @@ namespace Rendering
     {
       historyIndex--;
 
-      SetImage(history[historyIndex]);
+      selectImage(history[historyIndex]);
     }
 
     /// <summary>
@@ -401,14 +418,21 @@ namespace Rendering
     /// <returns>TRUE if there is available previous (older than current one) image in history</returns>
     public bool PreviousImageAvailable => historyIndex > 0;
 
+    private void setImage (Image newImage)
+    {
+      image?.Dispose();
+      image = (Image)newImage.Clone();
+    }
+
     /// <summary>
-    /// Common set-image method for setting new image directly or from history
+    /// Common function for selecting image from history.
     /// Clamps zoom and makes PictureBox to refresh
     /// </summary>
     /// <param name="newImage">Image to set as active</param>
-    private void SetImage (Image newImage)
+    private void selectImage (Image newImage)
     {
       image = newImage;
+
       OutOfScreenFix();
       ClampZoom();
       pictureBox.Invalidate();

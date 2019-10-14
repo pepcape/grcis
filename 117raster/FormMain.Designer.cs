@@ -35,7 +35,7 @@
       this.labelStatus = new System.Windows.Forms.Label();
       this.buttonLoadImage = new System.Windows.Forms.Button();
       this.buttonSaveImage = new System.Windows.Forms.Button();
-      this.buttonUpdateImage = new System.Windows.Forms.Button();
+      this.buttonRecompute = new System.Windows.Forms.Button();
       this.checkBoxResult = new System.Windows.Forms.CheckBox();
       this.label2 = new System.Windows.Forms.Label();
       this.textBoxParam = new System.Windows.Forms.TextBox();
@@ -56,6 +56,7 @@
       this.pictureBoxMain.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxMain_MouseDown);
       this.pictureBoxMain.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBoxMain_MouseMove);
       this.pictureBoxMain.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBoxMain_MouseUp);
+      this.pictureBoxMain.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.pictureBoxMain_PreviewKeyDown);
       // 
       // label1
       // 
@@ -64,24 +65,24 @@
       this.label1.Location = new System.Drawing.Point(13, 472);
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size(45, 13);
-      this.label1.TabIndex = 1;
+      this.label1.TabIndex = 0;
       this.label1.Text = "Module:";
       // 
       // comboBoxModule
       // 
       this.comboBoxModule.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.comboBoxModule.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-      this.comboBoxModule.Location = new System.Drawing.Point(65, 469);
+      this.comboBoxModule.Location = new System.Drawing.Point(62, 469);
       this.comboBoxModule.Name = "comboBoxModule";
-      this.comboBoxModule.Size = new System.Drawing.Size(216, 21);
-      this.comboBoxModule.TabIndex = 2;
+      this.comboBoxModule.Size = new System.Drawing.Size(346, 21);
+      this.comboBoxModule.TabIndex = 1;
       // 
       // buttonModule
       // 
       this.buttonModule.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonModule.Location = new System.Drawing.Point(299, 468);
+      this.buttonModule.Location = new System.Drawing.Point(113, 506);
       this.buttonModule.Name = "buttonModule";
-      this.buttonModule.Size = new System.Drawing.Size(108, 23);
+      this.buttonModule.Size = new System.Drawing.Size(107, 23);
       this.buttonModule.TabIndex = 3;
       this.buttonModule.Text = "Activate module";
       this.buttonModule.UseVisualStyleBackColor = true;
@@ -95,7 +96,7 @@
       this.labelStatus.Location = new System.Drawing.Point(493, 471);
       this.labelStatus.Name = "labelStatus";
       this.labelStatus.Size = new System.Drawing.Size(377, 20);
-      this.labelStatus.TabIndex = 4;
+      this.labelStatus.TabIndex = 7;
       this.labelStatus.Text = "---  status ---";
       this.labelStatus.MouseHover += new System.EventHandler(this.labelStatus_MouseHover);
       // 
@@ -104,8 +105,8 @@
       this.buttonLoadImage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonLoadImage.Location = new System.Drawing.Point(16, 506);
       this.buttonLoadImage.Name = "buttonLoadImage";
-      this.buttonLoadImage.Size = new System.Drawing.Size(127, 23);
-      this.buttonLoadImage.TabIndex = 5;
+      this.buttonLoadImage.Size = new System.Drawing.Size(87, 23);
+      this.buttonLoadImage.TabIndex = 2;
       this.buttonLoadImage.Text = "Load image";
       this.buttonLoadImage.UseVisualStyleBackColor = true;
       this.buttonLoadImage.Click += new System.EventHandler(this.buttonLoadImage_Click);
@@ -113,23 +114,24 @@
       // buttonSaveImage
       // 
       this.buttonSaveImage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonSaveImage.Location = new System.Drawing.Point(299, 506);
+      this.buttonSaveImage.Location = new System.Drawing.Point(322, 506);
       this.buttonSaveImage.Name = "buttonSaveImage";
-      this.buttonSaveImage.Size = new System.Drawing.Size(108, 23);
-      this.buttonSaveImage.TabIndex = 6;
+      this.buttonSaveImage.Size = new System.Drawing.Size(86, 23);
+      this.buttonSaveImage.TabIndex = 5;
       this.buttonSaveImage.Text = "Save image";
       this.buttonSaveImage.UseVisualStyleBackColor = true;
       this.buttonSaveImage.Click += new System.EventHandler(this.buttonSaveImage_Click);
       // 
-      // buttonUpdateImage
+      // buttonRecompute
       // 
-      this.buttonUpdateImage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonUpdateImage.Location = new System.Drawing.Point(162, 506);
-      this.buttonUpdateImage.Name = "buttonUpdateImage";
-      this.buttonUpdateImage.Size = new System.Drawing.Size(119, 23);
-      this.buttonUpdateImage.TabIndex = 7;
-      this.buttonUpdateImage.Text = "Update image";
-      this.buttonUpdateImage.UseVisualStyleBackColor = true;
+      this.buttonRecompute.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonRecompute.Location = new System.Drawing.Point(230, 506);
+      this.buttonRecompute.Name = "buttonRecompute";
+      this.buttonRecompute.Size = new System.Drawing.Size(82, 23);
+      this.buttonRecompute.TabIndex = 4;
+      this.buttonRecompute.Text = "Recompute";
+      this.buttonRecompute.UseVisualStyleBackColor = true;
+      this.buttonRecompute.Click += new System.EventHandler(this.buttonRecompute_Click);
       // 
       // checkBoxResult
       // 
@@ -138,7 +140,7 @@
       this.checkBoxResult.Location = new System.Drawing.Point(426, 472);
       this.checkBoxResult.Name = "checkBoxResult";
       this.checkBoxResult.Size = new System.Drawing.Size(51, 17);
-      this.checkBoxResult.TabIndex = 8;
+      this.checkBoxResult.TabIndex = 6;
       this.checkBoxResult.Text = "result";
       this.checkBoxResult.UseVisualStyleBackColor = true;
       // 
@@ -149,7 +151,7 @@
       this.label2.Location = new System.Drawing.Point(423, 511);
       this.label2.Name = "label2";
       this.label2.Size = new System.Drawing.Size(40, 13);
-      this.label2.TabIndex = 9;
+      this.label2.TabIndex = 8;
       this.label2.Text = "Param:";
       // 
       // textBoxParam
@@ -159,7 +161,7 @@
       this.textBoxParam.Location = new System.Drawing.Point(474, 508);
       this.textBoxParam.Name = "textBoxParam";
       this.textBoxParam.Size = new System.Drawing.Size(396, 20);
-      this.textBoxParam.TabIndex = 10;
+      this.textBoxParam.TabIndex = 9;
       this.textBoxParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBoxParam_KeyPress);
       this.textBoxParam.MouseHover += new System.EventHandler(this.textBoxParam_MouseHover);
       // 
@@ -172,7 +174,7 @@
       this.Controls.Add(this.textBoxParam);
       this.Controls.Add(this.label2);
       this.Controls.Add(this.checkBoxResult);
-      this.Controls.Add(this.buttonUpdateImage);
+      this.Controls.Add(this.buttonRecompute);
       this.Controls.Add(this.buttonSaveImage);
       this.Controls.Add(this.buttonLoadImage);
       this.Controls.Add(this.labelStatus);
@@ -189,7 +191,6 @@
       this.Load += new System.EventHandler(this.FormMain_Load);
       this.DragDrop += new System.Windows.Forms.DragEventHandler(this.FormMain_DragDrop);
       this.DragEnter += new System.Windows.Forms.DragEventHandler(this.FormMain_DragEnter);
-      this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
       ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMain)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
@@ -205,7 +206,7 @@
     private System.Windows.Forms.Label labelStatus;
     private System.Windows.Forms.Button buttonLoadImage;
     private System.Windows.Forms.Button buttonSaveImage;
-    private System.Windows.Forms.Button buttonUpdateImage;
+    private System.Windows.Forms.Button buttonRecompute;
     private System.Windows.Forms.CheckBox checkBoxResult;
     private System.Windows.Forms.Label label2;
     private System.Windows.Forms.TextBox textBoxParam;

@@ -30,6 +30,11 @@ namespace _117raster
     private Bitmap outputImage = null;
 
     /// <summary>
+    /// Image currently displayed on the form.
+    /// </summary>
+    private Bitmap displayedImage = null;
+
+    /// <summary>
     /// Window title prefix (basic app title).
     /// </summary>
     private string titlePrefix = "";
@@ -58,6 +63,14 @@ namespace _117raster
     /// </summary>
     ToolTip tt = new ToolTip();
 
+    /// <summary>
+    /// Previously activated modules.
+    /// </summary>
+    Dictionary <string, IRasterModule> modules = new Dictionary<string, IRasterModule>();
+
+    /// <summary>
+    /// Current active module.
+    /// </summary>
     IRasterModule currModule = null;
 
     public FormMain ()
@@ -72,14 +85,18 @@ namespace _117raster
       SetWindowTitleSuffix(" Zoom: 100%");
 
       // Placeholder image for PictureBox.
-      Image image = Resources.InitialImage;
+      displayedImage = Resources.InitialImage;
 
       // Default PaZ button = Right.
-      panAndZoom = new PanAndZoomSupport(pictureBoxMain, image, SetWindowTitleSuffix)
+      panAndZoom = new PanAndZoomSupport(pictureBoxMain, displayedImage, SetWindowTitleSuffix)
       {
         Button = MouseButtons.Right
       };
       panAndZoom.UpdateZoomToMiddle(0.6f);
+
+      // Empty input/output image.
+      inputImage  = Resources.InitialImage;
+      outputImage = Resources.EmptyImage;
 
       // Modules registry => combo-box.
       foreach (string key in ModuleRegistry.RegisteredModuleNames())
@@ -100,6 +117,9 @@ namespace _117raster
 
     delegate void SetImageCallback (Bitmap newImage);
 
+    /// <summary>
+    /// Sets displayed image.
+    /// </summary>
     protected void SetImage (Bitmap newImage)
     {
       if (pictureBoxMain.InvokeRequired)
@@ -109,9 +129,9 @@ namespace _117raster
       }
       else
       {
-        panAndZoom.SetNewImage(newImage, false);
+        displayedImage = newImage;
+        panAndZoom.SetNewImage(displayedImage);
         pictureBoxMain.BackColor = imageBoxBackground;
-        setImage(ref outputImage, newImage);
       }
     }
 
@@ -130,18 +150,18 @@ namespace _117raster
 
     private void imageProbe (int x, int y)
     {
-      if (outputImage == null)
+      if (displayedImage == null)
         return;
 
-      x = Util.Clamp(x, 0, outputImage.Width - 1);
-      y = Util.Clamp(y, 0, outputImage.Height - 1);
+      x = Util.Clamp(x, 0, displayedImage.Width - 1);
+      y = Util.Clamp(y, 0, displayedImage.Height - 1);
 
-      Color c = outputImage.GetPixel(x, y);
+      Color c = displayedImage.GetPixel(x, y);
       StringBuilder sb = new StringBuilder();
       sb.AppendFormat(" image[{0},{1}] = ", x, y);
-      if (outputImage.PixelFormat == PixelFormat.Format32bppArgb ||
-          outputImage.PixelFormat == PixelFormat.Format64bppArgb ||
-          outputImage.PixelFormat == PixelFormat.Format16bppArgb1555)
+      if (displayedImage.PixelFormat == PixelFormat.Format32bppArgb ||
+          displayedImage.PixelFormat == PixelFormat.Format64bppArgb ||
+          displayedImage.PixelFormat == PixelFormat.Format16bppArgb1555)
         sb.AppendFormat("[{0},{1},{2},{3}] = #{0:X02}{1:X02}{2:X02}{3:X02}", c.R, c.G, c.B, c.A);
       else
         sb.AppendFormat("[{0},{1},{2}] = #{0:X02}{1:X02}{2:X02}", c.R, c.G, c.B);
@@ -188,16 +208,54 @@ namespace _117raster
       if (inp == null)
         return false;
 
-      //pictureBoxMain.Image = null;
       setImage(ref inputImage, inp);
-      setImage(ref outputImage, null);
+      setImage(ref outputImage, Resources.EmptyImage);
 
-      //recompute();
       titleMiddle = " [" + fn + ']';
-      SetImage(inputImage);
-      panAndZoom.ZoomToMiddle(0, ModifierKeys);
+
+      recompute();
 
       return true;
+    }
+
+    private void displayImage ()
+    {
+      if (checkBoxResult.Checked)
+      {
+        if (outputImage != null)
+          SetImage(outputImage);
+      }
+      else
+      {
+        if (inputImage != null)
+          SetImage(inputImage);
+      }
+    }
+
+    private void recompute (
+      string param = null)
+    {
+      Bitmap oi = null;
+
+      if (currModule != null &&
+          inputImage != null)
+      {
+        // Set input.
+        currModule.SetInput(inputImage);
+        if (param != null)
+          currModule.Param = param;
+
+        // Recompute.
+        currModule.Update();
+
+        // Update result image.
+        oi = currModule.GetOutput(0);
+      }
+
+      setImage(ref outputImage, oi ?? Resources.EmptyImage);
+
+      // Display input or output image.
+      displayImage();
     }
 
     private void buttonSaveImage_Click (object sender, EventArgs e)
@@ -247,7 +305,7 @@ namespace _117raster
       if (e.KeyChar == (char)Keys.Enter)
       {
         e.Handled = true;
-        // recompute();
+        recompute(textBoxParam.Text);
       }
     }
 
@@ -302,13 +360,10 @@ namespace _117raster
       panAndZoom.OnMouseWheel(e, ModifierKeys);
     }
 
-    private void FormMain_KeyDown (object sender, KeyEventArgs e)
+    private void pictureBoxMain_PreviewKeyDown (object sender, PreviewKeyDownEventArgs e)
     {
       if (e.KeyCode == Keys.R)
-      {
         panAndZoom.Reset();
-        e.Handled = true;
-      }
 
       panAndZoom.OnKeyDown(e.KeyCode, ModifierKeys);
     }
@@ -324,11 +379,21 @@ namespace _117raster
     {
       int selectedModule = comboBoxModule.SelectedIndex;
       string moduleName = (string)comboBoxModule.Items[selectedModule];
-      IRasterModule module = ModuleRegistry.CreateModule(moduleName);
-      currModule = module;
-      module.GuiWindow = true;
+
+      currModule = modules.ContainsKey(moduleName)
+        ? modules[moduleName]
+        : modules[moduleName] = ModuleRegistry.CreateModule(moduleName);
+
+      textBoxParam.Text = currModule.Param;
+      tooltip = currModule.Tooltip;
+      currModule.GuiWindow = true;
       if (inputImage != null)
-        module.SetInput(inputImage);
+        currModule.SetInput(inputImage);
+    }
+
+    private void buttonRecompute_Click (object sender, EventArgs e)
+    {
+      recompute(textBoxParam.Text);
     }
   }
 }

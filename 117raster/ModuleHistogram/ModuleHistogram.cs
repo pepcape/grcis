@@ -17,7 +17,7 @@ namespace Modules
     /// <summary>
     /// Author's full name.
     /// </summary>
-    public override string Author => "0Pilot";
+    public override string Author => "00pilot";
 
     /// <summary>
     /// Name of the module (short enough to fit inside a list-boxes, etc.).
@@ -29,18 +29,20 @@ namespace Modules
     /// </summary>
     public override string Tooltip => "{ red | green | blue | gray} [, sort] [, alt]";
 
+    protected string param;
+
     /// <summary>
     /// Current 'Param' string is stored in the module.
     /// Set reasonable initial value.
     /// </summary>
     public override string Param
     {
-      get => Param;
+      get => param;
       set
       {
-        if (value != Param)
+        if (value != param)
         {
-          Param = value;
+          param = value;
 
           recompute();
         }
@@ -119,6 +121,16 @@ namespace Modules
     {
       inImage = inputImage;
 
+      recompute();
+    }
+
+    /// <summary>
+    /// Recompute the output image[s] according to input image[s].
+    /// Blocking (synchronous) function.
+    /// #GetOutput() functions can be called after that.
+    /// </summary>
+    public override void Update ()
+    {
       recompute();
     }
   }
