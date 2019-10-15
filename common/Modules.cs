@@ -374,7 +374,7 @@ namespace Modules
     public static IRasterModule CreateModule (string name)
     {
       if (reg == null)
-        RegisterModules();
+        RegisterModules(false);
 
       if (reg.ContainsKey(name))
       {
@@ -392,7 +392,7 @@ namespace Modules
     public static ICollection<string> RegisteredModuleNames ()
     {
       if (reg == null)
-        RegisterModules();
+        RegisterModules(false);
 
       return reg.Keys;
     }

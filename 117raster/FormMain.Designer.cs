@@ -39,6 +39,8 @@
       this.checkBoxResult = new System.Windows.Forms.CheckBox();
       this.label2 = new System.Windows.Forms.Label();
       this.textBoxParam = new System.Windows.Forms.TextBox();
+      this.buttonSetInput = new System.Windows.Forms.Button();
+      this.buttonZoomReset = new System.Windows.Forms.Button();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMain)).BeginInit();
       this.SuspendLayout();
       // 
@@ -84,7 +86,7 @@
       this.buttonModule.Location = new System.Drawing.Point(113, 506);
       this.buttonModule.Name = "buttonModule";
       this.buttonModule.Size = new System.Drawing.Size(107, 23);
-      this.buttonModule.TabIndex = 3;
+      this.buttonModule.TabIndex = 5;
       this.buttonModule.Text = "Activate module";
       this.buttonModule.UseVisualStyleBackColor = true;
       this.buttonModule.Click += new System.EventHandler(this.buttonModule_Click);
@@ -94,10 +96,10 @@
       this.labelStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
       this.labelStatus.AutoEllipsis = true;
-      this.labelStatus.Location = new System.Drawing.Point(493, 471);
+      this.labelStatus.Location = new System.Drawing.Point(493, 472);
       this.labelStatus.Name = "labelStatus";
       this.labelStatus.Size = new System.Drawing.Size(377, 20);
-      this.labelStatus.TabIndex = 7;
+      this.labelStatus.TabIndex = 3;
       this.labelStatus.Text = "---  status ---";
       this.labelStatus.MouseHover += new System.EventHandler(this.labelStatus_MouseHover);
       // 
@@ -107,19 +109,19 @@
       this.buttonLoadImage.Location = new System.Drawing.Point(16, 506);
       this.buttonLoadImage.Name = "buttonLoadImage";
       this.buttonLoadImage.Size = new System.Drawing.Size(87, 23);
-      this.buttonLoadImage.TabIndex = 2;
+      this.buttonLoadImage.TabIndex = 4;
       this.buttonLoadImage.Text = "Load image";
       this.buttonLoadImage.UseVisualStyleBackColor = true;
       this.buttonLoadImage.Click += new System.EventHandler(this.buttonLoadImage_Click);
       // 
       // buttonSaveImage
       // 
-      this.buttonSaveImage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonSaveImage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.buttonSaveImage.Enabled = false;
-      this.buttonSaveImage.Location = new System.Drawing.Point(322, 506);
+      this.buttonSaveImage.Location = new System.Drawing.Point(784, 544);
       this.buttonSaveImage.Name = "buttonSaveImage";
       this.buttonSaveImage.Size = new System.Drawing.Size(86, 23);
-      this.buttonSaveImage.TabIndex = 5;
+      this.buttonSaveImage.TabIndex = 11;
       this.buttonSaveImage.Text = "Save image";
       this.buttonSaveImage.UseVisualStyleBackColor = true;
       this.buttonSaveImage.Click += new System.EventHandler(this.buttonSaveImage_Click);
@@ -131,7 +133,7 @@
       this.buttonRecompute.Location = new System.Drawing.Point(230, 506);
       this.buttonRecompute.Name = "buttonRecompute";
       this.buttonRecompute.Size = new System.Drawing.Size(82, 23);
-      this.buttonRecompute.TabIndex = 4;
+      this.buttonRecompute.TabIndex = 6;
       this.buttonRecompute.Text = "Recompute";
       this.buttonRecompute.UseVisualStyleBackColor = true;
       this.buttonRecompute.Click += new System.EventHandler(this.buttonRecompute_Click);
@@ -143,7 +145,7 @@
       this.checkBoxResult.Location = new System.Drawing.Point(426, 472);
       this.checkBoxResult.Name = "checkBoxResult";
       this.checkBoxResult.Size = new System.Drawing.Size(51, 17);
-      this.checkBoxResult.TabIndex = 6;
+      this.checkBoxResult.TabIndex = 2;
       this.checkBoxResult.Text = "result";
       this.checkBoxResult.UseVisualStyleBackColor = true;
       this.checkBoxResult.CheckedChanged += new System.EventHandler(this.checkBoxResult_CheckedChanged);
@@ -162,12 +164,35 @@
       // 
       this.textBoxParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.textBoxParam.Location = new System.Drawing.Point(474, 508);
+      this.textBoxParam.Location = new System.Drawing.Point(469, 508);
       this.textBoxParam.Name = "textBoxParam";
-      this.textBoxParam.Size = new System.Drawing.Size(396, 20);
+      this.textBoxParam.Size = new System.Drawing.Size(401, 20);
       this.textBoxParam.TabIndex = 9;
       this.textBoxParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBoxParam_KeyPress);
       this.textBoxParam.MouseHover += new System.EventHandler(this.textBoxParam_MouseHover);
+      // 
+      // buttonSetInput
+      // 
+      this.buttonSetInput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonSetInput.Enabled = false;
+      this.buttonSetInput.Location = new System.Drawing.Point(322, 506);
+      this.buttonSetInput.Name = "buttonSetInput";
+      this.buttonSetInput.Size = new System.Drawing.Size(86, 23);
+      this.buttonSetInput.TabIndex = 7;
+      this.buttonSetInput.Text = "Set as input";
+      this.buttonSetInput.UseVisualStyleBackColor = true;
+      this.buttonSetInput.Click += new System.EventHandler(this.buttonSetInput_Click);
+      // 
+      // buttonZoomReset
+      // 
+      this.buttonZoomReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonZoomReset.Location = new System.Drawing.Point(16, 544);
+      this.buttonZoomReset.Name = "buttonZoomReset";
+      this.buttonZoomReset.Size = new System.Drawing.Size(87, 23);
+      this.buttonZoomReset.TabIndex = 10;
+      this.buttonZoomReset.Text = "Zoom 100%";
+      this.buttonZoomReset.UseVisualStyleBackColor = true;
+      this.buttonZoomReset.Click += new System.EventHandler(this.buttonZoomReset_Click);
       // 
       // FormMain
       // 
@@ -175,6 +200,8 @@
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(884, 581);
+      this.Controls.Add(this.buttonZoomReset);
+      this.Controls.Add(this.buttonSetInput);
       this.Controls.Add(this.textBoxParam);
       this.Controls.Add(this.label2);
       this.Controls.Add(this.checkBoxResult);
@@ -214,6 +241,8 @@
     private System.Windows.Forms.CheckBox checkBoxResult;
     private System.Windows.Forms.Label label2;
     private System.Windows.Forms.TextBox textBoxParam;
+    private System.Windows.Forms.Button buttonSetInput;
+    private System.Windows.Forms.Button buttonZoomReset;
   }
 }
 

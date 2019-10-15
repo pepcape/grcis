@@ -25,6 +25,9 @@ namespace _117raster
     /// </summary>
     private Bitmap inputImage = null;
 
+    /// <summary>
+    /// Input image's file-name, ends with "*" if it has been computed.
+    /// </summary>
     private string inputImageFileName = "";
 
     /// <summary>
@@ -43,9 +46,21 @@ namespace _117raster
     /// </summary>
     private string titleMiddle = "";
 
-    private void SetWindowTitleSuffix (string suffix) => Text = string.IsNullOrEmpty(suffix)
+    private void setWindowTitleSuffix (string suffix) => Text = string.IsNullOrEmpty(suffix)
       ? titlePrefix + titleMiddle
       : titlePrefix + titleMiddle + ' ' + suffix;
+
+    /// <summary>
+    ///  Enables the 'Save image' and 'Set as input' buttons.
+    /// </summary>
+    private void setSaveButton ()
+    {
+      buttonSaveImage.Enabled = checkBoxResult.Checked
+        ? outputImage != null
+        : inputImage  != null;
+
+      buttonSetInput.Enabled = outputImage != null;
+    }
 
     /// <summary>
     /// Object responsible for interactive pan-and-zoom (right mouse button, mouse wheel).
@@ -77,10 +92,10 @@ namespace _117raster
       InitializeComponent();
 
       titlePrefix = Text += " (" + rev + ")";
-      SetWindowTitleSuffix(" Zoom: 100%");
+      setWindowTitleSuffix(" Zoom: 100%");
 
       // Default PaZ button = Right.
-      panAndZoom = new PanAndZoomSupport(pictureBoxMain, Resources.InitialImage, SetWindowTitleSuffix)
+      panAndZoom = new PanAndZoomSupport(pictureBoxMain, Resources.InitialImage, setWindowTitleSuffix)
       {
         Button = MouseButtons.Right
       };
@@ -122,7 +137,7 @@ namespace _117raster
         outputImage = newImage;
         panAndZoom.SetNewImage(outputImage);
         pictureBoxMain.BackColor = imageBoxBackground;
-        buttonSaveImage.Enabled = outputImage != null;
+        setSaveButton();
       }
     }
 
@@ -222,8 +237,8 @@ namespace _117raster
       inputImageFileName = fn;
       setImage(ref inputImage, inp);
       setImage(ref outputImage, null);
-      buttonSaveImage.Enabled = false;
 
+      setSaveButton();
       titleMiddle = " [" + fn + ']';
       SetText($"{fn} [{inp.Width}x{inp.Height}]");
 
@@ -268,7 +283,7 @@ namespace _117raster
       }
 
       setImage(ref outputImage, oi);
-      buttonSaveImage.Enabled = oi != null;
+      setSaveButton();
 
       // Display input or output image.
       displayImage();
@@ -298,7 +313,7 @@ namespace _117raster
       }
 
       setImage(ref outputImage, oi);
-      buttonSaveImage.Enabled = oi != null;
+      setSaveButton();
 
       // Display input or output image.
       displayImage();
@@ -371,6 +386,22 @@ namespace _117raster
       panAndZoom.OnPaint(e);
     }
 
+    /// <summary>
+    /// Transforms a mouse event using 'pan-and-zoom' coordinate transform.
+    /// </summary>
+    private MouseEventArgs transformMouseEvent (
+      MouseEventArgs e)
+    {
+      PointF relative = panAndZoom.GetRelativeCursorLocation(e.X, e.Y);
+
+      return new MouseEventArgs(
+          e.Button,
+          e.Clicks,
+          (int)Math.Round(relative.X),
+          (int)Math.Round(relative.Y),
+          e.Delta);
+    }
+
     private void pictureBoxMain_MouseDown (object sender, MouseEventArgs e)
     {
       pictureBoxMain.Focus();
@@ -387,6 +418,11 @@ namespace _117raster
         panAndZoom.OnMouseDown(e, imageProbe, e.Button == MouseButtons.Left,
           ModifierKeys, out cursor);
 
+      // Module's mouse handling.
+      if (currModule != null &&
+          currModule.MouseDown != null)
+        currModule.MouseDown(sender, transformMouseEvent(e));
+
       if (cursor != null)
         Cursor = cursor;
     }
@@ -395,12 +431,22 @@ namespace _117raster
     {
       panAndZoom.OnMouseUp(out Cursor cursor);
 
+      // Module's mouse handling.
+      if (currModule != null &&
+          currModule.MouseUp != null)
+        currModule.MouseUp(sender, transformMouseEvent(e));
+
       Cursor = cursor;
     }
 
     private void pictureBoxMain_MouseMove (object sender, MouseEventArgs e)
     {
       panAndZoom.OnMouseMove(e, imageProbe, e.Button == MouseButtons.Left, ModifierKeys, out Cursor cursor);
+
+      // Module's mouse handling.
+      if (currModule != null &&
+          currModule.MouseMove != null)
+        currModule.MouseMove(sender, transformMouseEvent(e));
 
       if (cursor != null)
         Cursor = cursor;
@@ -414,14 +460,21 @@ namespace _117raster
     private void pictureBoxMain_MouseWheel (object sender, MouseEventArgs e)
     {
       panAndZoom.OnMouseWheel(e, ModifierKeys);
+
+      // Module's mouse handling.
+      if (currModule != null &&
+          currModule.MouseWheel != null)
+        currModule.MouseWheel(sender, transformMouseEvent(e));
     }
 
     private void pictureBoxMain_PreviewKeyDown (object sender, PreviewKeyDownEventArgs e)
     {
-      if (e.KeyCode == Keys.R)
-        panAndZoom.Reset();
-
       panAndZoom.OnKeyDown(e.KeyCode, ModifierKeys);
+
+      // Module's key handling.
+      if (currModule != null &&
+          currModule.KeyDown != null)
+        currModule.KeyDown(sender, new KeyEventArgs(e.KeyData));
     }
 
     private void FormMain_Load (object sender, EventArgs e)
@@ -463,6 +516,7 @@ namespace _117raster
     private void checkBoxResult_CheckedChanged (object sender, EventArgs e)
     {
       displayImage();
+      setSaveButton();
     }
 
     private void comboBoxModule_SelectedIndexChanged (object sender, EventArgs e)
@@ -471,6 +525,25 @@ namespace _117raster
       string moduleName = (string)comboBoxModule.Items[selectedModule];
 
       buttonRecompute.Enabled = modules.ContainsKey(moduleName);
+    }
+
+    private void buttonZoomReset_Click (object sender, EventArgs e)
+    {
+      panAndZoom.Reset();
+    }
+
+    private void buttonSetInput_Click (object sender, EventArgs e)
+    {
+      if (outputImage == null)
+        return;
+
+      inputImageFileName += "*";
+      setImage(ref inputImage, outputImage);
+      outputImage = null;
+
+      setSaveButton();
+      titleMiddle = " [" + inputImageFileName + ']';
+      SetText($"{inputImageFileName} [{inputImage.Width}x{inputImage.Height}]");
     }
   }
 }
