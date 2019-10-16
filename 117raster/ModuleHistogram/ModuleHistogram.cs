@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Utilities;
@@ -121,7 +119,7 @@ namespace Modules
         }
         else
         {
-          hForm.Hide();
+          hForm?.Hide();
           hForm = null;
         }
       }
@@ -148,10 +146,7 @@ namespace Modules
     /// Blocking (synchronous) function.
     /// #GetOutput() functions can be called after that.
     /// </summary>
-    public override void Update ()
-    {
-      recompute();
-    }
+    public override void Update () => recompute();
 
     /// <summary>
     /// PixelUpdate() is called after every user interaction.
@@ -165,10 +160,7 @@ namespace Modules
     /// </summary>
     public override void PixelUpdate (
       int x,
-      int y)
-    {
-      recompute();
-    }
+      int y) => recompute();
 
     /// <summary>
     /// Notification: GUI window has been closed.

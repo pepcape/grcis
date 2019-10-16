@@ -77,15 +77,16 @@
       this.comboBoxModule.Location = new System.Drawing.Point(62, 469);
       this.comboBoxModule.Name = "comboBoxModule";
       this.comboBoxModule.Size = new System.Drawing.Size(346, 21);
+      this.comboBoxModule.Sorted = true;
       this.comboBoxModule.TabIndex = 1;
       this.comboBoxModule.SelectedIndexChanged += new System.EventHandler(this.comboBoxModule_SelectedIndexChanged);
       // 
       // buttonModule
       // 
       this.buttonModule.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonModule.Location = new System.Drawing.Point(113, 506);
+      this.buttonModule.Location = new System.Drawing.Point(105, 506);
       this.buttonModule.Name = "buttonModule";
-      this.buttonModule.Size = new System.Drawing.Size(107, 23);
+      this.buttonModule.Size = new System.Drawing.Size(105, 23);
       this.buttonModule.TabIndex = 5;
       this.buttonModule.Text = "Activate module";
       this.buttonModule.UseVisualStyleBackColor = true;
@@ -108,7 +109,7 @@
       this.buttonLoadImage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonLoadImage.Location = new System.Drawing.Point(16, 506);
       this.buttonLoadImage.Name = "buttonLoadImage";
-      this.buttonLoadImage.Size = new System.Drawing.Size(87, 23);
+      this.buttonLoadImage.Size = new System.Drawing.Size(79, 23);
       this.buttonLoadImage.TabIndex = 4;
       this.buttonLoadImage.Text = "Load image";
       this.buttonLoadImage.UseVisualStyleBackColor = true;
@@ -130,7 +131,7 @@
       // 
       this.buttonRecompute.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonRecompute.Enabled = false;
-      this.buttonRecompute.Location = new System.Drawing.Point(230, 506);
+      this.buttonRecompute.Location = new System.Drawing.Point(220, 506);
       this.buttonRecompute.Name = "buttonRecompute";
       this.buttonRecompute.Size = new System.Drawing.Size(82, 23);
       this.buttonRecompute.TabIndex = 6;
@@ -175,11 +176,11 @@
       // 
       this.buttonSetInput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonSetInput.Enabled = false;
-      this.buttonSetInput.Location = new System.Drawing.Point(322, 506);
+      this.buttonSetInput.Location = new System.Drawing.Point(312, 506);
       this.buttonSetInput.Name = "buttonSetInput";
-      this.buttonSetInput.Size = new System.Drawing.Size(86, 23);
+      this.buttonSetInput.Size = new System.Drawing.Size(95, 23);
       this.buttonSetInput.TabIndex = 7;
-      this.buttonSetInput.Text = "Set as input";
+      this.buttonSetInput.Text = "Result -> input";
       this.buttonSetInput.UseVisualStyleBackColor = true;
       this.buttonSetInput.Click += new System.EventHandler(this.buttonSetInput_Click);
       // 
@@ -188,7 +189,7 @@
       this.buttonZoomReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.buttonZoomReset.Location = new System.Drawing.Point(16, 544);
       this.buttonZoomReset.Name = "buttonZoomReset";
-      this.buttonZoomReset.Size = new System.Drawing.Size(87, 23);
+      this.buttonZoomReset.Size = new System.Drawing.Size(79, 23);
       this.buttonZoomReset.TabIndex = 10;
       this.buttonZoomReset.Text = "Zoom 100%";
       this.buttonZoomReset.UseVisualStyleBackColor = true;

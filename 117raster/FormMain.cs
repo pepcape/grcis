@@ -3,13 +3,11 @@ using Modules;
 using Rendering;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Linq;
+using System.Globalization;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Utilities;
 
@@ -59,7 +57,8 @@ namespace _117raster
         ? outputImage != null
         : inputImage  != null;
 
-      buttonSetInput.Enabled = outputImage != null;
+      buttonSetInput.Enabled = checkBoxResult.Checked &&
+                               outputImage != null;
     }
 
     /// <summary>
@@ -250,17 +249,12 @@ namespace _117raster
     private void displayImage ()
     {
       if (checkBoxResult.Checked)
-      {
         panAndZoom.SetNewImage(outputImage ?? Resources.EmptyImage);
-      }
       else
-      {
         panAndZoom.SetNewImage(inputImage ?? Resources.InitialImage);
-      }
     }
 
-    private void recompute (
-      string param = null)
+    private void recompute ()
     {
       Bitmap oi = null;
 
@@ -269,11 +263,19 @@ namespace _117raster
       {
         // Set input.
         currModule.SetInput(inputImage);
-        if (param != null)
-          currModule.Param = param;
+        currModule.Param = textBoxParam.Text;
+
+        // Measure the recompute time.
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
 
         // Recompute.
         currModule.Update();
+
+        // Elapsed time in milliseconds.
+        sw.Stop();
+        long elapsed = sw.ElapsedMilliseconds;
+        SetText(string.Format(CultureInfo.InvariantCulture, "Elapsed: {0:0.000}s", 0.001 * elapsed));
 
         // Gui visible if applicable.
         currModule.GuiWindow = true;
@@ -283,6 +285,7 @@ namespace _117raster
       }
 
       setImage(ref outputImage, oi);
+      checkBoxResult.Checked = oi != null;
       setSaveButton();
 
       // Display input or output image.
@@ -366,7 +369,7 @@ namespace _117raster
       if (e.KeyChar == (char)Keys.Enter)
       {
         e.Handled = true;
-        recompute(textBoxParam.Text);
+        recompute();
       }
     }
 
@@ -489,28 +492,42 @@ namespace _117raster
       int selectedModule = comboBoxModule.SelectedIndex;
       string moduleName = (string)comboBoxModule.Items[selectedModule];
 
-      // Backup data of the old module.
-      if (currModule != null)
-        currModule.Param = textBoxParam.Text;
+      // Is the selected module activated?
+      bool activated = modules.ContainsKey(moduleName);
 
-      currModule = modules.ContainsKey(moduleName)
-        ? modules[moduleName]
-        : modules[moduleName] = ModuleRegistry.CreateModule(moduleName);
+      if (activated)
+      {
+        // Deactivate the current module.
+        currModule.GuiWindow = false;
+        modules.Remove(moduleName);
+        currModule = null;
 
-      buttonRecompute.Enabled = true;
+        // Form.
+        textBoxParam.Text = "";
+        tooltip = "";
+        buttonModule.Text = "Activate module";
+      }
+      else
+      {
+        // Activate the module.
+        currModule = modules[moduleName] = ModuleRegistry.CreateModule(moduleName);
 
-      // Data of the new module.
-      textBoxParam.Text = currModule.Param;
-      tooltip = currModule.Tooltip;
+        // Form.
+        textBoxParam.Text = currModule.Param;
+        tooltip = currModule.Tooltip;
+        buttonModule.Text = "Deactivate module";
 
-      currModule.GuiWindow = true;
-      if (inputImage != null)
-        currModule.SetInput(inputImage);
+        currModule.GuiWindow = true;
+        if (inputImage != null)
+          currModule.SetInput(inputImage);
+      }
+
+      buttonRecompute.Enabled = !activated;
     }
 
     private void buttonRecompute_Click (object sender, EventArgs e)
     {
-      recompute(textBoxParam.Text);
+      recompute();
     }
 
     private void checkBoxResult_CheckedChanged (object sender, EventArgs e)
@@ -524,7 +541,38 @@ namespace _117raster
       int selectedModule = comboBoxModule.SelectedIndex;
       string moduleName = (string)comboBoxModule.Items[selectedModule];
 
-      buttonRecompute.Enabled = modules.ContainsKey(moduleName);
+      // Backup data of the old module.
+      if (currModule != null)
+        currModule.Param = textBoxParam.Text;
+
+      // Is the new selected module activated?
+      bool activated = modules.ContainsKey(moduleName);
+
+      if (activated)
+      {
+        // Switch data for the new module.
+        currModule = modules[moduleName];
+
+        // Form.
+        textBoxParam.Text = currModule.Param;
+        tooltip = currModule.Tooltip;
+        buttonModule.Text = "Deactivate module";
+
+        currModule.GuiWindow = true;
+        if (inputImage != null)
+          currModule.SetInput(inputImage);
+      }
+      else
+      {
+        currModule = null;
+
+        // Form.
+        textBoxParam.Text = "";
+        tooltip = "";
+        buttonModule.Text = "Activate module";
+      }
+
+      buttonRecompute.Enabled = activated;
     }
 
     private void buttonZoomReset_Click (object sender, EventArgs e)
