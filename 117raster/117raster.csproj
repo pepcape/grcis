@@ -75,6 +75,9 @@
     <Compile Include="..\common\Util.cs">
       <Link>Util.cs</Link>
     </Compile>
+    <Compile Include="..\modules\Pixelize\ModulePixelize.cs">
+      <Link>ModulePixelize\ModulePixelize.cs</Link>
+    </Compile>
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
     </Compile>
