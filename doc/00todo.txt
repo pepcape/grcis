@@ -79,10 +79,11 @@ Old tasks:
 114transition (2D image -> 2D image transition, 2018)
 115colormandala (cyclic color-map for mandala-style images, 2018)
 116 (task only, animated realtime camera, 2018)
-117 (task only, hash functions for textures, 2018)
 ----
 117raster (template for modular raster image project, 2019)
 118histogram (alternative image histogram, 2019)
+119 (task only, hash functions for textures, 2018)
+120 free
 ...
 
 ================================================================================
