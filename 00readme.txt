@@ -4,6 +4,20 @@ is a C# language library supporting computer graphics courses
 at Computer Graphics Group, Charles University in Prague:
  http://cgg.mff.cuni.cz/
 
+Subversion
+----------
+svn://cgg.mff.cuni.cz/grcis/trunk
+
+GIT
+---
+https://github.com/pepcape/grcis.git
+
+GIT<->SVN sync according to
+---------------------------
+https://gist.github.com/stefanfoulis/909746
+
+---------------------------------------------------
+
 History of GrCis goes back to 2010.
 
 Supported courses
