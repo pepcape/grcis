@@ -292,6 +292,12 @@ namespace _117raster
       displayImage();
     }
 
+    /// <summary>
+    /// Called every time left mouse button is pressed WHILE Ctrl key is down
+    /// and the current module has positive 'HasPixelUpdate'.
+    /// </summary>
+    /// <param name="x">Recomputed image coordinate in pixels.</param>
+    /// <param name="y">Recomputed image coordinate in pixels.</param>
     private void recomputePixel (
       int x,
       int y)
