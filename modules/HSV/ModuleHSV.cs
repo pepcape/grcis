@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.Threading.Tasks;
 using Utilities;
 
@@ -37,6 +38,11 @@ namespace Modules
     protected string param = "mulS=1.4,par";
 
     /// <summary>
+    /// True if 'param' has to be parsed in the next recompute() call.
+    /// </summary>
+    protected bool paramDirty = true;
+
+    /// <summary>
     /// Current 'Param' string is stored in the module.
     /// Set reasonable initial value.
     /// </summary>
@@ -48,6 +54,7 @@ namespace Modules
         if (value != param)
         {
           param = value;
+          paramDirty = true;
           recompute();
         }
       }
@@ -74,6 +81,26 @@ namespace Modules
     protected Bitmap outImage = null;
 
     /// <summary>
+    /// Absolute Hue delta in degrees.
+    /// </summary>
+    protected double dH = 0.0;
+
+    /// <summary>
+    /// Saturation multiplier.
+    /// </summary>
+    protected double mS = 1.0;
+
+    /// <summary>
+    /// Value multiplier.
+    /// </summary>
+    protected double mV = 1.0;
+
+    /// <summary>
+    /// Gamma-correction coefficient (visible value = inverse value).
+    /// </summary>
+    protected double gamma = 1.0;
+
+    /// <summary>
     /// Slow computation (using GetPixel/SetPixel).
     /// </summary>
     protected bool slow = false;
@@ -84,6 +111,51 @@ namespace Modules
     protected bool parallel = false;
 
     /// <summary>
+    /// Active HSV form.
+    /// </summary>
+    protected FormHSV hsvForm = null;
+
+    protected void updateParam ()
+    {
+      if (paramDirty)
+      {
+        paramDirty = false;
+
+        // 'param' parsing.
+        Dictionary<string, string> p = Util.ParseKeyValueList(param);
+        if (p.Count > 0)
+        {
+          // dH=<double> [+- number in degrees]
+          Util.TryParse(p, "dH", ref dH);
+
+          // mulS=<double> [relative number .. multiplicator]
+          Util.TryParse(p, "mulS", ref mS);
+
+          // mulV=<double> [relative number .. multiplicator]
+          Util.TryParse(p, "mulV", ref mV);
+
+          // gamma=<double> [gamma correction .. exponent]
+          if (Util.TryParse(p, "gamma", ref gamma))
+          {
+            // <= 0.0 || 1.0.. nothing
+            if (gamma < 0.001)
+              gamma = 1.0;
+            else
+              gamma = 1.0 / gamma;
+          }
+
+          // par .. use Parallel.For
+          parallel = p.ContainsKey("par");
+
+          // slow .. set GetPixel/SetPixel computation
+          slow = p.ContainsKey("slow");
+        }
+      }
+
+      formUpdate();
+    }
+
+    /// <summary>
     /// Recompute the image.
     /// </summary>
     protected void recompute ()
@@ -91,40 +163,8 @@ namespace Modules
       if (inImage == null)
         return;
 
-      double dH = 0.0;
-      double mS = 1.0;
-      double mV = 1.0;
-      double gamma = 1.0;
-
-      // 'param' parsing.
-      Dictionary<string, string> p = Util.ParseKeyValueList(param);
-      if (p.Count > 0)
-      {
-        // dH=<double> [+- number in degrees]
-        Util.TryParse(p, "dH", ref dH);
-
-        // mulS=<double> [relative number .. multiplicator]
-        Util.TryParse(p, "mulS", ref mS);
-
-        // mulV=<double> [relative number .. multiplicator]
-        Util.TryParse(p, "mulV", ref mV);
-
-        // gamma=<double> [gamma correction .. exponent]
-        if (Util.TryParse(p, "gamma", ref gamma))
-        {
-          // <= 0.0 || 1.0.. nothing
-          if (gamma < 0.001)
-            gamma = 1.0;
-          else
-            gamma = 1.0 / gamma;
-        }
-
-        // par .. use Parallel.For
-        parallel = p.ContainsKey("par");
-
-        // slow .. set GetPixel/SetPixel computation
-        slow = p.ContainsKey("slow");
-      }
+      // Update module values from 'param' string.
+      updateParam();
 
       int wid = inImage.Width;
       int hei = inImage.Height;
@@ -251,6 +291,21 @@ namespace Modules
     }
 
     /// <summary>
+    /// Sendd ModuleHSV values to the form elements.
+    /// </summary>
+    protected void formUpdate ()
+    {
+      if (hsvForm == null)
+        return;
+
+      hsvForm.numericHue.Value = Convert.ToDecimal(dH);
+      hsvForm.textSaturation.Text = string.Format(CultureInfo.InvariantCulture, "{0}", mS);
+      hsvForm.textValue.Text = string.Format(CultureInfo.InvariantCulture, "{0}", mV);
+      hsvForm.checkParallel.Checked = parallel;
+      hsvForm.checkSlow.Checked = slow;
+    }
+
+    /// <summary>
     /// Assigns an input raster image to the given slot.
     /// Doesn't start computation (see #Update for this).
     /// </summary>
@@ -277,5 +332,32 @@ namespace Modules
     /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
     public override Bitmap GetOutput (
       int slot = 0) => outImage;
+
+    /// <summary>
+    /// Returns true if there is an active GUI window associted with this module.
+    /// You can open/close GUI window using the setter.
+    /// </summary>
+    public override bool GuiWindow
+    {
+      get => hsvForm != null;
+      set
+      {
+        if (value)
+        {
+          // Show GUI window.
+          if (hsvForm == null)
+          {
+            hsvForm = new FormHSV(this);
+            formUpdate();
+            hsvForm.Show();
+          }
+        }
+        else
+        {
+          hsvForm?.Hide();
+          hsvForm = null;
+        }
+      }
+    }
   }
 }

@@ -340,8 +340,7 @@ namespace Modules
     /// Notification: GUI window has been closed.
     /// </summary>
     public virtual void OnGuiWindowClose ()
-    {
-    }
+    {}
   }
 
   public class ModuleRegistry

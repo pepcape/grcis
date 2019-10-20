@@ -95,6 +95,14 @@
       <DependentUpon>HistogramForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ModuleHistogram\ModuleHistogram.cs" />
+    <Compile Include="..\modules\HSV\FormHSV.cs">
+      <Link>ModuleHSV\FormHSV.cs</Link>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="..\modules\HSV\FormHSV.Designer.cs">
+      <Link>ModuleHSV\FormHSV.Designer.cs</Link>
+      <DependentUpon>FormHSV.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="FormMain.resx">
@@ -102,6 +110,10 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ModuleHistogram\HistogramForm.resx">
       <DependentUpon>HistogramForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\modules\HSV\FormHSV.resx">
+      <Link>ModuleHSV\FormHSV.resx</Link>
+      <DependentUpon>FormHSV.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
