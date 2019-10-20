@@ -421,7 +421,9 @@ namespace Rendering
     private void setImage (Image newImage)
     {
       image?.Dispose();
-      image = (Image)newImage.Clone();
+      Bitmap bmp = (Bitmap)newImage.Clone();
+      bmp.SetResolution(96.0f, 96.0f);
+      image = bmp;
     }
 
     /// <summary>
