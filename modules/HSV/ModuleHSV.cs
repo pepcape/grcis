@@ -1,15 +1,18 @@
-﻿using System;
+﻿using MathSupport;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using Utilities;
 
 namespace Modules
 {
-  public class ModulePixelize : DefaultRasterModule
+  public class ModuleHSV : DefaultRasterModule
   {
     /// <summary>
     /// Mandatory plain constructor.
     /// </summary>
-    public ModulePixelize ()
+    public ModuleHSV ()
     {}
 
     /// <summary>
@@ -20,22 +23,17 @@ namespace Modules
     /// <summary>
     /// Name of the module (short enough to fit inside a list-boxes, etc.).
     /// </summary>
-    public override string Name => "Pixelize";
+    public override string Name => "HSV";
 
     /// <summary>
     /// Tooltip for Param (text parameters).
     /// </summary>
-    public override string Tooltip => "<boxw>[,<boxh>] .. box size in pixels";
-
-    /// <summary>
-    /// Separator for string parameter.
-    /// </summary>
-    static readonly char COMMA = ',';
+    public override string Tooltip => "[dH=<double>][,mulS=<double>][,mulV=<double>][,gamma=<double>]\n... dH is absolute, mS, mV, dGamma relative";
 
     /// <summary>
     /// Default cell size (width x height).
     /// </summary>
-    protected string param = "12,8";
+    protected string param = "mulS=1.2,gamma=1.1";
 
     /// <summary>
     /// Current 'Param' string is stored in the module.
@@ -82,46 +80,83 @@ namespace Modules
       if (inImage == null)
         return;
 
-      // Text parameter = cell size.
-      int wid = inImage.Width;
-      int hei = inImage.Height;
-      int cellW = 8;
-      int cellH = 8;
-      if (param.Length > 0)
-      {
-        string[] size = param.Split(COMMA);
-        if (size.Length > 0)
-        {
-          if (!int.TryParse(size[0], out cellW) ||
-              cellW < 1)
-            cellW = 1;
+      double dH = 0.0;
+      double mS = 1.0;
+      double mV = 1.0;
+      double gamma = 1.0;
 
-          cellH = cellW;
-          if (size.Length > 1)
-          {
-            if (!int.TryParse(size[1], out cellH))
-              cellH = cellW;
-            if (cellH < 1)
-              cellH = 1;
-          }
+      // 'param' parsing.
+      Dictionary<string, string> p = Util.ParseKeyValueList(param);
+      if (p.Count > 0)
+      {
+        // dH=<double> [+- number in degrees]
+        Util.TryParse(p, "dH", ref dH);
+
+        // mulS=<double> [relative number .. multiplicator]
+        Util.TryParse(p, "mulS", ref mS);
+
+        // mulV=<double> [relative number .. multiplicator]
+        Util.TryParse(p, "mulV", ref mV);
+
+        // gamma=<double> [gamma correction .. exponent]
+        if (Util.TryParse(p, "gamma", ref gamma))
+        {
+          // <= 0.0 || 1.0.. nothing
+          if (gamma < 0.001)
+            gamma = 1.0;
+          else
+            gamma = 1.0 / gamma;
         }
       }
 
+      int wid = inImage.Width;
+      int hei = inImage.Height;
+
+      // Output image must be true-color.
       outImage = new Bitmap(wid, hei, PixelFormat.Format24bppRgb);
 
-      // convert pixel data:
+      // Convert pixel data:
       int x, y;
 
-#if SLOW
+#if !FAST
 
-      // slow GetPixel-SetPixel code:
+      // Slow GetPixel-SetPixel code.
       for (y = 0; y < hei; y++)
       {
         // !!! TODO: Interrupt handling.
         for (x = 0; x < wid; x++)
         {
           Color ic = inImage.GetPixel(x, y);
-          Color oc = Color.FromArgb(255 - ic.R, 255 - ic.G, 255 - ic.B);
+
+          // Conversion to HSV.
+          double H, S, V;
+          Arith.ColorToHSV(ic, out H, out S, out V);
+          // 0 <= H <= 360, 0 <= S <= 1, 0 <= V <= 1
+
+          // HSV transform.
+          H = Util.Clamp(H + dH, 0.0, 360.0);
+          S = Util.Clamp(S * mS, 0.0, 1.0);
+          V = Util.Clamp(V * mV, 0.0, 1.0);
+
+          // Conversion back to RGB.
+          double R, G, B;
+          Arith.HSVToRGB(H, S, V, out R, out G, out B);
+          // [R,G,B] is from [0.0, 1.0]^3
+
+          // Optional gamma correction.
+          if (gamma != 1.0)
+          {
+            // Gamma-correction.
+            R = Math.Pow(R, gamma);
+            G = Math.Pow(G, gamma);
+            B = Math.Pow(B, gamma);
+          }
+
+          Color oc = Color.FromArgb(
+            Convert.ToInt32(Util.Clamp(R * 255.0, 0.0, 255.0)),
+            Convert.ToInt32(Util.Clamp(G * 255.0, 0.0, 255.0)),
+            Convert.ToInt32(Util.Clamp(B * 255.0, 0.0, 255.0)));
+
           outImage.SetPixel(x, y, oc);
         }
       }

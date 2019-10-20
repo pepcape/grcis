@@ -75,6 +75,9 @@
     <Compile Include="..\common\Util.cs">
       <Link>Util.cs</Link>
     </Compile>
+    <Compile Include="..\modules\HSV\ModuleHSV.cs">
+      <Link>ModuleHSV\ModuleHSV.cs</Link>
+    </Compile>
     <Compile Include="..\modules\Pixelize\ModulePixelize.cs">
       <Link>ModulePixelize\ModulePixelize.cs</Link>
     </Compile>
@@ -129,5 +132,6 @@
   <ItemGroup>
     <None Include="Resources\EmptyImage.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
