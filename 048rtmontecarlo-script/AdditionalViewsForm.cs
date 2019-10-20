@@ -124,7 +124,7 @@ namespace Rendering
     {
       string mapName = MapsTabControl.SelectedTab.Tag.ToString();
 
-      Bitmap outputImage = (Bitmap)panAndZoomControls[MapsTabControl.SelectedIndex].image;
+      Bitmap outputImage = (Bitmap)panAndZoomControls[MapsTabControl.SelectedIndex].CurrentImage();
 
       if (outputImage == null)
         return;
@@ -282,7 +282,7 @@ namespace Rendering
     /// <param name="displayStats">DisplayStats method to use</param>
     private void CommonMouseDown (MouseEventArgs e, Action<int, int> displayStats)
     {
-      bool condition = panAndZoomControls[MapsTabControl.SelectedIndex].image != null &&
+      bool condition = panAndZoomControls[MapsTabControl.SelectedIndex].CurrentImage() != null &&
                        e.Button == panAndZoomControls[MapsTabControl.SelectedIndex].Button;
 
       panAndZoomControls[MapsTabControl.SelectedIndex].OnMouseDown(e, displayStats, condition, ModifierKeys, out Cursor cursor);
@@ -298,7 +298,7 @@ namespace Rendering
     /// <param name="displayStats">DisplayStats method to use</param>
     private void CommonMouseMove (MouseEventArgs e, Action<int, int> displayStats)
     {
-      bool condition = panAndZoomControls[MapsTabControl.SelectedIndex].image != null &&
+      bool condition = panAndZoomControls[MapsTabControl.SelectedIndex].CurrentImage() != null &&
                        e.Button == panAndZoomControls[MapsTabControl.SelectedIndex].Button;
 
       panAndZoomControls[MapsTabControl.SelectedIndex].OnMouseMove(e, displayStats, condition, ModifierKeys, out Cursor cursor);
