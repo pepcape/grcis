@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Threading.Tasks;
 using Utilities;
 
 namespace Modules
@@ -28,12 +29,12 @@ namespace Modules
     /// <summary>
     /// Tooltip for Param (text parameters).
     /// </summary>
-    public override string Tooltip => "[dH=<double>][,mulS=<double>][,mulV=<double>][,gamma=<double>][,slow]\n... dH is absolute, mS, mV, dGamma relative";
+    public override string Tooltip => "[dH=<double>][,mulS=<double>][,mulV=<double>][,gamma=<double>][,slow][,par]\n... dH is absolute, mS, mV, dGamma relative";
 
     /// <summary>
     /// Default cell size (width x height).
     /// </summary>
-    protected string param = "mulS=1.2,gamma=1.1";
+    protected string param = "mulS=1.4,par";
 
     /// <summary>
     /// Current 'Param' string is stored in the module.
@@ -78,6 +79,11 @@ namespace Modules
     protected bool slow = false;
 
     /// <summary>
+    /// Parallel computation (most useful for large pictures).
+    /// </summary>
+    protected bool parallel = false;
+
+    /// <summary>
     /// Recompute the image.
     /// </summary>
     protected void recompute ()
@@ -113,6 +119,9 @@ namespace Modules
             gamma = 1.0 / gamma;
         }
 
+        // par .. use Parallel.For
+        parallel = p.ContainsKey("par");
+
         // slow .. set GetPixel/SetPixel computation
         slow = p.ContainsKey("slow");
       }
@@ -124,18 +133,18 @@ namespace Modules
       outImage = new Bitmap(wid, hei, PixelFormat.Format24bppRgb);
 
       // Convert pixel data.
-      // Shared temporary variables.
-      int x, y;
-      double R, G, B;
-      double H, S, V;
 
       if (slow)
       {
         // Slow GetPixel/SetPixel code.
-        for (y = 0; y < hei; y++)
+
+        for (int y = 0; y < hei; y++)
         {
           // !!! TODO: Interrupt handling.
-          for (x = 0; x < wid; x++)
+          double R, G, B;
+          double H, S, V;
+
+          for (int x = 0; x < wid; x++)
           {
             Color ic = inImage.GetPixel(x, y);
 
@@ -184,18 +193,19 @@ namespace Modules
         BitmapData dataOut = outImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
         unsafe
         {
-          byte* iptr, optr;
           int dI = Image.GetPixelFormatSize(iFormat) / 8;
           int dO = Image.GetPixelFormatSize(PixelFormat.Format24bppRgb) / 8;
 
-          for (y = 0; y < hei; y++)
+          Action<int> inner = y =>
           {
             // !!! TODO: Interrupt handling.
+            double R, G, B;
+            double H, S, V;
 
-            iptr = (byte*)dataIn.Scan0  + y * dataIn.Stride;
-            optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+            byte* iptr = (byte*)dataIn.Scan0  + y * dataIn.Stride;
+            byte* optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
 
-            for (x = 0; x < wid; x++, iptr += dI, optr += dO)
+            for (int x = 0; x < wid; x++, iptr += dI, optr += dO)
             {
               // Recompute one pixel (*iptr -> *optr).
               // iptr, optr -> [B,G,R]
@@ -226,7 +236,13 @@ namespace Modules
               optr[1] = Convert.ToByte(Util.Clamp(G * 255.0, 0.0, 255.0));
               optr[2] = Convert.ToByte(Util.Clamp(R * 255.0, 0.0, 255.0));
             }
-          }
+          };
+
+          if (parallel)
+            Parallel.For(0, hei, inner);
+          else
+            for (int y = 0; y < hei; y++)
+              inner(y);
         }
 
         outImage.UnlockBits(dataOut);
