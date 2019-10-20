@@ -116,12 +116,14 @@ namespace Modules
     /// PixelUpdate() is called after every user interaction.
     /// </summary>
     bool HasPixelUpdate { get; }
- 
+
     /// <summary>
     /// Optional action performed at the given pixel.
     /// Blocking (synchronous) function.
     /// Logically equivalent to Update() but with potential local effect.
     /// </summary>
+    /// <param name="x">Horizontal image coordinate in pixels.</param>
+    /// <param name="y">Vertical image coordinate in pixels.</param>
     void PixelUpdate (
       int x,
       int y);
@@ -130,6 +132,8 @@ namespace Modules
     /// Async action performed at the given pixel.
     /// Logically equivalent to UpdateAsync() but with potential local effect.
     /// </summary>
+    /// <param name="x">Horizontal image coordinate in pixels.</param>
+    /// <param name="y">Vertical image coordinate in pixels.</param>
     /// <param name="notify">Optional notification handler.</param>
     void PixelUpdateAsync (
       int x,
@@ -159,7 +163,7 @@ namespace Modules
 
     /// <summary>
     /// Returns true if there is an active GUI window associted with this module.
-    /// Open/close GUI window using the setter.
+    /// You can open/close GUI window using the setter.
     /// </summary>
     bool GuiWindow { get; set; }
 
@@ -279,6 +283,8 @@ namespace Modules
     /// Blocking (synchronous) function.
     /// Logically equivalent to Update() but with potential local effect.
     /// </summary>
+    /// <param name="x">Horizontal image coordinate in pixels.</param>
+    /// <param name="y">Vertical image coordinate in pixels.</param>
     public virtual void PixelUpdate (
       int x,
       int y)
@@ -288,6 +294,8 @@ namespace Modules
     /// Async action performed at the given pixel.
     /// Logically equivalent to UpdateAsync() but with potential local effect.
     /// </summary>
+    /// <param name="x">Horizontal image coordinate in pixels.</param>
+    /// <param name="y">Vertical image coordinate in pixels.</param>
     /// <param name="notify">Optional notification handler.</param>
     public virtual void PixelUpdateAsync (
       int x,
@@ -324,7 +332,7 @@ namespace Modules
 
     /// <summary>
     /// Returns true if there is an active GUI window associted with this module.
-    /// Open/close GUI window using the setter.
+    /// You can open/close GUI window using the setter.
     /// </summary>
     public virtual bool GuiWindow { get; set; } = false;
 

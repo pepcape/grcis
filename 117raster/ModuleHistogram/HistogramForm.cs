@@ -47,6 +47,9 @@ namespace Modules
 
     private void HistogramForm_Resize (object sender, System.EventArgs e)
     {
+      if (module == null)
+        return;
+
       if (backBuffer == null ||
           backBuffer.Width  != ClientSize.Width ||
           backBuffer.Height != ClientSize.Height)
