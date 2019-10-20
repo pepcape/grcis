@@ -91,6 +91,39 @@ namespace MathSupport
       }
     }
 
+    public static void RGBtoHSV (
+      double R, double G, double B,
+      out double hue, out double saturation, out double value)
+    {
+      double max = Math.Max(R, Math.Max(G, B));
+      double min = Math.Min(R, Math.Min(G, B));
+      double delta = max - min;
+
+      // Saturation and value are easy.
+      saturation = (max <= 0.0) ? 0.0 : delta / max;
+      value = max;
+
+      // Hue.
+      if (delta > 0.0)
+      {
+        if (R == max)
+          hue = (G - B) / delta;
+        else if (G == max)
+          hue = 2.0 + (B - R) / delta;
+        else
+          hue = 4.0 + (R - G) / delta;
+
+        // To degrees.
+        hue *= 60.0;
+        if (hue < 0.0)
+          hue += 360.0;
+        else if (hue >= 360.0)
+          hue -= 360.0;
+      }
+      else
+        hue = 0.0;
+    }
+
     public static void HSVToRGB (
       double hue, double saturation, double value,
       out double R, out double G, out double B)
