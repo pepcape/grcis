@@ -28,7 +28,7 @@ namespace Modules
     /// <summary>
     /// Tooltip for Param (text parameters).
     /// </summary>
-    public override string Tooltip => "[dH=<double>][,mulS=<double>][,mulV=<double>][,gamma=<double>]\n... dH is absolute, mS, mV, dGamma relative";
+    public override string Tooltip => "[dH=<double>][,mulS=<double>][,mulV=<double>][,gamma=<double>][,slow]\n... dH is absolute, mS, mV, dGamma relative";
 
     /// <summary>
     /// Default cell size (width x height).
@@ -73,6 +73,11 @@ namespace Modules
     protected Bitmap outImage = null;
 
     /// <summary>
+    /// Slow computation (using GetPixel/SetPixel).
+    /// </summary>
+    protected bool slow = false;
+
+    /// <summary>
     /// Recompute the image.
     /// </summary>
     protected void recompute ()
@@ -107,6 +112,9 @@ namespace Modules
           else
             gamma = 1.0 / gamma;
         }
+
+        // slow .. set GetPixel/SetPixel computation
+        slow = p.ContainsKey("slow");
       }
 
       int wid = inImage.Width;
@@ -115,119 +123,115 @@ namespace Modules
       // Output image must be true-color.
       outImage = new Bitmap(wid, hei, PixelFormat.Format24bppRgb);
 
-      // Convert pixel data:
+      // Convert pixel data.
+      // Shared temporary variables.
       int x, y;
+      double R, G, B;
+      double H, S, V;
 
-#if !FAST
-
-      // Slow GetPixel-SetPixel code.
-      for (y = 0; y < hei; y++)
+      if (slow)
       {
-        // !!! TODO: Interrupt handling.
-        for (x = 0; x < wid; x++)
+        // Slow GetPixel/SetPixel code.
+        for (y = 0; y < hei; y++)
         {
-          Color ic = inImage.GetPixel(x, y);
-
-          // Conversion to HSV.
-          double H, S, V;
-          Arith.ColorToHSV(ic, out H, out S, out V);
-          // 0 <= H <= 360, 0 <= S <= 1, 0 <= V <= 1
-
-          // HSV transform.
-          H = H + dH;
-          S = Util.Clamp(S * mS, 0.0, 1.0);
-          V = Util.Clamp(V * mV, 0.0, 1.0);
-
-          // Conversion back to RGB.
-          double R, G, B;
-          Arith.HSVToRGB(H, S, V, out R, out G, out B);
-          // [R,G,B] is from [0.0, 1.0]^3
-
-          // Optional gamma correction.
-          if (gamma != 1.0)
+          // !!! TODO: Interrupt handling.
+          for (x = 0; x < wid; x++)
           {
-            // Gamma-correction.
-            R = Math.Pow(R, gamma);
-            G = Math.Pow(G, gamma);
-            B = Math.Pow(B, gamma);
-          }
+            Color ic = inImage.GetPixel(x, y);
 
-          Color oc = Color.FromArgb(
+            // Conversion to HSV.
+            Arith.ColorToHSV(ic, out H, out S, out V);
+            // 0 <= H <= 360, 0 <= S <= 1, 0 <= V <= 1
+
+            // HSV transform.
+            H = H + dH;
+            S = Util.Clamp(S * mS, 0.0, 1.0);
+            V = Util.Clamp(V * mV, 0.0, 1.0);
+
+            // Conversion back to RGB.
+            Arith.HSVToRGB(H, S, V, out R, out G, out B);
+            // [R,G,B] is from [0.0, 1.0]^3
+
+            // Optional gamma correction.
+            if (gamma != 1.0)
+            {
+              // Gamma-correction.
+              R = Math.Pow(R, gamma);
+              G = Math.Pow(G, gamma);
+              B = Math.Pow(B, gamma);
+            }
+
+            Color oc = Color.FromArgb(
             Convert.ToInt32(Util.Clamp(R * 255.0, 0.0, 255.0)),
             Convert.ToInt32(Util.Clamp(G * 255.0, 0.0, 255.0)),
             Convert.ToInt32(Util.Clamp(B * 255.0, 0.0, 255.0)));
 
-          outImage.SetPixel(x, y, oc);
-        }
-      }
-
-#else
-
-      // Fast memory-mapped code.
-      PixelFormat iFormat = inImage.PixelFormat;
-      if (!PixelFormat.Format24bppRgb.Equals(iFormat) &&
-          !PixelFormat.Format32bppArgb.Equals(iFormat) &&
-          !PixelFormat.Format32bppPArgb.Equals(iFormat) &&
-          !PixelFormat.Format32bppRgb.Equals(iFormat))
-        iFormat = PixelFormat.Format24bppRgb;
-
-      int x0, y0;
-      int x1, y1;
-      BitmapData dataIn  = inImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.ReadOnly, iFormat);
-      BitmapData dataOut = outImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-      unsafe
-      {
-        byte* iptr, optr;
-        byte r, g, b;
-        int sR, sG, sB;
-        int pixels;
-        int dI = Image.GetPixelFormatSize(iFormat) / 8;
-        int dO = Image.GetPixelFormatSize(PixelFormat.Format24bppRgb) / 8;
-
-        for (y0 = 0; y0 < hei; y0 += cellH)
-        {
-          // !!! TODO: Interrupt handling.
-
-          for (x0 = 0; x0 < wid; x0 += cellW)     // one output cell
-          {
-            sR = sG = sB = 0;
-            x1 = Math.Min(x0 + cellW, wid);
-            y1 = Math.Min(y0 + cellH, hei);
-
-            for (y = y0; y < y1; y++)
-            {
-              iptr = (byte*)dataIn.Scan0 + y * dataIn.Stride + x0 * dI;
-              for (x = x0; x < x1; x++, iptr += dI)
-              {
-                sB += iptr[0];
-                sG += iptr[1];
-                sR += iptr[2];
-              }
-            }
-
-            pixels = (x1 - x0) * (y1 - y0);
-            r = (byte)((sR + pixels / 2) / pixels);
-            g = (byte)((sG + pixels / 2) / pixels);
-            b = (byte)((sB + pixels / 2) / pixels);
-
-            for (y = y0; y < y1; y++)
-            {
-              optr = (byte*)dataOut.Scan0 + y * dataOut.Stride + x0 * dO;
-              for (x = x0; x < x1; x++, optr += dO)
-              {
-                optr[0] = b;
-                optr[1] = g;
-                optr[2] = r;
-              }
-            }
+            outImage.SetPixel(x, y, oc);
           }
         }
       }
+      else
+      {
+        // Fast memory-mapped code.
+        PixelFormat iFormat = inImage.PixelFormat;
+        if (!PixelFormat.Format24bppRgb.Equals(iFormat) &&
+            !PixelFormat.Format32bppArgb.Equals(iFormat) &&
+            !PixelFormat.Format32bppPArgb.Equals(iFormat) &&
+            !PixelFormat.Format32bppRgb.Equals(iFormat))
+          iFormat = PixelFormat.Format24bppRgb;
 
-      outImage.UnlockBits(dataOut);
-      inImage.UnlockBits(dataIn);
+        BitmapData dataIn  = inImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.ReadOnly, iFormat);
+        BitmapData dataOut = outImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+        unsafe
+        {
+          byte* iptr, optr;
+          int dI = Image.GetPixelFormatSize(iFormat) / 8;
+          int dO = Image.GetPixelFormatSize(PixelFormat.Format24bppRgb) / 8;
 
-#endif
+          for (y = 0; y < hei; y++)
+          {
+            // !!! TODO: Interrupt handling.
+
+            iptr = (byte*)dataIn.Scan0  + y * dataIn.Stride;
+            optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+
+            for (x = 0; x < wid; x++, iptr += dI, optr += dO)
+            {
+              // Recompute one pixel (*iptr -> *optr).
+              // iptr, optr -> [B,G,R]
+
+              // Conversion to HSV.
+              Arith.RGBtoHSV(iptr[2] / 255.0, iptr[1] / 255.0, iptr[0] / 255.0, out H, out S, out V);
+              // 0 <= H <= 360, 0 <= S <= 1, 0 <= V <= 1
+
+              // HSV transform.
+              H = H + dH;
+              S = Util.Clamp(S * mS, 0.0, 1.0);
+              V = Util.Clamp(V * mV, 0.0, 1.0);
+
+              // Conversion back to RGB.
+              Arith.HSVToRGB(H, S, V, out R, out G, out B);
+              // [R,G,B] is from [0.0, 1.0]^3
+
+              // Optional gamma correction.
+              if (gamma != 1.0)
+              {
+                // Gamma-correction.
+                R = Math.Pow(R, gamma);
+                G = Math.Pow(G, gamma);
+                B = Math.Pow(B, gamma);
+              }
+
+              optr[0] = Convert.ToByte(Util.Clamp(B * 255.0, 0.0, 255.0));
+              optr[1] = Convert.ToByte(Util.Clamp(G * 255.0, 0.0, 255.0));
+              optr[2] = Convert.ToByte(Util.Clamp(R * 255.0, 0.0, 255.0));
+            }
+          }
+        }
+
+        outImage.UnlockBits(dataOut);
+        inImage.UnlockBits(dataIn);
+      }
     }
 
     /// <summary>
