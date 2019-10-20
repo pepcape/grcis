@@ -12,10 +12,6 @@ GIT
 ---
 https://github.com/pepcape/grcis.git
 
-GIT<->SVN sync according to
----------------------------
-https://gist.github.com/stefanfoulis/909746
-
 ---------------------------------------------------
 
 History of GrCis goes back to 2010.

@@ -381,13 +381,13 @@ namespace _117raster
 
     private void textBoxParam_MouseHover (object sender, EventArgs e)
     {
-      tt.Show(tooltip, (IWin32Window)sender, 10, -25, 2000);
+      tt.Show(tooltip, (IWin32Window)sender, 10, -40, 2000);
     }
 
     private void labelStatus_MouseHover (object sender, EventArgs e)
     {
       tt.Show(Util.TargetFramework + " (" + Util.RunningFramework + ')',
-              (IWin32Window)sender, 10, -25, 2000);
+              (IWin32Window)sender, 10, -30, 2000);
     }
 
     private void pictureBoxMain_Paint (object sender, PaintEventArgs e)

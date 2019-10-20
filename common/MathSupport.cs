@@ -91,6 +91,42 @@ namespace MathSupport
       }
     }
 
+    public static void HSVToRGB (
+      double hue, double saturation, double value,
+      out double R, out double G, out double B)
+    {
+      int hi = Convert.ToInt32(Math.Floor(hue / 60.0));
+      hi = (hi < 0) ? (hi % 6 + 6) % 6 : hi % 6;
+      double f = hue / 60.0 - Math.Floor(hue / 60.0);
+
+      double v = Math.Max(value, 0.0);
+      double p = Math.Max(value * (1.0 - saturation), 0.0);
+      double q = Math.Max(value * (1.0 - f * saturation), 0.0);
+      double t = Math.Max(value * (1.0 - (1.0 - f) * saturation), 0.0);
+
+      switch (hi)
+      {
+        case 0:
+          R = v; G = t; B = p;
+          break;
+        case 1:
+          R = q; G = v; B = p;
+          break;
+        case 2:
+          R = p; G = v; B = t;
+          break;
+        case 3:
+          R = p; G = q; B = v;
+          break;
+        case 4:
+          R = t; G = p; B = v;
+          break;
+        default:
+          R = v; G = p; B = q;
+          break;
+      }
+    }
+
     public static void ColorToCIELab (Color color, out double L, out double A, out double B)
     {
       // adopted from http://www.brucelindbloom.com
