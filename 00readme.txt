@@ -48,8 +48,8 @@ Detailed lab-pages and manual pages:
 What will you need
 ------------------
 Windows:
- Microsoft Visual Studio Professional (preferably 2017+)
- or Microsoft Visual Studio Community 2017+
+ Microsoft Visual Studio Professional (preferably 2019+)
+ or Microsoft Visual Studio Community 2019+
 
 Linux:
  Mono installation
