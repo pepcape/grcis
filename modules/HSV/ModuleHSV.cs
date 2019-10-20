@@ -134,7 +134,7 @@ namespace Modules
           // 0 <= H <= 360, 0 <= S <= 1, 0 <= V <= 1
 
           // HSV transform.
-          H = Util.Clamp(H + dH, 0.0, 360.0);
+          H = H + dH;
           S = Util.Clamp(S * mS, 0.0, 1.0);
           V = Util.Clamp(V * mV, 0.0, 1.0);
 
