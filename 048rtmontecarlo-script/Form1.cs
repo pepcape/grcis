@@ -494,7 +494,8 @@ namespace Rendering
 
         additionalViews.form?.NewImageRendered();
 
-        panAndZoom.SetNewImage(panAndZoom.image, true);
+        // Keep the image but include it to the history.
+        panAndZoom.SetNewImage(panAndZoom.CurrentImage(), true);
 
         SetPreviousAndNextImageButtons();
 
