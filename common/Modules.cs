@@ -168,9 +168,29 @@ namespace Modules
     bool GuiWindow { get; set; }
 
     /// <summary>
-    /// Notification: GUI window has been closed.
+    /// Notification (GUI -> module): GUI window has been closed.
     /// </summary>
     void OnGuiWindowClose ();
+
+    /// <summary>
+    /// Notification (GUI -> module): GUI window changed its values (sync GUI -> module is needed).
+    /// </summary>
+    void OnGuiWindowChanged ();
+
+    /// <summary>
+    /// The module is asking to be recomputed by its owner (module -> main).
+    /// </summary>
+    NotifyHandler UpdateRequest { get; set; }
+
+    /// <summary>
+    /// The module is changing the Param string (module -> main).
+    /// </summary>
+    NotifyHandler ParamUpdated { get; set; }
+
+    /// <summary>
+    /// The module is asking to be deactivated (module -> main).
+    /// </summary>
+    NotifyHandler DeactivateRequest { get; set; }
   }
 
   public abstract class DefaultRasterModule : IRasterModule
@@ -337,10 +357,31 @@ namespace Modules
     public virtual bool GuiWindow { get; set; } = false;
 
     /// <summary>
-    /// Notification: GUI window has been closed.
+    /// Notification (GUI -> module): GUI window has been closed.
     /// </summary>
     public virtual void OnGuiWindowClose ()
     {}
+
+    /// <summary>
+    /// Notification (GUI -> module): GUI window changed its values (sync GUI -> module is needed).
+    /// </summary>
+    public virtual void OnGuiWindowChanged ()
+    {}
+
+    /// <summary>
+    /// The module is asking to be recomputed by its owner (module -> main).
+    /// </summary>
+    public virtual NotifyHandler UpdateRequest { get; set; } = null;
+
+    /// <summary>
+    /// The module is changing the Param string (module -> main).
+    /// </summary>
+    public virtual NotifyHandler ParamUpdated { get; set; } = null;
+
+    /// <summary>
+    /// The module is asking to be deactivated (module -> main).
+    /// </summary>
+    public virtual NotifyHandler DeactivateRequest { get; set; } = null;
   }
 
   public class ModuleRegistry

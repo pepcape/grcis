@@ -41,6 +41,7 @@
       this.textBoxParam = new System.Windows.Forms.TextBox();
       this.buttonSetInput = new System.Windows.Forms.Button();
       this.buttonZoomReset = new System.Windows.Forms.Button();
+      this.buttonShowGUI = new System.Windows.Forms.Button();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMain)).BeginInit();
       this.SuspendLayout();
       // 
@@ -195,12 +196,25 @@
       this.buttonZoomReset.UseVisualStyleBackColor = true;
       this.buttonZoomReset.Click += new System.EventHandler(this.buttonZoomReset_Click);
       // 
+      // buttonShowGUI
+      // 
+      this.buttonShowGUI.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonShowGUI.Enabled = false;
+      this.buttonShowGUI.Location = new System.Drawing.Point(105, 544);
+      this.buttonShowGUI.Name = "buttonShowGUI";
+      this.buttonShowGUI.Size = new System.Drawing.Size(105, 23);
+      this.buttonShowGUI.TabIndex = 12;
+      this.buttonShowGUI.Text = "Module GUI";
+      this.buttonShowGUI.UseVisualStyleBackColor = true;
+      this.buttonShowGUI.Click += new System.EventHandler(this.buttonShowGUI_Click);
+      // 
       // FormMain
       // 
       this.AllowDrop = true;
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(884, 581);
+      this.Controls.Add(this.buttonShowGUI);
       this.Controls.Add(this.buttonZoomReset);
       this.Controls.Add(this.buttonSetInput);
       this.Controls.Add(this.textBoxParam);
@@ -244,6 +258,7 @@
     private System.Windows.Forms.TextBox textBoxParam;
     private System.Windows.Forms.Button buttonSetInput;
     private System.Windows.Forms.Button buttonZoomReset;
+    private System.Windows.Forms.Button buttonShowGUI;
   }
 }
 
