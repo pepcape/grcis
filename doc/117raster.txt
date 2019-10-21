@@ -1,10 +1,19 @@
 2D raster image processing
 ==========================
+Pilot modules:
+
+. global histogram
+. global HSV image transform (HSV, gamma)
+
 Possible tasks:
 
-. global histogram (pilot module)
-
 . local histogram (graph, txt list..)
+
+. restricted color transform (preserving skin colors)
+
+. 16M color image
+
+---
 
 . color average in a pixel neighbourhood (inverse halftoning)
 
@@ -15,8 +24,6 @@ Possible tasks:
 . silhouette segmentation (user-assisted)
   https://pdfs.semanticscholar.org/7c3b/fcda9e16ab3a997a943700126581bdc817f5.pdf
   https://hal.archives-ouvertes.fr/hal-01252859/file/Coniglio_ACIVS2015.pdf
-
-. 16M color image
 
 . window filters: artistic, noise reduction, etc.
 
