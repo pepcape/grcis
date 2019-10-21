@@ -52,7 +52,16 @@ namespace MathSupport
       return (rad * 180.0 / Math.PI);
     }
 
-    public static void ColorToHSV (Color color, out double hue, out double saturation, out double value)
+    /// <summary>
+    /// Converts .NET Color type (24-bit true color) to triple HSV.
+    /// </summary>
+    /// <param name="color">Input color, [0, 255]^3</param>
+    /// <param name="hue">Hue from range [0.0, 360.0), in degrees.</param>
+    /// <param name="saturation">Saturation from range [0.0, 1.0]. 1.0 means pure saturated color.</param>
+    /// <param name="value">Value from range [0.0, 1.0].</param>
+    public static void ColorToHSV (
+      Color color,
+      out double hue, out double saturation, out double value)
     {
       int max = Math.Max(color.R, Math.Max(color.G, color.B));
       int min = Math.Min(color.R, Math.Min(color.G, color.B));
@@ -62,6 +71,12 @@ namespace MathSupport
       value      = max / 255.0;
     }
 
+    /// <summary>
+    /// Creates .NET Color object from the given HSV triple.
+    /// </summary>
+    /// <param name="hue">Hue from range [0.0, 360.0), in degrees.</param>
+    /// <param name="saturation">Saturation from range [0.0, 1.0]. 1.0 means pure saturated color.</param>
+    /// <param name="value">Value from range [0.0, 1.0].</param>
     public static Color HSVToColor (double hue, double saturation, double value)
     {
       int hi = Convert.ToInt32(Math.Floor(hue / 60.0));
@@ -91,6 +106,15 @@ namespace MathSupport
       }
     }
 
+    /// <summary>
+    /// Converts a RGB color (double values) to the HSV representation (double values).
+    /// </summary>
+    /// <param name="R">Red color component (arbitrary non-negative value).</param>
+    /// <param name="G">Green color component (arbitrary non-negative value).</param>
+    /// <param name="B">Blue color component (arbitrary non-negative value).</param>
+    /// <param name="hue">Hue from range [0.0, 360.0), in degrees.</param>
+    /// <param name="saturation">Saturation from range [0.0, 1.0]. 1.0 means pure saturated color.</param>
+    /// <param name="value">Value from the same range as input RGB values (value = max{R, G, B}).</param>
     public static void RGBtoHSV (
       double R, double G, double B,
       out double hue, out double saturation, out double value)
@@ -124,6 +148,15 @@ namespace MathSupport
         hue = 0.0;
     }
 
+    /// <summary>
+    /// Converts a HSV color (double values) to the RGB representation (double values).
+    /// </summary>
+    /// <param name="hue">Hue from range [0.0, 360.0), in degrees.</param>
+    /// <param name="saturation">Saturation from range [0.0, 1.0]. 1.0 means pure saturated color.</param>
+    /// <param name="value">Value - arbitrary non-negative value.</param>
+    /// <param name="R">Red color component from [0.0, value] range.</param>
+    /// <param name="G">Green color component from [0.0, value] range.</param>
+    /// <param name="B">Blue color component from [0.0, value] range.</param>
     public static void HSVToRGB (
       double hue, double saturation, double value,
       out double R, out double G, out double B)
@@ -160,7 +193,17 @@ namespace MathSupport
       }
     }
 
-    public static void ColorToCIELab (Color color, out double L, out double A, out double B)
+    /// <summary>
+    /// Converts .NET Color type (24-bit RGB triple) into the CIE L*a*b* representation.
+    /// See http://www.brucelindbloom.com for details and formulae.
+    /// </summary>
+    /// <param name="color">Input color, [0, 255]^3</param>
+    /// <param name="L">L* component.</param>
+    /// <param name="A">a* component.</param>
+    /// <param name="B">b* component.</param>
+    public static void ColorToCIELab (
+      Color color,
+      out double L, out double A, out double B)
     {
       // adopted from http://www.brucelindbloom.com
 
@@ -194,10 +237,10 @@ namespace MathSupport
         b = (float)Math.Pow((b + 0.055) / 1.055, 2.4);
 
       double X = 0.436052025 * r + 0.385081593 * g + 0.143087414 * b;
-      double Y = 0.222491598 * r + 0.71688606 * g + 0.060621486 * b;
-      double Z = 0.013929122 * r + 0.097097002 * g + 0.71418547 * b;
+      double Y = 0.222491598 * r + 0.71688606  * g + 0.060621486 * b;
+      double Z = 0.013929122 * r + 0.097097002 * g + 0.71418547  * b;
 
-      // XYZ to Lab
+      // XYZ to L*a*b*
       xr = X / Xr;
       yr = Y / Yr;
       zr = Z / Zr;
@@ -228,7 +271,7 @@ namespace MathSupport
     public static void RGBeToRGB (byte[] rgbe, int startRgbe, float[] rgb, int startRgb)
     {
       if (rgbe == null || startRgbe + 4 > rgbe.Length ||
-          rgb == null || startRgb + 3 > rgb.Length)
+          rgb == null  || startRgb  + 3 > rgb.Length)
         return;
 
       if (rgbe[startRgbe + 3] == 0)
