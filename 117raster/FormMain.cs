@@ -98,7 +98,7 @@ namespace _117raster
       {
         Button = MouseButtons.Right
       };
-      panAndZoom.UpdateZoomToMiddle(0.6f);
+      panAndZoom.UpdateZoomToMiddle();
 
       // Modules registry => combo-box.
       foreach (string key in ModuleRegistry.RegisteredModuleNames())
@@ -171,13 +171,14 @@ namespace _117raster
 
       if ((ModifierKeys & Keys.Shift) > 0)
       {
-        SetText(checkBoxResult.Checked
-          ? $"- [{image.Width}x{image.Height}]"
-          : $"{inputImageFileName} [{image.Width}x{image.Height}]");
+        // Current image info.
+        string suffix = checkBoxResult.Checked ? "*" : "";
+        SetText($"{inputImageFileName}{suffix} [{image.Width}x{image.Height}]");
 
         return;
       }
 
+      // Original "image probe": coordinates and color of the picked pixel.
       x = Util.Clamp(x, 0, image.Width - 1);
       y = Util.Clamp(y, 0, image.Height - 1);
 
@@ -241,7 +242,7 @@ namespace _117raster
       titleMiddle = " [" + fn + ']';
       SetText($"{fn} [{inp.Width}x{inp.Height}]");
 
-      recompute();
+      recompute(false);
 
       return true;
     }
@@ -254,16 +255,23 @@ namespace _117raster
         panAndZoom.SetNewImage(inputImage ?? Resources.InitialImage);
     }
 
-    private void recompute ()
+    /// <summary>
+    /// Recompute initiated in the FormMain. Optional update of module's param from the textBox.
+    /// </summary>
+    /// <param name="setParam">If true, module's Param will be modified.</param>
+    private void recompute (bool setParam)
     {
       Bitmap oi = null;
 
-      if (currModule != null &&
-          inputImage != null)
+      if (currModule != null)
       {
         // Set input.
-        currModule.SetInput(inputImage);
-        currModule.Param = textBoxParam.Text;
+        if (currModule.InputSlots > 0 &&
+            inputImage != null)
+          currModule.SetInput(inputImage, 0);
+
+        if (setParam)
+          currModule.Param = textBoxParam.Text;
 
         // Measure the recompute time.
         Stopwatch sw = new Stopwatch();
@@ -375,7 +383,7 @@ namespace _117raster
       if (e.KeyChar == (char)Keys.Enter)
       {
         e.Handled = true;
-        recompute();
+        recompute(true);
       }
     }
 
@@ -493,6 +501,21 @@ namespace _117raster
       KeyPreview = true;
     }
 
+    private void deactivateModule (string moduleName)
+    {
+      // Deactivate the current module.
+      currModule.GuiWindow = false;
+      modules.Remove(moduleName);
+      currModule = null;
+
+      // Form elements.
+      textBoxParam.Text = "";
+      tooltip = "";
+      buttonModule.Text = "Activate module";
+      buttonRecompute.Enabled = false;
+      buttonShowGUI.Enabled = false;
+    }
+
     private void buttonModule_Click (object sender, EventArgs e)
     {
       int selectedModule = comboBoxModule.SelectedIndex;
@@ -504,36 +527,64 @@ namespace _117raster
       if (activated)
       {
         // Deactivate the current module.
-        currModule.GuiWindow = false;
-        modules.Remove(moduleName);
-        currModule = null;
-
-        // Form.
-        textBoxParam.Text = "";
-        tooltip = "";
-        buttonModule.Text = "Activate module";
+        deactivateModule(moduleName);
       }
       else
       {
         // Activate the module.
         currModule = modules[moduleName] = ModuleRegistry.CreateModule(moduleName);
 
-        // Form.
+        // Notifications module -> main.
+        currModule.UpdateRequest = recomputeRequest;
+        currModule.ParamUpdated = updateParamFromModule;
+        currModule.DeactivateRequest = deactivateRequest;
+
+        // Form elements.
         textBoxParam.Text = currModule.Param;
         tooltip = currModule.Tooltip;
         buttonModule.Text = "Deactivate module";
+        buttonShowGUI.Enabled = true;
 
         currModule.GuiWindow = true;
-        if (inputImage != null)
+        if (currModule.InputSlots > 0 &&
+            inputImage != null)
           currModule.SetInput(inputImage);
-      }
 
-      buttonRecompute.Enabled = !activated;
+        buttonRecompute.Enabled = true;
+      }
+    }
+
+    private void buttonShowGUI_Click (object sender, EventArgs e)
+    {
+      if (currModule != null)
+        currModule.GuiWindow = true;
+    }
+
+    private void recomputeRequest (IRasterModule module)
+    {
+      if (module == currModule)
+        recompute(false);
+    }
+
+    private void updateParamFromModule (IRasterModule module)
+    {
+      if (module == currModule)
+        textBoxParam.Text = currModule.Param;
+    }
+
+    private void deactivateRequest (IRasterModule module)
+    {
+      if (module == currModule)
+      {
+        int selectedModule = comboBoxModule.SelectedIndex;
+        string moduleName = (string)comboBoxModule.Items[selectedModule];
+        deactivateModule(moduleName);
+      }
     }
 
     private void buttonRecompute_Click (object sender, EventArgs e)
     {
-      recompute();
+      recompute(true);
     }
 
     private void checkBoxResult_CheckedChanged (object sender, EventArgs e)
@@ -565,8 +616,9 @@ namespace _117raster
         buttonModule.Text = "Deactivate module";
 
         currModule.GuiWindow = true;
-        if (inputImage != null)
-          currModule.SetInput(inputImage);
+        if (currModule.InputSlots > 0 &&
+            inputImage != null)
+          currModule.SetInput(inputImage, 0);
       }
       else
       {

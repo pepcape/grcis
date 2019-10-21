@@ -169,6 +169,7 @@ namespace Modules
     /// </summary>
     public override void OnGuiWindowClose ()
     {
+      hForm?.Hide();
       hForm = null;
     }
   }

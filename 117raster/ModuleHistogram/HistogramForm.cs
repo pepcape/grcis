@@ -11,7 +11,7 @@ namespace Modules
     protected Bitmap backBuffer = null;
 
     /// <summary>
-    /// Associated raster module (to be notified in case of form close).
+    /// Associated raster module (to be notified under various conditions).
     /// </summary>
     protected IRasterModule module;
 
@@ -54,7 +54,8 @@ namespace Modules
           backBuffer.Width  != ClientSize.Width ||
           backBuffer.Height != ClientSize.Height)
       {
-        module.Update();
+        // This is the correct way to ask the module for recomputation..
+        module.UpdateRequest?.Invoke(module);
       }
     }
   }

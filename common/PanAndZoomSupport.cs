@@ -139,7 +139,7 @@ namespace Rendering
     }
 
     public void UpdateZoomToMiddle (
-      float newZoom)
+      float newZoom = 1.0f)
     {
       if (image == null)
         return;

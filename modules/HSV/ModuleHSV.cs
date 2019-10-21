@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
+using System.Text;
 using System.Threading.Tasks;
 using Utilities;
 
@@ -33,7 +34,7 @@ namespace Modules
     public override string Tooltip => "[dH=<double>][,mulS=<double>][,mulV=<double>][,gamma=<double>][,slow][,par]\n... dH is absolute, mS, mV, dGamma relative";
 
     /// <summary>
-    /// Default cell size (width x height).
+    /// Default HSV transform parameters (have to by in sync with the default module state).
     /// </summary>
     protected string param = "mulS=1.4,par";
 
@@ -88,7 +89,7 @@ namespace Modules
     /// <summary>
     /// Saturation multiplier.
     /// </summary>
-    protected double mS = 1.0;
+    protected double mS = 1.4;
 
     /// <summary>
     /// Value multiplier.
@@ -108,7 +109,7 @@ namespace Modules
     /// <summary>
     /// Parallel computation (most useful for large pictures).
     /// </summary>
-    protected bool parallel = false;
+    protected bool parallel = true;
 
     /// <summary>
     /// Active HSV form.
@@ -140,8 +141,6 @@ namespace Modules
             // <= 0.0 || 1.0.. nothing
             if (gamma < 0.001)
               gamma = 1.0;
-            else
-              gamma = 1.0 / gamma;
           }
 
           // par .. use Parallel.For
@@ -173,6 +172,7 @@ namespace Modules
       outImage = new Bitmap(wid, hei, PixelFormat.Format24bppRgb);
 
       // Convert pixel data.
+      double gam = (gamma < 0.001) ? 1.0 : 1.0 / gamma;
 
       if (slow)
       {
@@ -202,12 +202,12 @@ namespace Modules
             // [R,G,B] is from [0.0, 1.0]^3
 
             // Optional gamma correction.
-            if (gamma != 1.0)
+            if (gam != 1.0)
             {
               // Gamma-correction.
-              R = Math.Pow(R, gamma);
-              G = Math.Pow(G, gamma);
-              B = Math.Pow(B, gamma);
+              R = Math.Pow(R, gam);
+              G = Math.Pow(G, gam);
+              B = Math.Pow(B, gam);
             }
 
             Color oc = Color.FromArgb(
@@ -264,12 +264,12 @@ namespace Modules
               // [R,G,B] is from [0.0, 1.0]^3
 
               // Optional gamma correction.
-              if (gamma != 1.0)
+              if (gam != 1.0)
               {
                 // Gamma-correction.
-                R = Math.Pow(R, gamma);
-                G = Math.Pow(G, gamma);
-                B = Math.Pow(B, gamma);
+                R = Math.Pow(R, gam);
+                G = Math.Pow(G, gam);
+                B = Math.Pow(B, gam);
               }
 
               optr[0] = Convert.ToByte(Util.Clamp(B * 255.0, 0.0, 255.0));
@@ -291,7 +291,7 @@ namespace Modules
     }
 
     /// <summary>
-    /// Sendd ModuleHSV values to the form elements.
+    /// Send ModuleHSV values to the form elements.
     /// </summary>
     protected void formUpdate ()
     {
@@ -299,10 +299,62 @@ namespace Modules
         return;
 
       hsvForm.numericHue.Value = Convert.ToDecimal(dH);
-      hsvForm.textSaturation.Text = string.Format(CultureInfo.InvariantCulture, "{0}", mS);
-      hsvForm.textValue.Text = string.Format(CultureInfo.InvariantCulture, "{0}", mV);
+      hsvForm.textSaturation.Text = string.Format(CultureInfo.InvariantCulture, "{0:g5}", mS);
+      hsvForm.textValue.Text = string.Format(CultureInfo.InvariantCulture, "{0:g5}", mV);
+      hsvForm.textGamma.Text = string.Format(CultureInfo.InvariantCulture, "{0:g5}", gamma);
       hsvForm.checkParallel.Checked = parallel;
       hsvForm.checkSlow.Checked = slow;
+
+      hsvForm.Invalidate();
+    }
+
+    /// <summary>
+    /// Notification: GUI window changed its values (sync GUI -> module is needed).
+    /// </summary>
+    public override void OnGuiWindowChanged ()
+    {
+      if (hsvForm == null)
+        return;
+
+      dH = Convert.ToDouble(hsvForm.numericHue.Value);
+      if (!double.TryParse(hsvForm.textSaturation.Text, NumberStyles.Number, CultureInfo.InvariantCulture, out mS))
+        mS = 1.0;
+      if (!double.TryParse(hsvForm.textValue.Text, NumberStyles.Number, CultureInfo.InvariantCulture, out mV))
+        mV = 1.0;
+      if (!double.TryParse(hsvForm.textGamma.Text, NumberStyles.Number, CultureInfo.InvariantCulture, out gamma))
+        gamma = 1.0;
+      parallel = hsvForm.checkParallel.Checked;
+      slow = hsvForm.checkSlow.Checked;
+
+      // Update 'param'.
+      List<string> pars = new List<string>();
+
+      if (dH != 0.0)
+        pars.Add(string.Format(CultureInfo.InvariantCulture, "dH={0:g}", dH));
+      if (mS != 1.0)
+        pars.Add(string.Format(CultureInfo.InvariantCulture, "mulS={0:g5}", mS));
+      if (mV != 1.0)
+        pars.Add(string.Format(CultureInfo.InvariantCulture, "mulV={0:g5}", mV));
+      if (gamma != 1.0)
+        pars.Add(string.Format(CultureInfo.InvariantCulture, "gamma={0:g5}", gamma));
+      if (parallel)
+        pars.Add("par");
+      if (slow)
+        pars.Add("slow");
+
+      param = string.Join(",", pars);
+      paramDirty = false;
+
+      ParamUpdated?.Invoke(this);
+    }
+
+    /// <summary>
+    /// Notification: GUI window has been closed.
+    /// </summary>
+    public override void OnGuiWindowClose ()
+    {
+      hsvForm?.Hide();
+      hsvForm = null;
     }
 
     /// <summary>
