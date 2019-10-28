@@ -75,6 +75,9 @@
     <Compile Include="..\common\Util.cs">
       <Link>Util.cs</Link>
     </Compile>
+    <Compile Include="..\modules\FullColor\ModuleFullColor.cs">
+      <Link>ModuleFullColor\ModuleFullColor.cs</Link>
+    </Compile>
     <Compile Include="..\modules\HSV\ModuleHSV.cs">
       <Link>ModuleHSV\ModuleHSV.cs</Link>
     </Compile>
