@@ -42,6 +42,7 @@
       this.buttonSetInput = new System.Windows.Forms.Button();
       this.buttonZoomReset = new System.Windows.Forms.Button();
       this.buttonShowGUI = new System.Windows.Forms.Button();
+      this.buttonBreak = new System.Windows.Forms.Button();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMain)).BeginInit();
       this.SuspendLayout();
       // 
@@ -123,7 +124,7 @@
       this.buttonSaveImage.Location = new System.Drawing.Point(784, 544);
       this.buttonSaveImage.Name = "buttonSaveImage";
       this.buttonSaveImage.Size = new System.Drawing.Size(86, 23);
-      this.buttonSaveImage.TabIndex = 11;
+      this.buttonSaveImage.TabIndex = 13;
       this.buttonSaveImage.Text = "Save image";
       this.buttonSaveImage.UseVisualStyleBackColor = true;
       this.buttonSaveImage.Click += new System.EventHandler(this.buttonSaveImage_Click);
@@ -203,10 +204,22 @@
       this.buttonShowGUI.Location = new System.Drawing.Point(105, 544);
       this.buttonShowGUI.Name = "buttonShowGUI";
       this.buttonShowGUI.Size = new System.Drawing.Size(105, 23);
-      this.buttonShowGUI.TabIndex = 12;
+      this.buttonShowGUI.TabIndex = 11;
       this.buttonShowGUI.Text = "Module GUI";
       this.buttonShowGUI.UseVisualStyleBackColor = true;
       this.buttonShowGUI.Click += new System.EventHandler(this.buttonShowGUI_Click);
+      // 
+      // buttonBreak
+      // 
+      this.buttonBreak.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.buttonBreak.Enabled = false;
+      this.buttonBreak.Location = new System.Drawing.Point(220, 544);
+      this.buttonBreak.Name = "buttonBreak";
+      this.buttonBreak.Size = new System.Drawing.Size(82, 23);
+      this.buttonBreak.TabIndex = 12;
+      this.buttonBreak.Text = "Break";
+      this.buttonBreak.UseVisualStyleBackColor = true;
+      this.buttonBreak.Click += new System.EventHandler(this.buttonBreak_Click);
       // 
       // FormMain
       // 
@@ -214,6 +227,7 @@
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(884, 581);
+      this.Controls.Add(this.buttonBreak);
       this.Controls.Add(this.buttonShowGUI);
       this.Controls.Add(this.buttonZoomReset);
       this.Controls.Add(this.buttonSetInput);
@@ -253,12 +267,13 @@
     private System.Windows.Forms.Button buttonLoadImage;
     private System.Windows.Forms.Button buttonSaveImage;
     private System.Windows.Forms.Button buttonRecompute;
-    private System.Windows.Forms.CheckBox checkBoxResult;
     private System.Windows.Forms.Label label2;
     private System.Windows.Forms.TextBox textBoxParam;
     private System.Windows.Forms.Button buttonSetInput;
     private System.Windows.Forms.Button buttonZoomReset;
     private System.Windows.Forms.Button buttonShowGUI;
+    private System.Windows.Forms.CheckBox checkBoxResult;
+    private System.Windows.Forms.Button buttonBreak;
   }
 }
 

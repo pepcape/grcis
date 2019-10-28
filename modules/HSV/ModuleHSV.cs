@@ -16,7 +16,10 @@ namespace Modules
     /// Mandatory plain constructor.
     /// </summary>
     public ModuleHSV ()
-    {}
+    {
+      // Default HSV transform parameters (have to by in sync with the default module state).
+      param = "mulS=1.4,par";
+    }
 
     /// <summary>
     /// Author's full name.
@@ -32,34 +35,6 @@ namespace Modules
     /// Tooltip for Param (text parameters).
     /// </summary>
     public override string Tooltip => "[dH=<double>][,mulS=<double>][,mulV=<double>][,gamma=<double>][,slow][,par]\n... dH is absolute, mS, mV, dGamma relative";
-
-    /// <summary>
-    /// Default HSV transform parameters (have to by in sync with the default module state).
-    /// </summary>
-    protected string param = "mulS=1.4,par";
-
-    /// <summary>
-    /// True if 'param' has to be parsed in the next recompute() call.
-    /// </summary>
-    protected bool paramDirty = true;
-
-    /// <summary>
-    /// Current 'Param' string is stored in the module.
-    /// Set reasonable initial value.
-    /// </summary>
-    public override string Param
-    {
-      get => param;
-      set
-      {
-        if (value != param)
-        {
-          param = value;
-          paramDirty = true;
-          recompute();
-        }
-      }
-    }
 
     /// <summary>
     /// Usually read-only, optionally writable (client is defining number of inputs).
@@ -155,142 +130,6 @@ namespace Modules
     }
 
     /// <summary>
-    /// Recompute the image.
-    /// </summary>
-    protected void recompute ()
-    {
-      if (inImage == null)
-        return;
-
-      // Update module values from 'param' string.
-      updateParam();
-
-      int wid = inImage.Width;
-      int hei = inImage.Height;
-
-      // Output image must be true-color.
-      outImage = new Bitmap(wid, hei, PixelFormat.Format24bppRgb);
-
-      // Convert pixel data.
-      double gam = (gamma < 0.001) ? 1.0 : 1.0 / gamma;
-
-      if (slow)
-      {
-        // Slow GetPixel/SetPixel code.
-
-        for (int y = 0; y < hei; y++)
-        {
-          // !!! TODO: Interrupt handling.
-          double R, G, B;
-          double H, S, V;
-
-          for (int x = 0; x < wid; x++)
-          {
-            Color ic = inImage.GetPixel(x, y);
-
-            // Conversion to HSV.
-            Arith.ColorToHSV(ic, out H, out S, out V);
-            // 0 <= H <= 360, 0 <= S <= 1, 0 <= V <= 1
-
-            // HSV transform.
-            H = H + dH;
-            S = Util.Clamp(S * mS, 0.0, 1.0);
-            V = Util.Clamp(V * mV, 0.0, 1.0);
-
-            // Conversion back to RGB.
-            Arith.HSVToRGB(H, S, V, out R, out G, out B);
-            // [R,G,B] is from [0.0, 1.0]^3
-
-            // Optional gamma correction.
-            if (gam != 1.0)
-            {
-              // Gamma-correction.
-              R = Math.Pow(R, gam);
-              G = Math.Pow(G, gam);
-              B = Math.Pow(B, gam);
-            }
-
-            Color oc = Color.FromArgb(
-            Convert.ToInt32(Util.Clamp(R * 255.0, 0.0, 255.0)),
-            Convert.ToInt32(Util.Clamp(G * 255.0, 0.0, 255.0)),
-            Convert.ToInt32(Util.Clamp(B * 255.0, 0.0, 255.0)));
-
-            outImage.SetPixel(x, y, oc);
-          }
-        }
-      }
-      else
-      {
-        // Fast memory-mapped code.
-        PixelFormat iFormat = inImage.PixelFormat;
-        if (!PixelFormat.Format24bppRgb.Equals(iFormat) &&
-            !PixelFormat.Format32bppArgb.Equals(iFormat) &&
-            !PixelFormat.Format32bppPArgb.Equals(iFormat) &&
-            !PixelFormat.Format32bppRgb.Equals(iFormat))
-          iFormat = PixelFormat.Format24bppRgb;
-
-        BitmapData dataIn  = inImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.ReadOnly, iFormat);
-        BitmapData dataOut = outImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-        unsafe
-        {
-          int dI = Image.GetPixelFormatSize(iFormat) / 8;
-          int dO = Image.GetPixelFormatSize(PixelFormat.Format24bppRgb) / 8;
-
-          Action<int> inner = y =>
-          {
-            // !!! TODO: Interrupt handling.
-            double R, G, B;
-            double H, S, V;
-
-            byte* iptr = (byte*)dataIn.Scan0  + y * dataIn.Stride;
-            byte* optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
-
-            for (int x = 0; x < wid; x++, iptr += dI, optr += dO)
-            {
-              // Recompute one pixel (*iptr -> *optr).
-              // iptr, optr -> [B,G,R]
-
-              // Conversion to HSV.
-              Arith.RGBtoHSV(iptr[2] / 255.0, iptr[1] / 255.0, iptr[0] / 255.0, out H, out S, out V);
-              // 0 <= H <= 360, 0 <= S <= 1, 0 <= V <= 1
-
-              // HSV transform.
-              H = H + dH;
-              S = Util.Clamp(S * mS, 0.0, 1.0);
-              V = Util.Clamp(V * mV, 0.0, 1.0);
-
-              // Conversion back to RGB.
-              Arith.HSVToRGB(H, S, V, out R, out G, out B);
-              // [R,G,B] is from [0.0, 1.0]^3
-
-              // Optional gamma correction.
-              if (gam != 1.0)
-              {
-                // Gamma-correction.
-                R = Math.Pow(R, gam);
-                G = Math.Pow(G, gam);
-                B = Math.Pow(B, gam);
-              }
-
-              optr[0] = Convert.ToByte(Util.Clamp(B * 255.0, 0.0, 255.0));
-              optr[1] = Convert.ToByte(Util.Clamp(G * 255.0, 0.0, 255.0));
-              optr[2] = Convert.ToByte(Util.Clamp(R * 255.0, 0.0, 255.0));
-            }
-          };
-
-          if (parallel)
-            Parallel.For(0, hei, inner);
-          else
-            for (int y = 0; y < hei; y++)
-              inner(y);
-        }
-
-        outImage.UnlockBits(dataOut);
-        inImage.UnlockBits(dataIn);
-      }
-    }
-
-    /// <summary>
     /// Send ModuleHSV values to the form elements.
     /// </summary>
     protected void formUpdate ()
@@ -375,7 +214,144 @@ namespace Modules
     /// Blocking (synchronous) function.
     /// #GetOutput() functions can be called after that.
     /// </summary>
-    public override void Update () => recompute();
+    public override void Update ()
+    {
+      if (inImage == null)
+        return;
+
+      // Update module values from 'param' string.
+      updateParam();
+
+      int wid = inImage.Width;
+      int hei = inImage.Height;
+
+      // Output image must be true-color.
+      outImage = new Bitmap(wid, hei, PixelFormat.Format24bppRgb);
+
+      // Convert pixel data.
+      double gam = (gamma < 0.001) ? 1.0 : 1.0 / gamma;
+
+      if (slow)
+      {
+        // Slow GetPixel/SetPixel code.
+
+        for (int y = 0; y < hei; y++)
+        {
+          // User break handling.
+          if (UserBreak)
+            break;
+
+          double R, G, B;
+          double H, S, V;
+
+          for (int x = 0; x < wid; x++)
+          {
+            Color ic = inImage.GetPixel(x, y);
+
+            // Conversion to HSV.
+            Arith.ColorToHSV(ic, out H, out S, out V);
+            // 0 <= H <= 360, 0 <= S <= 1, 0 <= V <= 1
+
+            // HSV transform.
+            H = H + dH;
+            S = Util.Clamp(S * mS, 0.0, 1.0);
+            V = Util.Clamp(V * mV, 0.0, 1.0);
+
+            // Conversion back to RGB.
+            Arith.HSVToRGB(H, S, V, out R, out G, out B);
+            // [R,G,B] is from [0.0, 1.0]^3
+
+            // Optional gamma correction.
+            if (gam != 1.0)
+            {
+              // Gamma-correction.
+              R = Math.Pow(R, gam);
+              G = Math.Pow(G, gam);
+              B = Math.Pow(B, gam);
+            }
+
+            Color oc = Color.FromArgb(
+            Convert.ToInt32(Util.Clamp(R * 255.0, 0.0, 255.0)),
+            Convert.ToInt32(Util.Clamp(G * 255.0, 0.0, 255.0)),
+            Convert.ToInt32(Util.Clamp(B * 255.0, 0.0, 255.0)));
+
+            outImage.SetPixel(x, y, oc);
+          }
+        }
+      }
+      else
+      {
+        // Fast memory-mapped code.
+        PixelFormat iFormat = inImage.PixelFormat;
+        if (!PixelFormat.Format24bppRgb.Equals(iFormat) &&
+            !PixelFormat.Format32bppArgb.Equals(iFormat) &&
+            !PixelFormat.Format32bppPArgb.Equals(iFormat) &&
+            !PixelFormat.Format32bppRgb.Equals(iFormat))
+          iFormat = PixelFormat.Format24bppRgb;
+
+        BitmapData dataIn  = inImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.ReadOnly, iFormat);
+        BitmapData dataOut = outImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+        unsafe
+        {
+          int dI = Image.GetPixelFormatSize(iFormat) / 8;
+          int dO = Image.GetPixelFormatSize(PixelFormat.Format24bppRgb) / 8;
+
+          Action<int> inner = y =>
+          {
+            // User break handling.
+            if (UserBreak)
+              return;
+
+            double R, G, B;
+            double H, S, V;
+
+            byte* iptr = (byte*)dataIn.Scan0  + y * dataIn.Stride;
+            byte* optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+
+            for (int x = 0; x < wid; x++, iptr += dI, optr += dO)
+            {
+              // Recompute one pixel (*iptr -> *optr).
+              // iptr, optr -> [B,G,R]
+
+              // Conversion to HSV.
+              Arith.RGBtoHSV(iptr[2] / 255.0, iptr[1] / 255.0, iptr[0] / 255.0, out H, out S, out V);
+              // 0 <= H <= 360, 0 <= S <= 1, 0 <= V <= 1
+
+              // HSV transform.
+              H = H + dH;
+              S = Util.Clamp(S * mS, 0.0, 1.0);
+              V = Util.Clamp(V * mV, 0.0, 1.0);
+
+              // Conversion back to RGB.
+              Arith.HSVToRGB(H, S, V, out R, out G, out B);
+              // [R,G,B] is from [0.0, 1.0]^3
+
+              // Optional gamma correction.
+              if (gam != 1.0)
+              {
+                // Gamma-correction.
+                R = Math.Pow(R, gam);
+                G = Math.Pow(G, gam);
+                B = Math.Pow(B, gam);
+              }
+
+              optr[0] = Convert.ToByte(Util.Clamp(B * 255.0, 0.0, 255.0));
+              optr[1] = Convert.ToByte(Util.Clamp(G * 255.0, 0.0, 255.0));
+              optr[2] = Convert.ToByte(Util.Clamp(R * 255.0, 0.0, 255.0));
+            }
+          };
+
+          if (parallel)
+            Parallel.For(0, hei, inner);
+          else
+            for (int y = 0; y < hei; y++)
+              inner(y);
+        }
+
+        outImage.UnlockBits(dataOut);
+        inImage.UnlockBits(dataIn);
+      }
+    }
 
     /// <summary>
     /// Returns an output raster image.

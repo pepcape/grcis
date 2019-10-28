@@ -10,7 +10,10 @@ namespace Modules
     /// Mandatory plain constructor.
     /// </summary>
     public ModulePixelize ()
-    {}
+    {
+      // Default cell size (width x height).
+      param = "12,8";
+    }
 
     /// <summary>
     /// Author's full name.
@@ -33,28 +36,6 @@ namespace Modules
     static readonly char COMMA = ',';
 
     /// <summary>
-    /// Default cell size (width x height).
-    /// </summary>
-    protected string param = "12,8";
-
-    /// <summary>
-    /// Current 'Param' string is stored in the module.
-    /// Set reasonable initial value.
-    /// </summary>
-    public override string Param
-    {
-      get => param;
-      set
-      {
-        if (value != param)
-        {
-          param = value;
-          recompute();
-        }
-      }
-    }
-
-    /// <summary>
     /// Usually read-only, optionally writable (client is defining number of inputs).
     /// </summary>
     public override int InputSlots => 1;
@@ -75,13 +56,29 @@ namespace Modules
     protected Bitmap outImage = null;
 
     /// <summary>
-    /// Recompute the image.
+    /// Assigns an input raster image to the given slot.
+    /// Doesn't start computation (see #Update for this).
     /// </summary>
-    protected void recompute ()
+    /// <param name="inputImage">Input raster image (can be null).</param>
+    /// <param name="slot">Slot number from 0 to InputSlots-1.</param>
+    public override void SetInput (
+      Bitmap inputImage,
+      int slot = 0)
+    {
+      inImage = inputImage;
+    }
+
+    /// <summary>
+    /// Recompute the output image[s] according to input image[s].
+    /// Blocking (synchronous) function.
+    /// #GetOutput() functions can be called after that.
+    /// </summary>
+    public override void Update ()
     {
       if (inImage == null)
         return;
 
+      // We are not using 'paramDirty', so the 'Param' string has to be parsed every time.
       // Text parameter = cell size.
       int wid = inImage.Width;
       int hei = inImage.Height;
@@ -117,7 +114,10 @@ namespace Modules
       // slow GetPixel-SetPixel code:
       for (y = 0; y < hei; y++)
       {
-        // !!! TODO: Interrupt handling.
+        // User break handling.
+        if (UserBreak)
+          break;
+
         for (x = 0; x < wid; x++)
         {
           Color ic = inImage.GetPixel(x, y);
@@ -151,7 +151,9 @@ namespace Modules
 
         for (y0 = 0; y0 < hei; y0 += cellH)
         {
-          // !!! TODO: Interrupt handling.
+          // User break handling.
+          if (UserBreak)
+            break;
 
           for (x0 = 0; x0 < wid; x0 += cellW)     // one output cell
           {
@@ -194,26 +196,6 @@ namespace Modules
 
 #endif
     }
-
-    /// <summary>
-    /// Assigns an input raster image to the given slot.
-    /// Doesn't start computation (see #Update for this).
-    /// </summary>
-    /// <param name="inputImage">Input raster image (can be null).</param>
-    /// <param name="slot">Slot number from 0 to InputSlots-1.</param>
-    public override void SetInput (
-      Bitmap inputImage,
-      int slot = 0)
-    {
-      inImage = inputImage;
-    }
-
-    /// <summary>
-    /// Recompute the output image[s] according to input image[s].
-    /// Blocking (synchronous) function.
-    /// #GetOutput() functions can be called after that.
-    /// </summary>
-    public override void Update () => recompute();
 
     /// <summary>
     /// Returns an output raster image.

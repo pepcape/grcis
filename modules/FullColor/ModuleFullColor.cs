@@ -13,7 +13,10 @@ namespace Modules
     /// Mandatory plain constructor.
     /// </summary>
     public ModuleFullColor ()
-    {}
+    {
+      // Default cell size (wid x hei).
+      param = "wid=4096,hei=4096";
+    }
 
     /// <summary>
     /// Author's full name.
@@ -28,29 +31,7 @@ namespace Modules
     /// <summary>
     /// Tooltip for Param (text parameters).
     /// </summary>
-    public override string Tooltip => "[wid=<width>][,hei=<height>][,slow]";
-
-    /// <summary>
-    /// Default cell size (width x height).
-    /// </summary>
-    protected string param = "4096,4096";
-
-    /// <summary>
-    /// Current 'Param' string is stored in the module.
-    /// Set reasonable initial value.
-    /// </summary>
-    public override string Param
-    {
-      get => param;
-      set
-      {
-        if (value != param)
-        {
-          param = value;
-          recompute();
-        }
-      }
-    }
+    public override string Tooltip => "[wid=<width>][,hei=<height>][,slow][,ignore-input][,no-check]";
 
     /// <summary>
     /// Usually read-only, optionally writable (client is defining number of inputs).
@@ -75,21 +56,40 @@ namespace Modules
     /// <summary>
     /// Output message (color check).
     /// </summary>
-    protected string message = "";
+    protected string message;
 
     /// <summary>
-    /// Recompute the image.
+    /// Assigns an input raster image to the given slot.
+    /// Doesn't start computation (see #Update for this).
     /// </summary>
-    protected void recompute ()
+    /// <param name="inputImage">Input raster image (can be null).</param>
+    /// <param name="slot">Slot number from 0 to InputSlots-1.</param>
+    public override void SetInput (
+      Bitmap inputImage,
+      int slot = 0)
+    {
+      inImage = inputImage;
+    }
+
+    /// <summary>
+    /// Recompute the output image[s] according to input image[s].
+    /// Blocking (synchronous) function.
+    /// #GetOutput() functions can be called after that.
+    /// </summary>
+    public override void Update ()
     {
       // Input image is optional.
+      // Starts a new computation.
+      UserBreak = false;
 
       // Default values.
       int wid = 4096;
       int hei = 4096;
       bool fast = true;
+      bool ignoreInput = false;
+      bool check = true;
 
-      // Text parameters (Param) parsing.
+      // We are not using 'paramDirty', so the 'Param' string has to be parsed every time.
       Dictionary<string, string> p = Util.ParseKeyValueList(param);
       if (p.Count > 0)
       {
@@ -103,6 +103,12 @@ namespace Modules
 
         // slow ... use Bitmap.SetPixel()
         fast = !p.ContainsKey("slow");
+
+        // ignore-input ... ignore input image even if it is present
+        ignoreInput = p.ContainsKey("ignore-input");
+
+        // no-check ... disable color check at the end
+        check = !p.ContainsKey("no-check");
       }
 
       outImage = new Bitmap(wid, hei, PixelFormat.Format24bppRgb);
@@ -111,7 +117,8 @@ namespace Modules
       int xo, yo;
       byte ro, go, bo;
 
-      if (inImage != null)
+      if (!ignoreInput &&
+          inImage != null)
       {
         // Input image is present => use it.
 
@@ -138,9 +145,11 @@ namespace Modules
           yi = 0;
           for (yo = 0; yo < hei; yo++)
           {
-            // !!! TODO: user break handling !!!
+            // User break handling.
+            if (UserBreak)
+              break;
 
-            iptr = (byte*)dataIn.Scan0 + yi * dataIn.Stride;
+            iptr = (byte*)dataIn.Scan0  + yi * dataIn.Stride;
             optr = (byte*)dataOut.Scan0 + yo * dataOut.Stride;
 
             xi = 0;
@@ -195,7 +204,9 @@ namespace Modules
             col = 0;
             for (yo = 0; yo < hei; yo++)
             {
-              // !!! TODO: user break handling !!!
+              // User break handling.
+              if (UserBreak)
+                break;
 
               optr = (byte*)dataOut.Scan0 + yo * dataOut.Stride;
 
@@ -224,7 +235,9 @@ namespace Modules
           col = 0;
           for (yo = 0; yo < hei; yo++)
           {
-            // !!! TODO: user break handling !!!
+            // User break handling.
+            if (UserBreak)
+              break;
 
             for (xo = 0; xo < wid; xo++, col++)
             {
@@ -241,29 +254,15 @@ namespace Modules
       }
 
       // Output message.
-      long colors = Draw.ColorNumber(outImage);
-      message = colors == (1 << 24) ? "Colors: 16M, Ok" : $"Colors: {colors}, Fail";
+      if (check &&
+          !UserBreak)
+      {
+        long colors = Draw.ColorNumber(outImage);
+        message = colors == (1 << 24) ? "Colors: 16M, Ok" : $"Colors: {colors}, Fail";
+      }
+      else
+        message = null;
     }
-
-    /// <summary>
-    /// Assigns an input raster image to the given slot.
-    /// Doesn't start computation (see #Update for this).
-    /// </summary>
-    /// <param name="inputImage">Input raster image (can be null).</param>
-    /// <param name="slot">Slot number from 0 to InputSlots-1.</param>
-    public override void SetInput (
-      Bitmap inputImage,
-      int slot = 0)
-    {
-      inImage = inputImage;
-    }
-
-    /// <summary>
-    /// Recompute the output image[s] according to input image[s].
-    /// Blocking (synchronous) function.
-    /// #GetOutput() functions can be called after that.
-    /// </summary>
-    public override void Update () => recompute();
 
     /// <summary>
     /// Returns an output raster image.

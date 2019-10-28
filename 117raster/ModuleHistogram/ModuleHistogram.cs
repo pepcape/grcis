@@ -10,7 +10,10 @@ namespace Modules
     /// Mandatory plain constructor.
     /// </summary>
     public ModuleGlobalHistogram ()
-    {}
+    {
+      // Default mode: gray.
+      param = "gray";
+    }
 
     /// <summary>
     /// Author's full name.
@@ -28,11 +31,6 @@ namespace Modules
     public override string Tooltip => "{red | green | blue | gray} [sort] [alt]";
 
     /// <summary>
-    /// Default mode - gray.
-    /// </summary>
-    protected string param = "gray";
-
-    /// <summary>
     /// Current 'Param' string is stored in the module.
     /// Set reasonable initial value.
     /// </summary>
@@ -43,10 +41,9 @@ namespace Modules
       {
         if (value != param)
         {
-          param = value;
-          dirty = true;     // to recompute histogram table
-
-          recompute();
+          param      = value;
+          dirty      = true;     // to recompute histogram table
+          paramDirty = true;
         }
       }
     }
@@ -81,6 +78,10 @@ namespace Modules
     /// </summary>
     protected Bitmap hImage = null;
 
+    /// <summary>
+    /// The shared histogram-recomputation routine, used both in Update() and
+    /// PixelUpdate() for demo purposes.
+    /// </summary>
     protected void recompute ()
     {
       if (hForm   != null &&
@@ -112,10 +113,8 @@ namespace Modules
           if (hForm == null)
           {
             hForm = new HistogramForm(this);
-            hForm.Show();
+            dirty = true;
           }
-
-          recompute();
         }
         else
         {
@@ -135,10 +134,8 @@ namespace Modules
       Bitmap inputImage,
       int slot = 0)
     {
-      dirty   = inImage != inputImage;     // to recompute histogram table
-      inImage = inputImage;
-
-      recompute();
+      dirty   |= inImage != inputImage;     // to recompute histogram table
+      inImage  = inputImage;
     }
 
     /// <summary>
