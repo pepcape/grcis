@@ -27,6 +27,7 @@ namespace Modules
       module = hModule;
 
       InitializeComponent();
+      Show();
     }
 
     private void HistogramForm_FormClosed (object sender, FormClosedEventArgs e)

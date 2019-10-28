@@ -206,6 +206,7 @@
       this.Controls.Add(this.buttonReset);
       this.Controls.Add(this.buttonDeactivate);
       this.Controls.Add(this.buttonRecompute);
+      this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
       this.MaximizeBox = false;
       this.MinimizeBox = false;
       this.Name = "FormHSV";

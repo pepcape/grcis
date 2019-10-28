@@ -69,22 +69,22 @@ namespace _117raster
     /// <summary>
     /// Param string tooltip = help.
     /// </summary>
-    string tooltip = "-- no tooltip yet --";
+    private string tooltip = "-- no tooltip yet --";
 
     /// <summary>
     /// Shared ToolTip instance.
     /// </summary>
-    ToolTip tt = new ToolTip();
+    private ToolTip tt = new ToolTip();
 
     /// <summary>
     /// Previously activated modules.
     /// </summary>
-    Dictionary <string, IRasterModule> modules = new Dictionary<string, IRasterModule>();
+    private Dictionary <string, IRasterModule> modules = new Dictionary<string, IRasterModule>();
 
     /// <summary>
     /// Current active module.
     /// </summary>
-    IRasterModule currModule = null;
+    private IRasterModule currModule = null;
 
     public FormMain ()
     {
@@ -112,10 +112,22 @@ namespace _117raster
       bakImage = newImage;
     }
 
-    /// <summary>
-    /// Picture-box background color (for alpha-images).
-    /// </summary>
-    public static Color imageBoxBackground = Color.White;
+    private void setRecomputeGui (bool computing)
+    {
+      // Set GUI elements for computing/non-computing mode.
+      comboBoxModule.Enabled =
+      checkBoxResult.Enabled =
+      buttonLoadImage.Enabled =
+      buttonModule.Enabled =
+      buttonRecompute.Enabled =
+      buttonSetInput.Enabled =
+      buttonShowGUI.Enabled =
+      buttonSaveImage.Enabled =
+        !computing;
+
+      buttonBreak.Enabled =
+        computing;
+    }
 
     delegate void SetImageCallback (Bitmap newImage);
 
@@ -123,7 +135,7 @@ namespace _117raster
     /// Sets new output image (async support).
     /// Not used yet.
     /// </summary>
-    protected void SetImage (Bitmap newImage)
+    private void SetImage (Bitmap newImage)
     {
       if (pictureBoxMain.InvokeRequired)
       {
@@ -132,11 +144,21 @@ namespace _117raster
       }
       else
       {
-        outputImage?.Dispose();
-        outputImage = newImage;
-        panAndZoom.SetNewImage(outputImage);
-        pictureBoxMain.BackColor = imageBoxBackground;
+        // Finishing phase after a module has recomputed the output image.
+        setImage(ref outputImage, newImage);
+        checkBoxResult.Checked = newImage != null;
         setSaveButton();
+
+        // Display input or output image.
+        displayImage();
+
+        // !!! TODO: this value could be set to Color.White or ColorBlack
+        //           for transparent images. Reflect it in API ???
+        pictureBoxMain.BackColor = BackColor;
+
+        // Reset the 'running' item.
+        running = null;
+        setRecomputeGui(false);
       }
     }
 
@@ -146,7 +168,7 @@ namespace _117raster
     /// Sets label text (async support).
     /// </summary>
     /// <param name="text"></param>
-    protected void SetText (string text)
+    private void SetText (string text)
     {
       if (labelStatus.InvokeRequired)
       {
@@ -255,54 +277,126 @@ namespace _117raster
         panAndZoom.SetNewImage(inputImage ?? Resources.InitialImage);
     }
 
-    /// <summary>
-    /// Recompute initiated in the FormMain. Optional update of module's param from the textBox.
-    /// </summary>
-    /// <param name="setParam">If true, module's Param will be modified.</param>
-    private void recompute (bool setParam)
+    class RecomputeTask
     {
-      Bitmap oi = null;
+      /// <summary>
+      /// I'll need to access the form data.
+      /// </summary>
+      FormMain form;
 
-      if (currModule != null)
+      /// <summary>
+      /// Associated module (to be sure of it's lifespan).
+      /// </summary>
+      IRasterModule module;
+
+      /// <summary>
+      /// Elapsed stop-watch.
+      /// </summary>
+      Stopwatch sw;
+
+      /// <summary>
+      /// Keep references to FormMain and the current module (to be sure).
+      /// </summary>
+      public RecomputeTask (FormMain f, IRasterModule m)
+      {
+        form   = f;
+        module = m;
+      }
+
+      /// <summary>
+      /// Starts the module.Update()/PixelUpdate() + support.
+      /// </summary>
+      public void Start (Bitmap inImage, string newParam, int x = -1, int y = -1)
       {
         // Set input.
-        if (currModule.InputSlots > 0 &&
-            inputImage != null)
-          currModule.SetInput(inputImage, 0);
+        if (module.InputSlots > 0)
+          module.SetInput(inImage, 0);
 
-        if (setParam)
-          currModule.Param = textBoxParam.Text;
+        // Update Param string?
+        if (newParam != null)
+          module.Param = newParam;
+
+        // Show the optional GUI for the module.
+        // !!! TODO: needs check ???
+        module.GuiWindow = true;
+
+        // Reset the break system.
+        DefaultRasterModule.UserBreak = false;
 
         // Measure the recompute time.
-        Stopwatch sw = new Stopwatch();
+        sw = new Stopwatch();
         sw.Start();
 
         // Recompute.
-        currModule.Update();
+        if (x >= 0 &&
+            y >= 0)
+          module.PixelUpdateAsync(x, y, Finish);
+        else
+          module.UpdateAsync(Finish);
+      }
+
+      /// <summary>
+      /// Finishing procedure.
+      /// </summary>
+      public void Finish (IRasterModule m)
+      {
+        // Called as UpdateAsync() finish routine.
 
         // Elapsed time in milliseconds.
         sw.Stop();
         long elapsed = sw.ElapsedMilliseconds;
 
         // Optional output message.
-        string message = currModule.GetOutputMessage(0);
-        SetText(string.Format(CultureInfo.InvariantCulture, "Elapsed: {0:0.000}s{1}",
-                0.001 * elapsed,
-                string.IsNullOrEmpty(message) ? "" : $", {message}"));
+        string message = DefaultRasterModule.UserBreak ? "User break!" : module.GetOutputMessage(0);
+        form?.SetText(string.Format(CultureInfo.InvariantCulture, "Elapsed: {0:0.000}s{1}",
+                      0.001 * elapsed,
+                      string.IsNullOrEmpty(message) ? "" : $", {message}"));
+        DefaultRasterModule.UserBreak = false;
 
-        // Gui visible if applicable.
-        currModule.GuiWindow = true;
+        // Gui is already visible (if applicable). See Start()
+        // !!! TODO: needs check ???
+        //module.GuiWindow = true;
 
         // Update result image.
-        oi = currModule.GetOutput(0);
+        Bitmap oi = module.GetOutput(0);
+
+        // Finish the job on the Form side (and discard this RecomputeTask eventually).
+        form?.SetImage(oi);
+      }
+    }
+
+    /// <summary>
+    /// Current recomputation or null if nothing is running.
+    /// </summary>
+    private RecomputeTask running = null;
+
+    /// <summary>
+    /// Recompute initiated in the FormMain. Optional update of module's param from the textBox.
+    /// </summary>
+    /// <param name="setParam">If true, module's Param will be modified.</param>
+    private void recompute (bool setParam)
+    {
+      if (running != null)
+        return;
+
+      IRasterModule module = currModule;
+      if (module == null)
+      {
+        // Nothing to compute => set outputImage to null.
+
+        setImage(ref outputImage, null);
+        checkBoxResult.Checked = false;
+        setSaveButton();
+
+        // Display input image.
+        displayImage();
+
+        return;
       }
 
-      setImage(ref outputImage, oi);
-      checkBoxResult.Checked = oi != null;
-      setSaveButton();
-
-      // Display input or output image.
-      displayImage();
+      running = new RecomputeTask(this, module);
+      setRecomputeGui(true);
+      running.Start(inputImage, setParam ? textBoxParam.Text : null);
     }
 
     /// <summary>
@@ -315,30 +409,27 @@ namespace _117raster
       int x,
       int y)
     {
-      Bitmap oi = null;
+      if (running != null)
+        return;
 
-      if (currModule != null &&
-          inputImage != null)
+      IRasterModule module = currModule;
+      if (module == null)
       {
-        // Set input.
-        currModule.SetInput(inputImage);
-        currModule.Param = textBoxParam.Text;
+        // Nothing to compute => set outputImage to null.
 
-        // Recompute locally.
-        currModule.PixelUpdate(x, y);
+        setImage(ref outputImage, null);
+        checkBoxResult.Checked = false;
+        setSaveButton();
 
-        // Gui visible if applicable.
-        currModule.GuiWindow = true;
+        // Display input image.
+        displayImage();
 
-        // Update result image.
-        oi = currModule.GetOutput(0);
+        return;
       }
 
-      setImage(ref outputImage, oi);
-      setSaveButton();
-
-      // Display input or output image.
-      displayImage();
+      running = new RecomputeTask(this, module);
+      setRecomputeGui(true);
+      running.Start(inputImage, textBoxParam.Text, x, y);
     }
 
     private void buttonSaveImage_Click (object sender, EventArgs e)
@@ -373,7 +464,11 @@ namespace _117raster
 
     private void FormMain_FormClosing (object sender, FormClosingEventArgs e)
     {
-      // !!! TODO: stop computing, etc.
+      if (running != null)
+      {
+        DefaultRasterModule.UserBreak = true;
+        System.Threading.Thread.Sleep(100);
+      }
     }
 
     private void FormMain_FormClosed (object sender, FormClosedEventArgs e)
@@ -518,6 +613,7 @@ namespace _117raster
       tooltip = "";
       buttonModule.Text = "Activate module";
       buttonRecompute.Enabled = false;
+      buttonBreak.Enabled = false;
       buttonShowGUI.Enabled = false;
     }
 
@@ -556,6 +652,7 @@ namespace _117raster
           currModule.SetInput(inputImage);
 
         buttonRecompute.Enabled = true;
+        buttonBreak.Enabled = false;
       }
     }
 
@@ -636,6 +733,7 @@ namespace _117raster
       }
 
       buttonRecompute.Enabled = activated;
+      buttonBreak.Enabled = false;
     }
 
     private void buttonZoomReset_Click (object sender, EventArgs e)
@@ -655,6 +753,11 @@ namespace _117raster
       setSaveButton();
       titleMiddle = " [" + inputImageFileName + ']';
       SetText($"{inputImageFileName} [{inputImage.Width}x{inputImage.Height}]");
+    }
+
+    private void buttonBreak_Click (object sender, EventArgs e)
+    {
+      DefaultRasterModule.UserBreak = true;
     }
   }
 }
