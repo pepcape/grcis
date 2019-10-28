@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Raster;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -70,6 +71,11 @@ namespace Modules
     /// Output raster image.
     /// </summary>
     protected Bitmap outImage = null;
+
+    /// <summary>
+    /// Output message (color check).
+    /// </summary>
+    protected string message = "";
 
     /// <summary>
     /// Recompute the image.
@@ -233,6 +239,10 @@ namespace Modules
           }
         }
       }
+
+      // Output message.
+      long colors = Draw.ColorNumber(outImage);
+      message = colors == (1 << 24) ? "Colors: 16M, Ok" : $"Colors: {colors}, Fail";
     }
 
     /// <summary>
@@ -262,5 +272,13 @@ namespace Modules
     /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
     public override Bitmap GetOutput (
       int slot = 0) => outImage;
+
+    /// <summary>
+    /// Returns an optional output message.
+    /// Can return null.
+    /// </summary>
+    /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
+    public override string GetOutputMessage (
+      int slot = 0) => message;
   }
 }

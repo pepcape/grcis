@@ -283,7 +283,12 @@ namespace _117raster
         // Elapsed time in milliseconds.
         sw.Stop();
         long elapsed = sw.ElapsedMilliseconds;
-        SetText(string.Format(CultureInfo.InvariantCulture, "Elapsed: {0:0.000}s", 0.001 * elapsed));
+
+        // Optional output message.
+        string message = currModule.GetOutputMessage(0);
+        SetText(string.Format(CultureInfo.InvariantCulture, "Elapsed: {0:0.000}s{1}",
+                0.001 * elapsed,
+                string.IsNullOrEmpty(message) ? "" : $", {message}"));
 
         // Gui visible if applicable.
         currModule.GuiWindow = true;

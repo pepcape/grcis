@@ -154,6 +154,14 @@ namespace Modules
       int slot = 0);
 
     /// <summary>
+    /// Returns an optional output message.
+    /// Can return null.
+    /// </summary>
+    /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
+    string GetOutputMessage (
+      int slot = 0);
+
+    /// <summary>
     /// Returns an output HDR image.
     /// Can return null.
     /// </summary>
@@ -340,6 +348,14 @@ namespace Modules
     /// </summary>
     /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
     public virtual Bitmap GetOutput (
+      int slot = 0) => null;
+
+    /// <summary>
+    /// Returns an optional output message.
+    /// Can return null.
+    /// </summary>
+    /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
+    public virtual string GetOutputMessage (
       int slot = 0) => null;
 
     /// <summary>
