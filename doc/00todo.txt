@@ -44,6 +44,7 @@ Old tasks:
 057scene (procedural 3D scene, 2012-2017, 2018)
 058marbles (3D physical simulation, 2012-2016, 2018)
 ...
+081fullcolor (full-color image, 2015)
 082circles (dots only, 2015, 2018)
 083animation (animation using dots, 2015, 2018)
 084filter (artistic image filter, 2015, 2017)
@@ -58,9 +59,7 @@ Old tasks:
 097
 098svg (maze, 2017)
 099lines (horizontal/vertical lines only, 2017)
-----
-100-109 reserved for private projects:
-----
+---- 100-109 reserved for private projects:
 100cirrus (point-cloud visualization, Josef Pelikan, 2016-?)
 101meshEditor (Gabriela Dvorakova, 2016)
 102meshVis (Katerina Bokova, 2016)
@@ -71,7 +70,7 @@ Old tasks:
 107 -
 108 -
 109 -
-----
+---- regular tasks
 110animation (h/v lines only animation, 2017)
 111tree (spatial tree for 2D kNN, 2017)
 112dials (special segment display assembled from analog dials, 2017)
@@ -79,11 +78,12 @@ Old tasks:
 114transition (2D image -> 2D image transition, 2018)
 115colormandala (cyclic color-map for mandala-style images, 2018)
 116 (task only, animated realtime camera, 2018)
-----
+---- tasks 2019/20
 117raster (template for modular raster image project, 2019)
-118histogram (alternative image histogram, 2019)
+118 (task only, alternative image histogram, 2019)
 119 (task only, hash functions for textures, 2018)
-120 free
+120 (task only, restricted color transform, 2019)
+121 (task only, full-color image, 2019)
 ...
 
 ================================================================================
