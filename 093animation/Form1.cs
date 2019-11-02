@@ -13,44 +13,38 @@ namespace _093animation
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = Util.SetVersion( "$Rev$" );
+    static readonly string rev = Util.SetVersion("$Rev$");
 
     /// <summary>
     /// Main animation-rendering thread.
     /// </summary>
-    protected Thread aThread = null;
+    private Thread aThread = null;
 
     /// <summary>
     /// Progress info / user break handling.
     /// Used also as input lock for MT animation computation.
     /// </summary>
-    protected Progress progress = new Progress();
-
-    /// <summary>
-    /// Global animation data (ITimeDependent or constant).
-    /// Working threads should clone it before setting specific times to it.
-    /// </summary>
-    protected object data = null;
+    private Progress progress = new Progress();
 
     /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageWidth = 640;
+    private int ImageWidth = 640;
 
     /// <summary>
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
-    protected int ImageHeight = 480;
+    private int ImageHeight = 480;
 
     /// <summary>
     /// Param string tooltip = help.
     /// </summary>
-    string tooltip = "";
+    private string tooltip = "";
 
     /// <summary>
     /// Shared ToolTip instance.
     /// </summary>
-    ToolTip tt = new ToolTip();
+    private ToolTip tt = new ToolTip();
 
     public Form1 ()
     {
@@ -59,14 +53,14 @@ namespace _093animation
       // Init form data.
       double from, to, fps;
       string name;
-      Animation.InitParams( out name, out ImageWidth, out ImageHeight, out from, out to, out fps, out param, out tooltip );
-      if ( ImageWidth < 0 )
+      Animation.InitParams(out name, out ImageWidth, out ImageHeight, out from, out to, out fps, out param, out tooltip);
+      if (ImageWidth < 0)
         ImageWidth = 0;          // 0 .. take image width from the form size
-      if ( ImageHeight < 0 )
+      if (ImageHeight < 0)
         ImageHeight = 0;         // 0 .. take image height from the form size
-      if ( to <= start )
+      if (to <= start)
         to = start + 1.0;
-      if ( fps <= 0.0 )
+      if (fps <= 0.0)
         fps = 25.0;
 
       numFrom.Value = (decimal)from;
@@ -75,19 +69,19 @@ namespace _093animation
 
       Text += " (" + rev + ") '" + name + '\'';
       textParam.Text = param ?? "";
-      buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+      buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
     }
 
-    private void EnableGUI ( bool compute )
+    private void EnableGUI (bool compute)
     {
       buttonRenderAnim.Enabled =
-      buttonRender.Enabled     =
-      numFrom.Enabled          =
-      numTo.Enabled            =
-      numFps.Enabled           =
-      numTime.Enabled          =
-      buttonRes.Enabled        = compute;
-      buttonStop.Enabled       = !compute;
+      buttonRender.Enabled =
+      numFrom.Enabled =
+      numTo.Enabled =
+      numFps.Enabled =
+      numTime.Enabled =
+      buttonRes.Enabled = compute;
+      buttonStop.Enabled = !compute;
     }
 
     /// <summary>
@@ -96,72 +90,73 @@ namespace _093animation
     private void RenderImage ()
     {
       Cursor.Current = Cursors.WaitCursor;
-      EnableGUI( false );
+      EnableGUI(false);
 
       width = ImageWidth;
-      if ( width <= 0 ) width = panel1.Width;
+      if (width <= 0)
+        width = panel1.Width;
       height = ImageHeight;
-      if ( height <= 0 ) height = panel1.Height;
+      if (height <= 0)
+        height = panel1.Height;
 
       double start = (double)numFrom.Value;
       double end = (double)numTo.Value;
-      if ( end <= time )
+      if (end <= time)
         end = time + 1.0;
       double fps = (double)numFps.Value;
-      if ( fps <= 0.0 )
+      if (fps <= 0.0)
         fps = 25.0;
       param = textParam.Text;
 
-      Animation.InitAnimation( width, height, start, end, fps, param );
+      Animation.InitAnimation(width, height, start, end, fps, param);
 
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      Canvas c = new Canvas( width, height );
+      Canvas c = new Canvas(width, height);
 
-      Animation.DrawFrame( c, (double)numTime.Value, start, end, param );
+      Animation.DrawFrame(c, (double)numTime.Value, start, end, param);
       Bitmap newImage = c.Finish();
 
       sw.Stop();
 
-      labelElapsed.Text = string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = string.Format(CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds);
 
-      setImage( newImage );
+      setImage(newImage);
 
-      EnableGUI( true );
+      EnableGUI(true);
       Cursor.Current = Cursors.Default;
     }
 
-    protected void setImage ( Bitmap newImage )
+    protected void setImage (Bitmap newImage)
     {
       Image old = pictureBox1.Image;
       pictureBox1.Image = newImage;
       pictureBox1.Invalidate();
-      if ( old != null )
-        old.Dispose();
+      old?.Dispose();
     }
 
-    delegate void SetImageCallback ( Bitmap newImage );
+    delegate void SetImageCallback (Bitmap newImage);
 
-    protected void SetImage ( Bitmap newImage )
+    protected void SetImage (Bitmap newImage)
     {
-      if ( pictureBox1.InvokeRequired )
+      if (pictureBox1.InvokeRequired)
       {
-        SetImageCallback si = new SetImageCallback( SetImage );
-        BeginInvoke( si, new object[] { newImage } );
+        SetImageCallback si = new SetImageCallback(SetImage);
+        BeginInvoke(si, new object[] { newImage });
       }
       else
-        setImage( newImage );
+        setImage(newImage);
     }
 
-    delegate void SetTextCallback ( string text );
+    delegate void SetTextCallback (string text);
 
-    protected void SetText ( string text )
+    protected void SetText (string text)
     {
-      if ( labelElapsed.InvokeRequired )
+      if (labelElapsed.InvokeRequired)
       {
-        SetTextCallback st = new SetTextCallback( SetText );
-        BeginInvoke( st, new object[] { text } );
+        SetTextCallback st = new SetTextCallback(SetText);
+        BeginInvoke(st, new object[] { text });
       }
       else
         labelElapsed.Text = text;
@@ -171,55 +166,56 @@ namespace _093animation
 
     protected void StopAnimation ()
     {
-      if ( aThread == null ) return;
+      if (aThread == null)
+        return;
 
-      if ( buttonRenderAnim.InvokeRequired )
+      if (buttonRenderAnim.InvokeRequired)
       {
-        StopAnimationCallback ea = new StopAnimationCallback( StopAnimation );
-        BeginInvoke( ea );
+        StopAnimationCallback ea = new StopAnimationCallback(StopAnimation);
+        BeginInvoke(ea);
       }
       else
       {
-        // actually stop the animation:
-        lock ( progress )
+        // Actually stop the animation.
+        lock (progress)
         {
           progress.Continue = false;
         }
         aThread.Join();
         aThread = null;
 
-        // Dispose unwritten queued results:
-        initQueue( 0 );
+        // Dispose unwritten queued results.
+        initQueue(0);
         semQueue = null;
         semResults = null;
 
-        // GUI stuff:
-        EnableGUI( true );
+        // GUI stuff.
+        EnableGUI(true);
       }
     }
 
-    private void buttonRes_Click ( object sender, EventArgs e )
+    private void buttonRes_Click (object sender, EventArgs e)
     {
-      FormResolution form = new FormResolution( ImageWidth, ImageHeight );
-      if ( form.ShowDialog() == DialogResult.OK )
+      FormResolution form = new FormResolution(ImageWidth, ImageHeight);
+      if (form.ShowDialog() == DialogResult.OK)
       {
-        ImageWidth  = form.ImageWidth;
+        ImageWidth = form.ImageWidth;
         ImageHeight = form.ImageHeight;
-        buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+        buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
       }
     }
 
-    private void buttonRender_Click ( object sender, EventArgs e )
+    private void buttonRender_Click (object sender, EventArgs e)
     {
       RenderImage();
     }
 
-    private void buttonStop_Click ( object sender, EventArgs e )
+    private void buttonStop_Click (object sender, EventArgs e)
     {
       StopAnimation();
     }
 
-    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    private void Form1_FormClosing (object sender, FormClosingEventArgs e)
     {
       StopAnimation();
     }
@@ -234,32 +230,32 @@ namespace _093animation
     /// <summary>
     /// Frame width in pixels.
     /// </summary>
-    protected int width;
+    private int width;
 
     /// <summary>
     /// Frame height in pixels.
     /// </summary>
-    protected int height;
+    private int height;
 
     /// <summary>
     /// Time of the first frame.
     /// </summary>
-    protected double start;
+    private double start;
 
     /// <summary>
     /// Time of the last frame.
     /// </summary>
-    protected double end;
+    private double end;
 
     /// <summary>
     /// Time delta.
     /// </summary>
-    protected double dt;
+    private double dt;
 
     /// <summary>
     /// Cached paramText.Text.
     /// </summary>
-    protected string param;
+    private string param;
 
     //============================================================
     //   Variable data ("progress" is used as "input data lock"):
@@ -267,17 +263,17 @@ namespace _093animation
     /// <summary>
     /// Frame number to compute.
     /// </summary>
-    protected volatile int frameNumber;
+    private volatile int frameNumber;
 
     /// <summary>
     /// Frame time to compute.
     /// </summary>
-    protected double time;
+    private double time;
 
     /// <summary>
     /// Total number of frames.
     /// </summary>
-    protected int totalFrames;
+    private int totalFrames;
 
     /// <summary>
     /// One computed animation frame.
@@ -289,11 +285,8 @@ namespace _093animation
 
       public void Dispose ()
       {
-        if ( image != null )
-        {
-          image.Dispose();
-          image = null;
-        }
+        image?.Dispose();
+        image = null;
       }
     }
 
@@ -301,31 +294,31 @@ namespace _093animation
     /// Semaphore guarding the output queue.
     /// Signaled if there are results ready..
     /// </summary>
-    protected Semaphore semResults = null;
+    private Semaphore semResults = null;
 
     /// <summary>
     /// Semaphore for the maximum queue capacity.
     /// Signaled if there is empty space in the queue.
     /// </summary>
-    protected Semaphore semQueue = null;
+    private Semaphore semQueue = null;
 
     /// <summary>
     /// Output queue.
     /// </summary>
-    protected Queue<Result> queue = null;
+    private Queue<Result> queue = null;
 
     /// <summary>
     /// Maximum allowed queue size.
     /// </summary>
-    protected int queueSize = 1;
+    private int queueSize = 1;
 
-    protected void initQueue ( int initSize )
+    private void initQueue (int initSize)
     {
-      if ( queue == null )
-        queue = new Queue<Result>( initSize );
+      if (queue == null)
+        queue = new Queue<Result>(initSize);
       else
       {
-        while ( queue.Count > 0 )
+        while (queue.Count > 0)
           queue.Dequeue().Dispose();
       }
     }
@@ -333,40 +326,42 @@ namespace _093animation
     /// <summary>
     /// Animation rendering prolog: prepare all the global (uniform) values, start the main thread.
     /// </summary>
-    private void buttonRenderAnim_Click ( object sender, EventArgs e )
+    private void buttonRenderAnim_Click (object sender, EventArgs e)
     {
-      if ( aThread != null )
+      if (aThread != null)
         return;
 
-      EnableGUI( false );
-      lock ( progress )
+      EnableGUI(false);
+      lock (progress)
         progress.Continue = true;
 
-      // Global animation properties (it's safe to access GUI components here):
+      // Global animation properties (it's safe to access GUI components here).
       start = time = (double)numFrom.Value;
       end = (double)numTo.Value;
-      if ( end <= time )
+      if (end <= time)
         end = time + 1.0;
       double fps = (double)numFps.Value;
-      if ( fps <= 0.0 )
+      if (fps <= 0.0)
         fps = 25.0;
 
       width = ImageWidth;
-      if ( width <= 0 ) width = panel1.Width;
+      if (width <= 0)
+        width = panel1.Width;
       height = ImageHeight;
-      if ( height <= 0 ) height = panel1.Height;
+      if (height <= 0)
+        height = panel1.Height;
 
       param = textParam.Text;
 
-      Animation.InitAnimation( width, height, start, end, fps, param );
+      Animation.InitAnimation(width, height, start, end, fps, param);
 
       dt = 1.0 / fps;
       end += 0.5 * dt;
       frameNumber = 0;
       totalFrames = (int)((end - time) / dt);
 
-      // Start main rendering thread:
-      aThread = new Thread( new ThreadStart( this.RenderAnimation ) );
+      // Start main rendering thread.
+      aThread = new Thread(new ThreadStart(RenderAnimation));
       aThread.Start();
     }
 
@@ -379,76 +374,76 @@ namespace _093animation
       Cursor.Current = Cursors.WaitCursor;
 
       int threads = Environment.ProcessorCount;
-      queueSize = threads + 2;                                // intended queue capacity
-      initQueue( queueSize );                                 // queue is prepared for the capacity
-      semResults = new Semaphore( 0, 2 * queueSize );         // no results are ready
-      semQueue   = new Semaphore( queueSize, 2 * queueSize ); // the whole queue capacity is ready
+      queueSize = threads + 2;                            // intended queue capacity
+      initQueue(queueSize);                               // queue is prepared for the capacity
+      semResults = new Semaphore(0, 2 * queueSize);       // no results are ready
+      semQueue = new Semaphore(queueSize, 2 * queueSize); // the whole queue capacity is ready
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      // pool of working threads:
-      Thread[] pool = new Thread[ threads ];
+      // Pool of working threads.
+      Thread[] pool = new Thread[threads];
       int t;
-      for ( t = 0; t < threads; t++ )
+      for (t = 0; t < threads; t++)
       {
-        pool[ t ] = new Thread( new ThreadStart( this.RenderWorker ) );
-        pool[ t ].Start();
+        pool[t] = new Thread(new ThreadStart(RenderWorker));
+        pool[t].Start();
       }
 
-      // loop for collection of computed frames:
+      // Loop for collection of computed frames.
       int frames = 0;
       int lastDisplayedFrame = -1;
       const long DISPLAY_GAP = 10000L;
       long lastDisplayedTime = -DISPLAY_GAP;
 
-      while ( true )
+      while (true)
       {
-        semResults.WaitOne();               // wait until a frame is finished
+        semResults.WaitOne();             // wait until a frame is finished
 
-        lock ( progress )                   // regular finish, escape, user break?
+        lock (progress)                   // regular finish, escape, user break?
         {
-          if ( !progress.Continue ||
-               time >= end &&
-               frames > totalFrames )
+          if (!progress.Continue ||
+              time >= end &&
+              frames > totalFrames)
             break;
         }
 
-        // there could be a frame to process:
+        // There could be a frame to process.
         Result r;
-        lock ( queue )
+        lock (queue)
         {
-          if ( queue.Count == 0 )
+          if (queue.Count == 0)
             continue;
 
           r = queue.Dequeue();
           semQueue.Release();
         }
 
-        // GUI progress indication:
+        // GUI progress indication.
         frames++;
-        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1} ({2:f1}%), {3:f1}s",
-                                threads, frames, Util.percent( frames, totalFrames + 1 ),
-                                1.0e-3 * sw.ElapsedMilliseconds ) );
-        if ( r.frameNumber > lastDisplayedFrame &&
-             sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
+        SetText(string.Format(CultureInfo.InvariantCulture, "Frames (mt{0}): {1} ({2:f1}%), {3:f1}s",
+                              threads, frames, Util.percent(frames, totalFrames + 1),
+                              1.0e-3 * sw.ElapsedMilliseconds));
+        if (r.frameNumber > lastDisplayedFrame &&
+            sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP)
         {
           lastDisplayedFrame = r.frameNumber;
           lastDisplayedTime = sw.ElapsedMilliseconds;
-          SetImage( (Bitmap)r.image.Clone() );
+          SetImage((Bitmap)r.image.Clone());
         }
 
-        // save the image file:
-        string fileName = string.Format( "out{0:0000}.png", r.frameNumber );
-        r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+        // Save the image file.
+        string fileName = string.Format("out{0:0000}.png", r.frameNumber);
+        r.image.Save(fileName, System.Drawing.Imaging.ImageFormat.Png);
         r.Dispose();
       }
 
-      // letting all the workers finish their work:
-      semQueue.Release( threads );
-      for ( t = 0; t < threads; t++ )
+      // Letting all the workers finish their work.
+      semQueue.Release(threads);
+      for (t = 0; t < threads; t++)
       {
-        pool[ t ].Join();
-        pool[ t ] = null;
+        pool[t].Join();
+        pool[t] = null;
       }
 
       Cursor.Current = Cursors.Default;
@@ -461,45 +456,45 @@ namespace _093animation
     /// </summary>
     protected void RenderWorker ()
     {
-      // thread-specific data:
-      Canvas c = new Canvas( width, height );
+      // Thread-specific data.
+      Canvas c = new Canvas(width, height);
 
-      // worker loop:
-      while ( true )
+      // Worker loop.
+      while (true)
       {
         double myTime;
         int myFrameNumber;
 
-        lock ( progress )
+        lock (progress)
         {
-          if ( !progress.Continue ||
-               time > end )
+          if (!progress.Continue ||
+               time > end)
           {
             semResults.Release();                  // chance for the main animation thread to give up as well..
             return;
           }
 
-          // got a frame to compute:
+          // Got a frame to compute.
           myTime = time;
           time += dt;
           myFrameNumber = frameNumber++;
         }
 
-        // set up the new result record:
+        // Set up the new result record.
         Result r = new Result();
         r.frameNumber = myFrameNumber;
-        Animation.DrawFrame( c, myTime, start, end, param );
+        Animation.DrawFrame(c, myTime, start, end, param);
         r.image = c.Finish();
 
-        // ... and put the result into the output queue:
+        // ... and put the result into the output queue.
         semQueue.WaitOne();                        // wait for a space in the result queue
-        lock ( queue )
-          queue.Enqueue( r );
+        lock (queue)
+          queue.Enqueue(r);
 
-        lock ( progress )
+        lock (progress)
         {
           semResults.Release();                    // notify the main animation thread
-          if ( !progress.Continue )
+          if (!progress.Continue)
             return;
         }
       }
@@ -550,7 +545,7 @@ namespace _093animation
     /// <summary>
     /// Any message from computing unit to the GUI main.
     /// </summary>
-    public virtual void Sync ( Object msg )
+    public virtual void Sync (object msg)
     {
     }
 
