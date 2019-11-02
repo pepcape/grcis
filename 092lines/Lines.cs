@@ -19,11 +19,20 @@ namespace _092lines
     public static void InitParams (out string name, out int wid, out int hei, out string param, out string tooltip)
     {
       // {{
-      name    = "Josef Pelikán";
-      wid     = 800;
-      hei     = 520;
-      param   = "width=1.0,anti=true,objects=100,prob=0.95";
-      tooltip = "width=<int>,anti[=<bool>],objects=<int>,hatches=<int>,prob=<float>";
+
+      // Put your name here.
+      name = "Josef Pelikán";
+
+      // Image size in pixels.
+      wid = 800;
+      hei = 520;
+
+      // Specific animation params.
+      param = "width=1.0,anti=true,objects=100,prob=0.95";
+
+      // Tooltip = help.
+      tooltip = "width=<int>, anti[=<bool>], objects=<int>, hatches=<int>, prob=<float>";
+
       // }}
     }
 
