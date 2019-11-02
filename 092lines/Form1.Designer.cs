@@ -196,6 +196,8 @@
       this.textParam.Size = new System.Drawing.Size(504, 20);
       this.textParam.TabIndex = 15;
       this.textParam.Text = "1.0";
+      this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
+      this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
       // 
       // Form1
       // 

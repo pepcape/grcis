@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using LineCanvas;
@@ -11,14 +9,22 @@ namespace _092lines
   public class Lines
   {
     /// <summary>
-    /// Optional data initialization.
+    /// Form data initialization.
     /// </summary>
-    public static void InitParams ( out int wid, out int hei, out string param, out string name )
+    /// <param name="name">Your first-name and last-name.</param>
+    /// <param name="wid">Initial image width in pixels.</param>
+    /// <param name="hei">Initial image height in pixels.</param>
+    /// <param name="param">Optional text to initialize the form's text-field.</param>
+    /// <param name="tooltip">Optional tooltip = param help.</param>
+    public static void InitParams (out string name, out int wid, out int hei, out string param, out string tooltip)
     {
-      wid   = 800;
-      hei   = 520;
-      param = "width=1.0,anti=true,objects=100,prob=0.95";
-      name  = "pilot";
+      // {{
+      name    = "Josef Pelikán";
+      wid     = 800;
+      hei     = 520;
+      param   = "width=1.0,anti=true,objects=100,prob=0.95";
+      tooltip = "width=<int>,anti=<bool>,objects=<int>,hatches=<int>,prob=<float>";
+      // }}
     }
 
     /// <summary>
@@ -26,11 +32,11 @@ namespace _092lines
     /// </summary>
     /// <param name="c">Canvas ready for your drawing.</param>
     /// <param name="param">Optional string parameter from the form.</param>
-    public static void Draw ( Canvas c, string param )
+    public static void Draw (Canvas c, string param)
     {
-      // !!!{{ TODO: put your drawing code here
+      // {{ TODO: put your drawing code here
 
-      // input params:
+      // Input params.
       float penWidth = 1.0f;  // pen width
       bool antialias = true;  // use anti-aliasing?
       bool explicitAntialias = false;
@@ -38,33 +44,33 @@ namespace _092lines
       int hatches = 12;       // number of hatch-lines for the squares
       double prob = 0.95;     // continue-probability for the Brownian motion simulator
 
-      Dictionary<string, string> p = Util.ParseKeyValueList( param );
-      if ( p.Count > 0 )
+      Dictionary<string, string> p = Util.ParseKeyValueList(param);
+      if (p.Count > 0)
       {
         // with=<line-width>
-        if ( Util.TryParse( p, "width", ref penWidth ) )
+        if (Util.TryParse(p, "width", ref penWidth))
         {
-          if ( penWidth < 0.0f )
+          if (penWidth < 0.0f)
             penWidth = 0.0f;
         }
 
         // anti=<bool>
-        if ( Util.TryParse( p, "anti", ref antialias ) )
+        if (Util.TryParse(p, "anti", ref antialias))
           explicitAntialias = true;
 
         // squares=<number>
-        if ( Util.TryParse( p, "objects", ref objects ) &&
-             objects < 0 )
+        if (Util.TryParse(p, "objects", ref objects) &&
+             objects < 0)
           objects = 0;
 
         // hatches=<number>
-        if ( Util.TryParse( p, "hatches", ref hatches ) &&
-             hatches < 1 )
+        if (Util.TryParse(p, "hatches", ref hatches) &&
+             hatches < 1)
           hatches = 1;
 
         // prob=<probability>
-        if ( Util.TryParse( p, "prob", ref prob ) &&
-             prob > 0.999 )
+        if (Util.TryParse(p, "prob", ref prob) &&
+             prob > 0.999)
           prob = 0.999;
       }
 
@@ -72,54 +78,55 @@ namespace _092lines
       int hq = c.Height / 4;
       int wh = wq + wq;
       int hh = hq + hq;
-      int minh = Math.Min( wh, hh );
+      int minh = Math.Min(wh, hh);
       double t;
       int i, j;
       double cx, cy, angle, x, y;
 
-      c.Clear( Color.Black );
+      c.Clear(Color.Black);
 
-      // 1st quadrant - star
-      c.SetPenWidth( penWidth );
-      c.SetAntiAlias( explicitAntialias && antialias );
+      // 1st quadrant - star.
+      c.SetPenWidth(penWidth);
+      c.SetAntiAlias(explicitAntialias && antialias);
 
       const int MAX_LINES = 30;
-      for ( i = 0, t = 0.0; i < MAX_LINES; i++, t += 1.0 / MAX_LINES )
+      for (i = 0, t = 0.0; i < MAX_LINES; i++, t += 1.0 / MAX_LINES)
       {
-        c.SetColor( Color.FromArgb( (i * 255) / MAX_LINES, 255, 255 - (i * 255) / MAX_LINES ) ); // [0,255,255] -> [255,255,0]
-        c.Line( t * wh, 0, wh - t * wh, hh );
+        c.SetColor(Color.FromArgb(i * 255 / MAX_LINES, 255, 255 - i * 255 / MAX_LINES)); // [0,255,255] -> [255,255,0]
+        c.Line(t * wh, 0, wh - t * wh, hh);
       }
-      for ( i = 0, t = 0.0; i < MAX_LINES; i++, t += 1.0 / MAX_LINES )
+      for (i = 0, t = 0.0; i < MAX_LINES; i++, t += 1.0 / MAX_LINES)
       {
-        c.SetColor( Color.FromArgb( 255, 255 - (i * 255) / MAX_LINES, (i * 255) / MAX_LINES ) ); // [255,255,0] -> [255,0,255]
-        c.Line( 0, hh - t * hh, wh, t * hh );
+        c.SetColor(Color.FromArgb(255, 255 - i * 255 / MAX_LINES, i * 255 / MAX_LINES)); // [255,255,0] -> [255,0,255]
+        c.Line(0, hh - t * hh, wh, t * hh);
       }
 
-      // 2nd quadrant - random hatched squares
+      // 2nd quadrant - random hatched squares.
       double size = minh / 10.0;
-      double padding = size * Math.Sqrt( 0.5 );
-      c.SetColor( Color.LemonChiffon );
-      c.SetPenWidth( 1.0f );
-      Random r = new Random( 12 );
+      double padding = size * Math.Sqrt(0.5);
+      c.SetColor(Color.LemonChiffon);
+      c.SetPenWidth(1.0f);
+      Random r = new Random(12);
 
-      for ( i = 0; i < objects; i++ )
+      for (i = 0; i < objects; i++)
       {
         do
           cx = r.NextDouble() * wh;
-        while ( cx < padding ||
-                cx > wh - padding );
-        c.SetAntiAlias( cx > wq );
+        while (cx < padding ||
+               cx > wh - padding);
+
+        c.SetAntiAlias(cx > wq);
         cx += wh;
 
         do
           cy = r.NextDouble() * hh;
-        while ( cy < padding ||
-                cy > hh - padding );
+        while (cy < padding ||
+               cy > hh - padding);
 
         angle = r.NextDouble() * Math.PI;
 
-        double dirx = Math.Sin( angle ) * size * 0.5;
-        double diry = Math.Cos( angle ) * size * 0.5;
+        double dirx = Math.Sin(angle) * size * 0.5;
+        double diry = Math.Cos(angle) * size * 0.5;
         cx -= dirx - diry;
         cy -= diry + dirx;
         double dx = -diry * 2.0 / hatches;
@@ -127,89 +134,91 @@ namespace _092lines
         double linx = dirx + dirx;
         double liny = diry + diry;
 
-        for ( j = 0; j++ < hatches; cx += dx, cy += dy )
-          c.Line( cx, cy, cx + linx, cy + liny );
+        for (j = 0; j++ < hatches; cx += dx, cy += dy)
+          c.Line(cx, cy, cx + linx, cy + liny);
       }
 
-      // 3rd quadrant - random stars
-      c.SetColor( Color.LightCoral );
-      c.SetPenWidth( penWidth );
+      // 3rd quadrant - random stars.
+      c.SetColor(Color.LightCoral);
+      c.SetPenWidth(penWidth);
       size = minh / 16.0;
       padding = size;
       const int MAX_SIDES = 30;
-      List<PointF> v = new List<PointF>( MAX_SIDES + 1 );
+      List<PointF> v = new List<PointF>(MAX_SIDES + 1);
 
-      for ( i = 0; i < objects; i++ )
+      for (i = 0; i < objects; i++)
       {
         do
           cx = r.NextDouble() * wh;
-        while ( cx < padding ||
-                cx > wh - padding );
-        c.SetAntiAlias( cx > wq );
+        while (cx < padding ||
+               cx > wh - padding);
+
+        c.SetAntiAlias(cx > wq);
 
         do
           cy = r.NextDouble() * hh;
-        while ( cy < padding ||
-                cy > hh - padding );
+        while (cy < padding ||
+               cy > hh - padding);
         cy += hh;
 
-        int sides = r.Next( 3, MAX_SIDES );
+        int sides = r.Next(3, MAX_SIDES);
         double dAngle = Math.PI * 2.0 / sides;
 
         v.Clear();
         angle = 0.0;
 
-        for ( j = 0; j++ < sides; angle += dAngle )
+        for (j = 0; j++ < sides; angle += dAngle)
         {
           double rad = size * (0.1 + 0.9 * r.NextDouble());
-          x = cx + rad * Math.Sin( angle );
-          y = cy + rad * Math.Cos( angle );
-          v.Add( new PointF( (float)x, (float)y ) );
+          x = cx + rad * Math.Sin(angle);
+          y = cy + rad * Math.Cos(angle);
+          v.Add(new PointF((float)x, (float)y));
         }
-        v.Add( v[ 0 ] );
-        c.PolyLine( v );
+        v.Add(v[0]);
+        c.PolyLine(v);
       }
 
-      // 4th quadrant - Brownian motion
-      c.SetPenWidth( penWidth );
-      c.SetAntiAlias( true );
+      // 4th quadrant - Brownian motion.
+      c.SetPenWidth(penWidth);
+      c.SetAntiAlias(true);
       size = minh / 10.0;
       padding = size;
 
-      for ( i = 0; i < objects; i++ )
+      for (i = 0; i < objects; i++)
       {
         do
           x = r.NextDouble() * wh;
-        while ( x < padding ||
-                x > wh - padding );
+        while (x < padding ||
+               x > wh - padding);
 
         do
           y = r.NextDouble() * hh;
-        while ( y < padding ||
-                y > hh - padding );
+        while (y < padding ||
+               y > hh - padding);
 
-        c.SetColor( Color.FromArgb( 127 + r.Next( 0, 128 ),
-                                    127 + r.Next( 0, 128 ),
-                                    127 + r.Next( 0, 128 ) ) );
+        c.SetColor(Color.FromArgb(127 + r.Next(0, 128),
+                                  127 + r.Next(0, 128),
+                                  127 + r.Next(0, 128)));
 
-        for ( j = 0; j++ < 1000; )
+        for (j = 0; j++ < 1000;)
         {
           angle = r.NextDouble() * Math.PI * 2.0;
           double rad = size * r.NextDouble();
-          cx = x + rad * Math.Sin( angle );
-          cy = y + rad * Math.Cos( angle );
-          if ( cx < 0.0 || cx > wh ||
-               cy < 0.0 || cy > hh )
+          cx = x + rad * Math.Sin(angle);
+          cy = y + rad * Math.Cos(angle);
+          if (cx < 0.0 || cx > wh ||
+              cy < 0.0 || cy > hh)
             break;
 
-          c.Line( x + wh, y + hh, cx + wh, cy + hh );
-          x = cx; y = cy;
-          if ( r.NextDouble() > prob )
+          c.Line(x + wh, y + hh, cx + wh, cy + hh);
+          x = cx;
+          y = cy;
+          if (r.NextDouble() > prob)
             break;
         }
       }
 
-      // !!!}}
+      // }}
     }
   }
 }
