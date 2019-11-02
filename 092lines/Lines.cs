@@ -23,7 +23,7 @@ namespace _092lines
       wid     = 800;
       hei     = 520;
       param   = "width=1.0,anti=true,objects=100,prob=0.95";
-      tooltip = "width=<int>,anti=<bool>,objects=<int>,hatches=<int>,prob=<float>";
+      tooltip = "width=<int>,anti[=<bool>],objects=<int>,hatches=<int>,prob=<float>";
       // }}
     }
 
@@ -37,12 +37,11 @@ namespace _092lines
       // {{ TODO: put your drawing code here
 
       // Input params.
-      float penWidth = 1.0f;  // pen width
-      bool antialias = true;  // use anti-aliasing?
-      bool explicitAntialias = false;
-      int objects = 100;      // number of randomly generated objects (squares, stars, Brownian particles)
-      int hatches = 12;       // number of hatch-lines for the squares
-      double prob = 0.95;     // continue-probability for the Brownian motion simulator
+      float penWidth = 1.0f;   // pen width
+      bool antialias = false;  // use anti-aliasing?
+      int objects    = 100;    // number of randomly generated objects (squares, stars, Brownian particles)
+      int hatches    = 12;     // number of hatch-lines for the squares
+      double prob    = 0.95;   // continue-probability for the Brownian motion simulator
 
       Dictionary<string, string> p = Util.ParseKeyValueList(param);
       if (p.Count > 0)
@@ -54,23 +53,22 @@ namespace _092lines
             penWidth = 0.0f;
         }
 
-        // anti=<bool>
-        if (Util.TryParse(p, "anti", ref antialias))
-          explicitAntialias = true;
+        // anti[=<bool>]
+        Util.TryParse(p, "anti", ref antialias);
 
         // squares=<number>
         if (Util.TryParse(p, "objects", ref objects) &&
-             objects < 0)
+            objects < 0)
           objects = 0;
 
         // hatches=<number>
         if (Util.TryParse(p, "hatches", ref hatches) &&
-             hatches < 1)
+            hatches < 1)
           hatches = 1;
 
         // prob=<probability>
         if (Util.TryParse(p, "prob", ref prob) &&
-             prob > 0.999)
+            prob > 0.999)
           prob = 0.999;
       }
 
@@ -87,7 +85,7 @@ namespace _092lines
 
       // 1st quadrant - star.
       c.SetPenWidth(penWidth);
-      c.SetAntiAlias(explicitAntialias && antialias);
+      c.SetAntiAlias(antialias);
 
       const int MAX_LINES = 30;
       for (i = 0, t = 0.0; i < MAX_LINES; i++, t += 1.0 / MAX_LINES)

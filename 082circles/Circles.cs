@@ -19,10 +19,10 @@ namespace _082circles
     public static void InitParams (out string name, out int wid, out int hei, out string param, out string tooltip)
     {
       // {{
-      name = "Josef Pelikán";
-      wid = 800;
-      hei = 520;
-      param = "12";
+      name    = "Josef Pelikán";
+      wid     = 800;
+      hei     = 520;
+      param   = "12";
       tooltip = "<long> .. random seed";
       // }}
     }
@@ -57,7 +57,7 @@ namespace _082circles
       for (i = 0, t = 0.0; i < MAX_DISK; i++, t += 0.65)
       {
         r = 5.0 + i * (minq * 0.7 - 5.0) / MAX_DISK;
-        c.SetColor(Color.FromArgb((i * 255) / MAX_DISK, 255, 255 - (i * 255) / MAX_DISK));
+        c.SetColor(Color.FromArgb(i * 255 / MAX_DISK, 255, 255 - i * 255 / MAX_DISK));
         c.FillDisc((float)(wq + r * Math.Sin(t)), (float)(hq + r * Math.Cos(t)), (float)(r * 0.3));
       }
 
@@ -117,7 +117,9 @@ namespace _082circles
     /// <summary>
     /// CGG logo colors.
     /// </summary>
-    protected static Color[] COLORS = { Color.FromArgb( 0x71, 0x21, 0x6d ), Color.FromArgb( 0xe8, 0x75, 0x05 ) };
+    protected static Color[] COLORS = {
+      Color.FromArgb( 0x71, 0x21, 0x6d ),
+      Color.FromArgb( 0xe8, 0x75, 0x05 ) };
 
     /// <summary>
     /// CGG logo geometry { cx, cy, radius }.
