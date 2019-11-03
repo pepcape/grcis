@@ -26,20 +26,23 @@ History of GrCis goes back to 2010.
 - **NPGR007** [Advanced 2D Computer Graphics](https://cgg.mff.cuni.cz/lectures/npgr007.en.php)
   (not taught)
 - **NPGR019** [Realtime Graphics on GPU](https://cgg.mff.cuni.cz/lectures/npgr019.en.php)
-  (partially)
+  (partially, in the past)
 - **NPGR023** [Visualization](https://cgg.mff.cuni.cz/lectures/npgr023.en.php)
   (not taught)
 
 ### Detailed lab-pages and manual pages
-- https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr003.php
-- https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr004.php
+- [Lab - Introduction to Computer Graphics](https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr003.php)
+- [Lab - Photorealistic Graphics](https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr004.php)
+- [GrCis instruction page](https://cgg.mff.cuni.cz/~pepca/grcis/)
+- [Making animations](https://cgg.mff.cuni.cz/~pepca/grcis/animation.en.php)
+- [360 panorama](https://cgg.mff.cuni.cz/~pepca/grcis/360.en.php)
+- [Ray-tracing in GrCis](https://cgg.mff.cuni.cz/~pepca/grcis/rt.en.php)
+- [Assignment archive](https://cgg.mff.cuni.cz/~pepca/lectures/cv/)
+
+### Labs for archived courses
 - https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr007.php
 - https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr019.php
 - https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr023.php
-- https://cgg.mff.cuni.cz/~pepca/grcis/
-- https://cgg.mff.cuni.cz/~pepca/grcis/animation.en.php
-- https://cgg.mff.cuni.cz/~pepca/grcis/360.en.php
-- https://cgg.mff.cuni.cz/~pepca/grcis/rt.en.php
 
 ---
 
@@ -47,13 +50,14 @@ History of GrCis goes back to 2010.
 
 **Windows**
 
-Microsoft Visual Studio Professional (preferably 2019+)
-or Microsoft Visual Studio Community 2019+.
+Microsoft Visual Studio (preferably 2019+)
+- Professional or Community edition.
 
 **Linux**
 
-[Mono installation](http://www.mono-project.com/) or you can simply
-install [MonoDevelop IDE](http://www.monodevelop.com/).
+Install [Mono](http://www.mono-project.com/) or you can
+get [MonoDevelop IDE](http://www.monodevelop.com/) and open MSVS solution
+files directly.
 
 ---
 
