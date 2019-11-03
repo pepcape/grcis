@@ -523,20 +523,28 @@ namespace _117raster
     {
       pictureBoxMain.Focus();
 
-      bool localUpdate = (currModule != null) &&
-                         currModule.HasPixelUpdate &&
-                         (ModifierKeys & Keys.Control) > 0;
+      bool isCtrl = (ModifierKeys & Keys.Control) > 0;
+      bool isModule = currModule != null;
+      bool hasPixelUpdate = isModule && currModule.HasPixelUpdate;
+      bool leftButton = e.Button == MouseButtons.Left;
       Cursor cursor;
 
-      if (localUpdate)
-        panAndZoom.OnMouseDown(e, recomputePixel, e.Button == MouseButtons.Left,
+      if (hasPixelUpdate &&
+          isCtrl)
+        panAndZoom.OnMouseDown(e, recomputePixel, leftButton,
           ModifierKeys, out cursor);
       else
-        panAndZoom.OnMouseDown(e, imageProbe, e.Button == MouseButtons.Left,
+        panAndZoom.OnMouseDown(e, imageProbe, leftButton,
           ModifierKeys, out cursor);
 
+      // Warning for Ctrl+Mouse without currModule.HasPixelUpdate.
+      if (isCtrl &&
+          isModule &&
+          !hasPixelUpdate)
+        SetText($"Current module '{ModuleRegistry.DecoratedModuleName(currModule)}' has no PixelUpdate()");
+
       // Module's mouse handling.
-      if (currModule != null &&
+      if (isModule &&
           currModule.MouseDown != null)
         currModule.MouseDown(sender, transformMouseEvent(e));
 

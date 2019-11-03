@@ -437,6 +437,14 @@ namespace Modules
     internal static readonly Type[] voidArgs = new Type[0];
 
     /// <summary>
+    /// Decorated module name for humans (e.g. used in list-boxes)
+    /// </summary>
+    /// <param name="rm"></param>
+    /// <returns></returns>
+    public static string DecoratedModuleName (
+      IRasterModule rm) => rm.Author + '-' + rm.Name;
+
+    /// <summary>
     /// Register a new module.
     /// </summary>
     /// <param name="onlyDefault">True for modules inherited from 'DefaultRasterModule'.</param>
@@ -454,7 +462,7 @@ namespace Modules
         if (constructor != null)
         {
           if (constructor.Invoke(voidArgs) is IRasterModule rm)
-            reg[rm.Author + '-' + rm.Name] = t;
+            reg[DecoratedModuleName(rm)] = t;
         }
       }
     }
