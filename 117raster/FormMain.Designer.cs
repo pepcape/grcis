@@ -28,6 +28,7 @@
     /// </summary>
     private void InitializeComponent ()
     {
+      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
       this.pictureBoxMain = new System.Windows.Forms.PictureBox();
       this.label1 = new System.Windows.Forms.Label();
       this.comboBoxModule = new System.Windows.Forms.ComboBox();
@@ -242,6 +243,7 @@
       this.Controls.Add(this.comboBoxModule);
       this.Controls.Add(this.label1);
       this.Controls.Add(this.pictureBoxMain);
+      this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
       this.MinimizeBox = false;
       this.MinimumSize = new System.Drawing.Size(650, 300);
       this.Name = "FormMain";
