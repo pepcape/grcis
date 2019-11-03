@@ -359,6 +359,20 @@ namespace Utilities
       return true;
     }
 
+    public static int CharsInString (
+      string s,
+      char ch)
+    {
+      if (string.IsNullOrEmpty(s))
+        return 0;
+
+      int count = 0;
+      foreach (char c in s)
+        if (c == ch)
+          count++;
+      return count;
+    }
+
     public static void BitArraySet (BitArray ba, int i, int granularity = 32)
     {
       if (i >= ba.Count)
