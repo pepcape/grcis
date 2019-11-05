@@ -108,8 +108,11 @@ namespace _117raster
 
     private static void setImage (ref Bitmap bakImage, Bitmap newImage)
     {
-      bakImage?.Dispose();
-      bakImage = newImage;
+      if (newImage != bakImage)
+      {
+        bakImage?.Dispose();
+        bakImage = newImage;
+      }
     }
 
     private void setRecomputeGui (bool computing)
