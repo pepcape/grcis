@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +28,33 @@ namespace Modules
       module = hModule;
 
       InitializeComponent();
+    }
+
+    delegate void DataUpdateCallback (ModuleHSV m);
+
+    /// <summary>
+    /// Form elements must not be updated from foreign threads.
+    /// Only the thread which has created this Form is capable to do it.
+    /// In case of more complicated class dependence a data providing interface should be defined.
+    /// Here we just use the 'ModuleHSV'.
+    /// </summary>
+    /// <param name="m">Module to get data from.</param>
+    public void DataUpdate (ModuleHSV m)
+    {
+      if (numericHue.InvokeRequired)    // use any form element here...
+      {
+        DataUpdateCallback duc = new DataUpdateCallback(DataUpdate);
+        BeginInvoke(duc, new object[] { m });
+      }
+      else
+      {
+        numericHue.Value      = Convert.ToDecimal(m.dH);
+        textSaturation.Text   = string.Format(CultureInfo.InvariantCulture, "{0:g5}", m.mS);
+        textValue.Text        = string.Format(CultureInfo.InvariantCulture, "{0:g5}", m.mV);
+        textGamma.Text        = string.Format(CultureInfo.InvariantCulture, "{0:g5}", m.gamma);
+        checkParallel.Checked = m.parallel;
+        checkSlow.Checked     = m.slow;
+      }
     }
 
     private void buttonRecompute_Click (object sender, EventArgs e)

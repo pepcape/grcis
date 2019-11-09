@@ -59,32 +59,32 @@ namespace Modules
     /// <summary>
     /// Absolute Hue delta in degrees.
     /// </summary>
-    protected double dH = 0.0;
+    public double dH = 0.0;
 
     /// <summary>
     /// Saturation multiplier.
     /// </summary>
-    protected double mS = 1.4;
+    public double mS = 1.4;
 
     /// <summary>
     /// Value multiplier.
     /// </summary>
-    protected double mV = 1.0;
+    public double mV = 1.0;
 
     /// <summary>
     /// Gamma-correction coefficient (visible value = inverse value).
     /// </summary>
-    protected double gamma = 1.0;
+    public double gamma = 1.0;
 
     /// <summary>
     /// Slow computation (using GetPixel/SetPixel).
     /// </summary>
-    protected bool slow = false;
+    public bool slow = false;
 
     /// <summary>
     /// Parallel computation (most useful for large pictures).
     /// </summary>
-    protected bool parallel = true;
+    public bool parallel = true;
 
     /// <summary>
     /// Active HSV form.
@@ -134,17 +134,7 @@ namespace Modules
     /// </summary>
     protected void formUpdate ()
     {
-      if (hsvForm == null)
-        return;
-
-      hsvForm.numericHue.Value = Convert.ToDecimal(dH);
-      hsvForm.textSaturation.Text = string.Format(CultureInfo.InvariantCulture, "{0:g5}", mS);
-      hsvForm.textValue.Text = string.Format(CultureInfo.InvariantCulture, "{0:g5}", mV);
-      hsvForm.textGamma.Text = string.Format(CultureInfo.InvariantCulture, "{0:g5}", gamma);
-      hsvForm.checkParallel.Checked = parallel;
-      hsvForm.checkSlow.Checked = slow;
-
-      hsvForm.Invalidate();
+      hsvForm?.DataUpdate(this);
     }
 
     /// <summary>
