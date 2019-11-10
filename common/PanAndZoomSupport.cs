@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Globalization;
 using System.Windows.Forms;
 
 namespace Rendering
@@ -9,10 +10,13 @@ namespace Rendering
   class PanAndZoomSupport
   {
     private const int border = 50;
-    private const float minimalAbsoluteSizeInPixels = 20;
 
     private readonly PictureBox pictureBox;
-    private float zoom;
+
+    /// <summary>
+    /// Current zoom factor.
+    /// </summary>
+    private double zoom;
 
     /// <summary>
     /// Copy (prevention of image.Dispose() outside of this class) of the image.
@@ -23,12 +27,30 @@ namespace Rendering
 
     private readonly Action<string> setWindowTitleSuffix;
 
+    /// <summary>
+    /// Current mouse-down position (read from a mouse event).
+    /// </summary>
     private PointF mouseDown;
 
-    private float imageX;
-    private float imageY;
-    private float startX;
-    private float startY;
+    /// <summary>
+    /// Horizontal image offset (excluding zoom).
+    /// </summary>
+    private double imageX;
+
+    /// <summary>
+    /// Vertical image offset (excluding zoom).
+    /// </summary>
+    private double imageY;
+
+    /// <summary>
+    /// Vertical pan start.
+    /// </summary>
+    private double startX;
+
+    /// <summary>
+    /// Horizontal pan start.
+    /// </summary>
+    private double startY;
 
     private bool mousePressed;
 
@@ -70,15 +92,23 @@ namespace Rendering
 
     /// <summary>
     /// Prevents picture to be too small (minimum is absolute size of 20 pixels for width/height)
+    /// or too big, checks the original size (around 1.00)
     /// </summary>
-    /// <returns>Clamped zoom</returns>
     private void ClampZoom ()
     {
       if (image == null)
         return;
 
-      float minZoomFactor = minimalAbsoluteSizeInPixels / Math.Min(image.Width, image.Height);
-      zoom = Math.Max(zoom, minZoomFactor);
+      double minZoomFactor = MIN_IMAGE_SIZE_IN_PIXELS / Math.Min(image.Width, image.Height);
+
+      while (zoom < minZoomFactor)
+        zoom *= ZOOM_STEP_NORMAL;
+
+      while (zoom > MAX_ZOOM_FACTOR)
+        zoom /= ZOOM_STEP_NORMAL;
+
+      if (Math.Abs(zoom - 1.0) < 0.01)
+        zoom = 1.0;
     }
 
     /// <summary>
@@ -95,16 +125,20 @@ namespace Rendering
 
       PointF middle = new PointF
       {
-        X =  imageX * zoom + 0.5f * image.Width  * zoom,
-        Y =  imageY * zoom + 0.5f * image.Height * zoom 
+        X =  (float)(zoom * (imageX + 0.5 * image.Width)),
+        Y =  (float)(zoom * (imageY + 0.5 * image.Height))
       };
 
       ZoomToPosition(zoomIn, middle, modifierKeys);
     }
 
-    private const float zoomFactorNormal = 0.1f;
+    private const double ZOOM_STEP_NORMAL = 1.1;
 
-    private const float zoomFactorFast = 0.3f;
+    private const double ZOOM_STEP_FAST = ZOOM_STEP_NORMAL * ZOOM_STEP_NORMAL * ZOOM_STEP_NORMAL;   // approximately 1.33
+
+    private const double MAX_ZOOM_FACTOR = 100.0;
+
+    private const double MIN_IMAGE_SIZE_IN_PIXELS = 40.0;
 
     /// <summary>
     /// Changes global variable zoom to indicate current zoom level of picture in main picture box.
@@ -113,41 +147,45 @@ namespace Rendering
     /// <param name="position">Position to zoom to/zoom out from - usually cursor position (relative to picturebox, not to image)
     /// or middle of picture in case of zoom by keys</param>
     public void UpdateZoom (
-      float newZoom,
+      double newZoom,
       PointF position)
     {
-      float oldzoom = zoom;
+      double oldzoom = zoom;
       zoom = newZoom;
 
       ClampZoom();
 
-      float x = position.X;
-      float y = position.Y;
+      double x = position.X;
+      double y = position.Y;
 
-      float oldImageX = x / oldzoom;
-      float oldImageY = y / oldzoom;
+      double oldImageX = x / oldzoom;
+      double oldImageY = y / oldzoom;
 
-      float newImageX = x / zoom;
-      float newImageY = y / zoom;
+      double newImageX = x / zoom;
+      double newImageY = y / zoom;
 
       imageX = newImageX - oldImageX + imageX;
       imageY = newImageY - oldImageY + imageY;
 
       pictureBox.Refresh();
 
-      setWindowTitleSuffix($" Zoom: {(int)(zoom * 100)}%");
+      setWindowTitleSuffix(string.Format(CultureInfo.InvariantCulture,
+                                         zoom > 0.2
+                                         ? " Zoom: {0:f0}%"
+                                         : " Zoom: {0:f1}%",
+                                         zoom * 100.0));
     }
 
     public void UpdateZoomToMiddle (
-      float newZoom = 1.0f)
+      double newZoom = 1.0)
     {
       if (image == null)
         return;
 
       PointF middle = new PointF
       {
-        X =  imageX * zoom + 0.5f * image.Width  * zoom,
-        Y =  imageY * zoom + 0.5f * image.Height * zoom
+        X =  (float)(zoom * (imageX + 0.5 * image.Width)),
+        Y =  (float)(zoom * (imageY + 0.5 * image.Height))
       };
 
       UpdateZoom(newZoom, middle);
@@ -165,18 +203,19 @@ namespace Rendering
       PointF position,
       Keys modifierKeys)
     {
-      float newZoom = zoom;
+      double newZoom = zoom;
 
       if (zoomIn != 0)
       {
-        float zoomFactor = zoomFactorNormal;
+        double zoomFactor = ZOOM_STEP_NORMAL;
 
-        if (modifierKeys.HasFlag(Keys.Shift)) // holding down the Shift key makes zoom in/out faster
-          zoomFactor = zoomFactorFast;
+        if (modifierKeys.HasFlag(Keys.Shift))    // holding down the Shift key makes zoom in/out faster
+          zoomFactor = ZOOM_STEP_FAST;
 
-        newZoom += zoomIn > 0
-          ?  zoomFactor
-          : -zoomFactor;
+        if (zoomIn > 0)
+          newZoom *= zoomFactor;
+        else
+          newZoom /= zoomFactor;
       }
 
       UpdateZoom(newZoom, position);
@@ -192,15 +231,15 @@ namespace Rendering
       int absoluteX,
       int absoluteY)
     {
-      float X = (absoluteX -  imageX * zoom) / zoom;
-      float Y = (absoluteY -  imageY * zoom) / zoom;
+      double X = (absoluteX -  imageX * zoom) / zoom;
+      double Y = (absoluteY -  imageY * zoom) / zoom;
 
       if (image == null ||
           X < 0 || X >= image.Width ||
           Y < 0 || Y >= image.Height)
-        return new PointF(float.NaN, float.NaN); // cursor is outside of image
+        return new PointF(float.NaN, float.NaN);   // cursor is outside
       else
-        return new PointF(X, Y);
+        return new PointF((float)X, (float)Y);
     }
 
     /// <summary>
@@ -277,8 +316,8 @@ namespace Rendering
       {
         cursor = Cursors.NoMove2D;
 
-        float deltaX = e.Location.X - mouseDown.X;
-        float deltaY = e.Location.Y - mouseDown.Y;
+        double deltaX = e.Location.X - mouseDown.X;
+        double deltaY = e.Location.Y - mouseDown.Y;
 
         imageX = startX + deltaX / zoom;
         imageY = startY + deltaY / zoom;
@@ -356,8 +395,8 @@ namespace Rendering
 
       OutOfScreenFix();
 
-      e.Graphics.ScaleTransform(zoom, zoom);
-      e.Graphics.DrawImage(image, imageX, imageY);
+      e.Graphics.ScaleTransform((float)zoom, (float)zoom);
+      e.Graphics.DrawImage(image, (float)imageX, (float)imageY);
     }
 
     /// <summary>
@@ -446,11 +485,11 @@ namespace Rendering
     /// </summary>
     public void OutOfScreenFix ()
     {
-      float absoluteX = imageX * zoom;
-      float absoluteY = imageY * zoom;
+      double absoluteX = imageX * zoom;
+      double absoluteY = imageY * zoom;
 
-      float width  = image.Width * zoom;
-      float height = image.Height * zoom;
+      double width  = image.Width * zoom;
+      double height = image.Height * zoom;
 
       if (absoluteX > pictureBox.Width - border)
         imageX = (pictureBox.Width - border) / zoom;
@@ -471,10 +510,10 @@ namespace Rendering
     /// </summary>
     public void Reset ()
     {
-      zoom = 1;
+      zoom = 1.0;
 
-      imageX = 0;
-      imageY = 0;
+      imageX = 0.0;
+      imageY = 0.0;
 
       pictureBox.Refresh();
 
