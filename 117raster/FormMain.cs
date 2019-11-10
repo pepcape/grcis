@@ -187,6 +187,9 @@ namespace _117raster
     /// </summary>
     private void imageProbe (int x, int y)
     {
+      if (running != null)
+        return;
+
       Bitmap image = checkBoxResult.Checked
         ? outputImage
         : inputImage;
