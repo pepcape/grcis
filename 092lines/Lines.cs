@@ -28,10 +28,10 @@ namespace _092lines
       hei = 520;
 
       // Specific animation params.
-      param = "width=1.0,anti=true,objects=100,prob=0.95";
+      param = "width=1.0,anti=true,objects=100,prob=0.95,seed=12";
 
       // Tooltip = help.
-      tooltip = "width=<int>, anti[=<bool>], objects=<int>, hatches=<int>, prob=<float>";
+      tooltip = "width=<int>, anti[=<bool>], objects=<int>, hatches=<int>, prob=<float>, seed=<int>";
 
       // }}
     }
@@ -51,6 +51,7 @@ namespace _092lines
       int objects    = 100;    // number of randomly generated objects (squares, stars, Brownian particles)
       int hatches    = 12;     // number of hatch-lines for the squares
       double prob    = 0.95;   // continue-probability for the Brownian motion simulator
+      int seed       = 12;     // random generator seed
 
       Dictionary<string, string> p = Util.ParseKeyValueList(param);
       if (p.Count > 0)
@@ -79,6 +80,9 @@ namespace _092lines
         if (Util.TryParse(p, "prob", ref prob) &&
             prob > 0.999)
           prob = 0.999;
+
+        // seed=<int>
+        Util.TryParse(p, "seed", ref seed);
       }
 
       int wq = c.Width / 4;
@@ -113,7 +117,7 @@ namespace _092lines
       double padding = size * Math.Sqrt(0.5);
       c.SetColor(Color.LemonChiffon);
       c.SetPenWidth(1.0f);
-      Random r = new Random(12);
+      Random r = (seed == 0) ? new Random() : new Random(seed);
 
       for (i = 0; i < objects; i++)
       {
