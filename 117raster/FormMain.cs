@@ -115,7 +115,11 @@ namespace _117raster
       }
     }
 
-    private void setRecomputeGui (bool computing)
+    /// <summary>
+    /// Sets GUI elements according to 'running' state.
+    /// Must be called inside lock (runLock).
+    /// </summary>
+    private void setRecomputeGui ()
     {
       // Set GUI elements for computing/non-computing mode.
       comboBoxModule.Enabled =
@@ -126,10 +130,10 @@ namespace _117raster
       buttonSetInput.Enabled =
       buttonShowGUI.Enabled =
       buttonSaveImage.Enabled =
-        !computing;
+        running == null;
 
       buttonBreak.Enabled =
-        computing;
+        running != null;
     }
 
     delegate void SetImageCallback (Bitmap newImage);
@@ -146,23 +150,24 @@ namespace _117raster
         BeginInvoke(si, new object[] { newImage });
       }
       else
-      {
-        // Finishing phase after a module has recomputed the output image.
-        setImage(ref outputImage, newImage);
-        checkBoxResult.Checked = newImage != null;
-        setSaveButton();
+        lock (runLock)
+        {
+          // Finishing phase after a module has recomputed the output image.
+          setImage(ref outputImage, newImage);
+          checkBoxResult.Checked = newImage != null;
+          setSaveButton();
 
-        // Display input or output image.
-        displayImage();
+          // Display input or output image.
+          displayImage();
 
-        // !!! TODO: this value could be set to Color.White or ColorBlack
-        //           for transparent images. Reflect it in API ???
-        pictureBoxMain.BackColor = BackColor;
+          // !!! TODO: this value could be set to Color.White or ColorBlack
+          //           for transparent images. Reflect it in API ???
+          pictureBoxMain.BackColor = BackColor;
 
-        // Reset the 'running' item.
-        running = null;
-        setRecomputeGui(false);
-      }
+          // Reset the 'running' item.
+          running = null;
+          setRecomputeGui();
+        }
     }
 
     delegate void SetTextCallback (string text);
@@ -187,40 +192,43 @@ namespace _117raster
     /// </summary>
     private void imageProbe (int x, int y)
     {
-      if (running != null)
-        return;
+      lock (runLock)
+      {
+        if (running != null)
+          return;
 
-      Bitmap image = checkBoxResult.Checked
+        Bitmap image = checkBoxResult.Checked
         ? outputImage
         : inputImage;
 
-      if (image == null)
-        return;
+        if (image == null)
+          return;
 
-      if ((ModifierKeys & Keys.Shift) > 0)
-      {
-        // Current image info.
-        string suffix = checkBoxResult.Checked ? "*" : "";
-        SetText($"{inputImageFileName}{suffix} [{image.Width}x{image.Height}]");
+        if ((ModifierKeys & Keys.Shift) > 0)
+        {
+          // Current image info.
+          string suffix = checkBoxResult.Checked ? "*" : "";
+          SetText($"{inputImageFileName}{suffix} [{image.Width}x{image.Height}]");
 
-        return;
+          return;
+        }
+
+        // Original "image probe": coordinates and color of the picked pixel.
+        x = Util.Clamp(x, 0, image.Width - 1);
+        y = Util.Clamp(y, 0, image.Height - 1);
+
+        Color c = image.GetPixel(x, y);
+        StringBuilder sb = new StringBuilder();
+        sb.AppendFormat(" image[{0},{1}] = ", x, y);
+        if (image.PixelFormat == PixelFormat.Format32bppArgb ||
+            image.PixelFormat == PixelFormat.Format64bppArgb ||
+            image.PixelFormat == PixelFormat.Format16bppArgb1555)
+          sb.AppendFormat("[{0},{1},{2},{3}] = #{0:X02}{1:X02}{2:X02}{3:X02}", c.R, c.G, c.B, c.A);
+        else
+          sb.AppendFormat("[{0},{1},{2}] = #{0:X02}{1:X02}{2:X02}", c.R, c.G, c.B);
+
+        SetText(sb.ToString());
       }
-
-      // Original "image probe": coordinates and color of the picked pixel.
-      x = Util.Clamp(x, 0, image.Width - 1);
-      y = Util.Clamp(y, 0, image.Height - 1);
-
-      Color c = image.GetPixel(x, y);
-      StringBuilder sb = new StringBuilder();
-      sb.AppendFormat(" image[{0},{1}] = ", x, y);
-      if (image.PixelFormat == PixelFormat.Format32bppArgb ||
-          image.PixelFormat == PixelFormat.Format64bppArgb ||
-          image.PixelFormat == PixelFormat.Format16bppArgb1555)
-        sb.AppendFormat("[{0},{1},{2},{3}] = #{0:X02}{1:X02}{2:X02}{3:X02}", c.R, c.G, c.B, c.A);
-      else
-        sb.AppendFormat("[{0},{1},{2}] = #{0:X02}{1:X02}{2:X02}", c.R, c.G, c.B);
-
-      SetText(sb.ToString());
     }
 
     private void buttonLoadImage_Click (object sender, EventArgs e)
@@ -263,12 +271,15 @@ namespace _117raster
         return false;
 
       inputImageFileName = fn;
-      setImage(ref inputImage, inp);
-      setImage(ref outputImage, null);
+      lock (runLock)
+      {
+        setImage(ref inputImage, inp);
+        setImage(ref outputImage, null);
 
-      setSaveButton();
-      titleMiddle = " [" + fn + ']';
-      SetText($"{fn} [{inp.Width}x{inp.Height}]");
+        setSaveButton();
+        titleMiddle = " [" + fn + ']';
+        SetText($"{fn} [{inp.Width}x{inp.Height}]");
+      }
 
       recompute(false);
 
@@ -377,32 +388,48 @@ namespace _117raster
     private RecomputeTask running = null;
 
     /// <summary>
+    /// Lock for 'running', 'currModule', 'inputImage', 'outputImage', ...
+    /// </summary>
+    private object runLock = new object();
+
+    /// <summary>
+    /// MT-safe currentModule.
+    /// </summary>
+    private IRasterModule currModuleSafe ()
+    {
+      lock (runLock)
+        return currModule;
+    }
+
+    /// <summary>
     /// Recompute initiated in the FormMain. Optional update of module's param from the textBox.
     /// </summary>
     /// <param name="setParam">If true, module's Param will be modified.</param>
     private void recompute (bool setParam)
     {
-      if (running != null)
-        return;
-
-      IRasterModule module = currModule;
-      if (module == null)
+      lock (runLock)
       {
-        // Nothing to compute => set outputImage to null.
+        if (running != null)
+          return;
 
-        setImage(ref outputImage, null);
-        checkBoxResult.Checked = false;
-        setSaveButton();
+        if (currModule == null)
+        {
+          // Nothing to compute => set outputImage to null.
 
-        // Display input image.
-        displayImage();
+          setImage(ref outputImage, null);
+          checkBoxResult.Checked = false;
+          setSaveButton();
 
-        return;
+          // Display input image.
+          displayImage();
+
+          return;
+        }
+
+        running = new RecomputeTask(this, currModule);
+        setRecomputeGui();
+        running.Start(inputImage, setParam ? textBoxParam.Text : null);
       }
-
-      running = new RecomputeTask(this, module);
-      setRecomputeGui(true);
-      running.Start(inputImage, setParam ? textBoxParam.Text : null);
     }
 
     /// <summary>
@@ -415,33 +442,38 @@ namespace _117raster
       int x,
       int y)
     {
-      if (running != null)
-        return;
-
-      IRasterModule module = currModule;
-      if (module == null)
+      lock (runLock)
       {
-        // Nothing to compute => set outputImage to null.
+        if (running != null)
+          return;
 
-        setImage(ref outputImage, null);
-        checkBoxResult.Checked = false;
-        setSaveButton();
+        if (currModule == null)
+        {
+          // Nothing to compute => set outputImage to null.
 
-        // Display input image.
-        displayImage();
+          setImage(ref outputImage, null);
+          checkBoxResult.Checked = false;
+          setSaveButton();
 
-        return;
+          // Display input image.
+          displayImage();
+
+          return;
+        }
+
+        running = new RecomputeTask(this, currModule);
+        setRecomputeGui();
+        running.Start(inputImage, textBoxParam.Text, x, y);
       }
-
-      running = new RecomputeTask(this, module);
-      setRecomputeGui(true);
-      running.Start(inputImage, textBoxParam.Text, x, y);
     }
 
     private void buttonSaveImage_Click (object sender, EventArgs e)
     {
-      if (outputImage == null)
-        return;
+      Bitmap oi;
+      lock (runLock)
+        if (running != null ||
+            (oi = outputImage) == null)
+          return;
 
       using (SaveFileDialog sfd = new SaveFileDialog
       {
@@ -452,7 +484,7 @@ namespace _117raster
       })
       {
         if (sfd.ShowDialog() == DialogResult.OK)
-          outputImage.Save(sfd.FileName, ImageFormat.Png);
+          oi.Save(sfd.FileName, ImageFormat.Png);
       }
     }
 
@@ -473,7 +505,7 @@ namespace _117raster
       if (running != null)
       {
         DefaultRasterModule.UserBreak = true;
-        System.Threading.Thread.Sleep(100);
+        System.Threading.Thread.Sleep(50);
       }
     }
 
@@ -530,9 +562,12 @@ namespace _117raster
     {
       pictureBoxMain.Focus();
 
+      // MT-safe currentModule.
+      IRasterModule cm = currModuleSafe();
+
       bool isCtrl = (ModifierKeys & Keys.Control) > 0;
-      bool isModule = currModule != null;
-      bool hasPixelUpdate = isModule && currModule.HasPixelUpdate;
+      bool isModule = cm != null;
+      bool hasPixelUpdate = isModule && cm.HasPixelUpdate;
       bool leftButton = e.Button == MouseButtons.Left;
       Cursor cursor;
 
@@ -548,12 +583,12 @@ namespace _117raster
       if (isCtrl &&
           isModule &&
           !hasPixelUpdate)
-        SetText($"Current module '{ModuleRegistry.DecoratedModuleName(currModule)}' has no PixelUpdate()");
+        SetText($"Current module '{ModuleRegistry.DecoratedModuleName(cm)}' has no PixelUpdate()");
 
       // Module's mouse handling.
       if (isModule &&
-          currModule.MouseDown != null)
-        currModule.MouseDown(sender, transformMouseEvent(e));
+          cm.MouseDown != null)
+        cm.MouseDown(sender, transformMouseEvent(e));
 
       if (cursor != null)
         Cursor = cursor;
@@ -563,10 +598,13 @@ namespace _117raster
     {
       panAndZoom.OnMouseUp(out Cursor cursor);
 
+      // MT-safe currentModule.
+      IRasterModule cm = currModuleSafe();
+
       // Module's mouse handling.
-      if (currModule != null &&
-          currModule.MouseUp != null)
-        currModule.MouseUp(sender, transformMouseEvent(e));
+      if (cm != null &&
+          cm.MouseUp != null)
+        cm.MouseUp(sender, transformMouseEvent(e));
 
       Cursor = cursor;
     }
@@ -575,10 +613,13 @@ namespace _117raster
     {
       panAndZoom.OnMouseMove(e, imageProbe, e.Button == MouseButtons.Left, ModifierKeys, out Cursor cursor);
 
+      // MT-safe currentModule.
+      IRasterModule cm = currModuleSafe();
+
       // Module's mouse handling.
-      if (currModule != null &&
-          currModule.MouseMove != null)
-        currModule.MouseMove(sender, transformMouseEvent(e));
+      if (cm != null &&
+          cm.MouseMove != null)
+        cm.MouseMove(sender, transformMouseEvent(e));
 
       if (cursor != null)
         Cursor = cursor;
@@ -593,20 +634,26 @@ namespace _117raster
     {
       panAndZoom.OnMouseWheel(e, ModifierKeys);
 
+      // MT-safe currentModule.
+      IRasterModule cm = currModuleSafe();
+
       // Module's mouse handling.
-      if (currModule != null &&
-          currModule.MouseWheel != null)
-        currModule.MouseWheel(sender, transformMouseEvent(e));
+      if (cm != null &&
+          cm.MouseWheel != null)
+        cm.MouseWheel(sender, transformMouseEvent(e));
     }
 
     private void pictureBoxMain_PreviewKeyDown (object sender, PreviewKeyDownEventArgs e)
     {
       panAndZoom.OnKeyDown(e.KeyCode, ModifierKeys);
 
+      // MT-safe currentModule.
+      IRasterModule cm = currModuleSafe();
+
       // Module's key handling.
-      if (currModule != null &&
-          currModule.KeyDown != null)
-        currModule.KeyDown(sender, new KeyEventArgs(e.KeyData));
+      if (cm != null &&
+          cm.KeyDown != null)
+        cm.KeyDown(sender, new KeyEventArgs(e.KeyData));
     }
 
     private void FormMain_Load (object sender, EventArgs e)
@@ -618,10 +665,13 @@ namespace _117raster
 
     private void deactivateModule (string moduleName)
     {
-      // Deactivate the current module.
-      currModule.GuiWindow = false;
-      modules.Remove(moduleName);
-      currModule = null;
+      lock (runLock)
+      {
+        // Deactivate the current module.
+        currModule.GuiWindow = false;
+        modules.Remove(moduleName);
+        currModule = null;
+      }
 
       // Form elements.
       textBoxParam.Text = "";
@@ -646,52 +696,59 @@ namespace _117raster
         deactivateModule(moduleName);
       }
       else
-      {
-        // Activate the module.
-        currModule = modules[moduleName] = ModuleRegistry.CreateModule(moduleName);
+        lock (runLock)
+        {
+          // Activate the module.
+          currModule = modules[moduleName] = ModuleRegistry.CreateModule(moduleName);
 
-        // Notifications module -> main.
-        currModule.UpdateRequest = recomputeRequest;
-        currModule.ParamUpdated = updateParamFromModule;
-        currModule.DeactivateRequest = deactivateRequest;
+          // Notifications module -> main.
+          currModule.UpdateRequest = recomputeRequest;
+          currModule.ParamUpdated = updateParamFromModule;
+          currModule.DeactivateRequest = deactivateRequest;
 
-        // Form elements.
-        textBoxParam.Text = currModule.Param;
-        tooltip = currModule.Tooltip;
-        buttonModule.Text = "Deactivate module";
-        buttonShowGUI.Enabled = true;
+          // Form elements.
+          textBoxParam.Text = currModule.Param;
+          tooltip = currModule.Tooltip;
+          buttonModule.Text = "Deactivate module";
+          buttonShowGUI.Enabled = true;
 
-        currModule.GuiWindow = true;
-        if (currModule.InputSlots > 0 &&
-            inputImage != null)
-          currModule.SetInput(inputImage);
+          currModule.GuiWindow = true;
+          if (currModule.InputSlots > 0 &&
+              inputImage != null)
+            currModule.SetInput(inputImage);
 
-        buttonRecompute.Enabled = true;
-        buttonBreak.Enabled = false;
-      }
+          buttonRecompute.Enabled = true;
+          buttonBreak.Enabled = false;
+        }
     }
 
     private void buttonShowGUI_Click (object sender, EventArgs e)
     {
-      if (currModule != null)
-        currModule.GuiWindow = true;
+      // MT-safe currentModule.
+      IRasterModule cm = currModuleSafe();
+
+      if (cm != null)
+        cm.GuiWindow = true;
     }
 
     private void recomputeRequest (IRasterModule module)
     {
-      if (module == currModule)
+      if (module == currModuleSafe())
         recompute(false);
     }
 
     private void updateParamFromModule (IRasterModule module)
     {
-      if (module == currModule)
-        textBoxParam.Text = currModule.Param;
+      // MT-safe currentModule.
+      IRasterModule cm = currModuleSafe();
+
+      if (module == cm)
+        textBoxParam.Text = cm.Param;
     }
 
     private void deactivateRequest (IRasterModule module)
     {
-      if (module == currModule)
+      if (module == currModuleSafe())
       {
         int selectedModule = comboBoxModule.SelectedIndex;
         string moduleName = (string)comboBoxModule.Items[selectedModule];
@@ -706,8 +763,11 @@ namespace _117raster
 
     private void checkBoxResult_CheckedChanged (object sender, EventArgs e)
     {
-      displayImage();
-      setSaveButton();
+      lock (runLock)
+      {
+        displayImage();
+        setSaveButton();
+      }
     }
 
     private void comboBoxModule_SelectedIndexChanged (object sender, EventArgs e)
@@ -715,40 +775,43 @@ namespace _117raster
       int selectedModule = comboBoxModule.SelectedIndex;
       string moduleName = (string)comboBoxModule.Items[selectedModule];
 
-      // Backup data of the old module.
-      if (currModule != null)
-        currModule.Param = textBoxParam.Text;
-
-      // Is the new selected module activated?
-      bool activated = modules.ContainsKey(moduleName);
-
-      if (activated)
+      lock (runLock)
       {
-        // Switch data for the new module.
-        currModule = modules[moduleName];
+        // Backup data of the old module.
+        if (currModule != null)
+          currModule.Param = textBoxParam.Text;
 
-        // Form.
-        textBoxParam.Text = currModule.Param;
-        tooltip = currModule.Tooltip;
-        buttonModule.Text = "Deactivate module";
+        // Is the new selected module activated?
+        bool activated = modules.ContainsKey(moduleName);
 
-        currModule.GuiWindow = true;
-        if (currModule.InputSlots > 0 &&
-            inputImage != null)
-          currModule.SetInput(inputImage, 0);
+        if (activated)
+        {
+          // Switch data for the new module.
+          currModule = modules[moduleName];
+
+          // Form.
+          textBoxParam.Text = currModule.Param;
+          tooltip = currModule.Tooltip;
+          buttonModule.Text = "Deactivate module";
+
+          currModule.GuiWindow = true;
+          if (currModule.InputSlots > 0 &&
+              inputImage != null)
+            currModule.SetInput(inputImage, 0);
+        }
+        else
+        {
+          currModule = null;
+
+          // Form.
+          textBoxParam.Text = "";
+          tooltip = "";
+          buttonModule.Text = "Activate module";
+        }
+
+        buttonRecompute.Enabled = activated;
+        buttonBreak.Enabled = false;
       }
-      else
-      {
-        currModule = null;
-
-        // Form.
-        textBoxParam.Text = "";
-        tooltip = "";
-        buttonModule.Text = "Activate module";
-      }
-
-      buttonRecompute.Enabled = activated;
-      buttonBreak.Enabled = false;
     }
 
     private void buttonZoomReset_Click (object sender, EventArgs e)
