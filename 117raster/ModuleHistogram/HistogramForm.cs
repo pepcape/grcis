@@ -11,14 +11,29 @@ namespace Modules
     protected Bitmap backBuffer = null;
 
     /// <summary>
+    /// Lock object for backBuffer manipulation.
+    /// </summary>
+    protected object bLock = new object();
+
+    /// <summary>
     /// Associated raster module (to be notified under various conditions).
     /// </summary>
     protected IRasterModule module;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    protected volatile bool busy = false;
+
     public void SetResult (Bitmap result)
     {
-      backBuffer?.Dispose();
-      backBuffer = result;
+      lock (bLock)
+        if (result != backBuffer)
+        {
+          backBuffer?.Dispose();
+          backBuffer = result;
+        }
+
       Invalidate();
     }
 
@@ -32,8 +47,11 @@ namespace Modules
 
     private void HistogramForm_FormClosed (object sender, FormClosedEventArgs e)
     {
-      backBuffer?.Dispose();
-      backBuffer = null;
+      lock (bLock)
+      {
+        backBuffer?.Dispose();
+        backBuffer = null;
+      }
 
       module?.OnGuiWindowClose();
     }
@@ -43,21 +61,28 @@ namespace Modules
       if (backBuffer == null)
         e.Graphics.Clear(Color.White);
       else
-        e.Graphics.DrawImageUnscaled(backBuffer, 0, 0);
+        lock (bLock)
+        {
+          e.Graphics.DrawImageUnscaled(backBuffer, 0, 0);
+          busy = false;
+        }
     }
 
     private void HistogramForm_Resize (object sender, System.EventArgs e)
     {
-      if (module == null)
+      if (module == null ||
+          busy)
         return;
 
-      if (backBuffer == null ||
-          backBuffer.Width  != ClientSize.Width ||
-          backBuffer.Height != ClientSize.Height)
-      {
-        // This is the correct way to ask the module for recomputation..
-        module.UpdateRequest?.Invoke(module);
-      }
+      lock (bLock)
+        if (backBuffer == null ||
+            backBuffer.Width  != ClientSize.Width ||
+            backBuffer.Height != ClientSize.Height)
+        {
+          busy = true;
+          // This is the correct way to ask the module for recomputation..
+          module.UpdateRequest?.Invoke(module);
+        }
     }
   }
 }
