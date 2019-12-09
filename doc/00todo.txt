@@ -84,6 +84,7 @@ Old tasks:
 119 (task only, hash functions for textures, 2018)
 120 (task only, restricted color transform, 2019)
 121 (task only, full-color image, 2019)
+122 (task only, procedural 3D scene from lines, 2019)
 ...
 
 ================================================================================

@@ -91,6 +91,9 @@
     <Compile Include="..\common\RandomJames.cs">
       <Link>RandomJames.cs</Link>
     </Compile>
+    <Compile Include="..\common\RasterDrawing.cs">
+      <Link>RasterDrawing.cs</Link>
+    </Compile>
     <Compile Include="..\common\StanfordPly.cs">
       <Link>StanfordPly.cs</Link>
     </Compile>

@@ -1367,6 +1367,44 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Parses double as a rational number (pi multiplication is supported).
+    /// </summary>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
+    public static bool ParseRational (string sval, ref double val)
+    {
+      bool pi = false;
+      if (sval.EndsWith("pi"))
+      {
+        // Pi multiplication.
+        pi = true;
+        sval = sval.Substring(0, sval.Length - 2).Trim();
+      }
+
+      double result;
+      int pos = sval.IndexOf('/');
+      if (pos >= 0)
+      {
+        // The actual fraction.
+        long numerator = 1L;
+        if (pos > 0)
+          long.TryParse(sval.Substring(0, pos), out numerator);
+        long denominator = 1L;
+        if (pos + 1 < sval.Length)
+          long.TryParse(sval.Substring(pos + 1), out denominator);
+        if (denominator == 0L)
+          denominator = 1L;
+
+        result = numerator / (double)denominator;
+      }
+      else
+        if (!double.TryParse(sval, NumberStyles.Float, CultureInfo.InvariantCulture, out result))
+          return false;
+
+      val = pi ? Math.PI * result : result;
+      return true;
+    }
+
+    /// <summary>
     /// Parses double value from the dictionary.
     /// </summary>
     /// <returns>True if everything went well, keeps the original value otherwise.</returns>
@@ -1377,6 +1415,24 @@ namespace Utilities
       if (rec == null ||
           !rec.TryGetValue(key, out sval) ||
           !double.TryParse(sval, NumberStyles.Number, CultureInfo.InvariantCulture, out v))
+        return false;
+
+      val = v;
+      return true;
+    }
+
+    /// <summary>
+    /// Parses double value from the dictionary.
+    /// Rational numbers are supported as well as pi multiplication ("pi" suffix).
+    /// </summary>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
+    public static bool TryParseRational (Dictionary<string, string> rec, string key, ref double val)
+    {
+      string sval;
+      double v = 0.0;
+      if (rec == null ||
+          !rec.TryGetValue(key, out sval) ||
+          !ParseRational(sval, ref v))
         return false;
 
       val = v;

@@ -52,6 +52,57 @@ namespace MathSupport
       return (rad * 180.0 / Math.PI);
     }
 
+    public static double GCD (double a, double b)
+    {
+      long longA;
+      long longB;
+
+      double mult = 1.0;
+      double mmult = 2.0;
+      while (true)
+      {
+        longA = (long)a;
+        longB = (long)b;
+
+        if (longA == a &&
+            longB == b)
+          break;
+
+        a *= mmult;
+        b *= mmult;
+        if (a > long.MaxValue ||
+            b > long.MaxValue)
+          break;
+
+        mult *= mmult;
+        mmult += 1.0;
+      }
+
+      return GCD(longA, longB) / mult;
+    }
+
+    public static long GCD (long a, long b)
+    {
+      void SwapAB ()
+      {
+        long temp = a;
+        a = b;
+        b = temp;
+      }
+
+      if (b > a)
+        SwapAB();
+
+      while (b != 0L)
+      {
+        a %= b;
+        SwapAB();
+      }
+
+      return a;
+    }
+
+
     /// <summary>
     /// Converts .NET Color type (24-bit true color) to triple HSV.
     /// </summary>
