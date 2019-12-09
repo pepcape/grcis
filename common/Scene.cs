@@ -45,15 +45,20 @@ namespace Scene3D
     protected List<Vector2> txtCoords = null;
 
     /// <summary>
-    /// Vertex pointer (handle) for each corner.
+    /// Vertex pointer (handle) for each triangle corner.
     /// </summary>
     protected List<int> vertexPtr = null;
 
     /// <summary>
-    /// Opposite corner pointer (handle) for each corner.
+    /// Opposite corner pointer (handle) for each triangle corner.
     /// Valid only for topological scene (triangles are connected).
     /// </summary>
     protected List<int> oppositePtr = null;
+
+    /// <summary>
+    /// If true, lines are used instead of triangles.
+    /// </summary>
+    protected bool lines = false;
 
     public int statEdges  = 0;
     public int statShared = 0;
@@ -71,7 +76,7 @@ namespace Scene3D
 
     object ICloneable.Clone ()
     {
-      return this.Clone();
+      return Clone();
     }
 
     public SceneBrep Clone ()
@@ -83,6 +88,8 @@ namespace Scene3D
       if (txtCoords != null)   tmp.txtCoords = new List<Vector2>(txtCoords);
       if (vertexPtr != null)   tmp.vertexPtr = new List<int>(vertexPtr);
       if (oppositePtr != null) tmp.oppositePtr = new List<int>(oppositePtr);
+      tmp.lines = lines;
+      tmp.LineWidth = LineWidth;
 
       tmp.BuildCornerTable();
       return tmp;
@@ -101,6 +108,8 @@ namespace Scene3D
       txtCoords   = null;
       vertexPtr   = new List<int>(256);
       oppositePtr = null;
+      lines       = false;
+      LineWidth   = 2.0f;
     }
 
     /// <summary>
@@ -175,22 +184,46 @@ namespace Scene3D
 
     /// <summary>
     /// Current number of triangles in the scene.
+    /// Zero if lines are used.
     /// </summary>
     public int Triangles
     {
       get
       {
-        if (vertexPtr == null)
+        if (lines ||
+            vertexPtr == null)
           return 0;
+
         Debug.Assert(vertexPtr.Count % 3 == 0, "Invalid V[] size");
         return vertexPtr.Count / 3;
       }
     }
 
     /// <summary>
+    /// Current number of Lines.
+    /// Zero if triangles are used.
+    /// </summary>
+    public int Lines
+    {
+      get
+      {
+        if (!lines)
+          return 0;
+
+        Debug.Assert(vertexPtr.Count % 2 == 0, "Invalid V[] size");
+        return vertexPtr.Count / 2;
+      }
+    }
+
+    /// <summary>
+    /// Line-width for rendering.
+    /// </summary>
+    public float LineWidth { get; set; } = 2.0f;
+
+    /// <summary>
     /// Current number of corners in the scene (# of triangles times three).
     /// </summary>
-    public int Corners => (vertexPtr == null) ? 0 : vertexPtr.Count;
+    public int Corners => (vertexPtr == null || lines) ? 0 : vertexPtr.Count;
 
     /// <summary>
     /// Add a new vertex defined by its 3D coordinate.
@@ -354,12 +387,16 @@ namespace Scene3D
     /// <returns>Triangle handle</returns>
     public int AddTriangle (int v1, int v2, int v3)
     {
+      Debug.Assert(lines, "Triangles are mixed with lines");
       Debug.Assert(geometry != null, "Invalid G[] size");
       Debug.Assert(geometry.Count > v1 &&
                    geometry.Count > v2 &&
                    geometry.Count > v3, "Invalid vertex handle");
       Debug.Assert(vertexPtr != null && (vertexPtr.Count % 3 == 0),
                    "Invalid corner-table (V[] size)");
+
+      if (lines)
+        return 0;
 
       int handle1 = vertexPtr.Count;
       vertexPtr.Add(v1);
@@ -375,6 +412,35 @@ namespace Scene3D
       }
 
       return handle1 / 3;
+    }
+
+    /// <summary>
+    /// Add a new line.
+    /// Lines must not be mixed with triangles.
+    /// </summary>
+    /// <param name="v1">Handle of the 1st vertex</param>
+    /// <param name="v2">Handle of the 2nd vertex</param>
+    /// <returns>Line handle</returns>
+    public int AddLine (int v1, int v2)
+    {
+      Debug.Assert(vertexPtr != null && (vertexPtr.Count % 2 == 0),
+                   "Invalid V[] size");
+      Debug.Assert(vertexPtr.Count == 0 || lines, "Triangles are mixed with lines");
+      Debug.Assert(geometry != null, "Invalid G[] size");
+      Debug.Assert(geometry.Count > v1 &&
+                   geometry.Count > v2, "Invalid vertex handle");
+
+      if (vertexPtr.Count == 0)
+        lines = true;
+      else
+        if (!lines)
+          return 0;
+
+      int handle1 = vertexPtr.Count;
+      vertexPtr.Add(v1);
+      vertexPtr.Add(v2);
+
+      return handle1 / 2;
     }
 
     /// <summary>
@@ -394,6 +460,23 @@ namespace Scene3D
       v1 = vertexPtr[tr];
       v2 = vertexPtr[tr + 1];
       v3 = vertexPtr[tr + 2];
+    }
+
+    /// <summary>
+    /// Returns vertex handles of the given line.
+    /// </summary>
+    /// <param name="li">Line handle</param>
+    /// <param name="v1">Variable to receive the 1st vertex handle</param>
+    /// <param name="v2">Variable to receive the 2nd vertex handle</param>
+    public void GetLineVertices (int li, out int v1, out int v2)
+    {
+      Debug.Assert(geometry != null, "Invalid G[] size");
+      li *= 2;
+      Debug.Assert(vertexPtr != null && 0 <= li && li + 1 < vertexPtr.Count,
+                   "Invalid line handle");
+
+      v1 = vertexPtr[li];
+      v2 = vertexPtr[li + 1];
     }
 
     /// <summary>
@@ -660,7 +743,8 @@ namespace Scene3D
     /// </summary>
     public void ComputeNormals ()
     {
-      if (vertexPtr == null)
+      if (vertexPtr == null ||
+          lines)
         return;
 
       normals = new List<Vector3>(new Vector3[geometry.Count]);
@@ -699,10 +783,16 @@ namespace Scene3D
     /// </summary>
     public void BuildCornerTable ()
     {
-      if (geometry == null || geometry.Count < 1 ||
+      if (geometry  == null || geometry.Count  < 1 ||
           vertexPtr == null || vertexPtr.Count < 1)
       {
         Reset();
+        return;
+      }
+
+      if (lines)
+      {
+        oppositePtr = null;
         return;
       }
 
@@ -846,6 +936,9 @@ namespace Scene3D
     /// <returns>Number of errors/inconsistencies (0 if everything is Ok)</returns>
     public int CheckCornerTable (StreamWriter errors, bool thorough = false)
     {
+      if (lines)
+        return 0;
+
       if (errors == null)
       {
         errors = new StreamWriter(Console.OpenStandardOutput());
