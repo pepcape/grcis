@@ -49,7 +49,7 @@ namespace _117raster
       : titlePrefix + titleMiddle + ' ' + suffix;
 
     /// <summary>
-    ///  Enables the 'Save image' and 'Set as input' buttons.
+    ///  Enables the 'Save image', 'Set as input' and 'Clear input' buttons.
     /// </summary>
     private void setSaveButton ()
     {
@@ -59,6 +59,8 @@ namespace _117raster
 
       buttonSetInput.Enabled = checkBoxResult.Checked &&
                                outputImage != null;
+
+      buttonClear.Enabled = inputImage != null;
     }
 
     /// <summary>
@@ -128,12 +130,16 @@ namespace _117raster
       buttonModule.Enabled =
       buttonRecompute.Enabled =
       buttonSetInput.Enabled =
+      buttonClear.Enabled =
       buttonShowGUI.Enabled =
       buttonSaveImage.Enabled =
         running == null;
 
       buttonBreak.Enabled =
         running != null;
+
+      if (inputImage == null)
+        buttonClear.Enabled = false;
     }
 
     delegate void SetImageCallback (Bitmap newImage);
@@ -836,6 +842,23 @@ namespace _117raster
     private void buttonBreak_Click (object sender, EventArgs e)
     {
       DefaultRasterModule.UserBreak = true;
+    }
+
+    private void buttonClear_Click (object sender, EventArgs e)
+    {
+      if (inputImage == null)
+        return;
+
+      inputImageFileName = "";
+      lock (runLock)
+      {
+        setImage(ref inputImage, null);
+
+        displayImage();
+        setSaveButton();
+        titleMiddle = "";
+        SetText("Input cleared.");
+      }
     }
   }
 }
