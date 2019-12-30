@@ -283,7 +283,7 @@ namespace Rendering
     private void CommonMouseDown (MouseEventArgs e, Action<int, int> displayStats)
     {
       bool condition = panAndZoomControls[MapsTabControl.SelectedIndex].CurrentImage() != null &&
-                       e.Button == panAndZoomControls[MapsTabControl.SelectedIndex].Button;
+                       e.Button != panAndZoomControls[MapsTabControl.SelectedIndex].Button;
 
       panAndZoomControls[MapsTabControl.SelectedIndex].OnMouseDown(e, displayStats, condition, ModifierKeys, out Cursor cursor);
 
@@ -299,7 +299,8 @@ namespace Rendering
     private void CommonMouseMove (MouseEventArgs e, Action<int, int> displayStats)
     {
       bool condition = panAndZoomControls[MapsTabControl.SelectedIndex].CurrentImage() != null &&
-                       e.Button == panAndZoomControls[MapsTabControl.SelectedIndex].Button;
+                       e.Button != MouseButtons.None &&
+                       e.Button != panAndZoomControls[MapsTabControl.SelectedIndex].Button;
 
       panAndZoomControls[MapsTabControl.SelectedIndex].OnMouseMove(e, displayStats, condition, ModifierKeys, out Cursor cursor);
 
@@ -561,8 +562,9 @@ namespace Rendering
     /// </summary>
     public void NewImageRendered ()
     {
-      for (int i = 0; i < newImageAvailable.Length; i++)
-        newImageAvailable[i] = true;
+      if (newImageAvailable != null)
+        for (int i = 0; i < newImageAvailable.Length; i++)
+          newImageAvailable[i] = true;
 
       RenderCurrentlyActiveTab();
     }

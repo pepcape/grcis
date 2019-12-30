@@ -430,9 +430,11 @@ namespace Rendering
     /// </summary>
     public void SetNextImageFromHistory ()
     {
-      historyIndex++;
-
-      selectImage(history[historyIndex]);
+      if (historyIndex + 1 < history.Count)
+      {
+        historyIndex++;
+        selectImage(history[historyIndex]);
+      }
     }
 
     /// <summary>
@@ -440,9 +442,11 @@ namespace Rendering
     /// </summary>
     public void SetPreviousImageFromHistory ()
     {
-      historyIndex--;
-
-      selectImage(history[historyIndex]);
+      if (historyIndex > 0)
+      {
+        historyIndex--;
+        selectImage(history[historyIndex]);
+      }
     }
 
     /// <summary>
@@ -460,9 +464,14 @@ namespace Rendering
     private void setImage (Image newImage)
     {
       image?.Dispose();
-      Bitmap bmp = new Bitmap(newImage);
-      bmp.SetResolution(96.0f, 96.0f);
-      image = bmp;
+      if (newImage != null)
+      {
+        Bitmap bmp = new Bitmap(newImage);
+        bmp.SetResolution(96.0f, 96.0f);
+        image = bmp;
+      }
+      else
+        image = null;
     }
 
     /// <summary>
