@@ -707,7 +707,8 @@ namespace Rendering
     private void pictureBox1_MouseDown (object sender, MouseEventArgs e)
     {
       bool condition = aThread == null &&
-                       e.Button == panAndZoom.Button &&
+                       e.Button != MouseButtons.None &&
+                       e.Button != panAndZoom.Button &&
                        MT.sceneRendered &&
                        !MT.renderingInProgress;
 
@@ -725,7 +726,8 @@ namespace Rendering
     private void pictureBox1_MouseMove (object sender, MouseEventArgs e)
     {
       bool condition = aThread == null &&
-                       e.Button == panAndZoom.Button &&
+                       e.Button != MouseButtons.None &&
+                       e.Button != panAndZoom.Button &&
                        MT.sceneRendered &&
                        !MT.renderingInProgress;
 
