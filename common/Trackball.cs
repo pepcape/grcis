@@ -815,7 +815,7 @@ namespace MathSupport
     /// <param name="movementDirection">Direction to move Center to</param>
     private void MoveCenter (movementDirection movementDirection)
     {
-      Vector3 movement = new Vector3(0, 0, 0);
+      Vector3 movement = Vector3.Zero;
 
       switch (movementDirection)
       {
@@ -844,7 +844,7 @@ namespace MathSupport
           break;
 
         case movementDirection.Reset:
-          Center = new Vector3(0, 0, 0);
+          Center = Vector3.Zero;
           break;
       }
 
@@ -861,7 +861,7 @@ namespace MathSupport
     /// <param name="movementDirection">Direction to move Center to</param>
     private void MoveCenterByAxes (movementDirection movementDirection)
     {
-      Vector3 movement = new Vector3();
+      Vector3 movement = Vector3.Zero;
 
       switch (movementDirection)
       {
@@ -890,7 +890,7 @@ namespace MathSupport
           break;
 
         case movementDirection.Reset:
-          Center = new Vector3(0, 0, 0);
+          Center = Vector3.Zero;
           break;
       }
 
