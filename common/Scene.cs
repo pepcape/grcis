@@ -46,6 +46,8 @@ namespace Scene3D
 
     /// <summary>
     /// Vertex pointer (handle) for each triangle corner.
+    /// Or vertex of the line.
+    /// 'vertexPtr' must never be null (see Reset()).
     /// </summary>
     protected List<int> vertexPtr = null;
 
@@ -57,8 +59,19 @@ namespace Scene3D
 
     /// <summary>
     /// If true, lines are used instead of triangles.
+    /// Valid after 1st triangle or line was inserted into the scene.
     /// </summary>
     protected bool lines = false;
+
+    /// <summary>
+    /// Returns true if the scene is (or can be) composed of lines.
+    /// </summary>
+    public bool HasLines => lines || vertexPtr.Count == 0;
+
+    /// <summary>
+    /// Returns true if the scene is (or can be) composed of triangles.
+    /// </summary>
+    public bool HasTriangles => !lines || vertexPtr.Count == 0;
 
     public int statEdges  = 0;
     public int statShared = 0;
@@ -190,8 +203,7 @@ namespace Scene3D
     {
       get
       {
-        if (lines ||
-            vertexPtr == null)
+        if (HasLines)
           return 0;
 
         Debug.Assert(vertexPtr.Count % 3 == 0, "Invalid V[] size");
@@ -207,7 +219,7 @@ namespace Scene3D
     {
       get
       {
-        if (!lines)
+        if (HasTriangles)
           return 0;
 
         Debug.Assert(vertexPtr.Count % 2 == 0, "Invalid V[] size");
@@ -223,7 +235,7 @@ namespace Scene3D
     /// <summary>
     /// Current number of corners in the scene (# of triangles times three).
     /// </summary>
-    public int Corners => (vertexPtr == null || lines) ? 0 : vertexPtr.Count;
+    public int Corners => HasLines ? 0 : vertexPtr.Count;
 
     /// <summary>
     /// Add a new vertex defined by its 3D coordinate.
@@ -387,7 +399,7 @@ namespace Scene3D
     /// <returns>Triangle handle</returns>
     public int AddTriangle (int v1, int v2, int v3)
     {
-      Debug.Assert(lines, "Triangles are mixed with lines");
+      Debug.Assert(HasTriangles, "Triangles are mixed with lines");
       Debug.Assert(geometry != null, "Invalid G[] size");
       Debug.Assert(geometry.Count > v1 &&
                    geometry.Count > v2 &&
@@ -395,8 +407,8 @@ namespace Scene3D
       Debug.Assert(vertexPtr != null && (vertexPtr.Count % 3 == 0),
                    "Invalid corner-table (V[] size)");
 
-      if (lines)
-        return 0;
+      if (!HasTriangles)
+        return NULL;
 
       int handle1 = vertexPtr.Count;
       vertexPtr.Add(v1);
@@ -423,19 +435,17 @@ namespace Scene3D
     /// <returns>Line handle</returns>
     public int AddLine (int v1, int v2)
     {
-      Debug.Assert(vertexPtr != null && (vertexPtr.Count % 2 == 0),
+      Debug.Assert(HasLines, "Triangles are mixed with lines");
+      Debug.Assert(vertexPtr.Count % 2 == 0,
                    "Invalid V[] size");
-      Debug.Assert(vertexPtr.Count == 0 || lines, "Triangles are mixed with lines");
       Debug.Assert(geometry != null, "Invalid G[] size");
       Debug.Assert(geometry.Count > v1 &&
                    geometry.Count > v2, "Invalid vertex handle");
 
-      if (vertexPtr.Count == 0)
-        lines = true;
-      else
-        if (!lines)
-          return 0;
+      if (!HasLines)
+        return NULL;
 
+      lines = true;
       int handle1 = vertexPtr.Count;
       vertexPtr.Add(v1);
       vertexPtr.Add(v2);
@@ -452,9 +462,10 @@ namespace Scene3D
     /// <param name="v3">Variable to receive the 3rd vertex handle</param>
     public void GetTriangleVertices (int tr, out int v1, out int v2, out int v3)
     {
+      Debug.Assert(HasTriangles, "This scene is composed of lines");
       Debug.Assert(geometry != null, "Invalid G[] size");
       tr *= 3;
-      Debug.Assert(vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
+      Debug.Assert(0 <= tr && tr + 2 < vertexPtr.Count,
                    "Invalid triangle handle");
 
       v1 = vertexPtr[tr];
@@ -470,9 +481,10 @@ namespace Scene3D
     /// <param name="v2">Variable to receive the 2nd vertex handle</param>
     public void GetLineVertices (int li, out int v1, out int v2)
     {
+      Debug.Assert(HasLines, "This scene is composed of triangles");
       Debug.Assert(geometry != null, "Invalid G[] size");
       li *= 2;
-      Debug.Assert(vertexPtr != null && 0 <= li && li + 1 < vertexPtr.Count,
+      Debug.Assert(0 <= li && li + 1 < vertexPtr.Count,
                    "Invalid line handle");
 
       v1 = vertexPtr[li];
@@ -488,15 +500,16 @@ namespace Scene3D
     /// <returns>Triangle handle</returns>
     public void SetTriangleVertices (int tr, int v1, int v2, int v3)
     {
+      Debug.Assert(HasTriangles, "This scene is composed of lines");
       Debug.Assert(geometry != null, "Invalid G[] size");
       tr *= 3;
-      Debug.Assert(vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
+      Debug.Assert(0 <= tr && tr + 2 < vertexPtr.Count,
                    "Invalid triangle handle");
       Debug.Assert(geometry.Count > v1 &&
                    geometry.Count > v2 &&
                    geometry.Count > v3, "Invalid vertex handle");
 
-      vertexPtr[tr] = v1;
+      vertexPtr[tr]     = v1;
       vertexPtr[tr + 1] = v2;
       vertexPtr[tr + 2] = v3;
     }
@@ -510,9 +523,10 @@ namespace Scene3D
     /// <param name="v3">Variable to receive the 3rd vertex coordinates</param>
     public void GetTriangleVertices (int tr, out Vector3 v1, out Vector3 v2, out Vector3 v3)
     {
+      Debug.Assert(HasTriangles, "This scene is composed of lines");
       Debug.Assert(geometry != null, "Invalid G[] size");
       tr *= 3;
-      Debug.Assert(vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
+      Debug.Assert(0 <= tr && tr + 2 < vertexPtr.Count,
                    "Invalid triangle handle");
 
       int h1 = vertexPtr[tr];
@@ -532,9 +546,10 @@ namespace Scene3D
     /// <param name="v3">Variable to receive the 3rd vertex coordinates</param>
     public void GetTriangleVertices (int tr, out Vector4 v1, out Vector4 v2, out Vector4 v3)
     {
+      Debug.Assert(HasTriangles, "This scene is composed of lines");
       Debug.Assert(geometry != null, "Invalid G[] size");
       tr *= 3;
-      Debug.Assert(vertexPtr != null && 0 <= tr && tr + 2 < vertexPtr.Count,
+      Debug.Assert(0 <= tr && tr + 2 < vertexPtr.Count,
                    "Invalid triangle handle");
 
       int h1 = vertexPtr[tr];
@@ -743,8 +758,7 @@ namespace Scene3D
     /// </summary>
     public void ComputeNormals ()
     {
-      if (vertexPtr == null ||
-          lines)
+      if (!HasTriangles)
         return;
 
       normals = new List<Vector3>(new Vector3[geometry.Count]);
@@ -790,7 +804,7 @@ namespace Scene3D
         return;
       }
 
-      if (lines)
+      if (!HasTriangles)
       {
         oppositePtr = null;
         return;
@@ -885,7 +899,6 @@ namespace Scene3D
       if (c < 0)
         return NULL;
 
-      Debug.Assert(vertexPtr != null, "Invalid V[] array");
       Debug.Assert(c < vertexPtr.Count, "Invalid corner handle");
 
       return vertexPtr[c];
@@ -936,7 +949,7 @@ namespace Scene3D
     /// <returns>Number of errors/inconsistencies (0 if everything is Ok)</returns>
     public int CheckCornerTable (StreamWriter errors, bool thorough = false)
     {
-      if (lines)
+      if (!HasTriangles)
         return 0;
 
       if (errors == null)
