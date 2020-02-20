@@ -70,7 +70,7 @@ namespace Rendering
     } = MouseButtons.Left;
 
     /// <summary>
-    /// Default constructor
+    /// Default constructor.
     /// </summary>
     /// <param name="pictureBox">PictureBox to apply to zoom and pan.</param>
     /// <param name="im">Image for pictureBox.</param>
@@ -80,14 +80,14 @@ namespace Rendering
       Image im,
       Action<string> setWindowTitleSuffix)
     {
+      history = new List<Image>(defaultHistoryCapacity);
+      historyIndex = -1;
+
       this.pictureBox = pictureBox;
       setImage(im);
       this.setWindowTitleSuffix = setWindowTitleSuffix;
 
       zoom = 1;
-
-      history = new List<Image>(defaultHistoryCapacity);
-      historyIndex = -1;
     }
 
     /// <summary>
@@ -400,7 +400,8 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Sets new image to PictueBox, clamps zoom and makes PictureBox to refresh (optionally, saves new iumage to history)
+    /// Sets new image to PictueBox, clamps zoom and makes PictureBox to refresh
+    /// (optionally, saves the new image to history as well)
     /// </summary>
     /// <param name="newImage">New image to set for PictureBox.</param>
     /// <param name="saveToHistory">TRUE to make this new image to save to history.</param>
@@ -463,7 +464,15 @@ namespace Rendering
 
     private void setImage (Image newImage)
     {
+      // Dispose the old image if it is not backed in the history.
+      foreach (var im in history)
+        if (im == image)
+        {
+          image = null;
+          break;
+        }
       image?.Dispose();
+
       if (newImage != null)
       {
         Bitmap bmp = new Bitmap(newImage);
