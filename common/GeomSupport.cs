@@ -628,7 +628,8 @@ namespace MathSupport
 
     /// <summary>
     /// Ray-triangle intersection test in 3D.
-    /// According to Tomas Moller, <a href="http://www.acm.org/jgt/">JGT</a>.
+    /// According to Tomas Moller and Ben Trumbore:
+    /// http://webserver2.tecgraf.puc-rio.br/~mgattass/cg/trbRR/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
     /// (origin + t * direction = (1 - u - v) * a + u * b + v * c)
     /// </summary>
     /// <param name="p0">Ray origin.</param>
@@ -676,7 +677,8 @@ namespace MathSupport
 
     /// <summary>
     /// Ray-triangle intersection test in 3D.
-    /// According to Tomas Moller, <a href="http://www.acm.org/jgt/">JGT</a>.
+    /// According to Tomas Moller and Ben Trumbore:
+    /// http://webserver2.tecgraf.puc-rio.br/~mgattass/cg/trbRR/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
     /// (origin + t * direction = (1 - u - v) * a + u * b + v * c)
     /// </summary>
     /// <param name="p0">Ray origin.</param>
