@@ -1073,7 +1073,7 @@ namespace Rendering
     /// </summary>
     /// <param name="inter">Data object to modify.</param>
     /// <returns>Hash value (texture signature) for adaptive subsampling.</returns>
-    public long Apply (Intersection inter)
+    public virtual long Apply (Intersection inter)
     {
       double u = inter.TextureCoord.X * Fu;
       double v = inter.TextureCoord.Y * Fv;

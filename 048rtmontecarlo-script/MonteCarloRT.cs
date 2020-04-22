@@ -50,16 +50,17 @@ namespace Rendering
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    public static IRayScene getScene ()
+    public static IRayScene getScene (out IImageFunction imf, string param)
     {
-      IRayScene scene = Form1.singleton.SceneByComboBox();     
+      IRayScene scene = Form1.singleton.SceneByComboBox(out imf);
       return scene;
     }
 
     /// <summary>
     /// Initialize ray-scene and image function (good enough for simple samples).
+    /// Called only in case the scene-script didn't define it.
     /// </summary>
-    public static IImageFunction getImageFunction ( IRayScene scene, string param )
+    public static IImageFunction getImageFunction (IRayScene scene, string param)
     {
       return new RayTracing(scene);
     }

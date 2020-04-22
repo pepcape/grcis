@@ -15,7 +15,7 @@ namespace _062animation
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = Util.SetVersion( "$Rev$" );
+    static readonly string rev = Util.SetVersion("$Rev$");
 
     public static Form1 singleton = null;
 
@@ -50,7 +50,7 @@ namespace _062animation
     /// </summary>
     public int ImageHeight = 480;
 
-    private void EnableRendering ( bool enable )
+    private void EnableRendering (bool enable)
     {
       buttonRender.Enabled =
       buttonRenderAnim.Enabled =
@@ -63,27 +63,38 @@ namespace _062animation
     /// Create a scene from the defined CS-script file-name.
     /// Returns null if failed.
     /// </summary>
-    public IRayScene SceneFromScript ()
+    public IRayScene SceneFromScript (out IImageFunction imf)
     {
-      if ( string.IsNullOrEmpty( sceneFileName ) )
+      if (string.IsNullOrEmpty(sceneFileName))
+      {
+        imf = null;
         return null;
+      }
 
       Dictionary<string, object> outParam = new Dictionary<string, object>();
-      outParam[ "Start" ] = 0.0;
-      outParam[ "End" ] = 20.0;
-      IRayScene scene = Scripts.SceneFromObject( new AnimatedRayScene(), Path.GetFileName( sceneFileName ), sceneFileName, textParam.Text,
-                                                 ( sc ) => AnimatedScene.Init( sc, textParam.Text ), str => SetText( str ), outParam );
+      outParam["Start"] =  0.0;
+      outParam["End"]   = 20.0;
+      IRayScene scene = Scripts.SceneFromObject(
+        new AnimatedRayScene(),
+        out imf,
+        Path.GetFileName(sceneFileName),
+        sceneFileName,
+        textParam.Text,
+        (sc) => AnimatedScene.Init(sc, textParam.Text),
+        str => SetText(str),
+        outParam);
+
       object to;
       double td;
-      if ( outParam.TryGetValue( "Start", out to ) &&
-           to is Double )
+      if (outParam.TryGetValue("Start", out to) &&
+          to is double)
       {
         td = (double)to;
         numFrom.Value = (decimal)td;
       }
 
-      if ( outParam.TryGetValue( "End", out to ) &&
-           to is Double )
+      if (outParam.TryGetValue("End", out to) &&
+          to is double)
       {
         td = (double)to;
         numTo.Value = (decimal)td;
@@ -99,23 +110,26 @@ namespace _062animation
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      EnableRendering( false );
+      EnableRendering(false);
 
       width = ImageWidth;
-      if ( width <= 0 ) width = panel1.Width;
+      if (width <= 0)
+        width = panel1.Width;
       height = ImageHeight;
-      if ( height <= 0 ) height = panel1.Height;
+      if (height <= 0)
+        height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
-      outputImage = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+      outputImage = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
-      IRayScene scene = FormSupport.getScene( textParam.Text );      // scene prototype
+      IRayScene scene = FormSupport.getScene(out IImageFunction imf, textParam.Text);
 
-      IImageFunction imf = FormSupport.getImageFunction( scene );
-      imf.Width  = width;
+      if (imf == null)
+        imf = FormSupport.getImageFunction(scene);
+      imf.Width = width;
       imf.Height = height;
 
-      IRenderer rend = FormSupport.getRenderer( imf );
-      rend.Width  = width;
+      IRenderer rend = FormSupport.getRenderer(imf);
+      rend.Width = width;
       rend.Height = height;
       rend.Adaptive = 0;
       rend.ProgressData = progress;
@@ -123,33 +137,33 @@ namespace _062animation
 
       // animation:
       ITimeDependent sc = scene as ITimeDependent;
-      if ( sc != null )
+      if (sc != null)
         sc.Time = (double)numTime.Value;
 
       MT.InitThreadData();
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle( outputImage, 0, 0, width, height );
+      rend.RenderRectangle(outputImage, 0, 0, width, height);
 
       sw.Stop();
-      labelElapsed.Text = string.Format( "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds );
+      labelElapsed.Text = string.Format("Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds);
 
       pictureBox1.Image = outputImage;
 
-      EnableRendering( true );
+      EnableRendering(true);
 
       Cursor.Current = Cursors.Default;
     }
 
-    delegate void SetImageCallback ( Bitmap newImage );
+    delegate void SetImageCallback (Bitmap newImage);
 
-    protected void SetImage ( Bitmap newImage )
+    protected void SetImage (Bitmap newImage)
     {
-      if ( pictureBox1.InvokeRequired )
+      if (pictureBox1.InvokeRequired)
       {
-        SetImageCallback si = new SetImageCallback( SetImage );
-        BeginInvoke( si, new object[] { newImage } );
+        SetImageCallback si = new SetImageCallback(SetImage);
+        BeginInvoke(si, new object[] {newImage});
       }
       else
       {
@@ -158,14 +172,14 @@ namespace _062animation
       }
     }
 
-    delegate void SetTextCallback ( string text );
+    delegate void SetTextCallback (string text);
 
-    protected void SetText ( string text )
+    protected void SetText (string text)
     {
-      if ( labelElapsed.InvokeRequired )
+      if (labelElapsed.InvokeRequired)
       {
-        SetTextCallback st = new SetTextCallback( SetText );
-        BeginInvoke( st, new object[] { text } );
+        SetTextCallback st = new SetTextCallback(SetText);
+        BeginInvoke(st, new object[] {text});
       }
       else
         labelElapsed.Text = text;
@@ -175,17 +189,18 @@ namespace _062animation
 
     protected void StopAnimation ()
     {
-      if ( aThread == null ) return;
+      if (aThread == null)
+        return;
 
-      if ( buttonRenderAnim.InvokeRequired )
+      if (buttonRenderAnim.InvokeRequired)
       {
-        StopAnimationCallback ea = new StopAnimationCallback( StopAnimation );
-        BeginInvoke( ea );
+        StopAnimationCallback ea = new StopAnimationCallback(StopAnimation);
+        BeginInvoke(ea);
       }
       else
       {
         // actually stop the animation:
-        lock ( progress )
+        lock (progress)
         {
           progress.Continue = false;
         }
@@ -193,50 +208,50 @@ namespace _062animation
         aThread = null;
 
         // GUI stuff:
-        EnableRendering( true );
+        EnableRendering(true);
       }
     }
 
-    public Form1 ( string[] args )
+    public Form1 (string[] args)
     {
       singleton = this;
       InitializeComponent();
 
       // Init rendering params:
       string name;
-      FormSupport.InitializeParams( args, out name );
-      if ( !string.IsNullOrEmpty( sceneFileName ) )
+      FormSupport.InitializeParams(args, out name);
+      if (!string.IsNullOrEmpty(sceneFileName))
       {
-        sceneFileName = Path.GetFullPath( sceneFileName );
+        sceneFileName = Path.GetFullPath(sceneFileName);
         buttonScene.Text = sceneFileName;
       }
       Text += " (rev: " + rev + ") '" + name + '\'';
 
-      buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+      buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
     }
 
-    private void buttonRes_Click ( object sender, EventArgs e )
+    private void buttonRes_Click (object sender, EventArgs e)
     {
-      FormResolution form = new FormResolution( ImageWidth, ImageHeight );
-      if ( form.ShowDialog() == DialogResult.OK )
+      FormResolution form = new FormResolution(ImageWidth, ImageHeight);
+      if (form.ShowDialog() == DialogResult.OK)
       {
-        ImageWidth  = form.ImageWidth;
+        ImageWidth = form.ImageWidth;
         ImageHeight = form.ImageHeight;
-        buttonRes.Text = FormResolution.GetLabel( ref ImageWidth, ref ImageHeight );
+        buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
       }
     }
 
-    private void buttonRender_Click ( object sender, EventArgs e )
+    private void buttonRender_Click (object sender, EventArgs e)
     {
       RenderImage();
     }
 
-    private void buttonStop_Click ( object sender, EventArgs e )
+    private void buttonStop_Click (object sender, EventArgs e)
     {
       StopAnimation();
     }
 
-    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    private void Form1_FormClosing (object sender, FormClosingEventArgs e)
     {
       StopAnimation();
     }
@@ -307,11 +322,11 @@ namespace _062animation
 
     protected void initQueue ()
     {
-      if ( queue == null )
+      if (queue == null)
         queue = new Queue<Result>();
       else
       {
-        while ( queue.Count > 0 )
+        while (queue.Count > 0)
         {
           Result r = queue.Dequeue();
           r.image.Dispose();
@@ -322,13 +337,13 @@ namespace _062animation
     /// <summary>
     /// Animation rendering prolog: prepare all the global (uniform) values, start the main thread.
     /// </summary>
-    private void buttonRenderAnim_Click ( object sender, EventArgs e )
+    private void buttonRenderAnim_Click (object sender, EventArgs e)
     {
-      if ( aThread != null )
+      if (aThread != null)
         return;
 
-      EnableRendering( false );
-      lock ( progress )
+      EnableRendering(false);
+      lock (progress)
       {
         progress.Continue = true;
       }
@@ -336,7 +351,7 @@ namespace _062animation
       // Global animation properties (it's safe to access GUI components here):
       time = (double)numFrom.Value;
       end = (double)numTo.Value;
-      if ( end <= time )
+      if (end <= time)
         end = time + 1.0;
       double fps = (double)numFps.Value;
       dt = (fps > 0.0) ? 1.0 / fps : 25.0;
@@ -344,13 +359,15 @@ namespace _062animation
       frameNumber = 0;
 
       width = ImageWidth;
-      if ( width <= 0 ) width = panel1.Width;
+      if (width <= 0)
+        width = panel1.Width;
       height = ImageHeight;
-      if ( height <= 0 ) height = panel1.Height;
+      if (height <= 0)
+        height = panel1.Height;
       superSampling = (int)numericSupersampling.Value;
 
       // Start main rendering thread:
-      aThread = new Thread( new ThreadStart( RenderAnimation ) );
+      aThread = new Thread(new ThreadStart(RenderAnimation));
       aThread.Start();
     }
 
@@ -377,12 +394,12 @@ namespace _062animation
       public int width;
       public int height;
 
-      public WorkerThreadInit ( IRenderer r, ITimeDependent sc, ITimeDependent imf, int wid, int hei )
+      public WorkerThreadInit (IRenderer r, ITimeDependent sc, ITimeDependent imf, int wid, int hei)
       {
-        scene  = sc;
+        scene = sc;
         imfunc = imf;
-        rend   = r;
-        width  = wid;
+        rend = r;
+        width = wid;
         height = hei;
       }
     }
@@ -400,31 +417,32 @@ namespace _062animation
 
       WorkerThreadInit[] wti = new WorkerThreadInit[ threads ];
 
-      for ( t = 0; t < threads; t++ )
+      for (t = 0; t < threads; t++)
       {
-        IRayScene sc = FormSupport.getScene( textParam.Text );
-        IImageFunction imf = FormSupport.getImageFunction( sc );
-        imf.Width  = width;
+        IRayScene sc = FormSupport.getScene(out IImageFunction imf, textParam.Text);
+        if (imf == null)
+          imf = FormSupport.getImageFunction(sc);
+        imf.Width = width;
         imf.Height = height;
 
-        IRenderer r = FormSupport.getRenderer( imf );
-        r.Width        = width;
-        r.Height       = height;
-        r.Adaptive     = 0;           // turn off adaptive bitmap synthesis completely (interactive preview not needed)
+        IRenderer r = FormSupport.getRenderer(imf);
+        r.Width = width;
+        r.Height = height;
+        r.Adaptive = 0;           // turn off adaptive bitmap synthesis completely (interactive preview not needed)
         r.ProgressData = progress;
 
-        wti[ t ] = new WorkerThreadInit( r, sc as ITimeDependent, imf as ITimeDependent, width, height );
+        wti[t] = new WorkerThreadInit(r, sc as ITimeDependent, imf as ITimeDependent, width, height);
       }
 
       initQueue();
-      sem = new Semaphore( 0, 10 * threads );
+      sem = new Semaphore(0, 10 * threads);
 
       // pool of working threads:
-      Thread[] pool = new Thread[ threads ];
-      for ( t = 0; t < threads; t++ )
-        pool[ t ] = new Thread( new ParameterizedThreadStart( RenderWorker ) );
-      for ( t = threads; --t >= 0; )
-        pool[ t ].Start( wti[ t ] );
+      Thread[] pool = new Thread[threads];
+      for (t = 0; t < threads; t++)
+        pool[t] = new Thread(new ParameterizedThreadStart(RenderWorker));
+      for (t = threads; --t >= 0;)
+        pool[t].Start(wti[t]);
 
       // loop for collection of computed frames:
       int frames = 0;
@@ -434,23 +452,23 @@ namespace _062animation
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      while ( true )
+      while (true)
       {
-        sem.WaitOne();                      // wait until a frame is finished
+        sem.WaitOne();                    // wait until a frame is finished
 
-        lock ( progress )                   // regular finish, escape, user break?
+        lock (progress)                   // regular finish, escape, user break?
         {
-          if ( !progress.Continue ||
-               time >= end &&
-               frames >= frameNumber )
+          if (!progress.Continue ||
+              time >= end &&
+              frames >= frameNumber)
             break;
         }
 
         // there could be a frame to process:
         Result r;
-        lock ( queue )
+        lock (queue)
         {
-          if ( queue.Count == 0 )
+          if (queue.Count == 0)
             continue;
           r = queue.Dequeue();
         }
@@ -458,26 +476,26 @@ namespace _062animation
         // GUI progress indication:
         double seconds = 1.0e-3 * sw.ElapsedMilliseconds;
         double fps = ++frames / seconds;
-        SetText( string.Format( CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f0} s, {3:f2} fps)",
-                                threads, frames, seconds, fps ) );
-        if ( r.frameNumber > lastDisplayedFrame &&
-             sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP )
+        SetText(string.Format(CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f0} s, {3:f2} fps)",
+                              threads, frames, seconds, fps));
+        if (r.frameNumber > lastDisplayedFrame &&
+            sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP)
         {
           lastDisplayedFrame = r.frameNumber;
           lastDisplayedTime = sw.ElapsedMilliseconds;
-          SetImage( (Bitmap)r.image.Clone() );
+          SetImage((Bitmap)r.image.Clone());
         }
 
         // save the image file:
-        string fileName = string.Format( "out{0:0000}.png", r.frameNumber );
-        r.image.Save( fileName, System.Drawing.Imaging.ImageFormat.Png );
+        string fileName = string.Format("out{0:0000}.png", r.frameNumber);
+        r.image.Save(fileName, System.Drawing.Imaging.ImageFormat.Png);
         r.image.Dispose();
       }
 
-      for ( t = 0; t < threads; t++ )
+      for (t = 0; t < threads; t++)
       {
-        pool[ t ].Join();
-        pool[ t ] = null;
+        pool[t].Join();
+        pool[t] = null;
       }
 
       Cursor.Current = Cursors.Default;
@@ -488,26 +506,26 @@ namespace _062animation
     /// <summary>
     /// Worker thread (picks up individual frames and renders them one by one).
     /// </summary>
-    protected void RenderWorker ( object spec )
+    protected void RenderWorker (object spec)
     {
-      // thread-specific data:
+      // Thread-specific data.
       WorkerThreadInit init = spec as WorkerThreadInit;
-      if ( init == null )
+      if (init == null)
         return;
 
       MT.InitThreadData();
 
       // worker loop:
-      while ( true )
+      while (true)
       {
         double myTime;
         double myEndTime;
         int myFrameNumber;
 
-        lock ( progress )
+        lock (progress)
         {
-          if ( !progress.Continue ||
-               time > end )
+          if (!progress.Continue ||
+              time > end)
           {
             sem.Release();                  // chance for the main animation thread to give up as well..
             return;
@@ -521,52 +539,53 @@ namespace _062animation
 
         // set up the new result record:
         Result r = new Result();
-        r.image = new Bitmap( init.width, init.height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
+        r.image = new Bitmap(init.width, init.height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
         r.frameNumber = myFrameNumber;
 
         // set specific time to my scene:
-        if ( init.scene != null )
+        if (init.scene != null)
           init.scene.Time = myTime;
 
         ITimeDependent anim = init.rend as ITimeDependent;
-        if ( anim != null )
+        if (anim != null)
         {
           anim.Start = myTime;
-          anim.End   = myEndTime;
+          anim.End = myEndTime;
         }
 
-        if ( init.imfunc != null )
+        if (init.imfunc != null)
         {
           init.imfunc.Start = myTime;
-          init.imfunc.End   = myEndTime;
+          init.imfunc.End = myEndTime;
         }
 
         // render the whole frame:
-        init.rend.RenderRectangle( r.image, 0, 0, init.width, init.height );
+        init.rend.RenderRectangle(r.image, 0, 0, init.width, init.height);
 
         // ... and put the result into the output queue:
-        lock ( queue )
+        lock (queue)
         {
-          queue.Enqueue( r );
+          queue.Enqueue(r);
         }
         sem.Release();                      // notify the main animation thread
       }
     }
 
-    private void buttonScene_Click ( object sender, EventArgs e )
+    private void buttonScene_Click (object sender, EventArgs e)
     {
-      if ( aThread != null )
+      if (aThread != null)
         return;
 
-      OpenFileDialog ofd = new OpenFileDialog();
+      OpenFileDialog ofd = new OpenFileDialog()
+      {
+        Title = "Open Scene Script",
+        Filter = "CS-script files|*.cs" +
+                   "|All files|*.*",
+        FilterIndex = 1,
+        FileName = ""
+      };
 
-      ofd.Title = "Open Scene Script";
-      ofd.Filter = "CS-script files|*.cs" +
-                   "|All files|*.*";
-
-      ofd.FilterIndex = 1;
-      ofd.FileName = "";
-      if ( ofd.ShowDialog() != DialogResult.OK )
+      if (ofd.ShowDialog() != DialogResult.OK)
       {
         buttonScene.Text = "Default scene";
         sceneFileName = "";

@@ -36,22 +36,23 @@ namespace _062animation
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    public static IRayScene getScene ( string param )
+    public static IRayScene getScene (out IImageFunction imf, string param)
     {
-      IRayScene sc = Form1.singleton.SceneFromScript();
-      if ( sc != null )
+      IRayScene sc = Form1.singleton.SceneFromScript(out imf);
+      if (sc != null)
         return sc;
 
       sc = new AnimatedRayScene();
-      return AnimatedScene.Init( sc, param );
+      return AnimatedScene.Init(sc, param);
     }
 
     /// <summary>
     /// Initialize ray-scene and image function (good enough for simple samples).
+    /// Called only if IImageFunction was not defined in the animation script.
     /// </summary>
-    public static IImageFunction getImageFunction ( IRayScene scene )
+    public static IImageFunction getImageFunction (IRayScene scene)
     {
-      return new RayTracing( scene );
+      return new RayTracing(scene);
     }
 
     /// <summary>

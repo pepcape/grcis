@@ -1,17 +1,11 @@
-public class ObStripesTexture : ITexture
+public class ObStripesTexture : CheckerTexture
 {
-  public double[] Color2;
-  public double Fu;
-  public double Fv;
-
   public ObStripesTexture(double fu, double fv, double[] color)
+    : base(fu, fv, color)
   {
-    Fu = fu;
-    Fv = fv;
-    Color2 = (double[])color.Clone();
   }
 
-  public long Apply(Intersection inter)
+  public override long Apply(Intersection inter)
   {
     double u = inter.TextureCoord.X * Fu;
     double v = inter.TextureCoord.Y * Fv;
@@ -29,22 +23,28 @@ public class ObStripesTexture : ITexture
   }
 }
 
-// CSG scene:
+// Optional IImageFunction.
+if (outParam != null)
+{
+  outParam["Algorithm"] = new RayTracing(scene);
+}
+
+// CSG scene.
 var white = new double[] {1, 1, 1};
 var root = new CSGInnerNode(SetOperation.Union);
 root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
 root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(white, 0.2, 0.8, 0.0, 1));
 scene.Intersectable = root;
 
-// Background color:
+// Background color.
 scene.BackgroundColor = new double[] {0.05, 0.05, 0.05};
 
-// Camera:
+// Camera.
 scene.Camera = new StaticCamera(new Vector3d(0.0, 0.0, -10.0),
                                 new Vector3d(0.0, -0.04, 1.0),
                                 60.0);
 
-// Light sources:
+// Light sources.
 scene.Sources = new System.Collections.Generic.LinkedList<ILightSource>();
 scene.Sources.Add(new AmbientLightSource(1.8));
 scene.Sources.Add(new PointLightSource(new Vector3d(-5.0, 3.0, -3.0), 2.0));
