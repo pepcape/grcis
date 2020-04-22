@@ -580,7 +580,7 @@ namespace _062animation
       {
         Title = "Open Scene Script",
         Filter = "CS-script files|*.cs" +
-                   "|All files|*.*",
+                 "|All files|*.*",
         FilterIndex = 1,
         FileName = ""
       };
@@ -593,7 +593,7 @@ namespace _062animation
       }
 
       sceneFileName = ofd.FileName;
-      buttonScene.Text = sceneFileName;   // Path.GetFileName( sceneFileName );
+      buttonScene.Text = sceneFileName;   // Path.GetFileName(sceneFileName);
     }
   }
 }
