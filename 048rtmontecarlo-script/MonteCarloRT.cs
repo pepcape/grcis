@@ -70,7 +70,7 @@ namespace Rendering
     /// </summary>
     public static IRenderer getRenderer (IImageFunction imf, int superSampling, double jittering, string param)
     {
-      Dictionary<string, string> p = Util.ParseKeyValueList ( param );
+      Dictionary<string, string> p = Util.ParseKeyValueList(param);
 
       string isType;
       IRenderer r = null;
@@ -147,7 +147,7 @@ namespace Rendering
       int    i, j;
       double step      = 1.0 / superXY;
       double amplitude = Jittering * step;
-      double origin    = 0.5 * ( step - amplitude );
+      double origin    = 0.5 * (step - amplitude);
       double x0, y0;
       MT.StartPixel(x, y, Supersampling);
 

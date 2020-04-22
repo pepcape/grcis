@@ -553,7 +553,7 @@ namespace MathSupport
         float f = (float)(1.0 / Math.Tan(viewAngleVertical / 2.0));
         float aspect = width / (float)height;
 
-        //perspectiveProjection = new Matrix4 ( focalLength, 0, 0, 0, 0, focalLength / ratio, 0, 0, 0, 0, -1, -2 * near, 0, 0, -1, 0 );
+        //perspectiveProjection = new Matrix4(focalLength, 0, 0, 0, 0, focalLength / ratio, 0, 0, 0, 0, -1, -2 * near, 0, 0, -1, 0);
         perspectiveProjection = new Matrix4(f / aspect, 0.0f,  0.0f,        0.0f,
                                                   0.0f,   f,   0.0f,        0.0f,
                                                   0.0f, 0.0f, -1.0f,       -1.0f,

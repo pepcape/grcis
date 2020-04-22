@@ -277,7 +277,7 @@ namespace Scene3D
       if (hasNormals)
         for (i = 0; i < scene.Vertices; i++)
         {
-          Vector3 n = scene.GetNormal ( i );
+          Vector3 n = scene.GetNormal(i);
           writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0} {1} {2} {3}",
                                          new object[] { VERTEX_NORMAL, n.X, n.Y, n.Z }));
         }

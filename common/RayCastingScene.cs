@@ -224,7 +224,7 @@ namespace Rendering
       if (Parent != null)
         result = Parent.GetTextures();
 
-      object local = GetLocalAttribute ( PropertyName.TEXTURE );
+      object local = GetLocalAttribute(PropertyName.TEXTURE);
       if (local == null)
         return result;
 
@@ -256,8 +256,8 @@ namespace Rendering
         return null;
 
       ISceneNode child  = children.First.Value;
-      Vector3d   origin = Vector3d.TransformPosition( p0, child.FromParent );
-      Vector3d   dir    = Vector3d.TransformVector( p1, child.FromParent );
+      Vector3d   origin = Vector3d.TransformPosition(p0, child.FromParent);
+      Vector3d   dir    = Vector3d.TransformVector(p1, child.FromParent);
       // ray in local child's coords: [ origin, dir ]
 
       return child.Intersect(origin, dir);
@@ -313,12 +313,6 @@ namespace Rendering
   [Serializable]
   public class CSGInnerNode : DefaultSceneNode
   {
-    /// <summary>
-    /// Delegate function for boolean operations
-    /// </summary>
-    //[Serializable]
-    //public delegate bool BooleanOperation ( bool x, bool y );
-
     /// <summary>
     /// Current boolean operation.
     /// </summary>

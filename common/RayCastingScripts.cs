@@ -73,7 +73,7 @@ namespace Rendering
           }
 
           // Here new commands will be handled..
-          // else if ( opt == 'xxx' ..
+          // else if (opt == 'xxx' ..
         }
 
         if (!string.IsNullOrEmpty(dir))

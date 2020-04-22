@@ -441,7 +441,7 @@ namespace Rendering
         Material = (IMaterial)Solid.GetAttribute(PropertyName.MATERIAL);
         if (Material == null)
           Material = ReflectanceModel.DefaultMaterial();
-        double[] col = (double[]) Solid.GetAttribute ( PropertyName.COLOR );
+        double[] col = (double[]) Solid.GetAttribute(PropertyName.COLOR);
         SurfaceColor = (double[])((col != null) ? col.Clone() : Material.Color.Clone());
         Textures = Solid.GetTextures();
 
