@@ -176,6 +176,9 @@
     <Compile Include="..\common\WavefrontObj.cs">
       <Link>WavefrontObj.cs</Link>
     </Compile>
+    <Compile Include="..\common\WorkloadDistributionDummy.cs">
+      <Link>WorkloadDistributionDummy.cs</Link>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
