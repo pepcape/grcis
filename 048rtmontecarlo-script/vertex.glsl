@@ -42,30 +42,30 @@ void main ()
   varNormal = normal;
   varWorld  = position.xyz;
 
-  if ( !shadingPhong && !shadingGouraud )
+  if (!shadingPhong && !shadingGouraud)
     varColor = flatColor = color;
-  else if ( shadingPhong )  // vertex-based shading:
+  else if (shadingPhong)  // vertex-based shading:
     varColor = flatColor = color;
   else
   {
     // Phong model at the vertex:
     vec3 P = position.xyz;
-    vec3 N = normalize( normal );
-    vec3 L = normalize( lightPosition - P );
-    vec3 V = normalize( eyePosition - P );
-    vec3 H = normalize( L + V );
+    vec3 N = normalize(normal);
+    vec3 L = normalize(lightPosition - P);
+    vec3 V = normalize(eyePosition - P);
+    vec3 H = normalize(L + V);
 
     float cosb = 0.0;
-    float cosa = dot( N, L );
+    float cosa = dot(N, L);
 
-    if ( cosa > 0.0 )
-      cosb = pow( max( dot( N, H ), 0.0 ), shininess );
+    if (cosa > 0.0)
+      cosb = pow(max(dot(N, H), 0.0), shininess);
     else
       cosa = 0.0;
 
     vec3 ka, kd;
 
-    if ( globalColor )
+    if (globalColor)
     {
       ka = Ka;
       kd = Kd;
@@ -73,15 +73,15 @@ void main ()
     else
       ka = kd = color;
 
-    vec3 col = vec3( 0.0 );
+    vec3 col = vec3(0.0);
 
-    if ( useAmbient )
+    if (useAmbient)
       col += ka * globalAmbient;
 
-    if ( useDiffuse )
+    if (useDiffuse)
       col += kd * lightColor * cosa;
-      
-    if ( useSpecular )
+
+    if (useSpecular)
       col += Ks * lightColor * cosb;
 
     varColor = flatColor = col;

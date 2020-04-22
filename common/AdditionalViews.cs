@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows.Forms;
 using MathSupport;
 using OpenTK;
+using Utilities;
 
 namespace Rendering
 {
@@ -262,6 +263,8 @@ namespace Rendering
         return Vector3d.CalculateAngle ( mapArray [ x, y ], rayOrigin - intersectionMapArray [ x, y ] ) * 180 / Math.PI;
       }
 
+      private const double COLOR_MUL_HALF = 127.499;
+
       private Color GetAppropriateColorRelative ( Vector3d normalVector, Vector3d intersectionVector )
       {
         Vector3d relativeNormalVector = rayOrigin - intersectionVector - normalVector;
@@ -272,9 +275,9 @@ namespace Rendering
         if ( relativeNormalVector != Vector3d.Zero )
           relativeNormalVector.Normalize ();
 
-        int red   = (int) ( ( relativeNormalVector.X + 1 ) * 127.5 );
-        int green = (int) ( ( relativeNormalVector.Y + 1 ) * 127.5 );
-        int blue  = 255 - (int) ( ( relativeNormalVector.Z + 1 ) * 1275 );
+        int red   =       (int)((relativeNormalVector.X + 1) * COLOR_MUL_HALF);
+        int green =       (int)((relativeNormalVector.Y + 1) * COLOR_MUL_HALF);
+        int blue  = 255 - (int)((relativeNormalVector.Z + 1) * COLOR_MUL_HALF);
 
         return Color.FromArgb ( red, green, blue );
       }
@@ -286,9 +289,9 @@ namespace Rendering
 
         normalVector.Normalize ();
 
-        int red   = (int) ( ( normalVector.X + 1 ) * 127.5 );
-        int green = (int) ( ( normalVector.Y + 1 ) * 127.5 );
-        int blue  = 255 - (int) ( ( normalVector.Z + 1 ) * 127.5 );
+        int red   =       (int)((normalVector.X + 1) * COLOR_MUL_HALF);
+        int green =       (int)((normalVector.Y + 1) * COLOR_MUL_HALF);
+        int blue  = 255 - (int)((normalVector.Z + 1) * COLOR_MUL_HALF);
 
         return Color.FromArgb ( red, green, blue );
       }
@@ -584,12 +587,15 @@ namespace Rendering
     /// <param name="maxValue">End of range (black color)</param>
     /// <param name="newValue">Value for which we want color</param>
     /// <returns>Appropriate color</returns>
-    private static Color GetAppropriateColorBlackAndWhiteLogarithmic ( double minValue, double maxValue,
-                                                                       double newValue )
+    private static Color GetAppropriateColorBlackAndWhiteLogarithmic (
+      double minValue,
+      double maxValue,
+      double newValue)
     {
-      double colorValue = Math.Log ( ( newValue - minValue + 1 ), ( maxValue - minValue + 1 ) ) * 255;
+      double colorValue = Math.Log(newValue - minValue + 1, maxValue - minValue + 1) * 255;
+      int iColorValue = 255 - Util.Clamp((int)colorValue, 0, 255);
 
-      return Color.FromArgb ( 255 - (int) colorValue, 255 - (int) colorValue, 255 - (int) colorValue );
+      return Color.FromArgb (iColorValue, iColorValue, iColorValue);
     }
 
     /// <summary>

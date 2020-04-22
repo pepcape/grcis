@@ -28,12 +28,12 @@ namespace Rendering
       DataGridViewColumn column1 = new DataGridViewTextBoxColumn ();
       column1.Name             = "Client Name";
       column1.DataPropertyName = "Name";
-      clientsDataGrid.Columns.Add ( column1 );
+      clientsDataGrid.Columns.Add(column1);
 
       DataGridViewColumn column2 = new DataGridViewTextBoxColumn ();
       column2.Name             = "IP Address";
       column2.DataPropertyName = "AddressString";
-      clientsDataGrid.Columns.Add ( column2 );
+      clientsDataGrid.Columns.Add(column2);
 
       clientsDataGrid.Update ();
     }
@@ -41,9 +41,9 @@ namespace Rendering
     /// <summary>
     /// Hides form instead of Closing it (only in case of closing by user)
     /// </summary>
-    private void RenderClientsForm_FormClosing ( object sender, FormClosingEventArgs e )
+    private void RenderClientsForm_FormClosing (object sender, FormClosingEventArgs e)
     {
-      if ( e.CloseReason == CloseReason.UserClosing )
+      if (e.CloseReason == CloseReason.UserClosing)
       {
         e.Cancel = true;
         Hide ();

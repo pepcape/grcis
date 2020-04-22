@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using MathSupport;
+using Utilities;
 
 namespace Rendering
 {
@@ -267,9 +268,9 @@ namespace Rendering
           {
             if (!float.IsInfinity(colorBuffer[arrayPosition]) && x < bitmap.Width)  // positive infinity is indicator that color for this pixel is already present in bitmap and is final
             {
-              Color color = Color.FromArgb(Math.Min((int)colorBuffer[arrayPosition    ], 255),
-                                           Math.Min((int)colorBuffer[arrayPosition + 1], 255),
-                                           Math.Min((int)colorBuffer[arrayPosition + 2], 255));
+              Color color = Color.FromArgb(Util.Clamp((int)colorBuffer[arrayPosition    ], 0, 255),
+                                           Util.Clamp((int)colorBuffer[arrayPosition + 1], 0, 255),
+                                           Util.Clamp((int)colorBuffer[arrayPosition + 2], 0, 255));
               bitmap.SetPixel(x, y, color);
             }
 

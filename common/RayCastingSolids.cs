@@ -79,7 +79,7 @@ namespace Rendering
       Vector3d.Cross(ref tu, ref tv, out inter.Normal);
 
       // 2D texture coordinates:
-      double r = Math.Sqrt ( inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y );
+      double r = Math.Sqrt(inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y);
       inter.TextureCoord.X = Geometry.IsZero(r)
         ? 0.0
         : (Math.Atan2(inter.CoordLocal.Y, inter.CoordLocal.X) / (2.0 * Math.PI) + 0.5);
@@ -110,7 +110,7 @@ namespace Rendering
       Vector3d.Dot(ref p1, ref p1, out DD);
       double OO;
       Vector3d.Dot(ref p0, ref p0, out OO);
-      double d = OD * OD + DD * ( rr - OO ); // discriminant
+      double d = OD * OD + DD * (rr - OO); // discriminant
       if (d <= 0.0)
         return -1.0;           // no intersections
 
@@ -750,7 +750,7 @@ namespace Rendering
 
     public double smallRadius = 0.5;
 
-    protected CSGInnerNode wrapper = new CSGInnerNode ( SetOperation.Union );
+    protected CSGInnerNode wrapper = new CSGInnerNode(SetOperation.Union);
 
     public Torus (double big, double small)
     {

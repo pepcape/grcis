@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using OpenTK;
+using Utilities;
 
 namespace Rendering
 {
@@ -54,12 +55,12 @@ namespace Rendering
     /// </summary>
     private void InitializeCloudArray (int numberOfThreads, int initialListCapacity = 0)
     {
-      if ( initialListCapacity == 0 )
+      if (initialListCapacity == 0)
         initialListCapacity = 100000 * 9 / numberOfThreads;
 
       cloud = new List<float>[numberOfThreads];
 
-      for ( int i = 0; i < cloud.Length; i++ )
+      for (int i = 0; i < cloud.Length; i++)
       {
         cloud[i] = new List<float>(initialListCapacity);
       }
@@ -87,8 +88,8 @@ namespace Rendering
         (float)color[2]
       };
 
-      float[] coordArrray = new float[] {(float)fixedCoordinates.X, (float) fixedCoordinates.Y, (float) fixedCoordinates.Z};
-      float[] normalArray = new float[] {(float) fixedNormals.X, (float) fixedNormals.Y, (float) fixedNormals.Z};
+      float[] coordArrray = new float[] {(float)fixedCoordinates.X, (float)fixedCoordinates.Y, (float)fixedCoordinates.Z};
+      float[] normalArray = new float[] {(float)fixedNormals.X,     (float)fixedNormals.Y,     (float)fixedNormals.Z};
 
       cloud[index].AddRange(coordArrray);
       cloud[index].AddRange(fixedColors);
@@ -111,11 +112,14 @@ namespace Rendering
       if (fileName == null)
         fileName = "PointCloud.ply";
 
-      if (fileName.Length < 4 || fileName.Substring(fileName.Length - 4) != ".ply")
+      if (fileName.Length < 4 ||
+          fileName.Substring(fileName.Length - 4) != ".ply")
         fileName += ".ply";
 
-      Thread fileSaver = new Thread(() => ActualSave(fileName));
-      fileSaver.Name = "FileSaver";
+      Thread fileSaver = new Thread(() => ActualSave(fileName))
+      {
+        Name = "FileSaver"
+      };
 
       fileSaver.Start ();
     }
@@ -138,7 +142,9 @@ namespace Rendering
           {
             streamWriter.WriteLine("{0} {1} {2} {3} {4} {5} {6} {7} {8}",
                                    list[i], list[i + 1], list[i + 2],
-                                   (byte)(list[i + 3] * 255), (byte)(list[i + 4] * 255), (byte)(list[i + 5] * 255),
+                                   Util.Clamp((int)(list[i + 3] * 255), 0, 255),
+                                   Util.Clamp((int)(list[i + 4] * 255), 0, 255),
+                                   Util.Clamp((int)(list[i + 5] * 255), 0, 255),
                                    list[i + 6], list[i + 7], list[i + 8]);
           }
         }

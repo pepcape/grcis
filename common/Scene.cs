@@ -717,7 +717,7 @@ namespace Scene3D
 
       for (i = 0; i < Vertices; i++)
       {
-        Vector3 vi = GetVertex ( i );
+        Vector3 vi = GetVertex(i);
         cx += vi.X;
         cy += vi.Y;
         cz += vi.Z;
@@ -960,7 +960,7 @@ namespace Scene3D
       }
 
       int errCount = 0;
-      Action<string> log = ( s ) =>
+      Action<string> log = (s) =>
       {
         errCount++;
         errors.WriteLine(s);

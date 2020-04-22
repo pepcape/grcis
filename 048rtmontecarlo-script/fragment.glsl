@@ -33,62 +33,62 @@ out vec4 fragColor;
 
 void main ()
 {
-  if ( !shadingPhong && !shadingGouraud )
+  if (!shadingPhong && !shadingGouraud)
   {
-    if ( useTexture )
+    if (useTexture)
     {
-      fragColor = vec4( texture2D( texSurface, varTexCoords ) );
+      fragColor = vec4(texture2D(texSurface, varTexCoords));
 
-      if ( fragColor.w < 0.01 )
+      if (fragColor.w < 0.01)
         discard;
-    }      
+    }
     else
-      fragColor = vec4( varColor, 1.0 );
+      fragColor = vec4(varColor, 1.0);
   }
-  else if ( shadingPhong )
+  else if (shadingPhong)
   {
     // Phong shading (interpolation of normals):
     vec3 P = varWorld;
-    vec3 N = normalize( varNormal );
-    vec3 L = normalize( lightPosition - P );
-    vec3 V = normalize( eyePosition - P );
-    vec3 H = normalize( L + V );
+    vec3 N = normalize(varNormal);
+    vec3 L = normalize(lightPosition - P);
+    vec3 V = normalize(eyePosition - P);
+    vec3 H = normalize(L + V);
 
     float cosb = 0.0;
-    float cosa = dot( N, L );
+    float cosa = dot(N, L);
 
-    if ( cosa > 0.0 )
-      cosb = pow( max( dot( N, H ), 0.0 ), shininess );
+    if (cosa > 0.0)
+      cosb = pow(max(dot(N, H), 0.0), shininess);
     else
       cosa = 0.0;
 
     vec4 ka, kd;
 
-    if ( useTexture )
-      ka = kd = vec4( texture2D( texSurface, varTexCoords ) );
+    if (useTexture)
+      ka = kd = vec4(texture2D(texSurface, varTexCoords));
     else
-      if ( globalColor )
+      if (globalColor)
       {
-        ka = vec4( Ka, 1.0 );
-        kd = vec4( Kd, 1.0 );
+        ka = vec4(Ka, 1.0);
+        kd = vec4(Kd, 1.0);
       }
       else
-        ka = kd = vec4( varColor, 1.0 );
+        ka = kd = vec4(varColor, 1.0);
 
-    fragColor = vec4( 0.0, 0.0, 0.0, 1.0 );
+    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
 
-    if ( useAmbient )
-      fragColor += ka * vec4( globalAmbient, 1.0 );
+    if (useAmbient)
+      fragColor += ka * vec4(globalAmbient, 1.0);
 
-    if ( useDiffuse )
-      fragColor += kd * vec4( lightColor, 1.0 ) * cosa;
+    if (useDiffuse)
+      fragColor += kd * vec4(lightColor, 1.0) * cosa;
 
-    if ( useSpecular )
-      fragColor += vec4( Ks, 1.0 ) * vec4( lightColor, 1.0 ) * cosb;
+    if (useSpecular)
+      fragColor += vec4(Ks, 1.0) * vec4(lightColor, 1.0) * cosb;
   }
   else
-    if ( shadingGouraud )     // Gouraud shading (interpolation of colors):
-      fragColor = vec4( varColor, 1.0 );
+    if (shadingGouraud)     // Gouraud shading (interpolation of colors):
+      fragColor = vec4(varColor, 1.0);
     else                      // flat shading (constant color):
-      fragColor = vec4( flatColor, 1.0 );
+      fragColor = vec4(flatColor, 1.0);
 }
