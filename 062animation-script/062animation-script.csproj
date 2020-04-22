@@ -127,6 +127,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\AbstractRayRegisterer.cs">
+      <Link>AbstractRayRegisterer.cs</Link>
+    </Compile>
     <Compile Include="..\common\FormResolution.cs">
       <Link>FormResolution.cs</Link>
       <SubType>Form</SubType>

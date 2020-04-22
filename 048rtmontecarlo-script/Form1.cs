@@ -57,11 +57,6 @@ namespace Rendering
     public int ImageHeight = 0;
 
     /// <summary>
-    /// Global instance of a random generator.
-    /// </summary>
-    public static RandomJames rnd = new RandomJames();
-
-    /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
     /// </summary>
     public Stopwatch sw = new Stopwatch();
@@ -121,15 +116,16 @@ namespace Rendering
     /// Default behavior - create scene selected in the combo-box.
     /// Can handle InitSceneDelegate, InitSceneParamDelegate or CSscript file-name
     /// </summary>
-    public IRayScene SceneByComboBox ()
+    public IRayScene SceneByComboBox (out IImageFunction imf)
     {
       string sceneName = (string)ComboScene.Items[selectedScene];
 
       if (sceneRepository.TryGetValue(sceneName, out object definition))
-        return Scripts.SceneFromObject(new DefaultRayScene(), sceneName, definition, TextParam.Text,
+        return Scripts.SceneFromObject(new DefaultRayScene(), out imf, sceneName, definition, TextParam.Text,
                                        (sc) => Scenes.DefaultScene(sc), SetText);
 
-      // fallback to a default scene;
+      // Fallback to a default scene.
+      imf = null;
       return Scenes.DefaultScene();
     }
 
@@ -220,15 +216,16 @@ namespace Rendering
       }
     }
 
-    private IImageFunction getImageFunction (IRayScene sc, int width, int height)
+    private IImageFunction getImageFunction (IImageFunction imf, IRayScene sc, int width, int height)
     {
-      IImageFunction imf = FormSupport.getImageFunction( sc, TextParam.Text );
-      imf.Width = width;
+      if (imf == null)    // The script didn't define an image-function..
+        imf = FormSupport.getImageFunction(sc, TextParam.Text);
+      imf.Width  = width;
       imf.Height = height;
 
       if (imf is RayTracing rt)
       {
-        rt.DoShadows = checkShadows.Checked;
+        rt.DoShadows     = checkShadows.Checked;
         rt.DoReflections = checkReflections.Checked;
         rt.DoRefractions = checkRefractions.Checked;
         rt.rayRegisterer = new MainRayRegisterer(additionalViews, rayVisualizer);
@@ -274,9 +271,9 @@ namespace Rendering
       // separate renderer, image function and the scene for each thread (safety precaution)
       for (t = 0; t < threads; t++)
       {
-        IRayScene      sc  = FormSupport.getScene();
-        IImageFunction imf = getImageFunction(sc, width, height);
-        IRenderer      r   = getRenderer(imf, width, height);
+        IRayScene sc  = FormSupport.getScene(out IImageFunction imf, TextParam.Text);
+        imf = getImageFunction(imf, sc, width, height);
+        IRenderer r = getRenderer(imf, width, height);
         wti[t] = new WorkerThreadInit(r, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t, threads);
       }
 
@@ -350,9 +347,9 @@ namespace Rendering
 
       int threads = CheckMultithreading.Checked ? Environment.ProcessorCount : 1;
 
-      IRayScene      sc  = FormSupport.getScene();
-      IImageFunction imf = getImageFunction( sc, width, height );
-      IRenderer      r   = getRenderer( imf, width, height );
+      IRayScene sc = FormSupport.getScene(out IImageFunction imf, TextParam.Text);
+      imf = getImageFunction(imf, sc, width, height);
+      IRenderer r = getRenderer(imf, width, height);
 
       rayVisualizer.UpdateScene(sc);
 
@@ -459,7 +456,7 @@ namespace Rendering
     private delegate void StopRenderingCallback ();
 
     /// <summary>
-    /// Called to stop rendering and at the end of successful rendering 
+    /// Called to stop rendering and at the end of successful rendering
     /// </summary>
     protected void StopRendering ()
     {
@@ -523,12 +520,13 @@ namespace Rendering
 
       if (dirty || imfs == null)
       {
-        imfs = getImageFunction(FormSupport.getScene(), width, height);
+        IRayScene rs = FormSupport.getScene(out imfs, TextParam.Text);
+        imfs = getImageFunction(imfs, rs, width, height);
         dirty = false;
       }
 
       double[] color = new double[3];
-      long hash = imfs.GetSample( x + 0.5, y + 0.5, color );
+      long hash = imfs.GetSample(x + 0.5, y + 0.5, color);
       labelSample.Text = string.Format(CultureInfo.InvariantCulture,
                                        "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                        x, y, color[0], color[1], color[2], hash);
@@ -545,7 +543,7 @@ namespace Rendering
             opt[0] == '-' &&
             opt.Contains("="))
         {
-          string[] opts = opt.Split( '=' );
+          string[] opts = opt.Split('=');
           if (opts.Length > 1)
             switch (opts[0])
             {
@@ -581,7 +579,7 @@ namespace Rendering
 
     private void buttonRes_Click (object sender, EventArgs e)
     {
-      FormResolution form = new FormResolution( ImageWidth, ImageHeight );
+      FormResolution form = new FormResolution(ImageWidth, ImageHeight);
       if (form.ShowDialog() == DialogResult.OK)
       {
         ImageWidth = form.ImageWidth;
@@ -621,15 +619,15 @@ namespace Rendering
     private void buttonSave_Click (object sender, EventArgs e)
     {
       if (outputImage == null ||
-           aThread != null)
+          aThread != null)
         return;
 
       SaveFileDialog sfd = new SaveFileDialog
       {
-        Title = @"Save PNG file",
-        Filter = @"PNG Files|*.png",
+        Title        = @"Save PNG file",
+        Filter       = @"PNG Files|*.png",
         AddExtension = true,
-        FileName = "RenderResult"
+        FileName     = "RenderResult"
       };
       if (sfd.ShowDialog() != DialogResult.OK)
         return;
@@ -661,7 +659,7 @@ namespace Rendering
         return; // only one instance of Form1 can exist at the time
       }
 
-      AdditionalViewsForm additionalViewsForm = new AdditionalViewsForm( additionalViews, this );
+      AdditionalViewsForm additionalViewsForm = new AdditionalViewsForm(additionalViews, this);
       additionalViewsForm.mapSavedCallback = (filename) =>
       {
         Notification(@"File succesfully saved", $"Image file \"{filename}\" succesfully saved.", 30000);
@@ -679,7 +677,7 @@ namespace Rendering
 
       Cursor.Current = Cursors.WaitCursor;
 
-      RayVisualizerForm rayVisualizerForm = new RayVisualizerForm( rayVisualizer, () =>
+      RayVisualizerForm rayVisualizerForm = new RayVisualizerForm(rayVisualizer, () =>
       {
         RayVisualiserButton.Enabled = true;
       });
@@ -823,10 +821,10 @@ namespace Rendering
     {
       SaveFileDialog sfd = new SaveFileDialog
       {
-        Title = @"Save PLY file",
-        Filter = @"PLY Files|*.ply",
+        Title        = @"Save PLY file",
+        Filter       = @"PLY Files|*.ply",
         AddExtension = true,
-        FileName = "PointCloud"
+        FileName     = "PointCloud"
       };
       if (sfd.ShowDialog() != DialogResult.OK)
         return;
