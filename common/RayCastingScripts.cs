@@ -156,9 +156,9 @@ namespace Rendering
       public string param;
 
       /// <summary>
-      /// Parameter map defined by the script.
+      /// Parameter map for passing values in/out of the script.
       /// </summary>
-      public Dictionary<string, object> outParam;
+      public Dictionary<string, object> context;
     }
 
     protected static int count = 0;
@@ -179,7 +179,7 @@ namespace Rendering
       string par,
       InitSceneDelegate defaultScene,
       StringDelegate message = null,
-      Dictionary<string, object> outPar = null)
+      Dictionary<string, object> ctx = null)
     {
       InitSceneDelegate isd = definition as InitSceneDelegate;
       InitSceneParamDelegate ispd = definition as InitSceneParamDelegate;
@@ -224,14 +224,14 @@ namespace Rendering
           imports.Add("Utilities");
 
           bool ok = true;
-          if (outPar == null)
-            outPar = new Dictionary<string, object>();
+          if (ctx == null)
+            ctx = new Dictionary<string, object>();
           Globals globals = new Globals
           {
             sceneName = name,
             scene = sc,
             param = par,
-            outParam = outPar
+            context = ctx
           };
 
           try
@@ -248,9 +248,12 @@ namespace Rendering
           if (ok)
           {
             // Optional IImageFunction definition.
-            if (outPar.TryGetValue("Algorithm", out object imfo) &&
+            if (ctx.TryGetValue("Algorithm", out object imfo) &&
                 imfo is IImageFunction)
               imf = imfo as IImageFunction;
+
+            // 'scene' will be copied into 'context["Scene"]'.
+            ctx["Scene"] = globals.scene;
 
             // Done.
             message?.Invoke($"Script '{name}' finished ok, rendering..");

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 
 // Optional IImageFunction.
-if (outParam != null)
+if (context != null)
 {
-  outParam["Algorithm"] = new RayTracing(scene);
+  context["Algorithm"] = new RayTracing(scene);
 }
 
 // CSG scene.

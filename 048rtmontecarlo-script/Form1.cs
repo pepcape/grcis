@@ -121,8 +121,14 @@ namespace Rendering
       string sceneName = (string)ComboScene.Items[selectedScene];
 
       if (sceneRepository.TryGetValue(sceneName, out object definition))
-        return Scripts.SceneFromObject(new DefaultRayScene(), out imf, sceneName, definition, TextParam.Text,
-                                       (sc) => Scenes.DefaultScene(sc), SetText);
+        return Scripts.SceneFromObject(
+          new DefaultRayScene(),
+          out imf,
+          sceneName,
+          definition,
+          TextParam.Text,
+          (sc) => Scenes.DefaultScene(sc),
+          SetText);
 
       // Fallback to a default scene.
       imf = null;

@@ -24,9 +24,9 @@ public class ObStripesTexture : CheckerTexture
 }
 
 // Optional IImageFunction.
-if (outParam != null)
+if (context != null)
 {
-  outParam["Algorithm"] = new RayTracing(scene);
+  context["Algorithm"] = new RayTracing(scene);
 }
 
 // CSG scene.
