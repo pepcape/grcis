@@ -1,9 +1,9 @@
 // Animation time interval, IImageFunction.
-if (outParam != null)
+if (context != null)
 {
-  outParam["Start"] = 0.0;
-  outParam["End"]   = 20.0;
-  outParam["Algorithm"] = new RayTracing(scene);
+  context["Start"] = 0.0;
+  context["End"]   = 20.0;
+  context["Algorithm"] = new RayTracing(scene);
 }
 
 // CSG scene.

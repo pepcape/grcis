@@ -71,9 +71,11 @@ namespace _062animation
         return null;
       }
 
-      Dictionary<string, object> outParam = new Dictionary<string, object>();
-      outParam["Start"] =  0.0;
-      outParam["End"]   = 20.0;
+      Dictionary<string, object> context = new Dictionary<string, object>
+      {
+        ["Start"] =  0.0,
+        ["End"]   = 20.0
+      };
       IRayScene scene = Scripts.SceneFromObject(
         new AnimatedRayScene(),
         out imf,
@@ -81,24 +83,15 @@ namespace _062animation
         sceneFileName,
         textParam.Text,
         (sc) => AnimatedScene.Init(sc, textParam.Text),
-        str => SetText(str),
-        outParam);
+        SetText,
+        context);
 
-      object to;
-      double td;
-      if (outParam.TryGetValue("Start", out to) &&
-          to is double)
-      {
-        td = (double)to;
+      double td = 0.0;
+      if (Util.TryParse(context, "Start", ref td))
         numFrom.Value = (decimal)td;
-      }
 
-      if (outParam.TryGetValue("End", out to) &&
-          to is double)
-      {
-        td = (double)to;
+      if (Util.TryParse(context, "End", ref td))
         numTo.Value = (decimal)td;
-      }
 
       return scene;
     }
