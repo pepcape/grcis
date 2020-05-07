@@ -1,14 +1,18 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Scripting;
+using Utilities;
 
 namespace Rendering
 {
+  using ScriptContext = Dictionary<string, object>;
+
   /// <summary>
   /// Delegate used for GUI messaging.
   /// </summary>
@@ -25,7 +29,7 @@ namespace Rendering
     /// <param name="args">Command-line arguments.</param>
     /// <param name="repo">Existing scene repository to be modified (sceneName -&gt; sceneDelegate | scriptFileName).</param>
     /// <returns>How many scenes were found.</returns>
-    public static int ReadFromConfig (string[] args, Dictionary<string, object> repo)
+    public static int ReadFromConfig (string[] args, ScriptContext repo)
     {
       // <sceneFile.cs>
       // -scene <sceneFile>
@@ -158,34 +162,126 @@ namespace Rendering
       /// <summary>
       /// Parameter map for passing values in/out of the script.
       /// </summary>
-      public Dictionary<string, object> context;
+      public ScriptContext context;
     }
 
     protected static int count = 0;
 
     /// <summary>
+    /// Initializes the RT-script context before each individual call of 'SceneFromObject'.
+    /// </summary>
+    /// <param name="ctx">Pre-allocated context map.</param>
+    /// <param name="sc">optional default scene object.</param>
+    /// <param name="superSampling">Optional super-sampling coefficient.</param>
+    /// <param name="minTime">Optional animation start time.</param>
+    /// <param name="maxTime">optional animation finish time.</param>
+    public static void ContextInit (
+      in ScriptContext ctx,
+      in DefaultRayScene sc = null,
+      in int superSampling = 0,
+      in double minTime = 0.0,
+      in double maxTime = 10.0)
+    {
+      Debug.Assert(ctx != null);
+
+      // Scene.
+      ctx["Scene"] = sc ?? new DefaultRayScene();
+
+      ctx.Remove("Algorithm");
+      ctx.Remove("Synth");
+
+      // SuperSampling.
+      ctx["SuperSampling"] = superSampling;
+
+      // Start.
+      ctx["Start"] = minTime;
+
+      // End.
+      ctx["End"] = maxTime;
+    }
+
+    /// <summary>
+    /// Retrieves standarda data frome the context after calling 'SceneFromObject'.
+    /// </summary>
+    /// <param name="imf">IImageFunction implementation if specified in the script.</param>
+    /// <param name="rend">IRenderer if specified in the script.</param>
+    /// <param name="tooltip">Tool-tip string if defined.</param>
+    /// <param name="minTime">Animation start time if defined.</param>
+    /// <param name="maxTime">Animation finish time if defined.</param>
+    /// <returns></returns>
+    public static DefaultRayScene ContextMining (
+      in ScriptContext ctx,
+      out IImageFunction imf,
+      out IRenderer rend,
+      out string tooltip,
+      out double minTime,
+      out double maxTime)
+    {
+      Debug.Assert(ctx != null);
+
+      imf = null;
+      rend = null;
+      tooltip = "";
+      minTime = 0.0;
+      maxTime = 10.0;
+
+      // Scene.
+      if (!ctx.TryGetValue("Scene", out object o) ||
+          !(o is DefaultRayScene))
+        return null;
+
+      // IImageFunction.
+      if (ctx.TryGetValue("Algorithm", out object o1) &&
+          o1 is IImageFunction)
+        imf = o1 as IImageFunction;
+
+      // IRenderer.
+      if (ctx.TryGetValue("Synth", out o1) &&
+          o1 is IRenderer)
+        rend = o1 as IRenderer;
+
+      // Tooltip.
+      if (ctx.TryGetValue("ToolTip", out o1) &&
+          o1 is string)
+        tooltip = o1 as string;
+
+      // Start.
+      Util.TryParse(ctx, "Start", ref minTime);
+
+      // End.
+      Util.TryParse(ctx, "End", ref maxTime);
+
+      return o as DefaultRayScene;
+    }
+
+    /// <summary>
     /// Compute a scene based on general description object 'definition' (one of delegate functions or CSscript file-name).
     /// </summary>
     /// <param name="name">Readable short scene name.</param>
-    /// <param name="definition">Scene definition object.</param>
+    /// <param name="definition">Scene definition delegate function.</param>
     /// <param name="par">Text parameter (from form's text field..).</param>
     /// <param name="message">Message function</param>
-    /// <returns>New initialized instance of a IRayScene object.</returns>
-    public static IRayScene SceneFromObject (
-      DefaultRayScene sc,
-      out IImageFunction imf,
-      string name,
-      object definition,
-      string par,
-      InitSceneDelegate defaultScene,
-      StringDelegate message = null,
-      Dictionary<string, object> ctx = null)
+    public static void SceneFromObject (
+      in ScriptContext ctx,
+      in string name,
+      in object definition,
+      in string par,
+      in InitSceneDelegate defaultScene,
+      in StringDelegate message = null)
     {
+      Debug.Assert(ctx != null);
+
+      DefaultRayScene sc;
+      if (ctx.TryGetValue("Scene", out object o) &&
+          o is DefaultRayScene)
+        sc = o as DefaultRayScene;
+      else
+        ctx["Scene"] = sc = new DefaultRayScene();
+
       InitSceneDelegate isd = definition as InitSceneDelegate;
       InitSceneParamDelegate ispd = definition as InitSceneParamDelegate;
       string scriptFileName = definition as string;
       string scriptSource = null;
-      imf = null;
 
       if (!string.IsNullOrEmpty(scriptFileName) &&
           File.Exists(scriptFileName))
@@ -217,15 +313,14 @@ namespace Rendering
           foreach (var assemblyName in assemblyNames)
             assemblies.Add(Assembly.Load(assemblyName));
 
+          // Standard usings = imports.
           List<string> imports = new List<string>();
           imports.Add("System.Collections.Generic");
           imports.Add("OpenTK");
           imports.Add("Rendering");
           imports.Add("Utilities");
 
-          bool ok = true;
-          if (ctx == null)
-            ctx = new Dictionary<string, object>();
+          // Global variables for the script.
           Globals globals = new Globals
           {
             sceneName = name,
@@ -234,9 +329,14 @@ namespace Rendering
             context = ctx
           };
 
+          bool ok = true;
           try
           {
-            var task = CSharpScript.RunAsync(scriptSource, globals: globals, options: ScriptOptions.Default.WithReferences(assemblies).AddImports(imports));
+            var task = CSharpScript.RunAsync(
+              scriptSource,
+              globals: globals,
+              options: ScriptOptions.Default.WithReferences(assemblies).AddImports(imports));
+
             Task.WaitAll(task);
           }
           catch (CompilationErrorException e)
@@ -247,32 +347,25 @@ namespace Rendering
 
           if (ok)
           {
-            // Optional IImageFunction definition.
-            if (ctx.TryGetValue("Algorithm", out object imfo) &&
-                imfo is IImageFunction)
-              imf = imfo as IImageFunction;
-
-            // 'scene' will be copied into 'context["Scene"]'.
-            ctx["Scene"] = globals.scene;
-
             // Done.
             message?.Invoke($"Script '{name}' finished ok, rendering..");
-            return globals.scene;
+            return;
           }
         }
 
         message?.Invoke("Using default scene..");
         defaultScene(sc);
-        return sc;
+        return;
       }
 
+      // Script file doesn't exist => use delegate function instead.
       if (isd != null)
         isd(sc);
       else
         ispd?.Invoke(sc, par);
 
       message?.Invoke($"Rendering '{name}' ({++count})..");
-      return sc;
+      return;
     }
   }
 }

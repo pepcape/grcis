@@ -44,7 +44,7 @@ namespace Rendering
   public delegate bool ThreadSelector (long unit);
 
   /// <summary>
-  /// Algorithm capable of synthesizing raster image from virtual 3D scene.
+  /// Algorithm capable of synthesizing raster image from other representation (e.g. IImageFunction).
   /// Usually associated with an IImageFunction object (which does the actual job).
   /// </summary>
   public interface IRenderer
@@ -73,6 +73,13 @@ namespace Rendering
     /// Current progress object (can be null).
     /// </summary>
     Progress ProgressData { get; set; }
+
+    /// <summary>
+    /// Sample-based rendering specifics: rendered image is defined by
+    /// a continuous-argument image function.
+    /// Need not be used if IRenderer is not image-based.
+    /// </summary>
+    IImageFunction ImageFunction { get; set; }
 
     /// <summary>
     /// Renders the single pixel of an image.

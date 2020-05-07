@@ -19,7 +19,7 @@ namespace RenderClient
       Console.SetWindowSize ( Math.Min ( 85, Console.LargestWindowWidth ),
                               Math.Min ( 50, Console.LargestWindowHeight ) );
 
-	    Console.Title = "Render Client";
+      Console.Title = "Render Client";
 
       RenderClient.Start ();
     }
@@ -40,15 +40,13 @@ namespace RenderClient
 
     private static readonly int threadCount;
 
-	  private static readonly object consoleLock = new object();
+    private static readonly object consoleLock = new object();
 
     static RenderClient ()
     {
 #if DEBUG
       threadCount = 1;
-#endif
-
-#if !DEBUG
+#else
       threadCount = Environment.ProcessorCount;
 #endif
     }
@@ -59,10 +57,10 @@ namespace RenderClient
     /// </summary>
     private static void ConnectToServer ()
     {
-	    //NetworkSupport.NecessaryNetworkSettings ( port, Protocol.Tcp, "RenderClient (TCP)");  //sets port-forwarding    
+      //NetworkSupport.NecessaryNetworkSettings ( port, Protocol.Tcp, "RenderClient (TCP)");  //sets port-forwarding
 
-      if ( stream != null )	// connection already exists
-        return; 
+      if ( stream != null ) // connection already exists
+        return;
 
       TcpListener localServer = new TcpListener ( IPAddress.Any, port );
       localServer.Start ( 1 );
@@ -75,7 +73,7 @@ namespace RenderClient
       } while ( stream == null );
 
       client.ReceiveBufferSize = 1024 * 1024; // needed just in case - large portions of data are expected to be transfered at the same time (one rendered assignment is 50kB)
-      client.SendBufferSize = 1024 * 1024;			
+      client.SendBufferSize = 1024 * 1024;
     }
 
 
@@ -86,46 +84,46 @@ namespace RenderClient
     /// </summary>
     public static void Start ()
     {
-	    while ( true )  // this loop is exited by Environment.Exit ( 1 ) in EndOfRenderClientWork ()
+      while ( true )  // this loop is exited by Environment.Exit ( 1 ) in EndOfRenderClientWork ()
       {
-		    try
-		    {
+        try
+        {
           //displays external and internal IP addresses for easier connection establishment
-			    Console.ForegroundColor = ConsoleColor.White;
+          Console.ForegroundColor = ConsoleColor.White;
           Console.WriteLine ( "Your external IP address is: " + NetworkSupport.GetExternalIPAddress () );
-			    Console.WriteLine ( "Your local IP address is: " + NetworkSupport.GetLocalIPAddress () + '\n' );
+          Console.WriteLine ( "Your local IP address is: " + NetworkSupport.GetLocalIPAddress () + '\n' );
 
-			    Console.WriteLine ( @"Waiting for remote server to connect to this client..." );
+          Console.WriteLine ( @"Waiting for remote server to connect to this client..." );
 
           ConnectToServer ();
 
-			    Console.WriteLine ( @"Client succesfully connected." );
+          Console.WriteLine ( @"Client succesfully connected." );
         }
-		    catch ( SocketException ) // thrown in case of multiple clients being launched on the same computer
-		    {
-			    Console.ForegroundColor = ConsoleColor.Red;
-			    Console.WriteLine ( "\nYou can not start more than one client on the same computer." );
+        catch ( SocketException ) // thrown in case of multiple clients being launched on the same computer
+        {
+          Console.ForegroundColor = ConsoleColor.Red;
+          Console.WriteLine ( "\nYou can not start more than one client on the same computer." );
 
-			    Console.ForegroundColor = ConsoleColor.White;
-			    Console.WriteLine ( "\nPress any key to exit this RenderClient...\n" );
+          Console.ForegroundColor = ConsoleColor.White;
+          Console.WriteLine ( "\nPress any key to exit this RenderClient...\n" );
 
-			    Console.ReadKey ();
-			    return;
-		    }
+          Console.ReadKey ();
+          return;
+        }
 
-		    finished = false;
+        finished = false;
 
-		    ExchangeNecessaryInfo ();
+        ExchangeNecessaryInfo ();
 
-		    Thread receiver = new Thread ( ReceiveAssignments );
-		    receiver.Name = "AssignmentReceiver";
-		    receiver.Priority = ThreadPriority.BelowNormal;
-		    receiver.Start ();
+        Thread receiver = new Thread ( ReceiveAssignments );
+        receiver.Name = "AssignmentReceiver";
+        receiver.Priority = ThreadPriority.BelowNormal;
+        receiver.Start ();
 
-		    ClientMaster.singleton.StartThreads ( threadCount );
+        ClientMaster.singleton.StartThreads ( threadCount );
 
-		    EndOfRenderClientWork ();
-	    }
+        EndOfRenderClientWork ();
+      }
     }
 
     /// <summary>
@@ -135,22 +133,22 @@ namespace RenderClient
     /// <returns>True if RenderClient should be reset; False if RenderClient should exit</returns>
     private static void EndOfRenderClientWork ()
     {
-	    CancellationTokenSource source = new CancellationTokenSource();
-	    CancellationToken token = source.Token;
-  
-			Task exit = new Task( () =>
-			{
-				Console.WriteLine ( "Press ESC to exit or wait for new render work from server." );
+      CancellationTokenSource source = new CancellationTokenSource();
+      CancellationToken token = source.Token;
+
+      Task exit = new Task( () =>
+      {
+        Console.WriteLine ( "Press ESC to exit or wait for new render work from server." );
         while ( Console.ReadKey ().Key != ConsoleKey.Escape ) ;
-				Environment.Exit ( 1 ); 
-			}, token);
+        Environment.Exit ( 1 );
+      }, token);
 
-	    exit.Start ();
+      exit.Start ();
 
 
-	    WaitForResetAssignment ();
+      WaitForResetAssignment ();
 
-	    source.Cancel ();
+      source.Cancel ();
 
       Console.Clear ();
     }
@@ -163,22 +161,22 @@ namespace RenderClient
     /// Sends number of threads available at client to render
     /// </summary>
     private static void ExchangeNecessaryInfo ()
-    {	    
+    {
       if ( resetAssignmentAlreadyReceived ) // if reset assignment was received in WaitForResetAssignment, skip it's receival here
-	    {
-		    resetAssignmentAlreadyReceived = false;
-	    }
-	    else
       {
-	      SetAssembliesNames ();
+        resetAssignmentAlreadyReceived = false;
+      }
+      else
+      {
+        SetAssembliesNames ();
 
         Assignment assignment = NetworkSupport.ReceiveObject<Assignment> ( stream );
 
-		    if ( assignment.type != Assignment.AssignmentType.Reset )
-		    {
-			    throw new Exception ( $"Received assignment with {assignment.type}. {Assignment.AssignmentType.Reset} expected." );
-		    }
-	    }	    
+        if ( assignment.type != Assignment.AssignmentType.Reset )
+        {
+          throw new Exception ( $"Received assignment with {assignment.type}. {Assignment.AssignmentType.Reset} expected." );
+        }
+      }
 
       scene = NetworkSupport.ReceiveObject<IRayScene> ( stream );
       Console.ForegroundColor = ConsoleColor.Green;
@@ -203,81 +201,81 @@ namespace RenderClient
     {
       while ( true )
       {
-	      try
-	      {
-		      if (stream.DataAvailable)
-		      {
-			      Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment>(stream);
+        try
+        {
+          if (stream.DataAvailable)
+          {
+            Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment>(stream);
 
-			      if (newAssignment.type == Assignment.AssignmentType.Ending) // Ending assignment signals end of rendering
-			      {
-				      finished = true; // signal for threads in Consume method
+            if (newAssignment.type == Assignment.AssignmentType.Ending) // Ending assignment signals end of rendering
+            {
+              finished = true; // signal for threads in Consume method
 
-				      lock (consoleLock)
-				      {
-					      Console.ForegroundColor = ConsoleColor.Red;
-					      Console.WriteLine("\nRendering on server finished or no more assignments are expected to be received.\n");
-				      }
+              lock (consoleLock)
+              {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("\nRendering on server finished or no more assignments are expected to be received.\n");
+              }
 
-				      return;
-			      }
+              return;
+            }
 
-			      lock (consoleLock)
-			      {
-				      Console.ForegroundColor = ConsoleColor.Green;
-				      Console.WriteLine(@"Data for assignment [{0}, {1}, {2}, {3}] received and deserialized.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2);
-			      }
+            lock (consoleLock)
+            {
+              Console.ForegroundColor = ConsoleColor.Green;
+              Console.WriteLine(@"Data for assignment [{0}, {1}, {2}, {3}] received and deserialized.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2);
+            }
 
-			      ClientMaster.singleton.availableAssignments.Enqueue(newAssignment); // adds new assignment to the queue; it is later taken from there by thread in Consume method
-		      }
+            ClientMaster.singleton.availableAssignments.Enqueue(newAssignment); // adds new assignment to the queue; it is later taken from there by thread in Consume method
+          }
                 }
-	      catch ( ObjectDisposedException )
-	      {
-		      ConnectionLost ();
-	      }    
+        catch ( ObjectDisposedException )
+        {
+          ConnectionLost ();
+        }
       }
     }
 
 
-		/// <summary>
+    /// <summary>
     /// Used by other thread to wait for receival of special Reset-type assignment
     /// </summary>
-	  private static void WaitForResetAssignment ()
-	  {
+    private static void WaitForResetAssignment ()
+    {
       stream = null;
-		  ConnectToServer ();
+      ConnectToServer ();
 
-		  if ( stream == null )
-		  {
+      if ( stream == null )
+      {
         return;
-		  }
+      }
 
       while ( true )
-		  {
-			  if ( stream.DataAvailable )
-			  {
-				  SetAssembliesNames ();
+      {
+        if ( stream.DataAvailable )
+        {
+          SetAssembliesNames ();
 
-				  Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( stream );
+          Assignment newAssignment = NetworkSupport.ReceiveObject<Assignment> ( stream );
 
-				  if ( newAssignment.type == Assignment.AssignmentType.Reset ) // Reset assignment signals that RenderClient should expect new render work
-				  {
-					  resetAssignmentAlreadyReceived = true;
+          if ( newAssignment.type == Assignment.AssignmentType.Reset ) // Reset assignment signals that RenderClient should expect new render work
+          {
+            resetAssignmentAlreadyReceived = true;
 
-					  return;
-				  }
+            return;
+          }
         }
-		  }
+      }
     }
 
     /// <summary>
-    /// Sets sender and receiver assemblies in NetworkSupport - needed for correct serialization/deserialization 
+    /// Sets sender and receiver assemblies in NetworkSupport - needed for correct serialization/deserialization
     /// </summary>
     private static void SetAssembliesNames ()
-	  {
-		  string senderAssembly = NetworkSupport.ReceiveString ( stream );
-		  NetworkSupport.SendString ( Assembly.GetExecutingAssembly ().GetName ().Name, stream );
-		  NetworkSupport.SetAssemblyNames ( senderAssembly, Assembly.GetExecutingAssembly ().GetName ().Name );
+    {
+      string senderAssembly = NetworkSupport.ReceiveString ( stream );
+      NetworkSupport.SendString ( Assembly.GetExecutingAssembly ().GetName ().Name, stream );
+      NetworkSupport.SetAssemblyNames ( senderAssembly, Assembly.GetExecutingAssembly ().GetName ().Name );
     }
 
 
@@ -307,8 +305,8 @@ namespace RenderClient
         }
         catch ( IOException )
         {
-          ConnectionLost ();  
-        }      
+          ConnectionLost ();
+        }
       }
     }
 
@@ -327,7 +325,7 @@ namespace RenderClient
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine ( "Press any key to exit this RenderClient...\n" );
       }
-      
+
       Console.ReadKey ();
 
       Environment.Exit ( 0 );
@@ -343,7 +341,7 @@ namespace RenderClient
 
       private Thread[] pool;
 
-	    private static PointCloud dummy; // do not use; dummy object to pass to base constructor
+      private static PointCloud dummy; // do not use; dummy object to pass to base constructor
 
       public ClientMaster ( Bitmap bitmap, IRayScene scene, IRenderer renderer ) : base ( bitmap, scene, renderer, null, 1, false, ref dummy )
       {
@@ -407,14 +405,14 @@ namespace RenderClient
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine ( @"Rendering of assignment [{0}, {1}, {2}, {3}] finished. Sending result to server.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
           }
-          
+
           SendRenderedImage ( colorArray, newAssignment.x1, newAssignment.y1 );
 
           lock ( consoleLock )
           {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine ( @"Result of assignment [{0}, {1}, {2}, {3}] sent.", newAssignment.x1, newAssignment.y1, newAssignment.x2, newAssignment.y2 );
-          }        
+          }
         }
       }
 

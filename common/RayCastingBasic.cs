@@ -30,12 +30,6 @@ namespace Rendering
     public double Gamma { get; set; }
 
     /// <summary>
-    /// Sample-based rendering specifics: rendered image is defined by
-    /// a continuous-argument image function.
-    /// </summary>
-    public IImageFunction ImageFunction { get; set; }
-
-    /// <summary>
     /// Cell-size for adaptive rendering, 0 or 1 to turn off adaptivitiy.
     /// </summary>
     public int Adaptive { get; set; }
@@ -44,6 +38,12 @@ namespace Rendering
     /// Current progress object (can be null).
     /// </summary>
     public Progress ProgressData { get; set; }
+
+    /// <summary>
+    /// Sample-based rendering specifics: rendered image is defined by
+    /// a continuous-argument image function.
+    /// </summary>
+    public IImageFunction ImageFunction { get; set; }
 
     public SimpleImageSynthesizer ()
       : this(1)

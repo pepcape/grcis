@@ -1,10 +1,27 @@
 using System.Collections.Generic;
 
-// Optional IImageFunction.
+bool preprocessing = false;
+
 if (context != null)
 {
+  // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
+  preprocessing = !context.ContainsKey("ToolTip");
+  if (preprocessing)
+  {
+    context["ToolTip"] = "n=<double> (index of refraction)\rmat={mirror|glass}}";
+
+    // TODO: put scene preprocessing code here
+    // Store results in any context[] object, sunsequent calls will find it there..
+
+    return;
+  }
+
+  // Optional IImageFunction.
   context["Algorithm"] = new RayTracing(scene);
 }
+
+if (scene.BackgroundColor != null)
+  return;    // scene can be shared!
 
 // CSG scene.
 CSGInnerNode root = new CSGInnerNode(SetOperation.Union);

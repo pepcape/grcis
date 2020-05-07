@@ -50,17 +50,28 @@ namespace Rendering
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    public static IRayScene getScene (out IImageFunction imf, string param)
+    public static IRayScene getScene (
+      in bool preprocessing,
+      out IImageFunction imf,
+      out IRenderer rend,
+      int superSampling,
+      string param)
     {
-      IRayScene scene = Form1.singleton.SceneByComboBox(out imf);
-      return scene;
+      // 'superSampling' not used here but it could be if IRenderer is created here.
+      // 'param'         - ditto -
+      return Form1.singleton.SceneByComboBox(
+        preprocessing,
+        out imf,
+        out rend);
     }
 
     /// <summary>
     /// Initialize ray-scene and image function (good enough for simple samples).
     /// Called only in case the scene-script didn't define it.
     /// </summary>
-    public static IImageFunction getImageFunction (IRayScene scene, string param)
+    public static IImageFunction getImageFunction (
+      IRayScene scene,
+      string param)
     {
       return new RayTracing(scene);
     }
@@ -68,7 +79,7 @@ namespace Rendering
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    public static IRenderer getRenderer (IImageFunction imf, int superSampling, double jittering, string param)
+    public static IRenderer getRenderer (int superSampling, double jittering, string param)
     {
       Dictionary<string, string> p = Util.ParseKeyValueList(param);
 
@@ -83,7 +94,6 @@ namespace Rendering
             Util.TryParse(p, "threshold", ref threshold);
             r = new AdaptiveSupersamplingJR(threshold)
             {
-              ImageFunction = imf,
               Supersampling = superSampling,
               Jittering = jittering
             };
@@ -92,7 +102,6 @@ namespace Rendering
           case "adapt2":
             r = new AdaptiveSupersampling
             {
-              ImageFunction = imf,
               Supersampling = superSampling,
               Jittering = jittering
             };
@@ -103,7 +112,6 @@ namespace Rendering
       {
         r = new SupersamplingImageSynthesizer
         {
-          ImageFunction = imf,
           Supersampling = superSampling,
           Jittering = jittering
         };
