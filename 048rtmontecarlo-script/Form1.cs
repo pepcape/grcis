@@ -265,6 +265,9 @@ namespace Rendering
       if (imf == null)    // The script didn't define an image-function..
         imf = FormSupport.getImageFunction(sc, TextParam.Text);
 
+      if (imf is RayCasting rc)
+        rc.Scene = sc;    // to be sure..
+
       if (imf is RayTracing rt)
       {
         rt.DoShadows     = checkShadows.Checked;
@@ -321,17 +324,17 @@ namespace Rendering
 
         // IImageFunction.
         imf = getImageFunction(imf, sc);
-        imf.Width = width;
+        imf.Width  = width;
         imf.Height = height;
 
         // IRenderer.
         if (rend == null)   // not defined in the script
           rend = getRenderer();
         rend.ImageFunction = imf;
-        rend.Width = width;
-        rend.Height = height;
-        rend.Adaptive = 8;
-        rend.ProgressData = progress;
+        rend.Width         = width;
+        rend.Height        = height;
+        rend.Adaptive      = 8;
+        rend.ProgressData  = progress;
 
         wti[t] = new WorkerThreadInit(rend, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t, threads);
       }
@@ -416,6 +419,9 @@ namespace Rendering
       // IImageFunction.
       if (imf == null)      // not defined in the script
         imf = getImageFunction(imf, scene);
+      else
+        if (imf is RayCasting imfray)
+          imfray.Scene = scene;
       imf.Width = width;
       imf.Height = height;
 
@@ -1023,7 +1029,7 @@ namespace Rendering
     private void TextParam_MouseHover (object sender, EventArgs e)
     {
       tt.Show(tooltip, (IWin32Window)sender,
-              10, -30 - 15 * Util.CharsInString(tooltip, '\n'), 3000);
+              10, -24 - 15 * Util.CharsInString(tooltip, '\r'), 3000);
     }
   }
 }

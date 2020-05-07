@@ -283,8 +283,6 @@ namespace Rendering
       else
         ctx["Scene"] = sc = new DefaultRayScene();
 
-      InitSceneDelegate isd = definition as InitSceneDelegate;
-      InitSceneParamDelegate ispd = definition as InitSceneParamDelegate;
       string scriptFileName = definition as string;
       string scriptSource = null;
 
@@ -319,19 +317,24 @@ namespace Rendering
             assemblies.Add(Assembly.Load(assemblyName));
 
           // Standard usings = imports.
-          List<string> imports = new List<string>();
-          imports.Add("System.Collections.Generic");
-          imports.Add("OpenTK");
-          imports.Add("Rendering");
-          imports.Add("Utilities");
+          List<string> imports = new List<string>
+          {
+            "System",
+            "System.Diagnostics",
+            "System.Collections.Generic",
+            "OpenTK",
+            "MathSupport",
+            "Rendering",
+            "Utilities"
+          };
 
           // Global variables for the script.
           Globals globals = new Globals
           {
             sceneName = name,
-            scene = sc,
-            param = par,
-            context = ctx
+            scene     = sc,
+            param     = par,
+            context   = ctx
           };
 
           bool ok = true;
@@ -364,10 +367,11 @@ namespace Rendering
       }
 
       // Script file doesn't exist => use delegate function instead.
-      if (isd != null)
+      if (definition is InitSceneDelegate isd)
         isd(sc);
       else
-        ispd?.Invoke(sc, par);
+        if (definition is InitSceneParamDelegate ispd)
+          ispd(sc, par);
 
       message?.Invoke($"Rendering '{name}' ({++count})..");
       return;
