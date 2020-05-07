@@ -511,6 +511,11 @@ namespace Rendering
   [System.Serializable]
   public class DefaultRayScene : IRayScene
   {
+#if DEBUG
+    private static volatile int nextSerial = 0;
+    private int serial = nextSerial++;
+#endif
+
     /// <summary>
     /// Scene model (whatever is able to compute ray intersections).
     /// </summary>

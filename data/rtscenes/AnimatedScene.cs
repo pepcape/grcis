@@ -1,10 +1,32 @@
 // Animation time interval, IImageFunction.
+bool preprocessing = false;
+
 if (context != null)
 {
+  // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
+  preprocessing = !context.ContainsKey("ToolTip");
+  if (preprocessing)
+  {
+    context["ToolTip"] = "n=<double> (index of refraction)";
+    return;
+  }
+
   context["Start"] = 0.0;
   context["End"]   = 20.0;
   context["Algorithm"] = new RayTracing(scene);
+
+  int ss = 0;
+  if (Util.TryParse(context, "SuperSampling", ref ss) &&
+      ss > 1)
+    context["Synth"] = new SupersamplingImageSynthesizer
+    {
+      Supersampling = 64,
+      Jittering = 1.0
+    };
 }
+
+if (scene.BackgroundColor != null)
+  return;    // scene can be shared!
 
 // CSG scene.
 CSGInnerNode root = new CSGInnerNode(SetOperation.Union);

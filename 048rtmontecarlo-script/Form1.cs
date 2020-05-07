@@ -14,6 +14,8 @@ using _048rtmontecarlo.Properties;
 
 namespace Rendering
 {
+  using ScriptContext = Dictionary<string, object>;
+
   public partial class Form1 : Form, IRenderProgressForm
   {
     public static readonly string rev = Util.SetVersion("$Rev$");
@@ -71,6 +73,21 @@ namespace Rendering
     /// </summary>
     protected RenderingProgress progress = null;
 
+    /// <summary>
+    /// Param string tooltip = help.
+    /// </summary>
+    private string tooltip = "";
+
+    /// <summary>
+    /// Shared ToolTip instance.
+    /// </summary>
+    private ToolTip tt = new ToolTip();
+
+    /// <summary>
+    /// Working context for the CS-script definitions.
+    /// </summary>
+    private ScriptContext ctx = null;
+
     protected string formTitle;
 
     private readonly PanAndZoomSupport panAndZoom;
@@ -116,22 +133,43 @@ namespace Rendering
     /// Default behavior - create scene selected in the combo-box.
     /// Can handle InitSceneDelegate, InitSceneParamDelegate or CSscript file-name
     /// </summary>
-    public IRayScene SceneByComboBox (out IImageFunction imf)
+    public IRayScene SceneByComboBox (
+      bool preprocessing,
+      out IImageFunction imf,
+      out IRenderer rend)
     {
       string sceneName = (string)ComboScene.Items[selectedScene];
 
       if (sceneRepository.TryGetValue(sceneName, out object definition))
-        return Scripts.SceneFromObject(
+      {
+        // Try the CS-script file.
+        if (preprocessing)
+          ctx = new ScriptContext();    // we need a new context object for each computing batch..
+
+        Scripts.ContextInit(
+          ctx,
           new DefaultRayScene(),
-          out imf,
+          (int)NumericSupersampling.Value);
+
+        Scripts.SceneFromObject(
+          ctx,
           sceneName,
           definition,
           TextParam.Text,
           (sc) => Scenes.DefaultScene(sc),
           SetText);
 
+        return Scripts.ContextMining(
+          ctx,
+          out imf,
+          out rend,
+          out tooltip,
+          out _, out _);
+      }
+
       // Fallback to a default scene.
       imf = null;
+      rend = null;
       return Scenes.DefaultScene();
     }
 
@@ -222,12 +260,10 @@ namespace Rendering
       }
     }
 
-    private IImageFunction getImageFunction (IImageFunction imf, IRayScene sc, int width, int height)
+    private IImageFunction getImageFunction (IImageFunction imf, IRayScene sc)
     {
       if (imf == null)    // The script didn't define an image-function..
         imf = FormSupport.getImageFunction(sc, TextParam.Text);
-      imf.Width  = width;
-      imf.Height = height;
 
       if (imf is RayTracing rt)
       {
@@ -240,15 +276,9 @@ namespace Rendering
       return imf;
     }
 
-    private IRenderer getRenderer (IImageFunction imf, int width, int height)
+    private IRenderer getRenderer ()
     {
-      IRenderer rend = FormSupport.getRenderer(imf, (int) NumericSupersampling.Value, CheckJitter.Checked ? 1.0 : 0.0, TextParam.Text);
-      rend.Width = width;
-      rend.Height = height;
-      rend.Adaptive = 8;
-      rend.ProgressData = progress;
-
-      return rend;
+      return FormSupport.getRenderer((int)NumericSupersampling.Value, CheckJitter.Checked ? 1.0 : 0.0, TextParam.Text);
     }
 
     /// <summary>
@@ -258,7 +288,7 @@ namespace Rendering
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      // determine output image size:
+      // Determine output image size.
       int width = ImageWidth;
       if (width <= 0)
         width = panel1.Width;
@@ -271,16 +301,39 @@ namespace Rendering
 
       int threads = CheckMultithreading.Checked ? Environment.ProcessorCount : 1;
       int t; // thread ordinal number
+      int superSampling = (int)NumericSupersampling.Value;
 
       WorkerThreadInit[] wti = new WorkerThreadInit[threads];
 
-      // separate renderer, image function and the scene for each thread (safety precaution)
+      // 1. preprocessing - compute simulation, animation data, etc.
+      _ = FormSupport.getScene(true, out _, out _, superSampling, TextParam.Text);
+
+      // Separate renderer, image function and the scene for each thread (safety precaution).
       for (t = 0; t < threads; t++)
       {
-        IRayScene sc  = FormSupport.getScene(out IImageFunction imf, TextParam.Text);
-        imf = getImageFunction(imf, sc, width, height);
-        IRenderer r = getRenderer(imf, width, height);
-        wti[t] = new WorkerThreadInit(r, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t, threads);
+        // 2. initialize data for regular frames (using the pre-computed context).
+        IRayScene sc  = FormSupport.getScene(
+          false,
+          out IImageFunction imf,
+          out IRenderer rend,
+          superSampling,
+          TextParam.Text);
+
+        // IImageFunction.
+        imf = getImageFunction(imf, sc);
+        imf.Width = width;
+        imf.Height = height;
+
+        // IRenderer.
+        if (rend == null)   // not defined in the script
+          rend = getRenderer();
+        rend.ImageFunction = imf;
+        rend.Width = width;
+        rend.Height = height;
+        rend.Adaptive = 8;
+        rend.ProgressData = progress;
+
+        wti[t] = new WorkerThreadInit(rend, sc as ITimeDependent, imf as ITimeDependent, newImage, width, height, t, threads);
       }
 
       progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 3000L : 1000L;
@@ -349,19 +402,45 @@ namespace Rendering
       if (height <= 0)
         height = panel1.Height;
 
+      int superSampling = (int)NumericSupersampling.Value;
       Bitmap newImage = new Bitmap(width, height, PixelFormat.Format24bppRgb);
 
       int threads = CheckMultithreading.Checked ? Environment.ProcessorCount : 1;
 
-      IRayScene sc = FormSupport.getScene(out IImageFunction imf, TextParam.Text);
-      imf = getImageFunction(imf, sc, width, height);
-      IRenderer r = getRenderer(imf, width, height);
+      // 1. preprocessing - compute simulation, animation data, etc.
+      _ = FormSupport.getScene(true, out _, out _, superSampling, TextParam.Text);
 
-      rayVisualizer.UpdateScene(sc);
+      // 2. compute regular frame (using the pre-computed context).
+      IRayScene scene = FormSupport.getScene(false, out IImageFunction imf, out IRenderer rend, superSampling, TextParam.Text);
 
-      master = new Master(newImage, sc, r, RenderClientsForm.instance?.clients, threads, pointCloudCheckBox.Checked, ref AdditionalViews.singleton.pointCloud);
+      // IImageFunction.
+      if (imf == null)      // not defined in the script
+        imf = getImageFunction(imf, scene);
+      imf.Width = width;
+      imf.Height = height;
+
+      // IRenderer.
+      if (rend == null)     // not defined in the script
+        rend = getRenderer();
+      rend.ImageFunction = imf;
+      rend.Width = width;
+      rend.Height = height;
+      rend.Adaptive = 0;    // 8?
+      rend.ProgressData = progress;
+
+      rayVisualizer.UpdateScene(scene);
+
+      master = new Master(
+        newImage,
+        scene,
+        rend,
+        RenderClientsForm.instance?.clients,
+        threads,
+        pointCloudCheckBox.Checked,
+        ref AdditionalViews.singleton.pointCloud);
+
       master.progressData = progress;
-      master.InitializeAssignments(newImage, sc, r);
+      master.InitializeAssignments(newImage, scene, rend);
 
       if (pointCloudCheckBox.Checked)
         master.pointCloud?.SetNecessaryFields(PointCloudSavingStart, PointCloudSavingEnd, Notification, Invoke);
@@ -526,8 +605,28 @@ namespace Rendering
 
       if (dirty || imfs == null)
       {
-        IRayScene rs = FormSupport.getScene(out imfs, TextParam.Text);
-        imfs = getImageFunction(imfs, rs, width, height);
+        IRayScene rs = FormSupport.getScene(
+          false,
+          out imfs,
+          out IRenderer rend,
+          1,
+          TextParam.Text);
+
+        // IImageFunction.
+        if (imfs == null)      // not defined in the script
+          imfs = getImageFunction(imfs, rs);
+        imfs.Width = width;
+        imfs.Height = height;
+
+        // IRenderer.
+        if (rend == null)     // not defined in the script
+          rend = getRenderer();
+        rend.ImageFunction = imfs;
+        rend.Width = width;
+        rend.Height = height;
+        rend.Adaptive = 0;    // 8?
+        rend.ProgressData = progress;
+
         dirty = false;
       }
 
@@ -919,6 +1018,12 @@ namespace Rendering
     {
       NextImageButton.Enabled = panAndZoom.NextImageAvailable;
       PreviousImageButton.Enabled = panAndZoom.PreviousImageAvailable;
+    }
+
+    private void TextParam_MouseHover (object sender, EventArgs e)
+    {
+      tt.Show(tooltip, (IWin32Window)sender,
+              10, -30 - 15 * Util.CharsInString(tooltip, '\n'), 3000);
     }
   }
 }

@@ -296,6 +296,7 @@
       this.textParam.Name = "textParam";
       this.textParam.Size = new System.Drawing.Size(271, 20);
       this.textParam.TabIndex = 46;
+      this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
       // 
       // label6
       // 

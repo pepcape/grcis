@@ -10,36 +10,44 @@ namespace _062animation
     /// <summary>
     /// Initialize rendering parameters.
     /// </summary>
-    public static void InitializeParams ( string[] args, out string name )
+    public static void InitializeParams (
+      string[] args,
+      out string name)
     {
       name = "Josef Pelikán";
 
       Form1 f = Form1.singleton;
 
-      // scene script (empty string for default scene):
-      f.sceneFileName = "../data/rtscenes/AnimatedScene.cs";
+      // Scene script (empty string for default scene).
+      f.sceneFileName = (args != null && args.Length > 0) ? args[0] : "../data/rtscenes/AnimatedScene.cs";
 
-      // Param string:
+      // Param string.
       f.textParam.Text = "";
 
-      // single frame:
-      f.ImageWidth = 320;
+      // Single frame.
+      f.ImageWidth  = 320;
       f.ImageHeight = 180;
       f.numericSupersampling.Value = 1;
 
-      // animation:
+      // Animation.
       f.numFrom.Value = (decimal)0.0;
-      f.numTo.Value = (decimal)20.0;
-      f.numFps.Value = (decimal)25.0;
+      f.numTo.Value   = (decimal)20.0;
+      f.numFps.Value  = (decimal)25.0;
     }
 
     /// <summary>
     /// Initialize the ray-scene.
     /// </summary>
-    public static IRayScene getScene (out IImageFunction imf, string param)
+    public static IRayScene getScene (
+      in bool preprocessing,
+      out IImageFunction imf,
+      out IRenderer r,
+      int superSampling,
+      string param)
     {
-      IRayScene sc = Form1.singleton.SceneFromScript(out imf);
-      if (sc != null)
+      IRayScene sc = Form1.singleton.SceneFromScript(preprocessing, out imf, out r);  // superSampling and param were fetched from the Form
+      if (preprocessing ||
+          sc != null)
         return sc;
 
       sc = new AnimatedRayScene();
@@ -50,7 +58,8 @@ namespace _062animation
     /// Initialize ray-scene and image function (good enough for simple samples).
     /// Called only if IImageFunction was not defined in the animation script.
     /// </summary>
-    public static IImageFunction getImageFunction (IRayScene scene)
+    public static IImageFunction getImageFunction (
+      IRayScene scene)
     {
       return new RayTracing(scene);
     }
@@ -58,22 +67,17 @@ namespace _062animation
     /// <summary>
     /// Initialize image synthesizer (responsible for raster image computation).
     /// </summary>
-    public static IRenderer getRenderer ( IImageFunction imf )
+    public static IRenderer getRenderer (
+      int superSampling)
     {
-      Form1 f = Form1.singleton;
+      if (superSampling > 1)
+        return new SupersamplingImageSynthesizer
+        {
+          Supersampling = superSampling,
+          Jittering = 1.0
+        };
 
-      if ( f.superSampling > 1 )
-      {
-        SupersamplingImageSynthesizer sis = new SupersamplingImageSynthesizer();
-        sis.ImageFunction = imf;
-        sis.Supersampling = f.superSampling;
-        sis.Jittering = 1.0;
-        return sis;
-      }
-
-      SimpleImageSynthesizer s = new SimpleImageSynthesizer();
-      s.ImageFunction = imf;
-      return s;
+      return new SimpleImageSynthesizer();
     }
   }
 }
