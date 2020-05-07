@@ -148,7 +148,7 @@ namespace Rendering
 
         Scripts.ContextInit(
           ctx,
-          new DefaultRayScene(),
+          null,
           (int)NumericSupersampling.Value);
 
         Scripts.SceneFromObject(

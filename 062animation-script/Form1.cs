@@ -99,7 +99,7 @@ namespace _062animation
 
       Scripts.ContextInit(
         ctx,
-        new AnimatedRayScene(),
+        preprocessing ? new AnimatedRayScene() : null,
         (int)numericSupersampling.Value,
         0.0,
         20.0);
@@ -449,7 +449,7 @@ namespace _062animation
       WorkerThreadInit[] wti = new WorkerThreadInit[threads];
 
       // 1. preprocessing - compute simulation, animation data, etc.
-      _ = FormSupport.getScene(true, out _, out _, superSampling, textParam.Text);
+      FormSupport.getScene(true, out _, out _, superSampling, textParam.Text);
 
       for (t = 0; t < threads; t++)
       {
@@ -460,6 +460,9 @@ namespace _062animation
           out IRenderer rend,
           superSampling,
           textParam.Text);
+
+        if (sc is ITimeDependent)
+          sc = (IRayScene)(sc as ITimeDependent).Clone();
 
         // IImageFunction.
         if (imf == null)    // not defined in the script
