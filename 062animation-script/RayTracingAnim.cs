@@ -90,6 +90,12 @@ namespace Rendering
   /// </summary>
   public class AnimatedCamera : StaticCamera, ITimeDependent
   {
+#if DEBUG
+    private static volatile int nextSerial = 0;
+    private readonly int serial = nextSerial++;
+    public int getSerial () => serial;
+#endif
+
     /// <summary>
     /// Starting (minimal) time in seconds.
     /// </summary>
@@ -114,15 +120,19 @@ namespace Rendering
     /// Goes round the central point (lookAt).
     /// One complete turn for the whole time interval.
     /// </summary>
-    protected virtual void setTime ( double newTime )
+    protected virtual void setTime (double newTime)
     {
-      Debug.Assert( Start != End );
+      Debug.Assert(Start != End);
+
+#if DEBUG
+      Debug.WriteLine($"Camera #{getSerial()} setTime({newTime})");
+#endif
 
       time = newTime;    // Here Start & End define a periodicity, not bounds!
 
       // change the camera position:
       double angle = MathHelper.TwoPi * (time - Start) / (End - Start);
-      Vector3d radial = Vector3d.TransformVector( center0 - lookAt, Matrix4d.CreateRotationY( -angle ) );
+      Vector3d radial = Vector3d.TransformVector(center0 - lookAt, Matrix4d.CreateRotationY(-angle));
       center = lookAt + radial;
       direction = -radial;
       direction.Normalize();
@@ -134,14 +144,8 @@ namespace Rendering
     /// </summary>
     public double Time
     {
-      get
-      {
-        return time;
-      }
-      set
-      {
-        setTime( value );
-      }
+      get => time;
+      set => setTime(value);
     }
 
     /// <summary>
@@ -167,8 +171,8 @@ namespace Rendering
       return c;
     }
 
-    public AnimatedCamera ( Vector3d lookat, Vector3d cen, double ang )
-      : base( cen, lookat - cen, ang )
+    public AnimatedCamera (Vector3d lookat, Vector3d cen, double ang)
+      : base(cen, lookat - cen, ang)
     {
       lookAt  = lookat;
       center0 = cen;
@@ -190,28 +194,27 @@ namespace Rendering
     /// <summary>
     /// Creates default ray-rendering scene.
     /// </summary>
-    public static IRayScene Init ( IRayScene sc, string param )
+    public static IRayScene Init (IRayScene sc, string param)
     {
       // !!!{{ TODO: .. and use your time-dependent objects to construct the scene
 
       // This code is based on Scenes.TwoSpheres():
 
       // CSG scene:
-      CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
-      root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
-      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 1.0, 0.8, 0.1 }, 0.1, 0.6, 0.4, 128 ) );
+      CSGInnerNode root = new CSGInnerNode(SetOperation.Union);
+      root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
+      root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.8, 0.1}, 0.1, 0.6, 0.4, 128));
       sc.Intersectable = root;
 
       // Background color:
-      sc.BackgroundColor = new double[] { 0.0, 0.05, 0.07 };
+      sc.BackgroundColor = new double[] {0.0, 0.05, 0.07};
 
       // Camera:
-      AnimatedCamera cam = new AnimatedCamera( new Vector3d( 0.7, -0.4,  0.0 ),
-                                               new Vector3d( 0.7,  0.8, -6.0 ),
-                                               50.0 );
+      AnimatedCamera cam = new AnimatedCamera(new Vector3d(0.7, -0.4,  0.0),
+                                              new Vector3d(0.7,  0.8, -6.0),
+                                              50.0 );
       cam.End = 20.0;            // one complete turn takes 20.0 seconds
-      AnimatedRayScene asc = sc as AnimatedRayScene;
-      if ( asc != null )
+      if (sc is AnimatedRayScene asc)
         asc.End = 20.0;
       sc.Camera  = cam;
 
@@ -221,29 +224,29 @@ namespace Rendering
 
       // Light sources:
       sc.Sources = new LinkedList<ILightSource>();
-      sc.Sources.Add( new AmbientLightSource( 0.8 ) );
-      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 4.0, -3.0 ), 1.2 ) );
+      sc.Sources.Add( new AmbientLightSource(0.8));
+      sc.Sources.Add( new PointLightSource(new Vector3d(-5.0, 4.0, -3.0), 1.2));
 
       // --- NODE DEFINITIONS ----------------------------------------------------
 
       // Transparent sphere:
       Sphere s;
       s = new Sphere();
-      PhongMaterial pm = new PhongMaterial( new double[] { 0.0, 0.2, 0.1 }, 0.03, 0.03, 0.08, 128 );
+      PhongMaterial pm = new PhongMaterial(new double[] {0.0, 0.2, 0.1}, 0.03, 0.03, 0.08, 128);
       pm.n  = 1.6;
       pm.Kt = 0.9;
-      s.SetAttribute( PropertyName.MATERIAL, pm );
-      root.InsertChild( s, Matrix4d.Identity );
+      s.SetAttribute(PropertyName.MATERIAL, pm);
+      root.InsertChild(s, Matrix4d.Identity);
 
       // Opaque sphere:
       s = new Sphere();
-      root.InsertChild( s, Matrix4d.Scale( 1.2 ) * Matrix4d.CreateTranslation( 1.5, 0.2, 2.4 ) );
+      root.InsertChild(s, Matrix4d.Scale(1.2) * Matrix4d.CreateTranslation(1.5, 0.2, 2.4));
 
       // Infinite plane with checker:
       Plane pl = new Plane();
-      pl.SetAttribute( PropertyName.COLOR, new double[] { 0.3, 0.0, 0.0 } );
-      pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 0.6, 0.6, new double[] { 1.0, 1.0, 1.0 } ) );
-      root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
+      pl.SetAttribute(PropertyName.COLOR, new double[] {0.3, 0.0, 0.0});
+      pl.SetAttribute(PropertyName.TEXTURE, new CheckerTexture(0.6, 0.6, new double[] {1.0, 1.0, 1.0}));
+      root.InsertChild(pl, Matrix4d.RotateX(-MathHelper.PiOver2) * Matrix4d.CreateTranslation(0.0, -1.0, 0.0));
 
       // !!!}}
 

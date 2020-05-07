@@ -277,6 +277,13 @@ namespace Rendering
   /// </summary>
   public interface ITimeDependent : ICloneable
   {
+#if DEBUG
+    /// <summary>
+    /// Debugging - tracking of object instances/clones.
+    /// </summary>
+    int getSerial ();
+#endif
+
     /// <summary>
     /// Starting (minimal) time in seconds.
     /// </summary>

@@ -23,11 +23,24 @@ public class ObStripesTexture : CheckerTexture
   }
 }
 
-// Optional IImageFunction.
+bool preprocessing = false;
+
 if (context != null)
 {
-  context["Algorithm"] = new RayTracing(scene);
+  // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
+  preprocessing = !context.ContainsKey("ToolTip");
+  if (preprocessing)
+  {
+    context["ToolTip"] = "- nothing -";
+    return;
+  }
+
+  // Optional IImageFunction.
+  context["Algorithm"] = new RayTracing();
 }
+
+if (scene.BackgroundColor != null)
+  return;    // scene can be shared!
 
 // CSG scene.
 var white = new double[] {1, 1, 1};

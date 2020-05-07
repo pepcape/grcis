@@ -280,10 +280,9 @@ namespace Rendering
     public void ShareCloneChildren (DefaultSceneNode n)
     {
       foreach (var child in children)
-      {
-        ITimeDependent cha = child as ITimeDependent;
-        n.InsertChild((cha == null) ? child : (ISceneNode)cha.Clone(), child.ToParent);
-      }
+        n.InsertChild(
+          (child is ITimeDependent cha) ? (ISceneNode)cha.Clone() : child,
+          child.ToParent);
     }
 
     public void ShareCloneAttributes (DefaultSceneNode n)
@@ -296,10 +295,11 @@ namespace Rendering
         n.attributes = new Dictionary<string, object>();
         foreach (var kvp in attributes)
         {
-          ICloneable vala = kvp.Value as ICloneable;
-          n.attributes.Add(kvp.Key, (vala == null) ? kvp.Value : vala.Clone());
+          n.attributes.Add(
+            kvp.Key,
+            (kvp.Value is ICloneable vala) ? vala.Clone() : kvp.Value);
 #if DEBUG
-          if (vala != null)
+          if (kvp.Value is ICloneable)
             Util.Log("Clone Attribute: " + kvp.Key);
 #endif
         }
@@ -513,7 +513,7 @@ namespace Rendering
   {
 #if DEBUG
     private static volatile int nextSerial = 0;
-    private int serial = nextSerial++;
+    private readonly int serial = nextSerial++;
 #endif
 
     /// <summary>
@@ -542,6 +542,12 @@ namespace Rendering
   /// </summary>
   public class AnimatedRayScene : DefaultRayScene, ITimeDependent
   {
+#if DEBUG
+    private static volatile int nextSerial = 0;
+    private readonly int serial = nextSerial++;
+    public int getSerial () => serial;
+#endif
+
     /// <summary>
     /// Starting (minimal) time in seconds.
     /// </summary>
@@ -566,22 +572,17 @@ namespace Rendering
       time = Arith.Clamp(newTime, Start, End);
 
       // Time-dependent scene?
-      ITimeDependent intersectable = Intersectable as ITimeDependent;
-      if (intersectable != null)
+      if (Intersectable is ITimeDependent intersectable)
         intersectable.Time = time;
 
       // Time-dependent camera?
-      ITimeDependent camera = Camera as ITimeDependent;
-      if (camera != null)
+      if (Camera is ITimeDependent camera)
         camera.Time = time;
 
       // Time-dependent light sources?
       foreach (ILightSource light in Sources)
-      {
-        ITimeDependent li = light as ITimeDependent;
-        if (li != null)
+        if (light is ITimeDependent li)
           li.Time = time;
-      }
     }
 
     /// <summary>
@@ -624,7 +625,7 @@ namespace Rendering
       sc.Sources = new LinkedList<ILightSource>(tmp);
 
       sc.Start = Start;
-      sc.End = End;
+      sc.End   = End;
       sc.setTime(Time); // propagates the current time to all time-dependent components..
 
       return sc;

@@ -13,7 +13,7 @@ if (context != null)
 
   context["Start"] = 0.0;
   context["End"]   = 20.0;
-  context["Algorithm"] = new RayTracing(scene);
+  context["Algorithm"] = new RayTracing();
 
   int ss = 0;
   if (Util.TryParse(context, "SuperSampling", ref ss) &&

@@ -461,12 +461,15 @@ namespace _062animation
           superSampling,
           textParam.Text);
 
-        if (sc is ITimeDependent)
-          sc = (IRayScene)(sc as ITimeDependent).Clone();
+        if (sc is ITimeDependent sca)
+          sc = (IRayScene)sca.Clone();
 
         // IImageFunction.
         if (imf == null)    // not defined in the script
           imf = FormSupport.getImageFunction(sc);
+        else
+          if (imf is RayCasting imfray)
+            imfray.Scene = sc;
         imf.Width = width;
         imf.Height = height;
 
@@ -592,13 +595,17 @@ namespace _062animation
 
         // Set specific time to my scene.
         if (init.scene != null)
-          init.scene.Time = myTime;
-
-        ITimeDependent anim = init.rend as ITimeDependent;
-        if (anim != null)
         {
-          anim.Start = myTime;
-          anim.End = myEndTime;
+#if DEBUG
+          Debug.WriteLine($"Scene #{init.scene.getSerial()} setTime({myTime})");
+#endif
+          init.scene.Time = myTime;
+        }
+
+        if (init.rend is ITimeDependent arend)
+        {
+          arend.Start = myTime;
+          arend.End = myEndTime;
         }
 
         if (init.imfunc != null)
@@ -647,7 +654,7 @@ namespace _062animation
     private void textParam_MouseHover (object sender, EventArgs e)
     {
       tt.Show(tooltip, (IWin32Window)sender,
-              10, -30 - 15 * Util.CharsInString(tooltip, '\n'), 3000);
+              10, -24 - 15 * Util.CharsInString(tooltip, '\r'), 3000);
     }
   }
 }

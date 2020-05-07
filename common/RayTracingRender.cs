@@ -47,7 +47,7 @@ namespace Rendering
     /// </summary>
     public bool DoShadows { get; set; }
 
-    public RayTracing (IRayScene sc)
+    public RayTracing (IRayScene sc = null)
       : base(sc)
     {
       MaxLevel      = 12;
@@ -120,6 +120,7 @@ namespace Rendering
         // No intersection -> background color
         rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.rayVisualizerNormal, level, p0, direction * 100000);
 
+        // !!! TODO: background color object/function !!!
         Array.Copy(scene.BackgroundColor, color, bands);
         return 1L;
       }
@@ -156,6 +157,8 @@ namespace Rendering
 
       p1 = -p1; // viewing vector
       p1.Normalize();
+
+      // !!! TODO: optional light-source processing (controlled by an attribute?) !!!
 
       if (scene.Sources == null || scene.Sources.Count < 1)
         // No light sources at all.
@@ -207,6 +210,9 @@ namespace Rendering
       double   maxK;
       double[] comp = new double[bands];
       double   newImportance;
+
+      // !!! TODO: alternative intersection handling, different from reflection + refraction !!!
+      // Controlled by an attribute (containing a callback-function)?
 
       if (DoReflections)
       {

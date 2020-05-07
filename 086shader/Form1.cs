@@ -485,7 +485,7 @@ namespace _086shader
     private void textParam_MouseHover (object sender, EventArgs e)
     {
       tt.Show(tooltip, (IWin32Window)sender,
-              10, -30 - 15 * Util.CharsInString(tooltip, '\n'), 4000);
+              10, -24 - 15 * Util.CharsInString(tooltip, '\r'), 4000);
     }
 
     private void buttonLoadCamera_Click (object sender, EventArgs e)

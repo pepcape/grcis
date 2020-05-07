@@ -40,7 +40,13 @@ namespace Rendering
 
     protected IRayScene scene;
 
-    public RayCasting (IRayScene sc)
+    public IRayScene Scene
+    {
+      get => scene;
+      set => scene = value;
+    }
+
+    public RayCasting (IRayScene sc = null)
     {
       scene = sc;
     }

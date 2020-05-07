@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-
+//////////////////////////////////////////////////
+// Preprocessing stage support.
 bool preprocessing = false;
 
 if (context != null)
@@ -17,13 +17,15 @@ if (context != null)
   }
 
   // Optional IImageFunction.
-  context["Algorithm"] = new RayTracing(scene);
+  context["Algorithm"] = new RayTracing();
 }
 
 if (scene.BackgroundColor != null)
   return;    // scene can be shared!
 
+//////////////////////////////////////////////////
 // CSG scene.
+
 CSGInnerNode root = new CSGInnerNode(SetOperation.Union);
 root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
 root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.6, 0.1}, 0.1, 0.8, 0.2, 16));

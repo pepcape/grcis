@@ -1338,8 +1338,7 @@ namespace Rendering
     /// <param name="inter">Intersection instance to complete.</param>
     public override void CompleteIntersection (Intersection inter)
     {
-      BezierIntersection bi = inter.SolidData as BezierIntersection;
-      if (bi != null)
+      if (inter.SolidData is BezierIntersection bi)
       {
         // normal vector:
         Vector3d tu, tv;
@@ -1553,8 +1552,7 @@ namespace Rendering
       // !!!{{ TODO: add your actual completion code here
 
       // normal vector:
-      TmpData tmp = inter.SolidData as TmpData;
-      if (tmp != null)
+      if (inter.SolidData is TmpData tmp)
       {
         if (Smooth && mesh.Normals > 0) // smooth interpolation of normal vectors
         {

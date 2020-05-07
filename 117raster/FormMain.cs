@@ -534,7 +534,7 @@ namespace _117raster
     private void textBoxParam_MouseHover (object sender, EventArgs e)
     {
       tt.Show(tooltip, (IWin32Window)sender,
-              10, -30 - 15 * Util.CharsInString(tooltip, '\n'), 2000);
+              10, -24 - 15 * Util.CharsInString(tooltip, '\r'), 3000);
     }
 
     private void labelStatus_MouseHover (object sender, EventArgs e)

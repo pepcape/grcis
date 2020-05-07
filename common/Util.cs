@@ -1284,32 +1284,32 @@ namespace Utilities
       if (!rec.TryGetValue(key, out object oval))
         return false;
 
-      if (oval is int)
+      if (oval is int oint)
       {
-        val = (int)oval;
+        val = oint;
         return true;
       }
 
-      if (oval is long)
+      if (oval is long olong)
       {
-        val = (int)(long)oval;
+        val = (int)olong;
         return true;
       }
 
-      if (oval is short)
+      if (oval is short oshort)
       {
-        val = (short)oval;
+        val = oshort;
         return true;
       }
 
-      if (oval is byte)
+      if (oval is byte obyte)
       {
-        val = (byte)oval;
+        val = obyte;
         return true;
       }
 
-      if (oval is string &&
-          int.TryParse(oval as string, out int v))
+      if (oval is string ostring &&
+          int.TryParse(ostring, out int v))
       {
         val = v;
         return true;
@@ -1327,32 +1327,32 @@ namespace Utilities
       if (!rec.TryGetValue(key, out object oval))
         return false;
 
-      if (oval is long)
+      if (oval is long olong)
       {
-        val = (long)oval;
+        val = olong;
         return true;
       }
 
-      if (oval is int)
+      if (oval is int oint)
       {
-        val = (int)oval;
+        val = oint;
         return true;
       }
 
-      if (oval is short)
+      if (oval is short oshort)
       {
-        val = (short)oval;
+        val = oshort;
         return true;
       }
 
-      if (oval is byte)
+      if (oval is byte obyte)
       {
-        val = (byte)oval;
+        val = obyte;
         return true;
       }
 
-      if (oval is string &&
-          long.TryParse(oval as string, out long v))
+      if (oval is string ostring &&
+          long.TryParse(ostring, out long v))
       {
         val = v;
         return true;
@@ -1370,44 +1370,44 @@ namespace Utilities
       if (!rec.TryGetValue(key, out object oval))
         return false;
 
-      if (oval is float)
+      if (oval is float ofloat)
       {
-        val = (float)oval;
+        val = ofloat;
         return true;
       }
 
-      if (oval is double)
+      if (oval is double odouble)
       {
-        val = (float)(double)oval;
+        val = (float)odouble;
         return true;
       }
 
-      if (oval is int)
+      if (oval is int oint)
       {
-        val = (int)oval;
+        val = oint;
         return true;
       }
 
-      if (oval is long)
+      if (oval is long olong)
       {
-        val = (long)oval;
+        val = olong;
         return true;
       }
 
-      if (oval is short)
+      if (oval is short oshort)
       {
-        val = (short)oval;
+        val = oshort;
         return true;
       }
 
-      if (oval is byte)
+      if (oval is byte obyte)
       {
-        val = (byte)oval;
+        val = obyte;
         return true;
       }
 
-      if (oval is string &&
-          float.TryParse(oval as string, NumberStyles.Float, CultureInfo.InvariantCulture, out float v))
+      if (oval is string ostring &&
+          float.TryParse(ostring, NumberStyles.Float, CultureInfo.InvariantCulture, out float v))
       {
         val = v;
         return true;
@@ -1425,44 +1425,44 @@ namespace Utilities
       if (!rec.TryGetValue(key, out object oval))
         return false;
 
-      if (oval is double)
+      if (oval is double odouble)
       {
-        val = (double)oval;
+        val = odouble;
         return true;
       }
 
-      if (oval is float)
+      if (oval is float ofloat)
       {
-        val = (float)oval;
+        val = ofloat;
         return true;
       }
 
-      if (oval is int)
+      if (oval is int oint)
       {
-        val = (int)oval;
+        val = oint;
         return true;
       }
 
-      if (oval is long)
+      if (oval is long olong)
       {
-        val = (long)oval;
+        val = olong;
         return true;
       }
 
-      if (oval is short)
+      if (oval is short oshort)
       {
-        val = (short)oval;
+        val = oshort;
         return true;
       }
 
-      if (oval is byte)
+      if (oval is byte obyte)
       {
-        val = (byte)oval;
+        val = obyte;
         return true;
       }
 
-      if (oval is string &&
-          double.TryParse(oval as string, NumberStyles.Float, CultureInfo.InvariantCulture, out double v))
+      if (oval is string ostring &&
+          double.TryParse(ostring, NumberStyles.Float, CultureInfo.InvariantCulture, out double v))
       {
         val = v;
         return true;
