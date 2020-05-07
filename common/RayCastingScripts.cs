@@ -185,7 +185,12 @@ namespace Rendering
       Debug.Assert(ctx != null);
 
       // Scene.
-      ctx["Scene"] = sc ?? new DefaultRayScene();
+      if (sc != null)
+        ctx["Scene"] = sc;
+      else
+        if (!ctx.ContainsKey("Scene") ||
+            ctx["Scene"] == null)
+          ctx["Scene"] = new DefaultRayScene();
 
       ctx.Remove("Algorithm");
       ctx.Remove("Synth");
