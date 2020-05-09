@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using OpenTK;
 using MathSupport;
+using Utilities;
 
 namespace Rendering
 {
@@ -120,9 +121,7 @@ namespace Rendering
         // No intersection -> background color
         rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.rayVisualizerNormal, level, p0, direction * 100000);
 
-        // !!! TODO: background color object/function !!!
-        Array.Copy(scene.BackgroundColor, color, bands);
-        return 1L;
+        return scene.Background.GetColor(p1, color);
       }
 
       // There was at least one intersection
@@ -150,7 +149,7 @@ namespace Rendering
               tex.Apply(intersection);
 
           double[] vertexColor = new double[3];
-          Array.Copy(intersection.SurfaceColor, vertexColor, vertexColor.Length);
+          Util.ColorCopy(intersection.SurfaceColor, vertexColor);
           Master.singleton?.pointCloud?.AddToPointCloud(intersection.CoordWorld, vertexColor, intersection.Normal, MT.threadID);
         }
       }
@@ -162,7 +161,7 @@ namespace Rendering
 
       if (scene.Sources == null || scene.Sources.Count < 1)
         // No light sources at all.
-        Array.Copy(i.SurfaceColor, color, bands);
+        Util.ColorCopy(i.SurfaceColor, color);
       else
       {
         // Apply the reflectance model for each source.

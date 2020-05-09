@@ -19,7 +19,7 @@ public class ObStripesTexture : CheckerTexture
 
     inter.textureApplied = true;
 
-    return (ui + MathSupport.RandomStatic.numericRecipes(vi));
+    return ui + (long)MathSupport.RandomStatic.numericRecipes((ulong)vi);
   }
 }
 
@@ -28,15 +28,15 @@ bool preprocessing = false;
 if (context != null)
 {
   // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-  preprocessing = !context.ContainsKey("ToolTip");
+  preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
   if (preprocessing)
   {
-    context["ToolTip"] = "- nothing -";
+    context[PropertyName.CTX_TOOLTIP] = "- nothing -";
     return;
   }
 
   // Optional IImageFunction.
-  context["Algorithm"] = new RayTracing();
+  context[PropertyName.CTX_ALGORITHM] = new RayTracing();
 }
 
 if (scene.BackgroundColor != null)

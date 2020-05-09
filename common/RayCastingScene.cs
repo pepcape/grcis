@@ -20,29 +20,63 @@ namespace Rendering
   }
 
   /// <summary>
-  /// Builtin
+  /// Builtin attribute/property names.
   /// </summary>
   public class PropertyName
   {
+    //----------------------------------------------------
+    // Scene attributes.
+
     /// <summary>
     /// Surface property = base color.
     /// </summary>
-    public static string COLOR = "color";
+    public readonly static string COLOR = "color";
 
     /// <summary>
     /// Surface property = texture (multi-attribute).
     /// </summary>
-    public static string TEXTURE = "texture";
+    public readonly static string TEXTURE = "texture";
 
     /// <summary>
     /// (Perhaps) globally used reflectance model.
     /// </summary>
-    public static string REFLECTANCE_MODEL = "reflectance";
+    public readonly static string REFLECTANCE_MODEL = "reflectance";
 
     /// <summary>
     /// Surface property: material description. Must match used reflectance model.
     /// </summary>
-    public static string MATERIAL = "material";
+    public readonly static string MATERIAL = "material";
+
+    //----------------------------------------------------
+    // Scene definition script context.
+    // (in/out means "relative to a script")
+
+    // IRayScene (in, out).
+    public readonly static string CTX_SCENE = "Scene";
+
+    // int (in, out).
+    public readonly static string CTX_WIDTH = "Width";
+
+    // int (in, out).
+    public readonly static string CTX_HEIGHT = "Height";
+
+    // int (in).
+    public readonly static string CTX_SUPERSAMPLING = "SuperSampling";
+
+    // IImageFunction (out).
+    public readonly static string CTX_ALGORITHM = "Algorithm";
+
+    // IRenderer (out).
+    public readonly static string CTX_SYNTHESIZER = "Synth";
+
+    // string (out).
+    public readonly static string CTX_TOOLTIP = "ToolTip";
+
+    // double (in, out).
+    public readonly static string CTX_START_ANIM = "Start";
+
+    // double (in, out).
+    public readonly static string CTX_END_ANIM = "End";
   }
 
   /// <summary>
@@ -522,7 +556,12 @@ namespace Rendering
     public IIntersectable Intersectable { get; set; }
 
     /// <summary>
-    /// Background color.
+    /// Background color object.
+    /// </summary>
+    public IBackground Background { get; set; }
+
+    /// <summary>
+    /// Constant background color.
     /// </summary>
     public double[] BackgroundColor { get; set; }
 
@@ -535,6 +574,8 @@ namespace Rendering
     /// Set of light sources.
     /// </summary>
     public ICollection<ILightSource> Sources { get; set; }
+
+    public DefaultRayScene () => Background = new DefaultBackground(this);
   }
 
   /// <summary>
@@ -575,6 +616,10 @@ namespace Rendering
       if (Intersectable is ITimeDependent intersectable)
         intersectable.Time = time;
 
+      // Time-dependent Background?
+      if (Background is ITimeDependent bckgr)
+        bckgr.Time = time;
+
       // Time-dependent camera?
       if (Camera is ITimeDependent camera)
         camera.Time = time;
@@ -608,6 +653,10 @@ namespace Rendering
       sc.Intersectable = Intersectable;
       if (sc.Intersectable is ITimeDependent intersectable)
         sc.Intersectable = (IIntersectable)intersectable.Clone();
+
+      sc.Background = Background;
+      if (sc.Background is ITimeDependent bckgr)
+        sc.Background = (IBackground)bckgr.Clone();
 
       sc.BackgroundColor = (double[])BackgroundColor.Clone();
 

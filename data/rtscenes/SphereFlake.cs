@@ -38,10 +38,10 @@ if (p.TryGetValue("mat", out mat))
 if (context != null)
 {
   // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-  preprocessing = !context.ContainsKey("ToolTip");
+  preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
   if (preprocessing)
   {
-    context["ToolTip"] = "n=<double> (index of refraction)\rmat={mirror|glass}\rdepth=<int> (recursion depth)\rcoef=<double> (scale coefficient)";
+    context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rmat={mirror|glass}\rdepth=<int> (recursion depth)\rcoef=<double> (scale coefficient)";
     return;
   }
 }
