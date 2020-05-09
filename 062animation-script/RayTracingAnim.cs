@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using OpenTK;
+﻿using OpenTK;
 using Rendering;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace _062animation
 {
@@ -41,11 +41,20 @@ namespace _062animation
     public static IRayScene getScene (
       in bool preprocessing,
       out IImageFunction imf,
-      out IRenderer r,
-      int superSampling,
+      out IRenderer rend,
+      ref int width,
+      ref int height,
+      ref int superSampling,
       string param)
     {
-      IRayScene sc = Form1.singleton.SceneFromScript(preprocessing, out imf, out r);  // superSampling and param were fetched from the Form
+      IRayScene sc = Form1.singleton.SceneFromScript(
+        preprocessing,
+        out imf,
+        out rend,
+        ref width,
+        ref height,
+        ref superSampling);  // 'param' will be fetched from the Form
+
       if (preprocessing ||
           sc != null)
         return sc;

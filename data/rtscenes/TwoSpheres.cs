@@ -10,13 +10,39 @@ Dictionary<string, string> p = Util.ParseKeyValueList(param);
 double n = 1.6;
 Util.TryParse(p, "n", ref n);
 
+// mat = {mirror|glass|diffuse}
+PhongMaterial pm = new PhongMaterial(new double[] {0.0, 0.2, 0.1}, 0.05, 0.05, 0.1, 128);
+pm.n  = n;
+pm.Kt = 0.9;
+
+if (p.TryGetValue("mat", out string mat))
+  switch (mat)
+  {
+    case "diffuse":
+      pm = new PhongMaterial(new double[] {0.1, 0.1, 0.6}, 0.1, 0.8, 0.2, 16);
+      break;
+
+    case "mirror":
+      pm = new PhongMaterial(new double[] {1.0, 1.0, 0.8}, 0.01, 0.0, 1.1, 8192);
+      break;
+
+    default:
+    case "glass":
+      break;
+  }
+
 if (context != null)
 {
+  // Let renderer application know required parameters soon..
+  context[PropertyName.CTX_WIDTH]         = 640; // 1800, 1920
+  context[PropertyName.CTX_HEIGHT]        = 480; // 1200, 1080
+  context[PropertyName.CTX_SUPERSAMPLING] =   4; //  400,   64
+
   // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-  preprocessing = !context.ContainsKey("ToolTip");
+  preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
   if (preprocessing)
   {
-    context["ToolTip"] = "n=<double> (index of refraction)";
+    context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rmat={mirror|glass|diffuse}}";
     return;
   }
 }
@@ -29,11 +55,12 @@ if (scene.BackgroundColor != null)
 
 CSGInnerNode root = new CSGInnerNode(SetOperation.Union);
 root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
-root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.8, 0.1}, 0.1, 0.6, 0.4, 128));
+root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.7, 0.1}, 0.1, 0.7, 0.3, 128));
 scene.Intersectable = root;
 
 // Background color.
-scene.BackgroundColor = new double[] {0.0, 0.05, 0.07};
+scene.BackgroundColor = new double[] {0.0, 0.01, 0.03};
+scene.Background = new DefaultBackground(scene.BackgroundColor);
 
 // Camera.
 scene.Camera = new StaticCamera(new Vector3d(0.7, 0.5, -5.0),
@@ -47,12 +74,9 @@ scene.Sources.Add(new PointLightSource(new Vector3d(-5.0, 4.0, -3.0), 1.2));
 
 // --- NODE DEFINITIONS ----------------------------------------------------
 
-// Transparent sphere.
+// Transparent/mirror/diffuse sphere.
 Sphere s;
 s = new Sphere();
-PhongMaterial pm = new PhongMaterial(new double[] {0.0, 0.2, 0.1}, 0.05, 0.05, 0.1, 128);
-pm.n = n;
-pm.Kt = 0.9;
 s.SetAttribute(PropertyName.MATERIAL, pm);
 root.InsertChild(s, Matrix4d.Identity);
 
