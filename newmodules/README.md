@@ -35,7 +35,7 @@ Switch to the **summer2019-2020** branch because in that branch new extensions o
 
 Check time to time new updates from the GitHub using the
 ```
-git pull upstream master
+git pull upstream summer2019-2020
 ```
 (this needs checking on the actual "Forked" GitHub repository)
 
@@ -103,9 +103,9 @@ for more information):
 
 8. **loc** Time to time you should check the original GitHub repo and pull updates from there
    ```
-   git pull upstream master
+   git pull upstream summer2019-2020
    ```
-   Or use the **Pull** command in **TortoiseGIT** with proper settings (`Remote URL = upstream`)
+   Or use the **Pull** command in **TortoiseGIT** with proper settings (`Remote URL = upstream` and `Remote Branch = summer2019-2020`)
 
 9. **lab** Eventually, you will be prompted to **publish your extensions**. You'll do it just by setting
    your repository's visibility from **Private** to **Internal** (for logged-in users) or
