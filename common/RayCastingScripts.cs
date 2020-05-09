@@ -178,6 +178,8 @@ namespace Rendering
     public static void ContextInit (
       in ScriptContext ctx,
       in DefaultRayScene sc = null,
+      in int width = 640,
+      in int height = 480,
       in int superSampling = 0,
       in double minTime = 0.0,
       in double maxTime = 10.0)
@@ -186,23 +188,27 @@ namespace Rendering
 
       // Scene.
       if (sc != null)
-        ctx["Scene"] = sc;
+        ctx[PropertyName.CTX_SCENE] = sc;
       else
-        if (!ctx.ContainsKey("Scene") ||
-            ctx["Scene"] == null)
-          ctx["Scene"] = new DefaultRayScene();
+        if (!ctx.ContainsKey(PropertyName.CTX_SCENE) ||
+            ctx[PropertyName.CTX_SCENE] == null)
+          ctx[PropertyName.CTX_SCENE] = new DefaultRayScene();
 
-      ctx.Remove("Algorithm");
-      ctx.Remove("Synth");
+      ctx.Remove(PropertyName.CTX_ALGORITHM);
+      ctx.Remove(PropertyName.CTX_SYNTHESIZER);
+
+      // Resolution.
+      ctx[PropertyName.CTX_WIDTH]  = width;
+      ctx[PropertyName.CTX_HEIGHT] = height;
 
       // SuperSampling.
-      ctx["SuperSampling"] = superSampling;
+      ctx[PropertyName.CTX_SUPERSAMPLING] = superSampling;
 
       // Start.
-      ctx["Start"] = minTime;
+      ctx[PropertyName.CTX_START_ANIM] = minTime;
 
       // End.
-      ctx["End"] = maxTime;
+      ctx[PropertyName.CTX_END_ANIM] = maxTime;
     }
 
     /// <summary>
@@ -219,42 +225,52 @@ namespace Rendering
       out IImageFunction imf,
       out IRenderer rend,
       out string tooltip,
+      ref int width,
+      ref int height,
+      ref int superSampling,
       out double minTime,
       out double maxTime)
     {
       Debug.Assert(ctx != null);
 
-      imf = null;
-      rend = null;
+      imf     = null;
+      rend    = null;
       tooltip = "";
       minTime = 0.0;
       maxTime = 10.0;
 
       // Scene.
-      if (!ctx.TryGetValue("Scene", out object o) ||
+      if (!ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) ||
           !(o is DefaultRayScene))
         return null;
 
       // IImageFunction.
-      if (ctx.TryGetValue("Algorithm", out object o1) &&
+      if (ctx.TryGetValue(PropertyName.CTX_ALGORITHM, out object o1) &&
           o1 is IImageFunction)
         imf = o1 as IImageFunction;
 
       // IRenderer.
-      if (ctx.TryGetValue("Synth", out o1) &&
+      if (ctx.TryGetValue(PropertyName.CTX_SYNTHESIZER, out o1) &&
           o1 is IRenderer)
         rend = o1 as IRenderer;
 
       // Tooltip.
-      if (ctx.TryGetValue("ToolTip", out o1) &&
+      if (ctx.TryGetValue(PropertyName.CTX_TOOLTIP, out o1) &&
           o1 is string)
         tooltip = o1 as string;
 
+      // Resolution.
+      Util.TryParse(ctx, PropertyName.CTX_WIDTH,  ref width);
+      Util.TryParse(ctx, PropertyName.CTX_HEIGHT, ref height);
+
+      // Super-sampling.
+      Util.TryParse(ctx, PropertyName.CTX_SUPERSAMPLING, ref superSampling);
+
       // Start.
-      Util.TryParse(ctx, "Start", ref minTime);
+      Util.TryParse(ctx, PropertyName.CTX_START_ANIM, ref minTime);
 
       // End.
-      Util.TryParse(ctx, "End", ref maxTime);
+      Util.TryParse(ctx, PropertyName.CTX_END_ANIM, ref maxTime);
 
       return o as DefaultRayScene;
     }
@@ -277,11 +293,11 @@ namespace Rendering
       Debug.Assert(ctx != null);
 
       DefaultRayScene sc;
-      if (ctx.TryGetValue("Scene", out object o) &&
+      if (ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) &&
           o is DefaultRayScene)
         sc = o as DefaultRayScene;
       else
-        ctx["Scene"] = sc = new DefaultRayScene();
+        ctx[PropertyName.CTX_SCENE] = sc = new DefaultRayScene();
 
       string scriptFileName = definition as string;
       string scriptSource = null;
