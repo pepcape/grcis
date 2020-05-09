@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using MathSupport;
 using OpenTK;
-using Rendering;
 using Utilities;
 
 namespace Rendering
@@ -54,15 +53,21 @@ namespace Rendering
       in bool preprocessing,
       out IImageFunction imf,
       out IRenderer rend,
-      int superSampling,
+      ref int width,
+      ref int height,
+      ref int superSampling,
       string param)
     {
       // 'superSampling' not used here but it could be if IRenderer is created here.
       // 'param'         - ditto -
+      // ActualWidth & ActualHeight can be modified by this call!
       return Form1.singleton.SceneByComboBox(
         preprocessing,
         out imf,
-        out rend);
+        out rend,
+        ref width,
+        ref height,
+        ref superSampling);
     }
 
     /// <summary>
