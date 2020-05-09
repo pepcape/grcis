@@ -317,7 +317,7 @@ namespace MathSupport
     }
 
     /// <summary>
-    /// Conversion from Radiance's RGBe 32-bit format into HDR floating-point RGB format. 
+    /// Conversion from Radiance's RGBe 32-bit format into HDR floating-point RGB format.
     /// </summary>
     public static void RGBeToRGB (byte[] rgbe, int startRgbe, float[] rgb, int startRgb)
     {
@@ -814,20 +814,20 @@ namespace MathSupport
   /// </summary>
   public class RandomStatic
   {
-    protected const long BITS_32 = 0xffffffffL;
-    protected const long BITS_31 = 0x7fffffffL;
+    protected const ulong BITS_32 = 0xffffffffL;
+    protected const ulong BITS_31 = 0x7fffffffL;
 
     /// <summary>
     /// LCG pseudo-random generator from "Numeric Recipes in C".
     /// </summary>
     /// <param name="v">Random seed.</param>
     /// <returns>The next pseudo-random number in the sequence.</returns>
-    public static long numericRecipes (long v)
+    public static ulong numericRecipes (ulong v)
     {
       return ((v * 1664525L + 1013904223L) & BITS_32);
     }
 
-    public static long numericRecipesMax ()
+    public static ulong numericRecipesMax ()
     {
       return BITS_32 + 1L;
     }
@@ -838,12 +838,12 @@ namespace MathSupport
     /// </summary>
     /// <param name="v">Random seed.</param>
     /// <returns>The next pseudo-random number in the sequence.</returns>
-    public static long ibmRandu (long v)
+    public static ulong ibmRandu (ulong v)
     {
       return ((v * 65539L) & BITS_31);
     }
 
-    public static long ibmRanduMax ()
+    public static ulong ibmRanduMax ()
     {
       return BITS_31 + 1L;
     }
@@ -857,12 +857,12 @@ namespace MathSupport
     /// </summary>
     /// <param name="v">Random seed.</param>
     /// <returns>The next pseudo-random number in the sequence.</returns>
-    public static long parkMiller (long v)
+    public static ulong parkMiller (ulong v)
     {
       return ((v * 16807L) % BITS_31);
     }
 
-    public static long parkMillerMax ()
+    public static ulong parkMillerMax ()
     {
       return BITS_31;
     }
@@ -872,12 +872,12 @@ namespace MathSupport
     /// </summary>
     /// <param name="v">Random seed.</param>
     /// <returns>The next pseudo-random number in the sequence.</returns>
-    public static long maple (long v)
+    public static ulong maple (ulong v)
     {
-      return ((v * 427419669081L) % 999999999989L);
+      return ((v * 427419669081UL) % 999999999989UL);
     }
 
-    public static long mapleMax ()
+    public static ulong mapleMax ()
     {
       return 999999999989L;
     }
