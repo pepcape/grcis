@@ -206,6 +206,20 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Copies one color array to another.
+    /// </summary>
+    /// <param name="src">Source array</param>
+    /// <param name="dst">Destination array</param>
+    public static void ColorCopy (double[] src, double[] dst)
+    {
+      Debug.Assert(src != null && dst != null);
+
+      Array.Copy(src, dst, Math.Min(src.Length, dst.Length));
+      if (src.Length < dst.Length)
+        Array.Clear(dst, src.Length, dst.Length - src.Length);
+    }
+
+    /// <summary>
     /// Hexa-coded color, not quoted.
     /// </summary>
     /// <returns>#RRGGBB</returns>

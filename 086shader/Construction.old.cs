@@ -97,7 +97,7 @@ namespace Scene3D
       scene.SetTxtCoord( v[ 3 ], new Vector2( 0.0f, 1.0f ) );
 
       // colors:
-      long seed = (long)Math.Min( long.MaxValue, (m.Row3.LengthSquared * 10000.0f) );
+      ulong seed = (ulong)Math.Min( ulong.MaxValue, (m.Row3.LengthSquared * 10000.0f) );
       seed = RandomStatic.numericRecipes( seed );
       float r = (seed & 255) / 255.0f;
       seed = RandomStatic.numericRecipes( seed );
