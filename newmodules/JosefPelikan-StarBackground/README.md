@@ -2,22 +2,24 @@
 
 ![Example](up640.jpg)
 
-### Author: Josef Pelikán
+### Author: Josef Pelikn
 
 ### Category: Background
-
-### ITimeDependent: No
 
 ### Namespace: JosefPelikan
 
 ### Class name: StarBackground : DefaultBackground
+
+### ITimeDependent: No
+
+### Source file: StarBackground.cs
 
 This extensions implements an alternative scene background simulation a skydome full of stars.
 Deterministic random algorithm places "stars" randomly, star properties which can
 vary:
 
 1. brightness (star "size")
-\
+
 2. Color
 
 User is able to define a couple of parameters:
