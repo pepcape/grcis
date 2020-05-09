@@ -54,9 +54,19 @@ namespace Rendering
     public int ImageWidth = 0;
 
     /// <summary>
+    /// Actual (computed) image width in pixels.
+    /// </summary>
+    public int ActualWidth = 640;
+
+    /// <summary>
     /// Image height in pixels, 0 for default value (according to panel size).
     /// </summary>
     public int ImageHeight = 0;
+
+    /// <summary>
+    /// Actual (computed) image height in pixels.
+    /// </summary>
+    public int ActualHeight = 480;
 
     /// <summary>
     /// Global stopwatch for rendering thread. Locked access.
@@ -109,7 +119,7 @@ namespace Rendering
       SetWindowTitleSuffix(" Zoom: 100%");
 
       SetOptions(args);
-      buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
+      UpdateResolutionButton();
 
       // Placeholder image for PictureBox.
       Image image = Resources.CGG_Logo;
@@ -136,7 +146,10 @@ namespace Rendering
     public IRayScene SceneByComboBox (
       bool preprocessing,
       out IImageFunction imf,
-      out IRenderer rend)
+      out IRenderer rend,
+      ref int width,
+      ref int height,
+      ref int superSampling)
     {
       string sceneName = (string)ComboScene.Items[selectedScene];
 
@@ -149,7 +162,9 @@ namespace Rendering
         Scripts.ContextInit(
           ctx,
           null,
-          (int)NumericSupersampling.Value);
+          width,
+          height,
+          superSampling);
 
         Scripts.SceneFromObject(
           ctx,
@@ -164,6 +179,9 @@ namespace Rendering
           out imf,
           out rend,
           out tooltip,
+          ref width,
+          ref height,
+          ref superSampling,
           out _, out _);
       }
 
@@ -284,6 +302,7 @@ namespace Rendering
       return FormSupport.getRenderer((int)NumericSupersampling.Value, CheckJitter.Checked ? 1.0 : 0.0, TextParam.Text);
     }
 
+#if OLD
     /// <summary>
     /// [Re]-renders the whole image (in separate thread). OLD VERSION!!!
     /// </summary>
@@ -388,6 +407,7 @@ namespace Rendering
 
       StopRendering();
     }
+#endif
 
     /// <summary>
     /// [Re]-renders the whole image (in separate thread)
@@ -397,24 +417,51 @@ namespace Rendering
       Cursor.Current = Cursors.WaitCursor;
 
       // determine output image size:
-      int width = ImageWidth;
-      if (width <= 0)
-        width = panel1.Width;
+      ActualWidth = ImageWidth;
+      if (ActualWidth <= 0)
+        ActualWidth = panel1.Width;
 
-      int height = ImageHeight;
-      if (height <= 0)
-        height = panel1.Height;
+      ActualHeight = ImageHeight;
+      if (ActualHeight <= 0)
+        ActualHeight = panel1.Height;
 
       int superSampling = (int)NumericSupersampling.Value;
-      Bitmap newImage = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-
-      int threads = CheckMultithreading.Checked ? Environment.ProcessorCount : 1;
 
       // 1. preprocessing - compute simulation, animation data, etc.
-      _ = FormSupport.getScene(true, out _, out _, superSampling, TextParam.Text);
+      _ = FormSupport.getScene(
+        true,
+        out _, out _,
+        ref ActualWidth,
+        ref ActualHeight,
+        ref superSampling,
+        TextParam.Text);
 
       // 2. compute regular frame (using the pre-computed context).
-      IRayScene scene = FormSupport.getScene(false, out IImageFunction imf, out IRenderer rend, superSampling, TextParam.Text);
+      IRayScene scene = FormSupport.getScene(
+        false,
+        out IImageFunction imf,
+        out IRenderer rend,
+        ref ActualWidth,
+        ref ActualHeight,
+        ref superSampling,
+        TextParam.Text);
+
+      // Update additional views.
+      if (collectDataCheckBox.Checked)
+      {
+        additionalViews.SetNewDimensions(ActualWidth, ActualHeight);
+        additionalViews.NewRenderInitialization();
+      }
+      else if (!additionalViews.mapsEmpty)
+        additionalViews.form?.ExportDataButtonsEnabled(true);
+
+      if (ImageWidth > 0)   // preserving default (form-size) resolution
+      {
+        ImageWidth  = ActualWidth;
+        ImageHeight = ActualHeight;
+        UpdateResolutionButton();
+      }
+      UpdateSupersampling(superSampling);
 
       // IImageFunction.
       if (imf == null)      // not defined in the script
@@ -422,19 +469,22 @@ namespace Rendering
       else
         if (imf is RayCasting imfray)
           imfray.Scene = scene;
-      imf.Width = width;
-      imf.Height = height;
+      imf.Width  = ActualWidth;
+      imf.Height = ActualHeight;
 
       // IRenderer.
       if (rend == null)     // not defined in the script
         rend = getRenderer();
       rend.ImageFunction = imf;
-      rend.Width = width;
-      rend.Height = height;
-      rend.Adaptive = 0;    // 8?
-      rend.ProgressData = progress;
+      rend.Width         = ActualWidth;
+      rend.Height        = ActualHeight;
+      rend.Adaptive      = 0;    // 8?
+      rend.ProgressData  = progress;
 
+      // Almost ready for new image computation.
       rayVisualizer.UpdateScene(scene);
+      Bitmap newImage = new Bitmap(ActualWidth, ActualHeight, PixelFormat.Format24bppRgb);
+      int threads = CheckMultithreading.Checked ? Environment.ProcessorCount : 1;
 
       master = new Master(
         newImage,
@@ -451,7 +501,7 @@ namespace Rendering
       if (pointCloudCheckBox.Checked)
         master.pointCloud?.SetNecessaryFields(PointCloudSavingStart, PointCloudSavingEnd, Notification, Invoke);
 
-      progress.SyncInterval = ((width * (long)height) > (2L << 20)) ? 3000L : 1000L;
+      progress.SyncInterval = ((ActualWidth * (long)ActualHeight) > (2L << 20)) ? 3000L : 1000L;
       progress.Reset();
       CSGInnerNode.ResetStatistics();
 
@@ -469,7 +519,7 @@ namespace Rendering
 
       string msg = string.Format(CultureInfo.InvariantCulture,
                                  "{0:f1}s  [ {1}x{2}, mt{3}, r{4:#,#}k, i{5:#,#}k, bb{6:#,#}k, t{7:#,#}k ]",
-                                 1.0e-3 * elapsed, width, height, threads,
+                                 1.0e-3 * elapsed, ActualWidth, ActualHeight, threads,
                                  (Intersection.countRays + 500L) / 1000L,
                                  (Intersection.countIntersections + 500L) / 1000L,
                                  (CSGInnerNode.countBoundingBoxes + 500L) / 1000L,
@@ -502,6 +552,8 @@ namespace Rendering
       buttonSave.Enabled = enable;
 
       buttonStop.Enabled = !enable;
+
+      additionalViews.form?.RenderButtonsEnabled(enable);
 
       if (MT.pointCloudSavingInProgress)
       {
@@ -542,6 +594,32 @@ namespace Rendering
       }
       else
         labelElapsed.Text = text;
+    }
+
+    delegate void UpdateResolutionCallback ();
+
+    protected void UpdateResolutionButton ()
+    {
+      if (buttonRes.InvokeRequired)
+      {
+        UpdateResolutionCallback ur = new UpdateResolutionCallback(UpdateResolutionButton);
+        BeginInvoke(ur);
+      }
+      else
+        buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
+    }
+
+    delegate void UpdateSupersamplingCallback (int superSampling);
+
+    protected void UpdateSupersampling (int superSampling)
+    {
+      if (NumericSupersampling.InvokeRequired)
+      {
+        UpdateSupersamplingCallback us = new UpdateSupersamplingCallback(UpdateSupersampling);
+        BeginInvoke(us, new object[] { superSampling });
+      }
+      else
+        NumericSupersampling.Value = superSampling;
     }
 
     private delegate void StopRenderingCallback ();
@@ -602,36 +680,42 @@ namespace Rendering
       rayVisualizer.Reset();
 
       // determine output image size:
-      int width = ImageWidth;
-      if (width <= 0)
-        width = panel1.Width;
-      int height = ImageHeight;
-      if (height <= 0)
-        height = panel1.Height;
+      ActualWidth = ImageWidth;
+      if (ActualWidth <= 0)
+        ActualWidth = panel1.Width;
+      ActualHeight = ImageHeight;
+      if (ActualHeight <= 0)
+        ActualHeight = panel1.Height;
 
       if (dirty || imfs == null)
       {
+        int ss = 1;
         IRayScene rs = FormSupport.getScene(
           false,
           out imfs,
           out IRenderer rend,
-          1,
+          ref ActualWidth,
+          ref ActualHeight,
+          ref ss,
           TextParam.Text);
 
         // IImageFunction.
         if (imfs == null)      // not defined in the script
           imfs = getImageFunction(imfs, rs);
-        imfs.Width = width;
-        imfs.Height = height;
+        else
+          if (imfs is RayCasting imfray)
+            imfray.Scene = rs;
+        imfs.Width  = ActualWidth;
+        imfs.Height = ActualHeight;
 
         // IRenderer.
         if (rend == null)     // not defined in the script
           rend = getRenderer();
         rend.ImageFunction = imfs;
-        rend.Width = width;
-        rend.Height = height;
-        rend.Adaptive = 0;    // 8?
-        rend.ProgressData = progress;
+        rend.Width         = ActualWidth;
+        rend.Height        = ActualHeight;
+        rend.Adaptive      = 0;    // 8?
+        rend.ProgressData  = progress;
 
         dirty = false;
       }
@@ -681,7 +765,7 @@ namespace Rendering
               case "supersampling":
               {
                 if (int.TryParse(opts[1], out int v))
-                  NumericSupersampling.Text = v.ToString();
+                  NumericSupersampling.Value = v;
               }
               break;
             }
@@ -693,29 +777,20 @@ namespace Rendering
       FormResolution form = new FormResolution(ImageWidth, ImageHeight);
       if (form.ShowDialog() == DialogResult.OK)
       {
-        ImageWidth = form.ImageWidth;
+        ImageWidth  = form.ImageWidth;
         ImageHeight = form.ImageHeight;
-        buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
+        UpdateResolutionButton();
       }
     }
 
     private void buttonRender_Click (object sender, EventArgs e)
     {
-      if (collectDataCheckBox.Checked)
-      {
-        additionalViews.SetNewDimensions(ImageWidth, ImageHeight);
-        additionalViews.NewRenderInitialization();
-      }
-      else if (!additionalViews.mapsEmpty)
-        additionalViews.form?.ExportDataButtonsEnabled(true);
-
       if (aThread != null)
         return;
 
       // GUI stuff:
       SetGUI(false);
 
-      additionalViews.form?.RenderButtonsEnabled(false);
       MT.renderingInProgress = true;
       Statistics.Reset();
 

@@ -84,7 +84,10 @@ namespace _062animation
     public IRayScene SceneFromScript (
       bool preprocessing,
       out IImageFunction imf,
-      out IRenderer rend)
+      out IRenderer rend,
+      ref int width,
+      ref int height,
+      ref int superSampling)
     {
       if (string.IsNullOrEmpty(sceneFileName))
       {
@@ -100,7 +103,9 @@ namespace _062animation
       Scripts.ContextInit(
         ctx,
         preprocessing ? new AnimatedRayScene() : null,
-        (int)numericSupersampling.Value,
+        width,
+        height,
+        superSampling,
         0.0,
         20.0);
 
@@ -117,6 +122,9 @@ namespace _062animation
         out imf,
         out rend,
         out tooltip,
+        ref width,
+        ref height,
+        ref superSampling,
         out double minTime,
         out double maxTime);
 
@@ -135,33 +143,58 @@ namespace _062animation
 
       EnableRendering(false);
 
-      width = ImageWidth;
-      if (width <= 0)
-        width = panel1.Width;
-      height = ImageHeight;
-      if (height <= 0)
-        height = panel1.Height;
+      ActualWidth = ImageWidth;
+      if (ActualWidth <= 0)
+        ActualWidth = panel1.Width;
+      ActualHeight = ImageHeight;
+      if (ActualHeight <= 0)
+        ActualHeight = panel1.Height;
+
       superSampling = (int)numericSupersampling.Value;
-      outputImage = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
       // 1. preprocessing - compute simulation, animation data, etc.
-      _ = FormSupport.getScene(true, out _, out _, superSampling, textParam.Text);
+      _ = FormSupport.getScene(
+        true,
+        out _, out _,
+        ref ActualWidth,
+        ref ActualHeight,
+        ref superSampling,
+        textParam.Text);
 
       // 2. compute regular frame (using the pre-computed context).
-      IRayScene scene = FormSupport.getScene(false, out IImageFunction imf, out IRenderer rend, superSampling, textParam.Text);
+      IRayScene scene = FormSupport.getScene(
+        false,
+        out IImageFunction imf,
+        out IRenderer rend,
+        ref ActualWidth,
+        ref ActualHeight,
+        ref superSampling,
+        textParam.Text);
+
+      // Update GUI.
+      if (ImageWidth > 0)   // preserving default (form-size) resolution
+      {
+        ImageWidth  = ActualWidth;
+        ImageHeight = ActualHeight;
+        UpdateResolutionButton();
+      }
+      UpdateSupersampling(superSampling);
 
       // IImageFunction.
       if (imf == null)      // not defined in the script
         imf = FormSupport.getImageFunction(scene);
-      imf.Width  = width;
-      imf.Height = height;
+      else
+        if (imf is RayCasting imfrc)
+          imfrc.Scene = scene;
+      imf.Width  = ActualWidth;
+      imf.Height = ActualHeight;
 
       // IRenderer.
       if (rend == null)        // not defined in the script
         rend = FormSupport.getRenderer(superSampling);
       rend.ImageFunction = imf;
-      rend.Width         = width;
-      rend.Height        = height;
+      rend.Width         = ActualWidth;
+      rend.Height        = ActualHeight;
       rend.Adaptive      = 0;
       rend.ProgressData  = progress;
       progress.Continue  = true;
@@ -170,11 +203,14 @@ namespace _062animation
       if (scene is ITimeDependent sc)
         sc.Time = (double)numTime.Value;
 
+      // Output image.
+      outputImage = new Bitmap(ActualWidth, ActualHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
       MT.InitThreadData();
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      rend.RenderRectangle(outputImage, 0, 0, width, height);
+      rend.RenderRectangle(outputImage, 0, 0, ActualWidth, ActualHeight);
 
       sw.Stop();
       labelElapsed.Text = string.Format("Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds);
@@ -213,6 +249,32 @@ namespace _062animation
       }
       else
         labelElapsed.Text = text;
+    }
+
+    delegate void UpdateResolutionCallback ();
+
+    protected void UpdateResolutionButton ()
+    {
+      if (buttonRes.InvokeRequired)
+      {
+        UpdateResolutionCallback ur = new UpdateResolutionCallback(UpdateResolutionButton);
+        BeginInvoke(ur);
+      }
+      else
+        buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
+    }
+
+    delegate void UpdateSupersamplingCallback (int superSampling);
+
+    protected void UpdateSupersampling (int superSampling)
+    {
+      if (numericSupersampling.InvokeRequired)
+      {
+        UpdateSupersamplingCallback us = new UpdateSupersamplingCallback(UpdateSupersampling);
+        BeginInvoke(us, new object[] {superSampling});
+      }
+      else
+        numericSupersampling.Value = superSampling;
     }
 
     delegate void StopAnimationCallback ();
@@ -257,7 +319,7 @@ namespace _062animation
       }
       Text += " (rev: " + rev + ") '" + name + '\'';
 
-      buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
+      UpdateResolutionButton();
     }
 
     private void buttonRes_Click (object sender, EventArgs e)
@@ -265,9 +327,9 @@ namespace _062animation
       FormResolution form = new FormResolution(ImageWidth, ImageHeight);
       if (form.ShowDialog() == DialogResult.OK)
       {
-        ImageWidth = form.ImageWidth;
+        ImageWidth  = form.ImageWidth;
         ImageHeight = form.ImageHeight;
-        buttonRes.Text = FormResolution.GetLabel(ref ImageWidth, ref ImageHeight);
+        UpdateResolutionButton();
       }
     }
 
@@ -296,12 +358,12 @@ namespace _062animation
     /// <summary>
     /// Frame width in pixels.
     /// </summary>
-    protected int width;
+    protected int ActualWidth;
 
     /// <summary>
     /// Frame height in pixels.
     /// </summary>
-    protected int height;
+    protected int ActualHeight;
 
     /// <summary>
     /// Time of the last frame.
@@ -380,21 +442,21 @@ namespace _062animation
 
       // Global animation properties (it's safe to access GUI components here):
       time = (double)numFrom.Value;
-      end = (double)numTo.Value;
+      end  = (double)numTo.Value;
       if (end <= time)
         end = time + 1.0;
+
       double fps = (double)numFps.Value;
       dt = (fps > 0.0) ? 1.0 / fps : 25.0;
       end += 0.5 * dt;
       frameNumber = 0;
 
-      width = ImageWidth;
-      if (width <= 0)
-        width = panel1.Width;
-      height = ImageHeight;
-      if (height <= 0)
-        height = panel1.Height;
-      superSampling = (int)numericSupersampling.Value;
+      ActualWidth = ImageWidth;
+      if (ActualWidth <= 0)
+        ActualWidth = panel1.Width;
+      ActualHeight = ImageHeight;
+      if (ActualHeight <= 0)
+        ActualHeight = panel1.Height;
 
       // Start main rendering thread:
       aThread = new Thread(new ThreadStart(RenderAnimation));
@@ -449,7 +511,13 @@ namespace _062animation
       WorkerThreadInit[] wti = new WorkerThreadInit[threads];
 
       // 1. preprocessing - compute simulation, animation data, etc.
-      FormSupport.getScene(true, out _, out _, superSampling, textParam.Text);
+      FormSupport.getScene(
+        true,
+        out _, out _,
+        ref ActualWidth,
+        ref ActualHeight,
+        ref superSampling,
+        textParam.Text);
 
       for (t = 0; t < threads; t++)
       {
@@ -458,8 +526,22 @@ namespace _062animation
           false,
           out IImageFunction imf,
           out IRenderer rend,
-          superSampling,
+          ref ActualWidth,
+          ref ActualHeight,
+          ref superSampling,
           textParam.Text);
+
+        if (t == 0)
+        {
+          // Update GUI.
+          if (ImageWidth > 0)   // preserving default (form-size) resolution
+          {
+            ImageWidth  = ActualWidth;
+            ImageHeight = ActualHeight;
+            UpdateResolutionButton();
+          }
+          UpdateSupersampling(superSampling);
+        }
 
         if (sc is ITimeDependent sca)
           sc = (IRayScene)sca.Clone();
@@ -470,19 +552,19 @@ namespace _062animation
         else
           if (imf is RayCasting imfray)
             imfray.Scene = sc;
-        imf.Width = width;
-        imf.Height = height;
+        imf.Width  = ActualWidth;
+        imf.Height = ActualHeight;
 
         // IRenderer.
         if (rend == null)   // not defined in the script
           rend = FormSupport.getRenderer(superSampling);
         rend.ImageFunction = imf;
-        rend.Width = width;
-        rend.Height = height;
-        rend.Adaptive = 0;   // turn off adaptive bitmap synthesis completely (interactive preview not needed)
-        rend.ProgressData = progress;
+        rend.Width         = ActualWidth;
+        rend.Height        = ActualHeight;
+        rend.Adaptive      = 0;   // turn off adaptive bitmap synthesis completely (interactive preview not needed)
+        rend.ProgressData  = progress;
 
-        wti[t] = new WorkerThreadInit(rend, sc as ITimeDependent, imf as ITimeDependent, width, height);
+        wti[t] = new WorkerThreadInit(rend, sc as ITimeDependent, imf as ITimeDependent, ActualWidth, ActualHeight);
       }
 
       initQueue();
