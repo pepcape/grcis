@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using MathSupport;
 using OpenTK;
+using Utilities;
 
 namespace Rendering
 {
@@ -716,6 +717,7 @@ namespace Rendering
   /// <summary>
   /// Rectangle light source with intensity attenuation.
   /// </summary>
+  [Serializable]
   public class RectangleLightSource : PointLightSource
   {
     /// <summary>
@@ -864,6 +866,67 @@ namespace Rendering
         result[i] = intensity[i] * dimCoef;
 
       return result;
+    }
+  }
+
+  /// <summary>
+  /// Default Background implementation - constant color defined
+  /// by 'IRayScene.BackgroundColor'
+  /// </summary>
+  [Serializable]
+  public class DefaultBackground : IBackground
+  {
+    protected static readonly double[] DEFAULT = {0.0, 0.02, 0.03};
+
+    /// <summary>
+    /// Reference to the scene object ()
+    /// </summary>
+    protected IRayScene scene;
+
+    public IRayScene Scene
+    {
+      get => scene;
+      set => scene = value;
+    }
+
+    public double[] Color;
+
+    public DefaultBackground (in double[] color)
+    {
+      scene = null;
+      Color = null;
+      if (color == null ||
+          color.Length < 1)
+        return;
+
+      Color = (double[])color.Clone();
+    }
+
+    public DefaultBackground (in IRayScene rtsc = null)
+    {
+      scene = rtsc;
+      Color = null;
+    }
+
+    /// <summary>
+    /// Returns background color = function of direction vector.
+    /// </summary>
+    /// <param name="p1">Direction vector</param>
+    /// <param name="color">Output color</param>
+    public virtual long GetColor (Vector3d p1, double[] color)
+    {
+      if (scene != null &&
+          scene.BackgroundColor != null &&
+          scene.BackgroundColor.Length > 0)
+        Util.ColorCopy(scene.BackgroundColor, color);
+      else
+      if (Color != null &&
+          Color.Length > 0)
+        Util.ColorCopy(Color, color);
+      else
+        Util.ColorCopy(DEFAULT, color);
+
+      return 1L;
     }
   }
 
@@ -1082,11 +1145,11 @@ namespace Rendering
       long vi = (long)Math.Floor(v);
 
       if (((ui + vi) & 1) != 0)
-        Array.Copy(Color2, inter.SurfaceColor, Math.Min(Color2.Length, inter.SurfaceColor.Length));
+        Util.ColorCopy(Color2, inter.SurfaceColor);
 
       inter.textureApplied = true; // warning - this changes textureApplied bool even when only one texture was applied - not all of them
 
-      return (ui + RandomStatic.numericRecipes(vi));
+      return ui + (long)RandomStatic.numericRecipes((ulong)vi);
     }
   }
 }

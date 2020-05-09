@@ -246,6 +246,19 @@ namespace Rendering
   }
 
   /// <summary>
+  /// Object providing bacground color for a ray-based rendering.
+  /// </summary>
+  public interface IBackground
+  {
+    /// <summary>
+    /// Returns background color = function of direction vector.
+    /// </summary>
+    /// <param name="p1">Direction vector</param>
+    /// <param name="c">Pre-allocated output color</param>
+    long GetColor (Vector3d p1, double[] c);
+  }
+
+  /// <summary>
   /// Data container for Ray-based scene rendering: complete scene definition including camera.
   /// </summary>
   public interface IRayScene
@@ -256,7 +269,12 @@ namespace Rendering
     IIntersectable Intersectable { get; set; }
 
     /// <summary>
-    /// Background color.
+    /// Background color object.
+    /// </summary>
+    IBackground Background { get; set; }
+
+    /// <summary>
+    /// Constant background color.
     /// </summary>
     double[] BackgroundColor { get; set; }
 
