@@ -6,12 +6,13 @@ bool preprocessing = false;
 if (context != null)
 {
   // Let renderer application know required parameters soon..
-  context[PropertyName.CTX_WIDTH]         = 640;    // whatever is convenient for your debugging/testing/final rendering
-  context[PropertyName.CTX_HEIGHT]        = 480;
+  context[PropertyName.CTX_WIDTH]         = 320;    // whatever is convenient for your debugging/testing/final rendering
+  context[PropertyName.CTX_HEIGHT]        = 180;
   context[PropertyName.CTX_SUPERSAMPLING] =   4;
 
   context[PropertyName.CTX_START_ANIM]    =  0.0;
   context[PropertyName.CTX_END_ANIM]      = 20.0;
+  context[PropertyName.CTX_FPS]           = 25.0;
 
   // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
   preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);

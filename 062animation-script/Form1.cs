@@ -87,7 +87,10 @@ namespace _062animation
       out IRenderer rend,
       ref int width,
       ref int height,
-      ref int superSampling)
+      ref int superSampling,
+      ref double minTime,
+      ref double maxTime,
+      ref double fps)
     {
       if (string.IsNullOrEmpty(sceneFileName))
       {
@@ -106,8 +109,9 @@ namespace _062animation
         width,
         height,
         superSampling,
-        0.0,
-        20.0);
+        minTime,
+        maxTime,
+        fps);
 
       Scripts.SceneFromObject(
         ctx,
@@ -125,11 +129,9 @@ namespace _062animation
         ref width,
         ref height,
         ref superSampling,
-        out double minTime,
-        out double maxTime);
-
-      numFrom.Value = (decimal)minTime;
-      numTo.Value   = (decimal)maxTime;
+        ref minTime,
+        ref maxTime,
+        ref fps);
 
       return scene;
     }
@@ -150,7 +152,10 @@ namespace _062animation
       if (ActualHeight <= 0)
         ActualHeight = panel1.Height;
 
-      superSampling = (int)numericSupersampling.Value;
+      superSampling  = (int)numericSupersampling.Value;
+      double minTime = (double)numFrom.Value;
+      double maxTime = (double)numTo.Value;
+      double fps     = (double)numFps.Value;
 
       // 1. preprocessing - compute simulation, animation data, etc.
       _ = FormSupport.getScene(
@@ -159,6 +164,9 @@ namespace _062animation
         ref ActualWidth,
         ref ActualHeight,
         ref superSampling,
+        ref minTime,
+        ref maxTime,
+        ref fps,
         textParam.Text);
 
       // 2. compute regular frame (using the pre-computed context).
@@ -169,6 +177,9 @@ namespace _062animation
         ref ActualWidth,
         ref ActualHeight,
         ref superSampling,
+        ref minTime,
+        ref maxTime,
+        ref fps,
         textParam.Text);
 
       // Update GUI.
@@ -179,6 +190,7 @@ namespace _062animation
         UpdateResolutionButton();
       }
       UpdateSupersampling(superSampling);
+      UpdateAnimationTiming(minTime, maxTime, fps);
 
       // IImageFunction.
       if (imf == null)      // not defined in the script
@@ -275,6 +287,23 @@ namespace _062animation
       }
       else
         numericSupersampling.Value = superSampling;
+    }
+
+    delegate void UpdateAnimationCallback (double minTime, double maxTime, double fps);
+
+    protected void UpdateAnimationTiming (double minTime, double maxTime, double fps)
+    {
+      if (numFrom.InvokeRequired)
+      {
+        UpdateAnimationCallback ua = new UpdateAnimationCallback(UpdateAnimationTiming);
+        BeginInvoke(ua, new object[] { minTime, maxTime, fps });
+      }
+      else
+      {
+        numFrom.Value = (decimal)minTime;
+        numTo.Value   = (decimal)maxTime;
+        numFps.Value  = (decimal)fps;
+      }
     }
 
     delegate void StopAnimationCallback ();
@@ -440,17 +469,6 @@ namespace _062animation
         progress.Continue = true;
       }
 
-      // Global animation properties (it's safe to access GUI components here):
-      time = (double)numFrom.Value;
-      end  = (double)numTo.Value;
-      if (end <= time)
-        end = time + 1.0;
-
-      double fps = (double)numFps.Value;
-      dt = (fps > 0.0) ? 1.0 / fps : 25.0;
-      end += 0.5 * dt;
-      frameNumber = 0;
-
       ActualWidth = ImageWidth;
       if (ActualWidth <= 0)
         ActualWidth = panel1.Width;
@@ -507,6 +525,9 @@ namespace _062animation
       int threads = Environment.ProcessorCount;
       int t;    // thread ordinal number
       int superSampling = (int)numericSupersampling.Value;
+      double minTime    = (double)numFrom.Value;
+      double maxTime    = (double)numTo.Value;
+      double fps        = (double)numFps.Value;
 
       WorkerThreadInit[] wti = new WorkerThreadInit[threads];
 
@@ -517,6 +538,9 @@ namespace _062animation
         ref ActualWidth,
         ref ActualHeight,
         ref superSampling,
+        ref minTime,
+        ref maxTime,
+        ref fps,
         textParam.Text);
 
       for (t = 0; t < threads; t++)
@@ -529,6 +553,9 @@ namespace _062animation
           ref ActualWidth,
           ref ActualHeight,
           ref superSampling,
+          ref minTime,
+          ref maxTime,
+          ref fps,
           textParam.Text);
 
         if (t == 0)
@@ -541,6 +568,7 @@ namespace _062animation
             UpdateResolutionButton();
           }
           UpdateSupersampling(superSampling);
+          UpdateAnimationTiming(minTime, maxTime, fps);
         }
 
         if (sc is ITimeDependent sca)
@@ -566,6 +594,16 @@ namespace _062animation
 
         wti[t] = new WorkerThreadInit(rend, sc as ITimeDependent, imf as ITimeDependent, ActualWidth, ActualHeight);
       }
+
+      // Update animation timing.
+      time = minTime;
+      end =  maxTime;
+      if (end <= time)
+        end = time + 1.0;
+
+      dt = (fps > 0.0) ? 1.0 / fps : 25.0;
+      end += 0.5 * dt;
+      frameNumber = 0;
 
       initQueue();
       sem = new Semaphore(0, 10 * threads);
@@ -608,9 +646,9 @@ namespace _062animation
 
         // GUI progress indication:
         double seconds = 1.0e-3 * sw.ElapsedMilliseconds;
-        double fps = ++frames / seconds;
+        double cfps = ++frames / seconds;
         SetText(string.Format(CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f0} s, {3:f2} fps)",
-                              threads, frames, seconds, fps));
+                              threads, frames, seconds, cfps));
         if (r.frameNumber > lastDisplayedFrame &&
             sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP)
         {

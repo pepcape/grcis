@@ -77,6 +77,9 @@ namespace Rendering
 
     // double (in, out).
     public readonly static string CTX_END_ANIM = "End";
+
+    // double (in, out).
+    public readonly static string CTX_FPS = "Fps";
   }
 
   /// <summary>
