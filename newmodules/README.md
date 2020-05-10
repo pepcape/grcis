@@ -24,6 +24,8 @@ The `ModuleName` is arbitrary name, please don't use whitespaces in directoery a
 
 Each new module should contain documentation in the `README.md`.
 
+Please go to [this page](https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr004.en.php) for more information on writing RT extensions, grading, etc. List of currently proposed extensions is [in this shared document](https://docs.google.com/document/d/1uA9f13Mc-0XLjd40vNV590HsaX-FyK-Zxe6qoN3wAyg/edit?usp=sharing).
+
 ---
 
 # GitHub instructions
@@ -99,7 +101,7 @@ for more information):
 6. **loc** You should switch to the **summer2019-2020** branch as soon as possible. This will be the branch
    from which you will be getting updates from me.
 
-7. **loc** From now on, you can work freely at your **hone clone** of your private GitLab project, **Commit** and **Push** to the GitLab
+7. **loc** From now on, you can work freely at your **home clone** of your private GitLab project, **Commit** and **Push** to the GitLab
 
 8. **loc** Time to time you should check the original GitHub repo and pull updates from there
    ```
