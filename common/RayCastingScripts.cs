@@ -182,7 +182,8 @@ namespace Rendering
       in int height = 480,
       in int superSampling = 0,
       in double minTime = 0.0,
-      in double maxTime = 10.0)
+      in double maxTime = 10.0,
+      in double fps = 25.0)
     {
       Debug.Assert(ctx != null);
 
@@ -209,6 +210,9 @@ namespace Rendering
 
       // End.
       ctx[PropertyName.CTX_END_ANIM] = maxTime;
+
+      // End.
+      ctx[PropertyName.CTX_FPS] = fps;
     }
 
     /// <summary>
@@ -219,6 +223,7 @@ namespace Rendering
     /// <param name="tooltip">Tool-tip string if defined.</param>
     /// <param name="minTime">Animation start time if defined.</param>
     /// <param name="maxTime">Animation finish time if defined.</param>
+    /// <param name="fps">Animation fps (frames per second).</param>
     /// <returns></returns>
     public static DefaultRayScene ContextMining (
       in ScriptContext ctx,
@@ -228,16 +233,15 @@ namespace Rendering
       ref int width,
       ref int height,
       ref int superSampling,
-      out double minTime,
-      out double maxTime)
+      ref double minTime,
+      ref double maxTime,
+      ref double fps)
     {
       Debug.Assert(ctx != null);
 
       imf     = null;
       rend    = null;
       tooltip = "";
-      minTime = 0.0;
-      maxTime = 10.0;
 
       // Scene.
       if (!ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) ||
@@ -271,6 +275,9 @@ namespace Rendering
 
       // End.
       Util.TryParse(ctx, PropertyName.CTX_END_ANIM, ref maxTime);
+
+      // End.
+      Util.TryParse(ctx, PropertyName.CTX_FPS, ref fps);
 
       return o as DefaultRayScene;
     }
