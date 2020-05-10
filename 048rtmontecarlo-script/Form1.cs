@@ -174,6 +174,10 @@ namespace Rendering
           (sc) => Scenes.DefaultScene(sc),
           SetText);
 
+        double minTime = 0.0;
+        double maxTime = 10.0;
+        double fps = 25.0;
+
         return Scripts.ContextMining(
           ctx,
           out imf,
@@ -182,11 +186,13 @@ namespace Rendering
           ref width,
           ref height,
           ref superSampling,
-          out _, out _);
+          ref minTime,
+          ref maxTime,
+          ref fps);
       }
 
       // Fallback to a default scene.
-      imf = null;
+      imf  = null;
       rend = null;
       return Scenes.DefaultScene();
     }
