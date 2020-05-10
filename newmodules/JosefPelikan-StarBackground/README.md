@@ -30,6 +30,9 @@ a. **resolution** - controls grid size = number of positions wwhich are consider
 b. star-field **"density"** in form of probability (greater number means denser field)
    Reasonable values: 0.0001 to 0.5 (for very wierd appearance not similar to night sky)
 
+b. **color range** is number from `0.0` (monochromatic) to `1.0` (full-color)
+   Reasonable values: 0.1 to 0.6 (for realistic star colors)
+
 ## Example
 
 From a scene/animation definition script
@@ -39,10 +42,10 @@ using JosefPelikan;
 ...
 
 scene.BackgroundColor = new double[] {0.0, 0.01, 0.03};
-scene.Background = new StarBackground(scene.BackgroundColor, 600, 0.006);
+scene.Background = new StarBackground(scene.BackgroundColor, 600, 0.006, 0.5);
 ```
 
-Here `600` is resolution and `0.006` probability (density).
+Here `600` is resolution, `0.006` probability (density) and `0.5` color coefficient.
 
 ### Sample scene script: TwoSpheresStars.cs
 
