@@ -2,7 +2,7 @@
 
 ![Example](up640.jpg)
 
-### Author: Josef Pelikn
+### Author: Josef Pelikan
 
 ### Category: Background
 
