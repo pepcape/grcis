@@ -6,28 +6,66 @@ using Utilities;
 
 namespace JosefPelikan
 {
+  [Serializable]
   public class StarBackground : DefaultBackground
   {
+    /// <summary>
+    /// Probability of a star appearing in a cell.
+    /// </summary>
     double probability;
+
+    /// <summary>
+    /// Rectanguler grid resolution (for one cube side).
+    /// </summary>
     int resolution;
+
+    /// <summary>
+    /// Color range - from 0.0 (full-color) to 1.0 (monochromatic).
+    /// </summary>
+    double colorRange;
+
+    /// <summary>
+    /// Default color.
+    /// </summary>
     double[] reference;
+
+    /// <summary>
+    /// Pre-computed bounds for fast probability tests.
+    /// </summary>
     ulong min, max;
+
+    /// <summary>
+    /// Cached half-range of hash function.
+    /// </summary>
     static readonly ulong rangeMax2 = RandomStatic.numericRecipesMax() / 2 - 1u;
 
+    /// <summary>
+    /// Constructor with parameters.
+    /// </summary>
+    /// <param name="c">Default background color.</param>
+    /// <param name="res">Grid resolution (affects star size).</param>
+    /// <param name="p">Probability (affects star-field density).</param>
+    /// <param name="color">Color coefficient (0.0 fo monochromatic, 1.0 for full color).</param>
     public StarBackground (
       in double[] c,
       in int res = 2000,
-      in double p = 0.01) :
+      in double p = 0.01,
+      in double color = 0.5) :
       base()
     {
-      resolution = Util.Clamp(res, 10, 100000);
-      reference = c;
+      resolution  = Util.Clamp(res, 10, 100000);
+      reference   = c;
       probability = Util.Clamp(p, 0.0, 1.0);
+      colorRange  = Util.Clamp(color, 0.0, 1.0);
+
       ulong half = Math.Min(rangeMax2, (ulong)(probability * rangeMax2));
       min = rangeMax2 - half;
       max = rangeMax2 + half;
     }
 
+    /// <summary>
+    /// Returns a color for the given direction vector.
+    /// </summary>
     public override long GetColor (Vector3d p1, double[] color)
     {
       uint plane;
@@ -92,9 +130,9 @@ namespace JosefPelikan
         x -= xi + 0.5;    // sub-star sampling.
         y -= yi + 0.5;
         double coeff = 1.6 * Math.Exp(-(x * x + y * y) * sizeRec * sizeRec);
-        double R = coeff * (0.5 + ((b & 0b00001110) >> 1) / 14.0);
-        double G = coeff * (0.5 + ((b & 0b00111000) >> 3) / 14.0);
-        double B = coeff * (0.5 + ((b & 0b11100000) >> 5) / 14.0);
+        double R = coeff * (1.0 + colorRange * (((b & 0b00001110) >> 1) / 7.0 - 1.0));
+        double G = coeff * (1.0 + colorRange * (((b & 0b00111000) >> 3) / 7.0 - 1.0));
+        double B = coeff * (1.0 + colorRange * (((b & 0b11100000) >> 5) / 7.0 - 1.0));
         Util.ColorCopy(new double[] {R + c[0], G + c[1], B + c[2]}, color);
         return (long)(10000000.0 * coeff);
       }
