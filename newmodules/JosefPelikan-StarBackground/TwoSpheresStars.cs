@@ -38,7 +38,7 @@ if (context != null)
   // Let renderer application know required parameters soon..
   context[PropertyName.CTX_WIDTH]         = 640;
   context[PropertyName.CTX_HEIGHT]        = 480;
-  context[PropertyName.CTX_SUPERSAMPLING] =   4;
+  context[PropertyName.CTX_SUPERSAMPLING] =  16;
   //context[PropertyName.CTX_WIDTH]         = 1800;
   //context[PropertyName.CTX_HEIGHT]        = 1200;
   //context[PropertyName.CTX_SUPERSAMPLING] =  400;
@@ -66,7 +66,7 @@ scene.Intersectable = root;
 
 // Background color.
 scene.BackgroundColor = new double[] {0.0, 0.01, 0.03};
-scene.Background = new StarBackground(scene.BackgroundColor, 600, 0.006, 0.0);
+scene.Background = new StarBackground(scene.BackgroundColor, 600, 0.006, 0.5, 1.6, 1.0);
 
 // Camera.
 scene.Camera = new StaticCamera(new Vector3d(0.7, 0.5, -5.0),

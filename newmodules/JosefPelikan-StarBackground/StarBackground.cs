@@ -25,6 +25,22 @@ namespace JosefPelikan
     double colorRange;
 
     /// <summary>
+    /// Star intensity (maximal value in the middle of the star).
+    /// </summary>
+    double intensity = 1.4;
+
+    /// <summary>
+    /// Relative star size.
+    /// </summary>
+    double size = 1.0;
+
+    /// <summary>
+    /// Random seed. Different seed generates different star-field.
+    /// But the generation process is deterministic.
+    /// </summary>
+    ulong seed = 0L;
+
+    /// <summary>
     /// Default color.
     /// </summary>
     double[] reference;
@@ -46,17 +62,26 @@ namespace JosefPelikan
     /// <param name="res">Grid resolution (affects star size).</param>
     /// <param name="p">Probability (affects star-field density).</param>
     /// <param name="color">Color coefficient (0.0 fo monochromatic, 1.0 for full color).</param>
+    /// <param name="intens">Color intensity/amplitude, can be negative for negative effect.</param>
+    /// <param name="siz">Star size coefficient (1.0 .. normal size).</param>
+    /// <param name="rand">Random base.</param>
     public StarBackground (
       in double[] c,
       in int res = 2000,
       in double p = 0.01,
-      in double color = 0.5) :
+      in double color = 0.5,
+      in double intens = 1.4,
+      in double siz = 1.0,
+      in ulong rand = 0L) :
       base()
     {
       resolution  = Util.Clamp(res, 10, 100000);
       reference   = c;
       probability = Util.Clamp(p, 0.0, 1.0);
       colorRange  = Util.Clamp(color, 0.0, 1.0);
+      intensity   = Util.Clamp(intens, -10.0, 10.0);
+      size        = Util.Clamp(siz, 0.01, 40.0);
+      seed        = rand;
 
       ulong half = Math.Min(rangeMax2, (ulong)(probability * rangeMax2));
       min = rangeMax2 - half;
@@ -110,7 +135,8 @@ namespace JosefPelikan
       uint yi = (uint)y;
 
       ulong b = RandomStatic.numericRecipes(xi * 2357u + 101u * plane) ^
-                RandomStatic.numericRecipes(yi * 6229u);
+                RandomStatic.numericRecipes(yi * 6229u) ^
+                seed;
       b = RandomStatic.numericRecipes(b);
       b = RandomStatic.numericRecipes(b);
 
@@ -125,11 +151,11 @@ namespace JosefPelikan
       if (b >= min && b <= max)
       {
         // Star.
-        double sizeRec = 50.0 / Math.Max(2, (b & 0xf00) >> 8);
-        // sizeRec = 50 / <2 to 15>
+        double sizeRec = 60.0 / (Math.Sqrt(size) * Math.Max(2, (b & 0xf00) >> 8));
+        // sizeRec = 60 / (sqrt(size) * <2 to 15>)
         x -= xi + 0.5;    // sub-star sampling.
         y -= yi + 0.5;
-        double coeff = 1.6 * Math.Exp(-(x * x + y * y) * sizeRec * sizeRec);
+        double coeff = intensity * Math.Exp(-(x * x + y * y) * sizeRec * sizeRec);
         double R = coeff * (1.0 + colorRange * (((b & 0b00001110) >> 1) / 7.0 - 1.0));
         double G = coeff * (1.0 + colorRange * (((b & 0b00111000) >> 3) / 7.0 - 1.0));
         double B = coeff * (1.0 + colorRange * (((b & 0b11100000) >> 5) / 7.0 - 1.0));
