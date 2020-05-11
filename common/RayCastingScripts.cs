@@ -142,13 +142,11 @@ namespace Rendering
       return count;
     }
 
+    /// <summary>
+    /// Global variables for the script.
+    /// </summary>
     public class Globals
     {
-      /// <summary>
-      /// Scene name (not used yet, might be useful).
-      /// </summary>
-      public string sceneName;
-
       /// <summary>
       /// Scene object to be filled.
       /// </summary>
@@ -163,13 +161,11 @@ namespace Rendering
       /// Parameter map for passing values in/out of the script.
       /// </summary>
       public ScriptContext context;
-
-      /// <summary>
-      /// Path to Scene file.
-      /// </summary>
-      public string scriptFilePath;
     }
 
+    /// <summary>
+    /// Global script run count.
+    /// </summary>
     protected static int count = 0;
 
     /// <summary>
@@ -177,12 +173,17 @@ namespace Rendering
     /// </summary>
     /// <param name="ctx">Pre-allocated context map.</param>
     /// <param name="sc">optional default scene object.</param>
+    /// <param name="name">Readable short scene name.</param>
+    /// <param name="width">Optional output image width in pixels.</param>
+    /// <param name="height">Optional output image height in pixels.</param>
     /// <param name="superSampling">Optional super-sampling coefficient.</param>
     /// <param name="minTime">Optional animation start time.</param>
-    /// <param name="maxTime">optional animation finish time.</param>
+    /// <param name="maxTime">Optional animation finish time.</param>
+    /// <param name="fps">Optional animation 'frames-per-second'.</param>
     public static void ContextInit (
       in ScriptContext ctx,
       in DefaultRayScene sc = null,
+      in string name = "noname",
       in int width = 640,
       in int height = 480,
       in int superSampling = 0,
@@ -199,6 +200,9 @@ namespace Rendering
         if (!ctx.ContainsKey(PropertyName.CTX_SCENE) ||
             ctx[PropertyName.CTX_SCENE] == null)
           ctx[PropertyName.CTX_SCENE] = new DefaultRayScene();
+
+      // Scene name.
+      ctx[PropertyName.CTX_SCENE_NAME] = name;
 
       ctx.Remove(PropertyName.CTX_ALGORITHM);
       ctx.Remove(PropertyName.CTX_SYNTHESIZER);
@@ -223,11 +227,15 @@ namespace Rendering
     /// <summary>
     /// Retrieves standarda data frome the context after calling 'SceneFromObject'.
     /// </summary>
+    /// <param name="ctx">Input context map (after running a script).</param>
     /// <param name="imf">IImageFunction implementation if specified in the script.</param>
     /// <param name="rend">IRenderer if specified in the script.</param>
     /// <param name="tooltip">Tool-tip string if defined.</param>
-    /// <param name="minTime">Animation start time if defined.</param>
-    /// <param name="maxTime">Animation finish time if defined.</param>
+    /// <param name="width">Output image width in pixels.</param>
+    /// <param name="height">Output image height in pixels.</param>
+    /// <param name="superSampling">Super-sampling coefficient.</param>
+    /// <param name="minTime">Animation start time.</param>
+    /// <param name="maxTime">Animation finish time.</param>
     /// <param name="fps">Animation fps (frames per second).</param>
     /// <returns></returns>
     public static DefaultRayScene ContextMining (
@@ -290,13 +298,13 @@ namespace Rendering
     /// <summary>
     /// Compute a scene based on general description object 'definition' (one of delegate functions or CSscript file-name).
     /// </summary>
-    /// <param name="name">Readable short scene name.</param>
-    /// <param name="definition">Scene definition delegate function.</param>
+    /// <param name="ctx">Context map containing data for the script.</param>
+    /// <param name="definition">Script file-name (string) or scene definition function.</param>
     /// <param name="par">Text parameter (from form's text field..).</param>
-    /// <param name="message">Message function</param>
+    /// <param name="defaultScene">Fallback scene definition function.</param>
+    /// <param name="message">Message callback function.</param>
     public static void SceneFromObject (
       in ScriptContext ctx,
-      in string name,
       in object definition,
       in string par,
       in InitSceneDelegate defaultScene,
@@ -304,6 +312,7 @@ namespace Rendering
     {
       Debug.Assert(ctx != null);
 
+      // Scene.
       DefaultRayScene sc;
       if (ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) &&
           o is DefaultRayScene)
@@ -311,7 +320,15 @@ namespace Rendering
       else
         ctx[PropertyName.CTX_SCENE] = sc = new DefaultRayScene();
 
+      // Scene name.
+      string name = "noname";
+      Util.TryParse(ctx, PropertyName.CTX_SCENE_NAME, ref name);
+
+      // Script file-name.
       string scriptFileName = definition as string;
+      if (scriptFileName != null)
+        ctx[PropertyName.CTX_SCRIPT_PATH] = scriptFileName;
+
       string scriptSource = null;
 
       if (!string.IsNullOrEmpty(scriptFileName) &&
@@ -334,7 +351,7 @@ namespace Rendering
 
         if (!string.IsNullOrEmpty(scriptSource))
         {
-          message?.Invoke($"Compiling and running scene script '{name}' ({++count})..");
+          message?.Invoke($"Running scene script '{name}' ({++count})..");
 
           // interpret the CS-script defining the scene:
           var assemblyNames = Assembly.GetExecutingAssembly().GetReferencedAssemblies();
@@ -359,11 +376,9 @@ namespace Rendering
           // Global variables for the script.
           Globals globals = new Globals
           {
-            sceneName = name,
             scene     = sc,
             param     = par,
             context   = ctx,
-            scriptFilePath = scriptFileName
           };
 
           bool ok = true;
