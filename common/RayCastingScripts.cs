@@ -163,6 +163,11 @@ namespace Rendering
       /// Parameter map for passing values in/out of the script.
       /// </summary>
       public ScriptContext context;
+
+      /// <summary>
+      /// Path to Scene file.
+      /// </summary>
+      public string scriptFilePath;
     }
 
     protected static int count = 0;
@@ -357,7 +362,8 @@ namespace Rendering
             sceneName = name,
             scene     = sc,
             param     = par,
-            context   = ctx
+            context   = ctx,
+            scriptFilePath = scriptFileName
           };
 
           bool ok = true;
@@ -373,6 +379,11 @@ namespace Rendering
           catch (CompilationErrorException e)
           {
             MessageBox.Show($"Error compiling scene script: {e.Message}, using default scene", "CSscript Error");
+            ok = false;
+          }
+          catch (AggregateException e)
+          {
+            MessageBox.Show($"Error running scene script: {e.InnerException.Message}, using default scene", "CSscript Error");
             ok = false;
           }
 
