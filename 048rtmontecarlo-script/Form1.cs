@@ -156,19 +156,20 @@ namespace Rendering
       if (sceneRepository.TryGetValue(sceneName, out object definition))
       {
         // Try the CS-script file.
-        if (preprocessing)
+        if (preprocessing ||
+            ctx == null)
           ctx = new ScriptContext();    // we need a new context object for each computing batch..
 
         Scripts.ContextInit(
           ctx,
           null,
+          sceneName,
           width,
           height,
           superSampling);
 
         Scripts.SceneFromObject(
           ctx,
-          sceneName,
           definition,
           TextParam.Text,
           (sc) => Scenes.DefaultScene(sc),

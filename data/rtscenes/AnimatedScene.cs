@@ -1,50 +1,55 @@
 //////////////////////////////////////////////////
+// Rendering params.
+
+Debug.Assert(scene != null);
+Debug.Assert(context != null);
+
+// Let renderer application know required parameters soon..
+context[PropertyName.CTX_WIDTH]         = 320;    // whatever is convenient for your debugging/testing/final rendering
+context[PropertyName.CTX_HEIGHT]        = 180;
+context[PropertyName.CTX_SUPERSAMPLING] =   4;
+
+context[PropertyName.CTX_START_ANIM]    =  0.0;
+context[PropertyName.CTX_END_ANIM]      = 20.0;
+context[PropertyName.CTX_FPS]           = 25.0;
+
+//////////////////////////////////////////////////
 // Preprocessing stage support.
 
-bool preprocessing = false;
-
-if (context != null)
+// context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
+bool preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
+if (preprocessing)
 {
-  // Let renderer application know required parameters soon..
-  context[PropertyName.CTX_WIDTH]         = 320;    // whatever is convenient for your debugging/testing/final rendering
-  context[PropertyName.CTX_HEIGHT]        = 180;
-  context[PropertyName.CTX_SUPERSAMPLING] =   4;
+  context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)";
 
-  context[PropertyName.CTX_START_ANIM]    =  0.0;
-  context[PropertyName.CTX_END_ANIM]      = 20.0;
-  context[PropertyName.CTX_FPS]           = 25.0;
+  // TODO: put your preprocessing code here!
+  //
+  // It will be run only this time.
+  // Store preprocessing results to arbitrary (non-reserved) context item,
+  //  subsequent script calls will find it there...
 
-  // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-  preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-  if (preprocessing)
-  {
-    context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)";
-
-    // TODO: put your preprocessing code here!
-    //
-    // It will be run only this time.
-    // Store preprocessing results to arbitrary (non-reserved) context item,
-    //  subsequent script calls will find it there...
-
-    return;
-  }
-
-  // Create custom objects in consequent calls only (not in preprocessing step).
-
-  //context[PropertyName.CTX_ALGORITHM]     = new RayTracing();
-
-  int ss = 0;
-  if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
-      ss > 1)
-    context[PropertyName.CTX_SYNTHESIZER] = new SupersamplingImageSynthesizer
-    {
-      Supersampling = ss,
-      Jittering = 1.0
-    };
+  return;
 }
 
+// TODO: create custom objects in consequent calls only (not in preprocessing step).
+// This is optional, you probably don't need to do anything with your shared preprocessed data..
+
+// Optional override of rendering algorithm and/or renderer.
+
+//context[PropertyName.CTX_ALGORITHM]     = new RayTracing();
+
+int ss = 0;
+if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
+    ss > 1)
+  context[PropertyName.CTX_SYNTHESIZER] = new SupersamplingImageSynthesizer
+  {
+    Supersampling = ss,
+    Jittering = 1.0
+  };
+
+// If scene data cannot be shared, remove this return!
 if (scene.BackgroundColor != null)
-  return;    // scene can be shared!
+  return;
 
 //////////////////////////////////////////////////
 // CSG scene.

@@ -54,6 +54,12 @@ namespace Rendering
     // IRayScene (in, out).
     public readonly static string CTX_SCENE = "Scene";
 
+    // string (in).
+    public readonly static string CTX_SCENE_NAME = "SceneName";
+
+    // string (in).
+    public readonly static string CTX_SCRIPT_PATH = "ScriptPath";
+
     // int (in, out).
     public readonly static string CTX_WIDTH = "Width";
 

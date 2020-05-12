@@ -36,9 +36,12 @@ if (p.TryGetValue("mat", out string mat))
 if (context != null)
 {
   // Let renderer application know required parameters soon..
-  context[PropertyName.CTX_WIDTH]         = 640; // 1800, 1920
-  context[PropertyName.CTX_HEIGHT]        = 480; // 1200, 1080
-  context[PropertyName.CTX_SUPERSAMPLING] =   4; //  400,   64
+  context[PropertyName.CTX_WIDTH]         = 640;
+  context[PropertyName.CTX_HEIGHT]        = 480;
+  context[PropertyName.CTX_SUPERSAMPLING] =  16;
+  //context[PropertyName.CTX_WIDTH]         = 1800;
+  //context[PropertyName.CTX_HEIGHT]        = 1200;
+  //context[PropertyName.CTX_SUPERSAMPLING] =  400;
 
   // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
   preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
@@ -48,9 +51,6 @@ if (context != null)
     return;
   }
 
-  context[PropertyName.CTX_WIDTH]  = 1800;//640;    //1920
-  context[PropertyName.CTX_HEIGHT] = 1200;//480;    //1080
-  context[PropertyName.CTX_SUPERSAMPLING] = 400;
 }
 
 if (scene.BackgroundColor != null)
@@ -66,12 +66,11 @@ scene.Intersectable = root;
 
 // Background color.
 scene.BackgroundColor = new double[] {0.0, 0.01, 0.03};
-scene.Background = new StarBackground(scene.BackgroundColor, 600, 0.006); // 1000, 0.002
+scene.Background = new StarBackground(scene.BackgroundColor, 600, 0.006, 0.5, 1.6, 1.0);
 
 // Camera.
 scene.Camera = new StaticCamera(new Vector3d(0.7, 0.5, -5.0),
                                 new Vector3d(0.0, 0.18, 1.0),
-//                                new Vector3d(0.0, -0.18, 1.0),
                                 50.0);
 
 // Light sources.
