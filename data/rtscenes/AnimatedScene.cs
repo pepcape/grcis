@@ -63,6 +63,9 @@ root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
 root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.8, 0.1}, 0.1, 0.6, 0.4, 128));
 scene.Intersectable = root;
 
+// Optional Animator.
+scene.Animator = null;
+
 // Background color.
 scene.BackgroundColor = new double[] {0.0, 0.01, 0.03};
 scene.Background = new DefaultBackground(scene.BackgroundColor);
