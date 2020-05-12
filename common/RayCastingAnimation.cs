@@ -82,6 +82,8 @@ namespace Rendering
 #endif
       AnimatedRayScene sc = new AnimatedRayScene ();
 
+      sc.Animator = (ITimeDependent)Animator?.Clone();
+
       sc.Intersectable = Intersectable;
       if (sc.Intersectable is ITimeDependent intersectable)
         sc.Intersectable = (IIntersectable)intersectable.Clone();
