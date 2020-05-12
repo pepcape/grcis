@@ -58,7 +58,7 @@ if (scene.BackgroundColor != null)
 //////////////////////////////////////////////////
 // CSG scene.
 
-CSGInnerNode root = new CSGInnerNode(SetOperation.Union);
+AnimatedCSGInnerNode root = new AnimatedCSGInnerNode(SetOperation.Union);
 root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
 root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.8, 0.1}, 0.1, 0.6, 0.4, 128));
 scene.Intersectable = root;
