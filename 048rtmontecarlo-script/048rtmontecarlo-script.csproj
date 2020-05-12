@@ -216,6 +216,9 @@
     <Compile Include="..\common\RandomJames.cs">
       <Link>RandomJames.cs</Link>
     </Compile>
+    <Compile Include="..\common\RayCastingAnimation.cs">
+      <Link>RayCastingAnimation.cs</Link>
+    </Compile>
     <Compile Include="..\common\RayCastingBasic.cs">
       <Link>RayCastingBasic.cs</Link>
     </Compile>
