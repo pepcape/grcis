@@ -22,6 +22,10 @@ if (preprocessing)
 {
   context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)";
 
+  double time = 0.0;
+  bool single = Util.TryParse(context, PropertyName.CTX_TIME, ref time);
+  // if (single) simulate only for a single frame with the given 'time'
+
   // TODO: put your preprocessing code here!
   //
   // It will be run only this time.

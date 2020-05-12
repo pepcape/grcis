@@ -48,7 +48,8 @@ namespace _062animation
       ref double minTime,
       ref double maxTime,
       ref double fps,
-      string param)
+      string param,
+      in double? time = null)
     {
       IRayScene sc = Form1.singleton.SceneFromScript(
         preprocessing,
@@ -59,7 +60,8 @@ namespace _062animation
         ref superSampling,
         ref minTime,
         ref maxTime,
-        ref fps);      // 'param' will be fetched from the Form
+        ref fps,
+        time);      // 'param' will be fetched from the Form
 
       if (preprocessing ||
           sc != null)
