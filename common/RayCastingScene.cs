@@ -568,6 +568,12 @@ namespace Rendering
     public IIntersectable Intersectable { get; set; }
 
     /// <summary>
+    /// Optional object for animations. It will be the first to receive new
+    /// 'Time' values (before everything else in the scene).
+    /// </summary>
+    public ITimeDependent Animator { get; set; }
+
+    /// <summary>
     /// Background color object.
     /// </summary>
     public IBackground Background { get; set; }
@@ -623,6 +629,10 @@ namespace Rendering
     protected virtual void setTime (double newTime)
     {
       time = Arith.Clamp(newTime, Start, End);
+
+      // Animator?
+      if (Animator != null)
+        Animator.Time = time;
 
       // Time-dependent scene?
       if (Intersectable is ITimeDependent intersectable)
