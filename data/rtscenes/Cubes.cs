@@ -1,23 +1,25 @@
 //////////////////////////////////////////////////
-// Preprocessing stage support.
-bool preprocessing = false;
+// Rendering params.
 
-if (context != null)
+Debug.Assert(scene != null);
+Debug.Assert(context != null);
+
+//////////////////////////////////////////////////
+// Preprocessing stage support.
+
+// context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
+bool preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
+if (preprocessing)
 {
-  // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-  preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-  if (preprocessing)
-  {
     context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rmat={mirror|glass}}";
 
-    // TODO: put scene preprocessing code here
-    // Store results in any context[] object, sunsequent calls will find it there..
+  // TODO: put your preprocessing code here!
+  //
+  // It will be run only this time.
+  // Store preprocessing results to arbitrary (non-reserved) context item,
+  //  subsequent script calls will find it there...
 
     return;
-  }
-
-  // Optional IImageFunction.
-  context[PropertyName.CTX_ALGORITHM] = new RayTracing();
 }
 
 if (scene.BackgroundColor != null)

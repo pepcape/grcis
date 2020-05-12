@@ -1,25 +1,52 @@
-// CSG scene:
+//////////////////////////////////////////////////
+// Rendering params.
+
+Debug.Assert(scene != null);
+Debug.Assert(context != null);
+
+// Let renderer application know required parameters soon..
+context[PropertyName.CTX_WIDTH]         = 640;    // whatever is convenient for your debugging/testing/final rendering
+context[PropertyName.CTX_HEIGHT]        = 640;
+
+//////////////////////////////////////////////////
+// Preprocessing stage support.
+
+// context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
+bool preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
+if (preprocessing)
+{
+  context[PropertyName.CTX_TOOLTIP] = "";
+  return;
+}
+
+// If scene data cannot be shared, remove this return!
+if (scene.BackgroundColor != null)
+  return;
+
+//////////////////////////////////////////////////
+// CSG scene.
+
 CSGInnerNode root = new CSGInnerNode(SetOperation.Union);
 root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
 root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.8, 0.1}, 0.1, 0.6, 0.4, 128));
 scene.Intersectable = root;
 
-// Background color:
+// Background color.
 scene.BackgroundColor = new double[] {0.0, 0.05, 0.07};
 
-// Camera:
+// Camera.
 scene.Camera = new FishEyeCamera (new Vector3d(0.0, 2.0, 4.0),
-                                 new Vector3d(0.0, 0.0, 1.0),
-                                 360);
+                                  new Vector3d(0.0, 0.0, 1.0),
+                                  360);
 
-// Light sources:
+// Light sources.
 scene.Sources = new LinkedList<ILightSource>();
 scene.Sources.Add(new AmbientLightSource(0.1));
 scene.Sources.Add(new PointLightSource(new Vector3d(-5.0, 4.0, -3.0), 1.5));
 
 // --- NODE DEFINITIONS ----------------------------------------------------
 
-// Init:
+// Init.
 Cube c;
 PhongMaterial pm = new PhongMaterial(new double[] {0.20, 0.20, 0.15}, 0.05, 0.05, 0.1, 128);
 pm.n = 2.8;
@@ -29,7 +56,7 @@ CSGInnerNode Monoliths = new CSGInnerNode(SetOperation.Union);
 Monoliths.SetAttribute(PropertyName.MATERIAL, pm);
 root.InsertChild(Monoliths, Matrix4d.CreateTranslation(0.0, -1.0, 0.0));
 
-// Front left
+// Front left.
 CSGInnerNode FrontLeft = new CSGInnerNode(SetOperation.Union);
 Monoliths.InsertChild(FrontLeft, Matrix4d.CreateTranslation(-7.5, 0.0, 3.5));
 c = new Cube();
@@ -39,7 +66,7 @@ FrontLeft.InsertChild(c,Matrix4d.Scale(1.5, 4.0, 1.0) * Matrix4d.RotateY(0.6) * 
 c = new Cube();
 FrontLeft.InsertChild(c,Matrix4d.Scale(0.7, 5.0, 1.5) * Matrix4d.RotateZ((float)Math.PI*3/2) * Matrix4d.RotateY(-0.8) * Matrix4d.CreateTranslation(1.0, 4.5, 0.0));
 
-// Front
+// Front.
 CSGInnerNode Front = new CSGInnerNode(SetOperation.Union);
 Monoliths.InsertChild(Front, Matrix4d.RotateY(-0.2) * Matrix4d.CreateTranslation(-0.5, 0.0, 8.5));
 c = new Cube();
@@ -47,7 +74,7 @@ Front.InsertChild(c,Matrix4d.Scale(0.8, 4.0, 1.5) * Matrix4d.CreateTranslation(0
 c = new Cube();
 Front.InsertChild(c,Matrix4d.Scale(0.8, 4.0, 1.5) * Matrix4d.CreateTranslation(2.0, 0.0, 0.0));
 
-// Front right
+// Front right.
 CSGInnerNode FrontRight = new CSGInnerNode(SetOperation.Union);
 Monoliths.InsertChild(FrontRight, Matrix4d.CreateTranslation(9.0, 0.0, 5.5));
 c = new Cube();
@@ -55,7 +82,7 @@ FrontRight.InsertChild(c,Matrix4d.Scale(1.0, 4.0, 1.0) * Matrix4d.RotateY(-0.5))
 c = new Cube();
 FrontRight.InsertChild(c,Matrix4d.Scale(1.0, 7.0, 1.0) * Matrix4d.RotateX(-0.7) * Matrix4d.RotateY(-0.5) * Matrix4d.CreateTranslation(-2.5, 0.0, 3.5));
 
-// Left
+// Left.
 CSGInnerNode Left = new CSGInnerNode(SetOperation.Union);
 Monoliths.InsertChild(Left, Matrix4d.CreateTranslation(-8.0, -1.0, -1.5));
 c = new Cube();
@@ -65,13 +92,13 @@ Left.InsertChild(c,Matrix4d.Scale(1.4, 2.2, 1.0) * Matrix4d.CreateTranslation(0.
 c = new Cube();
 Left.InsertChild(c,Matrix4d.Scale(1.2, 4.0, 0.9) * Matrix4d.RotateX(4.2) * Matrix4d.CreateTranslation(0.0, 4.0, 0.5));
 
-// Back left
+// Back left.
 CSGInnerNode BackLeft = new CSGInnerNode(SetOperation.Union);
 Monoliths.InsertChild(BackLeft, Matrix4d.CreateTranslation(-1.0, 0.0, -8.5));
 c = new Cube();
 BackLeft.InsertChild(c,Matrix4d.Scale(1.5, 4.0, 1.0) * Matrix4d.RotateZ(2.3) * Matrix4d.RotateX(4.7));
 
-// Back right
+// Back right.
 CSGInnerNode BackRight = new CSGInnerNode(SetOperation.Union);
 Monoliths.InsertChild(BackRight, Matrix4d.RotateY(2.6) * Matrix4d.CreateTranslation(3.0, 0.0, -9.0));
 c = new Cube();
@@ -82,7 +109,7 @@ c = new Cube();
 BackRight.InsertChild(c,Matrix4d.Scale(0.7, 5.0, 1.5) * Matrix4d.RotateZ(4.7) * Matrix4d.CreateTranslation(-3.5, 4.0, 0.0));
 
 
-// Right
+// Right.
 CSGInnerNode Right = new CSGInnerNode(SetOperation.Union);
 Monoliths.InsertChild(Right, Matrix4d.RotateY((float)Math.PI/2) * Matrix4d.CreateTranslation(10.5, 0.0, -1.5));
 c = new Cube();
@@ -92,8 +119,7 @@ Right.InsertChild(c,Matrix4d.Scale(0.8, 4.0, 1.3) * Matrix4d.CreateTranslation(-
 c = new Cube();
 Right.InsertChild(c,Matrix4d.Scale(0.5, 5.0, 1.7) * Matrix4d.RotateZ(4.7) * Matrix4d.CreateTranslation(-3.5, 4.0, 0.0));
 
-
-// Infinite plane with checker:
+// Infinite plane with checker.
 Plane pl = new Plane();
 pl.SetAttribute(PropertyName.COLOR, new double[] {0.9, 0.8, 0.1});
 pl.SetAttribute(PropertyName.TEXTURE, new CheckerTexture(0.6, 0.6, new double[] {0.1, 0.1, 1.0}));
