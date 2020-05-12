@@ -1,18 +1,30 @@
-// CSG scene:
+//////////////////////////////////////////////////
+// Rendering params.
+
+Debug.Assert(scene != null);
+Debug.Assert(context != null);
+
+// If scene data cannot be shared, remove this return!
+if (scene.BackgroundColor != null)
+  return;
+
+//////////////////////////////////////////////////
+// CSG scene.
+
 CSGInnerNode root = new CSGInnerNode(SetOperation.Union);
 root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
-root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.6, 0.2, 16));
+root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {0.5, 0.5, 0.5}, 0.2, 0.6, 0.2, 16));
 scene.Intersectable = root;
 
-// Background color:
-scene.BackgroundColor = new double[] { 0.0, 0.05, 0.05 };
+// Background color.
+scene.BackgroundColor = new double[] {0.0, 0.05, 0.05};
 
-// Camera:
+// Camera.
 scene.Camera = new StaticCamera(new Vector3d(0.0, 2.0, -7.0),
                                 new Vector3d(0.0, -0.32, 1.0),
                                 40.0);
 
-// Light sources:
+// Light sources.
 scene.Sources = new System.Collections.Generic.LinkedList<ILightSource>();
 scene.Sources.Add(new AmbientLightSource(0.8));
 scene.Sources.Add(new PointLightSource(new Vector3d(-8.0, 5.0, -3.0), 1.0));
@@ -21,7 +33,7 @@ scene.Sources.Add(new PointLightSource(new Vector3d(-8.0, 5.0, -3.0), 1.0));
 
 // cage
 CSGInnerNode cage = new CSGInnerNode(SetOperation.Difference);
-cage.SetAttribute(PropertyName.COLOR, new double[] { 0.70, 0.93, 0.20 });
+cage.SetAttribute(PropertyName.COLOR, new double[] {0.70, 0.93, 0.20});
 
 // cylinder1
 CSGInnerNode cylinder1 = new CSGInnerNode(SetOperation.Intersection);

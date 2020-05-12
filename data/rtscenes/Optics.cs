@@ -1,7 +1,21 @@
 //////////////////////////////////////////////////
+// Rendering params.
+
+Debug.Assert(scene != null);
+Debug.Assert(context != null);
+
+//////////////////////////////////////////////////
 // Preprocessing stage support.
 
-bool preprocessing = false;
+bool preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
+if (preprocessing)
+{
+  context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rrc[=<bool>] (ray-casting mode)";
+  return;
+}
+
+if (scene.BackgroundColor != null)
+  return;    // scene can be shared!
 
 // Params dictionary.
 Dictionary<string, string> p = Util.ParseKeyValueList(param);
@@ -14,22 +28,8 @@ Util.TryParse(p, "n", ref n);
 bool rc = false;
 Util.TryParse(p, "rc", ref rc);
 
-if (context != null)
-{
-  // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-  preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-  if (preprocessing)
-  {
-    context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rrc[=<bool>] (ray-casting mode)";
-    return;
-  }
-
-  // Optional IImageFunction.
-  context[PropertyName.CTX_ALGORITHM] = rc ? new RayCasting() : (RayCasting)new RayTracing();
-}
-
-if (scene.BackgroundColor != null)
-  return;    // scene can be shared!
+// Optional IImageFunction.
+context[PropertyName.CTX_ALGORITHM] = rc ? new RayCasting() : (RayCasting)new RayTracing();
 
 //////////////////////////////////////////////////
 // CSG scene.

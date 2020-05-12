@@ -1,7 +1,27 @@
 //////////////////////////////////////////////////
+// Rendering params.
+
+Debug.Assert(scene != null);
+Debug.Assert(context != null);
+
+// Let renderer application know required parameters soon..
+context[PropertyName.CTX_WIDTH]         = 640; // 1800, 1920
+context[PropertyName.CTX_HEIGHT]        = 480; // 1200, 1080
+context[PropertyName.CTX_SUPERSAMPLING] =   4; //  400,   64
+
+//////////////////////////////////////////////////
 // Preprocessing stage support.
 
-bool preprocessing = false;
+// context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
+bool preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
+if (preprocessing)
+{
+  context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rmat={mirror|glass|diffuse}}";
+  return;
+}
+
+if (scene.BackgroundColor != null)
+  return;    // scene can be shared!
 
 // Params dictionary.
 Dictionary<string, string> p = Util.ParseKeyValueList(param);
@@ -30,25 +50,6 @@ if (p.TryGetValue("mat", out string mat))
     case "glass":
       break;
   }
-
-if (context != null)
-{
-  // Let renderer application know required parameters soon..
-  context[PropertyName.CTX_WIDTH]         = 640; // 1800, 1920
-  context[PropertyName.CTX_HEIGHT]        = 480; // 1200, 1080
-  context[PropertyName.CTX_SUPERSAMPLING] =   4; //  400,   64
-
-  // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-  preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-  if (preprocessing)
-  {
-    context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rmat={mirror|glass|diffuse}}";
-    return;
-  }
-}
-
-if (scene.BackgroundColor != null)
-  return;    // scene can be shared!
 
 //////////////////////////////////////////////////
 // CSG scene.

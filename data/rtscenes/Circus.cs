@@ -1,18 +1,30 @@
-﻿// CSG scene:
+﻿//////////////////////////////////////////////////
+// Rendering params.
+
+Debug.Assert(scene != null);
+Debug.Assert(context != null);
+
+// If scene data cannot be shared, remove this return!
+if (scene.BackgroundColor != null)
+  return;
+
+//////////////////////////////////////////////////
+// CSG scene.
+
 CSGInnerNode root = new CSGInnerNode(SetOperation.Union);
 root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
-root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] { 0.5, 0.5, 0.5 }, 0.2, 0.8, 0.1, 16));
+root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {0.5, 0.5, 0.5}, 0.2, 0.8, 0.1, 16));
 scene.Intersectable = root;
 
-// Background color:
-scene.BackgroundColor = new double[] { 0.5, 0.7, 0.6 };
+// Background color.
+scene.BackgroundColor = new double[] {0.5, 0.7, 0.6};
 
-// Camera:
+// Camera.
 scene.Camera = new StaticCamera(new Vector3d(0.0, 0.0, -11.0),
                                 new Vector3d(0.0, 0.0, 1.0),
                                 60.0);
 
-// Light sources:
+// Light sources.
 scene.Sources = new System.Collections.Generic.LinkedList<ILightSource>();
 scene.Sources.Add(new AmbientLightSource(1.0));
 scene.Sources.Add(new PointLightSource(new Vector3d(-5.0, 3.0, -3.0), 1.2));
