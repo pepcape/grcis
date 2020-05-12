@@ -269,6 +269,12 @@ namespace Rendering
     IIntersectable Intersectable { get; set; }
 
     /// <summary>
+    /// Optional object for animations. It will be the first to receive new
+    /// 'Time' values (before everything else in the scene).
+    /// </summary>
+    ITimeDependent Animator { get; set; }
+
+    /// <summary>
     /// Background color object.
     /// </summary>
     IBackground Background { get; set; }
