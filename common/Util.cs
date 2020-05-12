@@ -1290,6 +1290,30 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Parses string value from the string->object dictionary.
+    /// Converts other types to string as good as possible.
+    /// </summary>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
+    public static bool TryParse (Dictionary<string, object> rec, string key, ref string val)
+    {
+      if (!rec.TryGetValue(key, out object oval))
+        return false;
+
+      if (oval is string ostring)
+        val = ostring;
+      else
+      if (oval is float ofloat)
+        val = ofloat.ToString(CultureInfo.InvariantCulture);
+      else
+      if (oval is double odouble)
+        val = odouble.ToString(CultureInfo.InvariantCulture);
+      else
+        val = oval.ToString();
+
+      return true;
+    }
+
+    /// <summary>
     /// Parses integer value from the string->object dictionary.
     /// </summary>
     /// <returns>True if everything went well, keeps the original value otherwise.</returns>

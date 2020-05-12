@@ -100,12 +100,14 @@ namespace _062animation
         return null;
       }
 
-      if (preprocessing)
+      if (preprocessing ||
+          ctx == null)
         ctx = new ScriptContext();    // we need a new context object for each computing batch..
 
       Scripts.ContextInit(
         ctx,
         preprocessing ? new AnimatedRayScene() : null,
+        Path.GetFileName(sceneFileName),
         width,
         height,
         superSampling,
@@ -115,7 +117,6 @@ namespace _062animation
 
       Scripts.SceneFromObject(
         ctx,
-        Path.GetFileName(sceneFileName),
         sceneFileName,
         textParam.Text,
         (sc) => AnimatedScene.Init(sc, textParam.Text),
