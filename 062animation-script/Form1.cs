@@ -219,6 +219,10 @@ namespace _062animation
       rend.ProgressData  = progress;
       progress.Continue  = true;
 
+      // Set TLS.
+      MT.InitThreadData();
+      MT.SetRendering(scene, imf, rend);
+
       // Animation time has to be set.
       if (scene is ITimeDependent sc)
         sc.Time = time;
@@ -226,17 +230,13 @@ namespace _062animation
       // Output image.
       outputImage = new Bitmap(ActualWidth, ActualHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
-      // Set TLS.
-      MT.InitThreadData();
-      MT.SetRendering(scene, imf, rend);
-
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
       rend.RenderRectangle(outputImage, 0, 0, ActualWidth, ActualHeight);
 
       sw.Stop();
-      labelElapsed.Text = string.Format("Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds);
+      labelElapsed.Text = string.Format(CultureInfo.InvariantCulture, "Elapsed: {0:f1}s", 1.0e-3 * sw.ElapsedMilliseconds);
 
       pictureBox1.Image = outputImage;
 
