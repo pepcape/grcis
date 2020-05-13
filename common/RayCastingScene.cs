@@ -45,6 +45,11 @@ namespace Rendering
     /// </summary>
     public readonly static string MATERIAL = "material";
 
+    /// <summary>
+    /// Optional aternative ray-propagation (recursion) in the form of callback.
+    /// </summary>
+    public readonly static string RECURSION = "recursion";
+
     //----------------------------------------------------
     // Scene definition script context.
     // (in/out means "relative to a script")
