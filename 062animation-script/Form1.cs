@@ -226,7 +226,10 @@ namespace _062animation
       // Output image.
       outputImage = new Bitmap(ActualWidth, ActualHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
+      // Set TLS.
       MT.InitThreadData();
+      MT.SetRendering(scene, imf, rend);
+
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
@@ -237,6 +240,8 @@ namespace _062animation
 
       pictureBox1.Image = outputImage;
 
+      // Reset TLS.
+      MT.ResetRendering();
       EnableRendering(true);
 
       Cursor.Current = Cursors.Default;
@@ -495,30 +500,36 @@ namespace _062animation
     protected class WorkerThreadInit
     {
       /// <summary>
-      /// Animated scene object or null if not animated.
+      /// [Animated] scene object.
       /// </summary>
-      public ITimeDependent scene;
+      public IRayScene scene;
 
       /// <summary>
-      /// Animated image function or null if not animated.
+      /// [Animated] image function.
       /// </summary>
-      public ITimeDependent imfunc;
+      public IImageFunction imageFunction;
 
       /// <summary>
       /// Actual rendering object.
       /// </summary>
       public IRenderer rend;
 
+      // Frame resolution in pixels.
       public int width;
       public int height;
 
-      public WorkerThreadInit (IRenderer r, ITimeDependent sc, ITimeDependent imf, int wid, int hei)
+      public WorkerThreadInit (
+        IRenderer r,
+        IRayScene sc,
+        IImageFunction imf,
+        int wid,
+        int hei)
       {
-        scene = sc;
-        imfunc = imf;
-        rend = r;
-        width = wid;
-        height = hei;
+        scene         = sc;
+        imageFunction = imf;
+        rend          = r;
+        width         = wid;
+        height        = hei;
       }
     }
 
@@ -600,7 +611,7 @@ namespace _062animation
         rend.Adaptive      = 0;   // turn off adaptive bitmap synthesis completely (interactive preview not needed)
         rend.ProgressData  = progress;
 
-        wti[t] = new WorkerThreadInit(rend, sc as ITimeDependent, imf as ITimeDependent, ActualWidth, ActualHeight);
+        wti[t] = new WorkerThreadInit(rend, sc, imf, ActualWidth, ActualHeight);
       }
 
       // Update animation timing.
@@ -688,10 +699,11 @@ namespace _062animation
     protected void RenderWorker (object spec)
     {
       // Thread-specific data.
-      WorkerThreadInit init = spec as WorkerThreadInit;
-      if (init == null)
+      if (!(spec is WorkerThreadInit init))
         return;
 
+      // Set TLS.
+      MT.SetRendering(init.scene, init.imageFunction, init.rend);
       MT.InitThreadData();
 
       // Worker loop.
@@ -707,6 +719,10 @@ namespace _062animation
               time > end)
           {
             sem.Release();                  // chance for the main animation thread to give up as well..
+
+            // Reset TLS.
+            MT.ResetRendering();
+
             return;
           }
 
@@ -722,24 +738,24 @@ namespace _062animation
         r.frameNumber = myFrameNumber;
 
         // Set specific time to my scene.
-        if (init.scene != null)
+        if (init.scene is ITimeDependent ascene)
         {
 #if DEBUG
-          Debug.WriteLine($"Scene #{init.scene.getSerial()} setTime({myTime})");
+          Debug.WriteLine($"Scene #{ascene.getSerial()} setTime({myTime})");
 #endif
-          init.scene.Time = myTime;
+          ascene.Time = myTime;
         }
 
         if (init.rend is ITimeDependent arend)
         {
           arend.Start = myTime;
-          arend.End = myEndTime;
+          arend.End   = myEndTime;
         }
 
-        if (init.imfunc != null)
+        if (init.imageFunction is ITimeDependent aimf)
         {
-          init.imfunc.Start = myTime;
-          init.imfunc.End = myEndTime;
+          aimf.Start = myTime;
+          aimf.End   = myEndTime;
         }
 
         // Render the whole frame...
