@@ -5,8 +5,8 @@ Debug.Assert(scene != null);
 Debug.Assert(context != null);
 
 // Let renderer application know required parameters soon..
-context[PropertyName.CTX_WIDTH]         = 1800;
-context[PropertyName.CTX_HEIGHT]        = 1200;
+context[PropertyName.CTX_WIDTH]         = 1200;
+context[PropertyName.CTX_HEIGHT]        =  800;
 
 // If scene data cannot be shared, remove this return!
 if (scene.BackgroundColor != null)
@@ -70,3 +70,45 @@ root.InsertChild(c, Matrix4d.RotateY(0.2) * Matrix4d.CreateTranslation(5.0, 0.3,
 c = new Cylinder(-0.5, 0.5);
 c.SetAttribute(PropertyName.COLOR, new double[] {0.8, 0.6, 0.0});
 root.InsertChild(c, Matrix4d.Scale(2.0) * Matrix4d.RotateX(1.2) * Matrix4d.CreateTranslation(2.0, 1.8, 16.0));
+
+del = (in Intersection i, in Vector3d dir, in double importance, out RayRecursion rr) =>
+{
+  double direct = 1.0 - i.TextureCoord.X;
+  direct = Math.Pow(direct * direct, 8.0);
+
+  rr = new RayRecursion(
+    new double[] {0.0, 1.2 * direct, 1.2 * direct},
+    new RayRecursion.RayContribution(i, dir, importance));
+
+  return 144L;
+};
+
+c = new SphereFront();
+c.SetAttribute(PropertyName.RECURSION, del);
+c.SetAttribute(PropertyName.NO_SHADOW, true);
+root.InsertChild(c, Matrix4d.Scale(6.4) * Matrix4d.CreateTranslation(-2.3, 2.2, 2.0));
+
+c = new SphereFront();
+c.SetAttribute(PropertyName.RECURSION, del);
+c.SetAttribute(PropertyName.NO_SHADOW, true);
+root.InsertChild(c, Matrix4d.Scale(3.2) * Matrix4d.CreateTranslation(-1.5, 2.0, 2.0));
+
+c = new SphereFront();
+c.SetAttribute(PropertyName.RECURSION, del);
+c.SetAttribute(PropertyName.NO_SHADOW, true);
+root.InsertChild(c, Matrix4d.Scale(1.6) * Matrix4d.CreateTranslation(-0.7, 1.8, 2.0));
+
+c = new SphereFront();
+c.SetAttribute(PropertyName.RECURSION, del);
+c.SetAttribute(PropertyName.NO_SHADOW, true);
+root.InsertChild(c, Matrix4d.Scale(0.8) * Matrix4d.CreateTranslation(+0.1, 1.6, 2.0));
+
+c = new SphereFront();
+c.SetAttribute(PropertyName.RECURSION, del);
+c.SetAttribute(PropertyName.NO_SHADOW, true);
+root.InsertChild(c, Matrix4d.Scale(0.4) * Matrix4d.CreateTranslation(+0.9, 1.4, 2.0));
+
+c = new SphereFront();
+c.SetAttribute(PropertyName.RECURSION, del);
+c.SetAttribute(PropertyName.NO_SHADOW, true);
+root.InsertChild(c, Matrix4d.Scale(0.2) * Matrix4d.CreateTranslation(+1.7, 1.2, 2.0));
