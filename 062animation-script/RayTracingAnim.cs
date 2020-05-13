@@ -102,108 +102,6 @@ namespace _062animation
 namespace Rendering
 {
   /// <summary>
-  /// Pilot implementation of time-dependent camera.
-  /// It simply goes round the central point (look-at point).
-  /// </summary>
-  public class AnimatedCamera : StaticCamera, ITimeDependent
-  {
-#if DEBUG
-    private static volatile int nextSerial = 0;
-    private readonly int serial = nextSerial++;
-    public int getSerial () => serial;
-#endif
-
-    /// <summary>
-    /// Starting (minimal) time in seconds.
-    /// </summary>
-    public double Start
-    {
-      get;
-      set;
-    }
-
-    /// <summary>
-    /// Ending (maximal) time in seconds.
-    /// </summary>
-    public double End
-    {
-      get;
-      set;
-    }
-
-    protected double time;
-
-    /// <summary>
-    /// Goes round the central point (lookAt).
-    /// One complete turn for the whole time interval.
-    /// </summary>
-    protected virtual void setTime (double newTime)
-    {
-      Debug.Assert(Start != End);
-
-#if DEBUG
-      Debug.WriteLine($"Camera #{getSerial()} setTime({newTime})");
-#endif
-
-      time = newTime;    // Here Start & End define a periodicity, not bounds!
-
-      // change the camera position:
-      double angle = MathHelper.TwoPi * (time - Start) / (End - Start);
-      Vector3d radial = Vector3d.TransformVector(center0 - lookAt, Matrix4d.CreateRotationY(-angle));
-      center = lookAt + radial;
-      direction = -radial;
-      direction.Normalize();
-      prepare();
-    }
-
-    /// <summary>
-    /// Current time in seconds.
-    /// </summary>
-    public double Time
-    {
-      get => time;
-      set => setTime(value);
-    }
-
-    /// <summary>
-    /// Central point (to look at).
-    /// </summary>
-    protected Vector3d lookAt;
-
-    /// <summary>
-    /// Center for time == Start;
-    /// </summary>
-    protected Vector3d center0;
-
-    /// <summary>
-    /// Clone all the time-dependent components, share the others.
-    /// </summary>
-    /// <returns></returns>
-    public virtual object Clone ()
-    {
-      AnimatedCamera c = new AnimatedCamera( lookAt, center0, MathHelper.RadiansToDegrees( (float)hAngle ) );
-      c.Start = Start;
-      c.End   = End;
-      c.Time  = Time;
-      return c;
-    }
-
-    public AnimatedCamera (Vector3d lookat, Vector3d cen, double ang)
-      : base(cen, lookat - cen, ang)
-    {
-      lookAt  = lookat;
-      center0 = cen;
-      Start   = 0.0;
-      End     = 10.0;
-      time    = 0.0;
-    }
-  }
-
-  // !!!{{ TODO: put your new time-dependent scene-construction classes here
-
-  // !!!}}
-
-  /// <summary>
   /// Animated Ray-scene.
   /// </summary>
   public class AnimatedScene
@@ -234,10 +132,6 @@ namespace Rendering
       if (sc is AnimatedRayScene asc)
         asc.End = 20.0;
       sc.Camera  = cam;
-
-      //sc.Camera = new StaticCamera( new Vector3d( 0.7,  0.5, -5.0 ),
-      //                              new Vector3d( 0.0, -0.18, 1.0 ),
-      //                              50.0 );
 
       // Light sources:
       sc.Sources = new LinkedList<ILightSource>();
