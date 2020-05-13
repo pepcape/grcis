@@ -49,6 +49,16 @@ namespace Rendering
     protected IImageFunction imfs = null;
 
     /// <summary>
+    /// Ray-tracing scene for single sample computing.
+    /// </summary>
+    protected IRayScene sc = null;
+
+    /// <summary>
+    /// Renderer for single sample computing.
+    /// </summary>
+    protected IRenderer rend = null;
+
+    /// <summary>
     /// Image width in pixels, 0 for default value (according to panel size).
     /// </summary>
     public int ImageWidth = 0;
@@ -496,6 +506,7 @@ namespace Rendering
       master = new Master(
         newImage,
         scene,
+        imf,
         rend,
         RenderClientsForm.instance?.clients,
         threads,
@@ -697,10 +708,10 @@ namespace Rendering
       if (dirty || imfs == null)
       {
         int ss = 1;
-        IRayScene rs = FormSupport.getScene(
+        sc = FormSupport.getScene(
           false,
           out imfs,
-          out IRenderer rend,
+          out rend,
           ref ActualWidth,
           ref ActualHeight,
           ref ss,
@@ -708,10 +719,10 @@ namespace Rendering
 
         // IImageFunction.
         if (imfs == null)      // not defined in the script
-          imfs = getImageFunction(imfs, rs);
+          imfs = getImageFunction(imfs, sc);
         else
           if (imfs is RayCasting imfray)
-            imfray.Scene = rs;
+            imfray.Scene = sc;
         imfs.Width  = ActualWidth;
         imfs.Height = ActualHeight;
 
@@ -727,11 +738,17 @@ namespace Rendering
         dirty = false;
       }
 
+      // Set TLS.
+      MT.SetRendering(sc, imfs, rend);
+
       double[] color = new double[3];
       long hash = imfs.GetSample(x + 0.5, y + 0.5, color);
       labelSample.Text = string.Format(CultureInfo.InvariantCulture,
                                        "Sample at [{0},{1}] = [{2:f},{3:f},{4:f}], {5:X}",
                                        x, y, color[0], color[1], color[2], hash);
+
+      // Reset TLS.
+      MT.ResetRendering();
 
       rayVisualizer.AddingRaysFinished();
 
