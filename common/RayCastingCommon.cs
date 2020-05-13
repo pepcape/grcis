@@ -496,14 +496,34 @@ namespace Rendering
       completed = true;
     }
 
-    public static Intersection FirstIntersection (LinkedList<Intersection> list, ref Vector3d p1)
+    public static Intersection FirstIntersection (
+      LinkedList<Intersection> list,
+      ref Vector3d p1)
     {
       if (list == null || list.Count < 1)
         return null;
 
-      double p1Squared = p1.X * p1.X + p1.Y * p1.Y + p1.Z * p1.Z;
+      double p1Squared = Vector3d.Dot(p1, p1);
       foreach (Intersection i in list)
-        if (i.T > 0.0 && i.T * i.T * p1Squared > 1.0e-8)
+        if (i.T > 0.0 &&
+            i.T * i.T * p1Squared > 1.0e-8)
+          return i;
+
+      return null;
+    }
+
+    public static Intersection FirstRealIntersection (
+      LinkedList<Intersection> list,
+      ref Vector3d p1)
+    {
+      if (list == null || list.Count < 1)
+        return null;
+
+      double p1Squared = Vector3d.Dot(p1, p1);
+      foreach (Intersection i in list)
+        if (i.T > 0.0 &&
+            i.T * i.T * p1Squared > 1.0e-8 &&
+            i.Solid?.GetLocalAttribute(PropertyName.NO_SHADOW) == null)
           return i;
 
       return null;

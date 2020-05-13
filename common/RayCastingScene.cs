@@ -50,6 +50,11 @@ namespace Rendering
     /// </summary>
     public readonly static string RECURSION = "recursion";
 
+    /// <summary>
+    /// Attribute for object which don't cast shadows.
+    /// </summary>
+    public readonly static string NO_SHADOW = "noShadow";
+
     //----------------------------------------------------
     // Scene definition script context.
     // (in/out means "relative to a script")
