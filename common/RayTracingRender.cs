@@ -47,7 +47,7 @@ namespace Rendering
         in double[] coeff = null,
         in double imp = 1.0)
       {
-        origin = p0 + 1.0e-4 * p1;
+        origin = p0 + Intersection.RAY_EPSILON * p1;
         direction = p1;
         coefficient = coeff;
         importance = imp;
@@ -61,7 +61,7 @@ namespace Rendering
         in Vector3d dir,
         in double imp)
       {
-        origin      = i.CoordWorld;
+        origin      = i.CoordWorld + Intersection.RAY_EPSILON * dir;
         direction   = dir;
         coefficient = null;
         importance  = imp;
@@ -120,9 +120,9 @@ namespace Rendering
   /// <returns></returns>
   [Serializable]
   public delegate long RecursionFunction (
-    in Intersection i,
-    in Vector3d dir,
-    in double importance,
+    Intersection i,
+    Vector3d dir,
+    double importance,
     out RayRecursion rr);
 
   /// <summary>
@@ -223,13 +223,13 @@ namespace Rendering
     /// by a hybrid method: 'importance' and 'level' are checked.
     /// Internal integration support.
     /// </summary>
-    /// <param name="level">Current recursion depth.</param>
+    /// <param name="depth">Current recursion depth.</param>
     /// <param name="importance">Importance of the current ray.</param>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <param name="color">Result color.</param>
     /// <returns>Hash-value (ray sub-signature) used for adaptive subsampling.</returns>
-    protected virtual long shade (int level,
+    protected virtual long shade (int depth,
                                   double importance,
                                   ref Vector3d p0,
                                   ref Vector3d p1,
@@ -241,14 +241,14 @@ namespace Rendering
       LinkedList<Intersection> intersections = scene.Intersectable.Intersect(p0, p1);
 
       // If the ray is primary, increment both counters
-      Statistics.IncrementRaysCounters(1, level == 0);
+      Statistics.IncrementRaysCounters(1, depth == 0);
 
       Intersection i = Intersection.FirstIntersection(intersections, ref p1);
 
       if (i == null)
       {
         // No intersection -> background color
-        rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.rayVisualizerNormal, level, p0, direction * 100000);
+        rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.rayVisualizerNormal, depth, p0, direction * 100000);
 
         return scene.Background.GetColor(p1, color);
       }
@@ -256,7 +256,7 @@ namespace Rendering
       // There was at least one intersection
       i.Complete();
 
-      rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.unknown, level, p0, i);
+      rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.unknown, depth, p0, i);
 
       // Hash code for adaptive supersampling
       long hash = i.Solid.GetHashCode();
@@ -305,11 +305,11 @@ namespace Rendering
 
           // Recursive rays.
           if (rr.Rays != null &&
-              level + 1 < MaxLevel)
+              depth++ < MaxLevel)
             foreach (var ray in rr.Rays)
             {
               RayRecursion.RayContribution rc = ray;
-              hash += HASH_REFLECT * shade(level + 1, rc.importance, ref rc.origin, ref rc.direction, comp);
+              hash += HASH_REFLECT * shade(depth, rc.importance, ref rc.origin, ref rc.direction, comp);
 
               // Combine colors.
               if (ray.coefficient == null)
@@ -369,7 +369,7 @@ namespace Rendering
       }
 
       // Check the recursion depth.
-      if (level++ >= MaxLevel || !DoReflections && !DoRefractions)
+      if (depth++ >= MaxLevel || !DoReflections && !DoRefractions)
         // No further recursion.
         return hash;
 
@@ -393,7 +393,7 @@ namespace Rendering
           if (newImportance >= MinImportance)
           {
             // Do compute the reflected ray.
-            hash += HASH_REFLECT * shade(level, newImportance, ref i.CoordWorld, ref r, comp);
+            hash += HASH_REFLECT * shade(depth, newImportance, ref i.CoordWorld, ref r, comp);
             Util.ColorAdd(comp, ks, color);
           }
         }
@@ -411,7 +411,7 @@ namespace Rendering
         if ((r = Geometry.SpecularRefraction(i.Normal, i.Material.n, p1)) == Vector3d.Zero)
           return hash;
 
-        hash += HASH_REFRACT * shade(level, newImportance, ref i.CoordWorld, ref r, comp);
+        hash += HASH_REFRACT * shade(depth, newImportance, ref i.CoordWorld, ref r, comp);
         Util.ColorAdd(comp, maxK, color);
       }
 
