@@ -1,6 +1,7 @@
 ﻿using MathSupport;
 using System;
 using System.Collections.Generic;
+using Utilities;
 
 // Objects for animation stuff.
 namespace Rendering
@@ -131,6 +132,12 @@ namespace Rendering
   /// </summary>
   public class AnimatedCSGInnerNode : CSGInnerNode, ITimeDependent
   {
+#if DEBUG
+    private static volatile int nextSerial = 0;
+    private readonly int serial = nextSerial++;
+    public int getSerial () => serial;
+#endif
+
     /// <summary>
     /// Starting (minimal) time in seconds.
     /// </summary>
