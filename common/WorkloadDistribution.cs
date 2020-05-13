@@ -116,7 +116,6 @@ namespace Rendering
         {
           // Set TLS.
           MT.threadID = i1;
-          MT.SetRendering(scene, imageFunction, renderer);
 
           Consume();
 
@@ -158,7 +157,13 @@ namespace Rendering
     /// </summary>
     protected void Consume ()
     {
+      // Set TLS.
       MT.InitThreadData();
+      MT.SetRendering(scene, imageFunction, renderer);
+
+      // Animation time (fore debugging animated scenes).
+      if (scene is ITimeDependent sc)
+        sc.Time = 0.0;
 
       while (!availableAssignments.IsEmpty ||
              finishedAssignments < totalNumberOfAssignments - threads ||
