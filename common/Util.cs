@@ -220,6 +220,63 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Adds an monochromatic color to an color array.
+    /// </summary>
+    /// <param name="add">Source color</param>
+    /// <param name="dst">Destination array</param>
+    public static void ColorAdd (double add, double[] dst)
+    {
+      Debug.Assert(dst != null);
+
+      for (int i = 0; i < dst.Length; i++)
+        dst[i] += add;
+    }
+
+    /// <summary>
+    /// Adds one color array to another.
+    /// </summary>
+    /// <param name="add">Source array</param>
+    /// <param name="dst">Destination array</param>
+    public static void ColorAdd (double[] add, double[] dst)
+    {
+      Debug.Assert(add != null && dst != null);
+
+      int bands = Math.Min(add.Length, dst.Length);
+      for (int i = 0; i < bands; i++)
+        dst[i] += add[i];
+    }
+
+    /// <summary>
+    /// Adds 'coeff * add' color array to 'dst'.
+    /// </summary>
+    /// <param name="add">Source array</param>
+    /// <param name="coeff">Multiplicator</param>
+    /// <param name="dst">Destination array</param>
+    public static void ColorAdd (double[] add, double coeff, double[] dst)
+    {
+      Debug.Assert(add != null && dst != null);
+
+      int bands = Math.Min(add.Length, dst.Length);
+      for (int i = 0; i < bands; i++)
+        dst[i] += coeff * add[i];
+    }
+
+    /// <summary>
+    /// Adds 'weight * add' color array to 'dst'.
+    /// </summary>
+    /// <param name="add">Source array</param>
+    /// <param name="weight">Weight array</param>
+    /// <param name="dst">Destination array</param>
+    public static void ColorAdd (double[] add, double[] weight, double[] dst)
+    {
+      Debug.Assert(add != null && dst != null && weight != null);
+
+      int bands = Math.Min(Math.Min(add.Length, dst.Length), weight.Length);
+      for (int i = 0; i < bands; i++)
+        dst[i] += weight[i] * add[i];
+    }
+
+    /// <summary>
     /// Hexa-coded color, not quoted.
     /// </summary>
     /// <returns>#RRGGBB</returns>

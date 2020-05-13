@@ -7,6 +7,81 @@ using Utilities;
 namespace Rendering
 {
   /// <summary>
+  /// Class representing ray-surface light interaction in the form of direct
+  /// light contribution and potentially many subsequent (recursive) rays
+  /// associated with weight color coefficients.
+  /// "result = DirectContribution + foreach(ray in Rays) ray.weight * shade(ray)"
+  /// </summary>
+  [Serializable]
+  public class RayRecursion
+  {
+    /// <summary>
+    /// Individual ray including it's quantitative contribution.
+    /// </summary>
+    public struct RayContribution
+    {
+      /// <summary>
+      /// Ray origin.
+      /// </summary>
+      public Vector3d origin;
+
+      /// <summary>
+      /// Ray directional vector.
+      /// </summary>
+      public Vector3d direction;
+
+      /// <summary>
+      /// Multiplicative coefficient, it could be null (for 1.0), single-component
+      /// array (for uniform multiplicator) or full-length color multiplicator.
+      /// </summary>
+      public double[] coefficient;
+
+      /// <summary>
+      /// Importance for recursive shade() call.
+      /// </summary>
+      public double importance;
+
+      public RayContribution (RayContribution r)
+      {
+        origin      = r.origin;
+        direction   = r.direction;
+        coefficient = r.coefficient;
+        importance  = r.importance;
+      }
+    }
+
+    /// <summary>
+    /// Direct contribution to the light. It can be null (no contribution) or
+    /// single-component array (global/monochromatic contribution) or regular
+    /// full-length color array.
+    /// </summary>
+    public double[] DirectContribution;
+
+    /// <summary>
+    /// List of ray contributions. Individual recursive rays.
+    /// </summary>
+    public List<RayContribution> Rays;
+
+    public RayRecursion ()
+    {
+      DirectContribution = null;
+      Rays = null;
+    }
+  }
+
+  /// <summary>
+  /// Optional delegate function defining how the rest of "ray vs. surface" interaction
+  /// should be computed. It is associated with scene dodes via attribute PropertyName.RECURSION
+  /// and if found, it is run instead the default ray-tracing "shading + recursion" phases.
+  /// </summary>
+  /// <param name="i">Completed intersection with the solid.</param>
+  /// <param name="importance">Input importance factor (don't recurse if the accumulated importance is too small).</param>
+  /// <param name="rr">Rules for further processing.</param>
+  /// <returns></returns>
+  [Serializable]
+  public delegate long RecursionFunction (Intersection i, double importance, out RayRecursion rr);
+
+  /// <summary>
   /// Ray-tracing rendering (w all secondary rays).
   /// </summary>
   [Serializable]
@@ -21,6 +96,11 @@ namespace Rendering
     /// Hash-multiplier for reflected rays.
     /// </summary>
     protected const long HASH_REFLECT = 17L;
+
+    /// <summary>
+    /// Hash-multiplier for overrided ray-recursion.
+    /// </summary>
+    protected const long HASH_RECURSION = 101L;
 
     /// <summary>
     /// Recursion-termination parameter - maximal recursion depth.
@@ -48,6 +128,11 @@ namespace Rendering
     /// </summary>
     public bool DoShadows { get; set; }
 
+    /// <summary>
+    /// Do ray-recursion in overrided ray-surface interaction?
+    /// </summary>
+    public bool DoRecursion { get; set; }
+
     public RayTracing (IRayScene sc = null)
       : base(sc)
     {
@@ -55,7 +140,8 @@ namespace Rendering
       MinImportance = 0.05;
       DoReflections =
       DoRefractions =
-      DoShadows     = true;
+      DoShadows     =
+      DoRecursion   = true;
     }
 
     [NonSerialized]
@@ -114,7 +200,6 @@ namespace Rendering
       Statistics.IncrementRaysCounters(1, level == 0);
 
       Intersection i = Intersection.FirstIntersection(intersections, ref p1);
-      int b;
 
       if (i == null)
       {
@@ -154,20 +239,52 @@ namespace Rendering
         }
       }
 
+      // Color accumulation.
+      Array.Clear(color, 0, bands);
+      double[] comp = new double[bands];
+
+      // Optional override ray-processing (procedural).
+      if (DoRecursion &&
+          i.Solid?.GetAttribute(PropertyName.RECURSION) is RecursionFunction rf)
+      {
+        hash += HASH_RECURSION * rf(i, importance, out RayRecursion rr);
+
+        if (rr != null)
+        {
+          // Direct contribution.
+          if (rr.DirectContribution != null &&
+              rr.DirectContribution.Length > 0)
+            if (rr.DirectContribution.Length == 1)
+              Util.ColorAdd(rr.DirectContribution[0], color);
+            else
+              Util.ColorAdd(rr.DirectContribution, color);
+
+          // Recursive rays.
+          if (rr.Rays != null &&
+              level + 1 < MaxLevel)
+            foreach (var ray in rr.Rays)
+            {
+              RayRecursion.RayContribution rc = ray;
+              hash += HASH_REFLECT * shade(level + 1, rc.importance, ref rc.origin, ref rc.direction, comp);
+              Util.ColorAdd(comp, color);
+            }
+
+          return hash;
+        }
+      }
+
+      // Default (Whitted) ray-tracing interaction (lights [+ reflection] [+ refraction]).
       p1 = -p1; // viewing vector
       p1.Normalize();
 
-      // !!! TODO: optional light-source processing (controlled by an attribute?) !!!
-
       if (scene.Sources == null || scene.Sources.Count < 1)
         // No light sources at all.
-        Util.ColorCopy(i.SurfaceColor, color);
+        Util.ColorAdd(i.SurfaceColor, color);
       else
       {
         // Apply the reflectance model for each source.
         i.Material = (IMaterial)i.Material.Clone();
         i.Material.Color = i.SurfaceColor;
-        Array.Clear(color, 0, bands);
 
         foreach (ILightSource source in scene.Sources)
         {
@@ -192,8 +309,7 @@ namespace Rendering
             double[] reflection = i.ReflectanceModel.ColorReflection(i, dir, p1, ReflectionComponent.ALL);
             if (reflection != null)
             {
-              for (b = 0; b < bands; b++)
-                color[b] += intensity[b] * reflection[b];
+              Util.ColorAdd(intensity, reflection, color);
               hash = hash * HASH_LIGHT + source.GetHashCode();
             }
           }
@@ -207,11 +323,7 @@ namespace Rendering
 
       Vector3d r;
       double   maxK;
-      double[] comp = new double[bands];
       double   newImportance;
-
-      // !!! TODO: alternative intersection handling, different from reflection + refraction !!!
-      // Controlled by an attribute (containing a callback-function)?
 
       if (DoReflections)
       {
@@ -221,7 +333,7 @@ namespace Rendering
         if (ks != null)
         {
           maxK = ks[0];
-          for (b = 1; b < bands; b++)
+          for (int b = 1; b < bands; b++)
             if (ks[b] > maxK)
               maxK = ks[b];
 
@@ -230,8 +342,7 @@ namespace Rendering
           {
             // Do compute the reflected ray.
             hash += HASH_REFLECT * shade(level, newImportance, ref i.CoordWorld, ref r, comp);
-            for (b = 0; b < bands; b++)
-              color[b] += ks[b] * comp[b];
+            Util.ColorAdd(comp, ks, color);
           }
         }
       }
@@ -249,8 +360,7 @@ namespace Rendering
           return hash;
 
         hash += HASH_REFRACT * shade(level, newImportance, ref i.CoordWorld, ref r, comp);
-        for (b = 0; b < bands; b++)
-          color[b] += maxK * comp[b];
+        Util.ColorAdd(comp, maxK, color);
       }
 
       return hash;
