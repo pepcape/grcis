@@ -93,6 +93,106 @@ namespace Rendering
     }
   }
 
+  /// <summary>
+  /// Simple unit sphere showing only the front face,
+  /// texture coordinates are representing projected distance from the center.
+  /// </summary>
+  [Serializable]
+  public class SphereFront : Sphere
+  {
+    /// <summary>
+    /// Compute two intersections? (not needed for glow effects).
+    /// </summary>
+    public bool shell;
+
+    public SphereFront (in bool sh = true)
+    {
+      shell = sh;
+    }
+
+    /// <summary>
+    /// Computes the complete intersection of the given ray with the object.
+    /// </summary>
+    /// <param name="p0">Ray origin.</param>
+    /// <param name="p1">Ray direction vector.</param>
+    /// <returns>Single intersection.</returns>
+    public override LinkedList<Intersection> Intersect (Vector3d p0, Vector3d p1)
+    {
+      double OD;
+      Vector3d.Dot(ref p0, ref p1, out OD);
+      double DD;
+      Vector3d.Dot(ref p1, ref p1, out DD);
+      double OO;
+      Vector3d.Dot(ref p0, ref p0, out OO);
+      double d = OD * OD + DD * (1.0 - OO); // discriminant
+      if (d <= 0.0)
+        return null;            // no intersections
+
+      // Single intersection: (-OD - d) / DD.
+      LinkedList<Intersection> result = new LinkedList<Intersection> ();
+      double t = (-OD - Math.Sqrt(d)) / DD;
+      Vector3d loc = p0 + t * p1;
+
+      Intersection i = new Intersection(this)
+      {
+        T = t,
+        Enter = true,
+        Front = true,
+        CoordLocal = loc,
+        SolidData = p1
+      };
+      result.AddLast(i);
+
+      if (shell)
+      {
+        i = new Intersection(this)
+        {
+          T = t + 1.0e-5,
+          Enter = false,
+          Front = false,
+          CoordLocal = loc + 1.0e-5 * p1,
+          SolidData = p1
+        };
+        result.AddLast(i);
+      }
+
+      return result;
+    }
+
+    /// <summary>
+    /// Complete all relevant items in the given Intersection object.
+    /// </summary>
+    /// <param name="inter">Intersection instance to complete.</param>
+    public override void CompleteIntersection (Intersection inter)
+    {
+      // Normal vector.
+      Vector3d tu, tv;
+      Geometry.GetAxes(ref inter.CoordLocal, out tu, out tv);
+      tu = Vector3d.TransformVector(tu, inter.LocalToWorld);
+      tv = Vector3d.TransformVector(tv, inter.LocalToWorld);
+      Vector3d.Cross(ref tu, ref tv, out inter.Normal);
+
+      // 2D texture coordinates - projection to 2D from the ray-direction.
+      if (inter.SolidData is Vector3d direction)
+      {
+        direction.Normalize();
+        Vector3d locNormal = inter.CoordLocal;
+        locNormal.Normalize();
+        double cosa = Vector3d.Dot(direction, locNormal);
+        double sina = Math.Sqrt(1.0 - cosa * cosa);
+        // sina = distance_from_center
+        inter.TextureCoord.X =
+        inter.TextureCoord.Y = sina;
+      }
+      else
+      {
+        double r = Math.Max(1.0e-12, Math.Sqrt(inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y));
+        inter.TextureCoord.X = inter.CoordLocal.X / r;
+        inter.TextureCoord.Y = inter.CoordLocal.Y / r;
+      }
+    }
+  }
+
   public class BoundingSphere : IBoundingVolume
   {
     double rr;
@@ -704,7 +804,7 @@ namespace Rendering
     /// <param name="inter">Intersection instance to complete.</param>
     public override void CompleteIntersection (Intersection inter)
     {
-      // normal vector:
+      // Normal vector.
       Vector3d tu, tv;
       Vector3d ln;
       ln.Z = (int)inter.SolidData;
@@ -725,7 +825,7 @@ namespace Rendering
       tv = Vector3d.TransformVector(tv, inter.LocalToWorld);
       Vector3d.Cross(ref tu, ref tv, out inter.Normal);
 
-      // 2D texture coordinates:
+      // 2D texture coordinates.
       inter.TextureCoord.Y = inter.CoordLocal.Z;
     }
 
@@ -737,6 +837,137 @@ namespace Rendering
 
       corner1 = new Vector3d(-1, -1, localZMin);
       corner2 = new Vector3d( 1,  1, localZMax);
+    }
+  }
+
+  /// <summary>
+  /// Unit cylinder showing only the front face,
+  /// texture coordinates are representing projected distance from the axis.
+  /// </summary>
+  [Serializable]
+  public class CylinderFront : Cylinder
+  {
+    /// <summary>
+    /// Compute two intersections? (not needed for glow effects).
+    /// </summary>
+    public bool shell;
+
+    /// <summary>
+    /// Default constructor - infinite cylindric surface.
+    /// </summary>
+    public CylinderFront (in bool sh = true)
+      : base(double.NegativeInfinity, double.PositiveInfinity)
+    {
+      shell = sh;
+    }
+
+    /// <summary>
+    /// Restricted cylinder.
+    /// </summary>
+    public CylinderFront (in double zMi, in double zMa, in bool sh = true)
+      : base (zMi, zMa)
+    {
+      shell = sh;
+    }
+
+    /// <summary>
+    /// Computes the complete intersection of the given ray with the object.
+    /// </summary>
+    /// <param name="p0">Ray origin.</param>
+    /// <param name="p1">Ray direction vector.</param>
+    /// <returns>Sorted list of intersection records.</returns>
+    public override LinkedList<Intersection> Intersect (Vector3d p0, Vector3d p1)
+    {
+      double A  = p1.X * p1.X + p1.Y * p1.Y;
+      double DA = A + A;
+      double B  = p0.X * p1.X + p0.Y * p1.Y;
+      B += B;
+      double C = p0.X * p0.X + p0.Y * p0.Y - 1.0;
+
+      double d = B * B - (DA + DA) * C; // discriminant
+      if (d <= 0.0)
+        return null;        // no intersection
+
+      d = Math.Sqrt(d);
+      // Two intersections with the infinite surface: (-B +- d) / DA
+      double   t1   = (-B - d) / DA;
+      double   t2   = (-B + d) / DA; // t1 < t2
+      Vector3d loc1 = p0 + t1 * p1;
+      Vector3d loc2 = p0 + t2 * p1;
+
+      double lzmin = Math.Min(loc1.Z, loc2.Z);
+      if (lzmin >= ZMax)
+        return null;
+      double lzmax = Math.Max(loc1.Z, loc2.Z);
+      if (lzmax <= ZMin)
+        return null;
+
+      // Test the two bases.
+      bool base1 = ZMin > lzmin && ZMin < lzmax;
+      bool base2 = ZMax > lzmin && ZMax < lzmax;
+      if ((base1 && p1.Z > 0.0) ||
+          (base2 && p1.Z < 0.0))
+        return null;
+
+      // There will be an intersection with the surface.
+      LinkedList<Intersection> result = new LinkedList<Intersection>();
+      Intersection i = new Intersection(this)
+      {
+        Enter = true,
+        Front = true,
+        T = t1,
+        CoordLocal = loc1,
+        SolidData = p1
+      };
+      result.AddLast(i);
+
+      if (shell)
+      {
+        i = new Intersection(this)
+        {
+          Enter = false,
+          Front = false,
+          T = t1 + 1.0e-5,
+          CoordLocal = loc1 + 1.0e-5 * p1,
+          SolidData = p1
+        };
+        result.AddLast(i);
+      }
+
+      return result;
+    }
+
+    /// <summary>
+    /// Complete all relevant items in the given Intersection object.
+    /// </summary>
+    /// <param name="inter">Intersection instance to complete.</param>
+    public override void CompleteIntersection (Intersection inter)
+    {
+      // Normal vector.
+      Vector3d tu, tv;
+      Vector3d ln;
+      ln.Z = 0.0;
+      ln.X = inter.CoordLocal.X;
+      ln.Y = inter.CoordLocal.Y;
+
+      Geometry.GetAxes(ref ln, out tu, out tv);
+      tu = Vector3d.TransformVector(tu, inter.LocalToWorld);
+      tv = Vector3d.TransformVector(tv, inter.LocalToWorld);
+      Vector3d.Cross(ref tu, ref tv, out inter.Normal);
+
+      // Texture coordinates encoding distance from the axis.
+      if (inter.SolidData is Vector3d direction)
+      {
+        Vector2d dirxy = new Vector2d(direction.X, direction.Y);
+        dirxy.Normalize();
+        double cosa = inter.CoordLocal.X * direction.X + inter.CoordLocal.Y * direction.Y;
+        double sina = Math.Sqrt(1.0 - cosa * cosa);
+        // sina = distance_from_center
+        inter.TextureCoord.X =
+        inter.TextureCoord.Y = sina;
+      }
+      else
+        inter.TextureCoord = Vector2d.Zero;
     }
   }
 
