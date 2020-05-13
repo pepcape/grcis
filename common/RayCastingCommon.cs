@@ -334,6 +334,21 @@ namespace Rendering
   public class Intersection : IComparable
   {
     /// <summary>
+    /// Thickness of very thin objects.
+    /// </summary>
+    public const double SHELL_THICKNESS = 1.0e-5;
+
+    /// <summary>
+    /// Smallest distance on the ray.
+    /// </summary>
+    public const double RAY_EPSILON = 1.0e-4;
+
+    /// <summary>
+    /// Smallest distance on the ray squared.
+    /// </summary>
+    public const double RAY_EPSILON2 = 1.0e-8;
+
+    /// <summary>
     /// True if the ray enters a solid interior of an object here (transition from an air to solid material).
     /// (mandatory: Solid, InnerNode)
     /// </summary>
@@ -506,7 +521,7 @@ namespace Rendering
       double p1Squared = Vector3d.Dot(p1, p1);
       foreach (Intersection i in list)
         if (i.T > 0.0 &&
-            i.T * i.T * p1Squared > 1.0e-8)
+            i.T * i.T * p1Squared > RAY_EPSILON2)
           return i;
 
       return null;
@@ -522,7 +537,7 @@ namespace Rendering
       double p1Squared = Vector3d.Dot(p1, p1);
       foreach (Intersection i in list)
         if (i.T > 0.0 &&
-            i.T * i.T * p1Squared > 1.0e-8 &&
+            i.T * i.T * p1Squared > RAY_EPSILON2 &&
             i.Solid?.GetLocalAttribute(PropertyName.NO_SHADOW) == null)
           return i;
 
@@ -541,7 +556,7 @@ namespace Rendering
 
       double p1Squared = p1.X * p1.X + p1.Y * p1.Y + p1.Z * p1.Z;
       t = T - t;
-      return (t * t * p1Squared > 1.0e-8);
+      return (t * t * p1Squared > RAY_EPSILON2);
     }
 
     /// <summary>

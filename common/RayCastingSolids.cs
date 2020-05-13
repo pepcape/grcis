@@ -150,7 +150,7 @@ namespace Rendering
           T = t + 1.0e-5,
           Enter = false,
           Front = false,
-          CoordLocal = loc + 1.0e-5 * p1,
+          CoordLocal = loc + Intersection.SHELL_THICKNESS * p1,
           SolidData = p1
         };
         result.AddLast(i);
@@ -928,7 +928,7 @@ namespace Rendering
           Enter = false,
           Front = false,
           T = t1 + 1.0e-5,
-          CoordLocal = loc1 + 1.0e-5 * p1,
+          CoordLocal = loc1 + Intersection.SHELL_THICKNESS * p1,
           SolidData = p1
         };
         result.AddLast(i);
