@@ -960,7 +960,7 @@ namespace Rendering
       {
         Vector2d dirxy = new Vector2d(direction.X, direction.Y);
         dirxy.Normalize();
-        double cosa = inter.CoordLocal.X * direction.X + inter.CoordLocal.Y * direction.Y;
+        double cosa = inter.CoordLocal.X * dirxy.X + inter.CoordLocal.Y * dirxy.Y;
         double sina = Math.Sqrt(1.0 - cosa * cosa);
         // sina = distance_from_center
         inter.TextureCoord.X =

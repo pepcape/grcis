@@ -41,6 +41,32 @@ namespace Rendering
       /// </summary>
       public double importance;
 
+      public RayContribution (
+        in Vector3d p0,
+        in Vector3d p1,
+        in double[] coeff = null,
+        in double imp = 1.0)
+      {
+        origin = p0 + 1.0e-4 * p1;
+        direction = p1;
+        coefficient = coeff;
+        importance = imp;
+      }
+
+      /// <summary>
+      /// Plain subsequent ray from the given intersection.
+      /// </summary>
+      public RayContribution (
+        in Intersection i,
+        in Vector3d dir,
+        in double imp)
+      {
+        origin      = i.CoordWorld;
+        direction   = dir;
+        coefficient = null;
+        importance  = imp;
+      }
+
       public RayContribution (RayContribution r)
       {
         origin      = r.origin;
@@ -67,6 +93,20 @@ namespace Rendering
       DirectContribution = null;
       Rays = null;
     }
+
+    public RayRecursion (in double[] direct, in RayContribution? ray = null)
+    {
+      DirectContribution = direct;
+      Rays = new List<RayContribution>();
+      if (ray != null)
+        Rays.Add(ray.Value);
+    }
+
+    public RayRecursion (in double[] direct, in List<RayContribution> rays)
+    {
+      DirectContribution = direct;
+      Rays = rays;
+    }
   }
 
   /// <summary>
@@ -79,7 +119,11 @@ namespace Rendering
   /// <param name="rr">Rules for further processing.</param>
   /// <returns></returns>
   [Serializable]
-  public delegate long RecursionFunction (Intersection i, double importance, out RayRecursion rr);
+  public delegate long RecursionFunction (
+    in Intersection i,
+    in Vector3d dir,
+    in double importance,
+    out RayRecursion rr);
 
   /// <summary>
   /// Ray-tracing rendering (w all secondary rays).
@@ -247,7 +291,7 @@ namespace Rendering
       if (DoRecursion &&
           i.Solid?.GetAttribute(PropertyName.RECURSION) is RecursionFunction rf)
       {
-        hash += HASH_RECURSION * rf(i, importance, out RayRecursion rr);
+        hash += HASH_RECURSION * rf(i, p1, importance, out RayRecursion rr);
 
         if (rr != null)
         {
@@ -266,7 +310,15 @@ namespace Rendering
             {
               RayRecursion.RayContribution rc = ray;
               hash += HASH_REFLECT * shade(level + 1, rc.importance, ref rc.origin, ref rc.direction, comp);
-              Util.ColorAdd(comp, color);
+
+              // Combine colors.
+              if (ray.coefficient == null)
+                Util.ColorAdd(comp, color);
+              else
+              if (ray.coefficient.Length == 1)
+                Util.ColorAdd(comp, ray.coefficient[0], color);
+              else
+                Util.ColorAdd(comp, ray.coefficient, color);
             }
 
           return hash;
@@ -300,7 +352,7 @@ namespace Rendering
             {
               intersections = scene.Intersectable.Intersect(i.CoordWorld, dir);
               Statistics.allRaysCount++;
-              Intersection si = Intersection.FirstIntersection(intersections, ref dir);
+              Intersection si = Intersection.FirstRealIntersection(intersections, ref dir);
               // Better shadow testing: intersection between 0.0 and 1.0 kills the lighting.
               if (si != null && !si.Far(1.0, ref dir))
                 continue;
