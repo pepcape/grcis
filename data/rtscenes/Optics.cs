@@ -4,18 +4,8 @@
 Debug.Assert(scene != null);
 Debug.Assert(context != null);
 
-//////////////////////////////////////////////////
-// Preprocessing stage support.
-
-bool preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-if (preprocessing)
-{
-  context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rrc[=<bool>] (ray-casting mode)";
-  return;
-}
-
-if (scene.BackgroundColor != null)
-  return;    // scene can be shared!
+// Tooltip (if script uses values from 'param').
+context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rrc[=<bool>] (ray-casting mode)";
 
 // Params dictionary.
 Dictionary<string, string> p = Util.ParseKeyValueList(param);

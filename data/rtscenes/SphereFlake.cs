@@ -4,19 +4,8 @@
 Debug.Assert(scene != null);
 Debug.Assert(context != null);
 
-//////////////////////////////////////////////////
-// Preprocessing stage support.
-
-// context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-bool preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-if (preprocessing)
-{
-  context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rmat={mirror|glass}\rdepth=<int> (recursion depth)\rcoef=<double> (scale coefficient)";
-  return;
-}
-
-if (scene.BackgroundColor != null)
-  return;    // scene can be shared!
+// Tooltip (if script uses values from 'param').
+context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rmat={mirror|glass}\rdepth=<int> (recursion depth)\rcoef=<double> (scale coefficient)";
 
 // Params dictionary.
 Dictionary<string, string> p = Util.ParseKeyValueList(param);

@@ -80,9 +80,7 @@ namespace _062animation
     /// Create a scene from the defined CS-script file-name.
     /// Returns null if failed.
     /// </summary>
-    /// <param name="preprocessing">Invoke the script in the "preprocessing" mode?</param>
     public IRayScene SceneFromScript (
-      bool preprocessing,
       out IImageFunction imf,
       out IRenderer rend,
       ref int width,
@@ -101,8 +99,8 @@ namespace _062animation
         return null;
       }
 
-      if (preprocessing ||
-          ctx == null)
+      bool preprocessing = ctx == null;
+      if (preprocessing)
         ctx = new ScriptContext();    // we need a new context object for each computing batch..
 
       if (Scripts.ContextInit(
@@ -117,6 +115,7 @@ namespace _062animation
         fps))
       {
         // Script needs to be called.
+
         if (time.HasValue)
           ctx[PropertyName.CTX_TIME] = time.Value;
 
@@ -165,9 +164,11 @@ namespace _062animation
       double fps     = (double)numFps.Value;
       double time    = (double)numTime.Value;
 
+      // Force preprocessing.
+      ctx = null;
+
       // 1. preprocessing - compute simulation, animation data, etc.
       _ = FormSupport.getScene(
-        true,
         out _, out _,
         ref ActualWidth,
         ref ActualHeight,
@@ -180,7 +181,6 @@ namespace _062animation
 
       // 2. compute regular frame (using the pre-computed context).
       IRayScene scene = FormSupport.getScene(
-        false,
         out IImageFunction imf,
         out IRenderer rend,
         ref ActualWidth,
@@ -552,9 +552,11 @@ namespace _062animation
 
       WorkerThreadInit[] wti = new WorkerThreadInit[threads];
 
+      // Force preprocessing.
+      ctx = null;
+
       // 1. preprocessing - compute simulation, animation data, etc.
-      FormSupport.getScene(
-        true,
+      _ = FormSupport.getScene(
         out _, out _,
         ref ActualWidth,
         ref ActualHeight,
@@ -568,7 +570,6 @@ namespace _062animation
       {
         // 2. initialize data for regular frames (using the pre-computed context).
         IRayScene sc = FormSupport.getScene(
-          false,
           out IImageFunction imf,
           out IRenderer rend,
           ref ActualWidth,

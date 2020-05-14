@@ -50,7 +50,6 @@ namespace Rendering
     /// Initialize the ray-scene.
     /// </summary>
     public static IRayScene getScene (
-      in bool preprocessing,
       out IImageFunction imf,
       out IRenderer rend,
       ref int width,
@@ -62,7 +61,6 @@ namespace Rendering
       // 'param'         - ditto -
       // ActualWidth & ActualHeight can be modified by this call!
       return Form1.singleton.SceneByComboBox(
-        preprocessing,
         out imf,
         out rend,
         ref width,

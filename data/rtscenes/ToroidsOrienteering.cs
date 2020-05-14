@@ -4,20 +4,6 @@
 Debug.Assert(scene != null);
 Debug.Assert(context != null);
 
-//////////////////////////////////////////////////
-// Preprocessing stage support.
-
-// context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-bool preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-if (preprocessing)
-{
-  context[PropertyName.CTX_TOOLTIP] = "- nothing -";
-  return;
-}
-
-if (scene.BackgroundColor != null)
-  return;    // scene can be shared!
-
 context[PropertyName.CTX_ALGORITHM] = new RayTracing();
 
 public class ObStripesTexture : CheckerTexture

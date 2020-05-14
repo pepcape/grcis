@@ -12,6 +12,8 @@ using System.Text;
 
 namespace Utilities
 {
+  using ScriptContext = Dictionary<string, object>;
+
   /// <summary>
   /// Assorted utilities.
   /// </summary>
@@ -1347,11 +1349,27 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Parses bool value from the string->object dictionary.
+    /// Converts other types to bool as good as possible.
+    /// </summary>
+    /// <returns>True if present and positive.</returns>
+    public static bool TryParseBool (ScriptContext rec, string key)
+    {
+      if (!rec.TryGetValue(key, out object oval))
+        return false;
+
+      if (oval is bool obool)
+        return obool;
+
+      return positive(oval.ToString());
+    }
+
+    /// <summary>
     /// Parses string value from the string->object dictionary.
     /// Converts other types to string as good as possible.
     /// </summary>
     /// <returns>True if everything went well, keeps the original value otherwise.</returns>
-    public static bool TryParse (Dictionary<string, object> rec, string key, ref string val)
+    public static bool TryParse (ScriptContext rec, string key, ref string val)
     {
       if (!rec.TryGetValue(key, out object oval))
         return false;
@@ -1374,7 +1392,7 @@ namespace Utilities
     /// Parses integer value from the string->object dictionary.
     /// </summary>
     /// <returns>True if everything went well, keeps the original value otherwise.</returns>
-    public static bool TryParse (Dictionary<string, object> rec, string key, ref int val)
+    public static bool TryParse (ScriptContext rec, string key, ref int val)
     {
       if (!rec.TryGetValue(key, out object oval))
         return false;
@@ -1417,7 +1435,7 @@ namespace Utilities
     /// Parses long value from the string->object dictionary.
     /// </summary>
     /// <returns>True if everything went well, keeps the original value otherwise.</returns>
-    public static bool TryParse (Dictionary<string, object> rec, string key, ref long val)
+    public static bool TryParse (ScriptContext rec, string key, ref long val)
     {
       if (!rec.TryGetValue(key, out object oval))
         return false;
@@ -1460,7 +1478,7 @@ namespace Utilities
     /// Parses float value from the string->object dictionary.
     /// </summary>
     /// <returns>True if everything went well, keeps the original value otherwise.</returns>
-    public static bool TryParse (Dictionary<string, object> rec, string key, ref float val)
+    public static bool TryParse (ScriptContext rec, string key, ref float val)
     {
       if (!rec.TryGetValue(key, out object oval))
         return false;
@@ -1515,7 +1533,7 @@ namespace Utilities
     /// Parses double value from the string->object dictionary.
     /// </summary>
     /// <returns>True if everything went well, keeps the original value otherwise.</returns>
-    public static bool TryParse (Dictionary<string, object> rec, string key, ref double val)
+    public static bool TryParse (ScriptContext rec, string key, ref double val)
     {
       if (!rec.TryGetValue(key, out object oval))
         return false;

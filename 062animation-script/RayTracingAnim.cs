@@ -39,7 +39,6 @@ namespace _062animation
     /// Initialize the ray-scene.
     /// </summary>
     public static IRayScene getScene (
-      in bool preprocessing,
       out IImageFunction imf,
       out IRenderer rend,
       ref int width,
@@ -52,7 +51,6 @@ namespace _062animation
       in double? time = null)
     {
       IRayScene sc = Form1.singleton.SceneFromScript(
-        preprocessing,
         out imf,
         out rend,
         ref width,
@@ -63,8 +61,7 @@ namespace _062animation
         ref fps,
         time);      // 'param' will be fetched from the Form
 
-      if (preprocessing ||
-          sc != null)
+      if (sc != null)
         return sc;
 
       sc = new AnimatedRayScene();

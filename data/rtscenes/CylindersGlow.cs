@@ -4,13 +4,9 @@
 Debug.Assert(scene != null);
 Debug.Assert(context != null);
 
-// Let renderer application know required parameters soon..
-context[PropertyName.CTX_WIDTH]         = 1200;
-context[PropertyName.CTX_HEIGHT]        =  800;
-
-// If scene data cannot be shared, remove this return!
-if (scene.BackgroundColor != null)
-  return;
+// Override image resolution and supersampling.
+context[PropertyName.CTX_WIDTH]  = 1200;
+context[PropertyName.CTX_HEIGHT] =  800;
 
 //////////////////////////////////////////////////
 // CSG scene.

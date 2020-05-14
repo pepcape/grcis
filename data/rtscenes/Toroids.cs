@@ -4,10 +4,6 @@
 Debug.Assert(scene != null);
 Debug.Assert(context != null);
 
-// If scene data cannot be shared, remove this return!
-if (scene.BackgroundColor != null)
-  return;
-
 //////////////////////////////////////////////////
 // CSG scene.
 

@@ -4,24 +4,9 @@
 Debug.Assert(scene != null);
 Debug.Assert(context != null);
 
-// Let renderer application know required parameters soon..
+// Override image resolution and supersampling.
 context[PropertyName.CTX_WIDTH]         = 640;    // whatever is convenient for your debugging/testing/final rendering
 context[PropertyName.CTX_HEIGHT]        = 640;
-
-//////////////////////////////////////////////////
-// Preprocessing stage support.
-
-// context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-bool preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-if (preprocessing)
-{
-  context[PropertyName.CTX_TOOLTIP] = "";
-  return;
-}
-
-// If scene data cannot be shared, remove this return!
-if (scene.BackgroundColor != null)
-  return;
 
 //////////////////////////////////////////////////
 // CSG scene.

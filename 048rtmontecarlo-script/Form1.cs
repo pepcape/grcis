@@ -154,7 +154,6 @@ namespace Rendering
     /// Can handle InitSceneDelegate, InitSceneParamDelegate or CSscript file-name
     /// </summary>
     public IRayScene SceneByComboBox (
-      bool preprocessing,
       out IImageFunction imf,
       out IRenderer rend,
       ref int width,
@@ -166,8 +165,7 @@ namespace Rendering
       if (sceneRepository.TryGetValue(sceneName, out object definition))
       {
         // Try the CS-script file.
-        if (preprocessing ||
-            ctx == null)
+        if (ctx == null)
           ctx = new ScriptContext();    // we need a new context object for each computing batch..
 
         if (Scripts.ContextInit(
@@ -326,9 +324,11 @@ namespace Rendering
 
       int superSampling = (int)NumericSupersampling.Value;
 
+      // Force preprocessing.
+      ctx = null;
+
       // 1. preprocessing - compute simulation, animation data, etc.
       _ = FormSupport.getScene(
-        true,
         out _, out _,
         ref ActualWidth,
         ref ActualHeight,
@@ -337,7 +337,6 @@ namespace Rendering
 
       // 2. compute regular frame (using the pre-computed context).
       IRayScene scene = FormSupport.getScene(
-        false,
         out IImageFunction imf,
         out IRenderer rend,
         ref ActualWidth,
@@ -590,8 +589,18 @@ namespace Rendering
       if (dirty || imfs == null)
       {
         int ss = 1;
+
+        // Force preprocess.
+        ctx = null;
+
+        _ = FormSupport.getScene(
+          out _, out _,
+          ref ActualWidth,
+          ref ActualHeight,
+          ref ss,
+          TextParam.Text);
+
         sc = FormSupport.getScene(
-          false,
           out imfs,
           out rend,
           ref ActualWidth,

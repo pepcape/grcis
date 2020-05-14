@@ -4,7 +4,7 @@
 Debug.Assert(scene != null);
 Debug.Assert(context != null);
 
-// Let renderer application know required parameters soon..
+// Override image resolution and supersampling.
 context[PropertyName.CTX_WIDTH]         = 320;    // whatever is convenient for your debugging/testing/final rendering
 context[PropertyName.CTX_HEIGHT]        = 180;
 context[PropertyName.CTX_SUPERSAMPLING] =   4;
@@ -16,12 +16,10 @@ context[PropertyName.CTX_FPS]           = 25.0;
 //////////////////////////////////////////////////
 // Preprocessing stage support.
 
-// context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-bool preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-if (preprocessing)
+// Uncomment the block if you need preprocessing.
+/*
+if (Util.TryParseBool(context, PropertyName.CTX_PREPROCESSING))
 {
-  context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)";
-
   double time = 0.0;
   bool single = Util.TryParse(context, PropertyName.CTX_TIME, ref time);
   // if (single) simulate only for a single frame with the given 'time'
@@ -34,13 +32,11 @@ if (preprocessing)
 
   return;
 }
-
-// TODO: create custom objects in consequent calls only (not in preprocessing step).
-// This is optional, you probably don't need to do anything with your shared preprocessed data..
+*/
 
 // Optional override of rendering algorithm and/or renderer.
 
-//context[PropertyName.CTX_ALGORITHM]     = new RayTracing();
+//context[PropertyName.CTX_ALGORITHM] = new RayTracing();
 
 int ss = 0;
 if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
@@ -51,9 +47,8 @@ if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
     Jittering = 1.0
   };
 
-// If scene data cannot be shared, remove this return!
-if (scene.BackgroundColor != null)
-  return;
+// Tooltip (if script uses values from 'param').
+context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)";
 
 //////////////////////////////////////////////////
 // CSG scene.
