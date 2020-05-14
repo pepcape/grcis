@@ -168,11 +168,31 @@ namespace Rendering
     /// </summary>
     protected static int count = 0;
 
+    public static bool SceneIsDefined (in ScriptContext ctx)
+    {
+      return ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) &&
+             (o is IRayScene scene) &&
+             scene.Intersectable != null;
+    }
+
+    public static void SceneReset (in ScriptContext ctx)
+    {
+      if (ctx.TryGetValue(PropertyName.CTX_SCENE, out object os) &&
+          os is IRayScene sc0)
+        sc0.Intersectable = null;
+    }
+
+    public static void SetScene (
+      in ScriptContext ctx,
+      IRayScene sc = null)
+    {
+      ctx[PropertyName.CTX_SCENE] = sc;
+    }
+
     /// <summary>
     /// Initializes the RT-script context before each individual call of 'SceneFromObject'.
     /// </summary>
     /// <param name="ctx">Pre-allocated context map.</param>
-    /// <param name="sc">optional default scene object.</param>
     /// <param name="name">Readable short scene name.</param>
     /// <param name="width">Optional output image width in pixels.</param>
     /// <param name="height">Optional output image height in pixels.</param>
@@ -183,7 +203,6 @@ namespace Rendering
     /// <returns>True if SceneFromObject() should be called.</returns>
     public static bool ContextInit (
       in ScriptContext ctx,
-      in DefaultRayScene sc = null,
       in string name = "noname",
       in int width = 640,
       in int height = 480,
@@ -201,12 +220,9 @@ namespace Rendering
         ctx.Remove(PropertyName.CTX_PREPROCESSING);
 
       // Scene.
-      if (sc != null)
-        ctx[PropertyName.CTX_SCENE] = sc;
-      else
-        if (!ctx.ContainsKey(PropertyName.CTX_SCENE) ||
-            ctx[PropertyName.CTX_SCENE] == null)
-          ctx[PropertyName.CTX_SCENE] = new DefaultRayScene();
+      if (!ctx.ContainsKey(PropertyName.CTX_SCENE) ||
+          ctx[PropertyName.CTX_SCENE] == null)
+        ctx[PropertyName.CTX_SCENE] = new DefaultRayScene();
 
       // Scene name.
       ctx[PropertyName.CTX_SCENE_NAME] = name;
@@ -231,9 +247,7 @@ namespace Rendering
       ctx[PropertyName.CTX_FPS] = fps;
 
       // Scene definition needed?
-      return !ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) ||
-             !(o is IRayScene scene) ||
-             scene.Intersectable == null;
+      return !SceneIsDefined(ctx);
     }
 
     /// <summary>
@@ -305,6 +319,18 @@ namespace Rendering
       Util.TryParse(ctx, PropertyName.CTX_FPS, ref fps);
 
       return scene;
+    }
+
+    /// <summary>
+    /// Reset the scene object.
+    /// </summary>
+    public static void SceneInit (IRayScene sc)
+    {
+      sc.Animator      = null;
+      sc.Background    = new DefaultBackground(sc);
+      sc.Camera        = null;
+      sc.Intersectable = null;
+      sc.Sources       = null;
     }
 
     /// <summary>
@@ -423,6 +449,7 @@ namespace Rendering
         }
 
         message?.Invoke("Using default scene..");
+        SceneInit(sc);
         defaultScene(sc);
         return;
       }

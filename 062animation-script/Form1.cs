@@ -99,13 +99,14 @@ namespace _062animation
         return null;
       }
 
-      bool preprocessing = ctx == null;
-      if (preprocessing)
+      if (ctx == null)
+      {
         ctx = new ScriptContext();    // we need a new context object for each computing batch..
+        Scripts.SetScene(ctx, new AnimatedRayScene());
+      }
 
       if (Scripts.ContextInit(
         ctx,
-        preprocessing ? new AnimatedRayScene() : null,
         Path.GetFileName(sceneFileName),
         width,
         height,
@@ -568,6 +569,9 @@ namespace _062animation
 
       for (t = 0; t < threads; t++)
       {
+        // Creating a new scene instance for every thread.
+        Scripts.SetScene(ctx, new AnimatedRayScene());
+
         // 2. initialize data for regular frames (using the pre-computed context).
         IRayScene sc = FormSupport.getScene(
           out IImageFunction imf,

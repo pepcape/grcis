@@ -170,7 +170,6 @@ namespace Rendering
 
         if (Scripts.ContextInit(
           ctx,
-          null,
           sceneName,
           width,
           height,
