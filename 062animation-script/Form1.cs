@@ -105,7 +105,7 @@ namespace _062animation
           ctx == null)
         ctx = new ScriptContext();    // we need a new context object for each computing batch..
 
-      Scripts.ContextInit(
+      if (Scripts.ContextInit(
         ctx,
         preprocessing ? new AnimatedRayScene() : null,
         Path.GetFileName(sceneFileName),
@@ -114,19 +114,21 @@ namespace _062animation
         superSampling,
         minTime,
         maxTime,
-        fps);
+        fps))
+      {
+        // Script needs to be called.
+        if (time.HasValue)
+          ctx[PropertyName.CTX_TIME] = time.Value;
 
-      if (time.HasValue)
-        ctx[PropertyName.CTX_TIME] = time.Value;
+        Scripts.SceneFromObject(
+          ctx,
+          sceneFileName,
+          textParam.Text,
+          (sc) => AnimatedScene.Init(sc, textParam.Text),
+          SetText);
+      }
 
-      Scripts.SceneFromObject(
-        ctx,
-        sceneFileName,
-        textParam.Text,
-        (sc) => AnimatedScene.Init(sc, textParam.Text),
-        SetText);
-
-      DefaultRayScene scene = Scripts.ContextMining(
+      IRayScene scene = Scripts.ContextMining(
         ctx,
         out imf,
         out rend,

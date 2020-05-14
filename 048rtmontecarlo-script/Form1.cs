@@ -170,20 +170,23 @@ namespace Rendering
             ctx == null)
           ctx = new ScriptContext();    // we need a new context object for each computing batch..
 
-        Scripts.ContextInit(
+        if (Scripts.ContextInit(
           ctx,
           null,
           sceneName,
           width,
           height,
-          superSampling);
+          superSampling))
+        {
+          // Script needs to be called.
 
-        Scripts.SceneFromObject(
-          ctx,
-          definition,
-          TextParam.Text,
-          (sc) => Scenes.DefaultScene(sc),
-          SetText);
+          Scripts.SceneFromObject(
+            ctx,
+            definition,
+            TextParam.Text,
+            (sc) => Scenes.DefaultScene(sc),
+            SetText);
+        }
 
         double minTime = 0.0;
         double maxTime = 10.0;

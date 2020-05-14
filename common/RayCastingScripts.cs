@@ -180,7 +180,8 @@ namespace Rendering
     /// <param name="minTime">Optional animation start time.</param>
     /// <param name="maxTime">Optional animation finish time.</param>
     /// <param name="fps">Optional animation 'frames-per-second'.</param>
-    public static void ContextInit (
+    /// <returns>True if SceneFromObject() should be called.</returns>
+    public static bool ContextInit (
       in ScriptContext ctx,
       in DefaultRayScene sc = null,
       in string name = "noname",
@@ -192,6 +193,12 @@ namespace Rendering
       in double fps = 25.0)
     {
       Debug.Assert(ctx != null);
+
+      // Preprocessing.
+      if (ctx.Count == 0)
+        ctx[PropertyName.CTX_PREPROCESSING] = true;
+      else
+        ctx.Remove(PropertyName.CTX_PREPROCESSING);
 
       // Scene.
       if (sc != null)
@@ -222,6 +229,11 @@ namespace Rendering
 
       // End.
       ctx[PropertyName.CTX_FPS] = fps;
+
+      // Scene definition needed?
+      return !ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) ||
+             !(o is IRayScene scene) ||
+             scene.Intersectable == null;
     }
 
     /// <summary>
@@ -237,8 +249,8 @@ namespace Rendering
     /// <param name="minTime">Animation start time.</param>
     /// <param name="maxTime">Animation finish time.</param>
     /// <param name="fps">Animation fps (frames per second).</param>
-    /// <returns></returns>
-    public static DefaultRayScene ContextMining (
+    /// <returns>Scene defined in the context.</returns>
+    public static IRayScene ContextMining (
       in ScriptContext ctx,
       out IImageFunction imf,
       out IRenderer rend,
@@ -258,7 +270,7 @@ namespace Rendering
 
       // Scene.
       if (!ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) ||
-          !(o is DefaultRayScene))
+          !(o is IRayScene scene))
         return null;
 
       // IImageFunction.
@@ -292,7 +304,7 @@ namespace Rendering
       // End.
       Util.TryParse(ctx, PropertyName.CTX_FPS, ref fps);
 
-      return o as DefaultRayScene;
+      return scene;
     }
 
     /// <summary>
@@ -313,10 +325,10 @@ namespace Rendering
       Debug.Assert(ctx != null);
 
       // Scene.
-      DefaultRayScene sc;
+      IRayScene sc;
       if (ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) &&
-          o is DefaultRayScene)
-        sc = o as DefaultRayScene;
+          o is IRayScene)
+        sc = o as IRayScene;
       else
         ctx[PropertyName.CTX_SCENE] = sc = new DefaultRayScene();
 

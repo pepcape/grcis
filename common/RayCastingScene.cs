@@ -59,6 +59,9 @@ namespace Rendering
     // Scene definition script context.
     // (in/out means "relative to a script")
 
+    // bool (in).
+    public readonly static string CTX_PREPROCESSING = "Preprocessing";
+
     // IRayScene (in, out).
     public readonly static string CTX_SCENE = "Scene";
 
