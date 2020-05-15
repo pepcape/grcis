@@ -40,7 +40,8 @@ if (Util.TryParseBool(context, PropertyName.CTX_PREPROCESSING))
 
 // Optional override of rendering algorithm and/or renderer.
 
-//context[PropertyName.CTX_ALGORITHM] = new RayTracing();
+/*
+context[PropertyName.CTX_ALGORITHM] = new RayTracing();
 
 int ss = 0;
 if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
@@ -50,6 +51,7 @@ if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
     Supersampling = ss,
     Jittering = 1.0
   };
+*/
 
 // Tooltip (if script uses values from 'param').
 context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)";

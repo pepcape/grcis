@@ -687,25 +687,6 @@ namespace Rendering
     public virtual bool TryGetValue (in string name, ref double d)
     {
       // Override me.
-
-#if SPECIMEN
-      if (properties.TryGetValue(name, out object op) &&
-          op is Property<double> p)
-      {
-        if (p.data == null)
-          return false;
-
-        // Compute the current value from 'p'.
-        p.prepareCubic(time, out double fraction,
-          out int i0, out int i1, out int i2, out int i3);
-
-        // Use [fraction, i0,. i1, i2, i3] for interpolating the result value.
-        d = p.data[i0];
-
-        return true;
-      }
-#endif
-
       return false;
     }
 

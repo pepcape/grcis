@@ -26,13 +26,10 @@ namespace JosefPelikan
 
     protected override void setTime (double newTime)
     {
-      if (time == newTime)
-        return;
-
       time = newTime;
 
       // Animator was already Time-updated.
-      if (!((MT.scene.Animator ?? null) is PropertyAnimator pa) ||
+      if (!((MT.scene?.Animator ?? null) is PropertyAnimator pa) ||
           pa == null ||
           !pa.TryGetValue(name, ref translate))
         return;
@@ -55,7 +52,7 @@ namespace JosefPelikan
       origin    = _origin;
       Start     = start;
       End       = end;
-      time      = start;
+      time      = double.NegativeInfinity;
     }
 
     /// <summary>

@@ -72,7 +72,13 @@ namespace _062animation
       buttonRender.Enabled =
       buttonRenderAnim.Enabled =
       buttonScene.Enabled =
-      buttonRes.Enabled = enable;
+      buttonRes.Enabled =
+      textParam.Enabled =
+      numTime.Enabled =
+      numFrom.Enabled =
+      numTo.Enabled =
+      numFps.Enabled =
+      numericSupersampling.Enabled = enable;
       buttonStop.Enabled = !enable;
     }
 
@@ -159,11 +165,23 @@ namespace _062animation
       if (ActualHeight <= 0)
         ActualHeight = panel1.Height;
 
+      bool debug     = false;
       superSampling  = (int)numericSupersampling.Value;
       double minTime = (double)numFrom.Value;
       double maxTime = (double)numTo.Value;
       double fps     = (double)numFps.Value;
       double time    = (double)numTime.Value;
+
+      // Params: <debug> disables multi-threading.
+      Dictionary<string, string> p = Util.ParseKeyValueList(textParam.Text);
+      if (p.TryGetValue("debug", out string val) &&
+          (string.IsNullOrEmpty(val) ||
+           Util.positive(val)))
+      {
+        // Debugging.
+        debug         = true;
+        superSampling = 1;
+      }
 
       // Force preprocessing.
       ctx = null;
@@ -180,6 +198,9 @@ namespace _062animation
         textParam.Text,
         time);
 
+      if (debug)
+        superSampling = 1;
+
       // 2. compute regular frame (using the pre-computed context).
       IRayScene scene = FormSupport.getScene(
         out IImageFunction imf,
@@ -192,6 +213,9 @@ namespace _062animation
         ref fps,
         textParam.Text,
         time);
+
+      if (debug)
+        superSampling = 1;
 
       // Update GUI.
       if (ImageWidth > 0)   // preserving default (form-size) resolution
@@ -544,9 +568,23 @@ namespace _062animation
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      int threads = Environment.ProcessorCount;
-      int t;    // thread ordinal number
+      int threads       = Environment.ProcessorCount;
       int superSampling = (int)numericSupersampling.Value;
+      bool debug        = false;
+
+      // Params: <debug> disables multi-threading.
+      Dictionary<string, string> p = Util.ParseKeyValueList(textParam.Text);
+      if (p.TryGetValue("debug", out string val) &&
+          (string.IsNullOrEmpty(val) ||
+           Util.positive(val)))
+      {
+        // Debugging.
+        debug         = true;
+        threads       = 1;
+        superSampling = 1;
+      }
+
+      int t;    // thread ordinal number
       double minTime    = (double)numFrom.Value;
       double maxTime    = (double)numTo.Value;
       double fps        = (double)numFps.Value;
@@ -572,6 +610,9 @@ namespace _062animation
         // Creating a new scene instance for every thread.
         Scripts.SetScene(ctx, new AnimatedRayScene());
 
+        if (debug)
+          superSampling = 1;
+
         // 2. initialize data for regular frames (using the pre-computed context).
         IRayScene sc = FormSupport.getScene(
           out IImageFunction imf,
@@ -583,6 +624,9 @@ namespace _062animation
           ref maxTime,
           ref fps,
           textParam.Text);
+
+        if (debug)
+          superSampling = 1;
 
         if (t == 0)
         {
@@ -630,6 +674,7 @@ namespace _062animation
       dt = (fps > 0.0) ? 1.0 / fps : 25.0;
       end += 0.5 * dt;
       frameNumber = 0;
+      float total = (float)((end - time) * fps);
 
       initQueue();
       sem = new Semaphore(0, 10 * threads);
@@ -646,6 +691,7 @@ namespace _062animation
       int lastDisplayedFrame = -1;
       const long DISPLAY_GAP = 10000L;
       long lastDisplayedTime = -DISPLAY_GAP;
+      ETF etf = new ETF();
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
@@ -670,11 +716,24 @@ namespace _062animation
           r = queue.Dequeue();
         }
 
-        // GUI progress indication:
+        // GUI progress indication.
         double seconds = 1.0e-3 * sw.ElapsedMilliseconds;
         double cfps = ++frames / seconds;
-        SetText(string.Format(CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2:f0} s, {3:f2} fps)",
-                              threads, frames, seconds, cfps));
+        etf.Estimate((float)seconds, frames / total, out float remaining);
+        // Time spent.
+        int cs = (int)seconds;
+        int ch = cs / 3600;
+        cs %= 3600;
+        int cm = cs / 60;
+        cs %= 60;
+        // Time remaining.
+        int ls = (int)remaining;
+        int lh = ls / 3600;
+        ls %= 3600;
+        int lm = ls / 60;
+        ls %= 60;
+        SetText(string.Format(CultureInfo.InvariantCulture, "Frames (mt{0}): {1}  ({2}:{3:00}:{4:00} fin, {5}:{6:00}:{7:00} rem)",
+                              threads, frames, ch, cm, cs, lh, lm, ls));
         if (r.frameNumber > lastDisplayedFrame &&
             sw.ElapsedMilliseconds > lastDisplayedTime + DISPLAY_GAP)
         {

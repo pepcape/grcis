@@ -9,10 +9,6 @@ namespace JosefPelikan
   [Serializable]
   public class CatmullRomAnimator : PropertyAnimator
   {
-    public CatmullRomAnimator ()
-    {
-    }
-
     /// <summary>
     /// Clone the object, share the data.
     /// </summary>
@@ -27,6 +23,42 @@ namespace JosefPelikan
       };
 
       return a;
+    }
+
+    /// <summary>
+    /// Catmull-Rom interpolation of scalar double.
+    /// </summary>
+    public override bool TryGetValue (in string name, ref double d)
+    {
+      if (properties.TryGetValue(name, out object op) &&
+          op is Property<double> p)
+      {
+        if (p.data == null)
+          return false;
+
+        // Compute the current value from 'p'.
+        p.prepareCubic(
+          time,
+          out double fraction,
+          out int i0, out int i1, out int i2, out int i3);
+
+        // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
+        double thalf  = 0.5    * fraction;
+        double t2half = thalf  * fraction;
+        double t3half = t2half * fraction;
+        double c0 =       -t3half + 2.0 * t2half - thalf;
+        double c1 =  3.0 * t3half - 5.0 * t2half + 1.0;
+        double c2 = -3.0 * t3half + 4.0 * t2half + thalf;
+        double c3 =        t3half       - t2half;
+        d = c0 * p.data[i0] +
+            c1 * p.data[i1] +
+            c2 * p.data[i2] +
+            c3 * p.data[i3];
+
+        return true;
+      }
+
+      return false;
     }
 
     /// <summary>
@@ -46,7 +78,7 @@ namespace JosefPelikan
           out double fraction,
           out int i0, out int i1, out int i2, out int i3);
 
-        // Use [fraction, i0,. i1, i2, i3] for interpolating the result value.
+        // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
         double thalf  = 0.5    * fraction;
         double t2half = thalf  * fraction;
         double t3half = t2half * fraction;
@@ -54,7 +86,10 @@ namespace JosefPelikan
         double c1 =  3.0 * t3half - 5.0 * t2half + 1.0;
         double c2 = -3.0 * t3half + 4.0 * t2half + thalf;
         double c3 =        t3half       - t2half;
-        v3 = c0 * p.data[i0] + c1 * p.data[i1] + c2 * p.data[i2] + c3 * p.data[i3];
+        v3 = c0 * p.data[i0] +
+             c1 * p.data[i1] +
+             c2 * p.data[i2] +
+             c3 * p.data[i3];
 
         return true;
       }
