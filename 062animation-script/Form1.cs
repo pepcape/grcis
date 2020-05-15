@@ -747,7 +747,7 @@ namespace _062animation
         // Set specific time to my scene.
         if (init.scene is ITimeDependent ascene)
         {
-#if DEBUG
+#if DEBUG && LOGGING
           Debug.WriteLine($"Scene #{ascene.getSerial()} setTime({myTime})");
 #endif
           ascene.Time = myTime;

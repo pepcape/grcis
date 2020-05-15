@@ -3,6 +3,7 @@ using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Utilities;
 
 // Objects for animation stuff.
 namespace Rendering
@@ -79,7 +80,7 @@ namespace Rendering
     /// <returns></returns>
     public virtual object Clone ()
     {
-#if DEBUG
+#if DEBUG && LOGGING
       Util.Log("Clone: AnimatedRayScene");
 #endif
       AnimatedRayScene sc = new AnimatedRayScene ();
@@ -201,7 +202,7 @@ namespace Rendering
     /// </summary>
     public virtual object Clone ()
     {
-#if DEBUG
+#if DEBUG && LOGGING
       Util.Log( "Clone: AnimatedCSGInnerNode" );
 #endif
       AnimatedCSGInnerNode n = new AnimatedCSGInnerNode(bop, Start, End);
@@ -245,7 +246,7 @@ namespace Rendering
     {
       Debug.Assert(Start != End);
 
-#if DEBUG
+#if DEBUG && LOGGING
       Debug.WriteLine($"Camera #{getSerial()} setTime({newTime})");
 #endif
 
@@ -328,6 +329,12 @@ namespace Rendering
   [Serializable]
   public class PropertyAnimator : ITimeDependentProperty
   {
+#if DEBUG
+    private static volatile int nextSerial = 0;
+    private readonly int serial = nextSerial++;
+    public int getSerial () => serial;
+#endif
+
     [Serializable]
     public enum InterpolationStyle
     {

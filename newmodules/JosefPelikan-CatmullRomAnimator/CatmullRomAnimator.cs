@@ -1,4 +1,4 @@
-﻿using MathSupport;
+using MathSupport;
 using OpenTK;
 using Rendering;
 using System;
@@ -29,6 +29,9 @@ namespace JosefPelikan
       return a;
     }
 
+    /// <summary>
+    /// Catmull-Rom interpolation of 3D vector.
+    /// </summary>
     public override bool TryGetValue (in string name, ref Vector3d v3)
     {
       if (properties.TryGetValue(name, out object op) &&

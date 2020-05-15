@@ -31,13 +31,14 @@ namespace JosefPelikan
 
       time = newTime;
 
+      // Animator was already Time-updated.
       if (!((MT.scene.Animator ?? null) is PropertyAnimator pa) ||
           pa == null ||
           !pa.TryGetValue(name, ref translate))
         return;
 
       // New translation vector.
-      ToParent = origin * Matrix4d.CreateTranslation(translate);
+      ToParent   = origin * Matrix4d.CreateTranslation(translate);
       FromParent = ToParent.Inverted();
     }
 
