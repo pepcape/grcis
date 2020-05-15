@@ -323,8 +323,8 @@ namespace Rendering
   }
 
   /// <summary>
-  /// General animator able to interpolate uniform-keyframe-defined numeric
-  /// values.
+  /// General animator able to interpolate numeric
+  /// quantities ('properties').
   /// </summary>
   [Serializable]
   public class PropertyAnimator : ITimeDependentProperty
@@ -497,7 +497,7 @@ namespace Rendering
               t = 1.0 - t;
 
             myStart = 0.0;
-            myEnd   = 1.0;
+            myEnd = 1.0;
           }
         }
 
@@ -593,19 +593,71 @@ namespace Rendering
     }
 
     /// <summary>
+    /// Link to the next general Animator (chain of ITimeDependent objects).
+    /// </summary>
+    protected ITimeDependent nextGeneral;
+
+    /// <summary>
+    /// Chain of the property-based animators.
+    /// </summary>
+    protected ITimeDependentProperty nextProperty;
+
+    protected double start = 0.0;
+
+    /// <summary>
     /// Starting (minimal) time in seconds.
     /// </summary>
-    public double Start { get; set; }
+    public double Start
+    {
+      get => start;
+      set
+      {
+        if (nextGeneral != null)
+          nextGeneral.Start = value;
+        if (nextProperty != null)
+          nextProperty.Start = value;
+        start = value;
+      }
+    }
+
+    protected double end = 1.0;
 
     /// <summary>
     /// Ending (maximal) time in seconds.
     /// </summary>
-    public double End { get; set; }
+    public double End
+    {
+      get => end;
+      set
+      {
+        if (nextGeneral != null)
+          nextGeneral.End = value;
+        if (nextProperty != null)
+          nextProperty.End = value;
+        end = value;
+      }
+    }
 
     /// <summary>
     /// Internal variable for the current time.
     /// </summary>
-    protected double time;
+    protected double time = double.NegativeInfinity;
+
+    /// <summary>
+    /// Current time in seconds.
+    /// </summary>
+    public double Time
+    {
+      get => time;
+      set
+      {
+        if (nextGeneral != null)
+          nextGeneral.Time = value;
+        if (nextProperty != null)
+          nextProperty.Time = value;
+        setTime(value);
+      }
+    }
 
     /// <summary>
     /// Changes the current time - internal routine.
@@ -619,25 +671,20 @@ namespace Rendering
     }
 
     /// <summary>
-    /// Current time in seconds.
-    /// </summary>
-    public double Time
-    {
-      get => time;
-      set => setTime(value);
-    }
-
-    /// <summary>
     /// Only Property&lt;T&gt; are used here.
     /// </summary>
     protected Dictionary<string, object> properties;
 
-    public PropertyAnimator ()
+    public PropertyAnimator (
+      in ITimeDependent nxtGen = null,
+      in ITimeDependentProperty nxtProp = null)
     {
-      properties = new Dictionary<string, object>();
-      Start      =  0.0;
-      End        = 10.0;
-      time       = double.NegativeInfinity;
+      nextGeneral  = nxtGen;
+      nextProperty = nxtProp;
+      properties   = new Dictionary<string, object>();
+      Start        =  0.0;
+      End          = 10.0;
+      time         = double.NegativeInfinity;
     }
 
     /// <summary>
@@ -645,7 +692,10 @@ namespace Rendering
     /// </summary>
     public virtual object Clone ()
     {
-      PropertyAnimator a = new PropertyAnimator
+      ITimeDependent         nxtGen  = (ITimeDependent)nextGeneral?.Clone();
+      ITimeDependentProperty nxtProp = (ITimeDependentProperty)nextProperty?.Clone();
+
+      PropertyAnimator a = new PropertyAnimator(nxtGen, nxtProp)
       {
         properties = properties,
         Start      = Start,
@@ -680,26 +730,34 @@ namespace Rendering
 
     public virtual object GetValue (in string name)
     {
-      // Override me.
-      return null;
+      // Override me if you need to define this functionality.
+      // Call the base.GetValue() if failed.
+
+      return nextProperty?.GetValue(name);
     }
 
     public virtual bool TryGetValue (in string name, ref double d)
     {
-      // Override me.
-      return false;
+      // Override me if you need to define this functionality.
+      // Call the base.TryGetValue() if failed.
+
+      return (nextProperty?.TryGetValue(name, ref d)).Value;
     }
 
     public virtual bool TryGetValue (in string name, ref Vector3d v3)
     {
-      // Override me.
-      return false;
+      // Override me if you need to define this functionality.
+      // Call the base.TryGetValue() if failed.
+
+      return (nextProperty?.TryGetValue(name, ref v3)).Value;
     }
 
     public virtual bool TryGetValue (in string name, ref Matrix4d m4)
     {
-      // Override me.
-      return false;
+      // Override me if you need to define this functionality.
+      // Call the base.TryGetValue() if failed.
+
+      return (nextProperty?.TryGetValue(name, ref m4)).Value;
     }
   }
 }

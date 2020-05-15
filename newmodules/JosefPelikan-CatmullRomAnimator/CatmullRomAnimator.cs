@@ -1,20 +1,33 @@
-using MathSupport;
 using OpenTK;
 using Rendering;
 using System;
-using Utilities;
 
 namespace JosefPelikan
 {
+  /// <summary>
+  /// Property-animator using Catmull-Rom spline with uniform set of control knots.
+  /// </summary>
   [Serializable]
   public class CatmullRomAnimator : PropertyAnimator
   {
+    /// <summary>
+    /// Can be inncluded in both general-animator and property-based animator chains.
+    /// </summary>
+    public CatmullRomAnimator (
+      in ITimeDependent nxtGen = null,
+      in ITimeDependentProperty nxtProp = null)
+      : base(nxtGen, nxtProp)
+    {}
+
     /// <summary>
     /// Clone the object, share the data.
     /// </summary>
     public override object Clone ()
     {
-      CatmullRomAnimator a = new CatmullRomAnimator
+      ITimeDependent nxtGen = (ITimeDependent)nextGeneral?.Clone();
+      ITimeDependentProperty nxtProp = (ITimeDependentProperty)nextProperty?.Clone();
+
+      CatmullRomAnimator a = new CatmullRomAnimator(nxtGen, nxtProp)
       {
         properties = properties,
         Start      = Start,
@@ -58,7 +71,8 @@ namespace JosefPelikan
         return true;
       }
 
-      return false;
+      // Connected property can have the same name.
+      return base.TryGetValue(name, ref d);
     }
 
     /// <summary>
@@ -94,7 +108,8 @@ namespace JosefPelikan
         return true;
       }
 
-      return false;
+      // Connected property can have the same name.
+      return base.TryGetValue(name, ref v3);
     }
   }
 }
