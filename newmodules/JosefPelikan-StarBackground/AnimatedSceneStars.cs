@@ -1,51 +1,35 @@
+//////////////////////////////////////////////////
+// Externals.
+
 using JosefPelikan;     // for StarBackground
 
 //////////////////////////////////////////////////
-// Preprocessing stage support.
+// Rendering params.
 
-bool preprocessing = false;
+Debug.Assert(scene != null);
+Debug.Assert(context != null);
 
-if (context != null)
-{
-  // Let renderer application know required parameters soon..
-  context[PropertyName.CTX_WIDTH]         = 800;    // whatever is convenient for your debugging/testing/final rendering
-  context[PropertyName.CTX_HEIGHT]        = 600;
-  context[PropertyName.CTX_SUPERSAMPLING] =  64;
+// Override image resolution and supersampling.
+context[PropertyName.CTX_WIDTH]         = 800;    // whatever is convenient for your debugging/testing/final rendering
+context[PropertyName.CTX_HEIGHT]        = 600;
+context[PropertyName.CTX_SUPERSAMPLING] =  64;
 
-  context[PropertyName.CTX_START_ANIM]    =  0.0;
-  context[PropertyName.CTX_END_ANIM]      = 20.0;
+context[PropertyName.CTX_START_ANIM]    =  0.0;
+context[PropertyName.CTX_END_ANIM]      = 20.0;
 
-  // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-  preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-  if (preprocessing)
+//context[PropertyName.CTX_ALGORITHM]     = new RayTracing();
+
+int ss = 0;
+if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
+    ss > 1)
+  context[PropertyName.CTX_SYNTHESIZER] = new SupersamplingImageSynthesizer
   {
-    context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)";
+    Supersampling = ss,
+    Jittering = 1.0
+  };
 
-    // TODO: put your preprocessing code here!
-    //
-    // It will be run only this time.
-    // Store preprocessing results to arbitrary (non-reserved) context item,
-    //  subsequent script calls will find it there...
-
-    return;
-  }
-
-  // Create custom objects in consequent calls only (not in preprocessing step).
-
-  //context[PropertyName.CTX_ALGORITHM]     = new RayTracing();
-
-  int ss = 0;
-  if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
-      ss > 1)
-    context[PropertyName.CTX_SYNTHESIZER] = new SupersamplingImageSynthesizer
-    {
-      Supersampling = ss,
-      Jittering = 1.0
-    };
-}
-
-if (scene.BackgroundColor != null)
-  return;    // scene can be shared!
+// Tooltip (if script uses values from 'param').
+context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)";
 
 //////////////////////////////////////////////////
 // CSG scene.
@@ -62,7 +46,8 @@ scene.Background = new StarBackground(scene.BackgroundColor, 600, 0.004); // 100
 // Camera.
 AnimatedCamera cam = new AnimatedCamera(new Vector3d(0.7, -0.4,  0.0),
                                         new Vector3d(0.7,  0.8, -6.0),
-                                        50.0 );
+                                        50.0);
+
 cam.End = 20.0; // one complete turn takes 20.0 seconds
 AnimatedRayScene ascene = scene as AnimatedRayScene;
 if (ascene != null)
