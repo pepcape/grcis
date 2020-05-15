@@ -10,12 +10,13 @@ Debug.Assert(scene != null);
 Debug.Assert(context != null);
 
 // Override image resolution and supersampling.
-context[PropertyName.CTX_WIDTH]         = 320;    // whatever is convenient for your debugging/testing/final rendering
-context[PropertyName.CTX_HEIGHT]        = 180;
-context[PropertyName.CTX_SUPERSAMPLING] =   1;
+context[PropertyName.CTX_WIDTH]         = 640;    // whatever is convenient for your debugging/testing/final rendering
+context[PropertyName.CTX_HEIGHT]        = 360;
+context[PropertyName.CTX_SUPERSAMPLING] =  16;
 
+double end = 24.0;
 context[PropertyName.CTX_START_ANIM]    =  0.0;
-context[PropertyName.CTX_END_ANIM]      = 20.0;
+context[PropertyName.CTX_END_ANIM]      =  end;
 context[PropertyName.CTX_FPS]           = 25.0;
 
 //////////////////////////////////////////////////
@@ -67,15 +68,15 @@ string name = "translatePath";
 CatmullRomAnimator pa = new CatmullRomAnimator()
 {
   Start =  0.0,
-  End   = 20.0
+  End   =  end
 };
-pa.newProperty(name, 1.0, 19.0, 1.0,
+pa.newProperty(name, 0.0, end, 8.0,
                PropertyAnimator.InterpolationStyle.Cyclic,
                new List<Vector3d>() {
-                 new Vector3d(0.0, 0.2, 0.0),
+                 new Vector3d(0.0, 0.2,-0.5),
                  new Vector3d(1.0, 0.2,-0.5),
-                 new Vector3d(1.0, 1.2, 0.0),
-                 new Vector3d(0.0, 1.2,-0.5)},
+                 new Vector3d(1.0, 1.6, 0.0),
+                 new Vector3d(0.0, 1.2, 0.0)},
                true);
 scene.Animator = pa;
 
@@ -84,13 +85,13 @@ scene.BackgroundColor = new double[] {0.0, 0.01, 0.03};
 scene.Background = new DefaultBackground(scene.BackgroundColor);
 
 // Camera.
-AnimatedCamera cam = new AnimatedCamera(new Vector3d(0.7, -0.2,  0.0),
-                                        new Vector3d(0.7,  0.8, -6.0),
+AnimatedCamera cam = new AnimatedCamera(new Vector3d(0.7,  0.1,  0.0),
+                                        new Vector3d(0.7,  0.8, -8.0),
                                         50.0);
-cam.End = 20.0; // one complete turn takes 20.0 seconds
+cam.End = end;      // one complete turn takes 24.0 seconds
 AnimatedRayScene ascene = scene as AnimatedRayScene;
 if (ascene != null)
-  ascene.End = 20.0;
+  ascene.End = end;
 scene.Camera  = cam;
 
 // Light sources:
@@ -111,7 +112,7 @@ ISolid s;
 // Animation node.
 AnimatedNodeTranslate an = new AnimatedNodeTranslate(
   name,
-  Vector3d.Zero,
+  new Vector3d(0.0, 0.2,-0.5),
   Matrix4d.Identity,
   0.0, 20.0);
 root.InsertChild(an, Matrix4d.Identity);
