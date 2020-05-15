@@ -13,8 +13,8 @@
 ### Source file: CatmullRomAnimator.cs
 
 This extensions implements an "animator" using the famous **Catmull-Rom interpolation
-spline**. Interpolation quantity (quantities) go through key-values exactly.
-The set of key-values ("knots") are distributed **evenly** on the domain interval.
+spline**. Interpolation quantity (quantities) go exactly through all key-values.
+The set of key-values ("knots") are distributed **evenly** on the time domain.
 
 User is able to define arbitrary set of "properties", each property can have individual
 **domain interval**, **dimensionality** (only scalar ``double`` and ``Vector3d`` are implemented)
@@ -25,11 +25,11 @@ and **key-sequence** length and logic. Each property has following attributes:
 
 2. **domain interval** in seconds - similar to ``Start`` and ``End`` (see ``ITimeDependent``)
 
-3. **period** - for some interpolation styles you need to define "time period". Applicable
+3. **period** - you need to define "time period" for some interpolation styles. Applicable
    to ``PropertyAnimator.InterpolationStyle.Cyclic`` and
    ``PropertyAnimator.InterpolationStyle.Pendulum``
 
-4. **interpolation style** - one of choices from enum type
+4. **interpolation style** - one of the choices from enum type
    ``InterpolationStyle { Once, Cyclic, Pendulum }``
 
 5. **key value vector** ("knot-vector") - the animation data itself. Vector of key-values
@@ -40,23 +40,28 @@ and **key-sequence** length and logic. Each property has following attributes:
 
 **Key value vector** can have various types. internal ``Property`` class can use any
 object type, API functions are declared for three specific types:
+
 a. ``double``
+
 b. ``Vector3d``
-c. ``Matrix4d``
+
+c. ``Quaterniond``
+
+d. ``Matrix4d``
 
 In ``CatmullRomAnimator`` only the two formar types are implemented, so in the constructor
 you can use ``List<double>`` or ``List<Vector3d>`` as knot vector data.
 
 See a textbook (or Wikipedia) to learn about Catmull-Rom interpolation.
-Knot vectors (and the curves) can be **open** or **closed**. Open curve is defined
+Knot vectors (and the curves) can be **open** or **closed**. **Open curve** is defined
 by at least four knots (our implementation is robust and can handle even degenerated curves),
-closed curve can be as short as two knots (but it would have little sense = two identical line
-segments). Starting from three knots a closed curve is meaningful.
+**closed curve** can be as short as two knots (but it would have little sense = two identical line
+segments). A closed curve is meaningful with three or more knots.
 
-Note that our implementation uses **uniform knot vector** - key values are distributed
+Note that our implementation uses **uniform knot vector** - key times are distributed
 over domain interval **uniformly** (and you cannot do anything about it!).
 
-Example of simple property definition:
+Example of a simple property definition:
 ```
 CatmullRomAnimator cra = new CatmullRomAnimator()
 ...

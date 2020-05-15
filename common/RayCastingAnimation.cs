@@ -319,6 +319,8 @@ namespace Rendering
 
     bool TryGetValue (in string name, ref Vector3d v3);
 
+    bool TryGetValue (in string name, ref Quaterniond q);
+
     bool TryGetValue (in string name, ref Matrix4d m4);
   }
 
@@ -750,6 +752,14 @@ namespace Rendering
       // Call the base.TryGetValue() if failed.
 
       return (nextProperty?.TryGetValue(name, ref v3)).Value;
+    }
+
+    public virtual bool TryGetValue (in string name, ref Quaterniond q)
+    {
+      // Override me if you need to define this functionality.
+      // Call the base.TryGetValue() if failed.
+
+      return (nextProperty?.TryGetValue(name, ref q)).Value;
     }
 
     public virtual bool TryGetValue (in string name, ref Matrix4d m4)
