@@ -39,7 +39,7 @@ and **key-sequence** length and logic. Each property has following attributes:
    ``float a = Mathf.Pow((p1.x-p0.x), 2.0f) + Mathf.Pow((p1.y-p0.y), 2.0f);``)
 
 **Key value vector** can have various types. internal ``Property`` class can use any
-object type, API functions are declared for three specific types:
+object type, API functions are declared for three specific types and arrays:
 
 a. ``double``
 
@@ -49,8 +49,10 @@ c. ``Quaterniond``
 
 d. ``Matrix4d``
 
-In ``CatmullRomAnimator`` only the two formar types are implemented, so in the constructor
-you can use ``List<double>`` or ``List<Vector3d>`` as knot vector data.
+In ``CatmullRomAnimator`` only a. to c. types and arrays are implemented, so in the constructor
+you can use knot types:
+``List<double>``, ``List<Vector3d>``, ``List<Quaterniond>`` or
+``List<double[]>``, ``List<Vector3d[]>``, ``List<Quaterniond[]>``.
 
 See a textbook (or Wikipedia) to learn about Catmull-Rom interpolation.
 Knot vectors (and the curves) can be **open** or **closed**. **Open curve** is defined
