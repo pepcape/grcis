@@ -12,7 +12,7 @@
 
 ### Source file: CatmullRomAnimator.cs
 
-This extensions implements an "animator" using the famous **Catmull-Rom interpolation
+This extension implements an "animator" using the famous **Catmull-Rom interpolation
 spline**. Interpolation quantity (quantities) go exactly through all key-values.
 The set of key-values ("knots") are distributed **evenly** on the time domain.
 
@@ -38,21 +38,23 @@ and **key-sequence** length and logic. Each property has following attributes:
    and please ignore stuff like this:
    ``float a = Mathf.Pow((p1.x-p0.x), 2.0f) + Mathf.Pow((p1.y-p0.y), 2.0f);``)
 
-**Key value vector** can have various types. internal ``Property`` class can use any
-object type, API functions are declared for three specific types and arrays:
+**Key value vector** can have various types. The internal ``Property`` class can use any
+object type, API functions are declared for these specific types and arrays:
 
-a. ``double``
+a. ``float`` and ``double``
 
-b. ``Vector3d``
+b. ``Vector3`` and ``Vector3d``
 
-c. ``Quaterniond``
+c. ``Vector4`` and ``Vector4d``
 
-d. ``Matrix4d``
+d. ``Quaterniond``
 
-In ``CatmullRomAnimator`` only a. to c. types and arrays are implemented, so in the constructor
+e. ``Matrix4d``
+
+In ``CatmullRomAnimator`` only a. to d. types and arrays are implemented, so in the constructor
 you can use knot types:
-``List<double>``, ``List<Vector3d>``, ``List<Quaterniond>`` or
-``List<double[]>``, ``List<Vector3d[]>``, ``List<Quaterniond[]>``.
+``List<float>``, ``List<double>``, ``List<Vector3>``, ``List<Vector3d>``, ``List<Vector4>``, ``List<Vector4d>``, ``List<Quaterniond>``,
+``List<float[]>``, ``List<double[]>``, ``List<Vector3[]>``, ``List<Vector3d[]>``, ``List<Vector4[]>``, ``List<Vector4d[]>``, ``List<Quaterniond[]>``.
 
 See a textbook (or Wikipedia) to learn about Catmull-Rom interpolation.
 Knot vectors (and the curves) can be **open** or **closed**. **Open curve** is defined

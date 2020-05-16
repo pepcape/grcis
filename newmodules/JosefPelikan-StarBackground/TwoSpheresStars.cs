@@ -1,9 +1,40 @@
-using JosefPelikan;     // for StarBackground
+//////////////////////////////////////////////////
+// Externals.
+
+using JosefPelikan;     // StarBackground
+
+//////////////////////////////////////////////////
+// Rendering params.
+
+Debug.Assert(scene != null);
+Debug.Assert(context != null);
+
+// Override image resolution and supersampling.
+context[PropertyName.CTX_WIDTH]         = 640;
+context[PropertyName.CTX_HEIGHT]        = 480;
+context[PropertyName.CTX_SUPERSAMPLING] =  16;
 
 //////////////////////////////////////////////////
 // Preprocessing stage support.
 
-bool preprocessing = false;
+// Uncomment the block if you need preprocessing.
+/*
+if (Util.TryParseBool(context, PropertyName.CTX_PREPROCESSING))
+{
+  double time = 0.0;
+  bool single = Util.TryParse(context, PropertyName.CTX_TIME, ref time);
+  // if (single) simulate only for a single frame with the given 'time'
+
+  // TODO: put your preprocessing code here!
+  //
+  // It will be run only this time.
+  // Store preprocessing results to arbitrary (non-reserved) context item,
+  //  subsequent script calls will find it there...
+}
+*/
+
+//////////////////////////////////////////////////
+// Param string from UI.
 
 // Params dictionary.
 Dictionary<string, string> p = Util.ParseKeyValueList(param);
@@ -33,28 +64,8 @@ if (p.TryGetValue("mat", out string mat))
       break;
   }
 
-if (context != null)
-{
-  // Let renderer application know required parameters soon..
-  context[PropertyName.CTX_WIDTH]         = 640;
-  context[PropertyName.CTX_HEIGHT]        = 480;
-  context[PropertyName.CTX_SUPERSAMPLING] =  16;
-  //context[PropertyName.CTX_WIDTH]         = 1800;
-  //context[PropertyName.CTX_HEIGHT]        = 1200;
-  //context[PropertyName.CTX_SUPERSAMPLING] =  400;
-
-  // context["ToolTip"] indicates whether the script is running for the first time (preprocessing) or for regular rendering.
-  preprocessing = !context.ContainsKey(PropertyName.CTX_TOOLTIP);
-  if (preprocessing)
-  {
-    context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rmat={mirror|glass|diffuse}}";
-    return;
-  }
-
-}
-
-if (scene.BackgroundColor != null)
-  return;    // scene can be shared!
+// Tooltip (if script uses values from 'param').
+context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rmat={mirror|glass|diffuse}}";
 
 //////////////////////////////////////////////////
 // CSG scene.

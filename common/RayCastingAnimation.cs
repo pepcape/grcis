@@ -315,9 +315,17 @@ namespace Rendering
   {
     object GetValue (in string name);
 
+    bool TryGetValue (in string name, ref float f);
+
     bool TryGetValue (in string name, ref double d);
 
+    bool TryGetValue (in string name, ref Vector3 v3);
+
+    bool TryGetValue (in string name, ref Vector4 v4);
+
     bool TryGetValue (in string name, ref Vector3d v3);
+
+    bool TryGetValue (in string name, ref Vector4d v4);
 
     bool TryGetValue (in string name, ref Quaterniond q);
 
@@ -738,6 +746,14 @@ namespace Rendering
       return nextProperty?.GetValue(name);
     }
 
+    public virtual bool TryGetValue (in string name, ref float f)
+    {
+      // Override me if you need to define this functionality.
+      // Call the base.TryGetValue() if failed.
+
+      return (nextProperty?.TryGetValue(name, ref f)).Value;
+    }
+
     public virtual bool TryGetValue (in string name, ref double d)
     {
       // Override me if you need to define this functionality.
@@ -746,12 +762,36 @@ namespace Rendering
       return (nextProperty?.TryGetValue(name, ref d)).Value;
     }
 
+    public virtual bool TryGetValue (in string name, ref Vector3 v3)
+    {
+      // Override me if you need to define this functionality.
+      // Call the base.TryGetValue() if failed.
+
+      return (nextProperty?.TryGetValue(name, ref v3)).Value;
+    }
+
+    public virtual bool TryGetValue (in string name, ref Vector4 v4)
+    {
+      // Override me if you need to define this functionality.
+      // Call the base.TryGetValue() if failed.
+
+      return (nextProperty?.TryGetValue(name, ref v4)).Value;
+    }
+
     public virtual bool TryGetValue (in string name, ref Vector3d v3)
     {
       // Override me if you need to define this functionality.
       // Call the base.TryGetValue() if failed.
 
       return (nextProperty?.TryGetValue(name, ref v3)).Value;
+    }
+
+    public virtual bool TryGetValue (in string name, ref Vector4d v4)
+    {
+      // Override me if you need to define this functionality.
+      // Call the base.TryGetValue() if failed.
+
+      return (nextProperty?.TryGetValue(name, ref v4)).Value;
     }
 
     public virtual bool TryGetValue (in string name, ref Quaterniond q)

@@ -55,6 +55,37 @@ namespace JosefPelikan
     }
 
     /// <summary>
+    /// Catmull-Rom interpolation of scalar float.
+    /// </summary>
+    public override bool TryGetValue (in string name, ref float f)
+    {
+      if (properties.TryGetValue(name, out object op) &&
+          op is Property<float> p)
+      {
+        if (p.data == null)
+          return false;
+
+        // Compute the current value from 'p'.
+        p.prepareCubic(
+          time,
+          out double fraction,
+          out int i0, out int i1, out int i2, out int i3);
+
+        // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
+        CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
+        f = (float)(c0 * p.data[i0] +
+                    c1 * p.data[i1] +
+                    c2 * p.data[i2] +
+                    c3 * p.data[i3]);
+
+        return true;
+      }
+
+      // Connected property can have the same name.
+      return base.TryGetValue(name, ref f);
+    }
+
+    /// <summary>
     /// Catmull-Rom interpolation of scalar double.
     /// </summary>
     public override bool TryGetValue (in string name, ref double d)
@@ -88,6 +119,68 @@ namespace JosefPelikan
     /// <summary>
     /// Catmull-Rom interpolation of 3D vectors.
     /// </summary>
+    public override bool TryGetValue (in string name, ref Vector3 v3)
+    {
+      if (properties.TryGetValue(name, out object op) &&
+          op is Property<Vector3> p)
+      {
+        if (p.data == null)
+          return false;
+
+        // Compute the current value from 'p'.
+        p.prepareCubic(
+          time,
+          out double fraction,
+          out int i0, out int i1, out int i2, out int i3);
+
+        // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
+        CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
+        v3 = (float)c0 * p.data[i0] +
+             (float)c1 * p.data[i1] +
+             (float)c2 * p.data[i2] +
+             (float)c3 * p.data[i3];
+
+        return true;
+      }
+
+      // Connected property can have the same name.
+      return base.TryGetValue(name, ref v3);
+    }
+
+    /// <summary>
+    /// Catmull-Rom interpolation of 4D vectors.
+    /// </summary>
+    public override bool TryGetValue (in string name, ref Vector4 v4)
+    {
+      if (properties.TryGetValue(name, out object op) &&
+          op is Property<Vector4> p)
+      {
+        if (p.data == null)
+          return false;
+
+        // Compute the current value from 'p'.
+        p.prepareCubic(
+          time,
+          out double fraction,
+          out int i0, out int i1, out int i2, out int i3);
+
+        // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
+        CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
+        v4 = (float)c0 * p.data[i0] +
+             (float)c1 * p.data[i1] +
+             (float)c2 * p.data[i2] +
+             (float)c3 * p.data[i3];
+
+        return true;
+      }
+
+      // Connected property can have the same name.
+      return base.TryGetValue(name, ref v4);
+    }
+
+    /// <summary>
+    /// Catmull-Rom interpolation of 3D vectors.
+    /// </summary>
     public override bool TryGetValue (in string name, ref Vector3d v3)
     {
       if (properties.TryGetValue(name, out object op) &&
@@ -114,6 +207,37 @@ namespace JosefPelikan
 
       // Connected property can have the same name.
       return base.TryGetValue(name, ref v3);
+    }
+
+    /// <summary>
+    /// Catmull-Rom interpolation of 4D vectors.
+    /// </summary>
+    public override bool TryGetValue (in string name, ref Vector4d v4)
+    {
+      if (properties.TryGetValue(name, out object op) &&
+          op is Property<Vector4d> p)
+      {
+        if (p.data == null)
+          return false;
+
+        // Compute the current value from 'p'.
+        p.prepareCubic(
+          time,
+          out double fraction,
+          out int i0, out int i1, out int i2, out int i3);
+
+        // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
+        CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
+        v4 = c0 * p.data[i0] +
+             c1 * p.data[i1] +
+             c2 * p.data[i2] +
+             c3 * p.data[i3];
+
+        return true;
+      }
+
+      // Connected property can have the same name.
+      return base.TryGetValue(name, ref v4);
     }
 
     /// <summary>
@@ -162,6 +286,33 @@ namespace JosefPelikan
       {
         int dim, i;
 
+        // Array of floats.
+        if (op is Property<float[]> paf)
+        {
+          if (paf.data == null ||
+              paf.data.Count == 0 ||
+              (dim = paf.data[0].Length) == 0)
+            return false;
+
+          // Item: double[dim].
+          paf.prepareCubic(
+            time,
+            out double fraction,
+            out int i0, out int i1, out int i2, out int i3);
+
+          float[] d0 = paf.data[i0];
+          float[] d1 = paf.data[i1];
+          float[] d2 = paf.data[i1];
+          float[] d3 = paf.data[i2];
+          CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
+
+          float[] result = new float[dim];
+          for (i = 0; i < dim; i++)
+            result[i] = (float)(c0 * d0[i] + c1 * d1[i] + c2 * d2[i] + c3 * d3[i]);
+
+          return result;
+        }
+
         // Array of doubles.
         if (op is Property<double[]> pad)
         {
@@ -189,27 +340,114 @@ namespace JosefPelikan
           return result;
         }
 
-        // Array of Vector3d.
-        if (op is Property<Vector3d[]> pav)
+        // Array of Vector3.
+        if (op is Property<Vector3[]> paf3)
         {
-          if (pav.data == null ||
-              pav.data.Count == 0 ||
-              (dim = pav.data[0].Length) == 0)
+          if (paf3.data == null ||
+              paf3.data.Count == 0 ||
+              (dim = paf3.data[0].Length) == 0)
             return false;
 
           // Item: double[dim].
-          pav.prepareCubic(
+          paf3.prepareCubic(
             time,
             out double fraction,
             out int i0, out int i1, out int i2, out int i3);
 
-          Vector3d[] d0 = pav.data[i0];
-          Vector3d[] d1 = pav.data[i1];
-          Vector3d[] d2 = pav.data[i1];
-          Vector3d[] d3 = pav.data[i2];
+          Vector3[] d0 = paf3.data[i0];
+          Vector3[] d1 = paf3.data[i1];
+          Vector3[] d2 = paf3.data[i1];
+          Vector3[] d3 = paf3.data[i2];
+          CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
+
+          Vector3[] result = new Vector3[dim];
+          for (i = 0; i < dim; i++)
+            result[i] = (float)c0 * d0[i] +
+                        (float)c1 * d1[i] +
+                        (float)c2 * d2[i] +
+                        (float)c3 * d3[i];
+
+          return result;
+        }
+
+        // Array of Vector4.
+        if (op is Property<Vector4[]> paf4)
+        {
+          if (paf4.data == null ||
+              paf4.data.Count == 0 ||
+              (dim = paf4.data[0].Length) == 0)
+            return false;
+
+          // Item: double[dim].
+          paf4.prepareCubic(
+            time,
+            out double fraction,
+            out int i0, out int i1, out int i2, out int i3);
+
+          Vector4[] d0 = paf4.data[i0];
+          Vector4[] d1 = paf4.data[i1];
+          Vector4[] d2 = paf4.data[i1];
+          Vector4[] d3 = paf4.data[i2];
+          CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
+
+          Vector4[] result = new Vector4[dim];
+          for (i = 0; i < dim; i++)
+            result[i] = (float)c0 * d0[i] +
+                        (float)c1 * d1[i] +
+                        (float)c2 * d2[i] +
+                        (float)c3 * d3[i];
+
+          return result;
+        }
+
+        // Array of Vector3d.
+        if (op is Property<Vector3d[]> pav3)
+        {
+          if (pav3.data == null ||
+              pav3.data.Count == 0 ||
+              (dim = pav3.data[0].Length) == 0)
+            return false;
+
+          // Item: double[dim].
+          pav3.prepareCubic(
+            time,
+            out double fraction,
+            out int i0, out int i1, out int i2, out int i3);
+
+          Vector3d[] d0 = pav3.data[i0];
+          Vector3d[] d1 = pav3.data[i1];
+          Vector3d[] d2 = pav3.data[i1];
+          Vector3d[] d3 = pav3.data[i2];
           CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
 
           Vector3d[] result = new Vector3d[dim];
+          for (i = 0; i < dim; i++)
+            result[i] = c0 * d0[i] + c1 * d1[i] + c2 * d2[i] + c3 * d3[i];
+
+          return result;
+        }
+
+        // Array of Vector4d.
+        if (op is Property<Vector4d[]> pav4)
+        {
+          if (pav4.data == null ||
+              pav4.data.Count == 0 ||
+              (dim = pav4.data[0].Length) == 0)
+            return false;
+
+          // Item: double[dim].
+          pav4.prepareCubic(
+            time,
+            out double fraction,
+            out int i0, out int i1, out int i2, out int i3);
+
+          Vector4d[] d0 = pav4.data[i0];
+          Vector4d[] d1 = pav4.data[i1];
+          Vector4d[] d2 = pav4.data[i1];
+          Vector4d[] d3 = pav4.data[i2];
+          CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
+
+          Vector4d[] result = new Vector4d[dim];
           for (i = 0; i < dim; i++)
             result[i] = c0 * d0[i] + c1 * d1[i] + c2 * d2[i] + c3 * d3[i];
 
