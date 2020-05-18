@@ -10,8 +10,8 @@ Debug.Assert(scene != null);
 Debug.Assert(context != null);
 
 // Override image resolution and supersampling.
-context[PropertyName.CTX_WIDTH]         = 640;    // whatever is convenient for your debugging/testing/final rendering
-context[PropertyName.CTX_HEIGHT]        = 360;
+context[PropertyName.CTX_WIDTH]         = 720;    // whatever is convenient for your debugging/testing/final rendering
+context[PropertyName.CTX_HEIGHT]        = 480;
 context[PropertyName.CTX_SUPERSAMPLING] =  16;
 
 double end = 24.0;
@@ -47,14 +47,14 @@ if (Util.TryParseBool(context, PropertyName.CTX_PREPROCESSING))
   
   Dictionary<string, object> par = new Dictionary<string, object>
   {
-    { ParticleSimulator.PARTICLES,  100 },
+    { ParticleSimulator.PARTICLES,  150 },
     { ParticleSimulator.CENTER,     new Vector3(0.0f, 0.0f, 0.0f) },
-    { ParticleSimulator.RADIUS,     4.0f },
+    { ParticleSimulator.RADIUS,     0.8f },
     { ParticleSimulator.POS_NAME,   namePos },
     { ParticleSimulator.COLOR_NAME, nameColor },
-    { ParticleSimulator.MIN_SIZE,   0.1f },
-    { ParticleSimulator.MAX_SIZE,   0.5f },
-    { ParticleSimulator.MIN_COLOR,  0.6f },
+    { ParticleSimulator.MIN_SIZE,   0.05f },
+    { ParticleSimulator.MAX_SIZE,   0.25f },
+    { ParticleSimulator.MIN_COLOR,  0.5f },
     { ParticleSimulator.MAX_COLOR,  1.0f },
   };
   
@@ -81,9 +81,12 @@ if (context.TryGetValue(simulatorName, out object os) &&
                
 // Optional override of rendering algorithm and/or renderer.
 
-/*
-context[PropertyName.CTX_ALGORITHM] = new RayTracing();
+context[PropertyName.CTX_ALGORITHM] = new RayTracing
+{
+  MaxLevel = 25
+};
 
+/*
 int ss = 0;
 if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
     ss > 1)
@@ -178,7 +181,8 @@ root.InsertChild(s, Matrix4d.RotateX(-MathHelper.PiOver2) * Matrix4d.CreateTrans
 RecursionFunction del = (Intersection i, Vector3d dir, double importance, out RayRecursion rr) =>
 {
   double direct = 1.0 - i.TextureCoord.X;
-  direct = Math.Pow(direct * direct, 6.0);
+  direct *= direct;
+  direct *= direct;
 
   rr = new RayRecursion(
     Util.ColorClone(i.SurfaceColor, direct),
@@ -195,4 +199,4 @@ s = new ChaoticParticles(
 s.SetAttribute(PropertyName.RECURSION, del);
 s.SetAttribute(PropertyName.NO_SHADOW, true);
 s.SetAttribute(PropertyName.COLOR, new double[] {0.3, 0.9, 1.0});
-root.InsertChild(s, Matrix4d.CreateTranslation(0.0, -0.5, -4.0));
+root.InsertChild(s, Matrix4d.CreateTranslation(0.0, 2.0, -3.0));

@@ -55,4 +55,4 @@ will reference it.
 
 Videosequence:
 
-[YouTube video 640x360]()
+[YouTube video 640x360](https://youtu.be/IdFLjtL-UkI)
