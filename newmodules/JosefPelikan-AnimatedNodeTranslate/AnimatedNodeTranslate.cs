@@ -10,19 +10,19 @@ namespace JosefPelikan
   public class AnimatedNodeTranslate : AnimatedCSGInnerNode
   {
     /// <summary>
-    /// Property name (see 'PropertyAnimator').
+    /// Property name for data link between this object and PropertyAnimator.
     /// </summary>
     protected string name;
 
     /// <summary>
     /// Current translation vector.
     /// </summary>
-    Vector3d translate;
+    protected Vector3d translate;
 
     /// <summary>
     /// Original transform matrix (used for 'translate = Vector3d.Zero').
     /// </summary>
-    Matrix4d origin;
+    protected Matrix4d origin;
 
     protected override void setTime (double newTime)
     {

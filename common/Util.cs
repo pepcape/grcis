@@ -279,6 +279,27 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Duplicates the color array with optional multiplication coefficient.
+    /// </summary>
+    /// <param name="src">Source array (won't be modified).</param>
+    /// <param name="coeff">Optional multiplicator.</param>
+    /// <returns>Copy of the original array.</returns>
+    public static double[] ColorClone (double[] src, double coeff = 1.0)
+    {
+      if (src == null)
+        return null;
+
+      int len = src.Length;
+      double[] result = new double[len];
+      if (coeff != 1.0)
+        ColorAdd(src, coeff, result);
+      else
+        ColorCopy(src, result);
+
+      return result;
+    }
+
+    /// <summary>
     /// Hexa-coded color, not quoted.
     /// </summary>
     /// <returns>#RRGGBB</returns>

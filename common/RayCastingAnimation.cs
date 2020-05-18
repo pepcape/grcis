@@ -308,27 +308,81 @@ namespace Rendering
   /// <summary>
   /// Animated object with named properties.
   /// The most popular numeric values so far.
-  /// Don't hesitate to implement only some of the data types,
+  /// Usually used as a value provider by other animated objects.
+  /// Implementing only some of mentioned data types is ok,
   /// just return null for the rest..
   /// </summary>
   public interface ITimeDependentProperty : ITimeDependent
   {
+    /// <summary>
+    /// Can be ssed for array types or any other types..
+    /// </summary>
+    /// <param name="name">Unique name of the property.</param>
+    /// <returns>Current value of the property or null if not present.</returns>
     object GetValue (in string name);
 
+    /// <summary>
+    /// Float property getter.
+    /// </summary>
+    /// <param name="name">Unique name of the property.</param>
+    /// <param name="f">Property value (not changed if failed).</param>
+    /// <returns>True if the property is present.</returns>
     bool TryGetValue (in string name, ref float f);
 
+    /// <summary>
+    /// Double property getter.
+    /// </summary>
+    /// <param name="name">Unique name of the property.</param>
+    /// <param name="d">Property value (not changed if failed).</param>
+    /// <returns>True if the property is present.</returns>
     bool TryGetValue (in string name, ref double d);
 
+    /// <summary>
+    /// Vector3 (float components) property getter.
+    /// </summary>
+    /// <param name="name">Unique name of the property.</param>
+    /// <param name="v3">Property value (not changed if failed).</param>
+    /// <returns>True if the property is present.</returns>
     bool TryGetValue (in string name, ref Vector3 v3);
 
+    /// <summary>
+    /// Vector4 (float components) property getter.
+    /// </summary>
+    /// <param name="name">Unique name of the property.</param>
+    /// <param name="v4">Property value (not changed if failed).</param>
+    /// <returns>True if the property is present.</returns>
     bool TryGetValue (in string name, ref Vector4 v4);
 
+    /// <summary>
+    /// Vector3d (double components) property getter.
+    /// </summary>
+    /// <param name="name">Unique name of the property.</param>
+    /// <param name="v3">Property value (not changed if failed).</param>
+    /// <returns>True if the property is present.</returns>
     bool TryGetValue (in string name, ref Vector3d v3);
 
+    /// <summary>
+    /// Vector4d (double components) property getter.
+    /// </summary>
+    /// <param name="name">Unique name of the property.</param>
+    /// <param name="v4">Property value (not changed if failed).</param>
+    /// <returns>True if the property is present.</returns>
     bool TryGetValue (in string name, ref Vector4d v4);
 
+    /// <summary>
+    /// Quaterniond (double components) property getter.
+    /// </summary>
+    /// <param name="name">Unique name of the property.</param>
+    /// <param name="q">Property value (not changed if failed).</param>
+    /// <returns>True if the property is present.</returns>
     bool TryGetValue (in string name, ref Quaterniond q);
 
+    /// <summary>
+    /// Matrix4d (double components) property getter.
+    /// </summary>
+    /// <param name="name">Unique name of the property.</param>
+    /// <param name="m4">Property value (not changed if failed).</param>
+    /// <returns>True if the property is present.</returns>
     bool TryGetValue (in string name, ref Matrix4d m4);
   }
 
@@ -437,7 +491,7 @@ namespace Rendering
           return 0;
 
         if (cyclic)
-          return data.Count;
+          return data.Count == 1 ? 0 : data.Count;
 
         return Math.Max(data.Count - 3, 0);
       }
@@ -452,7 +506,8 @@ namespace Rendering
       /// <param name="i1">Knot index 1.</param>
       /// <param name="i2">Knot index 2.</param>
       /// <param name="i3">Knot index 3.</param>
-      public virtual void prepareCubic (
+      /// <returns>True if ok.</returns>
+      public virtual bool prepareCubic (
         double t,
         out double fraction,
         out int i0,
@@ -470,17 +525,17 @@ namespace Rendering
           if (len == 0)
           {
             i0 = i1 = i2 = i3 = -1;
-            return;
+            return false;
           }
           i0 = i1 = i2 = i3 = 0;
           if (len == 1)
-            return;
+            return true;
           i3 = 1;
           if (len == 2)
-            return;
+            return true;
           i1 = i2 = 1;
           i3 = 2;
-          return;
+          return true;
         }
 
         // There's at least one interval knot - knot.
@@ -523,7 +578,7 @@ namespace Rendering
             i1 = 0;
             i2 = 1;
             i3 = (len == 2) ? 0 : 2;
-            return;
+            return true;
           }
 
           // After the end.
@@ -534,7 +589,7 @@ namespace Rendering
             i1 = len - 2;
             i2 = len - 1;
             i3 = 0;
-            return;
+            return true;
           }
 
           // In the middle.
@@ -554,7 +609,7 @@ namespace Rendering
             i2 -= len;
           if (i3 >= len)
             i3 -= len;
-          return;
+          return true;
         }
 
         // Non-cyclic data.
@@ -568,7 +623,7 @@ namespace Rendering
           i1 = 1;
           i2 = 2;
           i3 = 3;
-          return;
+          return true;
         }
 
         // After the end.
@@ -579,7 +634,7 @@ namespace Rendering
           i1 = len - 3;
           i2 = len - 2;
           i3 = len - 1;
-          return;
+          return true;
         }
 
         // myStart < t < myEnd.
@@ -599,6 +654,8 @@ namespace Rendering
           i2--;
           i3--;
         }
+
+        return true;
       }
     }
 

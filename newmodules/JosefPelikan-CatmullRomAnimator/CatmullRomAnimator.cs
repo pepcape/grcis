@@ -66,10 +66,11 @@ namespace JosefPelikan
           return false;
 
         // Compute the current value from 'p'.
-        p.prepareCubic(
-          time,
-          out double fraction,
-          out int i0, out int i1, out int i2, out int i3);
+        if (!p.prepareCubic(
+              time,
+              out double fraction,
+              out int i0, out int i1, out int i2, out int i3))
+          return false;
 
         // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
         CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
@@ -97,10 +98,11 @@ namespace JosefPelikan
           return false;
 
         // Compute the current value from 'p'.
-        p.prepareCubic(
-          time,
-          out double fraction,
-          out int i0, out int i1, out int i2, out int i3);
+        if (!p.prepareCubic(
+              time,
+              out double fraction,
+              out int i0, out int i1, out int i2, out int i3))
+          return false;
 
         // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
         CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
@@ -128,10 +130,11 @@ namespace JosefPelikan
           return false;
 
         // Compute the current value from 'p'.
-        p.prepareCubic(
-          time,
-          out double fraction,
-          out int i0, out int i1, out int i2, out int i3);
+        if (!p.prepareCubic(
+              time,
+              out double fraction,
+              out int i0, out int i1, out int i2, out int i3))
+          return false;
 
         // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
         CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
@@ -159,10 +162,11 @@ namespace JosefPelikan
           return false;
 
         // Compute the current value from 'p'.
-        p.prepareCubic(
-          time,
-          out double fraction,
-          out int i0, out int i1, out int i2, out int i3);
+        if (!p.prepareCubic(
+              time,
+              out double fraction,
+              out int i0, out int i1, out int i2, out int i3))
+          return false;
 
         // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
         CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
@@ -190,10 +194,11 @@ namespace JosefPelikan
           return false;
 
         // Compute the current value from 'p'.
-        p.prepareCubic(
-          time,
-          out double fraction,
-          out int i0, out int i1, out int i2, out int i3);
+        if (!p.prepareCubic(
+              time,
+              out double fraction,
+              out int i0, out int i1, out int i2, out int i3))
+          return false;
 
         // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
         CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
@@ -221,10 +226,11 @@ namespace JosefPelikan
           return false;
 
         // Compute the current value from 'p'.
-        p.prepareCubic(
-          time,
-          out double fraction,
-          out int i0, out int i1, out int i2, out int i3);
+        if (!p.prepareCubic(
+              time,
+              out double fraction,
+              out int i0, out int i1, out int i2, out int i3))
+          return false;
 
         // Use [fraction, i0,. i1, i2, i3] to interpolate the quantity.
         CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
@@ -252,10 +258,11 @@ namespace JosefPelikan
           return false;
 
         // Compute the current value from 'p'.
-        p.prepareCubic(
-          time,
-          out double fraction,
-          out int i0, out int i1, out int i2, out int i3);
+        if (!p.prepareCubic(
+              time,
+              out double fraction,
+              out int i0, out int i1, out int i2, out int i3))
+          return false;
 
         // Using a method from a Grapnics Gems II chapter:
         // John Schlag: USING GEOMETRIC CONSTRUCTIONS TO INTERPOLATE ORIENTATION WITH QUATERNIONS,
@@ -295,15 +302,16 @@ namespace JosefPelikan
             return false;
 
           // Item: double[dim].
-          paf.prepareCubic(
-            time,
-            out double fraction,
-            out int i0, out int i1, out int i2, out int i3);
+          if (!paf.prepareCubic(
+                time,
+                out double fraction,
+                out int i0, out int i1, out int i2, out int i3))
+            return false;
 
           float[] d0 = paf.data[i0];
           float[] d1 = paf.data[i1];
-          float[] d2 = paf.data[i1];
-          float[] d3 = paf.data[i2];
+          float[] d2 = paf.data[i2];
+          float[] d3 = paf.data[i3];
           CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
 
           float[] result = new float[dim];
@@ -322,15 +330,16 @@ namespace JosefPelikan
             return false;
 
           // Item: double[dim].
-          pad.prepareCubic(
-            time,
-            out double fraction,
-            out int i0, out int i1, out int i2, out int i3);
+          if (!pad.prepareCubic(
+                time,
+                out double fraction,
+                out int i0, out int i1, out int i2, out int i3))
+            return false;
 
           double[] d0 = pad.data[i0];
           double[] d1 = pad.data[i1];
-          double[] d2 = pad.data[i1];
-          double[] d3 = pad.data[i2];
+          double[] d2 = pad.data[i2];
+          double[] d3 = pad.data[i3];
           CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
 
           double[] result = new double[dim];
@@ -349,15 +358,16 @@ namespace JosefPelikan
             return false;
 
           // Item: double[dim].
-          paf3.prepareCubic(
-            time,
-            out double fraction,
-            out int i0, out int i1, out int i2, out int i3);
+          if (!paf3.prepareCubic(
+                time,
+                out double fraction,
+                out int i0, out int i1, out int i2, out int i3))
+            return false;
 
           Vector3[] d0 = paf3.data[i0];
           Vector3[] d1 = paf3.data[i1];
-          Vector3[] d2 = paf3.data[i1];
-          Vector3[] d3 = paf3.data[i2];
+          Vector3[] d2 = paf3.data[i2];
+          Vector3[] d3 = paf3.data[i3];
           CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
 
           Vector3[] result = new Vector3[dim];
@@ -379,15 +389,16 @@ namespace JosefPelikan
             return false;
 
           // Item: double[dim].
-          paf4.prepareCubic(
-            time,
-            out double fraction,
-            out int i0, out int i1, out int i2, out int i3);
+          if (!paf4.prepareCubic(
+                time,
+                out double fraction,
+                out int i0, out int i1, out int i2, out int i3))
+            return false;
 
           Vector4[] d0 = paf4.data[i0];
           Vector4[] d1 = paf4.data[i1];
-          Vector4[] d2 = paf4.data[i1];
-          Vector4[] d3 = paf4.data[i2];
+          Vector4[] d2 = paf4.data[i2];
+          Vector4[] d3 = paf4.data[i3];
           CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
 
           Vector4[] result = new Vector4[dim];
@@ -409,15 +420,16 @@ namespace JosefPelikan
             return false;
 
           // Item: double[dim].
-          pav3.prepareCubic(
-            time,
-            out double fraction,
-            out int i0, out int i1, out int i2, out int i3);
+          if (!pav3.prepareCubic(
+                time,
+                out double fraction,
+                out int i0, out int i1, out int i2, out int i3))
+            return false;
 
           Vector3d[] d0 = pav3.data[i0];
           Vector3d[] d1 = pav3.data[i1];
-          Vector3d[] d2 = pav3.data[i1];
-          Vector3d[] d3 = pav3.data[i2];
+          Vector3d[] d2 = pav3.data[i2];
+          Vector3d[] d3 = pav3.data[i3];
           CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
 
           Vector3d[] result = new Vector3d[dim];
@@ -436,15 +448,16 @@ namespace JosefPelikan
             return false;
 
           // Item: double[dim].
-          pav4.prepareCubic(
-            time,
-            out double fraction,
-            out int i0, out int i1, out int i2, out int i3);
+          if (!pav4.prepareCubic(
+                time,
+                out double fraction,
+                out int i0, out int i1, out int i2, out int i3))
+            return false;
 
           Vector4d[] d0 = pav4.data[i0];
           Vector4d[] d1 = pav4.data[i1];
-          Vector4d[] d2 = pav4.data[i1];
-          Vector4d[] d3 = pav4.data[i2];
+          Vector4d[] d2 = pav4.data[i2];
+          Vector4d[] d3 = pav4.data[i3];
           CatmullRomWeights(fraction, out double c0, out double c1, out double c2, out double c3);
 
           Vector4d[] result = new Vector4d[dim];
@@ -463,10 +476,11 @@ namespace JosefPelikan
             return false;
 
           // Item: double[dim].
-          paq.prepareCubic(
-            time,
-            out double fraction,
-            out int i0, out int i1, out int i2, out int i3);
+          if (!paq.prepareCubic(
+                time,
+                out double fraction,
+                out int i0, out int i1, out int i2, out int i3))
+            return false;
 
           // Using a method from a Grapnics Gems II chapter:
           // John Schlag: USING GEOMETRIC CONSTRUCTIONS TO INTERPOLATE ORIENTATION WITH QUATERNIONS,
@@ -475,8 +489,8 @@ namespace JosefPelikan
 
           Quaterniond[] d0 = paq.data[i0];
           Quaterniond[] d1 = paq.data[i1];
-          Quaterniond[] d2 = paq.data[i1];
-          Quaterniond[] d3 = paq.data[i2];
+          Quaterniond[] d2 = paq.data[i2];
+          Quaterniond[] d3 = paq.data[i3];
 
           Quaterniond[] result = new Quaterniond[dim];
           for (i = 0; i < dim; i++)

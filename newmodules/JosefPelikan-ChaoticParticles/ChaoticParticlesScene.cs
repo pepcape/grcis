@@ -70,7 +70,7 @@ if (p.TryGetValue("mat", out string mat))
   switch (mat)
   {
     case "diffuse":
-      pm = new PhongMaterial(new double[] { 0.1, 0.1, 0.6 }, 0.1, 0.8, 0.2, 16);
+      pm = new PhongMaterial(new double[] {0.1, 0.1, 0.6}, 0.1, 0.8, 0.2, 16);
       break;
 
     case "glass":
@@ -96,7 +96,7 @@ root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.
 scene.Intersectable = root;
 
 // Optional Animator.
-string name = "translatePath";
+string name = "particles";
 
 CatmullRomAnimator pa = new CatmullRomAnimator()
 {
@@ -105,11 +105,29 @@ CatmullRomAnimator pa = new CatmullRomAnimator()
 };
 pa.newProperty(name, 0.0, end, 8.0,
                PropertyAnimator.InterpolationStyle.Cyclic,
-               new List<Vector3d>() {
-                 new Vector3d(0.0, 0.2,-0.5),
-                 new Vector3d(1.0, 0.2,-0.5),
-                 new Vector3d(1.0, 1.6, 0.0),
-                 new Vector3d(0.0, 1.2, 0.0)},
+               new List<Vector4d[]>()
+               {
+                 new Vector4d[]
+                 {
+                   new Vector4d(0.0, 0.2,-0.2, 1.0),
+                   new Vector4d(2.0, 1.2, 0.0, 1.0),
+                 },
+                 new Vector4d[]
+                 {
+                   new Vector4d(2.0, 0.2,-0.2, 1.0),
+                   new Vector4d(0.0, 2.2, 0.0, 1.0),
+                 },
+                 new Vector4d[]
+                 {
+                   new Vector4d(2.0, 1.2, 0.0, 1.0),
+                   new Vector4d(0.0, 0.2,-0.2, 1.0),
+                 },
+                 new Vector4d[]
+                 {
+                   new Vector4d(0.0, 2.2, 0.0, 1.0),
+                   new Vector4d(2.0, 0.2,-0.2, 1.0),
+                 }
+               },
                true);
 scene.Animator = pa;
 
@@ -118,8 +136,8 @@ scene.BackgroundColor = new double[] {0.0, 0.02, 0.02};
 scene.Background = new StarBackground(scene.BackgroundColor, 600, 0.008, 0.5, 1.6, 1.0);
 
 // Camera.
-AnimatedCamera cam = new AnimatedCamera(new Vector3d(0.7,  1.0,  0.0),
-                                        new Vector3d(0.7,  0.8, -8.0),
+AnimatedCamera cam = new AnimatedCamera(new Vector3d(0.7,  1.0,   0.0),
+                                        new Vector3d(0.7,  0.8, -10.0),
                                         50.0);
 cam.End = end;      // one complete turn takes 24.0 seconds
 AnimatedRayScene ascene = scene as AnimatedRayScene;
@@ -136,18 +154,10 @@ scene.Sources.Add(new PointLightSource(new Vector3d(-5.0, 4.0, -3.0), 1.2));
 
 ISolid s;
 
-// Animation node.
-AnimatedNodeTranslate an = new AnimatedNodeTranslate(
-  name,
-  new Vector3d(0.0, 0.2,-0.5),
-  Matrix4d.Identity,
-  0.0, 20.0);
-root.InsertChild(an, Matrix4d.Identity);
-
 // Mirror/transparent sphere.
 s = new Sphere();
 s.SetAttribute(PropertyName.MATERIAL, pm);
-an.InsertChild(s, Matrix4d.Identity);
+root.InsertChild(s, Matrix4d.CreateTranslation(0.0, 0.0, 0.5));
 
 // Opaque sphere.
 s = new Sphere();
@@ -155,6 +165,32 @@ root.InsertChild(s, Matrix4d.Scale(1.2) * Matrix4d.CreateTranslation(1.5, 0.2, 2
 
 // Infinite plane with checker texture.
 s = new Plane();
-s.SetAttribute(PropertyName.COLOR, new double[] {0.3, 0.06, 0.0});
+s.SetAttribute(PropertyName.COLOR, new double[] {0.4, 0.08, 0.0});
 s.SetAttribute(PropertyName.TEXTURE, new CheckerTexture(0.6, 0.6, new double[] {1.0, 1.0, 1.0}));
 root.InsertChild(s, Matrix4d.RotateX(-MathHelper.PiOver2) * Matrix4d.CreateTranslation(0.0, -1.0, 0.0));
+
+// Callback for glowing objects.
+RecursionFunction del = (Intersection i, Vector3d dir, double importance, out RayRecursion rr) =>
+{
+  double direct = 1.0 - i.TextureCoord.X;
+  direct = Math.Pow(direct * direct, 6.0);
+
+  rr = new RayRecursion(
+    Util.ColorClone(i.SurfaceColor, direct),
+    new RayRecursion.RayContribution(i, dir, importance));
+
+  return 144L;
+};
+
+// Particle object.
+s = new ChaoticParticles(
+  new Vector4d[]
+  {
+    new Vector4d(0.0, 0.2,-0.2, 1.0),
+    new Vector4d(2.0, 1.2, 0.0, 1.0),
+  },
+  name);
+s.SetAttribute(PropertyName.RECURSION, del);
+s.SetAttribute(PropertyName.NO_SHADOW, true);
+s.SetAttribute(PropertyName.COLOR, new double[] {0.3, 0.9, 1.0});
+root.InsertChild(s, Matrix4d.CreateTranslation(0.0, -0.5, -2.0));
