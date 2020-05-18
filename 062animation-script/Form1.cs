@@ -691,7 +691,7 @@ namespace _062animation
       int lastDisplayedFrame = -1;
       const long DISPLAY_GAP = 10000L;
       long lastDisplayedTime = -DISPLAY_GAP;
-      ETF etf = new ETF();
+      ETF etf = new ETF(0.6f, threads);
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
