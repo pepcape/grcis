@@ -477,28 +477,39 @@ namespace Rendering
     {
       if (Solid != null)
       {
-        // world coordinates:
+        // World coordinates.
         LocalToWorld = Solid.ToWorld();
         WorldToLocal = LocalToWorld;
         WorldToLocal.Invert();
         Vector3d.TransformPosition(ref CoordLocal, ref LocalToWorld, out CoordWorld);
 
-        // object coordinates:
+        // Object coordinates.
         LocalToObject = Solid.ToObject();
         Vector3d.TransformPosition(ref CoordLocal, ref LocalToObject, out CoordObject);
 
-        // appearance:
+        // Appearance.
+        // Reflectance model.
         ReflectanceModel = (IReflectanceModel)Solid.GetAttribute(PropertyName.REFLECTANCE_MODEL);
         if (ReflectanceModel == null)
           ReflectanceModel = new PhongModel();
+
+        // Material.
         Material = (IMaterial)Solid.GetAttribute(PropertyName.MATERIAL);
         if (Material == null)
           Material = ReflectanceModel.DefaultMaterial();
-        double[] col = (double[]) Solid.GetAttribute(PropertyName.COLOR);
-        SurfaceColor = (double[])((col != null) ? col.Clone() : Material.Color.Clone());
+
+        // Surface color (accepts a color provided by a Solid).
+        if (SurfaceColor == null)
+        {
+          double[] col = (double[]) Solid.GetAttribute(PropertyName.COLOR);
+          SurfaceColor = (double[])((col != null) ? col.Clone() : Material.Color.Clone());
+        }
+
+        // List of textures.
         Textures = Solid.GetTextures();
 
-        // Solid is responsible for completing remaining values:
+        // Solid is responsible for completing remaining values.
+        // Usually: Normal, TextureCoord.
         Solid.CompleteIntersection(this);
         Normal.Normalize();
         if (Enter != Front)
@@ -506,7 +517,7 @@ namespace Rendering
       }
 
       if (SurfaceColor == null)
-        SurfaceColor = new double[] { 0.0, 0.2, 0.3 };
+        SurfaceColor = new double[] { 0.0, 0.0, 0.0 };
 
       completed = true;
     }

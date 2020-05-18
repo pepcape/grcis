@@ -86,6 +86,19 @@ namespace MathSupport
     }
 
     /// <summary>
+    /// Create a double[3] color array from Vector3d.
+    /// </summary>
+    public static double[] ColorCreate (in Vector3d col)
+    {
+      return new double[]
+      {
+        col.X,
+        col.Y,
+        col.Z
+      };
+    }
+
+    /// <summary>
     /// Random direction around the [0,0,1] vector.
     /// Normal distribution is used, using required variance.
     /// </summary>

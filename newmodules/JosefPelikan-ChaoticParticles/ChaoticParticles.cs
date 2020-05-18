@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using MathSupport;
 using OpenTK;
-using OpenTK.Platform;
 using Rendering;
+using Utilities;
 
 namespace JosefPelikan
 {
@@ -27,6 +27,11 @@ namespace JosefPelikan
     protected Vector4d[] particles;
 
     /// <summary>
+    /// Initial/current particle color [R, G, B].
+    /// </summary>
+    protected Vector3d[] colors;
+
+    /// <summary>
     /// Bounding box.
     /// </summary>
     protected Vector3d minCorner;
@@ -34,8 +39,15 @@ namespace JosefPelikan
 
     /// <summary>
     /// Property name for data link between this object and PropertyAnimator.
+    /// Particle position & size.
     /// </summary>
-    protected string propertyName;
+    protected string positionName;
+
+    /// <summary>
+    /// Property name for data link between this object and PropertyAnimator.
+    /// Particle color.
+    /// </summary>
+    protected string colorName;
 
     public void GetBoundingBox (out Vector3d corner1, out Vector3d corner2)
     {
@@ -45,16 +57,25 @@ namespace JosefPelikan
 
     public ChaoticParticles (
       in Vector4d[] ps,
-      in string propName)
+      in Vector3d[] col,
+      in string posName,
+      in string colName = null)
     {
       particles    = ps;
-      propertyName = propName;
+      colors       = col;
+      positionName = posName;
+      colorName    = colName;
     }
 
     public ChaoticParticles (
       in Vector4d particle,
-      in string propName)
-      : this(new Vector4d[] { particle }, propName)
+      in Vector3d? color,
+      in string posName,
+      in string colName = null)
+      : this(
+          new Vector4d[] { particle },
+          color.HasValue ? new Vector3d[] { color.Value } : null,
+          posName, colName)
     {
     }
 
@@ -161,6 +182,7 @@ namespace JosefPelikan
       // Particle size not implemented yet.
       Vector3d offset = new Vector3d(particles[0].X, particles[0].Y, particles[0].Z);
       double scale = 1.0 / particles[0].W;
+      int nearest = 0;
       LinkedList<Intersection> list = SphereIntersect(offset, scale, ref p0, ref p1, ref cut, 0);
       for (int i = 1; i < particles.Length; i++)
       {
@@ -168,8 +190,17 @@ namespace JosefPelikan
         scale = 1.0 / particles[i].W;
         LinkedList<Intersection> tmp = SphereIntersect(offset, scale, ref p0, ref p1, ref cut, i);
         if (tmp != null)
-          list = tmp;
+        {
+          list    = tmp;
+          nearest = i;
+        }
       }
+
+      // Optional individual color (probably from a PropertyAnimator).
+      if (list != null &&
+          colors != null &&
+          nearest < colors.Length)
+        list.First.Value.SurfaceColor = Geometry.ColorCreate(colors[nearest]);
 
       return list;
     }
@@ -229,14 +260,22 @@ namespace JosefPelikan
     {
       time = newTime;
 
-      // Update all the particles via PropertyAnimator.
+      // Update all the particles positions+sizes via PropertyAnimator.
       // I'm only interested in Vector4d[] properties, everything else is not for me.
       if (!((MT.scene?.Animator ?? null) is PropertyAnimator pa) ||
           pa == null ||
-          !(pa.GetValue(propertyName) is Vector4d[] vec))
+          !(pa.GetValue(positionName) is Vector4d[] v4))
         return;
 
-      particles = vec;
+      particles = v4;
+
+      // Update all the particles colors via PropertyAnimator.
+      // I'm only interested in Vector3d[] properties, everything else is not for me.
+      if (string.IsNullOrEmpty(colorName) ||
+          !(pa.GetValue(colorName) is Vector3d[] v3))
+        return;
+
+      colors = v3;
     }
 
     /// <summary>
@@ -253,7 +292,7 @@ namespace JosefPelikan
     /// </summary>
     public virtual object Clone ()
     {
-      ChaoticParticles n = new ChaoticParticles(particles, propertyName);
+      ChaoticParticles n = new ChaoticParticles(particles, colors, positionName, colorName);
       ShareCloneAttributes(n);
       n.Time = time;
       return n;
