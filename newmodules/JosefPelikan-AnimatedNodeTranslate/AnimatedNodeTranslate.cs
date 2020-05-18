@@ -1,8 +1,6 @@
-﻿using MathSupport;
-using OpenTK;
+﻿using OpenTK;
 using Rendering;
 using System;
-using Utilities;
 
 namespace JosefPelikan
 {
@@ -10,7 +8,7 @@ namespace JosefPelikan
   public class AnimatedNodeTranslate : AnimatedCSGInnerNode
   {
     /// <summary>
-    /// Property name for data link between this object and PropertyAnimator.
+    /// Property name for data link between this object and ITimeDependentProperty.
     /// </summary>
     protected string name;
 
@@ -29,7 +27,7 @@ namespace JosefPelikan
       time = newTime;
 
       // Animator was already Time-updated.
-      if (!((MT.scene?.Animator ?? null) is PropertyAnimator pa) ||
+      if (!((MT.scene?.Animator ?? null) is ITimeDependentProperty pa) ||
           pa == null ||
           !pa.TryGetValue(name, ref translate))
         return;

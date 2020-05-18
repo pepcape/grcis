@@ -8,7 +8,7 @@ using Rendering;
 namespace JosefPelikan
 {
   /// <summary>
-  /// Set of glowing particles able to be animated via PropertyAnimator.
+  /// Set of glowing particles able to be animated via ITimeDependentProperty.
   /// </summary>
   [Serializable]
   public class ChaoticParticles : DefaultSceneNode, ISolid, ITimeDependent
@@ -37,13 +37,13 @@ namespace JosefPelikan
     protected Vector3d maxCorner;
 
     /// <summary>
-    /// Property name for data link between this object and PropertyAnimator.
+    /// Property name for data link between this object and ITimeDependentProperty.
     /// Particle position & size.
     /// </summary>
     protected string positionName;
 
     /// <summary>
-    /// Property name for data link between this object and PropertyAnimator.
+    /// Property name for data link between this object and ITimeDependentProperty.
     /// Particle color.
     /// </summary>
     protected string colorName;
@@ -237,7 +237,7 @@ namespace JosefPelikan
         }
       }
 
-      // Optional individual color (probably from a PropertyAnimator).
+      // Optional individual color (probably from a ITimeDependentProperty).
       if (list != null &&
           colors != null &&
           nearest < colors.Length)
@@ -301,11 +301,11 @@ namespace JosefPelikan
     {
       time = newTime;
 
-      if (!((MT.scene?.Animator ?? null) is PropertyAnimator pa) ||
+      if (!((MT.scene?.Animator ?? null) is ITimeDependentProperty pa) ||
           pa == null)
         return;
 
-      // Update all the particles positions+sizes via PropertyAnimator.
+      // Update all the particles positions+sizes via ITimeDependentProperty.
       // I'm only interested in Vector4d[] properties, everything else is not for me.
       if (!string.IsNullOrEmpty(positionName))
       {
@@ -316,7 +316,7 @@ namespace JosefPelikan
           particles = Geometry.Vector4dArrayFrom(v4);
       }
 
-      // Update all the particles colors via PropertyAnimator.
+      // Update all the particles colors via ITimeDependentProperty.
       // I'm only interested in Vector3d[] properties, everything else is not for me.
       if (!string.IsNullOrEmpty(colorName))
       {

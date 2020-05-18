@@ -17,7 +17,7 @@ namespace JosefPelikan
     /// <summary>
     /// Associated animator.
     /// </summary>
-    protected PropertyAnimator animator;
+    protected ITimeDependentProperty animator;
 
     /// <summary>
     /// Starting time of the animation (double.MinValue for default =
@@ -42,7 +42,7 @@ namespace JosefPelikan
     protected Dictionary<string, object> properties;
 
     public ParticleSimulator (
-      in PropertyAnimator anim = null,
+      in ITimeDependentProperty anim = null,
       in double dT = 0.2,
       in double minTime = double.MinValue,
       in double maxTime = double.MaxValue)
@@ -52,12 +52,12 @@ namespace JosefPelikan
     }
 
     public void SetAnimator (
-      in PropertyAnimator anim = null)
+      in ITimeDependentProperty anim = null)
     {
       if (anim != null)
         animator = anim;
       else
-        animator = MT.scene?.Animator as PropertyAnimator;
+        animator = MT.scene?.Animator as ITimeDependentProperty;
     }
 
     public void SetTimes (
@@ -167,9 +167,9 @@ namespace JosefPelikan
           for (int j = 0; j < n; j++)
           {
             pos[j] = new Vector4(
-              center.X + size.X * (float)rnd.UniformNumber(),
-              center.Y + size.Y * (float)rnd.UniformNumber(),
-              center.Z + size.Z * (float)rnd.UniformNumber(),
+              (float)rnd.Normal(center.X, size.X),
+              (float)rnd.Normal(center.Y, size.Y),
+              (float)rnd.Normal(center.Z, size.Z),
               rnd.RandomFloat(minSize, maxSize));
             col[j] = new Vector3(
               rnd.RandomFloat(minColor, maxColor),
