@@ -425,7 +425,7 @@ namespace Rendering
     /// <summary>
     /// Data-holder class, it can be read-only (i.e. shared) after initialization.
     /// </summary>
-    /// <typeparam name="T">Numeric type {double | Vector3d | Matrix4d}</typeparam>
+    /// <typeparam name="T">Numeric type {double | Vector3d | Matrix4d...}</typeparam>
     [Serializable]
     public class Property<T>
     {
@@ -773,6 +773,13 @@ namespace Rendering
       return a;
     }
 
+    public virtual void setProperty<T> (
+      in Property<T> property)
+    {
+      if (property != null)
+        properties[property.name] = property;
+    }
+
     public virtual void newProperty<T> (
       in string name,
       in double start,
@@ -782,7 +789,7 @@ namespace Rendering
       List<T> data,
       bool cyclic = false)
     {
-      Property<T> p = new Property<T>
+      setProperty(new Property<T>
       {
         name    = name,
         tStart  = start,
@@ -791,8 +798,7 @@ namespace Rendering
         data    = data,
         cyclic  = cyclic,
         style   = style
-      };
-      properties[name] = p;
+      });
     }
 
     public virtual object GetValue (in string name)

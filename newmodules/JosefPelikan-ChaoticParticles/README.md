@@ -33,4 +33,4 @@ more modules: ``StarBackground.cs`` and ``CatmullRomAnimator.cs``.
 
 Videosequence:
 
-[YouTube video 640x360]()
+[YouTube video 640x360](https://youtu.be/6UPf2p8KwdI)

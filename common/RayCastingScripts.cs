@@ -214,7 +214,7 @@ namespace Rendering
       Debug.Assert(ctx != null);
 
       // Preprocessing.
-      if (ctx.Count == 0)
+      if (ctx.Count < 2)
         ctx[PropertyName.CTX_PREPROCESSING] = true;
       else
         ctx.Remove(PropertyName.CTX_PREPROCESSING);

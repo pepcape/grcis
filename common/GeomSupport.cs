@@ -6,6 +6,8 @@ using System.Globalization;
 // Support math code.
 namespace MathSupport
 {
+  using ScriptContext = Dictionary<string, object>;
+
   /// <summary>
   /// Geometric support.
   /// </summary>
@@ -128,6 +130,88 @@ namespace MathSupport
         result[i] = (Vector3d)v3[i];
 
       return result;
+    }
+
+    /// <summary>
+    /// Parses Vector3 value from the string->object dictionary.
+    /// </summary>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
+    public static bool TryParse (ScriptContext rec, string key, ref Vector3 v3)
+    {
+      if (!rec.TryGetValue(key, out object oval))
+        return false;
+
+      if (oval is Vector3 ov3)
+      {
+        v3 = ov3;
+        return true;
+      }
+
+      if (oval is Vector4 ov4)
+      {
+        v3.X = ov4.X;
+        v3.Y = ov4.Y;
+        v3.Z = ov4.Z;
+        return true;
+      }
+
+      if (oval is Vector3d ov3d)
+      {
+        v3 = (Vector3)ov3d;
+        return true;
+      }
+
+      if (oval is Vector4d ov4d)
+      {
+        v3.X = (float)ov4d.X;
+        v3.Y = (float)ov4d.Y;
+        v3.Z = (float)ov4d.Z;
+        return true;
+      }
+
+      return false;
+    }
+
+    /// <summary>
+    /// Parses Vector4 value from the string->object dictionary.
+    /// </summary>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
+    public static bool TryParse (ScriptContext rec, string key, ref Vector4 v4)
+    {
+      if (!rec.TryGetValue(key, out object oval))
+        return false;
+
+      if (oval is Vector4 ov4)
+      {
+        v4 = ov4;
+        return true;
+      }
+
+      if (oval is Vector3 ov3)
+      {
+        v4.X = ov3.X;
+        v4.Y = ov3.Y;
+        v4.Z = ov3.Z;
+        v4.W = 1.0f;
+        return true;
+      }
+
+      if (oval is Vector4d ov4d)
+      {
+        v4 = (Vector4)ov4d;
+        return true;
+      }
+
+      if (oval is Vector3d ov3d)
+      {
+        v4.X = (float)ov3d.X;
+        v4.Y = (float)ov3d.Y;
+        v4.Z = (float)ov3d.Z;
+        v4.Z = 1.0f;
+        return true;
+      }
+
+      return false;
     }
 
     /// <summary>
