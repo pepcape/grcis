@@ -109,23 +109,31 @@ pa.newProperty(name, 0.0, end, 8.0,
                {
                  new Vector4d[]
                  {
-                   new Vector4d(0.0, 0.2,-0.2, 1.0),
-                   new Vector4d(2.0, 1.2, 0.0, 1.0),
+                   new Vector4d(0.0, 0.2,-0.2, 0.2),
+                   new Vector4d(2.0, 0.2,-0.2, 0.2),
+                   new Vector4d(2.0, 1.2, 0.0, 1.5),
+                   new Vector4d(0.0, 2.2, 0.0, 1.5),
                  },
                  new Vector4d[]
                  {
-                   new Vector4d(2.0, 0.2,-0.2, 1.0),
-                   new Vector4d(0.0, 2.2, 0.0, 1.0),
+                   new Vector4d(2.0, 0.2,-0.2, 0.2),
+                   new Vector4d(2.0, 1.2, 0.0, 1.5),
+                   new Vector4d(0.0, 2.2, 0.0, 1.5),
+                   new Vector4d(0.0, 0.2,-0.2, 0.2),
                  },
                  new Vector4d[]
                  {
-                   new Vector4d(2.0, 1.2, 0.0, 1.0),
-                   new Vector4d(0.0, 0.2,-0.2, 1.0),
+                   new Vector4d(2.0, 1.2, 0.0, 1.5),
+                   new Vector4d(0.0, 2.2, 0.0, 1.5),
+                   new Vector4d(0.0, 0.2,-0.2, 0.2),
+                   new Vector4d(2.0, 0.2,-0.2, 0.2),
                  },
                  new Vector4d[]
                  {
-                   new Vector4d(0.0, 2.2, 0.0, 1.0),
-                   new Vector4d(2.0, 0.2,-0.2, 1.0),
+                   new Vector4d(0.0, 2.2, 0.0, 1.5),
+                   new Vector4d(0.0, 0.2,-0.2, 0.2),
+                   new Vector4d(2.0, 0.2,-0.2, 0.2),
+                   new Vector4d(2.0, 1.2, 0.0, 1.5),
                  }
                },
                true);
@@ -186,8 +194,10 @@ RecursionFunction del = (Intersection i, Vector3d dir, double importance, out Ra
 s = new ChaoticParticles(
   new Vector4d[]
   {
-    new Vector4d(0.0, 0.2,-0.2, 1.0),
-    new Vector4d(2.0, 1.2, 0.0, 1.0),
+    new Vector4d(0.0, 0.2,-0.2, 0.2),
+    new Vector4d(2.0, 0.2,-0.2, 0.2),
+    new Vector4d(2.0, 1.2, 0.0, 1.5),
+    new Vector4d(0.0, 2.2, 0.0, 1.5),
   },
   name);
 s.SetAttribute(PropertyName.RECURSION, del);

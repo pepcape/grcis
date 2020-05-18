@@ -81,16 +81,18 @@ namespace JosefPelikan
     /// <returns>Two intersections or null.</returns>
     protected LinkedList<Intersection> SphereIntersect (
       Vector3d offset,
+      double scale,
       ref Vector3d p0,
       ref Vector3d p1,
       ref double cut,
       int index = 0)
     {
-      Vector3d origin = p0 - offset;
+      Vector3d origin = (p0 - offset) * scale;
+      Vector3d dir = p1 * scale;
       double OD;
-      Vector3d.Dot(ref origin, ref p1, out OD);
+      Vector3d.Dot(ref origin, ref dir, out OD);
       double DD;
-      Vector3d.Dot(ref p1, ref p1, out DD);
+      Vector3d.Dot(ref dir, ref dir, out DD);
       double OO;
       Vector3d.Dot(ref origin, ref origin, out OO);
       double d = OD * OD + DD * (1.0 - OO); // discriminant
@@ -158,11 +160,13 @@ namespace JosefPelikan
 
       // Particle size not implemented yet.
       Vector3d offset = new Vector3d(particles[0].X, particles[0].Y, particles[0].Z);
-      LinkedList<Intersection> list = SphereIntersect(offset, ref p0, ref p1, ref cut, 0);
+      double scale = 1.0 / particles[0].W;
+      LinkedList<Intersection> list = SphereIntersect(offset, scale, ref p0, ref p1, ref cut, 0);
       for (int i = 1; i < particles.Length; i++)
       {
         offset = new Vector3d(particles[i].X, particles[i].Y, particles[i].Z);
-        LinkedList<Intersection> tmp = SphereIntersect(offset, ref p0, ref p1, ref cut, i);
+        scale = 1.0 / particles[i].W;
+        LinkedList<Intersection> tmp = SphereIntersect(offset, scale, ref p0, ref p1, ref cut, i);
         if (tmp != null)
           list = tmp;
       }
