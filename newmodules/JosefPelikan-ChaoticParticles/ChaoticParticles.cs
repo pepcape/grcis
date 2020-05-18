@@ -4,7 +4,6 @@ using System.Diagnostics;
 using MathSupport;
 using OpenTK;
 using Rendering;
-using Utilities;
 
 namespace JosefPelikan
 {
@@ -49,7 +48,13 @@ namespace JosefPelikan
     /// </summary>
     protected string colorName;
 
-    public void GetBoundingBox (out Vector3d corner1, out Vector3d corner2)
+    public void SetBoundingBox (in Vector3d corner1, in Vector3d corner2)
+    {
+      minCorner = corner1;
+      maxCorner = corner2;
+    }
+
+    public virtual void GetBoundingBox (out Vector3d corner1, out Vector3d corner2)
     {
       corner1 = minCorner;
       corner2 = maxCorner;
@@ -62,6 +67,42 @@ namespace JosefPelikan
       in string colName = null)
     {
       particles    = ps;
+      colors       = col;
+      positionName = posName;
+      colorName    = colName;
+    }
+
+    public ChaoticParticles (
+      in Vector4[] ps,
+      in Vector3[] col,
+      in string posName,
+      in string colName = null)
+    {
+      particles    = Geometry.Vector4dArrayFrom(ps);
+      colors       = Geometry.Vector3dArrayFrom(col);
+      positionName = posName;
+      colorName    = colName;
+    }
+
+    public ChaoticParticles (
+      in Vector4d[] ps,
+      in Vector3[] col,
+      in string posName,
+      in string colName = null)
+    {
+      particles    = ps;
+      colors       = Geometry.Vector3dArrayFrom(col);
+      positionName = posName;
+      colorName    = colName;
+    }
+
+    public ChaoticParticles (
+      in Vector4[] ps,
+      in Vector3d[] col,
+      in string posName,
+      in string colName = null)
+    {
+      particles    = Geometry.Vector4dArrayFrom(ps);
       colors       = col;
       positionName = posName;
       colorName    = colName;
@@ -260,22 +301,31 @@ namespace JosefPelikan
     {
       time = newTime;
 
-      // Update all the particles positions+sizes via PropertyAnimator.
-      // I'm only interested in Vector4d[] properties, everything else is not for me.
       if (!((MT.scene?.Animator ?? null) is PropertyAnimator pa) ||
-          pa == null ||
-          !(pa.GetValue(positionName) is Vector4d[] v4))
+          pa == null)
         return;
 
-      particles = v4;
+      // Update all the particles positions+sizes via PropertyAnimator.
+      // I'm only interested in Vector4d[] properties, everything else is not for me.
+      if (!string.IsNullOrEmpty(positionName))
+      {
+        if (pa.GetValue(positionName) is Vector4d[] v4d)
+          particles = v4d;
+        else
+        if (pa.GetValue(positionName) is Vector4[] v4)
+          particles = Geometry.Vector4dArrayFrom(v4);
+      }
 
       // Update all the particles colors via PropertyAnimator.
       // I'm only interested in Vector3d[] properties, everything else is not for me.
-      if (string.IsNullOrEmpty(colorName) ||
-          !(pa.GetValue(colorName) is Vector3d[] v3))
-        return;
-
-      colors = v3;
+      if (!string.IsNullOrEmpty(colorName))
+      {
+        if (pa.GetValue(colorName) is Vector3d[] v3d)
+          colors = v3d;
+        else
+        if (pa.GetValue(colorName) is Vector3[] v3)
+          colors = Geometry.Vector3dArrayFrom(v3);
+      }
     }
 
     /// <summary>

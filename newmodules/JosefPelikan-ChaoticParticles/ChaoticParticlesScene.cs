@@ -12,7 +12,7 @@ Debug.Assert(context != null);
 // Override image resolution and supersampling.
 context[PropertyName.CTX_WIDTH]         = 640;    // whatever is convenient for your debugging/testing/final rendering
 context[PropertyName.CTX_HEIGHT]        = 360;
-context[PropertyName.CTX_SUPERSAMPLING] =   4;
+context[PropertyName.CTX_SUPERSAMPLING] =  16;
 
 double end = 24.0;
 context[PropertyName.CTX_START_ANIM]    =  0.0;
@@ -140,28 +140,28 @@ pa.newProperty(namePos, 0.0, end, 8.0,
                true);
 pa.newProperty(nameColor, 0.0, end, 6.0,
                PropertyAnimator.InterpolationStyle.Cyclic,
-               new List<Vector3d[]>()
+               new List<Vector3[]>()
                {
-                 new Vector3d[]
+                 new Vector3[]
                  {
-                   new Vector3d(1.0, 0.3, 0.2),
-                   new Vector3d(0.5, 0.9, 0.5),
-                   new Vector3d(0.2, 0.2, 1.0),
-                   new Vector3d(0.0, 0.8, 1.0),
+                   new Vector3(1.0f, 0.3f, 0.2f),
+                   new Vector3(0.5f, 0.9f, 0.5f),
+                   new Vector3(0.2f, 0.2f, 1.0f),
+                   new Vector3(0.0f, 0.8f, 1.0f),
                  },
-                 new Vector3d[]
+                 new Vector3[]
                  {
-                   new Vector3d(0.3, 0.9, 0.2),
-                   new Vector3d(0.0, 0.3, 0.7),
-                   new Vector3d(0.4, 0.4, 0.1),
-                   new Vector3d(0.3, 0.7, 0.6),
+                   new Vector3(0.3f, 0.9f, 0.2f),
+                   new Vector3(0.0f, 0.3f, 0.7f),
+                   new Vector3(0.4f, 0.4f, 0.1f),
+                   new Vector3(0.3f, 0.7f, 0.6f),
                  },
-                 new Vector3d[]
+                 new Vector3[]
                  {
-                   new Vector3d(0.5, 0.5, 0.8),
-                   new Vector3d(0.7, 0.4, 0.6),
-                   new Vector3d(0.2, 0.6, 0.8),
-                   new Vector3d(0.2, 0.4, 1.0),
+                   new Vector3(0.5f, 0.5f, 0.8f),
+                   new Vector3(0.7f, 0.4f, 0.6f),
+                   new Vector3(0.2f, 0.6f, 0.8f),
+                   new Vector3(0.2f, 0.4f, 1.0f),
                  },
                },
                true);
@@ -227,12 +227,12 @@ s = new ChaoticParticles(
     new Vector4d(2.0, 1.2, 0.0, 1.5),
     new Vector4d(0.0, 2.2, 0.0, 1.8),
   },
-  new Vector3d[]
+  new Vector3[]
   {
-    new Vector3d(1.0, 0.3, 0.2),
-    new Vector3d(0.5, 0.9, 0.5),
-    new Vector3d(0.2, 0.2, 1.0),
-    new Vector3d(0.0, 0.8, 1.0),
+    new Vector3(1.0f, 0.3f, 0.2f),
+    new Vector3(0.5f, 0.9f, 0.5f),
+    new Vector3(0.2f, 0.2f, 1.0f),
+    new Vector3(0.0f, 0.8f, 1.0f),
   },
   namePos, nameColor);
 s.SetAttribute(PropertyName.RECURSION, del);
