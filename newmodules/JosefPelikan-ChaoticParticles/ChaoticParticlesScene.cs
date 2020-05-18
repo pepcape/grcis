@@ -1,7 +1,7 @@
 ﻿//////////////////////////////////////////////////
 // Externals.
 
-using JosefPelikan;     // AnimatedNodeTranslate + CatmullRomAnimator + StarBackground
+using JosefPelikan;     // ChaoticParticles + CatmullRomAnimator + StarBackground
 
 //////////////////////////////////////////////////
 // Rendering params.
@@ -96,7 +96,8 @@ root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.
 scene.Intersectable = root;
 
 // Optional Animator.
-string namePos = "partPos";
+string namePos   = "partPos";
+string nameColor = "colPos";
 
 CatmullRomAnimator pa = new CatmullRomAnimator()
 {
@@ -134,7 +135,34 @@ pa.newProperty(namePos, 0.0, end, 8.0,
                    new Vector4d(0.0, 0.2,-0.2, 0.4),
                    new Vector4d(2.0, 0.2,-0.2, 0.2),
                    new Vector4d(2.0, 1.2, 0.0, 1.5),
-                 }
+                 },
+               },
+               true);
+pa.newProperty(nameColor, 0.0, end, 6.0,
+               PropertyAnimator.InterpolationStyle.Cyclic,
+               new List<Vector3d[]>()
+               {
+                 new Vector3d[]
+                 {
+                   new Vector3d(1.0, 0.3, 0.2),
+                   new Vector3d(0.5, 0.9, 0.5),
+                   new Vector3d(0.2, 0.2, 1.0),
+                   new Vector3d(0.0, 0.8, 1.0),
+                 },
+                 new Vector3d[]
+                 {
+                   new Vector3d(0.3, 0.9, 0.2),
+                   new Vector3d(0.0, 0.3, 0.7),
+                   new Vector3d(0.4, 0.4, 0.1),
+                   new Vector3d(0.3, 0.7, 0.6),
+                 },
+                 new Vector3d[]
+                 {
+                   new Vector3d(0.5, 0.5, 0.8),
+                   new Vector3d(0.7, 0.4, 0.6),
+                   new Vector3d(0.2, 0.6, 0.8),
+                   new Vector3d(0.2, 0.4, 1.0),
+                 },
                },
                true);
 scene.Animator = pa;
@@ -206,7 +234,7 @@ s = new ChaoticParticles(
     new Vector3d(0.2, 0.2, 1.0),
     new Vector3d(0.0, 0.8, 1.0),
   },
-  namePos);
+  namePos, nameColor);
 s.SetAttribute(PropertyName.RECURSION, del);
 s.SetAttribute(PropertyName.NO_SHADOW, true);
 s.SetAttribute(PropertyName.COLOR, new double[] {0.3, 0.9, 1.0});
