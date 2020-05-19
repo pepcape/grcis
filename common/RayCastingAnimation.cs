@@ -387,8 +387,8 @@ namespace Rendering
   }
 
   /// <summary>
-  /// General animator able to interpolate numeric
-  /// quantities ('properties').
+  /// Shared logic for ITimeDependentProperty animators -
+  /// able to interpolate numeric quantities ('properties').
   /// </summary>
   [Serializable]
   public class PropertyAnimator : ITimeDependentProperty

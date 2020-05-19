@@ -13,7 +13,7 @@
 ### Source file: AnimatedNodeTranslate.cs
 
 This simple extension implements an "animated scene node" which is able to change
-its translation during the time. It is designed to work together with a ``PropertyAnimator``
+its translation during the time. It is designed to work together with a ``ITimeDependentProperty``
 which helps with translation vector interpolation.
 
 Every time a ``Time`` property of the node is updated, it requests a scene's
@@ -53,7 +53,7 @@ AnimatedNodeTranslate an = new AnimatedNodeTranslate(
 
 ```
 Note that the string ``name`` is used to connect the node to the animated property living inside
-of a PropertyAnimator.
+of a ITimeDependentProperty.
 
 ### Sample animation script: AnimatedSceneTranslate.cs (together with ``CatmullRomAnimator``)
 
