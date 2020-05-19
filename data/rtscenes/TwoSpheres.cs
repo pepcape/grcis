@@ -7,20 +7,24 @@ Debug.Assert(context != null);
 // Override image resolution and supersampling.
 context[PropertyName.CTX_WIDTH]         = 640; // 1800, 1920
 context[PropertyName.CTX_HEIGHT]        = 480; // 1200, 1080
-context[PropertyName.CTX_SUPERSAMPLING] =   4; //  400,   64
+//context[PropertyName.CTX_SUPERSAMPLING] =   4; //  400,   64
 
 // Tooltip (if script uses values from 'param').
-context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rmat={mirror|glass|diffuse}}";
+context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)\rschlick=<double> (Schlick coeff)\rmat={mirror|glass|diffuse}}";
 
 // Params dictionary.
 Dictionary<string, string> p = Util.ParseKeyValueList(param);
+
+// schlick = <schlick-coeff>
+double sch = 1.0;
+Util.TryParse(p, "schlick", ref sch);
 
 // n = <index-of-refraction>
 double n = 1.6;
 Util.TryParse(p, "n", ref n);
 
 // mat = {mirror|glass|diffuse}
-PhongMaterial pm = new PhongMaterial(new double[] {0.0, 0.2, 0.1}, 0.05, 0.05, 0.1, 128);
+PhongMaterial pm = new PhongMaterial(new double[] {0.0, 0.2, 0.1}, 0.05, 0.05, 0.1, 128, sch);
 pm.n  = n;
 pm.Kt = 0.9;
 
@@ -28,11 +32,11 @@ if (p.TryGetValue("mat", out string mat))
   switch (mat)
   {
     case "diffuse":
-      pm = new PhongMaterial(new double[] {0.1, 0.1, 0.6}, 0.1, 0.8, 0.2, 16);
+      pm = new PhongMaterial(new double[] {0.1, 0.1, 0.6}, 0.1, 0.8, 0.2, 16, sch);
       break;
 
     case "mirror":
-      pm = new PhongMaterial(new double[] {1.0, 1.0, 0.8}, 0.01, 0.0, 1.1, 8192);
+      pm = new PhongMaterial(new double[] {1.0, 1.0, 0.8}, 0.01, 0.0, 1.1, 8192, sch);
       break;
 
     default:
@@ -45,7 +49,7 @@ if (p.TryGetValue("mat", out string mat))
 
 CSGInnerNode root = new CSGInnerNode(SetOperation.Union);
 root.SetAttribute(PropertyName.REFLECTANCE_MODEL, new PhongModel());
-root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.7, 0.1}, 0.1, 0.7, 0.3, 128));
+root.SetAttribute(PropertyName.MATERIAL, new PhongMaterial(new double[] {1.0, 0.7, 0.1}, 0.1, 0.7, 0.3, 128, sch));
 scene.Intersectable = root;
 
 // Background color.

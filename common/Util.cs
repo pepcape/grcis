@@ -221,6 +221,22 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Copies one color array to another.
+    /// </summary>
+    /// <param name="src">Source array</param>
+    /// <param name="coeff">Multiplicator</param>
+    /// <param name="dst">Destination array</param>
+    public static void ColorCopy (double[] src, double coeff, double[] dst)
+    {
+      Debug.Assert(src != null && dst != null);
+
+      for (int i = 0; i < Math.Min(src.Length, dst.Length); i++)
+        dst[i] = coeff * src[i];
+      if (src.Length < dst.Length)
+        Array.Clear(dst, src.Length, dst.Length - src.Length);
+    }
+
+    /// <summary>
     /// Adds an monochromatic color to an color array.
     /// </summary>
     /// <param name="add">Source color</param>
@@ -245,6 +261,19 @@ namespace Utilities
       int bands = Math.Min(add.Length, dst.Length);
       for (int i = 0; i < bands; i++)
         dst[i] += add[i];
+    }
+
+    /// <summary>
+    /// Multiplicated a color array by a constant.
+    /// </summary>
+    /// <param name="mul">Multiplicator</param>
+    /// <param name="dst">Destination array</param>
+    public static void ColorMul (in double mul, double[] dst)
+    {
+      Debug.Assert(dst != null);
+
+      for (int i = 0; i < dst.Length; i++)
+        dst[i] *= mul;
     }
 
     /// <summary>

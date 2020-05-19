@@ -169,22 +169,22 @@ namespace Rendering
                                   y0 + amplitude * MT.rnd.UniformNumber(),
                                   tmp);
           MT.NextSample();
-          for (b = 0; b < bands; b++)
-            color[b] += tmp[b];
+          Util.ColorAdd(tmp, color);
         }
 
       double mul = step / superXY;
+
+      // Gamma-encoding?
       if (Gamma > 0.001)
       {
-        // gamma-encoding and clamping
+        // Gamma-encoding and clamping.
         double g = 1.0 / Gamma;
         for (b = 0; b < bands; b++)
           color[b] = Arith.Clamp(Math.Pow(color[b] * mul, g), 0.0, 1.0);
       }
       else
-        // no gamma, no clamping (for HDRI)
-        for (b = 0; b < bands; b++)
-          color[b] *= mul;
+        // No gamma, no clamping (for HDRI).
+        Util.ColorMul(mul, color);
 
       // !!!}}
     }

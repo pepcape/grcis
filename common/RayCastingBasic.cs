@@ -68,7 +68,7 @@ namespace Rendering
       MT.StartPixel(x, y, 1);
       ImageFunction.GetSample(x + 0.5, y + 0.5, color);
 
-      // Gamma-encoding.
+      // Gamma-encoding?
       if (Gamma > 0.001)
       {
         // Gamma-encoding and clamping.
@@ -77,7 +77,7 @@ namespace Rendering
           color[b] = Arith.Clamp(Math.Pow(color[b], g), 0.0, 1.0);
       }
 
-      // else: no gamma, no clamping (for HDRI)
+      // Else: no gamma, no clamping (for HDRI).
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ namespace Rendering
 
       double[] color = new double[3]; // pixel color
 
-      // run several phases of image rendering:
+      // Run several phases of image rendering.
       int cell = 32; // cell size
       while (cell > 1 && cell > Adaptive)
         cell >>= 1;
@@ -136,17 +136,17 @@ namespace Rendering
               if (!sel(counter++))
                 continue;
 
-              // determine sample color ..
+              // Determine sample color ..
               RenderPixel(x, y, color);
 
               if (Gamma <= 0.001)
                 for (int b = 0; b < color.Length; b++)
                   color[b] = Arith.Clamp(color[b], 0.0, 1.0);
 
-              // .. and render it:
-              Color c = Color.FromArgb((int)(color [ 0 ] * 255.0),
-                                       (int)(color [ 1 ] * 255.0),
-                                       (int)(color [ 2 ] * 255.0));
+              // .. and render it.
+              Color c = Color.FromArgb((int)(color[0] * 255.0),
+                                       (int)(color[1] * 255.0),
+                                       (int)(color[2] * 255.0));
               lock (image)
               {
                 if (cell == 1)
@@ -251,21 +251,22 @@ namespace Rendering
                                   y0 + amplitude * MT.rnd.UniformNumber(),
                                   tmp);
           MT.NextSample();
-          for (b = 0; b < bands; b++)
-            color[b] += tmp[b];
+          Util.ColorAdd(tmp, color);
         }
 
       double mul = step / superXY;
+
+      // Gamma-encoding?
       if (Gamma > 0.001)
       {
-        // gamma-encoding and clamping
+        // Gamma-encoding and clamping.
         double g = 1.0 / Gamma;
         for (b = 0; b < bands; b++)
           color[b] = Arith.Clamp(Math.Pow(color[b] * mul, g), 0.0, 1.0);
       }
-      else // no gamma, no clamping (for HDRI)
-        for (b = 0; b < bands; b++)
-          color[b] *= mul;
+      else
+        // No gamma, no clamping (for HDRI).
+        Util.ColorMul(mul, color);
     }
   }
 
@@ -340,9 +341,9 @@ namespace Rendering
     /// </summary>
     private bool similarColor (double[] col1, double[] col2)
     {
-      double r_diff = col1 [ 0 ] - col2 [ 0 ];
-      double g_diff = col1 [ 1 ] - col2 [ 1 ];
-      double b_diff = col1 [ 2 ] - col2 [ 2 ];
+      double r_diff = col1[0] - col2[0];
+      double g_diff = col1[1] - col2[1];
+      double b_diff = col1[2] - col2[2];
       return Math.Sqrt(r_diff * r_diff + g_diff * g_diff + b_diff * b_diff) < colorThreshold;
     }
 
@@ -363,54 +364,54 @@ namespace Rendering
       Node[] ch     = new Node[4];
       root.children = ch;
 
-      // child[ 0 ] .. root.x, root.y
+      // child[0] .. root.x, root.y
       ch[0] = new Node(root.x, root.y, step);
       if (root.result.x < root.x + step &&
           root.result.y < root.y + step)
       {
-        // use the old sample:
+        // Use the old sample.
         ch[0].result = root.result;
         root.result  = null;
       }
       else
         ch[0].sample(ImageFunction, bands);
 
-      // child[ 1 ] .. root.x, root.y + step
+      // child[1] .. root.x, root.y + step
       ch[1] = new Node(root.x, root.y + step, step);
       if (root.result != null &&
           root.result.x < root.x + step)
       {
-        // use the old sample:
+        // Use the old sample.
         ch[1].result = root.result;
         root.result  = null;
       }
       else
         ch[1].sample(ImageFunction, bands);
 
-      // child[ 2 ] .. root.x + step, root.y
+      // child[2] .. root.x + step, root.y
       ch[2] = new Node(root.x + step, root.y, step);
       if (root.result != null &&
           root.result.y < root.y + step)
       {
-        // use the old sample:
+        // Use the old sample.
         ch[2].result = root.result;
         root.result  = null;
       }
       else
         ch[2].sample(ImageFunction, bands);
 
-      // child[ 3 ] .. root.x + step, root.y + step
+      // child[3] .. root.x + step, root.y + step
       ch[3] = new Node(root.x + step, root.y + step, step);
       if (root.result != null)
       {
-        // use the old sample:
+        // Use the old sample.
         ch[3].result = root.result;
         root.result  = null;
       }
       else
         ch[3].sample(ImageFunction, bands);
 
-      // tree-depth check
+      // Tree-depth check.
       if ((division += division) >= maxDivision)
         return;
 
@@ -419,7 +420,7 @@ namespace Rendering
       bool toSubdivide2 = false;
       bool toSubdivide3 = false;
 
-      // neighbour checks
+      // Neighbour checks.
       if (subdivisionNeeded(ch[0].result, ch[1].result))
         toSubdivide0 = toSubdivide1 = true;
 
@@ -432,7 +433,7 @@ namespace Rendering
       if (subdivisionNeeded(ch[2].result, ch[3].result))
         toSubdivide2 = toSubdivide3 = true;
 
-      // divide and conquer:
+      // Divide and conquer.
       if (toSubdivide0)
         subdivide(ch[0], division, maxDivision);
       if (toSubdivide1)
@@ -456,8 +457,7 @@ namespace Rendering
       {
         // Leaf node.
         double mult = node.step * node.step;
-        for (int i = 0; i < bands; i++)
-          color[i] += node.result.color[i] * mult;
+        Util.ColorAdd(node.result.color, mult, color);
       }
     }
 
@@ -477,18 +477,19 @@ namespace Rendering
       bands = color.Length;
       Array.Clear(color, 0, bands);
 
-      // we are starting from the whole pixel area = unit square
-      Node root = new Node ( x, y, 1.0 );
+      // We are starting from the whole pixel area = unit square.
+      Node root = new Node(x, y, 1.0);
       root.sample(ImageFunction, bands);
       if (superXY > 1)
         subdivide(root, 1, superXY);
 
-      // gather result color
+      // Gather result color.
       gatherColors(root, color);
 
+      // Gamma-encoding?
       if (Gamma > 0.001)
       {
-        // gamma-encoding and clamping
+        // Gamma-encoding and clamping.
         double g = 1.0 / Gamma;
         for (int b = 0; b < bands; b++)
           color[b] = Arith.Clamp(Math.Pow(color[b], g), 0.0, 1.0);
@@ -653,7 +654,7 @@ namespace Rendering
     public PointLightSource (Vector3d pos, double intens)
     {
       position  = pos;
-      intensity = new double[] { intens, intens, intens };
+      intensity = new double[] {intens, intens, intens};
     }
 
     /// <summary>
@@ -697,7 +698,7 @@ namespace Rendering
 
     public AmbientLightSource (double intens)
     {
-      intensity = new double[] { intens, intens, intens };
+      intensity = new double[] {intens, intens, intens};
     }
 
     /// <summary>
@@ -862,8 +863,7 @@ namespace Rendering
       double   dimCoef = 1.0 / (Dim[0] + dist * (Dim[1] + dist * Dim[2]));
       int      bands   = intensity.Length;
       double[] result  = new double[bands];
-      for (int i = 0; i < bands; i++)
-        result[i] = intensity[i] * dimCoef;
+      Util.ColorCopy(intensity, dimCoef, result);
 
       return result;
     }
@@ -966,6 +966,11 @@ namespace Rendering
     /// </summary>
     public double Kt { get; set; }
 
+    /// <summary>
+    /// Schlick adjustment (0.0 for pure Phong, 1.0 for Schlick).
+    /// </summary>
+    public double Sch { get; set; }
+
     protected double _n;
 
     /// <summary>
@@ -994,10 +999,11 @@ namespace Rendering
       Ks    = m.Ks;
       H     = m.H;
       Kt    = m.Kt;
+      Sch   = m.Sch;
       n     = m.n;
     }
 
-    public PhongMaterial (double[] color, double ka, double kd, double ks, int h)
+    public PhongMaterial (double[] color, double ka, double kd, double ks, int h, double sch = 1.0)
     {
       Color = color;
       Ka    = ka;
@@ -1005,11 +1011,12 @@ namespace Rendering
       Ks    = ks;
       H     = h;
       Kt    = 0.0;
+      Sch   = sch;
       n     = 1.5;
     }
 
     public PhongMaterial ()
-      : this(new double[] { 1.0, 0.9, 0.4 }, 0.2, 0.7, 0.2, 16)
+      : this(new double[] {1.0, 0.9, 0.4}, 0.2, 0.7, 0.2, 16)
     {}
 
     public object Clone ()
@@ -1029,12 +1036,21 @@ namespace Rendering
       return new PhongMaterial();
     }
 
-    public double[] ColorReflection (Intersection intersection, Vector3d input, Vector3d output, ReflectionComponent comp)
+    public double[] ColorReflection (
+      Intersection intersection,
+      Vector3d input,
+      Vector3d output,
+      ReflectionComponent comp)
     {
       return ColorReflection(intersection.Material, intersection.Normal, input, output, comp);
     }
 
-    public double[] ColorReflection (IMaterial material, Vector3d normal, Vector3d input, Vector3d output, ReflectionComponent comp)
+    public double[] ColorReflection (
+      IMaterial material,
+      Vector3d normal,
+      Vector3d input,
+      Vector3d output,
+      ReflectionComponent comp)
     {
       if (!(material is PhongMaterial))
         return null;
@@ -1043,19 +1059,17 @@ namespace Rendering
       int           bands   = mat.Color.Length;
       double[]      result  = new double[bands];
       bool          viewOut = Vector3d.Dot(output, normal) > 0.0;
-      double        coef;
+      double        coeff;
 
       if (input == Vector3d.Zero) // ambient term only..
       {
-        // dim ambient light if viewer is inside
-        coef = viewOut ? mat.Ka : (mat.Ka * mat.Kt);
-        for (int i = 0; i < bands; i++)
-          result[i] = coef * mat.Color[i];
-
+        // Dim ambient light if viewer is inside.
+        coeff = viewOut ? mat.Ka : (mat.Ka * mat.Kt);
+        Util.ColorCopy(mat.Color, coeff, result);
         return result;
       }
 
-      // directional light source:
+      // Directional light source.
       input.Normalize();
       double cosAlpha = Vector3d.Dot(input, normal);
       bool   lightOut = cosAlpha > 0.0;
@@ -1063,10 +1077,23 @@ namespace Rendering
       double kd       = mat.Kd;
       double kt       = mat.Kt;
 
-      Vector3d r = Vector3d.Zero;
-      coef = 1.0;
-      if (viewOut == lightOut) // viewer and source are on the same side..
+      // Schlick's adjustment.
+      if (mat.Sch > 0.0)
       {
+        double oneU        = 1.0 - Math.Abs(cosAlpha);         //  1-u
+        double oneUsq      = oneU * oneU;                      // (1-u)^2
+        double schlick     = mat.Sch * oneUsq * oneUsq * oneU; // (1-u)^5 * mat.Sch
+        double schlickComp = 1.0 - schlick;
+        ks += schlick * (kd + kt);
+        kd *= schlickComp;
+        kt *= schlickComp;
+      }
+
+      Vector3d r = Vector3d.Zero;
+      coeff = 1.0;
+      if (viewOut == lightOut)
+      {
+        // Viewer and source are on the same side..
         if ((comp & ReflectionComponent.SPECULAR_REFLECTION) != 0)
         {
           double cos2 = cosAlpha + cosAlpha;
@@ -1078,21 +1105,22 @@ namespace Rendering
               ks = 1.0 - kd;
         }
       }
-      else // opposite sides => use specular refraction
+      else
       {
+        // Opposite sides => use specular refraction.
         if ((comp & ReflectionComponent.SPECULAR_REFRACTION) != 0)
           r = Geometry.SpecularRefraction(normal, mat.n, input);
-        coef = kt;
+        coeff = kt;
       }
 
-      double diffuse  = (comp & ReflectionComponent.DIFFUSE) == 0 ? 0.0 : coef * kd * Math.Abs(cosAlpha);
+      double diffuse  = (comp & ReflectionComponent.DIFFUSE) == 0 ? 0.0 : coeff * kd * Math.Abs(cosAlpha);
       double specular = 0.0;
 
       if (r != Vector3d.Zero)
       {
         double cosBeta = Vector3d.Dot(r, output);
         if (cosBeta > 0.0)
-          specular = coef * ks * Arith.Pow(cosBeta, mat.H);
+          specular = coeff * ks * Arith.Pow(cosBeta, mat.H);
       }
 
       for (int i = 0; i < bands; i++)
