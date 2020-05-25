@@ -28,13 +28,13 @@ namespace Rendering
     /// </summary>
     /// <param name="args">Command-line arguments.</param>
     /// <param name="repo">Existing scene repository to be modified (sceneName -&gt; sceneDelegate | scriptFileName).</param>
-    /// <returns>How many scenes were found.</returns>
+    /// <returns>How many new scenes were found.</returns>
     public static int ReadFromConfig (string[] args, ScriptContext repo)
     {
-      // <sceneFile.cs>
-      // -scene <sceneFile>
-      // -mask <sceneFile-mask>
-      // -dir <directory>
+      // -nodefault               // use it as the first option!
+      // [-scene] <sceneFile>     // can be used multiple times
+      // -mask <scenePath-mask>   // can be used multiple times
+      // -dir <directory>         // can be used multiple times
       // more options to add? (super-sampling factor, output image file-name, output resolution, rendering flags, ..)
 
       int count = 0;
@@ -43,11 +43,13 @@ namespace Rendering
         if (string.IsNullOrEmpty(args[i]))
           continue;
 
-        string fileName = null;   // file-name or file-mask
-        string dir = null;        // directory
+        string fileName = null;   // file-name to add
+        string dir      = null;   // directory to add ('mask' is used)
+        string mask     = null;
 
         if (args[i][0] != '-')
         {
+          // <sceneFile.cs>
           if (File.Exists(args[i]))
             fileName = Path.GetFullPath(args[i]);
         }
@@ -55,66 +57,76 @@ namespace Rendering
         {
           string opt = args[i].Substring(1);
           if (opt == "nodefault")
-            repo.Clear();
-          else if (opt == "scene" && i + 1 < args.Length)
           {
+            // -nodefault
+            repo.Clear();
+          }
+          else
+          if (opt == "scene" && i + 1 < args.Length)
+          {
+            // -scene <sceneFile.cs>
             if (File.Exists(args[++i]))
               fileName = Path.GetFullPath(args[i]);
           }
-          else if (opt == "dir" && i + 1 < args.Length)
+          else
+          if (opt == "dir" && i + 1 < args.Length)
           {
+            // -dir <directory>
             if (Directory.Exists(args[++i]))
             {
               dir = Path.GetFullPath(args[i]);
-              fileName = "*.cs";
+              mask = "*.cs";
             }
           }
-          else if (opt == "mask" && i + 1 < args.Length)
+          else
+          if (opt == "mask" && i + 1 < args.Length)
           {
+            // -mask <scenePath-mask>
             dir = Path.GetFullPath(args[++i]);
-            fileName = Path.GetFileName(dir);
+            mask = Path.GetFileName(dir);
             dir = Path.GetDirectoryName(dir);
           }
 
-          // Here new commands will be handled..
+          // Here new commands could be handled..
           // else if (opt == 'xxx' ..
         }
 
-        if (!string.IsNullOrEmpty(dir))
+        if (!string.IsNullOrEmpty(dir) ||
+            !string.IsNullOrEmpty(mask))
         {
-          if (!string.IsNullOrEmpty(fileName))
+          // Valid dir & mask.
+          try
           {
-            // valid dir & file-mask:
-            try
+            string[] search = Directory.GetFiles(dir, mask);
+            foreach (string fn in search)
             {
-              string[] search = Directory.GetFiles(dir, fileName);
-              foreach (string fn in search)
+              string path = Path.GetFullPath(fn);
+              if (File.Exists(path))
               {
-                string path = Path.GetFullPath(fn);
-                if (File.Exists(path))
-                {
-                  string key = Path.GetFileName(path);
-                  if (key.EndsWith(".cs"))
-                    key = key.Substring(0, key.Length - 3);
+                string key = Path.GetFileName(path);
+                if (key.EndsWith(".cs"))
+                  key = key.Substring(0, key.Length - 3);
 
-                  repo["* " + key] = path;
-                  count++;
-                }
+                repo["* " + key] = path;
+                count++;
               }
             }
-            catch (IOException)
-            {
-              Console.WriteLine($"Warning: I/O error in dir/mask command: '{dir}'/'{fileName}'");
-            }
-            catch (UnauthorizedAccessException)
-            {
-              Console.WriteLine($"Warning: access error in dir/mask command: '{dir}'/'{fileName}'");
-            }
           }
+          catch (IOException)
+          {
+            Console.WriteLine($"Warning: I/O error in dir/mask command: '{dir}'/'{mask}'");
+          }
+          catch (UnauthorizedAccessException)
+          {
+            Console.WriteLine($"Warning: access error in dir/mask command: '{dir}'/'{mask}'");
+          }
+
+          continue;
         }
-        else if (!string.IsNullOrEmpty(fileName))
+
+        if (!string.IsNullOrEmpty(fileName))
         {
-          // single scene file:
+          // Single scene file.
           try
           {
             string path = Path.GetFullPath(fileName);
