@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using MathSupport;
+﻿using MathSupport;
 using OpenTK;
 using Scene3D;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Rendering
 {
@@ -44,10 +43,11 @@ namespace Rendering
       t = (-OD - d) / DD;
       i = new Intersection(this)
       {
-        T = t,
-        Enter = true,
-        Front = true,
-        CoordLocal = p0 + t * p1
+        T           = t,
+        Enter       = true,
+        Front       = true,
+        NormalLocal = p0 + t * p1,
+        CoordLocal  = p0 + t * p1,
       };
       result.AddLast(i);
 
@@ -55,10 +55,11 @@ namespace Rendering
       t = (-OD + d) / DD;
       i = new Intersection(this)
       {
-        T = t,
-        Enter = false,
-        Front = false,
-        CoordLocal = p0 + t * p1
+        T           = t,
+        Enter       = false,
+        Front       = false,
+        NormalLocal = p0 + t * p1,
+        CoordLocal  = p0 + t * p1,
       };
       result.AddLast(i);
 
@@ -71,14 +72,9 @@ namespace Rendering
     /// <param name="inter">Intersection instance to complete.</param>
     public override void CompleteIntersection (Intersection inter)
     {
-      // normal vector:
-      Vector3d tu, tv;
-      Geometry.GetAxes(ref inter.CoordLocal, out tu, out tv);
-      tu = Vector3d.TransformVector(tu, inter.LocalToWorld);
-      tv = Vector3d.TransformVector(tv, inter.LocalToWorld);
-      Vector3d.Cross(ref tu, ref tv, out inter.Normal);
+      // Normal vector - no need to do anything here as NormalLocal is defined...
 
-      // 2D texture coordinates:
+      // 2D texture coordinates.
       double r = Math.Sqrt(inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y);
       inter.TextureCoord.X = Geometry.IsZero(r)
         ? 0.0
@@ -135,11 +131,12 @@ namespace Rendering
 
       Intersection i = new Intersection(this)
       {
-        T = t,
-        Enter = true,
-        Front = true,
-        CoordLocal = loc,
-        SolidData = p1
+        T           = t,
+        Enter       = true,
+        Front       = true,
+        NormalLocal = loc,
+        CoordLocal  = loc,
+        SolidData   = p1
       };
       result.AddLast(i);
 
@@ -147,11 +144,12 @@ namespace Rendering
       {
         i = new Intersection(this)
         {
-          T = t + 1.0e-5,
-          Enter = false,
-          Front = false,
-          CoordLocal = loc + Intersection.SHELL_THICKNESS * p1,
-          SolidData = p1
+          T           = t + Intersection.SHELL_THICKNESS,
+          Enter       = false,
+          Front       = false,
+          NormalLocal = loc + Intersection.SHELL_THICKNESS * p1,
+          CoordLocal  = loc + Intersection.SHELL_THICKNESS * p1,
+          SolidData   = p1
         };
         result.AddLast(i);
       }
@@ -165,12 +163,7 @@ namespace Rendering
     /// <param name="inter">Intersection instance to complete.</param>
     public override void CompleteIntersection (Intersection inter)
     {
-      // Normal vector.
-      Vector3d tu, tv;
-      Geometry.GetAxes(ref inter.CoordLocal, out tu, out tv);
-      tu = Vector3d.TransformVector(tu, inter.LocalToWorld);
-      tv = Vector3d.TransformVector(tv, inter.LocalToWorld);
-      Vector3d.Cross(ref tu, ref tv, out inter.Normal);
+      // Normal vector - no need to do anything here as NormalLocal is defined...
 
       // 2D texture coordinates - projection to 2D from the ray-direction.
       if (inter.SolidData is Vector3d direction)
@@ -216,7 +209,7 @@ namespace Rendering
 
       d = Math.Sqrt(d);
 
-      // there will be two intersections: (-OD - d) / DD, (-OD + d) / DD
+      // There will be two intersections: (-OD - d) / DD, (-OD + d) / DD
       if (d - OD < 0.0) // negative intersection
         return -1.0;
 
@@ -409,21 +402,23 @@ namespace Rendering
       Intersection i;
       i = new Intersection(this)
       {
-        T = tMin,
-        Enter = true,
-        Front = true,
-        CoordLocal = p0 + tMin * p1,
-        SolidData = fMin
+        T           = tMin,
+        Enter       = true,
+        Front       = true,
+        NormalLocal = Normals[(int)fMin],
+        CoordLocal  = p0 + tMin * p1,
+        SolidData   = fMin
       };
       result.AddLast(i);
 
       i = new Intersection(this)
       {
-        T = tMax,
-        Enter = false,
-        Front = false,
-        CoordLocal = p0 + tMax * p1,
-        SolidData = fMax
+        T           = tMax,
+        Enter       = false,
+        Front       = false,
+        NormalLocal = Normals[(int)fMax],
+        CoordLocal  = p0 + tMax * p1,
+        SolidData   = fMax
       };
       result.AddLast(i);
 
@@ -436,14 +431,9 @@ namespace Rendering
     /// <param name="inter">Intersection instance to complete.</param>
     public override void CompleteIntersection (Intersection inter)
     {
-      // normal vector:
-      Vector3d tu, tv;
-      Geometry.GetAxes(ref Normals[(int)inter.SolidData], out tu, out tv);
-      tu = Vector3d.TransformVector(tu, inter.LocalToWorld);
-      tv = Vector3d.TransformVector(tv, inter.LocalToWorld);
-      Vector3d.Cross(ref tu, ref tv, out inter.Normal);
+      // Normal vector - no need to do anything here as NormalLocal is defined...
 
-      // 2D texture coordinates:
+      // 2D texture coordinates.
       switch ((CubeFaces)inter.SolidData)
       {
         case CubeFaces.NegativeX:
@@ -534,27 +524,27 @@ namespace Rendering
     /// </summary>
     public Plane (double xMi, double xMa, double yMi, double yMa)
     {
-      XMin = xMi;
-      XMax = xMa;
-      YMin = yMi;
-      YMax = yMa;
+      XMin     = xMi;
+      XMax     = xMa;
+      YMin     = yMi;
+      YMax     = yMa;
       Triangle = false;
       CanonicU = CanonicV = true;
-      ScaleU   =  ScaleV = 1.0;
+      ScaleU   = ScaleV = 1.0;
 
       // texture coordinates:
       if (!double.IsInfinity(XMin) &&
           !double.IsInfinity(XMax))
       {
         CanonicU = false;
-        ScaleU = 1.0 / (XMax - XMin);
+        ScaleU   = 1.0 / (XMax - XMin);
       }
 
       if (!double.IsInfinity(YMin) &&
           !double.IsInfinity(YMax))
       {
         CanonicV = false;
-        ScaleV = 1.0 / (YMax - YMin);
+        ScaleV   = 1.0 / (YMax - YMin);
       }
     }
 
@@ -564,14 +554,14 @@ namespace Rendering
     /// </summary>
     public Plane (double xMa, double yMa)
     {
-      YMin = XMin = 0.0;
-      XMax = (xMa < Double.Epsilon) ? 1.0 : 1.0 / xMa;
-      YMax = (yMa < Double.Epsilon) ? 1.0 : 1.0 / yMa;
+      YMin     = XMin = 0.0;
+      XMax     = (xMa < double.Epsilon) ? 1.0 : 1.0 / xMa;
+      YMax     = (yMa < double.Epsilon) ? 1.0 : 1.0 / yMa;
       Triangle =
       CanonicU =
       CanonicV = true;
-      ScaleU =
-      ScaleV = 1.0;
+      ScaleU   =
+      ScaleV   = 1.0;
     }
 
     /// <summary>
@@ -614,31 +604,18 @@ namespace Rendering
       LinkedList<Intersection> result = new LinkedList<Intersection> ();
       Intersection i = new Intersection(this)
       {
-        T = t,
-        Enter = p1.Z < 0.0,
-        Front = p1.Z < 0.0,
-        CoordLocal = { X = x, Y = y, Z = 0.0 },
-        TextureCoord = { X = u, Y = v }
+        T            = t,
+        Enter        = p1.Z < 0.0,
+        Front        = p1.Z < 0.0,
+        TangentU     = Vector3d.UnitX,
+        TangentV     = Vector3d.UnitY,
+        CoordLocal   = { X = x, Y = y, Z = 0.0 },
+        TextureCoord = { X = u, Y = v },
       };
 
       result.AddLast(i);
 
       return result;
-    }
-
-    /// <summary>
-    /// Complete all relevant items in the given Intersection object.
-    /// </summary>
-    /// <param name="inter">Intersection instance to complete.</param>
-    public override void CompleteIntersection (Intersection inter)
-    {
-      // normal vector:
-      Vector3d tu = Vector3d.TransformVector (Vector3d.UnitX, inter.LocalToWorld);
-      Vector3d tv = Vector3d.TransformVector (Vector3d.UnitY, inter.LocalToWorld);
-      Vector3d.Cross(ref tu, ref tv, out inter.Normal);
-
-      // 2D texture coordinates:
-      // done
     }
 
     public void GetBoundingBox (out Vector3d corner1, out Vector3d corner2)
@@ -711,7 +688,7 @@ namespace Rendering
         return null;        // no intersection
 
       d = Math.Sqrt(d);
-      // there will be two intersections: (-B +- d) / DA
+      // There will be two intersections: (-B +- d) / DA
       double   t1   = (-B - d) / DA;
       double   t2   = (-B + d) / DA; // t1 < t2
       Vector3d loc1 = p0 + t1 * p1;
@@ -724,18 +701,18 @@ namespace Rendering
       if (lzmax <= ZMin)
         return null;
 
-      // there indeed will be two intersections
+      // There indeed will be two intersections.
       LinkedList<Intersection> result = new LinkedList<Intersection>();
       Intersection i;
 
-      // test the two bases:
+      // Test the two bases.
       double tb1 = 0.0, tb2 = 0.0;
       bool base1 = ZMin > lzmin && ZMin < lzmax;
       if (base1) tb1 = (ZMin - p0.Z) / p1.Z;
       bool base2 = ZMax > lzmin && ZMax < lzmax;
       if (base2) tb2 = (ZMax - p0.Z) / p1.Z;
 
-      // Enter the solid:
+      // Enter the solid.
       i = new Intersection(this)
       {
         Enter = true,
@@ -743,29 +720,29 @@ namespace Rendering
       };
       if (base1 && p1.Z > 0.0)
       {
-        // enter through the 1st base:
-        i.T = tb1;
+        // Enter through the 1st base.
+        i.T          = tb1;
         i.CoordLocal = p0 + tb1 * p1;
-        i.SolidData = -1;
+        i.SolidData  = -1;
       }
       else if (base2 && p1.Z < 0.0)
       {
-        // enter through the 2nd base:
-        i.T = tb2;
+        // Enter through the 2nd base.
+        i.T          = tb2;
         i.CoordLocal = p0 + tb2 * p1;
-        i.SolidData = 1;
+        i.SolidData  = 1;
       }
       else
       {
-        // cylinder surface:
-        i.T = t1;
+        // Cylinder surface.
+        i.T          = t1;
         i.CoordLocal = loc1;
-        i.SolidData = 0;
+        i.SolidData  = 0;
       }
 
       result.AddLast(i);
 
-      // Leave the solid:
+      // Leave the solid.
       i = new Intersection(this)
       {
         Enter = false,
@@ -773,24 +750,24 @@ namespace Rendering
       };
       if (base1 && p1.Z < 0.0)
       {
-        // enter through the 1st base:
-        i.T = tb1;
+        // Enter through the 1st base.
+        i.T          = tb1;
         i.CoordLocal = p0 + tb1 * p1;
-        i.SolidData = -1;
+        i.SolidData  = -1;
       }
       else if (base2 && p1.Z > 0.0)
       {
-        // enter through the 2nd base:
-        i.T = tb2;
+        // Enter through the 2nd base.
+        i.T          = tb2;
         i.CoordLocal = p0 + tb2 * p1;
-        i.SolidData = 1;
+        i.SolidData  = 1;
       }
       else
       {
-        // cylinder surface:
-        i.T = t2;
+        // Cylinder surface.
+        i.T          = t2;
         i.CoordLocal = loc2;
-        i.SolidData = 0;
+        i.SolidData  = 0;
       }
 
       result.AddLast(i);
@@ -805,25 +782,18 @@ namespace Rendering
     public override void CompleteIntersection (Intersection inter)
     {
       // Normal vector.
-      Vector3d tu, tv;
-      Vector3d ln;
-      ln.Z = (int)inter.SolidData;
+      inter.NormalLocal.Z = (int)inter.SolidData;
       if ((int)inter.SolidData == 0)
       {
-        ln.X = inter.CoordLocal.X;
-        ln.Y = inter.CoordLocal.Y;
+        inter.NormalLocal.X = inter.CoordLocal.X;
+        inter.NormalLocal.Y = inter.CoordLocal.Y;
         inter.TextureCoord.X = Math.Atan2(inter.CoordLocal.Y, inter.CoordLocal.X) / (2.0 * Math.PI) + 0.5;
       }
       else
       {
-        ln.X = ln.Y = 0.0;
+        inter.NormalLocal.X = inter.NormalLocal.Y = 0.0;
         inter.TextureCoord.X = 0.0;
       }
-
-      Geometry.GetAxes(ref ln, out tu, out tv);
-      tu = Vector3d.TransformVector(tu, inter.LocalToWorld);
-      tv = Vector3d.TransformVector(tv, inter.LocalToWorld);
-      Vector3d.Cross(ref tu, ref tv, out inter.Normal);
 
       // 2D texture coordinates.
       inter.TextureCoord.Y = inter.CoordLocal.Z;
@@ -913,11 +883,11 @@ namespace Rendering
       LinkedList<Intersection> result = new LinkedList<Intersection>();
       Intersection i = new Intersection(this)
       {
-        Enter = true,
-        Front = true,
-        T = t1,
+        Enter      = true,
+        Front      = true,
+        T          = t1,
         CoordLocal = loc1,
-        SolidData = p1
+        SolidData  = p1
       };
       result.AddLast(i);
 
@@ -925,11 +895,11 @@ namespace Rendering
       {
         i = new Intersection(this)
         {
-          Enter = false,
-          Front = false,
-          T = t1 + 1.0e-5,
+          Enter      = false,
+          Front      = false,
+          T          = t1 + Intersection.SHELL_THICKNESS,
           CoordLocal = loc1 + Intersection.SHELL_THICKNESS * p1,
-          SolidData = p1
+          SolidData  = p1
         };
         result.AddLast(i);
       }
@@ -944,16 +914,9 @@ namespace Rendering
     public override void CompleteIntersection (Intersection inter)
     {
       // Normal vector.
-      Vector3d tu, tv;
-      Vector3d ln;
-      ln.Z = 0.0;
-      ln.X = inter.CoordLocal.X;
-      ln.Y = inter.CoordLocal.Y;
-
-      Geometry.GetAxes(ref ln, out tu, out tv);
-      tu = Vector3d.TransformVector(tu, inter.LocalToWorld);
-      tv = Vector3d.TransformVector(tv, inter.LocalToWorld);
-      Vector3d.Cross(ref tu, ref tv, out inter.Normal);
+      inter.NormalLocal.Z = 0.0;
+      inter.NormalLocal.X = inter.CoordLocal.X;
+      inter.NormalLocal.Y = inter.CoordLocal.Y;
 
       // Texture coordinates encoding distance from the axis.
       if (inter.SolidData is Vector3d direction)
@@ -981,13 +944,13 @@ namespace Rendering
 
     public double smallRadius = 0.5;
 
-    protected CSGInnerNode wrapper = new CSGInnerNode(SetOperation.Union);
+    protected BoundingSphere boundingSphere;
 
     public Torus (double big, double small)
     {
-      bigRadius = big;
-      smallRadius = small;
-      wrapper.InsertChild(new Sphere(), Matrix4d.Scale(bigRadius + smallRadius));
+      bigRadius      = big;
+      smallRadius    = small;
+      boundingSphere = new BoundingSphere(bigRadius + smallRadius);
     }
 
     /// <summary>
@@ -1000,16 +963,16 @@ namespace Rendering
     // THIS METHOD IS NOT 100% CORRECT (some intersections are incorrect (completely random locations) and some have incorrect T parameter)
     {
       CSGInnerNode.countBoundingBoxes++;
-      if (wrapper.Intersect(p0, p1) == null)
+      if (boundingSphere.Intersect(p0, p1) < -0.5)
         return null;
 
-      // vlastni implementace podle http://www.emeyex.com/site/projects/raytorus.pdf
+      // Vlastni implementace podle http://www.emeyex.com/site/projects/raytorus.pdf
       double OD, DD, OO;
       Vector3d.Dot(ref p0, ref p1, out OD);
       Vector3d.Dot(ref p1, ref p1, out DD);
       Vector3d.Dot(ref p0, ref p0, out OO);
 
-      double bRbR       = bigRadius * bigRadius;
+      double bRbR       = bigRadius   * bigRadius;
       double sRsR       = smallRadius * smallRadius;
       double OObRbRsRsR = OO - bRbR - sRsR;
 
@@ -1042,9 +1005,9 @@ namespace Rendering
         double t = roots[j];
         Intersection ix = new Intersection(this)
         {
-          T = t,
-          Enter = j % 2 == 0,
-          Front = j % 2 == 0,
+          T          = t - 10.0 * Intersection.RAY_EPSILON,
+          Enter      = j % 2 == 0,
+          Front      = j % 2 == 0,
           CoordLocal = p0 + t * p1
         };
 
@@ -1060,29 +1023,18 @@ namespace Rendering
     /// <param name="inter">Intersection instance to complete.</param>
     public override void CompleteIntersection (Intersection inter)
     {
-      // normal vector:
-      Vector3d tu, tv;
+      // Normal vector.
 
-      // normal vector of an intersection with a torus in the z plain is the same as the intersection coordinates
+      // Normal vector of an intersection with a torus in the z plain is the same as the intersection coordinates
       // minus the coordinates of the center of the circle it lays on.
       Vector3d circleCenter = getSmallCircleCenter(inter);
       if (Geometry.IsZero(inter.CoordLocal.X) &&
           Geometry.IsZero(inter.CoordLocal.Y))
         inter.Normal = new Vector3d(0.0, 0.0, Math.Sign(inter.CoordLocal.Z));
       else
-      {
-        Vector3d smallCircleRadius = inter.CoordLocal - circleCenter;
+        inter.NormalLocal = inter.CoordLocal - circleCenter;
 
-        //Debug.Assert( Geometry.IsZero( smallCircleRadius.Length - smallRadius ) );
-        //Debug.Assert( Geometry.IsZero( circleCenter.Length - bigRadius ) );
-
-        Geometry.GetAxes(ref smallCircleRadius, out tu, out tv);
-        tu = Vector3d.TransformVector(tu, inter.LocalToWorld);
-        tv = Vector3d.TransformVector(tv, inter.LocalToWorld);
-        Vector3d.Cross(ref tu, ref tv, out inter.Normal);
-      }
-
-      // 2D texture coordinates:
+      // 2D texture coordinates.
       double r = Math.Sqrt(inter.CoordLocal.X * inter.CoordLocal.X + inter.CoordLocal.Y * inter.CoordLocal.Y);
       inter.TextureCoord.X = Geometry.IsZero(r)
         ? 0.0
@@ -1387,7 +1339,7 @@ namespace Rendering
     /// Root Bezier patches R-trees.
     /// Shared, must not be modified during computation!
     /// </summary>
-    private List<BezierPatch> patches;
+    private readonly List<BezierPatch> patches;
 
     /// <summary>
     /// Compute normal vectors using Gouraud interpolation?
@@ -1403,21 +1355,33 @@ namespace Rendering
       set => BezierPatch.Epsilon = value;
     }
 
-    private int K, L;
-    private double maxV, minV;
+    private Vector3d minV, maxV;
 
     public BezierSurface (int K, int L, double[] v)
     {
       Debug.Assert(K > 0 && L > 0);
-      Debug.Assert(v != null && v.Length >= 3 * (3 * K + 1) * (3 * L + 1));
+      int len = 3 * (3 * K + 1) * (3 * L + 1);
+      Debug.Assert(v != null && v.Length >= len);
 
       PreciseNormals = true;
 
-      this.K = K;
-      this.L = L;
-      maxV = v.Max();
-      minV = v.Min();
+      // Bounding box.
+      maxV = new Vector3d(v[0], v[1], v[2]);
+      minV = maxV;
+      for (int k = 3; k + 2 < len;)
+      {
+        if (v[k] > maxV.X) maxV.X = v[k];
+        if (v[k] < minV.X) minV.X = v[k];
+        k++;
+        if (v[k] > maxV.Y) maxV.Y = v[k];
+        if (v[k] < minV.Y) minV.Y = v[k];
+        k++;
+        if (v[k] > maxV.Z) maxV.Z = v[k];
+        if (v[k] < minV.Z) minV.Z = v[k];
+        k++;
+      }
 
+      // Create set of patches.
       patches = new List<BezierPatch>(K * L);
       int stride = 3 * (3 * L + 1);
       int ik     = 0;
@@ -1456,14 +1420,14 @@ namespace Rendering
     {
       HeapMin<BezierIntersection> h = new HeapMin<BezierIntersection>();
       Vector3d                    p1inv;
-      p1inv.X = Geometry.IsZero(p1.X) ? Double.PositiveInfinity : 1.0 / p1.X;
-      p1inv.Y = Geometry.IsZero(p1.Y) ? Double.PositiveInfinity : 1.0 / p1.Y;
-      p1inv.Z = Geometry.IsZero(p1.Z) ? Double.PositiveInfinity : 1.0 / p1.Z;
+      p1inv.X = Geometry.IsZero(p1.X) ? double.PositiveInfinity : 1.0 / p1.X;
+      p1inv.Y = Geometry.IsZero(p1.Y) ? double.PositiveInfinity : 1.0 / p1.Y;
+      p1inv.Z = Geometry.IsZero(p1.Z) ? double.PositiveInfinity : 1.0 / p1.Z;
 
       foreach (BezierPatch b in patches)
       {
         double t = b.IntersectInv(ref p0, ref p1inv);
-        if (!Double.IsInfinity(t))
+        if (!double.IsInfinity(t))
         {
           BezierIntersection bi = new BezierIntersection(b, t);
           h.Add(bi);
@@ -1478,27 +1442,27 @@ namespace Rendering
         BezierIntersection bi = h.RemoveMin();
         if (bi.final > 0)
         {
-          // intersection
+          // Intersection.
           if (result == null)
             result = new LinkedList<Intersection>();
           i = new Intersection(this)
           {
-            T = bi.t,
-            Enter = bi.enter,
-            Front = bi.enter,
+            T          = bi.t,
+            Enter      = bi.enter,
+            Front      = bi.enter,
             CoordLocal = p0 + bi.t * p1,
-            SolidData = bi
+            SolidData  = bi
           };
           result.AddLast(i);
         }
         else
         {
-          // patch (to subdivide?)
+          // Patch (to subdivide?).
           if (bi.patch.left != null) // subdivision
           {
             BezierPatch right = bi.patch.right;
 
-            // left child
+            // The left child.
             double t = bi.patch.left.IntersectInv(ref p0, ref p1inv);
             if (!double.IsInfinity(t))
             {
@@ -1508,9 +1472,9 @@ namespace Rendering
               bi = null;
             }
 
-            // right child:
+            // The right child.
             t = right.IntersectInv(ref p0, ref p1inv);
-            if (!Double.IsInfinity(t))
+            if (!double.IsInfinity(t))
             {
               if (bi == null)
                 bi = new BezierIntersection(right, t);
@@ -1523,27 +1487,46 @@ namespace Rendering
               h.Add(bi);
             }
           }
-          else // patch is too small => intersect the two triangles..
+          else
           {
+            // The patch is too small => intersect the two triangles...
             bi.final = 0;
             Vector3d[] cp = bi.patch.p;
             CSGInnerNode.countTriangles++;
             bi.t = Geometry.RayTriangleIntersection(ref p0, ref p1, ref cp[12], ref cp[3], ref cp[0], out bi.uv);
-            if (!Double.IsInfinity(bi.t))
+            if (!double.IsInfinity(bi.t))
             {
               bi.final = 1;
-              bi.tu = cp[0] - cp[12];
-              bi.tv = cp[3] - cp[12];
+#if TRIANGLE_NORMALS_BEZIER
+              bi.tu = (cp[ 0] - cp[ 4]).Normalized() +
+                      (cp[ 8] - cp[12]).Normalized() +
+                      (cp[ 3] - cp[ 7]).Normalized();
+              bi.tv = (cp[ 1] - cp[ 0]).Normalized() +
+                      (cp[ 3] - cp[ 2]).Normalized() +
+                      (cp[13] - cp[12]).Normalized();
+#else
+              bi.tu = cp[ 0] - cp[12];
+              bi.tv = cp[ 3] - cp[ 0];
+#endif
             }
             else
             {
               CSGInnerNode.countTriangles++;
               bi.t = Geometry.RayTriangleIntersection(ref p0, ref p1, ref cp[12], ref cp[15], ref cp[3], out bi.uv);
-              if (!Double.IsInfinity(bi.t))
+              if (!double.IsInfinity(bi.t))
               {
                 bi.final = 2;
-                bi.tu = cp[3] - cp[12];
+#if TRIANGLE_NORMALS_BEZIER
+                bi.tu = (cp[ 8] - cp[12]).Normalized() +
+                        (cp[ 3] - cp[ 7]).Normalized() +
+                        (cp[11] - cp[15]).Normalized();
+                bi.tv = (cp[ 3] - cp[ 2]).Normalized() +
+                        (cp[13] - cp[12]).Normalized() +
+                        (cp[15] - cp[14]).Normalized();
+#else
+                bi.tu = cp[ 3] - cp[15];
                 bi.tv = cp[15] - cp[12];
+#endif
               }
             }
 
@@ -1571,65 +1554,64 @@ namespace Rendering
     {
       if (inter.SolidData is BezierIntersection bi)
       {
-        // normal vector:
-        Vector3d tu, tv;
-        if (PreciseNormals) // Gouraud interpolation of exact normal vectors at the corners..
+        // Normal vector.
+        if (PreciseNormals)
         {
-          Vector3d   na, nb, nc;
+          // Gouraud interpolation of exact normal vectors at the corners...
+          Vector3d   nua, nub, nuc;
+          Vector3d   nva, nvb, nvc;
           Vector3d[] cp = bi.patch.p;
           if (bi.final == 1)
           {
-            // upper left triangle
-            tu = Vector3d.TransformVector(cp[8] - cp[12], inter.LocalToWorld);
-            tv = Vector3d.TransformVector(cp[13] - cp[12], inter.LocalToWorld);
-            Vector3d.Cross(ref tu, ref tv, out na);
-            tu = Vector3d.TransformVector(cp[7] - cp[3], inter.LocalToWorld);
-            tv = Vector3d.TransformVector(cp[2] - cp[3], inter.LocalToWorld);
-            Vector3d.Cross(ref tu, ref tv, out nb);
-            tu = Vector3d.TransformVector(cp[1] - cp[0], inter.LocalToWorld);
-            tv = Vector3d.TransformVector(cp[4] - cp[0], inter.LocalToWorld);
-            Vector3d.Cross(ref tu, ref tv, out nc);
+            // Upper left triangle.
+            // Vertex A.
+            nua = (cp[ 8] - cp[12]).Normalized();
+            nva = (cp[13] - cp[12]).Normalized();
+            // Vertex B.
+            nub = (cp[ 3] - cp[ 7]).Normalized();
+            nvb = (cp[ 3] - cp[ 2]).Normalized();
+            // Vertex C.
+            nuc = (cp[ 0] - cp[ 4]).Normalized();
+            nvc = (cp[ 1] - cp[ 0]).Normalized();
           }
           else
           {
-            // lower right triangle
-            tu = Vector3d.TransformVector(cp[8] - cp[12], inter.LocalToWorld);
-            tv = Vector3d.TransformVector(cp[13] - cp[12], inter.LocalToWorld);
-            Vector3d.Cross(ref tu, ref tv, out na);
-            tu = Vector3d.TransformVector(cp[14] - cp[15], inter.LocalToWorld);
-            tv = Vector3d.TransformVector(cp[11] - cp[15], inter.LocalToWorld);
-            Vector3d.Cross(ref tu, ref tv, out nb);
-            tu = Vector3d.TransformVector(cp[7] - cp[3], inter.LocalToWorld);
-            tv = Vector3d.TransformVector(cp[2] - cp[3], inter.LocalToWorld);
-            Vector3d.Cross(ref tu, ref tv, out nc);
+            // Lower right triangle.
+            // Vertex A.
+            nua = (cp[ 8] - cp[12]).Normalized();
+            nva = (cp[13] - cp[12]).Normalized();
+            // Vertex B.
+            nub = (cp[11] - cp[15]).Normalized();
+            nvb = (cp[15] - cp[14]).Normalized();
+            // Vertex C.
+            nuc = (cp[ 3] - cp[ 7]).Normalized();
+            nvc = (cp[ 3] - cp[ 2]).Normalized();
           }
 
-          na.Normalize();
-          nb.Normalize();
-          nc.Normalize();
-          inter.Normal = (1.0 - bi.uv.X - bi.uv.Y) * na + bi.uv.X * nb + bi.uv.Y * nc;
+          inter.TangentU = (1.0 - bi.uv.X - bi.uv.Y) * nua + bi.uv.X * nub + bi.uv.Y * nuc;
+          inter.TangentV = (1.0 - bi.uv.X - bi.uv.Y) * nva + bi.uv.X * nvb + bi.uv.Y * nvc;
         }
-        else // flat normal
+        else
         {
-          bi.tu = Vector3d.TransformVector(bi.tu, inter.LocalToWorld);
-          bi.tv = Vector3d.TransformVector(bi.tv, inter.LocalToWorld);
-          Vector3d.Cross(ref bi.tu, ref bi.tv, out inter.Normal);
+          // Flat normal.
+          inter.TangentU = bi.tu.Normalized();
+          inter.TangentV = bi.tv.Normalized();
         }
 
-        // 2D texture coordinates:
+        // 2D texture coordinates.
         double x00 = bi.patch.tex00.X;
         double y00 = bi.patch.tex00.Y;
         double x33 = bi.patch.tex33.X;
         double y33 = bi.patch.tex33.Y;
         if (bi.final == 1)
         {
-          // upper left triangle
+          // Upper left triangle.
           inter.TextureCoord.X = x00 + bi.uv.X * (x33 - x00);
           inter.TextureCoord.Y = y33 + (bi.uv.X + bi.uv.Y) * (y00 - y33);
         }
         else
         {
-          // lower right triangle
+          // Lower right triangle.
           inter.TextureCoord.X = x00 + (bi.uv.X + bi.uv.Y) * (x33 - x00);
           inter.TextureCoord.Y = y33 + bi.uv.Y * (y00 - y33);
         }
@@ -1638,11 +1620,10 @@ namespace Rendering
 
     public void GetBoundingBox (out Vector3d corner1, out Vector3d corner2)
     {
-      corner1 = new Vector3d(0, 0, minV);
-      corner2 = new Vector3d(L * 3, maxV, K * 3);
+      corner1 = minV;
+      corner2 = maxV;
     }
   }
-
 
   /// <summary>
   /// Triangle mesh able to compute ray-intersection and normal vector.

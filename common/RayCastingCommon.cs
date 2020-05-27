@@ -397,6 +397,23 @@ namespace Rendering
     public Vector3d Normal;
 
     /// <summary>
+    /// Normal vector in local (solid's) coordinates.
+    /// </summary>
+    public Vector3d NormalLocal;
+
+    /// <summary>
+    /// The 1st tangent vector defining the local tangent space.
+    /// The equation 'Normal = TangentU x TangetV' must hold (in local space).
+    /// </summary>
+    public Vector3d TangentU;
+
+    /// <summary>
+    /// The 2nd tangent vector defining the local tangent space.
+    /// The equation 'Normal = TangentU x TangetV' must be true (in local space).
+    /// </summary>
+    public Vector3d TangentV;
+
+    /// <summary>
     /// Transform matrix from the local (Solid) space to the World space.
     /// (deferred: Scene graph)
     /// </summary>
@@ -509,15 +526,39 @@ namespace Rendering
         Textures = Solid.GetTextures();
 
         // Solid is responsible for completing remaining values.
-        // Usually: Normal, TextureCoord.
+        // Usually: TangentU, TangentV, NormalLocal, TextureCoord.
         Solid.CompleteIntersection(this);
-        Normal.Normalize();
+
+        // Tangent space - NormalLocal, TangentU, TangentV.
+        if (Geometry.IsZeroFast(TangentU.LengthFast))
+        {
+          // I need NormalLocal if I have no tangent vecotrs.
+          // !!! TODO: use GetTangent() here !!!
+          Geometry.GetAxes(ref NormalLocal, out TangentU, out TangentV);
+        }
+        else
+        if (Geometry.IsZeroFast(NormalLocal.LengthFast))
+        {
+          // I have local tangent vectors but no local normal.
+          Vector3d.Cross(ref TangentU, ref TangentV, out NormalLocal);
+        }
+
+        // Normal vector: if not computed yet, 'TangentU x TangentV' will do the job.
+        if (Geometry.IsZeroFast(Normal.LengthFast))
+        {
+          Vector3d tu, tv;
+          tu = Vector3d.TransformVector(TangentU, LocalToWorld);
+          tv = Vector3d.TransformVector(TangentV, LocalToWorld);
+          Vector3d.Cross(ref tu, ref tv, out Normal);
+        }
+        Normal.Normalize();     // to be sure...
+
         if (Enter != Front)
           Vector3d.Multiply(ref Normal, -1.0, out Normal);
       }
 
       if (SurfaceColor == null)
-        SurfaceColor = new double[] { 0.0, 0.0, 0.0 };
+        SurfaceColor = new double[] {0.0, 0.0, 0.0};
 
       completed = true;
     }

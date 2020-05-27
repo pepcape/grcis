@@ -58,6 +58,7 @@ BezierSurface b = new BezierSurface(1, 2, new double[] {
 5.0, 0.0, 0.0,
 6.0, 0.0, 0.0,
 });
+b.PreciseNormals = true;
 b.SetAttribute(PropertyName.TEXTURE, new CheckerTexture(10.5, 12.0, new double[] {0.0, 0.0, 0.1}));
 root.InsertChild(b, Matrix4d.RotateY(-0.4) * Matrix4d.CreateTranslation(-1.1, -0.9, 0.0));
 

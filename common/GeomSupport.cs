@@ -15,7 +15,12 @@ namespace MathSupport
   {
     public static bool IsZero (double a)
     {
-      return (a <= double.Epsilon && a >= -double.Epsilon);
+      return a <= double.Epsilon && a >= -double.Epsilon;
+    }
+
+    public static bool IsZeroFast (double a)
+    {
+      return a <= 1.0e-12 && a >= -1.0e-12;
     }
 
     public static void SpecularReflection (ref Vector3d normal, ref Vector3d input, out Vector3d output)
@@ -44,7 +49,7 @@ namespace MathSupport
         return Vector3d.Zero; // total reflection
 
       d = n * d - Math.Sqrt(cos2);
-      return (normal * d - input * n);
+      return normal * d - input * n;
     }
 
     /// <summary>
