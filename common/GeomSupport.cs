@@ -66,30 +66,62 @@ namespace MathSupport
       double az = Math.Abs(p.Z);
 
       if (ax >= az &&
-           ay >= az)
+          ay >= az)
       {
         // ax, ay are dominant
         p1.X = -p.Y;
-        p1.Y = p.X;
-        p1.Z = 0.0;
+        p1.Y =  p.X;
+        p1.Z =  0.0;
       }
       else if (ax >= ay &&
                az >= ay)
       {
         // ax, az are dominant
         p1.X = -p.Z;
-        p1.Y = 0.0;
-        p1.Z = p.X;
+        p1.Y =  0.0;
+        p1.Z =  p.X;
       }
       else
       {
         // ay, az are dominant
-        p1.X = 0.0;
+        p1.X =  0.0;
         p1.Y = -p.Z;
-        p1.Z = p.Y;
+        p1.Z =  p.Y;
       }
 
       Vector3d.Cross(ref p, ref p1, out p2);
+    }
+
+    /// <summary>
+    /// Finds two tangents to the given vector, their vector product will
+    /// give the original vector (with a different length), all three
+    /// vectors will be perpendicular to each other.
+    ///
+    /// Unlike GetAxes, this mapping is more continuous on spherical
+    /// and sphere-like objects. The first vector will point towards the Z-axis,
+    /// second vector will go counter-clockwise around the Z-axis.
+    /// In other words, on a sphere, the first vector is the "northern latitude
+    /// gradient" and the second "eastern longtitude gradient".
+    ///
+    /// Original author: Vojtech Cerny
+    /// </summary>
+    /// <param name="p">Original direction vector.</param>
+    /// <param name="tu">First axis perpendicular to p.</param>
+    /// <param name="tv">Second axis perpendicular to p.</param>
+    public static void GetTangents (ref Vector3d p, out Vector3d tu, out Vector3d tv)
+    {
+      if (IsZero(p.X) && IsZero(p.Y))
+      {
+        tu = (p.Z >= 0.0) ? Vector3d.UnitX : -Vector3d.UnitX;
+        tv = Vector3d.UnitY;
+      }
+      else
+      {
+        // Vector perpendicular to p, aiming "to the North"
+        tu = new Vector3d(-p.Z * p.X, -p.Z * p.Y, p.X * p.X + p.Y * p.Y);
+        // Vector aiming "to the East"
+        tv = new Vector3d(       p.Y,       -p.X,                   0.0);
+      }
     }
 
     /// <summary>
@@ -252,9 +284,12 @@ namespace MathSupport
       // result: delta * fromz
 
       dir.Normalize();
-      Vector3d axis1, axis2;
-      GetAxes(ref dir, out axis1, out axis2);
-      Matrix4d fromz = new Matrix4d(new Vector4d(axis1), new Vector4d(axis2), new Vector4d(dir), Vector4d.UnitW );
+      GetTangents(ref dir, out Vector3d axis1, out Vector3d axis2);
+      Matrix4d fromz = new Matrix4d(
+        new Vector4d(axis1.Normalized()),
+        new Vector4d(axis2.Normalized()),
+        new Vector4d(dir),
+        Vector4d.UnitW);
       //fromz.Transpose();
       double   deviation   = rnd.Normal(0.0, variance);
       double   orientation = rnd.RandomDouble(0.0, Math.PI);

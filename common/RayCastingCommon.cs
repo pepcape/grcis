@@ -533,8 +533,7 @@ namespace Rendering
         if (Geometry.IsZeroFast(TangentU.LengthFast))
         {
           // I need NormalLocal if I have no tangent vecotrs.
-          // !!! TODO: use GetTangent() here !!!
-          Geometry.GetAxes(ref NormalLocal, out TangentU, out TangentV);
+          Geometry.GetTangents(ref NormalLocal, out TangentU, out TangentV);
         }
         else
         if (Geometry.IsZeroFast(NormalLocal.LengthFast))

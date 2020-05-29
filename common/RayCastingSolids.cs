@@ -1643,14 +1643,6 @@ namespace Rendering
       /// Barycentric coordinates in the intersected triangle.
       /// </summary>
       public Vector2d uv;
-
-      // Vertex ids.
-      //int va, vb, vc;
-
-      /// <summary>
-      /// Normal vector in B-rep coordinates.
-      /// </summary>
-      public Vector3 normal;
     }
 
 
@@ -1689,7 +1681,6 @@ namespace Rendering
         return null;
 
       List<Intersection> result = null;
-      Intersection       i;
 
       for (int id = 0; id < mesh.Triangles; id++)
       {
@@ -1704,45 +1695,36 @@ namespace Rendering
         if (result == null)
           result = new List<Intersection>();
 
-        // Compile the 1st Intersection instance:
-        i = new Intersection(this)
+        // Set the 1st Intersection.
+        TmpData tmp = new TmpData
         {
-          T = t,
-          Enter = true,
-          Front = true,
-          CoordLocal = p0 + t * p1
+          face = id,
+          uv   = uv
         };
-
-        // Tmp data object
-        TmpData tmp = new TmpData ();
-        tmp.face = id;
-        tmp.uv = uv;
-        Vector3 ba = b - a; // temporary value for flat shading
-        Vector3 ca = c - a;
-        Vector3.Cross(ref ba, ref ca, out tmp.normal);
-        i.SolidData = tmp;
+        Intersection i = new Intersection(this)
+        {
+          T          = t,
+          Enter      = true,
+          Front      = true,
+          CoordLocal = p0 + t * p1,
+          SolidData  = tmp
+        };
 
         result.Add(i);
 
         if (!ShellMode)
           continue;
 
-        // Compile the 2nd Intersection instance:
-        t += 1.0e-4;
+        // Set the 2nd Intersection.
+        t += Intersection.RAY_EPSILON;
         i = new Intersection(this)
         {
-          T = t,
-          Enter = false,
-          Front = false,
-          CoordLocal = p0 + t * p1
+          T          = t,
+          Enter      = false,
+          Front      = false,
+          CoordLocal = p0 + t * p1,
+          SolidData  = tmp
         };
-
-        // Tmp data object
-        TmpData tmp2 = new TmpData();
-        tmp2.face = id;
-        tmp2.uv = uv;
-        tmp2.normal = -tmp.normal;
-        i.SolidData = tmp2;
 
         result.Add(i);
       }
@@ -1766,21 +1748,24 @@ namespace Rendering
       // normal vector:
       if (inter.SolidData is TmpData tmp)
       {
+        int v1, v2, v3;
+        mesh.GetTriangleVertices(tmp.face, out v1, out v2, out v3);
+
         if (Smooth && mesh.Normals > 0) // smooth interpolation of normal vectors
         {
-          int v1, v2, v3;
-          mesh.GetTriangleVertices(tmp.face, out v1, out v2, out v3);
-          tmp.normal  = mesh.GetNormal(v1) * (float)(1.0 - tmp.uv.X - tmp.uv.Y);
-          tmp.normal += mesh.GetNormal(v2) * (float)tmp.uv.X;
-          tmp.normal += mesh.GetNormal(v3) * (float)tmp.uv.Y;
+          inter.NormalLocal  = (Vector3d)mesh.GetNormal(v1) * (1.0 - tmp.uv.X - tmp.uv.Y);
+          inter.NormalLocal += (Vector3d)mesh.GetNormal(v2) * tmp.uv.X;
+          inter.NormalLocal += (Vector3d)mesh.GetNormal(v3) * tmp.uv.Y;
         }
-
-        Vector3d tu, tv;
-        Vector3d normal = (Vector3d) tmp.normal;
-        Geometry.GetAxes(ref normal, out tu, out tv);
-        tu = Vector3d.TransformVector(tu, inter.LocalToWorld);
-        tv = Vector3d.TransformVector(tv, inter.LocalToWorld);
-        Vector3d.Cross(ref tu, ref tv, out inter.Normal);
+        else
+        {
+          // Local normal vector computed from the triangle.
+          Vector3 a  = mesh.GetVertex(v1);
+          Vector3 ba = mesh.GetVertex(v2) - a;
+          Vector3 ca = mesh.GetVertex(v3) - a;
+          Vector3.Cross(ref ba, ref ca, out Vector3 n);
+          inter.NormalLocal = (Vector3d)n;
+        }
       }
 
       // 2D texture coordinates (not yet):
