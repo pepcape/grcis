@@ -22,7 +22,7 @@ namespace Rendering
       f.sceneRepository = new Dictionary<string, object>(Scenes.staticRepository);
 
       // 2. scenes read from the command-line:
-      int rd = Scripts.ReadFromConfig(args, f.sceneRepository);
+      int rd = Scripts.ReadFromConfig(args, f.sceneRepository, out string selectedKey);
       if (rd > 0)
         f.SetText($"{rd} scene scripts found");
       else
@@ -36,7 +36,7 @@ namespace Rendering
         f.ComboScene.Items.Add(key);
 
       // .. and set your favorite scene here:
-      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf("Test scene");
+      f.ComboScene.SelectedIndex = f.ComboScene.Items.IndexOf(selectedKey ?? "Test scene");
 
       // default image parameters?
       f.ImageWidth = 640;

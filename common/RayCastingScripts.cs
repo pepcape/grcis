@@ -28,8 +28,12 @@ namespace Rendering
     /// </summary>
     /// <param name="args">Command-line arguments.</param>
     /// <param name="repo">Existing scene repository to be modified (sceneName -&gt; sceneDelegate | scriptFileName).</param>
+    /// <param name="selectedKey">Scene name to be selected (or null).</param>
     /// <returns>How many new scenes were found.</returns>
-    public static int ReadFromConfig (string[] args, ScriptContext repo)
+    public static int ReadFromConfig (
+      string[] args,
+      ScriptContext repo,
+      out string selectedKey)
     {
       // -nodefault               // use it as the first option!
       // [-scene] <sceneFile>     // can be used multiple times
@@ -38,6 +42,7 @@ namespace Rendering
       // more options to add? (super-sampling factor, output image file-name, output resolution, rendering flags, ..)
 
       int count = 0;
+      selectedKey = null;
       for (int i = 0; i < args.Length; i++)
       {
         if (string.IsNullOrEmpty(args[i]))
@@ -136,7 +141,9 @@ namespace Rendering
               if (key.EndsWith(".cs"))
                 key = key.Substring(0, key.Length - 3);
 
-              repo["* " + key] = path;
+              // The last single file will be selected by default.
+              selectedKey = "* " + key;
+              repo[selectedKey] = path;
               count++;
             }
           }
