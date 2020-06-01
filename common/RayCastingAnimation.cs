@@ -14,12 +14,6 @@ namespace Rendering
   [Serializable]
   public class AnimatedRayScene : DefaultRayScene, ITimeDependent
   {
-#if DEBUG
-    private static volatile int nextSerial = 0;
-    private readonly int serial = nextSerial++;
-    public int getSerial () => serial;
-#endif
-
     /// <summary>
     /// Starting (minimal) time in seconds.
     /// </summary>

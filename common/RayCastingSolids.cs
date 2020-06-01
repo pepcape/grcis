@@ -515,8 +515,8 @@ namespace Rendering
     /// Default constructor - infinite plane.
     /// </summary>
     public Plane ()
-      : this(double.NegativeInfinity, Double.PositiveInfinity,
-             double.NegativeInfinity, Double.PositiveInfinity)
+      : this(double.NegativeInfinity, double.PositiveInfinity,
+             double.NegativeInfinity, double.PositiveInfinity)
     {}
 
     /// <summary>
@@ -554,7 +554,8 @@ namespace Rendering
     /// </summary>
     public Plane (double xMa, double yMa)
     {
-      YMin     = XMin = 0.0;
+      YMin     =
+      XMin     = 0.0;
       XMax     = (xMa < double.Epsilon) ? 1.0 : 1.0 / xMa;
       YMax     = (yMa < double.Epsilon) ? 1.0 : 1.0 / yMa;
       Triangle =
@@ -620,16 +621,11 @@ namespace Rendering
 
     public void GetBoundingBox (out Vector3d corner1, out Vector3d corner2)
     {
-      if (Triangle)
-      {
-        throw new NotImplementedException();
-      }
-
       // If XMin is positive/negative infinity, it is replaced to +/- infinityPlaceholder value
-      double localXMin = double.IsInfinity(XMin) ? (double.IsPositiveInfinity(XMin) ? infinityPlaceholder : -infinityPlaceholder) : XMin;
-      double localYMin = double.IsInfinity(YMin) ? (double.IsPositiveInfinity(YMin) ? infinityPlaceholder : -infinityPlaceholder) : YMin;
-      double localXMax = double.IsInfinity(XMax) ? (double.IsPositiveInfinity(XMax) ? infinityPlaceholder : -infinityPlaceholder) : XMax;
-      double localYMax = double.IsInfinity(YMax) ? (double.IsPositiveInfinity(YMax) ? infinityPlaceholder : -infinityPlaceholder) : YMax;
+      double localXMin = double.IsInfinity(XMin) ? (double.IsPositiveInfinity(XMin) ? INFINITY_PLACEHOLDER : -INFINITY_PLACEHOLDER) : XMin;
+      double localYMin = double.IsInfinity(YMin) ? (double.IsPositiveInfinity(YMin) ? INFINITY_PLACEHOLDER : -INFINITY_PLACEHOLDER) : YMin;
+      double localXMax = double.IsInfinity(XMax) ? (double.IsPositiveInfinity(XMax) ? INFINITY_PLACEHOLDER : -INFINITY_PLACEHOLDER) : XMax;
+      double localYMax = double.IsInfinity(YMax) ? (double.IsPositiveInfinity(YMax) ? INFINITY_PLACEHOLDER : -INFINITY_PLACEHOLDER) : YMax;
 
       corner1 = new Vector3d(localXMin, localYMin, 0);
       corner2 = new Vector3d(localXMax, localYMax, 0);
@@ -802,11 +798,11 @@ namespace Rendering
     public void GetBoundingBox (out Vector3d corner1, out Vector3d corner2)
     {
       // If XMin is positive/negative infinity, it is replaced to +/- infinityPlaceholder value
-      double localZMin = double.IsInfinity(ZMin) ? (double.IsPositiveInfinity(ZMin) ? infinityPlaceholder : -infinityPlaceholder) : ZMin;
-      double localZMax = double.IsInfinity(ZMax) ? (double.IsPositiveInfinity(ZMax) ? infinityPlaceholder : -infinityPlaceholder) : ZMax;
+      double localZMin = double.IsInfinity(ZMin) ? (double.IsPositiveInfinity(ZMin) ? INFINITY_PLACEHOLDER : -INFINITY_PLACEHOLDER) : ZMin;
+      double localZMax = double.IsInfinity(ZMax) ? (double.IsPositiveInfinity(ZMax) ? INFINITY_PLACEHOLDER : -INFINITY_PLACEHOLDER) : ZMax;
 
-      corner1 = new Vector3d(-1, -1, localZMin);
-      corner2 = new Vector3d( 1,  1, localZMax);
+      corner1 = new Vector3d(-1.0, -1.0, localZMin);
+      corner2 = new Vector3d( 1.0,  1.0, localZMax);
     }
   }
 
@@ -940,10 +936,19 @@ namespace Rendering
   [Serializable]
   public class Torus : DefaultSceneNode, ISolid
   {
+    /// <summary>
+    /// Radius of the circle - center of the "torus tube".
+    /// </summary>
     public double bigRadius = 1.0;
 
+    /// <summary>
+    /// Radius of the "torus tube".
+    /// </summary>
     public double smallRadius = 0.5;
 
+    /// <summary>
+    /// Support bounding object - sphere.
+    /// </summary>
     protected BoundingSphere boundingSphere;
 
     public Torus (double big, double small)
@@ -955,12 +960,12 @@ namespace Rendering
 
     /// <summary>
     /// Computes the complete intersection of the given ray with the object.
+    /// THIS METHOD IS NOT 100% CORRECT (some intersections are incorrect (completely random locations) and some have incorrect T parameter).
     /// </summary>
     /// <param name="p0">Ray origin.</param>
     /// <param name="p1">Ray direction vector.</param>
     /// <returns>Sorted list of intersection records.</returns>
     public override LinkedList<Intersection> Intersect (Vector3d p0, Vector3d p1)
-    // THIS METHOD IS NOT 100% CORRECT (some intersections are incorrect (completely random locations) and some have incorrect T parameter)
     {
       CSGInnerNode.countBoundingBoxes++;
       if (boundingSphere.Intersect(p0, p1) < -0.5)
@@ -1050,8 +1055,8 @@ namespace Rendering
 
     public void GetBoundingBox (out Vector3d corner1, out Vector3d corner2)
     {
-      corner1 = new Vector3d(-bigRadius, -bigRadius, -1);
-      corner2 = new Vector3d( bigRadius,  bigRadius,  1);
+      corner1 = new Vector3d(-bigRadius, -bigRadius, -1.0);
+      corner2 = new Vector3d( bigRadius,  bigRadius,  1.0);
     }
 
     private Vector3d getSmallCircleCenter (Intersection inter)
@@ -1070,7 +1075,7 @@ namespace Rendering
       {
         circleCenter.X = -circleCenter.X;
         circleCenter.Y = -circleCenter.Y;
-        inter.Front = false;
+        inter.Front    = false;
       }
 
       return circleCenter;
@@ -1121,7 +1126,7 @@ namespace Rendering
     public int CompareTo (BezierIntersection bi)
     {
       if (t < bi.t) return -1;
-      if (t > bi.t) return 1;
+      if (t > bi.t) return  1;
       return 0;
     }
   }
@@ -1199,13 +1204,13 @@ namespace Rendering
       for (int i = 1; i < 16; i++)
       {
         double pa = p[i].X;
-        if (pa < bbMin.X)  bbMin.X = pa;
+        if (pa < bbMin.X ) bbMin.X  = pa;
         if (pa > bbSize.X) bbSize.X = pa;
         pa = p[i].Y;
-        if (pa < bbMin.Y)  bbMin.Y = pa;
+        if (pa < bbMin.Y ) bbMin.Y  = pa;
         if (pa > bbSize.Y) bbSize.Y = pa;
         pa = p[i].Z;
-        if (pa < bbMin.Z)  bbMin.Z = pa;
+        if (pa < bbMin.Z ) bbMin.Z  = pa;
         if (pa > bbSize.Z) bbSize.Z = pa;
       }
 
@@ -1302,27 +1307,27 @@ namespace Rendering
       }
 
       // subdivide the patch:
-      BezierPatch b1 = (BezierPatch)Clone(); // left child
-      BezierPatch b2 = (BezierPatch)Clone(); // right child
+      BezierPatch b1 = (BezierPatch)Clone();  // left child
+      BezierPatch b2 = (BezierPatch)Clone();  // right child
 
-      double hor = (p[3]  - p[0]).LengthFast + (p[15] - p[12]).LengthFast;
-      double ver = (p[12] - p[0]).LengthFast + (p[15] - p[3]).LengthFast;
+      double hor = (p[ 3] - p[0]).LengthFast + (p[15] - p[12]).LengthFast;
+      double ver = (p[12] - p[0]).LengthFast + (p[15] - p[ 3]).LengthFast;
       if (hor > ver)
       {
-        // first child:
+        // The first child.
         b1.DivideHorizontal(true);
-        // second child:
+        // The second child.
         b2.DivideHorizontal(false);
       }
       else
       {
-        // first child:
+        // The first child.
         b1.DivideVertical(true);
-        // second child:
+        // The second child.
         b2.DivideVertical(false);
       }
 
-      left = b1.BuildTree();
+      left  = b1.BuildTree();
       right = b2.BuildTree();
 
       return this;
@@ -1349,12 +1354,15 @@ namespace Rendering
     /// <summary>
     /// Subdivision threshold.
     /// </summary>
-    public static double Epsilon
+    public double Epsilon
     {
       get => BezierPatch.Epsilon;
       set => BezierPatch.Epsilon = value;
     }
 
+    /// <summary>
+    /// Cached bounding-box corners.
+    /// </summary>
     private Vector3d minV, maxV;
 
     public BezierSurface (int K, int L, double[] v)
@@ -1391,7 +1399,7 @@ namespace Rendering
         for (int l = 0; l < L; l++, il += 9)
         {
           BezierPatch p  = new BezierPatch ();
-          int         oi = 0;
+          int oi = 0;
           for (int i = 0; i < 4 * stride; i += stride)
             for (int j = il + i; j < il + i + 12; oi++)
             {
@@ -1419,7 +1427,7 @@ namespace Rendering
     public override LinkedList<Intersection> Intersect (Vector3d p0, Vector3d p1)
     {
       HeapMin<BezierIntersection> h = new HeapMin<BezierIntersection>();
-      Vector3d                    p1inv;
+      Vector3d p1inv;
       p1inv.X = Geometry.IsZero(p1.X) ? double.PositiveInfinity : 1.0 / p1.X;
       p1inv.Y = Geometry.IsZero(p1.Y) ? double.PositiveInfinity : 1.0 / p1.Y;
       p1inv.Z = Geometry.IsZero(p1.Z) ? double.PositiveInfinity : 1.0 / p1.Z;
@@ -1435,7 +1443,7 @@ namespace Rendering
       }
 
       LinkedList<Intersection> result = null;
-      Intersection             i;
+      Intersection i;
 
       while (h.Count > 0)
       {
@@ -1644,7 +1652,6 @@ namespace Rendering
       /// </summary>
       public Vector2d uv;
     }
-
 
     /// <summary>
     /// Original mesh object (triangles in a "Corner table").

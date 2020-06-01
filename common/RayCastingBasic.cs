@@ -1100,7 +1100,7 @@ namespace Rendering
           r = normal * cos2 - input;
 
           if (!lightOut && // total reflection check
-               -cosAlpha <= mat.cosTotal)
+              -cosAlpha <= mat.cosTotal)
             if ((ks += kt) + kd > 1.0)
               ks = 1.0 - kd;
         }

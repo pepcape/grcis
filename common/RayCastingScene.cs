@@ -177,17 +177,31 @@ namespace Rendering
   /// </summary>
   public interface ISolid : ISceneNode
   {
+    /// <summary>
+    /// Bounding box needed by the ray-visualizer component.
+    /// Non-essential for the rendering itself.
+    /// </summary>
+    /// <param name="corner1">Low-value corner of the box.</param>
+    /// <param name="corner2">High-value (opposite) corner of the box.</param>
     void GetBoundingBox (out Vector3d corner1, out Vector3d corner2);
   }
 
   /// <summary>
   /// Common code for ISceneNode.
+  /// Solids (actual shapes) and inner nodes should inherit from this
+  /// fon convenience - attributes, children are already implemented here...
   /// </summary>
   [Serializable]
   public abstract class DefaultSceneNode : ISceneNode
   {
-    public static float infinityPlaceholder = 100000;
+    /// <summary>
+    /// Value used instead of infinity for bounding-boxes in ray-visualizer.
+    /// </summary>
+    public readonly static double INFINITY_PLACEHOLDER = 1.0e6;
 
+    /// <summary>
+    /// List of children - no need for random access.
+    /// </summary>
     protected LinkedList<ISceneNode> children;
 
     public ICollection<ISceneNode> Children
@@ -481,15 +495,15 @@ namespace Rendering
       }
 
       LinkedList<Intersection> result = null;
-      LinkedList<Intersection> left   = null; // I'm going to reuse these two..
+      LinkedList<Intersection> left   = null;  // I'm going to reuse these two..
 
-      bool leftOp = true; // the 1st pass => left operand
+      bool leftOp = true;  // the 1st pass => left operand
 
       foreach (ISceneNode child in children)
       {
         Vector3d origin = Vector3d.TransformPosition( p0, child.FromParent );
         Vector3d dir    = Vector3d.TransformVector( p1, child.FromParent );
-        // ray in local child's coords: [ origin, dir ]
+        // Ray in local child's coords: [ origin, dir ]
 
         LinkedList<Intersection> partial = child.Intersect( origin, dir );
         if (partial == null)
@@ -508,23 +522,24 @@ namespace Rendering
           if (trivial && partial.Count == 0)
             continue;
 
-          // resolve one binary operation (result := left # partial):
+          // Resolve one binary operation (result := left # partial):
           {
             LinkedList<Intersection> tmp = left;
             left = result;
             result = tmp;
           }
-          // result .. empty so far
+          // Result ... empty so far.
           result.Clear();
 
           Intersection leftFirst  = left.First?.Value;
           Intersection rightFirst = partial.First?.Value;
-          // initial inside status values:
+
+          // Initial inside status values.
           bool insideLeft   = leftFirst != null && !leftFirst.Enter;
           bool insideRight  = rightFirst != null && !rightFirst.Enter;
           bool insideResult = bop.Result(insideLeft, insideRight);
-          // merge behavior:
 
+          // Merge behavior.
           while (leftFirst != null || rightFirst != null)
           {
             double leftVal  = leftFirst?.T  ?? double.PositiveInfinity;
@@ -532,7 +547,7 @@ namespace Rendering
             double lowestT  = Math.Min(leftVal, rightVal);
             Debug.Assert(!double.IsInfinity(lowestT));
 
-            bool minLeft  = leftVal == lowestT;
+            bool minLeft  = leftVal  == lowestT;
             bool minRight = rightVal == lowestT;
 
             Intersection first = null;
@@ -572,6 +587,7 @@ namespace Rendering
 
   /// <summary>
   /// Default scene class for ray-based rendering.
+  /// Static version (no animations)
   /// </summary>
   [System.Serializable]
   public class DefaultRayScene : IRayScene
@@ -579,6 +595,7 @@ namespace Rendering
 #if DEBUG
     private static volatile int nextSerial = 0;
     private readonly int serial = nextSerial++;
+    public int getSerial () => serial;
 #endif
 
     /// <summary>
@@ -612,6 +629,10 @@ namespace Rendering
     /// </summary>
     public ICollection<ILightSource> Sources { get; set; }
 
+    /// <summary>
+    /// Default constructor - setting up the default (backward compatible)
+    /// Background object.
+    /// </summary>
     public DefaultRayScene () => Background = new DefaultBackground(this);
   }
 
