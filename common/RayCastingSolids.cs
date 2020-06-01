@@ -1723,7 +1723,7 @@ namespace Rendering
           continue;
 
         // Set the 2nd Intersection.
-        t += Intersection.RAY_EPSILON;
+        t += Intersection.SHELL_THICKNESS;
         i = new Intersection(this)
         {
           T          = t,

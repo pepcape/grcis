@@ -334,12 +334,12 @@ namespace Rendering
   public class Intersection : IComparable
   {
     /// <summary>
-    /// Thickness of very thin objects.
+    /// Thickness of very thin objects (see SphereFront solid for an actual use).
     /// </summary>
     public const double SHELL_THICKNESS = 1.0e-5;
 
     /// <summary>
-    /// Smallest distance on the ray.
+    /// Smallest distance on the ray (see FirstIntersection()).
     /// </summary>
     public const double RAY_EPSILON = 1.0e-4;
 
@@ -403,13 +403,13 @@ namespace Rendering
 
     /// <summary>
     /// The 1st tangent vector defining the local tangent space.
-    /// The equation 'Normal = TangentU x TangetV' must hold (in local space).
+    /// The equation 'NormalLocal = TangentU x TangetV' must hold (in local space).
     /// </summary>
     public Vector3d TangentU;
 
     /// <summary>
     /// The 2nd tangent vector defining the local tangent space.
-    /// The equation 'Normal = TangentU x TangetV' must be true (in local space).
+    /// The equation 'NormalLocal = TangentU x TangetV' must be true (in local space).
     /// </summary>
     public Vector3d TangentV;
 
