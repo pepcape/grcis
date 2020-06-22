@@ -43,14 +43,14 @@ if (Util.TryParseBool(context, PropertyName.CTX_PREPROCESSING))
 
 //context[PropertyName.CTX_ALGORITHM] = new RayTracing();
 
-int ss = 0;
-if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
-    ss > 1)
-  context[PropertyName.CTX_SYNTHESIZER] = new SupersamplingImageSynthesizer
-  {
-    Supersampling = ss,
-    Jittering = 1.0
-  };
+//int ss = 0;
+//if (Util.TryParse(context, PropertyName.CTX_SUPERSAMPLING, ref ss) &&
+//    ss > 1)
+//  context[PropertyName.CTX_SYNTHESIZER] = new SupersamplingImageSynthesizer
+//  {
+//    Supersampling = ss,
+//    Jittering = 1.0
+//  };
 
 // Tooltip (if script uses values from 'param').
 context[PropertyName.CTX_TOOLTIP] = "n=<double> (index of refraction)";
@@ -73,10 +73,9 @@ scene.Background = new DefaultBackground(scene.BackgroundColor);
 // Camera.
 AnimatedCamera cam = new AnimatedCamera(new Vector3d(0.7, -0.4,  0.0),
                                         new Vector3d(0.7,  0.8, -6.0),
-                                        50.0 );
+                                        50.0);
 cam.End = 20.0; // one complete turn takes 20.0 seconds
-AnimatedRayScene ascene = scene as AnimatedRayScene;
-if (ascene != null)
+if (scene is ITimeDependent ascene)
   ascene.End = 20.0;
 scene.Camera  = cam;
 

@@ -44,7 +44,7 @@ if (Util.TryParseBool(context, PropertyName.CTX_PREPROCESSING))
   // Preprocessing = simulation (run only once)
   ParticleSimulator ps = new ParticleSimulator(pa, 2.0);
   context[simulatorName] = ps;
-  
+
   Dictionary<string, object> par = new Dictionary<string, object>
   {
     { ParticleSimulator.PARTICLES,  150 },
@@ -57,10 +57,10 @@ if (Util.TryParseBool(context, PropertyName.CTX_PREPROCESSING))
     { ParticleSimulator.MIN_COLOR,  0.5f },
     { ParticleSimulator.MAX_COLOR,  1.0f },
   };
-  
+
   // Simulation job.
   ps.Simulate(true, par, null, 12L);
-  
+
   return;
 }
 
@@ -78,7 +78,7 @@ if (context.TryGetValue(simulatorName, out object os) &&
   pa.setProperty(propPos);
   pa.setProperty(propColor);
 }
-               
+
 // Optional override of rendering algorithm and/or renderer.
 
 context[PropertyName.CTX_ALGORITHM] = new RayTracing

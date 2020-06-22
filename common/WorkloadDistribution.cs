@@ -43,6 +43,7 @@ namespace Rendering
     public IRayScene      scene;
     public IImageFunction imageFunction;
     public IRenderer      renderer;
+    public double         time;
 
     private readonly IEnumerable<Client> clientsCollection;
 
@@ -66,6 +67,7 @@ namespace Rendering
       IRayScene scene,
       IImageFunction imageFunction,
       IRenderer renderer,
+      double time,
       IEnumerable<Client> clientsCollection,
       int threads,
       bool newPointCloud,
@@ -73,12 +75,13 @@ namespace Rendering
     {
       finishedAssignments = 0;
 
-      this.scene = scene;
-      this.imageFunction = imageFunction;
-      this.renderer = renderer;
-      this.bitmap = bitmap;
+      this.scene             = scene;
+      this.imageFunction     = imageFunction;
+      this.renderer          = renderer;
+      this.time              = time;
+      this.bitmap            = bitmap;
       this.clientsCollection = clientsCollection;
-      this.threads = threads;
+      this.threads           = threads;
 
       Assignment.assignmentSize = assignmentSize;
 
@@ -103,7 +106,7 @@ namespace Rendering
     {
       pool = new Thread[threads];
 
-      AssignNetworkWorkerToStream ();
+      AssignNetworkWorkerToStream();
 
       WaitHandle[] waitHandles = new WaitHandle[threads];
 
@@ -111,13 +114,31 @@ namespace Rendering
       {
         EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.ManualReset);
 
-        int i1 = i;
+        // Thread-specific instances: thread's id.
+        int tid = i;
+
+        // Thread-specific instances: ray-tracing scene.
+        IRayScene sc = (i == 0 || !(scene is ITimeDependent scenea))
+          ? scene
+          : (IRayScene)scenea.Clone();
+
+        // Thread-specific instances: image-function.
+        IImageFunction imf = (i == 0 || !(imageFunction is ITimeDependent imfa))
+          ? imageFunction
+          : (IImageFunction)imfa.Clone();
+        if (imf is RayCasting imfray)
+          imfray.Scene = sc;
+
+        // Thread-specific instances: image synthesizer.
+        IRenderer rend = (i == 0 || !(renderer is ITimeDependent renda))
+          ? renderer
+          : (IRenderer)renda.Clone();
+        rend.ImageFunction = imf;
+
         Thread newThread = new Thread(() =>
         {
           // Set TLS.
-          MT.threadID = i1;
-
-          Consume();
+          Consume(tid, sc, imf, rend);
 
           // Signal finishing the work.
           handle.Set();
@@ -155,15 +176,31 @@ namespace Rendering
     /// Each thread waits for a new Assignment to be added to availableAssignments queue
     /// Most of the time is number of items in availableAssignments expected to be several times larger than number of threads
     /// </summary>
-    protected void Consume ()
+    protected void Consume (
+      int tid = -1,
+      IRayScene sc = null,
+      IImageFunction imf = null,
+      IRenderer rend = null)
     {
-      // Set TLS.
-      MT.InitThreadData();
-      MT.SetRendering(scene, imageFunction, renderer);
+      if (sc == null)
+        sc = scene;
+      if (imf == null)
+        imf = imageFunction;
+      if (rend == null)
+        rend = renderer;
 
-      // Animation time (fore debugging animated scenes).
-      if (scene is ITimeDependent sc)
-        sc.Time = 0.0;
+      // Set TLS.
+      MT.threadID = tid;
+      MT.InitThreadData();
+      MT.SetRendering(sc, imf, rend);
+
+      // Animation time (for debugging animated scenes).
+      if (sc is ITimeDependent sca)
+        sca.Time = time;
+      if (imf is ITimeDependent imfa)
+        imfa.Time = time;
+      if (rend is ITimeDependent renda)
+        renda.Time = time;
 
       while (!availableAssignments.IsEmpty ||
              finishedAssignments < totalNumberOfAssignments - threads ||
@@ -198,9 +235,8 @@ namespace Rendering
     /// Creates new assignments based on width and heigh of bitmap and assignmentSize
     /// </summary>
     /// <param name="bitmap">Main bitmap - used also in PictureBox in Form1</param>
-    /// <param name="scene">Scene to render</param>
-    /// <param name="renderer">Rendered to use for RenderPixel method</param>
-    public void InitializeAssignments (Bitmap bitmap, IRayScene scene, IRenderer renderer)
+    public void InitializeAssignments (
+      Bitmap bitmap)
     {
       availableAssignments = new ConcurrentQueue<Assignment>();
 
@@ -220,12 +256,12 @@ namespace Rendering
           int localX = x * assignmentSize;
           int localY = y * assignmentSize;
 
-          Assignment newAssignment = new Assignment (localX,
-                                                     localY,
-                                                     localX + assignmentSize - 1,
-                                                     localY + assignmentSize - 1,
-                                                     bitmap.Width,
-                                                     bitmap.Height);
+          Assignment newAssignment = new Assignment(localX,
+                                                    localY,
+                                                    localX + assignmentSize - 1,
+                                                    localY + assignmentSize - 1,
+                                                    bitmap.Width,
+                                                    bitmap.Height);
           availableAssignments.Enqueue(newAssignment);
         }
       }

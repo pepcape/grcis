@@ -166,7 +166,13 @@ namespace Rendering
       {
         // Try the CS-script file.
         if (ctx == null)
+        {
           ctx = new ScriptContext();    // we need a new context object for each computing batch..
+          Dictionary<string, string> p = Util.ParseKeyValueList(TextParam.Text);
+          double time = 0.0;
+          if (Util.TryParse(p, "time", ref time))
+            Scripts.SetScene(ctx, new AnimatedRayScene());
+        }
 
         if (Scripts.ContextInit(
           ctx,
@@ -187,7 +193,7 @@ namespace Rendering
 
         double minTime = 0.0;
         double maxTime = 10.0;
-        double fps = 25.0;
+        double fps     = 25.0;
 
         return Scripts.ContextMining(
           ctx,
@@ -321,7 +327,23 @@ namespace Rendering
       if (ActualHeight <= 0)
         ActualHeight = panel1.Height;
 
+      int threads       = CheckMultithreading.Checked ? Environment.ProcessorCount : 1;
       int superSampling = (int)NumericSupersampling.Value;
+      bool debug        = false;
+
+      // Params: <debug> disables multi-threading.
+      Dictionary<string, string> p = Util.ParseKeyValueList(TextParam.Text);
+      if (Util.TryParse(p, "debug", ref debug) &&
+          debug)
+      {
+        // Debugging.
+        threads       = 1;
+        superSampling = 1;
+      }
+
+      // Params: time=<double>
+      double time = 0.0;
+      Util.TryParse(p, "time", ref time);
 
       // Force preprocessing.
       ctx = null;
@@ -334,6 +356,9 @@ namespace Rendering
         ref superSampling,
         TextParam.Text);
 
+      if (debug)
+        superSampling = 1;
+
       // 2. compute regular frame (using the pre-computed context).
       IRayScene scene = FormSupport.getScene(
         out IImageFunction imf,
@@ -342,6 +367,9 @@ namespace Rendering
         ref ActualHeight,
         ref superSampling,
         TextParam.Text);
+
+      if (debug)
+        superSampling = 1;
 
       // Update additional views.
       if (collectDataCheckBox.Checked)
@@ -381,20 +409,20 @@ namespace Rendering
       // Almost ready for new image computation.
       rayVisualizer.UpdateScene(scene);
       Bitmap newImage = new Bitmap(ActualWidth, ActualHeight, PixelFormat.Format24bppRgb);
-      int threads = CheckMultithreading.Checked ? Environment.ProcessorCount : 1;
 
       master = new Master(
         newImage,
         scene,
         imf,
         rend,
+        time,
         RenderClientsForm.instance?.clients,
         threads,
         pointCloudCheckBox.Checked,
         ref AdditionalViews.singleton.pointCloud);
 
       master.progressData = progress;
-      master.InitializeAssignments(newImage, scene, rend);
+      master.InitializeAssignments(newImage);
 
       if (pointCloudCheckBox.Checked)
         master.pointCloud?.SetNecessaryFields(PointCloudSavingStart, PointCloudSavingEnd, Notification, Invoke);

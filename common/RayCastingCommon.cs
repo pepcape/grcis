@@ -301,7 +301,7 @@ namespace Rendering
   /// </summary>
   public interface ITimeDependent : ICloneable
   {
-#if DEBUG
+#if LOGGING
     /// <summary>
     /// Debugging - tracking of object instances/clones.
     /// </summary>
@@ -646,8 +646,8 @@ namespace Rendering
     [ThreadStatic] public static int rank;
     [ThreadStatic] public static int total;
 
-    // Current threda's id.
-    [ThreadStatic] public static int threadID;
+    // Current thread's id.
+    [ThreadStatic] public static int threadID = -1;
 
     // Uplinks to roof objects for ray-based rendering.
     [ThreadStatic] public static IImageFunction imageFunction;

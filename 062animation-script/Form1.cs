@@ -99,8 +99,8 @@ namespace _062animation
     {
       if (string.IsNullOrEmpty(sceneFileName))
       {
-        imf = null;
-        rend = null;
+        imf     = null;
+        rend    = null;
         tooltip = "";
         return null;
       }
@@ -174,14 +174,9 @@ namespace _062animation
 
       // Params: <debug> disables multi-threading.
       Dictionary<string, string> p = Util.ParseKeyValueList(textParam.Text);
-      if (p.TryGetValue("debug", out string val) &&
-          (string.IsNullOrEmpty(val) ||
-           Util.positive(val)))
-      {
-        // Debugging.
-        debug         = true;
+      if (Util.TryParse(p, "debug", ref debug) &&
+          debug)
         superSampling = 1;
-      }
 
       // Force preprocessing.
       ctx = null;
@@ -545,18 +540,23 @@ namespace _062animation
       public int width;
       public int height;
 
+      // Future MT.threadID.
+      public int threadID;
+
       public WorkerThreadInit (
         IRenderer r,
         IRayScene sc,
         IImageFunction imf,
         int wid,
-        int hei)
+        int hei,
+        int thrId)
       {
         scene         = sc;
         imageFunction = imf;
         rend          = r;
         width         = wid;
         height        = hei;
+        threadID      = thrId;
       }
     }
 
@@ -585,9 +585,9 @@ namespace _062animation
       }
 
       int t;    // thread ordinal number
-      double minTime    = (double)numFrom.Value;
-      double maxTime    = (double)numTo.Value;
-      double fps        = (double)numFps.Value;
+      double minTime  = (double)numFrom.Value;
+      double maxTime  = (double)numTo.Value;
+      double fps      = (double)numFps.Value;
 
       WorkerThreadInit[] wti = new WorkerThreadInit[threads];
 
@@ -604,6 +604,10 @@ namespace _062animation
         ref maxTime,
         ref fps,
         textParam.Text);
+
+      IRayScene sc0 = null;
+      IImageFunction imf0 = null;
+      IRenderer rend0 = null;
 
       for (t = 0; t < threads; t++)
       {
@@ -628,8 +632,19 @@ namespace _062animation
         if (debug)
           superSampling = 1;
 
+        // Fallback instances.
+        if (imf == null)
+          imf = FormSupport.getImageFunction(sc);
+        if (rend == null)
+          rend = FormSupport.getRenderer(superSampling);
+
         if (t == 0)
         {
+          // The 1st thread. I'll compare to this.
+          sc0   = sc;
+          imf0  = imf;
+          rend0 = rend;
+
           // Update GUI.
           if (ImageWidth > 0)   // preserving default (form-size) resolution
           {
@@ -640,29 +655,36 @@ namespace _062animation
           UpdateSupersampling(superSampling);
           UpdateAnimationTiming(minTime, maxTime, fps);
         }
+        else
+        {
+          // An additional thread - it must have different instances (if animated).
+          if (sc == sc0 &&
+              sc is ITimeDependent sca)
+            sc = (IRayScene)sca.Clone();
 
-        if (sc is ITimeDependent sca)
-          sc = (IRayScene)sca.Clone();
+          if (imf == imf0 &&
+              imf is ITimeDependent imfa)
+            imf = (IImageFunction)imfa.Clone();
+
+          if (rend == rend0 &&
+              rend is ITimeDependent renda)
+            rend = (IRenderer)renda.Clone();
+        }
 
         // IImageFunction.
-        if (imf == null)    // not defined in the script
-          imf = FormSupport.getImageFunction(sc);
-        else
-          if (imf is RayCasting imfray)
-            imfray.Scene = sc;
+        if (imf is RayCasting imfray)
+          imfray.Scene = sc;
         imf.Width  = ActualWidth;
         imf.Height = ActualHeight;
 
         // IRenderer.
-        if (rend == null)   // not defined in the script
-          rend = FormSupport.getRenderer(superSampling);
         rend.ImageFunction = imf;
         rend.Width         = ActualWidth;
         rend.Height        = ActualHeight;
         rend.Adaptive      = 0;   // turn off adaptive bitmap synthesis completely (interactive preview not needed)
         rend.ProgressData  = progress;
 
-        wti[t] = new WorkerThreadInit(rend, sc, imf, ActualWidth, ActualHeight);
+        wti[t] = new WorkerThreadInit(rend, sc, imf, ActualWidth, ActualHeight, t);
       }
 
       // Update animation timing.
@@ -769,6 +791,7 @@ namespace _062animation
         return;
 
       // Set TLS.
+      MT.threadID = init.threadID;
       MT.SetRendering(init.scene, init.imageFunction, init.rend);
       MT.InitThreadData();
 
@@ -806,8 +829,8 @@ namespace _062animation
         // Set specific time to my scene.
         if (init.scene is ITimeDependent ascene)
         {
-#if DEBUG && LOGGING
-          Debug.WriteLine($"Scene #{ascene.getSerial()} setTime({myTime})");
+#if LOGGING
+          Util.Log($"Scene(thr={MT.threadID}) #{ascene.getSerial()} setTime({myTime:f3})");
 #endif
           ascene.Time = myTime;
         }

@@ -232,6 +232,13 @@ namespace Rendering
     {
       Debug.Assert(ctx != null);
 
+      bool hasScene = ctx.ContainsKey(PropertyName.CTX_SCENE) &&
+                      ctx[PropertyName.CTX_SCENE] is IRayScene;
+
+#if LOGGING
+      Util.Log($"ContextInit(thr={MT.threadID}): preproc={ctx.Count < 2}, scene={hasScene}, defined={SceneIsDefined(ctx)}");
+#endif
+
       // Preprocessing.
       if (ctx.Count < 2)
         ctx[PropertyName.CTX_PREPROCESSING] = true;
@@ -239,15 +246,11 @@ namespace Rendering
         ctx.Remove(PropertyName.CTX_PREPROCESSING);
 
       // Scene.
-      if (!ctx.ContainsKey(PropertyName.CTX_SCENE) ||
-          ctx[PropertyName.CTX_SCENE] == null)
+      if (!hasScene)
         ctx[PropertyName.CTX_SCENE] = new DefaultRayScene();
 
       // Scene name.
       ctx[PropertyName.CTX_SCENE_NAME] = name;
-
-      ctx.Remove(PropertyName.CTX_ALGORITHM);
-      ctx.Remove(PropertyName.CTX_SYNTHESIZER);
 
       // Resolution.
       ctx[PropertyName.CTX_WIDTH]  = width;
@@ -262,7 +265,7 @@ namespace Rendering
       // End.
       ctx[PropertyName.CTX_END_ANIM] = maxTime;
 
-      // End.
+      // Fps.
       ctx[PropertyName.CTX_FPS] = fps;
 
       // Scene definition needed?
@@ -301,20 +304,21 @@ namespace Rendering
       rend    = null;
       tooltip = "";
 
+      // IImageFunction.
+      bool hasImf = ctx.TryGetValue(PropertyName.CTX_ALGORITHM, out object o1) &&
+                    (imf = o1 as IImageFunction) != null;
+      // IRenderer.
+      bool hasRend = ctx.TryGetValue(PropertyName.CTX_SYNTHESIZER, out o1) &&
+                     (rend = o1 as IRenderer) != null;
+
+#if LOGGING
+      Util.Log($"ContextMining(thr={MT.threadID}): imf={hasImf}, rend={hasRend}, defined={SceneIsDefined(ctx)}");
+#endif
+
       // Scene.
       if (!ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) ||
           !(o is IRayScene scene))
         return null;
-
-      // IImageFunction.
-      if (ctx.TryGetValue(PropertyName.CTX_ALGORITHM, out object o1) &&
-          o1 is IImageFunction)
-        imf = o1 as IImageFunction;
-
-      // IRenderer.
-      if (ctx.TryGetValue(PropertyName.CTX_SYNTHESIZER, out o1) &&
-          o1 is IRenderer)
-        rend = o1 as IRenderer;
 
       // Tooltip.
       if (ctx.TryGetValue(PropertyName.CTX_TOOLTIP, out o1) &&
@@ -369,10 +373,16 @@ namespace Rendering
     {
       Debug.Assert(ctx != null);
 
+      bool hasScene = ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) &&
+                      o is IRayScene;
+
+#if LOGGING
+      Util.Log($"SceneFromObject(thr={MT.threadID}): scene={hasScene}, script={definition as string ?? "---"}");
+#endif
+
       // Scene.
       IRayScene sc;
-      if (ctx.TryGetValue(PropertyName.CTX_SCENE, out object o) &&
-          o is IRayScene)
+      if (hasScene)
         sc = o as IRayScene;
       else
         ctx[PropertyName.CTX_SCENE] = sc = new DefaultRayScene();

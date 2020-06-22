@@ -78,8 +78,11 @@ namespace Rendering
     /// <param name="index">Index of list where to store data - is usually MT.threadID, unique for each thread to accomplish thread-safety</param>
     public void AddToPointCloud (Vector3d coord, double[] color, Vector3d normal, int index)
     {
+      if (index < 0)
+        return;         // Ignore data from non-worker threads.
+
       Vector3d fixedCoordinates = AxesCorrector(coord);
-      Vector3d fixedNormals = AxesCorrector(normal);
+      Vector3d fixedNormals     = AxesCorrector(normal);
 
       float[] fixedColors =
       {

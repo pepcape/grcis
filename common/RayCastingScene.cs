@@ -592,7 +592,7 @@ namespace Rendering
   [System.Serializable]
   public class DefaultRayScene : IRayScene
   {
-#if DEBUG
+#if LOGGING
     private static volatile int nextSerial = 0;
     private readonly int serial = nextSerial++;
     public int getSerial () => serial;

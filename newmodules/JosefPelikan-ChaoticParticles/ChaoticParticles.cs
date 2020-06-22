@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using MathSupport;
 using OpenTK;
 using Rendering;
@@ -13,7 +12,7 @@ namespace JosefPelikan
   [Serializable]
   public class ChaoticParticles : DefaultSceneNode, ISolid, ITimeDependent
   {
-#if DEBUG
+#if LOGGING
     private static volatile int nextSerial = 0;
     private readonly int serial = nextSerial++;
     public int getSerial () => serial;
