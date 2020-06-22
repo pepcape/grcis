@@ -532,10 +532,6 @@ namespace _062animation
       /// </summary>
       public IRenderer rend;
 
-      // Frame resolution in pixels.
-      public int width;
-      public int height;
-
       // Future MT.threadID.
       public int threadID;
 
@@ -543,15 +539,11 @@ namespace _062animation
         IRenderer r,
         IRayScene sc,
         IImageFunction imf,
-        int wid,
-        int hei,
         int thrId)
       {
         scene         = sc;
         imageFunction = imf;
         rend          = r;
-        width         = wid;
-        height        = hei;
         threadID      = thrId;
       }
     }
@@ -690,7 +682,7 @@ namespace _062animation
         rend.Adaptive     = 0;   // turn off adaptive bitmap synthesis completely (interactive preview not needed)
         rend.ProgressData = progress;
 
-        wti[t] = new WorkerThreadInit(rend, sc, imf, ActualWidth, ActualHeight, t);
+        wti[t] = new WorkerThreadInit(rend, sc, imf, t);
       }
 
       // Update animation timing.
@@ -832,7 +824,7 @@ namespace _062animation
 
         // Set up the new result record.
         Result r = new Result();
-        r.image = new Bitmap(init.width, init.height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+        r.image = new Bitmap(MT.imageWidth, MT.imageHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
         r.frameNumber = myFrameNumber;
 
         // Set specific time to my scene.
@@ -851,7 +843,7 @@ namespace _062animation
           arend.Time = myTime;
 
         // Render the whole frame...
-        init.rend.RenderRectangle(r.image, 0, 0, init.width, init.height);
+        init.rend.RenderRectangle(r.image, 0, 0, MT.imageWidth, MT.imageHeight);
 
         // ...and put the result into the output queue.
         lock (queue)
