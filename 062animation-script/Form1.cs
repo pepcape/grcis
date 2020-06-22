@@ -150,7 +150,7 @@ namespace _062animation
     }
 
     /// <summary>
-    /// Redraws the whole image.
+    /// Redraws single image.
     /// </summary>
     private void RenderImage ()
     {
@@ -224,24 +224,20 @@ namespace _062animation
 
       // IImageFunction.
       if (imf == null)      // not defined in the script
-        imf = FormSupport.getImageFunction(scene);
-      else
-        if (imf is RayCasting imfrc)
-          imfrc.Scene = scene;
-      imf.Width  = ActualWidth;
-      imf.Height = ActualHeight;
+        imf = FormSupport.getImageFunction();
 
       // IRenderer.
       if (rend == null)        // not defined in the script
         rend = FormSupport.getRenderer(superSampling);
-      rend.ImageFunction = imf;
-      rend.Width         = ActualWidth;
-      rend.Height        = ActualHeight;
-      rend.Adaptive      = 0;
-      rend.ProgressData  = progress;
-      progress.Continue  = true;
+      rend.Adaptive     = 0;
+      rend.ProgressData = progress;
+      progress.Continue = true;
 
       // Set TLS.
+      MT.threads     = 1;
+      MT.threadID    = 0;
+      MT.imageWidth  = ActualWidth;
+      MT.imageHeight = ActualHeight;
       MT.InitThreadData();
       MT.SetRendering(scene, imf, rend);
 
@@ -605,9 +601,11 @@ namespace _062animation
         ref fps,
         textParam.Text);
 
-      IRayScene sc0 = null;
+      IRayScene sc0       = null;
       IImageFunction imf0 = null;
-      IRenderer rend0 = null;
+      IRenderer rend0     = null;
+      MT.imageWidth       = ActualWidth;
+      MT.imageHeight      = ActualHeight;
 
       for (t = 0; t < threads; t++)
       {
@@ -634,7 +632,7 @@ namespace _062animation
 
         // Fallback instances.
         if (imf == null)
-          imf = FormSupport.getImageFunction(sc);
+          imf = FormSupport.getImageFunction();
         if (rend == null)
           rend = FormSupport.getRenderer(superSampling);
 
@@ -671,25 +669,33 @@ namespace _062animation
             rend = (IRenderer)renda.Clone();
         }
 
-        // IImageFunction.
-        if (imf is RayCasting imfray)
-          imfray.Scene = sc;
-        imf.Width  = ActualWidth;
-        imf.Height = ActualHeight;
+        // Animation bounds.
+        if (sc is ITimeDependent sca1)
+        {
+          sca1.Start = minTime;
+          sca1.End   = maxTime;
+        }
+        if (imf is ITimeDependent imfa1)
+        {
+          imfa1.Start = minTime;
+          imfa1.End   = maxTime;
+        }
+        if (rend is ITimeDependent renda1)
+        {
+          renda1.Start = minTime;
+          renda1.End   = maxTime;
+        }
 
-        // IRenderer.
-        rend.ImageFunction = imf;
-        rend.Width         = ActualWidth;
-        rend.Height        = ActualHeight;
-        rend.Adaptive      = 0;   // turn off adaptive bitmap synthesis completely (interactive preview not needed)
-        rend.ProgressData  = progress;
+        // IRenderer init.
+        rend.Adaptive     = 0;   // turn off adaptive bitmap synthesis completely (interactive preview not needed)
+        rend.ProgressData = progress;
 
         wti[t] = new WorkerThreadInit(rend, sc, imf, ActualWidth, ActualHeight, t);
       }
 
       // Update animation timing.
       time = minTime;
-      end =  maxTime;
+      end  = maxTime;
       if (end <= time)
         end = time + 1.0;
 
@@ -702,6 +708,7 @@ namespace _062animation
       sem = new Semaphore(0, 10 * threads);
 
       // Pool of working threads.
+      MT.threads = threads;
       Thread[] pool = new Thread[threads];
       for (t = 0; t < threads; t++)
         pool[t] = new Thread(new ParameterizedThreadStart(RenderWorker));
@@ -717,6 +724,7 @@ namespace _062animation
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
+      Result r;
       while (true)
       {
         sem.WaitOne();                    // wait until a frame is finished
@@ -730,7 +738,6 @@ namespace _062animation
         }
 
         // There could be a frame to process.
-        Result r;
         lock (queue)
         {
           if (queue.Count == 0)
@@ -742,12 +749,14 @@ namespace _062animation
         double seconds = 1.0e-3 * sw.ElapsedMilliseconds;
         double cfps = ++frames / seconds;
         etf.Estimate((float)seconds, frames / total, out float remaining);
+
         // Time spent.
         int cs = (int)seconds;
         int ch = cs / 3600;
         cs %= 3600;
         int cm = cs / 60;
         cs %= 60;
+
         // Time remaining.
         int ls = (int)remaining;
         int lh = ls / 3600;
@@ -792,8 +801,8 @@ namespace _062animation
 
       // Set TLS.
       MT.threadID = init.threadID;
-      MT.SetRendering(init.scene, init.imageFunction, init.rend);
       MT.InitThreadData();
+      MT.SetRendering(init.scene, init.imageFunction, init.rend);
 
       // Worker loop.
       while (true)
@@ -835,17 +844,11 @@ namespace _062animation
           ascene.Time = myTime;
         }
 
-        if (init.rend is ITimeDependent arend)
-        {
-          arend.Start = myTime;
-          arend.End   = myEndTime;
-        }
-
         if (init.imageFunction is ITimeDependent aimf)
-        {
-          aimf.Start = myTime;
-          aimf.End   = myEndTime;
-        }
+          aimf.Time = myTime;
+
+        if (init.rend is ITimeDependent arend)
+          arend.Time = myTime;
 
         // Render the whole frame...
         init.rend.RenderRectangle(r.image, 0, 0, init.width, init.height);

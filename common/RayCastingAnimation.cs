@@ -73,10 +73,10 @@ namespace Rendering
     /// </summary>
     public virtual object Clone ()
     {
-#if LOGGING
-      Util.Log($"Clone(thr={MT.threadID}): AnimatedRayScene");
-#endif
       AnimatedRayScene sc = new AnimatedRayScene();
+#if LOGGING
+      Util.Log($"Clone(thr={MT.threadID}): AnimatedRayScene, {getSerial()}->{sc.getSerial()}");
+#endif
 
       sc.Animator = (ITimeDependent)Animator?.Clone();
 
@@ -239,7 +239,7 @@ namespace Rendering
     {
       Debug.Assert(Start != End);
 
-#if LOGGING
+#if LOGGING && VERBOSE
       Util.Log($"Camera(thr={MT.threadID}) #{getSerial()} setTime({newTime:f3})");
 #endif
 
@@ -278,9 +278,6 @@ namespace Rendering
     /// </summary>
     public virtual object Clone ()
     {
-#if LOGGING
-      Util.Log($"Clone(thr={MT.threadID}): AnimatedCamera");
-#endif
       AnimatedCamera c = new AnimatedCamera(lookAt, center0, MathHelper.RadiansToDegrees((float)hAngle))
       {
         Start  = Start,
@@ -289,6 +286,9 @@ namespace Rendering
         Width  = Width,
         Height = Height,
       };
+#if LOGGING
+      Util.Log($"Clone(thr={MT.threadID}): AnimatedCamera, {getSerial()}->{c.getSerial()}");
+#endif
       return c;
     }
 

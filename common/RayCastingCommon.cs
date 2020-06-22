@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using MathSupport;
 using OpenTK;
+using Utilities;
 
 /// <summary>
 /// Common code for ray-based rendering.
@@ -75,13 +76,6 @@ namespace Rendering
     Progress ProgressData { get; set; }
 
     /// <summary>
-    /// Sample-based rendering specifics: rendered image is defined by
-    /// a continuous-argument image function.
-    /// Need not be used if IRenderer is not image-based.
-    /// </summary>
-    IImageFunction ImageFunction { get; set; }
-
-    /// <summary>
     /// Renders the single pixel of an image.
     /// </summary>
     /// <param name="x">Horizontal coordinate.</param>
@@ -91,17 +85,10 @@ namespace Rendering
 
     /// <summary>
     /// Renders the given rectangle into the given raster image.
+    /// Has to be re-entrant since this code is usually started in multiple parallel threads.
     /// </summary>
     /// <param name="image">Pre-initialized raster image.</param>
     void RenderRectangle (Bitmap image, int x1, int y1, int x2, int y2);
-
-    /// <summary>
-    /// Renders the given rectangle into the given raster image.
-    /// Has to be re-entrant since this code is started in multiple parallel threads.
-    /// </summary>
-    /// <param name="image">Pre-initialized raster image.</param>
-    /// <param name="sel">Selector for this working thread.</param>
-    void RenderRectangle (Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel);
   }
 
   /// <summary>
@@ -647,16 +634,20 @@ namespace Rendering
     [ThreadStatic] public static int total;
 
     // Current thread's id.
-    [ThreadStatic] public static int threadID = -1;
+    [ThreadStatic] public static int threadID;
+    public static int threads = 1;
 
     // Uplinks to roof objects for ray-based rendering.
+    [ThreadStatic] public static IRayScene scene;
     [ThreadStatic] public static IImageFunction imageFunction;
     [ThreadStatic] public static IRenderer renderer;
-    [ThreadStatic] public static IRayScene scene;
 
-    public static bool singleRayTracing    = false;
-    public static bool sceneRendered       = false;
-    public static bool renderingInProgress = false;
+    // Global values.
+    public static int  imageWidth                 = 0;
+    public static int  imageHeight                = 0;
+    public static bool singleRayTracing           = false;
+    public static bool sceneRendered              = false;
+    public static bool renderingInProgress        = false;
     public static bool pointCloudSavingInProgress = false;
     public static bool pointCloudCheckBox;
 
@@ -684,6 +675,31 @@ namespace Rendering
       scene         = sc;
       imageFunction = imf;
       renderer      = rend;
+
+      if (imageWidth > 0)
+      {
+        if (imf != null)
+        {
+          imf.Width  = imageWidth;
+          imf.Height = imageHeight;
+        }
+        if (rend != null)
+        {
+          rend.Width  = imageWidth;
+          rend.Height = imageHeight;
+        }
+      }
+
+#if LOGGING
+      int scId = -1;
+      if (sc is ITimeDependent sca) scId = sca.getSerial();
+      int imfId = -1;
+      if (imf is ITimeDependent imfa) imfId = imfa.getSerial();
+      int rendId = -1;
+      if (rend is ITimeDependent renda) rendId = renda.getSerial();
+
+      Util.Log($"SetRendering(thr={threadID}): scene={scId}, imf={imfId}, rend={rendId}");
+#endif
     }
 
     /// <summary>
@@ -707,9 +723,9 @@ namespace Rendering
       int _y,
       int tot)
     {
-      x = _x;
-      y = _y;
-      rank = 0;
+      x     = _x;
+      y     = _y;
+      rank  = 0;
       total = tot;
     }
 

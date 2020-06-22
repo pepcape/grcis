@@ -73,10 +73,9 @@ namespace Rendering
     /// Called only in case the scene-script didn't define it.
     /// </summary>
     public static IImageFunction getImageFunction (
-      IRayScene scene,
       string param)
     {
-      return new RayTracing(scene);
+      return new RayTracing();
     }
 
     /// <summary>
@@ -165,9 +164,9 @@ namespace Rendering
       for (j = 0, y0 = y + origin; j++ < superXY; y0 += step)
         for (i = 0, x0 = x + origin; i++ < superXY; x0 += step)
         {
-          ImageFunction.GetSample(x0 + amplitude * MT.rnd.UniformNumber(),
-                                  y0 + amplitude * MT.rnd.UniformNumber(),
-                                  tmp);
+          MT.imageFunction.GetSample(x0 + amplitude * MT.rnd.UniformNumber(),
+                                     y0 + amplitude * MT.rnd.UniformNumber(),
+                                     tmp);
           MT.NextSample();
           Util.ColorAdd(tmp, color);
         }

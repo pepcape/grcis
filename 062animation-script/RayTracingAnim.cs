@@ -72,10 +72,9 @@ namespace _062animation
     /// Initialize ray-scene and image function (good enough for simple samples).
     /// Called only if IImageFunction was not defined in the animation script.
     /// </summary>
-    public static IImageFunction getImageFunction (
-      IRayScene scene)
+    public static IImageFunction getImageFunction ()
     {
-      return new RayTracing(scene);
+      return new RayTracing();
     }
 
     /// <summary>
@@ -88,7 +87,7 @@ namespace _062animation
         return new SupersamplingImageSynthesizer
         {
           Supersampling = superSampling,
-          Jittering = 1.0
+          Jittering     = 1.0
         };
 
       return new SimpleImageSynthesizer();

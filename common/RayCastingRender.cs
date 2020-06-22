@@ -26,8 +26,13 @@ namespace Rendering
     /// </summary>
     public double Width
     {
-      get => scene.Camera.Width;
-      set => scene.Camera.Width = value;
+      get => MT.scene?.Camera?.Width ?? 0;
+      set
+      {
+        if (MT.scene != null &&
+            MT.scene.Camera != null)
+          MT.scene.Camera.Width = value;
+      }
     }
 
     /// <summary>
@@ -35,21 +40,13 @@ namespace Rendering
     /// </summary>
     public double Height
     {
-      get => scene.Camera.Height;
-      set => scene.Camera.Height = value;
-    }
-
-    protected IRayScene scene;
-
-    public IRayScene Scene
-    {
-      get => scene;
-      set => scene = value;
-    }
-
-    public RayCasting (IRayScene sc = null)
-    {
-      scene = sc;
+      get => MT.scene?.Camera?.Height ?? 0;
+      set
+      {
+        if (MT.scene != null &&
+            MT.scene.Camera != null)
+          MT.scene.Camera.Height = value;
+      }
     }
 
     /// <summary>
@@ -63,18 +60,18 @@ namespace Rendering
     {
       Vector3d p0, p1;
       int      bands = color.Length;
-      if (!scene.Camera.GetRay(x, y, out p0, out p1))
+      if (!MT.scene.Camera.GetRay(x, y, out p0, out p1))
       {
         Array.Clear(color, 0, bands); // invalid ray -> black color
         return 1L;
       }
 
-      LinkedList<Intersection> intersections = scene.Intersectable.Intersect(p0, p1);
+      LinkedList<Intersection> intersections = MT.scene.Intersectable.Intersect(p0, p1);
       Intersection.countRays++;
       Intersection i = Intersection.FirstIntersection(intersections, ref p1);
       if (i == null) // no intersection -> background color
       {
-        Util.ColorCopy(scene.BackgroundColor, color);
+        Util.ColorCopy(MT.scene.BackgroundColor, color);
         return 0L;
       }
 
@@ -90,7 +87,8 @@ namespace Rendering
           hash = hash * HASH_TEXTURE + tex.Apply(i);
 
       // terminate if light sources are missing
-      if (scene.Sources == null || scene.Sources.Count < 1)
+      if (MT.scene.Sources == null ||
+          MT.scene.Sources.Count < 1)
       {
         Util.ColorCopy(i.SurfaceColor, color);
         return hash;
@@ -104,7 +102,7 @@ namespace Rendering
       i.Material.Color = i.SurfaceColor;
       Array.Clear(color, 0, bands);
 
-      foreach (ILightSource source in scene.Sources)
+      foreach (ILightSource source in MT.scene.Sources)
       {
         Vector3d dir;
         double[] intensity = source.GetIntensity(i, out dir);

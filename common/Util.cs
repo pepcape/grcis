@@ -748,7 +748,7 @@ namespace Utilities
           {
             if (firstLog)
               log.WriteLine();
-            log.WriteLine(string.Format("{0}: {1}", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"), msg));
+            log.WriteLine(string.Format("{0}: {1}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), msg));
           }
       }
       catch (IOException e)

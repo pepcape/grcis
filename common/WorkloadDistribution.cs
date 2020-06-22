@@ -31,7 +31,8 @@ namespace Rendering
 
     public int finishedAssignments;
 
-    // width and height of one block of pixels (rendered at one thread at the time); 64 seems to be optimal; should be power of 2 and larger than 8 (=stride)
+    // Square size of one block of pixels (rendered at one thread at the time)
+    // 64 seems to be optimal; should be power of 2 and larger than 8 (= stride)
     public const int assignmentSize = 64;
 
     public Progress progressData;
@@ -39,17 +40,15 @@ namespace Rendering
     public int assignmentRoundsFinished;
     public int assignmentRoundsTotal;
 
-    public Bitmap         bitmap;
-    public IRayScene      scene;
-    public IImageFunction imageFunction;
-    public IRenderer      renderer;
-    public double         time;
+    public Bitmap           bitmap;
+    public IRayScene[]      scenes;
+    public IImageFunction[] imageFunctions;
+    public IRenderer[]      renderers;
+    public double           time;
 
     private readonly IEnumerable<Client> clientsCollection;
 
     public PointCloud pointCloud;
-
-    private readonly int threads;
 
     /// <summary>
     /// Constructor which takes also care of initializing assignments
@@ -58,6 +57,7 @@ namespace Rendering
     /// <param name="scene">Scene to render</param>
     /// <param name="imageFunction">Current IImageFunction (if applicable)</param>
     /// <param name="renderer">Rendered to use for RenderPixel method</param>
+    /// <param name="time">Time in seconds for still image from an animation</param>
     /// <param name="clientsCollection">Collection of Clients to get their IP addresses - names are only for user</param>
     /// <param name="threads">Number of threads to be used for rendering</param>
     /// <param name="newPointCloud">Bool whether new point cloud should be created</param>
@@ -75,13 +75,13 @@ namespace Rendering
     {
       finishedAssignments = 0;
 
-      this.scene             = scene;
-      this.imageFunction     = imageFunction;
-      this.renderer          = renderer;
+      scenes                 = new IRayScene[] { scene };
+      imageFunctions         = new IImageFunction[] { imageFunction };
+      renderers              = new IRenderer[] { renderer };
       this.time              = time;
       this.bitmap            = bitmap;
       this.clientsCollection = clientsCollection;
-      this.threads           = threads;
+      MT.threads             = threads;
 
       Assignment.assignmentSize = assignmentSize;
 
@@ -102,43 +102,62 @@ namespace Rendering
     /// Creates threadpool and starts all threads on Consume method
     /// Thread which calls this method will take care of preparing assignments and receiving rendered images from RenderClients meanwhile
     /// </summary>
-    public void StartThreads ()
+    public void RunThreads ()
     {
-      pool = new Thread[threads];
+      pool = new Thread[MT.threads];
 
       AssignNetworkWorkerToStream();
 
-      WaitHandle[] waitHandles = new WaitHandle[threads];
+      WaitHandle[] waitHandles = new WaitHandle[MT.threads];
 
-      for (int i = 0; i < threads; i++)
+      // Multiply animated instances.
+      int i;
+
+      // Scene definitions.
+      if (scenes[0] is ITimeDependent scenea)
+      {
+        scenea.Time = time;
+        scenes = new IRayScene[MT.threads];
+        for (i = 0; i < MT.threads; i++)
+          scenes[i] = i == 0 ? (IRayScene)scenea : (IRayScene)scenea.Clone();
+      }
+
+      // Image functions.
+      if (imageFunctions[0] is ITimeDependent imfa)
+      {
+        imfa.Time = time;
+        imageFunctions = new IImageFunction[MT.threads];
+        for (i = 0; i < MT.threads; i++)
+          imageFunctions[i] = i == 0 ? (IImageFunction)imfa : (IImageFunction)imfa.Clone();
+      }
+
+      // Renderers.
+      if (renderers[0] is ITimeDependent renda)
+      {
+        renda.Time = time;
+        renderers = new IRenderer[MT.threads];
+        for (i = 0; i < MT.threads; i++)
+          renderers[i] = i == 0 ? (IRenderer)renda : (IRenderer)renda.Clone();
+      }
+
+      for (i = 0; i < MT.threads; i++)
       {
         EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.ManualReset);
 
         // Thread-specific instances: thread's id.
         int tid = i;
 
-        // Thread-specific instances: ray-tracing scene.
-        IRayScene sc = (i == 0 || !(scene is ITimeDependent scenea))
-          ? scene
-          : (IRayScene)scenea.Clone();
-
-        // Thread-specific instances: image-function.
-        IImageFunction imf = (i == 0 || !(imageFunction is ITimeDependent imfa))
-          ? imageFunction
-          : (IImageFunction)imfa.Clone();
-        if (imf is RayCasting imfray)
-          imfray.Scene = sc;
-
-        // Thread-specific instances: image synthesizer.
-        IRenderer rend = (i == 0 || !(renderer is ITimeDependent renda))
-          ? renderer
-          : (IRenderer)renda.Clone();
-        rend.ImageFunction = imf;
-
         Thread newThread = new Thread(() =>
         {
           // Set TLS.
-          Consume(tid, sc, imf, rend);
+          MT.threadID = tid;
+          MT.InitThreadData();
+          MT.SetRendering(
+            scenes[Math.Min(tid, scenes.Length - 1)],
+            imageFunctions[Math.Min(tid, imageFunctions.Length - 1)],
+            renderers[Math.Min(tid, renderers.Length - 1)]);
+
+          Consume();
 
           // Signal finishing the work.
           handle.Set();
@@ -155,7 +174,7 @@ namespace Rendering
 
       Thread imageReceiver = new Thread(RenderedImageReceiver);
       imageReceiver.Name = "ImageReceiver";
-      imageReceiver.Start ();
+      imageReceiver.Start();
 
       WaitHandle.WaitAll(waitHandles);
 
@@ -176,34 +195,10 @@ namespace Rendering
     /// Each thread waits for a new Assignment to be added to availableAssignments queue
     /// Most of the time is number of items in availableAssignments expected to be several times larger than number of threads
     /// </summary>
-    protected void Consume (
-      int tid = -1,
-      IRayScene sc = null,
-      IImageFunction imf = null,
-      IRenderer rend = null)
+    protected void Consume ()
     {
-      if (sc == null)
-        sc = scene;
-      if (imf == null)
-        imf = imageFunction;
-      if (rend == null)
-        rend = renderer;
-
-      // Set TLS.
-      MT.threadID = tid;
-      MT.InitThreadData();
-      MT.SetRendering(sc, imf, rend);
-
-      // Animation time (for debugging animated scenes).
-      if (sc is ITimeDependent sca)
-        sca.Time = time;
-      if (imf is ITimeDependent imfa)
-        imfa.Time = time;
-      if (rend is ITimeDependent renda)
-        renda.Time = time;
-
       while (!availableAssignments.IsEmpty ||
-             finishedAssignments < totalNumberOfAssignments - threads ||
+             finishedAssignments < totalNumberOfAssignments - MT.threads ||
              NetworkWorker.assignmentsAtClients > 0)
       {
         availableAssignments.TryDequeue(out Assignment newAssignment);
@@ -214,8 +209,11 @@ namespace Rendering
         if (newAssignment == null) // TryDequeue was not successful
           continue;
 
-        float[] colorArray = newAssignment.Render(false, renderer, progressData);
-        BitmapMerger(colorArray, newAssignment.x1, newAssignment.y1, newAssignment.x2 + 1, newAssignment.y2 + 1);
+        float[] colorArray = newAssignment.Render(false, progressData);
+        BitmapMerger(
+          colorArray,
+          newAssignment.x1, newAssignment.y1,
+          newAssignment.x2 + 1, newAssignment.y2 + 1);
 
         if (newAssignment.stride == 1)
         {
@@ -247,7 +245,6 @@ namespace Rendering
       int numberOfAssignmentsOnHeight = bitmap.Height % assignmentSize == 0
         ? bitmap.Height / assignmentSize
         : bitmap.Height / assignmentSize + 1;
-
 
       for (int y = 0; y < numberOfAssignmentsOnHeight; y++)
       {
@@ -325,7 +322,9 @@ namespace Rendering
         {
           for (int x = x1; x < x2; x++)
           {
-            if (!float.IsInfinity(colorBuffer[arrayPosition]) && x < bitmap.Width)  // positive infinity is indicator that color for this pixel is already present in bitmap and is final
+            // Positive infinity indicates an already computed pixel.
+            if (!float.IsInfinity(colorBuffer[arrayPosition]) &&
+                x < bitmap.Width)
             {
               Color color = Color.FromArgb(Util.Clamp((int)colorBuffer[arrayPosition    ], 0, 255),
                                            Util.Clamp((int)colorBuffer[arrayPosition + 1], 0, 255),
@@ -357,7 +356,7 @@ namespace Rendering
   }
 
   /// <summary>
-  /// Takes care of network communication with with 1 render client
+  /// Takes care of network communication with with one render client.
   /// </summary>
   public class NetworkWorker
   {
@@ -388,7 +387,7 @@ namespace Rendering
     /// Establishes NetworkStream with desired client
     /// </summary>
     /// <returns>True if connection was succesfull, False otherwise</returns>
-    public bool ConnectToClient()
+    public bool ConnectToClient ()
     {
       if (ipAdr == null ||
           ipAdr.ToString() == "0.0.0.0")
@@ -410,13 +409,12 @@ namespace Rendering
 
       stream = client.GetStream();
 
-      // needed just in case - large portions of data are expected to be transfered at the same time (one rendered assignment is 50kB)
+      // Needed just in case - large portions of data are expected to be transfered at the same time (one rendered assignment is 50kB)
       client.ReceiveBufferSize = 1024 * 1024;
       client.SendBufferSize    = 1024 * 1024;
 
       return true;
     }
-
 
     /// <summary>
     /// Sends all objects which are necessary to render scene to client
@@ -427,16 +425,16 @@ namespace Rendering
     /// </summary>
     public void ExchangeNecessaryInfo ()
     {
-      // set assemblies - needed for correct serialization/deserialization
+      // Set assemblies - needed for correct serialization/deserialization
       NetworkSupport.SendString(Assembly.GetExecutingAssembly().GetName().Name, stream);
       string targetAssembly = NetworkSupport.ReceiveString(stream);
       NetworkSupport.SetAssemblyNames(Assembly.GetExecutingAssembly().GetName().Name, targetAssembly);
 
       NetworkSupport.SendObject(new Assignment(Assignment.AssignmentType.Reset), stream);
 
-      NetworkSupport.SendObject(Master.singleton.scene, stream);
+      NetworkSupport.SendObject(Master.singleton.scenes[0], stream);
 
-      NetworkSupport.SendObject(Master.singleton.renderer, stream);
+      NetworkSupport.SendObject(Master.singleton.renderers[0], stream);
 
       threadCountAtClient = NetworkSupport.ReceiveInt(stream);
     }
@@ -474,21 +472,24 @@ namespace Rendering
           return;
         }
 
-        //uses parts of receiveBuffer - separates and converts data to coordinates and floats representing colors of pixels
+        // Uses parts of receiveBuffer - separates and converts data to coordinates
+        // and floats representing colors of pixels
         float[] coordinates = new float[2];
         float[] floatBuffer = new float[Master.assignmentSize * Master.assignmentSize * 3];
         Buffer.BlockCopy(receiveBuffer, 0, coordinates, 0, 2 * sizeof(float));
         Buffer.BlockCopy(receiveBuffer, 2 * sizeof(float), floatBuffer, 0, floatBuffer.Length * sizeof(float));
 
-        Master.singleton.BitmapMerger(floatBuffer,
-                                     (int) coordinates[0],
-                                     (int) coordinates[1],
-                                     (int) coordinates[0] + Master.assignmentSize,
-                                     (int) coordinates[1] + Master.assignmentSize);
+        Master.singleton.BitmapMerger(
+          floatBuffer,
+          (int)coordinates[0],
+          (int)coordinates[1],
+          (int)coordinates[0] + Master.assignmentSize,
+          (int)coordinates[1] + Master.assignmentSize);
 
         Master.singleton.finishedAssignments++;
 
-        //takes care of increasing assignmentRoundsFinished by the ammount of finished rendering rounds on RenderClient
+        // Takes care of increasing assignmentRoundsFinished by the amount of finished
+        // rendering rounds on RenderClient.
         lock (unfinishedAssignments)
         {
           Assignment currentAssignment = unfinishedAssignments.Find(a => a.x1 == (int)coordinates[0] && a.y1 == (int)coordinates[1]);
@@ -500,7 +501,7 @@ namespace Rendering
           RemoveAssignmentFromUnfinishedAssignments((int)coordinates[0], (int)coordinates[1]);
         }
 
-        TryToGetNewAssignment ();
+        TryToGetNewAssignment();
       }
     }
 
@@ -526,7 +527,7 @@ namespace Rendering
       for (int i = 0; i < unfinishedAssignments.Count; i++)
       {
         if (unfinishedAssignments[i].x1 == x &&
-            unfinishedAssignments[i].y1 == y ) // assignments are uniquely indentified by coordinates of left upper corner
+            unfinishedAssignments[i].y1 == y)  // assignments are uniquely indentified by coordinates of left upper corner
         {
           unfinishedAssignments.RemoveAt(i);
           return;
@@ -603,9 +604,11 @@ namespace Rendering
   {
     public int x1, y1, x2, y2;
 
+    // Global assignment size.
     public static int assignmentSize;
 
-    public int stride; // stride of 'n' means that only each 'n'-th pixel is rendered (for sake of dynamic rendering)
+    // Only one pixel from a stride x stride square is rendered (progressive rendering)
+    public int stride;
 
     private readonly int bitmapWidth, bitmapHeight;
 
@@ -614,32 +617,38 @@ namespace Rendering
     public const int startingStride = 8;
 
     /// <summary>
-    /// Main constructor for standard assignments
+    /// Main constructor for standard assignments.
     /// </summary>
-    public Assignment (int x1, int y1, int x2, int y2, int bitmapWidth, int bitmapHeight)
+    public Assignment (int x1, int y1, int x2, int y2, int width, int height)
     {
       this.x1 = x1;
       this.y1 = y1;
       this.x2 = x2;
       this.y2 = y2;
-      this.bitmapWidth = bitmapWidth;
-      this.bitmapHeight = bitmapHeight;
-      this.type = AssignmentType.Standard;
+      bitmapWidth  = width;
+      bitmapHeight = height;
+      type = AssignmentType.Standard;
 
-      // stride values: 8 > 4 > 2 > 1; initially always 8
-      // decreases at the end of rendering of current assignment and therefore makes another render of this assignment more detailed
+      // Stride values: 8 > 4 > 2 > 1; initially always 8
+      // Stride decreases at the end of rendering of current assignment and therefore makes
+      // another render of this assignment more detailed.
       stride = startingStride;
     }
 
     /// <summary>
     /// Constructor used for special assignments with AssignmentType other than Standard
-    /// Special assignments are used to indicate end of rendering, request to reset render client, ...
+    /// Special assignments are used to indicate end of rendering, request to reset render client...
     /// Coordinates, dimensions and stride are irrelevant in this case - they are set to -1 for error checking
     /// </summary>
-    /// <param name="type"></param>
     public Assignment (AssignmentType type)
     {
-      x1 = y1 = x2 = y2 = bitmapWidth = bitmapHeight = stride = -1;
+      x1           =
+      y1           =
+      x2           =
+      y2           =
+      bitmapWidth  =
+      bitmapHeight =
+      stride       = -1;
 
       this.type = type;
     }
@@ -648,11 +657,13 @@ namespace Rendering
     /// Main render method
     /// </summary>
     /// <param name="renderEverything">True if you want to ignore stride and just render everything at once (removes dynamic rendering effect; distributed network rendering)</param>
-    /// <param name="renderer">IRenderer which will be used for RenderPixel method</param>
     /// <param name="progressData">Used for sync of bitmap with main PictureBox</param>
     /// <returns>Float array which represents colors of pixels (3 floats per pixel - RGB channel)</returns>
-    public float[] Render (bool renderEverything, IRenderer renderer, Progress progressData = null)
+    public float[] Render (
+      bool renderEverything,
+      Progress progressData = null)
     {
+      // !!! TODO: change this for non-RGB rendering !!!
       float[] returnArray = new float[assignmentSize * assignmentSize * 3];
 
       int previousStride = stride;
@@ -662,29 +673,29 @@ namespace Rendering
         stride = 1;
 
         if (previousStride == stride)
-        {
           renderEverything = false;
-        }
       }
 
       for (int y = y1; y <= y2; y += stride)
-      {
         for (int x = x1; x <= x2; x += stride)
         {
+          // !!! TODO: change this for non-RGB rendering !!!
           double[] color      = new double[3];
           float[]  floatColor = new float[3];
 
-          // removes the need to make assignments of different sizes to accommodate bitmaps with sides indivisible by assignment size
+          // Removes the need to make assignments of different sizes to accommodate
+          // bitmaps with sides indivisible by assignment size.
           if (y >= bitmapHeight || x >= bitmapWidth)
             break;
 
-          // prevents rendering of already rendered pixels
+          // Prevents rendering of already rendered pixels.
           if (stride == 8 ||
               (y % (stride << 1) != 0) ||
               (x % (stride << 1) != 0) ||
               renderEverything )
           {
-            renderer.RenderPixel(x, y, color); // called at desired IRenderer; gets pixel color
+            // IRenderer does the job = computes the pixel color.
+            MT.renderer.RenderPixel(x, y, color);
 
             floatColor[0] = (float)color[0];
             floatColor[1] = (float)color[1];
@@ -692,46 +703,45 @@ namespace Rendering
           }
           else
           {
-            // positive infinity is used to signal BitmapMerger that color for this pixel is already present in main bitmap and is final (therefore no need for change)
+            // Positive infinity is used to signal BitmapMerger that color for this pixel
+            // is already present in main bitmap and is final (therefore no need for change)
             floatColor[0] = float.PositiveInfinity;
             floatColor[1] = float.PositiveInfinity;
             floatColor[2] = float.PositiveInfinity;
           }
 
-          if (stride == 1)  // apply color only to one pixel
+          if (stride == 1)
           {
+            // Apply color to single pixel only.
             returnArray[PositionInArray(x, y)]     = floatColor[0] * 255;
             returnArray[PositionInArray(x, y) + 1] = floatColor[1] * 255;
             returnArray[PositionInArray(x, y) + 2] = floatColor[2] * 255;
           }
-          else // apply same color to multiple neighbour pixels (rectangle with current pixel in top left and length of side equal to stride value)
+          else
           {
-            for (int j = y; j < y + stride; j++)
-            {
-              if (j < bitmapHeight)
+            // Apply constant color to multiple neighbour pixels:
+            // square starting at the current pixel with side = stride.
+            for (int j = y; j < y + stride && j < bitmapHeight; j++)
+              for (int i = x; i < x + stride && i < bitmapWidth; i++)
               {
-                for (int i = x; i < x + stride; i++)
-                {
-                  if (i < bitmapWidth)
-                  {
-                    returnArray[PositionInArray(i, j)]     = floatColor[0] * 255;
-                    returnArray[PositionInArray(i, j) + 1] = floatColor[1] * 255;
-                    returnArray[PositionInArray(i, j) + 2] = floatColor[2] * 255;
-                  }
-                }
+                returnArray[PositionInArray(i, j)]     = floatColor[0] * 255;
+                returnArray[PositionInArray(i, j) + 1] = floatColor[1] * 255;
+                returnArray[PositionInArray(i, j) + 2] = floatColor[2] * 255;
               }
-            }
           }
 
-          if (progressData != null) // progressData is not used for distributed network rendering - null value used in rendering in RenderClients
+          // 'progressData' is not used for distributed network rendering
+          // - null value used in rendering in RenderClients.
+          if (progressData != null)
           {
             lock (Master.singleton.progressData)
             {
-              // test whether rendering should end (Stop button pressed)
+              // Test whether rendering should end (Stop button pressed).
               if (!Master.singleton.progressData.Continue)
                 return returnArray;
 
-              // synchronization of bitmap with PictureBox in Form and update of progress (percentage of done work)
+              // Synchronization of bitmap with PictureBox in Form and
+              // update of progress (percentage of done work).
               if (Master.singleton.mainRenderThread == Thread.CurrentThread)
               {
                 Master.singleton.progressData.Finished = Master.singleton.assignmentRoundsFinished / (float)Master.singleton.assignmentRoundsTotal;
@@ -740,7 +750,6 @@ namespace Rendering
             }
           }
         }
-      }
 
       return returnArray;
     }
@@ -763,7 +772,9 @@ namespace Rendering
     /// </summary>
     public enum AssignmentType
     {
-      Standard, Ending, Reset
+      Standard,       // Computing pixel colors
+      Ending,         // Epilogue ?
+      Reset           // Initial assignment sent to a network worker
     }
   }
 
@@ -788,7 +799,7 @@ namespace Rendering
 
       if (value.ToLower() == "localhost" ||
           value.ToLower() == "local" ||
-          value.ToLower() == "l" )
+          value.ToLower() == "l")
       {
         address = IPAddress.Parse("127.0.0.1");
         return;

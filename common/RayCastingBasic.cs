@@ -40,12 +40,6 @@ namespace Rendering
     /// </summary>
     public Progress ProgressData { get; set; }
 
-    /// <summary>
-    /// Sample-based rendering specifics: rendered image is defined by
-    /// a continuous-argument image function.
-    /// </summary>
-    public IImageFunction ImageFunction { get; set; }
-
     public SimpleImageSynthesizer ()
       : this(1)
     {}
@@ -66,7 +60,7 @@ namespace Rendering
     public virtual void RenderPixel (int x, int y, double[] color)
     {
       MT.StartPixel(x, y, 1);
-      ImageFunction.GetSample(x + 0.5, y + 0.5, color);
+      MT.imageFunction.GetSample(x + 0.5, y + 0.5, color);
 
       // Gamma-encoding?
       if (Gamma > 0.001)
@@ -82,22 +76,12 @@ namespace Rendering
 
     /// <summary>
     /// Renders the given rectangle into the given raster image.
+    /// Has to be re-entrant since this code is usually started in multiple parallel threads.
     /// </summary>
     /// <param name="image">Pre-initialized raster image.</param>
     public virtual void RenderRectangle (Bitmap image, int x1, int y1, int x2, int y2)
     {
-      RenderRectangle(image, x1, y1, x2, y2, (n) => true);
-    }
-
-    /// <summary>
-    /// Renders the given rectangle into the given raster image.
-    /// Has to be re-entrant since this code is started in multiple parallel threads.
-    /// </summary>
-    /// <param name="image">Pre-initialized raster image.</param>
-    /// <param name="sel">Selector for this working thread.</param>
-    public virtual void RenderRectangle (Bitmap image, int x1, int y1, int x2, int y2, ThreadSelector sel)
-    {
-      bool lead = sel ( 0L );
+      bool lead = MT.threadID == 0;
       if (lead &&
           ProgressData != null)
         lock (ProgressData)
@@ -133,10 +117,9 @@ namespace Rendering
             if (cell == initCell ||
                 xParity || yParity) // process the cell
             {
-              if (!sel(counter++))
-                continue;
+              counter++;
 
-              // Determine sample color ..
+              // Determine sample color...
               RenderPixel(x, y, color);
 
               if (Gamma <= 0.001)
@@ -247,9 +230,9 @@ namespace Rendering
       for (j = 0, y0 = y + origin; j++ < superXY; y0 += step)
         for (i = 0, x0 = x + origin; i++ < superXY; x0 += step)
         {
-          ImageFunction.GetSample(x0 + amplitude * MT.rnd.UniformNumber(),
-                                  y0 + amplitude * MT.rnd.UniformNumber(),
-                                  tmp);
+          MT.imageFunction.GetSample(x0 + amplitude * MT.rnd.UniformNumber(),
+                                     y0 + amplitude * MT.rnd.UniformNumber(),
+                                     tmp);
           MT.NextSample();
           Util.ColorAdd(tmp, color);
         }
@@ -308,12 +291,12 @@ namespace Rendering
         this.step = step;
       }
 
-      public void sample (IImageFunction iif, int bands)
+      public void sample (int bands)
       {
         result = new Result(bands,
                             x + step * MT.rnd.UniformNumber(),
                             y + step * MT.rnd.UniformNumber());
-        result.hash = iif.GetSample(result.x, result.y, result.color);
+        result.hash = MT.imageFunction.GetSample(result.x, result.y, result.color);
         MT.NextSample();
       }
     }
@@ -374,7 +357,7 @@ namespace Rendering
         root.result  = null;
       }
       else
-        ch[0].sample(ImageFunction, bands);
+        ch[0].sample(bands);
 
       // child[1] .. root.x, root.y + step
       ch[1] = new Node(root.x, root.y + step, step);
@@ -386,7 +369,7 @@ namespace Rendering
         root.result  = null;
       }
       else
-        ch[1].sample(ImageFunction, bands);
+        ch[1].sample(bands);
 
       // child[2] .. root.x + step, root.y
       ch[2] = new Node(root.x + step, root.y, step);
@@ -398,7 +381,7 @@ namespace Rendering
         root.result  = null;
       }
       else
-        ch[2].sample(ImageFunction, bands);
+        ch[2].sample(bands);
 
       // child[3] .. root.x + step, root.y + step
       ch[3] = new Node(root.x + step, root.y + step, step);
@@ -409,7 +392,7 @@ namespace Rendering
         root.result  = null;
       }
       else
-        ch[3].sample(ImageFunction, bands);
+        ch[3].sample(bands);
 
       // Tree-depth check.
       if ((division += division) >= maxDivision)
@@ -479,7 +462,7 @@ namespace Rendering
 
       // We are starting from the whole pixel area = unit square.
       Node root = new Node(x, y, 1.0);
-      root.sample(ImageFunction, bands);
+      root.sample(bands);
       if (superXY > 1)
         subdivide(root, 1, superXY);
 

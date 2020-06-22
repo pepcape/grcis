@@ -177,8 +177,7 @@ namespace Rendering
     /// </summary>
     public bool DoRecursion { get; set; }
 
-    public RayTracing (IRayScene sc = null)
-      : base(sc)
+    public RayTracing ()
     {
       MaxLevel      = 12;
       MinImportance = 0.05;
@@ -207,7 +206,7 @@ namespace Rendering
       Array.Clear(color, 0, color.Length);
 
       Vector3d p0, p1;
-      if (scene.Camera.GetRay(x, y, out p0, out p1))
+      if (MT.scene.Camera.GetRay(x, y, out p0, out p1))
       {
         long hash = shade(0, 1.0, ref p0, ref p1, color);
 
@@ -238,7 +237,7 @@ namespace Rendering
       Vector3d direction = p1;
 
       int bands = color.Length;
-      LinkedList<Intersection> intersections = scene.Intersectable.Intersect(p0, p1);
+      LinkedList<Intersection> intersections = MT.scene.Intersectable.Intersect(p0, p1);
 
       // If the ray is primary, increment both counters
       Statistics.IncrementRaysCounters(1, depth == 0);
@@ -250,7 +249,7 @@ namespace Rendering
         // No intersection -> background color
         rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.rayVisualizerNormal, depth, p0, direction * 100000);
 
-        return scene.Background.GetColor(p1, color);
+        return MT.scene.Background.GetColor(p1, color);
       }
 
       // There was at least one intersection
@@ -329,7 +328,8 @@ namespace Rendering
       p1 = -p1; // viewing vector
       p1.Normalize();
 
-      if (scene.Sources == null || scene.Sources.Count < 1)
+      if (MT.scene.Sources == null ||
+          MT.scene.Sources.Count < 1)
         // No light sources at all.
         Util.ColorAdd(i.SurfaceColor, color);
       else
@@ -338,7 +338,7 @@ namespace Rendering
         i.Material = (IMaterial)i.Material.Clone();
         i.Material.Color = i.SurfaceColor;
 
-        foreach (ILightSource source in scene.Sources)
+        foreach (ILightSource source in MT.scene.Sources)
         {
           double[] intensity = source.GetIntensity(i, out Vector3d dir);
 
@@ -350,7 +350,7 @@ namespace Rendering
           {
             if (DoShadows && dir != Vector3d.Zero)
             {
-              intersections = scene.Intersectable.Intersect(i.CoordWorld, dir);
+              intersections = MT.scene.Intersectable.Intersect(i.CoordWorld, dir);
               Statistics.allRaysCount++;
               Intersection si = Intersection.FirstRealIntersection(intersections, ref dir);
               // Better shadow testing: intersection between 0.0 and 1.0 kills the lighting.

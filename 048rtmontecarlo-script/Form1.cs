@@ -113,7 +113,6 @@ namespace Rendering
     private readonly PanAndZoomSupport panAndZoom;
     private readonly RayVisualizer rayVisualizer;
     private readonly AdditionalViews additionalViews;
-    private Master master;
 
     public Form1 (string[] args)
     {
@@ -191,7 +190,7 @@ namespace Rendering
             SetText);
         }
 
-        double minTime = 0.0;
+        double minTime =  0.0;
         double maxTime = 10.0;
         double fps     = 25.0;
 
@@ -287,13 +286,10 @@ namespace Rendering
       }
     }
 
-    private IImageFunction getImageFunction (IImageFunction imf, IRayScene sc)
+    private IImageFunction getImageFunction (IImageFunction imf)
     {
       if (imf == null)    // The script didn't define an image-function..
-        imf = FormSupport.getImageFunction(sc, TextParam.Text);
-
-      if (imf is RayCasting rc)
-        rc.Scene = sc;    // to be sure..
+        imf = FormSupport.getImageFunction(TextParam.Text);
 
       if (imf is RayTracing rt)
       {
@@ -318,7 +314,7 @@ namespace Rendering
     {
       Cursor.Current = Cursors.WaitCursor;
 
-      // determine output image size:
+      // Determine output image size.
       ActualWidth = ImageWidth;
       if (ActualWidth <= 0)
         ActualWidth = panel1.Width;
@@ -390,27 +386,21 @@ namespace Rendering
 
       // IImageFunction.
       if (imf == null)      // not defined in the script
-        imf = getImageFunction(imf, scene);
-      else
-        if (imf is RayCasting imfray)
-          imfray.Scene = scene;
-      imf.Width  = ActualWidth;
-      imf.Height = ActualHeight;
+        imf = getImageFunction(imf);
 
       // IRenderer.
       if (rend == null)     // not defined in the script
         rend = getRenderer();
-      rend.ImageFunction = imf;
-      rend.Width         = ActualWidth;
-      rend.Height        = ActualHeight;
-      rend.Adaptive      = 0;    // 8?
-      rend.ProgressData  = progress;
+      rend.Adaptive     = 0;    // 8?
+      rend.ProgressData = progress;
 
       // Almost ready for new image computation.
       rayVisualizer.UpdateScene(scene);
       Bitmap newImage = new Bitmap(ActualWidth, ActualHeight, PixelFormat.Format24bppRgb);
+      MT.imageWidth  = ActualWidth;
+      MT.imageHeight = ActualHeight;
 
-      master = new Master(
+      _ = new Master(
         newImage,
         scene,
         imf,
@@ -421,11 +411,11 @@ namespace Rendering
         pointCloudCheckBox.Checked,
         ref AdditionalViews.singleton.pointCloud);
 
-      master.progressData = progress;
-      master.InitializeAssignments(newImage);
+      Master.singleton.progressData = progress;
+      Master.singleton.InitializeAssignments(newImage);
 
       if (pointCloudCheckBox.Checked)
-        master.pointCloud?.SetNecessaryFields(PointCloudSavingStart, PointCloudSavingEnd, Notification, Invoke);
+        Master.singleton.pointCloud?.SetNecessaryFields(PointCloudSavingStart, PointCloudSavingEnd, Notification, Invoke);
 
       progress.SyncInterval = ((ActualWidth * (long)ActualHeight) > (2L << 20)) ? 3000L : 1000L;
       progress.Reset();
@@ -434,7 +424,7 @@ namespace Rendering
       lock (sw)
         sw.Restart();
 
-      master.StartThreads();
+      Master.singleton.RunThreads();
 
       long elapsed;
       lock (sw)
@@ -637,26 +627,22 @@ namespace Rendering
 
         // IImageFunction.
         if (imfs == null)      // not defined in the script
-          imfs = getImageFunction(imfs, sc);
-        else
-          if (imfs is RayCasting imfray)
-            imfray.Scene = sc;
-        imfs.Width  = ActualWidth;
-        imfs.Height = ActualHeight;
+          imfs = getImageFunction(imfs);
 
         // IRenderer.
         if (rend == null)     // not defined in the script
           rend = getRenderer();
-        rend.ImageFunction = imfs;
-        rend.Width         = ActualWidth;
-        rend.Height        = ActualHeight;
-        rend.Adaptive      = 0;    // 8?
-        rend.ProgressData  = progress;
+        rend.Adaptive     = 0;    // 8?
+        rend.ProgressData = progress;
 
         dirty = false;
       }
 
       // Set TLS.
+      MT.imageWidth  = ActualWidth;
+      MT.imageHeight = ActualHeight;
+      MT.threads     = 1;
+      MT.threadID    = 0;
       MT.SetRendering(sc, imfs, rend);
 
       double[] color = new double[3];
