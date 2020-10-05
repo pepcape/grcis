@@ -37,12 +37,18 @@ namespace Modules
     /// </summary>
     public int y;
 
-    public ImageContext (int wid, int hei, int _x = 0, int _y = 0)
+    /// <summary>
+    /// Script-context shared among all workers.
+    /// </summary>
+    public readonly ScriptContext context;
+
+    public ImageContext (ScriptContext sc, int wid, int hei, int _x = 0, int _y = 0)
     {
-      width  = wid;
-      height = hei;
-      x      = _x;
-      y      = _y;
+      context = sc;
+      width   = wid;
+      height  = hei;
+      x       = _x;
+      y       = _y;
     }
 
   }
@@ -52,6 +58,13 @@ namespace Modules
   /// </summary>
   public class Formula
   {
+    /// <summary>
+    /// Script-context initialization from a text field 'Param'.
+    /// </summary>
+    /// <returns>Can be null.</returns>
+    public delegate ScriptContext ScriptContextCreateDelegate (
+      in string param);
+
     /// <summary>
     /// Pixel creation formula.
     /// </summary>
@@ -94,6 +107,12 @@ namespace Modules
       get => context;
       set => context = Math.Max(0, value);
     }
+
+    /// <summary>
+    /// Script-context created from a text field 'param'.
+    /// Will be called only once for a picture update.
+    /// </summary>
+    public ScriptContextCreateDelegate contextCreate = (in string param) => null;
 
     /// <summary>
     /// Pixel creation function.
@@ -272,6 +291,25 @@ namespace Modules
     protected string scriptSource = "";
 
     /// <summary>
+    /// Returns the actual script file path if found, null otherwise.
+    /// </summary>
+    protected static string sourceLookup (
+      string sourceFile)
+    {
+      if (File.Exists(sourceFile))
+        return sourceFile;
+
+      for (int i = 0; i++ < 2;)
+      {
+        sourceFile = Path.Combine("..", sourceFile);
+        if (File.Exists(sourceFile))
+          return sourceFile;
+      }
+
+      return null;
+    }
+
+    /// <summary>
     /// Recompute the output image[s] according to input image[s].
     /// Blocking (synchronous) function.
     /// #GetOutput() functions can be called after that.
@@ -307,9 +345,8 @@ namespace Modules
         // script=<file-name>
         if (p.TryGetValue("script", out string fileName))
         {
-          //!!! TODO: better source-file lookup !!!
           if (string.IsNullOrEmpty(fileName) ||
-              !File.Exists(fileName))
+              string.IsNullOrEmpty(sourceLookup(fileName)))
           {
             message = $"Invalid file '{fileName}'";
             return;
@@ -318,6 +355,12 @@ namespace Modules
           scriptFileName = fileName;
         }
       }
+
+      float coeff = 1.0f;
+
+      // coeff=<float>
+      if (Util.TryParse(p, "coeff", ref coeff))
+        coeff = Util.Saturate(coeff);
 
       // Check the input image (only for non-create mode).
       if (!create)
@@ -329,9 +372,12 @@ namespace Modules
         height = inImage.Height;
       }
 
+      // Actual file name (including the correct path).
+      string scriptPath;
+
       // Script compilation 'fileName' -> 'formula'.
       if (!string.IsNullOrEmpty(scriptFileName) &&
-          File.Exists(scriptFileName))
+          !string.IsNullOrEmpty(scriptPath = sourceLookup(scriptFileName)))
       {
         string newSource = null;
         bool ok = true;
@@ -343,7 +389,7 @@ namespace Modules
 
         try
         {
-          newSource = File.ReadAllText(scriptFileName);
+          newSource = File.ReadAllText(scriptPath);
         }
         catch (IOException)
         {
@@ -359,7 +405,7 @@ namespace Modules
         if (!string.IsNullOrEmpty(newSource) &&
             newSource != scriptSource)
         {
-          // interpret the CS-script defining the scene:
+          // Interpret the CS-script defining the scene:
           var assemblyNames = Assembly.GetExecutingAssembly().GetReferencedAssemblies();
 
           List<Assembly> assemblies = new List<Assembly>();
@@ -437,6 +483,9 @@ namespace Modules
       // Transform the source image into output image.
       outImage = new Bitmap(width, height, PixelFormat.Format24bppRgb);
 
+      // Shared script-context.
+      ScriptContext sc = formula.contextCreate?.Invoke(param) ?? new ScriptContext();
+
       // Transform/create pixel data, 1:1 (context==0) mode only.
 
       // Create a new image.
@@ -456,7 +505,7 @@ namespace Modules
               if (UserBreak)
                 return;
 
-              ImageContext ic = new ImageContext(width, height, 0, y);
+              ImageContext ic = new ImageContext(sc, width, height, 0, y);
               byte* optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
 
               for (int x = 0; x < width; x++)     // one output pixel
@@ -480,7 +529,7 @@ namespace Modules
         else
         {
           // Slow SetPixel code.
-          ImageContext ic = new ImageContext(width, height);
+          ImageContext ic = new ImageContext(sc, width, height);
 
           for (int y = 0; y < height; y++)
           {
@@ -531,7 +580,7 @@ namespace Modules
             if (UserBreak)
               return;
 
-            ImageContext ic = new ImageContext(width, height, 0, y);
+            ImageContext ic = new ImageContext(sc, width, height, 0, y);
             byte* iptr = (byte*)dataIn.Scan0  + y * dataIn.Stride;
             byte* optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
 
@@ -569,7 +618,7 @@ namespace Modules
       else
       {
         // Slow GetPixel-SetPixel code.
-        ImageContext ic = new ImageContext(width, height);
+        ImageContext ic = new ImageContext(sc, width, height);
 
         for (int y = 0; y < height; y++)
         {
