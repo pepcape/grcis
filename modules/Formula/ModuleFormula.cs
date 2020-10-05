@@ -31,10 +31,10 @@ namespace Modules
 
     public ImageContext (int wid, int hei, int _x = 0, int _y = 0)
     {
-      width = wid;
+      width  = wid;
       height = hei;
-      x = _x;
-      y = _y;
+      x      = _x;
+      y      = _y;
     }
 
   }
@@ -45,13 +45,27 @@ namespace Modules
   public class Formula
   {
     /// <summary>
+    /// Pixel creation formula.
+    /// </summary>
+    /// <param name="ic">Image context (pixel position).</param>
+    /// <param name="R">Output Red.</param>
+    /// <param name="G">Output Green.</param>
+    /// <param name="B">Output Blue.</param>
+    public delegate void PixelCreateDelegate (
+      ImageContext ic,
+      out float R,
+      out float G,
+      out float B);
+
+    /// <summary>
     /// Pixel transformation formula w/o context.
     /// </summary>
-    /// <param name="ic">Image context (pixel position)</param>
+    /// <param name="ic">Image context (pixel position).</param>
     /// <param name="R">Input/output Red.</param>
     /// <param name="G">Input/output Green.</param>
     /// <param name="B">Input/output Blue.</param>
-    public delegate void PixelDelegate0 (
+    /// <returns>True if the pixel was changed.</returns>
+    public delegate bool PixelDelegate0 (
       ImageContext ic,
       ref float R,
       ref float G,
@@ -74,10 +88,28 @@ namespace Modules
     }
 
     /// <summary>
+    /// Pixel creation function.
+    /// Ignores Context size.
+    /// Creates pixel color stored as RGB in three floats,
+    /// pixel coordinates are provided in 'ic'.
+    /// </summary>
+    public PixelCreateDelegate pixelCreate = (ImageContext ic, out float R, out float G, out float B) =>
+      {
+        R = ic.x / (float)Math.Max(1, ic.width  - 1);
+        B = ic.y / (float)Math.Max(1, ic.height - 1);
+        G = 0.5f * (R + B);
+      };
+
+    /// <summary>
     /// Context-free pixel transform function.
     /// Used only if Context == 0.
+    /// Recomputes pixel color stored as RGB in three floats,
+    /// input color needs not to be changed.
     /// </summary>
-    public PixelDelegate0 pixelTransform0 = (ImageContext ic, ref float R, ref float G, ref float B) => {};
+    public PixelDelegate0 pixelTransform0 = (ImageContext ic, ref float R, ref float G, ref float B) =>
+      {
+        return false;
+      };
 
   }
 
@@ -108,7 +140,11 @@ namespace Modules
     /// <summary>
     /// Tooltip for Param (text parameters).
     /// </summary>
-    public override string Tooltip => "fast .. fast bitmap access\rscript=<filename> .. CS-script";
+    public override string Tooltip =>
+      "fast/slow .. fast/slow bitmap access\r" +
+      "create .. new image\r" +
+      "wid=<width>, hei=<height>\r" +
+      "script=<filename> .. CS-script";
 
     /// <summary>
     /// Usually read-only, optionally writable (client is defining number of inputs).
@@ -175,26 +211,53 @@ namespace Modules
     protected bool fast = true;
 
     /// <summary>
+    /// If true, 'pixelCreate' is called and input image is ignored.
+    /// </summary>
+    protected bool create = false;
+
+    /// <summary>
+    /// Image width in pixels for the 'create' mode.
+    /// </summary>
+    protected int width = 256;
+
+    /// <summary>
+    /// Image height in pixels for the 'create' mode.
+    /// </summary>
+    protected int height = 256;
+
+    /// <summary>
     /// Recompute the output image[s] according to input image[s].
     /// Blocking (synchronous) function.
     /// #GetOutput() functions can be called after that.
     /// </summary>
     public override void Update ()
     {
-      if (inImage == null)
-        return;
-
       // Used for parameter lookup both here and in the script.
       Dictionary<string, string> p = Util.ParseKeyValueList(param);
 
       // Smart (lazy) parameter parsing hinted by 'paramDirty'
       if (paramDirty)
       {
+        // create[=<bool>]
+        Util.TryParse(p, "create", ref create);
+
+        // wid=<int>
+        if (Util.TryParse(p, "wid", ref width))
+          width = Util.Clamp(width, 1, 16384);
+
+        // hei=<int>
+        if (Util.TryParse(p, "hei", ref height))
+          height = Util.Clamp(height, 1, 16384);
+
         // fast[=<bool>]
         Util.TryParse(p, "fast", ref fast);
 
+        // slow[=<bool>]
+        if (Util.TryParse(p, "slow", ref fast))
+          fast = !fast;
+
         // script=<file-name>
-        if (p.TryGetValue("stript", out string fileName))
+        if (p.TryGetValue("script", out string fileName))
         {
           //!!! TODO: better source-file lookup !!!
           if (string.IsNullOrEmpty(fileName) ||
@@ -204,6 +267,16 @@ namespace Modules
             return;
           }
         }
+      }
+
+      // Check the input image (only for non-create mode).
+      if (!create)
+      {
+        if (inImage == null)
+          return;
+
+        width  = inImage.Width;
+        height = inImage.Height;
       }
 
       // Script compilation 'fileName' -> 'formula'.
@@ -217,14 +290,80 @@ namespace Modules
       }
 
       // Transform the source image into output image.
-      int wid  = inImage.Width;
-      int hei  = inImage.Height;
-      outImage = new Bitmap(wid, hei, PixelFormat.Format24bppRgb);
+      outImage = new Bitmap(width, height, PixelFormat.Format24bppRgb);
 
-      // Transform pixel data, 1:1 (context==0) mode only.
+      // Transform/create pixel data, 1:1 (context==0) mode only.
       int x, y;
       float R, G, B;
 
+      // Create a new image.
+      if (create)
+      {
+        if (fast)
+        {
+          // Fast memory-mapped code.
+          BitmapData dataOut = outImage.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+          unsafe
+          {
+            byte* optr;
+            int dO = Image.GetPixelFormatSize(PixelFormat.Format24bppRgb) / 8;
+
+            for (y = 0; y < height; y++)       // one scanline
+            {
+              // User break handling.
+              if (UserBreak)
+                break;
+
+              ImageContext ic = new ImageContext(width, height, 0, y);
+              optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
+
+              for (x = 0; x < width; x++)     // one output pixel
+              {
+                ic.x = x;
+                formula.pixelCreate(ic, out R, out G, out B);
+
+                optr[0] = (byte)Util.Clamp((int)Math.Round(B * 255.0f), 0, 255);
+                optr[1] = (byte)Util.Clamp((int)Math.Round(G * 255.0f), 0, 255);
+                optr[2] = (byte)Util.Clamp((int)Math.Round(R * 255.0f), 0, 255);
+
+                optr += dO;
+              }
+            }
+          }
+
+          outImage.UnlockBits(dataOut);
+        }
+        else
+        {
+          // Slow GetPixel-SetPixel code.
+          ImageContext ic = new ImageContext(width, height);
+
+          for (y = 0; y < height; y++)
+          {
+            // User break handling.
+            if (UserBreak)
+              break;
+
+            ic.y = y;
+
+            for (x = 0; x < width; x++)
+            {
+              ic.x = x;
+              formula.pixelCreate(ic, out R, out G, out B);
+
+              Color oColor = Color.FromArgb(
+                Util.Clamp((int)Math.Round(R * 255.0f), 0, 255),
+                Util.Clamp((int)Math.Round(G * 255.0f), 0, 255),
+                Util.Clamp((int)Math.Round(B * 255.0f), 0, 255));
+
+              outImage.SetPixel(x, y, oColor);
+            }
+          }
+        }
+        return;
+      }
+
+      // Transform the 'inImage'.
       if (fast)
       {
         // Fast memory-mapped code.
@@ -235,36 +374,43 @@ namespace Modules
             !PixelFormat.Format32bppRgb.Equals(iFormat))
           iFormat = PixelFormat.Format24bppRgb;
 
-        BitmapData dataIn  = inImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.ReadOnly, iFormat);
-        BitmapData dataOut = outImage.LockBits(new Rectangle(0, 0, wid, hei), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+        BitmapData dataIn  = inImage.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, iFormat);
+        BitmapData dataOut = outImage.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
         unsafe
         {
           byte* iptr, optr;
           int dI = Image.GetPixelFormatSize(iFormat) / 8;
           int dO = Image.GetPixelFormatSize(PixelFormat.Format24bppRgb) / 8;
 
-          for (y = 0; y < hei; y++)       // one scanline
+          for (y = 0; y < height; y++)       // one scanline
           {
             // User break handling.
             if (UserBreak)
               break;
 
-            ImageContext ic = new ImageContext(wid, hei, 0, y);
+            ImageContext ic = new ImageContext(width, height, 0, y);
             iptr = (byte*)dataIn.Scan0 +  y * dataIn.Stride;
             optr = (byte*)dataOut.Scan0 + y * dataOut.Stride;
 
-            for (x = 0; x < wid; x++)     // one output pixel
+            for (x = 0; x < width; x++)     // one output pixel
             {
               B = iptr[0] * (1.0f / 255.0f);
               G = iptr[1] * (1.0f / 255.0f);
               R = iptr[2] * (1.0f / 255.0f);
 
               ic.x = x;
-              formula.pixelTransform0(ic, ref R, ref G, ref B);
-
-              optr[0] = (byte)Util.Clamp((int)Math.Round(B * 255.0f), 0, 255);
-              optr[1] = (byte)Util.Clamp((int)Math.Round(G * 255.0f), 0, 255);
-              optr[2] = (byte)Util.Clamp((int)Math.Round(R * 255.0f), 0, 255);
+              if (formula.pixelTransform0(ic, ref R, ref G, ref B))
+              {
+                optr[0] = (byte)Util.Clamp((int)Math.Round(B * 255.0f), 0, 255);
+                optr[1] = (byte)Util.Clamp((int)Math.Round(G * 255.0f), 0, 255);
+                optr[2] = (byte)Util.Clamp((int)Math.Round(R * 255.0f), 0, 255);
+              }
+              else
+              {
+                optr[0] = iptr[0];
+                optr[1] = iptr[1];
+                optr[2] = iptr[2];
+              }
 
               iptr += dI;
               optr += dO;
@@ -278,9 +424,9 @@ namespace Modules
       else
       {
         // Slow GetPixel-SetPixel code.
-        ImageContext ic = new ImageContext(wid, hei);
+        ImageContext ic = new ImageContext(width, height);
 
-        for (y = 0; y < hei; y++)
+        for (y = 0; y < height; y++)
         {
           // User break handling.
           if (UserBreak)
@@ -288,7 +434,7 @@ namespace Modules
 
           ic.y = y;
 
-          for (x = 0; x < wid; x++)
+          for (x = 0; x < width; x++)
           {
             Color color = inImage.GetPixel(x, y);
             R = color.R * (1.0f / 255.0f);
@@ -296,13 +442,17 @@ namespace Modules
             B = color.B * (1.0f / 255.0f);
 
             ic.x = x;
-            formula.pixelTransform0(ic, ref R, ref G, ref B);
+            if (formula.pixelTransform0(ic, ref R, ref G, ref B))
+            {
+              Color oColor = Color.FromArgb(
+                Util.Clamp((int)Math.Round(R * 255.0f), 0, 255),
+                Util.Clamp((int)Math.Round(G * 255.0f), 0, 255),
+                Util.Clamp((int)Math.Round(B * 255.0f), 0, 255));
 
-            Color oColor = Color.FromArgb(
-              Util.Clamp((int)Math.Round(R * 255.0f), 0, 255),
-              Util.Clamp((int)Math.Round(G * 255.0f), 0, 255),
-              Util.Clamp((int)Math.Round(B * 255.0f), 0, 255));
-            outImage.SetPixel(x, y, oColor);
+              outImage.SetPixel(x, y, oColor);
+            }
+            else
+              outImage.SetPixel(x, y, color);
           }
         }
       }
