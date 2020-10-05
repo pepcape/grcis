@@ -323,8 +323,7 @@ namespace Modules
     /// </summary>
     /// <param name="notify">Optional notification handler.</param>
     public virtual void UpdateAsync (
-      NotifyHandler notify = null
-      )
+      NotifyHandler notify = null)
     {
       lock (this)
       {

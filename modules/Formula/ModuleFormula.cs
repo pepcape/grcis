@@ -1,12 +1,20 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using Utilities;
 
 namespace Modules
 {
+  using ScriptContext = Dictionary<string, object>;
+
   public class ImageContext
   {
     /// <summary>
@@ -110,7 +118,27 @@ namespace Modules
       {
         return false;
       };
+  }
 
+  /// <summary>
+  /// Global variables for formula scripts.
+  /// </summary>
+  public class Globals
+  {
+    /// <summary>
+    /// Formula lambdas to define.
+    /// </summary>
+    public Formula formula;
+
+    /// <summary>
+    /// Optional text parameter (usually from form's 'Params:' field).
+    /// </summary>
+    public string param;
+
+    /// <summary>
+    /// Parameter map for passing values in/out of the script.
+    /// </summary>
+    public ScriptContext context;
   }
 
   /// <summary>
@@ -192,6 +220,14 @@ namespace Modules
     public override Bitmap GetOutput (
       int slot = 0) => outImage;
 
+    /// <summary>
+    /// Returns an optional output message.
+    /// Can return null.
+    /// </summary>
+    /// <param name="slot">Slot number from 0 to OutputSlots-1.</param>
+    public override string GetOutputMessage (
+      int slot = 0) => message;
+
     //==========================================
     //--- Formula parsed from CS-script file ---
 
@@ -226,6 +262,16 @@ namespace Modules
     protected int height = 256;
 
     /// <summary>
+    /// File-name of the script. Can be empty for testing.
+    /// </summary>
+    protected string scriptFileName = "";
+
+    /// <summary>
+    /// Current script file content (to prevent redundant script compiling).
+    /// </summary>
+    protected string scriptSource = "";
+
+    /// <summary>
     /// Recompute the output image[s] according to input image[s].
     /// Blocking (synchronous) function.
     /// #GetOutput() functions can be called after that.
@@ -239,7 +285,8 @@ namespace Modules
       if (paramDirty)
       {
         // create[=<bool>]
-        Util.TryParse(p, "create", ref create);
+        if (!Util.TryParse(p, "create", ref create))
+          create = false;
 
         // wid=<int>
         if (Util.TryParse(p, "wid", ref width))
@@ -249,6 +296,7 @@ namespace Modules
         if (Util.TryParse(p, "hei", ref height))
           height = Util.Clamp(height, 1, 16384);
 
+        fast = true;
         // fast[=<bool>]
         Util.TryParse(p, "fast", ref fast);
 
@@ -266,6 +314,8 @@ namespace Modules
             message = $"Invalid file '{fileName}'";
             return;
           }
+
+          scriptFileName = fileName;
         }
       }
 
@@ -280,12 +330,107 @@ namespace Modules
       }
 
       // Script compilation 'fileName' -> 'formula'.
-      //!!! TODO: not yet !!!
+      if (!string.IsNullOrEmpty(scriptFileName) &&
+          File.Exists(scriptFileName))
+      {
+        string newSource = null;
+        bool ok = true;
+        message = "";
+
+        // Measure the script compile+run time.
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+
+        try
+        {
+          newSource = File.ReadAllText(scriptFileName);
+        }
+        catch (IOException)
+        {
+          message = $"Warning: I/O error in script read: '{scriptFileName}'";
+          newSource = null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+          message = $"Warning: access error in scene read: '{scriptFileName}'";
+          newSource = null;
+        }
+
+        if (!string.IsNullOrEmpty(newSource) &&
+            newSource != scriptSource)
+        {
+          // interpret the CS-script defining the scene:
+          var assemblyNames = Assembly.GetExecutingAssembly().GetReferencedAssemblies();
+
+          List<Assembly> assemblies = new List<Assembly>();
+          assemblies.Add(Assembly.GetExecutingAssembly());
+          foreach (var assemblyName in assemblyNames)
+            assemblies.Add(Assembly.Load(assemblyName));
+
+          // Standard usings = imports.
+          List<string> imports = new List<string>
+          {
+            "System",
+            "System.Diagnostics",
+            "System.Collections.Generic",
+            "OpenTK",
+            "MathSupport",
+            "Raster",
+            "Utilities",
+            "Modules"
+          };
+
+          ScriptContext ctx = new ScriptContext();
+
+          // Global variables for the script.
+          Globals globals = new Globals
+          {
+            formula = formula,
+            param   = param,
+            context = ctx,
+          };
+          //!!! TODO: set 'ctx' values if needed ???
+
+          try
+          {
+            var task = CSharpScript.RunAsync(
+              newSource,
+              globals: globals,
+              options: ScriptOptions.Default.WithReferences(assemblies).AddImports(imports));
+
+            Task.WaitAll(task);
+          }
+          catch (CompilationErrorException e)
+          {
+            MessageBox.Show($"Error compiling script: {e.Message}, using defaults", "CSscript Error");
+            ok = false;
+          }
+          catch (AggregateException e)
+          {
+            MessageBox.Show($"Error running script: {e.InnerException.Message}, using defaults", "CSscript Error");
+            ok = false;
+          }
+        }
+
+        if (ok)
+        {
+          long elapsed = sw.ElapsedMilliseconds;
+          message = $"Script '{scriptFileName}' finished ok ({elapsed}ms)";
+          scriptSource = newSource;
+        }
+        else
+        {
+          // Defaults.
+          formula = new Formula();
+          scriptSource = "";
+        }
+      }
 
       if (formula == null ||
-          formula.pixelTransform0 == null)
+          ( create && formula.pixelCreate == null) ||
+          (!create && formula.pixelTransform0 == null))
       {
-        message = $"Missing formula.pixelTransform0() function ({fileName})";
+        message = $"Missing formula.pixelTransform0/pixelCreate() function ({fileName})";
         return;
       }
 

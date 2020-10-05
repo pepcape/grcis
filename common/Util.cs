@@ -91,6 +91,30 @@ namespace Utilities
     }
 
     /// <summary>
+    /// Clamp the value to the range [0,1].
+    /// </summary>
+    public static float Saturate (float val)
+    {
+      if (val < 0.0f)
+        return 0.0f;
+      if (val > 1.0f)
+        return 1.0f;
+      return val;
+    }
+
+    /// <summary>
+    /// Clamp the value to the range [0,1].
+    /// </summary>
+    public static double Saturate (double val)
+    {
+      if (val < 0.0)
+        return 0.0;
+      if (val > 1.0)
+        return 1.0;
+      return val;
+    }
+
+    /// <summary>
     /// Returns number of bits set in the given mask
     /// </summary>
     public static int bits (int i)
