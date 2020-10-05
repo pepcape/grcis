@@ -539,7 +539,12 @@ namespace _117raster
 
     private void labelStatus_MouseHover (object sender, EventArgs e)
     {
-      tt.Show(Util.TargetFramework + " (" + Util.RunningFramework + ')', (IWin32Window)sender,
+      StringBuilder sb = new StringBuilder();
+      sb.Append(Util.TargetFramework)
+        .Append(" (").Append(Util.RunningFramework).Append(") ")
+        .Append(Environment.ProcessorCount).Append(" cores");
+
+      tt.Show(sb.ToString(), (IWin32Window)sender,
               10, -30, 2000);
     }
 
@@ -859,6 +864,27 @@ namespace _117raster
         titleMiddle = "";
         SetText("Input cleared.");
       }
+    }
+
+    private void checkBoxResult_MouseHover (object sender, EventArgs e)
+    {
+      Bitmap im = checkBoxResult.Checked
+        ? outputImage
+        : inputImage;
+
+      if (im == null)
+        return;
+
+      StringBuilder sb = new StringBuilder();
+      sb.Append(checkBoxResult.Checked ? "output" : "input")
+        .Append('[')
+        .Append(im.Width)
+        .Append('x')
+        .Append(im.Height)
+        .Append(']');
+
+      tt.Show(sb.ToString(), (IWin32Window)sender,
+              10, -24, 3000);
     }
   }
 }

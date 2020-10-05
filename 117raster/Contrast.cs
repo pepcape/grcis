@@ -1,7 +1,4 @@
 // Default = contrast enhancing function.
-
-using System;
-
 formula.pixelTransform0 = (
   ImageContext ic,
   ref float R,
@@ -25,7 +22,7 @@ formula.pixelCreate = (
   double x = ic.x / (double)Math.Max(1, ic.width  - 1);
   double y = ic.y / (double)Math.Max(1, ic.height - 1);
 
-  // I need uniform scale (x-scale == y-scale).
+  // I need uniform scale (x-scale == y-scale) with origin at the image center.
   if (ic.width > ic.height)
   {
     // Landscape.
@@ -43,13 +40,13 @@ formula.pixelCreate = (
   x *= 12;
   y *= 12;
 
-  // sinc function: sin(x) / x
+  // sinc(x) = sin(x) / x
   // I'm using sinc(r^2) here..
   double rr = Math.Max(double.Epsilon, x * x + y * y);
   double v = Math.Sin(rr) / rr;
 
-  // Simple color palette (blue -> red).
-  R = (float)Util.Saturate(0.6 * (v + 0.5));
-  G = (float)Util.Saturate(0.5 * (0.5 - v));
-  B = (float)Util.Saturate(1.2 * (0.5 - v));
+  // Simple color palette (green -> red).
+  R = (float)Util.Saturate(0.65 * (v + 0.5));
+  G = (float)Util.Saturate(1.40 * (0.5 - v));
+  B = (float)Util.Saturate(0.65 * (0.5 - v));
 };

@@ -154,6 +154,7 @@
       this.checkBoxResult.Text = "result";
       this.checkBoxResult.UseVisualStyleBackColor = true;
       this.checkBoxResult.CheckedChanged += new System.EventHandler(this.checkBoxResult_CheckedChanged);
+      this.checkBoxResult.MouseHover += new System.EventHandler(this.checkBoxResult_MouseHover);
       // 
       // label2
       // 

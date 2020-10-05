@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
-using System.Text;
 using System.Threading.Tasks;
 using Utilities;
 
@@ -34,7 +33,8 @@ namespace Modules
     /// <summary>
     /// Tooltip for Param (text parameters).
     /// </summary>
-    public override string Tooltip => "[dH=<double>][,mulS=<double>][,mulV=<double>][,gamma=<double>][,slow][,par]\n... dH is absolute, mS, mV, dGamma relative";
+    public override string Tooltip =>
+      "[dH=<double>][,mulS=<double>][,mulV=<double>]\r[,gamma=<double>][,slow][,par]\r... dH is absolute, mS, mV, dGamma relative";
 
     /// <summary>
     /// Usually read-only, optionally writable (client is defining number of inputs).
@@ -261,9 +261,9 @@ namespace Modules
             }
 
             Color oc = Color.FromArgb(
-            Convert.ToInt32(Util.Clamp(R * 255.0, 0.0, 255.0)),
-            Convert.ToInt32(Util.Clamp(G * 255.0, 0.0, 255.0)),
-            Convert.ToInt32(Util.Clamp(B * 255.0, 0.0, 255.0)));
+              Convert.ToInt32(255.0 * Util.Saturate(R)),
+              Convert.ToInt32(255.0 * Util.Saturate(G)),
+              Convert.ToInt32(255.0 * Util.Saturate(B)));
 
             outImage.SetPixel(x, y, oc);
           }
@@ -286,7 +286,7 @@ namespace Modules
           int dI = Image.GetPixelFormatSize(iFormat) / 8;
           int dO = Image.GetPixelFormatSize(PixelFormat.Format24bppRgb) / 8;
 
-          Action<int> inner = y =>
+          void inner (int y)
           {
             // User break handling.
             if (UserBreak)
@@ -304,13 +304,17 @@ namespace Modules
               // iptr, optr -> [B,G,R]
 
               // Conversion to HSV.
-              Arith.RGBtoHSV(iptr[2] / 255.0, iptr[1] / 255.0, iptr[0] / 255.0, out H, out S, out V);
+              Arith.RGBtoHSV(
+                iptr[2] / 255.0,
+                iptr[1] / 255.0,
+                iptr[0] / 255.0,
+                out H, out S, out V);
               // 0 <= H <= 360, 0 <= S <= 1, 0 <= V <= 1
 
               // HSV transform.
               H = H + dH;
-              S = Util.Clamp(S * mS, 0.0, 1.0);
-              V = Util.Clamp(V * mV, 0.0, 1.0);
+              S = Util.Saturate(S * mS);
+              V = Util.Saturate(V * mV);
 
               // Conversion back to RGB.
               Arith.HSVToRGB(H, S, V, out R, out G, out B);
@@ -325,11 +329,11 @@ namespace Modules
                 B = Math.Pow(B, gam);
               }
 
-              optr[0] = Convert.ToByte(Util.Clamp(B * 255.0, 0.0, 255.0));
-              optr[1] = Convert.ToByte(Util.Clamp(G * 255.0, 0.0, 255.0));
-              optr[2] = Convert.ToByte(Util.Clamp(R * 255.0, 0.0, 255.0));
+              optr[0] = Convert.ToByte(255.0 * Util.Saturate(B));
+              optr[1] = Convert.ToByte(255.0 * Util.Saturate(G));
+              optr[2] = Convert.ToByte(255.0 * Util.Saturate(R));
             }
-          };
+          }
 
           if (parallel)
             Parallel.For(0, hei, inner);
