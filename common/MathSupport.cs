@@ -200,6 +200,49 @@ namespace MathSupport
     }
 
     /// <summary>
+    /// Converts a RGB color (float values) to the HSV representation (float values).
+    /// </summary>
+    /// <param name="R">Red color component (arbitrary non-negative value).</param>
+    /// <param name="G">Green color component (arbitrary non-negative value).</param>
+    /// <param name="B">Blue color component (arbitrary non-negative value).</param>
+    /// <param name="hue">Hue from range [0.0, 360.0), in degrees.</param>
+    /// <param name="saturation">Saturation from range [0.0, 1.0]. 1.0 means pure saturated color.</param>
+    /// <param name="value">Value from the same range as input RGB values (value = max{R, G, B}).</param>
+    public static void RGBtoHSV (
+      float R, float G, float B,
+      out float hue, out float saturation, out float value)
+    {
+      float max = Math.Max(R, Math.Max(G, B));
+      float min = Math.Min(R, Math.Min(G, B));
+      float delta = max - min;
+
+      // Saturation and value are easy.
+      saturation = (max <= 0.0f) ? 0.0f : delta / max;
+      value = max;
+
+      // Hue.
+      if (delta > 0.0f)
+      {
+        if (R == max)
+          hue = (G - B) / delta;
+        else if (G == max)
+          hue = 2.0f + (B - R) / delta;
+        else
+          hue = 4.0f + (R - G) / delta;
+
+        // To degrees.
+        hue *= 60.0f;
+        if (hue < 0.0)
+          hue += 360.0f;
+        else
+        if (hue >= 360.0f)
+          hue -= 360.0f;
+      }
+      else
+        hue = 0.0f;
+    }
+
+    /// <summary>
     /// Converts a HSV color (double values) to the RGB representation (double values).
     /// </summary>
     /// <param name="hue">Hue from range [0.0, 360.0), in degrees.</param>
@@ -208,7 +251,7 @@ namespace MathSupport
     /// <param name="R">Red color component from [0.0, value] range.</param>
     /// <param name="G">Green color component from [0.0, value] range.</param>
     /// <param name="B">Blue color component from [0.0, value] range.</param>
-    public static void HSVToRGB (
+    public static void HSVtoRGB (
       double hue, double saturation, double value,
       out double R, out double G, out double B)
     {
@@ -220,6 +263,51 @@ namespace MathSupport
       double p = Math.Max(value * (1.0 - saturation), 0.0);
       double q = Math.Max(value * (1.0 - f * saturation), 0.0);
       double t = Math.Max(value * (1.0 - (1.0 - f) * saturation), 0.0);
+
+      switch (hi)
+      {
+        case 0:
+          R = v; G = t; B = p;
+          break;
+        case 1:
+          R = q; G = v; B = p;
+          break;
+        case 2:
+          R = p; G = v; B = t;
+          break;
+        case 3:
+          R = p; G = q; B = v;
+          break;
+        case 4:
+          R = t; G = p; B = v;
+          break;
+        default:
+          R = v; G = p; B = q;
+          break;
+      }
+    }
+
+    /// <summary>
+    /// Converts a HSV color (float values) to the RGB representation (float values).
+    /// </summary>
+    /// <param name="hue">Hue from range [0.0, 360.0), in degrees.</param>
+    /// <param name="saturation">Saturation from range [0.0, 1.0]. 1.0 means pure saturated color.</param>
+    /// <param name="value">Value - arbitrary non-negative value.</param>
+    /// <param name="R">Red color component from [0.0, value] range.</param>
+    /// <param name="G">Green color component from [0.0, value] range.</param>
+    /// <param name="B">Blue color component from [0.0, value] range.</param>
+    public static void HSVtoRGB (
+      float hue, float saturation, float value,
+      out float R, out float G, out float B)
+    {
+      int hi = Convert.ToInt32(Math.Floor(hue / 60.0));
+      hi = (hi < 0) ? (hi % 6 + 6) % 6 : hi % 6;
+      float f = hue / 60.0f - (float)Math.Floor(hue / 60.0);
+
+      float v = Math.Max(value, 0.0f);
+      float p = Math.Max(value * (1.0f - saturation), 0.0f);
+      float q = Math.Max(value * (1.0f - f * saturation), 0.0f);
+      float t = Math.Max(value * (1.0f - (1.0f - f) * saturation), 0.0f);
 
       switch (hi)
       {

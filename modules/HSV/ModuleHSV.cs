@@ -244,11 +244,11 @@ namespace Modules
 
             // HSV transform.
             H = H + dH;
-            S = Util.Clamp(S * mS, 0.0, 1.0);
-            V = Util.Clamp(V * mV, 0.0, 1.0);
+            S = Util.Saturate(S * mS);
+            V = Util.Saturate(V * mV);
 
             // Conversion back to RGB.
-            Arith.HSVToRGB(H, S, V, out R, out G, out B);
+            Arith.HSVtoRGB(H, S, V, out R, out G, out B);
             // [R,G,B] is from [0.0, 1.0]^3
 
             // Optional gamma correction.
@@ -317,7 +317,7 @@ namespace Modules
               V = Util.Saturate(V * mV);
 
               // Conversion back to RGB.
-              Arith.HSVToRGB(H, S, V, out R, out G, out B);
+              Arith.HSVtoRGB(H, S, V, out R, out G, out B);
               // [R,G,B] is from [0.0, 1.0]^3
 
               // Optional gamma correction.

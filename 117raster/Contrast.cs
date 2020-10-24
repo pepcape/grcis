@@ -8,6 +8,8 @@ formula.pixelTransform0 = (
   R = Util.Saturate(0.5f + 1.3f * (R - 0.5f));
   G = Util.Saturate(0.5f + 1.3f * (G - 0.5f));
   B = Util.Saturate(0.5f + 1.3f * (B - 0.5f));
+
+  // Output color was modified.
   return true;
 };
 

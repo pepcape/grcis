@@ -41,6 +41,8 @@ formula.pixelTransform0 = (
   float b = Util.Saturate(R * coeff          + B * (1.0f - coeff));
   R = r;
   B = b;
+
+  // Output color was modified.
   return true;
 };
 
