@@ -876,8 +876,8 @@ namespace _117raster
         return;
 
       StringBuilder sb = new StringBuilder();
-      sb.Append(checkBoxResult.Checked ? "output" : "input")
-        .Append('[')
+      sb.Append(checkBoxResult.Checked ? "output" : inputImageFileName)
+        .Append(" [")
         .Append(im.Width)
         .Append('x')
         .Append(im.Height)

@@ -85,6 +85,8 @@ Old tasks:
 120 (task only, restricted color transform, 2019)
 121 (task only, full-color image, 2019)
 122 (task only, procedural 3D scene from lines, 2019)
+123 (task only, procedural 2D image, 2020)
+124 (task only, color transformation by formula, 2020)
 ...
 
 ================================================================================
