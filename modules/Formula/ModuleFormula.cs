@@ -73,7 +73,7 @@ namespace Modules
     /// <param name="G">Output Green.</param>
     /// <param name="B">Output Blue.</param>
     public delegate void PixelCreateDelegate (
-      ImageContext ic,
+      in ImageContext ic,
       out float R,
       out float G,
       out float B);
@@ -87,7 +87,7 @@ namespace Modules
     /// <param name="B">Input/output Blue.</param>
     /// <returns>True if the pixel was changed.</returns>
     public delegate bool PixelDelegate0 (
-      ImageContext ic,
+      in ImageContext ic,
       ref float R,
       ref float G,
       ref float B);
@@ -120,7 +120,7 @@ namespace Modules
     /// Creates pixel color stored as RGB in three floats,
     /// pixel coordinates are provided in 'ic'.
     /// </summary>
-    public PixelCreateDelegate pixelCreate = (ImageContext ic, out float R, out float G, out float B) =>
+    public PixelCreateDelegate pixelCreate = (in ImageContext ic, out float R, out float G, out float B) =>
       {
         R = ic.x / (float)Math.Max(1, ic.width  - 1);
         B = ic.y / (float)Math.Max(1, ic.height - 1);
@@ -133,7 +133,7 @@ namespace Modules
     /// Recomputes pixel color stored as RGB in three floats,
     /// input color needs not to be changed.
     /// </summary>
-    public PixelDelegate0 pixelTransform0 = (ImageContext ic, ref float R, ref float G, ref float B) =>
+    public PixelDelegate0 pixelTransform0 = (in ImageContext ic, ref float R, ref float G, ref float B) =>
       {
         return false;
       };

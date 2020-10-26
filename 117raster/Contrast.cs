@@ -1,6 +1,6 @@
 // Default = contrast enhancing function.
 formula.pixelTransform0 = (
-  ImageContext ic,
+  in ImageContext ic,
   ref float R,
   ref float G,
   ref float B) =>
@@ -15,7 +15,7 @@ formula.pixelTransform0 = (
 
 // Test create function: sinc(r^2)
 formula.pixelCreate = (
-  ImageContext ic,
+  in ImageContext ic,
   out float R,
   out float G,
   out float B) =>

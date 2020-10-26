@@ -1,6 +1,4 @@
 // Text params -> script context.
-using System;
-
 formula.contextCreate = (in string param) =>
 {
   if (string.IsNullOrEmpty(param))
@@ -29,7 +27,7 @@ formula.contextCreate = (in string param) =>
 
 // R <-> B channel swap with weights.
 formula.pixelTransform0 = (
-  ImageContext ic,
+  in ImageContext ic,
   ref float R,
   ref float G,
   ref float B) =>
@@ -48,7 +46,7 @@ formula.pixelTransform0 = (
 
 // Test create function: sinc(r^2)
 formula.pixelCreate = (
-  ImageContext ic,
+  in ImageContext ic,
   out float R,
   out float G,
   out float B) =>
