@@ -63,6 +63,7 @@ namespace Modules
     /// </summary>
     /// <returns>Can be null.</returns>
     public delegate ScriptContext ScriptContextCreateDelegate (
+      in Bitmap input,
       in string param);
 
     /// <summary>
@@ -112,7 +113,7 @@ namespace Modules
     /// Script-context created from a text field 'param'.
     /// Will be called only once for a picture update.
     /// </summary>
-    public ScriptContextCreateDelegate contextCreate = (in string param) => null;
+    public ScriptContextCreateDelegate contextCreate = (in Bitmap input, in string param) => null;
 
     /// <summary>
     /// Pixel creation function.
@@ -418,6 +419,7 @@ namespace Modules
           {
             "System",
             "System.Diagnostics",
+            "System.Drawing",
             "System.Collections.Generic",
             "OpenTK",
             "MathSupport",
@@ -484,7 +486,7 @@ namespace Modules
       outImage = new Bitmap(width, height, PixelFormat.Format24bppRgb);
 
       // Shared script-context.
-      ScriptContext sc = formula.contextCreate?.Invoke(param) ?? new ScriptContext();
+      ScriptContext sc = formula.contextCreate?.Invoke(inImage, param) ?? new ScriptContext();
 
       // Transform/create pixel data, 1:1 (context==0) mode only.
 

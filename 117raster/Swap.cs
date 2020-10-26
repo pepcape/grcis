@@ -1,5 +1,6 @@
 // Text params -> script context.
-formula.contextCreate = (in string param) =>
+// Any global pre-processing is allowed here.
+formula.contextCreate = (in Bitmap input, in string param) =>
 {
   if (string.IsNullOrEmpty(param))
     return null;
