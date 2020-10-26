@@ -20,8 +20,10 @@ formula.contextCreate = (in Bitmap input, in string param) =>
     freq = Util.Clamp(freq, 0.01f, 1000.0f);
 
   Dictionary<string, object> sc = new Dictionary<string, object>();
-  sc["coeff"] = coeff;
-  sc["freq"]  = freq;
+  sc["coeff"]   = coeff;
+  sc["freq"]    = freq;
+  sc["tooltip"] = "coeff=<float> .. swap coefficient (0.0 - no swap, 1.0 - complete swap)\r" +
+                  "freq=<float> .. density frequency for image generation (default=12)";
 
   return sc;
 };

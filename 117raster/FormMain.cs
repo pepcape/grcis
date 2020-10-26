@@ -193,6 +193,16 @@ namespace _117raster
         labelStatus.Text = text;
     }
 
+    public void UpdateTooltip ()
+    {
+      if (currModule != null)
+      {
+        tooltip = currModule.Tooltip;
+        if (!string.IsNullOrEmpty(currModule.Tooltip2))
+          tooltip += "\r" + currModule.Tooltip2;
+      }
+    }
+
     /// <summary>
     /// Displays pixel coordinates & color in the status line.
     /// </summary>
@@ -375,6 +385,8 @@ namespace _117raster
                       0.001 * elapsed,
                       string.IsNullOrEmpty(message) ? "" : $", {message}"));
         DefaultRasterModule.UserBreak = false;
+
+        form?.UpdateTooltip();
 
         // Gui is already visible (if applicable). See Start()
         // !!! TODO: needs check ???
@@ -719,7 +731,7 @@ namespace _117raster
 
           // Form elements.
           textBoxParam.Text = currModule.Param;
-          tooltip = currModule.Tooltip;
+          UpdateTooltip();
           buttonModule.Text = "Deactivate module";
           buttonShowGUI.Enabled = true;
 
@@ -802,7 +814,7 @@ namespace _117raster
 
           // Form.
           textBoxParam.Text = currModule.Param;
-          tooltip = currModule.Tooltip;
+          UpdateTooltip();
           buttonModule.Text = "Deactivate module";
 
           currModule.GuiWindow = true;

@@ -32,6 +32,11 @@ namespace Modules
     string Tooltip { get; }
 
     /// <summary>
+    /// Dynamic tooltip (can depend on the actual Param: field).
+    /// </summary>
+    string Tooltip2 { get; }
+
+    /// <summary>
     /// Current 'Param' string is stored in the module.
     /// Set reasonable initial value.
     /// </summary>
@@ -219,6 +224,11 @@ namespace Modules
     /// Tooltip for Param (text parameters).
     /// </summary>
     public virtual string Tooltip => "-- no params --";
+
+    /// <summary>
+    /// Dynamic tooltip (can depend on the actual Param: field).
+    /// </summary>
+    public virtual string Tooltip2 => "";
 
     /// <summary>
     /// Not-null while an async update (UpdateAsync() or PixelUpdateAsync()) is running.

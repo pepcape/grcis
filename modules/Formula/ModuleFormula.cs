@@ -194,6 +194,13 @@ namespace Modules
       "wid=<width>, hei=<height>\r" +
       "script=<filename> .. CS-script";
 
+    protected string tooltip2 = "";
+
+    /// <summary>
+    /// Specific tooltip (script-dependent).
+    /// </summary>
+    public override string Tooltip2 => tooltip2;
+
     /// <summary>
     /// Usually read-only, optionally writable (client is defining number of inputs).
     /// </summary>
@@ -428,7 +435,10 @@ namespace Modules
             "Modules"
           };
 
+          // Reset values for the script.
           ScriptContext ctx = new ScriptContext();
+          //!!! TODO: set 'ctx' values if needed ???
+          formula = new Formula();
 
           // Global variables for the script.
           Globals globals = new Globals
@@ -437,8 +447,8 @@ namespace Modules
             param   = param,
             context = ctx,
           };
-          //!!! TODO: set 'ctx' values if needed ???
 
+          // Compile & run the script.
           try
           {
             var task = CSharpScript.RunAsync(
@@ -487,6 +497,10 @@ namespace Modules
 
       // Shared script-context.
       ScriptContext sc = formula.contextCreate?.Invoke(inImage, param) ?? new ScriptContext();
+
+      // Update specific tooltip2.
+      if (!Util.TryParse(sc, "tooltip", ref tooltip2))
+        tooltip2 = "";
 
       // Transform/create pixel data, 1:1 (context==0) mode only.
 
