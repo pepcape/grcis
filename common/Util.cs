@@ -1236,7 +1236,7 @@ namespace Utilities
     /// </summary>
     public static List<int> ParseIntList (string value, char sep = COMMA)
     {
-      if (value == null || value.Length < 1)
+      if (string.IsNullOrEmpty(value))
         return null;
 
       string[] list;
@@ -1252,7 +1252,7 @@ namespace Utilities
 
       int len;
       if (list == null ||
-           (len = list.Length) < 1)
+          (len = list.Length) < 1)
         return null;
 
       List<int> result = new List<int>(len);
@@ -1260,6 +1260,11 @@ namespace Utilities
       for (int i = 0; i < len; i++)
         if (int.TryParse(list[i], out newVal))
           result.Add(newVal);
+        else
+          if (string.IsNullOrEmpty(list[i]))
+            result.Add(0);
+          else
+            return null;
 
       return result;
     }
@@ -1269,7 +1274,7 @@ namespace Utilities
     /// </summary>
     public static List<float> ParseFloatList (string value, char sep = COMMA)
     {
-      if (value == null || value.Length < 1)
+      if (string.IsNullOrEmpty(value))
         return null;
 
       string[] list;
@@ -1293,6 +1298,11 @@ namespace Utilities
       for (int i = 0; i < len; i++)
         if (float.TryParse(list[i], NumberStyles.Float, CultureInfo.InvariantCulture, out newVal))
           result.Add(newVal);
+        else
+          if (string.IsNullOrEmpty(list[i]))
+            result.Add(0.0f);
+          else
+            return null;
 
       return result;
     }
@@ -1302,7 +1312,7 @@ namespace Utilities
     /// </summary>
     public static List<double> ParseDoubleList (string value, char sep = COMMA)
     {
-      if (value == null || value.Length < 1)
+      if (string.IsNullOrEmpty(value))
         return null;
 
       string[] list;
@@ -1326,6 +1336,11 @@ namespace Utilities
       for (int i = 0; i < len; i++)
         if (double.TryParse(list[i], NumberStyles.Float, CultureInfo.InvariantCulture, out newVal))
           result.Add(newVal);
+        else
+          if (string.IsNullOrEmpty(list[i]))
+            result.Add(0.0);
+          else
+            return null;
 
       return result;
     }
@@ -1830,7 +1845,27 @@ namespace Utilities
           !rec.TryGetValue(key, out string sval))
         return false;
 
-      val = ParseDoubleList(sval, sep);
+      List<double> result = ParseDoubleList(sval, sep);
+      if (result == null)
+        return false;
+      val = result;
+      return true;
+    }
+
+    /// <summary>
+    /// Parses list of floats from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
+    public static bool TryParse (Dictionary<string, string> rec, string key, ref List<float> val, char sep = COMMA)
+    {
+      if (rec == null ||
+          !rec.TryGetValue(key, out string sval))
+        return false;
+
+      List<float> result = ParseFloatList(sval, sep);
+      if (result == null)
+        return false;
+      val = result;
       return true;
     }
 
@@ -1844,8 +1879,47 @@ namespace Utilities
           !rec.TryGetValue(key, out string sval))
         return false;
 
-      val = ParseIntList(sval, sep);
+      List<int> result = ParseIntList(sval, sep);
+      if (result == null)
+        return false;
+      val = result;
       return true;
+    }
+
+    /// <summary>
+    /// Parses list of three color components from the dictionary.
+    /// </summary>
+    /// <returns>True if everything went well, keeps the original value otherwise.</returns>
+    public static bool TryParse (Dictionary<string, string> rec, string key, ref float R, ref float G, ref float B, char sep = COMMA)
+    {
+      if (rec == null ||
+          !rec.TryGetValue(key, out string sval))
+        return false;
+
+      List<int> resulti = ParseIntList(sval, sep);
+      if (resulti != null)
+      {
+        // Integer color components from [0, 255]
+        if (resulti.Count < 3)
+          return false;
+        R = Saturate(resulti[0] / 255.0f);
+        G = Saturate(resulti[1] / 255.0f);
+        B = Saturate(resulti[2] / 255.0f);
+        return true;
+      }
+
+      List<float> resultf = ParseFloatList(sval, sep);
+      if (resultf != null &&
+          resultf.Count >= 3)
+      {
+        // Floating color components w/o limits (for HDR).
+        R = Math.Max(0.0f, resultf[0]);
+        G = Math.Max(0.0f, resultf[1]);
+        B = Math.Max(0.0f, resultf[2]);
+        return true;
+      }
+
+      return false;
     }
 
     /// <summary>
