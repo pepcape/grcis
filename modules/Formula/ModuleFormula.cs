@@ -171,7 +171,7 @@ namespace Modules
     /// </summary>
     public ModuleFormula ()
     {
-      // Default cell size (width x height).
+      // Default behavior (fast mode, script name).
       param = "fast,script=Contrast.cs";
     }
 
@@ -259,12 +259,21 @@ namespace Modules
     //--- Formula parsed from CS-script file ---
 
     /// <summary>
+    /// Defines implicit formulas if available.
+    /// </summary>
+    /// <returns>null if formulas should be read from a script.</returns>
+    protected virtual Formula GetFormula ()
+    {
+      return null;
+    }
+
+    /// <summary>
     /// Current (active) formula definition.
     /// </summary>
     protected Formula formula = new Formula();
 
     /// <summary>
-    /// Cuurent CS-script file-name.
+    /// Current CS-script file-name.
     /// </summary>
     protected string fileName;
 
@@ -383,6 +392,14 @@ namespace Modules
       // Actual file name (including the correct path).
       string scriptPath;
 
+      // Trying internal formulas (for override classes).
+      Formula newFormula = GetFormula();
+
+      if (newFormula != null)
+        formula = newFormula;
+
+      else
+
       // Script compilation 'fileName' -> 'formula'.
       if (!string.IsNullOrEmpty(scriptFileName) &&
           !string.IsNullOrEmpty(scriptPath = sourceLookup(scriptFileName)))
@@ -452,9 +469,9 @@ namespace Modules
           try
           {
             var task = CSharpScript.RunAsync(
-              newSource,
-              globals: globals,
-              options: ScriptOptions.Default.WithReferences(assemblies).AddImports(imports));
+            newSource,
+            globals: globals,
+            options: ScriptOptions.Default.WithReferences(assemblies).AddImports(imports));
 
             Task.WaitAll(task);
           }

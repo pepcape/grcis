@@ -103,6 +103,9 @@
     <Compile Include="..\modules\Formula\ModuleFormula.cs">
       <Link>ModuleFormula\ModuleFormula.cs</Link>
     </Compile>
+    <Compile Include="..\modules\Formula\ModuleFormulaInternal.cs">
+      <Link>ModuleFormula\ModuleFormulaInternal.cs</Link>
+    </Compile>
     <Compile Include="..\modules\FullColor\ModuleFullColor.cs">
       <Link>ModuleFullColor\ModuleFullColor.cs</Link>
     </Compile>
