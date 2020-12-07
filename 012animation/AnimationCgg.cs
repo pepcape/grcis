@@ -1,6 +1,4 @@
-﻿// Author: Josef Pelikan
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -17,7 +15,7 @@ namespace _012animation
     public double radius;
     public Color color;
 
-    public Disc ( double x, double y, double r, Color c )
+    public Disc (double x, double y, double r, Color c)
     {
       cx = x;
       cy = y;
@@ -213,7 +211,7 @@ namespace _012animation
 
     protected const double SIZE = 0.9;
 
-    protected static void SetViewport ( int width, int height )
+    protected static void SetViewport (int width, int height)
     {
       double k = (width * SIZE) / (maxX - minX);
       kxy = (height * SIZE) / (maxY - minY);
@@ -222,12 +220,12 @@ namespace _012animation
       dy = 0.5 * (height - (minY + maxY) * kxy);
     }
 
-    protected static float X ( double x )
+    protected static float X (double x)
     {
       return (float)(x * kxy + dx);
     }
 
-    protected static float Y ( double y )
+    protected static float Y (double y)
     {
       return (float)(y * kxy + dy);
     }
@@ -235,16 +233,19 @@ namespace _012animation
     /// <summary>
     /// Initialize form parameters.
     /// </summary>
-    public static void InitParams ( out int wid, out int hei, out double from, out double to, out double fps )
+    public static void InitParams (out int wid, out int hei, out double from, out double to, out double fps, out string name)
     {
-      // single frame:
+      // Author.
+      name = "Josef Pelikán";
+
+      // Single frame.
       wid = 640;
       hei = 480;
 
-      // animation:
+      // Animation.
       from = 0.0;
-      to = 2.0;
-      fps = 25.0;
+      to   = 2.0;
+      fps  = 25.0;
     }
 
     /// <summary>
@@ -256,7 +257,7 @@ namespace _012animation
     /// <param name="start">Start time (t0)</param>
     /// <param name="end">End time (for animation length normalization).</param>
     /// <param name="fps">Required fps.</param>
-    public static void InitAnimation ( int width, int height, double start, double end, double fps )
+    public static void InitAnimation (int width, int height, double start, double end, double fps)
     {
       // !!!{{ TODO: put your init code here
 
@@ -265,20 +266,20 @@ namespace _012animation
       maxX = maxY = maxR = Double.MinValue;
       discs = new List<Disc>();
 
-      for ( int i = 0; i < DISC_DATA.Length/3; i++ )
+      for (int i = 0; i < DISC_DATA.Length/3; i++)
       {
-        double x = DISC_DATA[ i, 0 ];
-        double y = DISC_DATA[ i, 1 ];
-        double r = DISC_DATA[ i, 2 ];
-        discs.Add( new Disc( x, y, r, i < FIRST_COLOR ? COLORS[ 0 ] : COLORS[ 1 ] ) );
-        if ( x - r < minX ) minX = x - r;
-        if ( x + r > maxX ) maxX = x + r;
-        if ( y - r < minY ) minY = y - r;
-        if ( y + r > maxY ) maxY = y + r;
-        if ( r > maxR )     maxR = r;
+        double x = DISC_DATA[i, 0];
+        double y = DISC_DATA[i, 1];
+        double r = DISC_DATA[i, 2];
+        discs.Add(new Disc(x, y, r, i < FIRST_COLOR ? COLORS[0] : COLORS[1]));
+        if (x - r < minX) minX = x - r;
+        if (x + r > maxX) maxX = x + r;
+        if (y - r < minY) minY = y - r;
+        if (y + r > maxY) maxY = y + r;
+        if (r > maxR)     maxR = r;
       }
 
-      SetViewport( width, height );
+      SetViewport(width, height);
 
       // !!!}}
     }
@@ -291,24 +292,24 @@ namespace _012animation
     /// <param name="time">Current time in seconds.</param>
     /// <param name="start">Start time (t0)</param>
     /// <param name="end">End time (for animation length normalization).</param>
-    public static Bitmap RenderFrame ( int width, int height, double time, double start, double end )
+    public static Bitmap RenderFrame (int width, int height, double time, double start, double end)
     {
       // !!!{{ TODO: put your frame-rendering code here
 
-      Bitmap result = new Bitmap( width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb );
-      Graphics gr = Graphics.FromImage( result );
-      SolidBrush br = new SolidBrush( Color.White );
-      gr.FillRectangle( br, 0, 0, width, height );
+      Bitmap result = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+      Graphics gr = Graphics.FromImage(result);
+      SolidBrush br = new SolidBrush(Color.White);
+      gr.FillRectangle(br, 0, 0, width, height);
       gr.SmoothingMode = SmoothingMode.AntiAlias;
 
       double tim = (time - start) / (end - start);
       float radius = (float)(maxR * tim);
 
-      foreach ( Disc d in discs )
+      foreach (Disc d in discs)
       {
         br.Color = d.color;
-        float r = (float)(Math.Min( radius, d.radius ) * kxy);
-        gr.FillEllipse( br, X( d.cx ) - r, Y( d.cy ) - r, r + r, r + r );
+        float r = (float)(Math.Min(radius, d.radius) * kxy);
+        gr.FillEllipse(br, X(d.cx) - r, Y(d.cy) - r, r + r, r + r);
       }
 
       return result;

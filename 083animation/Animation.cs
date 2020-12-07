@@ -21,7 +21,7 @@ namespace _083animation
     /// <param name="fps">Frames-per-second.</param>
     /// <param name="param">Optional text to initialize the form's text-field.</param>
     /// <param name="tooltip">Optional tooltip = param help.</param>
-    public static void InitParams ( out string name, out int wid, out int hei, out double from, out double to, out double fps, out string param, out string tooltip )
+    public static void InitParams (out string name, out int wid, out int hei, out double from, out double to, out double fps, out string param, out string tooltip)
     {
       // {{
 
@@ -54,7 +54,7 @@ namespace _083animation
     /// <param name="end">End time (for animation length normalization).</param>
     /// <param name="fps">Required fps.</param>
     /// <param name="param">Text parameter field from the form.</param>
-    public static void InitAnimation ( int width, int height, double start, double end, double fps, string param )
+    public static void InitAnimation (int width, int height, double start, double end, double fps, string param)
     {
       // {{ TODO: put your init code here
 
@@ -69,7 +69,7 @@ namespace _083animation
     /// <param name="start">Start time (t0)</param>
     /// <param name="end">End time (for animation length normalization).</param>
     /// <param name="param">Optional string parameter from the form.</param>
-    public static void DrawFrame ( Canvas c, double time, double start, double end, string param )
+    public static void DrawFrame (Canvas c, double time, double start, double end, string param)
     {
       // {{ TODO: put your drawing code here
 
@@ -78,96 +78,96 @@ namespace _083animation
       double speed = 1.0;
 
       // Parse parameters.
-      Dictionary<string, string> p = Util.ParseKeyValueList( param );
-      if ( p.Count > 0 )
+      Dictionary<string, string> p = Util.ParseKeyValueList(param);
+      if (p.Count > 0)
       {
         // objects=<int>
-        if ( Util.TryParse( p, "objects", ref objects ) )
+        if (Util.TryParse(p, "objects", ref objects))
         {
-          if ( objects < 10 )
+          if (objects < 10)
             objects = 10;
         }
 
         // seed=<long>
-        Util.TryParse( p, "seed", ref seed );
+        Util.TryParse(p, "seed", ref seed);
 
         // speed=<double>
-        Util.TryParse( p, "speed", ref speed );
+        Util.TryParse(p, "speed", ref speed);
       }
 
       int wq = c.Width / 4;
       int hq = c.Height / 4;
-      int minq = Math.Min( wq, hq );
+      int minq = Math.Min(wq, hq);
       double t;
       int i, j;
       double x, y, r;
 
-      c.Clear( Color.Black );
-      c.SetAntiAlias( true );
+      c.Clear(Color.Black);
+      c.SetAntiAlias(true);
 
       // 1st quadrant - anti-aliased disks in a spiral.
       const int MAX_DISK = 30;
-      for ( i = 0, t = 0.0; i < MAX_DISK; i++, t += 0.65 )
+      for (i = 0, t = 0.0; i < MAX_DISK; i++, t += 0.65)
       {
         r = 5.0 + i * (minq * 0.7 - 5.0) / MAX_DISK;
-        c.SetColor( Color.FromArgb( (i * 255) / MAX_DISK, 255, 255 - (i * 255) / MAX_DISK ) );
-        c.FillDisc( (float)(wq + r * Math.Sin( t )), (float)(hq + r * Math.Cos( t )), (float)(r * 0.3) );
+        c.SetColor(Color.FromArgb((i * 255) / MAX_DISK, 255, 255 - (i * 255) / MAX_DISK));
+        c.FillDisc((float)(wq + r * Math.Sin(t)), (float)(hq + r * Math.Cos(t)), (float)(r * 0.3));
       }
 
       // 2nd quadrant - anti-aliased random dots in a heart shape..
-      RandomJames rnd = new RandomJames( seed + (long)((time - start) * 5) );
+      RandomJames rnd = new RandomJames(seed + (long)((time - start) * 5));
       double xx, yy, tmp;
 
-      for ( i = 0; i < objects; i++ )
+      for (i = 0; i < objects; i++)
       {
         // This is called "Rejection Sampling"
         do
         {
-          x = rnd.RandomDouble( -1.5, 1.5 );
-          y = rnd.RandomDouble( -1.0, 1.5 );
+          x = rnd.RandomDouble(-1.5, 1.5);
+          y = rnd.RandomDouble(-1.0, 1.5);
           xx = x * x;
           yy = y * y;
           tmp = xx + yy - 1.0;
-        } while ( tmp * tmp * tmp - xx * yy * y > 0.0 );
+        } while (tmp * tmp * tmp - xx * yy * y > 0.0);
 
-        c.SetColor( Color.FromArgb( rnd.RandomInteger( 200, 255 ),
-                                    rnd.RandomInteger( 120, 220 ),
-                                    rnd.RandomInteger( 120, 220 ) ) );
-        c.FillDisc( 3.1f * wq + 0.8f * minq * (float)x,
-                    1.2f * hq - 0.8f * minq * (float)y,
-                    rnd.RandomFloat( 1.0f, minq * 0.03f ) );
+        c.SetColor(Color.FromArgb(rnd.RandomInteger(200, 255),
+                                  rnd.RandomInteger(120, 220),
+                                  rnd.RandomInteger(120, 220)));
+        c.FillDisc(3.1f * wq + 0.8f * minq * (float)x,
+                   1.2f * hq - 0.8f * minq * (float)y,
+                   rnd.RandomFloat(1.0f, minq * 0.03f));
       }
 
       // 4th quadrant - CGG logo.
-      c.SetColor( COLORS[ 0 ] );
-      for ( i = 0; i < DISC_DATA.Length / 3; i++ )
+      c.SetColor(COLORS[0]);
+      for (i = 0; i < DISC_DATA.Length / 3; i++)
       {
-        x = DISC_DATA[ i, 0 ] - 65.0;
-        y = DISC_DATA[ i, 1 ] - 65.0;
-        r = DISC_DATA[ i, 2 ];
-        if ( i == FIRST_COLOR )
-          c.SetColor( COLORS[ 1 ] );
+        x = DISC_DATA[i, 0] - 65.0;
+        y = DISC_DATA[i, 1] - 65.0;
+        r = DISC_DATA[i, 2];
+        if (i == FIRST_COLOR)
+          c.SetColor(COLORS[1]);
 
         t = 4.0 * speed * Math.PI * (time - start) / (end - start);
-        double sina = Math.Sin( t );
-        double cosa = Math.Cos( t );
+        double sina = Math.Sin(t);
+        double cosa = Math.Cos(t);
         double nx =  cosa * x + sina * y;
         double ny = -sina * x + cosa * y;
 
-        c.FillDisc( 3.0f * wq + (float)((nx - 20.0) * 0.018 * minq),
-                    3.0f * hq + (float)(ny * 0.018 * minq),
-                    (float)(r * 0.018 * minq) );
+        c.FillDisc(3.0f * wq + (float)((nx - 20.0) * 0.018 * minq),
+                   3.0f * hq + (float)(ny * 0.018 * minq),
+                   (float)(r * 0.018 * minq));
       }
 
       // 3rd quadrant - jaggy disks.
       const int DISKS = 12;
-      for ( j = 0; j < DISKS; j++ )
-        for ( i = 0; i < DISKS; i++ )
+      for (j = 0; j < DISKS; j++)
+        for (i = 0; i < DISKS; i++)
         {
-          c.SetColor( ((i ^ j) & 1) == 0 ? Color.White : Color.Blue );
-          c.FillDisc( wq + (i - DISKS / 2) * (wq * 1.8f / DISKS),
-                      3 * hq + (j - DISKS / 2) * (hq * 1.7f / DISKS),
-                      (((i ^ j) & 15) + 1.0f) / DISKS * minq * 0.08f );
+          c.SetColor(((i ^ j) & 1) == 0 ? Color.White : Color.Blue);
+          c.FillDisc(wq + (i - DISKS / 2) * (wq * 1.8f / DISKS),
+                     3 * hq + (j - DISKS / 2) * (hq * 1.7f / DISKS),
+                     (((i ^ j) & 15) + 1.0f) / DISKS * minq * 0.08f);
         }
 
       // }}
@@ -176,12 +176,17 @@ namespace _083animation
     /// <summary>
     /// CGG logo colors.
     /// </summary>
-    protected static Color[] COLORS = { Color.FromArgb( 0x71, 0x21, 0x6d ), Color.FromArgb( 0xe8, 0x75, 0x05 ) };
+    protected static Color[] COLORS =
+    {
+      Color.FromArgb(0x71, 0x21, 0x6d),
+      Color.FromArgb(0xe8, 0x75, 0x05)
+    };
 
     /// <summary>
     /// CGG logo geometry { cx, cy, radius }.
     /// </summary>
-    protected static double[,] DISC_DATA = new double[,] {
+    protected static double[,] DISC_DATA = new double[,]
+    {
       {  59.2317,  77.2244, 2.1480 },
       {  29.5167,  69.7424, 4.1070 },
       {  50.0857,  90.1954, 4.4050 },
