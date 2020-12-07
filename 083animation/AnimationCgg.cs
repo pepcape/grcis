@@ -1,9 +1,10 @@
-﻿using System;
+﻿using CircleCanvas;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
+using Utilities;
 
-namespace _012animation
+namespace _083animation
 {
   /// <summary>
   /// Solid color disc.
@@ -31,8 +32,8 @@ namespace _012animation
     /// </summary>
     protected static Color[] COLORS =
     {
-      Color.FromArgb(0x71, 0x21, 0x6d),
-      Color.FromArgb(0xe8, 0x75, 0x05)
+      Color.FromArgb( 0x71, 0x21, 0x6d ),
+      Color.FromArgb( 0xe8, 0x75, 0x05 )
     };
 
     /// <summary>
@@ -214,6 +215,8 @@ namespace _012animation
 
     protected static double dx, dy;
 
+    protected static bool forward = true;
+
     protected const double SIZE = 0.9;
 
     protected static void SetViewport (int width, int height)
@@ -238,7 +241,7 @@ namespace _012animation
     /// <summary>
     /// Initialize form parameters.
     /// </summary>
-    public static void InitParams (out string name, out int wid, out int hei, out double from, out double to, out double fps)
+    public static void InitParams (out string name, out int wid, out int hei, out double from, out double to, out double fps, out string param, out string tooltip)
     {
       // Author.
       name = "Josef Pelikán";
@@ -251,6 +254,10 @@ namespace _012animation
       from = 0.0;
       to   = 2.0;
       fps  = 25.0;
+
+      // Form params.
+      param   = "forward";
+      tooltip = "forward[=<bool>] ... if true, animation creates the logo";
     }
 
     /// <summary>
@@ -262,13 +269,14 @@ namespace _012animation
     /// <param name="start">Start time (t0)</param>
     /// <param name="end">End time (for animation length normalization).</param>
     /// <param name="fps">Required fps.</param>
-    public static void InitAnimation (int width, int height, double start, double end, double fps)
+    /// <param name="param">Text parameter field from the form.</param>
+    public static void InitAnimation (int width, int height, double start, double end, double fps, string param)
     {
       // !!!{{ TODO: put your init code here
 
       // Disc data initialization:
-      minX = minY = double.MaxValue;
-      maxX = maxY = maxR = double.MinValue;
+      minX = minY = Double.MaxValue;
+      maxX = maxY = maxR = Double.MinValue;
       discs = new List<Disc>();
 
       for (int i = 0; i < DISC_DATA.Length/3; i++)
@@ -286,38 +294,43 @@ namespace _012animation
 
       SetViewport(width, height);
 
+      // Parse parameters.
+      Dictionary<string, string> p = Util.ParseKeyValueList(param);
+      if (p.Count > 0)
+      {
+        // forward[=<bool>]
+        Util.TryParse(p, "forward", ref forward);
+      }
+
       // !!!}}
     }
 
     /// <summary>
     /// Draw single animation frame.
     /// </summary>
-    /// <param name="width">Required frame width in pixels.</param>
-    /// <param name="height">Required frame height in pixels.</param>
+    /// <param name="c">Canvas to draw to.</param>
     /// <param name="time">Current time in seconds.</param>
     /// <param name="start">Start time (t0)</param>
     /// <param name="end">End time (for animation length normalization).</param>
-    public static Bitmap RenderFrame (int width, int height, double time, double start, double end)
+    /// <param name="param">Optional string parameter from the form.</param>
+    public static void DrawFrame (Canvas c, double time, double start, double end, string param)
     {
       // !!!{{ TODO: put your frame-rendering code here
 
-      Bitmap result = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-      Graphics gr = Graphics.FromImage(result);
-      SolidBrush br = new SolidBrush(Color.White);
-      gr.FillRectangle(br, 0, 0, width, height);
-      gr.SmoothingMode = SmoothingMode.AntiAlias;
+      c.Clear(Color.White);
+      c.SetAntiAlias(true);
 
       double tim = (time - start) / (end - start);
+      if (!forward)
+        tim = 1.0 - tim;
       float radius = (float)(maxR * tim);
 
       foreach (Disc d in discs)
       {
-        br.Color = d.color;
+        c.SetColor(d.color);
         float r = (float)(Math.Min(radius, d.radius) * kxy);
-        gr.FillEllipse(br, X(d.cx) - r, Y(d.cy) - r, r + r, r + r);
+        c.FillDisc(X(d.cx), Y(d.cy), r);
       }
-
-      return result;
 
       // !!!}}
     }
