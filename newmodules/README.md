@@ -24,7 +24,7 @@ The `ModuleName` is arbitrary name, please don't use whitespaces in directoery a
 
 Each new module should contain documentation in the `README.md`.
 
-Please go to [this page](https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr004.en.php) for more information on writing RT extensions, grading, etc. List of currently proposed extensions is [in this shared document](https://docs.google.com/document/d/1uA9f13Mc-0XLjd40vNV590HsaX-FyK-Zxe6qoN3wAyg/edit?usp=sharing).
+Please go to [this page](https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr004.en.php) for more information on writing RT extensions, grading, etc. List of currently proposed extensions is [in this shared document](https://docs.google.com/document/d/1lfvPnR_76pAOarQOlGurYKbs5XO2ZyVr_QPpumgajXc/edit?usp=sharing).
 
 ---
 
@@ -33,15 +33,13 @@ Please go to [this page](https://cgg.mff.cuni.cz/~pepca/lectures/cv/npgr004.en.p
 You need to "Fork" our official GitHub repository `https://github.com/pepcape/grcis`. Please go to
 [this](https://github.com/pepcape/grcis) page and select the command **"Fork"**. Set your repository as private but share it with me **https://github.com/pepcape**.
 
-Switch to the **summer2019-2020** branch because in that branch new extensions of your colleagues will eventually appear (they won't be merged into `master` branch).
-
 Check time to time new updates from the GitHub using the
 ```
-git pull upstream summer2019-2020
+git pull upstream master
 ```
 (this needs checking on the actual "Forked" GitHub repository)
 
-I'm going to propagate all new changes/updates both to the **master** and the **summer2019-2020** branches.
+I'm going to propagate all new changes/updates to the **master** branch.
 
 ---
 
@@ -98,18 +96,15 @@ for more information):
     2.  choose the correct `Remote URL` (your new GitLab - **origin**)
     3.  run one command: **Push**
 
-6. **loc** You should switch to the **summer2019-2020** branch as soon as possible. This will be the branch
-   from which you will be getting updates from me.
+6. **loc** From now on, you can work freely at your **home clone** of your private GitLab project, **Commit** and **Push** to the GitLab
 
-7. **loc** From now on, you can work freely at your **home clone** of your private GitLab project, **Commit** and **Push** to the GitLab
-
-8. **loc** Time to time you should check the original GitHub repo and pull updates from there
+7. **loc** Time to time you should check the original GitHub repo and pull updates from there
    ```
-   git pull upstream summer2019-2020
+   git pull upstream master
    ```
-   Or use the **Pull** command in **TortoiseGIT** with proper settings (`Remote URL = upstream` and `Remote Branch = summer2019-2020`)
+   Or use the **Pull** command in **TortoiseGIT** with proper settings (`Remote URL = upstream` and `Remote Branch = master`)
 
-9. **lab** Eventually, you will be prompted to **publish your extensions**. You'll do it just by setting
+8. **lab** Eventually, you will be prompted to **publish your extensions**. You'll do it just by setting
    your repository's visibility from **Private** to **Internal** (for logged-in users) or
    **Public** (accessible to anybody).
    Where to change this setting: `Project / Settings / General / Visibility, project features, permissions`
