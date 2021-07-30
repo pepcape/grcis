@@ -107,6 +107,53 @@ namespace Rendering
       DirectContribution = direct;
       Rays = rays;
     }
+
+    /// <summary>
+    /// Default recursive-ray algorithm. Override it for different behavior.
+    /// </summary>
+    /// <param name="rt">RayTracing object (shade() function...).</param>
+    /// <param name="i">Not null if the function is called at a solid surface.</param>
+    /// <param name="hash">Input hash value (output hash should depend on it).</param>
+    /// <param name="depth">Recursion depth so far.</param>
+    /// <param name="color">Output color accumulator (pre-allocated color array).</param>
+    /// <returns></returns>
+    public virtual long Recursion (RayTracing rt, Intersection i, long hash, int depth, double[] color)
+    {
+      // Default behavior - override the whole function if you like...
+
+      // Direct contribution.
+      if (DirectContribution != null &&
+          DirectContribution.Length > 0)
+        if (DirectContribution.Length == 1)
+          Util.ColorAdd(DirectContribution[0], color);
+        else
+          Util.ColorAdd(DirectContribution, color);
+
+      // Recursive rays.
+      if (Rays != null &&
+          Rays.Count > 0 &&
+          depth++ < rt.MaxLevel)
+      {
+        double[] comp = new double[color.Length];
+
+        foreach (var ray in Rays)
+        {
+          RayContribution rc = ray;
+          hash += 113L * rt.shade(depth, rc.importance, ref rc.origin, ref rc.direction, comp);
+
+          // Combine colors.
+          if (ray.coefficient == null)
+            Util.ColorAdd(comp, color);
+          else
+          if (ray.coefficient.Length == 1)
+            Util.ColorAdd(comp, ray.coefficient[0], color);
+          else
+            Util.ColorAdd(comp, ray.coefficient, color);
+        }
+      }
+
+      return hash;
+    }
   }
 
   /// <summary>
@@ -228,11 +275,11 @@ namespace Rendering
     /// <param name="p1">Ray direction vector.</param>
     /// <param name="color">Result color.</param>
     /// <returns>Hash-value (ray sub-signature) used for adaptive subsampling.</returns>
-    protected virtual long shade (int depth,
-                                  double importance,
-                                  ref Vector3d p0,
-                                  ref Vector3d p1,
-                                  double[] color)
+    public virtual long shade (int depth,
+                               double importance,
+                               ref Vector3d p0,
+                               ref Vector3d p1,
+                               double[] color)
     {
       Vector3d direction = p1;
 
@@ -293,35 +340,8 @@ namespace Rendering
         hash += HASH_RECURSION * rf(i, p1, importance, out RayRecursion rr);
 
         if (rr != null)
-        {
-          // Direct contribution.
-          if (rr.DirectContribution != null &&
-              rr.DirectContribution.Length > 0)
-            if (rr.DirectContribution.Length == 1)
-              Util.ColorAdd(rr.DirectContribution[0], color);
-            else
-              Util.ColorAdd(rr.DirectContribution, color);
-
-          // Recursive rays.
-          if (rr.Rays != null &&
-              depth++ < MaxLevel)
-            foreach (var ray in rr.Rays)
-            {
-              RayRecursion.RayContribution rc = ray;
-              hash += HASH_REFLECT * shade(depth, rc.importance, ref rc.origin, ref rc.direction, comp);
-
-              // Combine colors.
-              if (ray.coefficient == null)
-                Util.ColorAdd(comp, color);
-              else
-              if (ray.coefficient.Length == 1)
-                Util.ColorAdd(comp, ray.coefficient[0], color);
-              else
-                Util.ColorAdd(comp, ray.coefficient, color);
-            }
-
-          return hash;
-        }
+          return rr.Recursion(this, i, hash, depth, color);
+          // See the RayRecursion.Recursion() function for default behavior.
       }
 
       // Default (Whitted) ray-tracing interaction (lights [+ reflection] [+ refraction]).
