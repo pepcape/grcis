@@ -116,7 +116,7 @@ namespace _086shader
       string mtooltip;
       AnimatedCamera.InitParams(out mname, out mparam, out mtooltip);
 
-      tooltip = ctooltip + '\n' + mtooltip;
+      tooltip = ctooltip + '\r' + mtooltip;
       textParam.Text = cparam + ", " + mparam;
 
       Text += " (" + rev + ") '" + cname + ',' + mname + '\'';
@@ -479,7 +479,7 @@ namespace _086shader
     private void labelFile_MouseHover (object sender, EventArgs e)
     {
       tt.Show(Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion(typeof(Vector3)),
-              (IWin32Window)sender, 10, -25, 4000);
+              (IWin32Window)sender, 10, -24, 4000);
     }
 
     private void textParam_MouseHover (object sender, EventArgs e)

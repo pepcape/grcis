@@ -16,7 +16,7 @@ namespace Scene3D
     {
       name    = "Matúš Goliaš";
       param   = "level=5, size=0.2, cdetail=16, radius=0.75, bdetail=9";
-      tooltip = "level=recursion-level, size=relative pipe cross section\ncdetail=cross section divisions, radius=relative knee-radius\nbdetail=knee radius";
+      tooltip = "level=recursion-level, size=relative pipe cross section\rcdetail=cross section divisions, radius=relative knee-radius\rbdetail=knee radius";
     }
 
     #endregion
