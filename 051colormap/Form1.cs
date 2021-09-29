@@ -7,7 +7,7 @@ namespace _051colormap
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = "$Rev$".Split(' ')[1];
+    static readonly string rev = "$Rev: 974 $".Split(' ')[1];
 
     public static Color[] colors;
     private static Bitmap inputImage = null;
