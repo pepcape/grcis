@@ -16,7 +16,7 @@ namespace _086shader
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = Util.SetVersion("$Rev$");
+    static readonly string rev = Util.SetVersion("$Rev: 980 $");
 
     /// <summary>
     /// Scene read from file.
@@ -485,7 +485,7 @@ namespace _086shader
     private void textParam_MouseHover (object sender, EventArgs e)
     {
       tt.Show(tooltip, (IWin32Window)sender,
-              10, -24 - 15 * Util.CharsInString(tooltip, '\r'), 4000);
+              10, -24 - 15 * Util.EolnsInString(tooltip), 4000);
     }
 
     private void buttonLoadCamera_Click (object sender, EventArgs e)

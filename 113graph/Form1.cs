@@ -10,7 +10,7 @@ namespace _113graph
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = Util.SetVersion("$Rev: 979 $");
+    static readonly string rev = Util.SetVersion("$Rev: 980 $");
 
     public static Form1 form = null;
 
@@ -199,7 +199,7 @@ namespace _113graph
           }
         }
         else
-          if (e.KeyCode == Keys.R)
+        if (e.KeyCode == Keys.R)
         {
           e.Handled = true;
           tb.Reset();
@@ -267,7 +267,8 @@ namespace _113graph
 
     private void textParam_MouseHover (object sender, EventArgs e)
     {
-      tt.Show(tooltip, (IWin32Window)sender, 10, -25, 4000);
+      tt.Show(tooltip, (IWin32Window)sender,
+        10, -24 - 15 * Util.EolnsInString(tooltip), 4000);
     }
 
     private void textExpression_MouseHover (object sender, EventArgs e)
@@ -289,6 +290,13 @@ namespace _113graph
     private void buttonRegenerate_Click (object sender, EventArgs e)
     {
       Regenerate();
+    }
+
+    private void buttonReset_Click (object sender, EventArgs e)
+    {
+      tb.Center   = gr?.center ?? Vector3.Zero;
+      tb.Diameter = gr?.diameter ?? 5.0f;
+      tb.Reset();
     }
 
     private void Form1_FormClosing (object sender, FormClosingEventArgs e)

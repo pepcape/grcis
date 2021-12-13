@@ -82,49 +82,24 @@ namespace _113graph
     int texName = 0;
 
     /// <summary>
-    /// Number of vertices (indices) to draw.. (default - triangles)
+    /// Number of vertices (indices) to draw.. (default = draw only triangles)
     /// </summary>
     int vertices = 0;
 
     /// <summary>
-    /// Use texture coordinate in vertices.
+    /// Vertices have texture coordinates.
     /// </summary>
-    bool useTexture = false;
+    bool haveTexture = false;
 
     /// <summary>
-    /// Use vertex colors for rendering.
+    /// Vertices have colors.
     /// </summary>
-    bool useColors = true;
+    bool haveColors = true;
 
     /// <summary>
-    /// Use normal vectors for rendering.
+    /// Vertices have normal vectors.
     /// </summary>
-    bool useNormals = false;
-
-    /// <summary>
-    /// Phong shading interpolation.
-    /// </summary>
-    bool shadingPhong = true;
-
-    /// <summary>
-    /// Gouraud shading interpolation.
-    /// </summary>
-    bool shadingGouraud = true;
-
-    /// <summary>
-    /// Use ambient (Ka) shading term.
-    /// </summary>
-    bool phongAmbient = true;
-
-    /// <summary>
-    /// Use diffuse (Kd) shading term.
-    /// </summary>
-    bool phongDiffuse = true;
-
-    /// <summary>
-    /// Use specular (Ks) shading term.
-    /// </summary>
-    bool phongSpecular = true;
+    bool haveNormals = false;
 
     public void InitSimulation (string par, string expr)
     {
@@ -145,7 +120,7 @@ namespace _113graph
 
       if (expr == expression &&
           par == param)
-        return null;                // nothing to do..
+        return null;                // nothing has changed => nothing to do..
 
       double xMin = -1.0, xMax = 1.0, yMin = -1.0, yMax = 1.0;
 
@@ -156,6 +131,8 @@ namespace _113graph
 
       // System (rendering) params.
       Form1.form.UpdateRenderingParams(p);
+
+      // My params.
 
       // domain: [xMin;xMax;yMin;yMax]
       List<double> dom = null;
@@ -169,10 +146,12 @@ namespace _113graph
         yMax = Math.Max(yMin + 1.0e-6, dom[3]);
       }
 
+      // !!! TODO: triangle mesh size (triangle number along X-axis & along Z-axis)
+
       //------------------------------------------------------------------
       // Expression evaluation  - THIS HAS TO BE CHANGED!
 
-      double x = 0.0, z = 1.0;
+      double x = -0.5, z = -0.5;
       Expression e = null;
       double result;
       try
@@ -200,20 +179,20 @@ namespace _113graph
 
       // This has to be in sync with the actual buffer filling loop (see the unsafe
       // block below)!
-      useTexture = false;
-      useColors  = true;
-      useNormals = false;
+      haveTexture = false;
+      haveColors  = true;
+      haveNormals = false;
 
       stride = Vector3.SizeInBytes;
-      if (useTexture)
+      if (haveTexture)
         stride += Vector2.SizeInBytes;
-      if (useColors)
+      if (haveColors)
         stride += Vector3.SizeInBytes;
-      if (useNormals)
+      if (haveNormals)
         stride += Vector3.SizeInBytes;
 
-      long newVboSize = stride * 3;     // pilot .. three vertices
-      vertices = 3;                     // pilot .. three indices
+      long newVboSize = stride * 4;     // pilot .. four vertices
+      vertices = 6;                     // pilot .. six indices
       long newIndexSize = sizeof(uint) * vertices;
 
       // Vertex array: [texture:2D] [color:3D] [normal:3D] coordinate:3D
@@ -229,32 +208,43 @@ namespace _113graph
       {
         float* ptr = (float*)videoMemoryPtr.ToPointer();
 
-        // !!! TODO: you definitely need to change this part (only one triangle is defined here)!
+        // !!! TODO: you definitely need to change this part (only two triangles are defined here)!
         float r = 0.1f;
         float g = 0.9f;
-        float b = 0.5f;
+        float b = 0.7f;
 
         // [s t] [R G B] [N_x N_y N_z] x y z
 
+        // Vertex[0]
         *ptr++ = r;
         *ptr++ = g;
         *ptr++ = b;
         *ptr++ = v.X;
-        *ptr++ = v.Y;
+        *ptr++ = v.Y - 0.2f;
         *ptr++ = v.Z;
 
+        // Vertex[1]
         *ptr++ = r;
         *ptr++ = g;
-        *ptr++ = b;
+        *ptr++ = b - 0.6f;
         *ptr++ = v.X + 1.0f;
         *ptr++ = v.Y;
         *ptr++ = v.Z;
 
+        // Vertex[2]
         *ptr++ = r;
         *ptr++ = g;
         *ptr++ = b;
         *ptr++ = v.X;
         *ptr++ = v.Y;
+        *ptr++ = v.Z + 1.0f;
+
+        // Vertex[3]
+        *ptr++ = r + 0.8f;
+        *ptr++ = g - 0.8f;
+        *ptr++ = b;
+        *ptr++ = v.X + 1.0f;
+        *ptr++ = v.Y - 0.2f;
         *ptr++ = v.Z + 1.0f;
       }
       GL.UnmapBuffer(BufferTarget.ArrayBuffer);
@@ -271,11 +261,19 @@ namespace _113graph
       videoMemoryPtr = GL.MapBuffer(BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly);
       unsafe
       {
-        // !!! TODO: only one triangle is defined here, you have to change it!
+        // !!! TODO: only two triangles are defined here, you have to change it!
 
         uint* ptr = (uint*)videoMemoryPtr.ToPointer();
-        for (uint i = 0; i < 3; i++)
-          *ptr++ = i;
+
+        // Triangle[0]: [0, 1, 2]
+        ptr[0] = 0;
+        ptr[1] = 1;
+        ptr[2] = 2;
+
+        // Triangle[1]: [2, 1, 3]
+        ptr[3] = 2;
+        ptr[4] = 1;
+        ptr[5] = 3;
       }
       GL.UnmapBuffer(BufferTarget.ElementArrayBuffer);
       GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
@@ -285,8 +283,12 @@ namespace _113graph
       // !!! Rendering code 'RenderScene()' must reflect that!
 
       // Change the graph dimension.
-      center   = v;
-      diameter =  2.0f;
+
+      // New center of the scene (for the Trackball).
+      center = new Vector3(v.X + 0.5f, 0.0f, v.Z + 0.5f);
+      // New scene diameter (trying to keep current scaling).
+      diameter =  4.0f;
+      // Near and far will be used for perspective frustum.
       near     =  0.1f;
       far      = 20.0f;
 
@@ -331,6 +333,12 @@ namespace _113graph
         Util.Log("Shader setup failed, giving up...");
         Application.Exit();
       }
+
+      // Only shader VertexAttribPointers() or the very old glVertex() stuff.
+      GL.DisableClientState(ArrayCap.VertexArray);
+      GL.DisableClientState(ArrayCap.TextureCoordArray);
+      GL.DisableClientState(ArrayCap.NormalArray);
+      GL.DisableClientState(ArrayCap.ColorArray);
 
       // Texture.
       texName = GenerateTexture();
@@ -495,19 +503,13 @@ namespace _113graph
     /// Rendering code itself (separated for clarity).
     /// </summary>
     /// <param name="cam">Camera parameters.</param>
-    /// <param name="a">Current appearance parameters.</param>
+    /// <param name="style">Current rendering style.</param>
     /// <param name="primitiveCounter">Number of GL primitives rendered.</param>
     public void RenderScene (
       IDynamicCamera cam,
-      Appearance a,
+      RenderingStyle style,
       ref long primitiveCounter)
     {
-      // Only shader VertexAttribPointers() or the very old glVertex() stuff.
-      GL.DisableClientState(ArrayCap.VertexArray);
-      GL.DisableClientState(ArrayCap.TextureCoordArray);
-      GL.DisableClientState(ArrayCap.NormalArray);
-      GL.DisableClientState(ArrayCap.ColorArray);
-
       // Scene rendering.
       if (Form1.form.drawGraph &&
           VBOlen[0] > 0L &&
@@ -528,35 +530,41 @@ namespace _113graph
         GL.UniformMatrix4(activeProgram.GetUniform("matrixModelView"),  false, ref modelView);
         GL.UniformMatrix4(activeProgram.GetUniform("matrixProjection"), false, ref projection);
 
-        GL.Uniform3(activeProgram.GetUniform("globalAmbient"), ref a.globalAmbient);
-        GL.Uniform3(activeProgram.GetUniform("lightColor"), ref a.whiteLight);
-        GL.Uniform3(activeProgram.GetUniform("lightPosition"), ref a.lightPosition);
+        GL.Uniform3(activeProgram.GetUniform("globalAmbient"), ref style.globalAmbient);
+        GL.Uniform3(activeProgram.GetUniform("lightColor"), ref style.whiteLight);
+        GL.Uniform3(activeProgram.GetUniform("lightPosition"), ref style.lightPosition);
         GL.Uniform3(activeProgram.GetUniform("eyePosition"), ref eye);
-        GL.Uniform3(activeProgram.GetUniform("Ka"), ref a.matAmbient);
-        GL.Uniform3(activeProgram.GetUniform("Kd"), ref a.matDiffuse);
-        GL.Uniform3(activeProgram.GetUniform("Ks"), ref a.matSpecular);
-        GL.Uniform1(activeProgram.GetUniform("shininess"), a.matShininess);
+        GL.Uniform3(activeProgram.GetUniform("Ka"), ref style.matAmbient);
+        GL.Uniform3(activeProgram.GetUniform("Kd"), ref style.matDiffuse);
+        GL.Uniform3(activeProgram.GetUniform("Ks"), ref style.matSpecular);
+        GL.Uniform1(activeProgram.GetUniform("shininess"), style.matShininess);
 
         // Color handling.
-        bool useGlobalColor = a.useGlobalColor;
-        if (!useColors)
+        bool useGlobalColor = style.useGlobalColor;
+        if (!haveColors)         // use global color if vertices haven't got color!
           useGlobalColor = true;
         GL.Uniform1(activeProgram.GetUniform("globalColor"), useGlobalColor ? 1 : 0);
 
-        // Shading.
-        if (!shadingGouraud)
-          shadingPhong = false;
-        GL.Uniform1(activeProgram.GetUniform("shadingPhong"), shadingPhong ? 1 : 0);
+        // Shading, color interpolation.
+        // shadingGouraud <=> lighting is computed in VS
+        // shadingPhong   <=> lighting is computed in FS (normal interpolation)
+        // shadingSmooth  <=> colors are interpolated in FS (color interpolation)
+        bool shadingGouraud = style.lighting && !style.phong;
+        bool shadingPhong   = style.lighting && style.phong;
+        bool shadingSmooth  = style.smooth;
         GL.Uniform1(activeProgram.GetUniform("shadingGouraud"), shadingGouraud ? 1 : 0);
-        GL.Uniform1(activeProgram.GetUniform("useAmbient"), phongAmbient ? 1 : 0);
-        GL.Uniform1(activeProgram.GetUniform("useDiffuse"), phongDiffuse ? 1 : 0);
-        GL.Uniform1(activeProgram.GetUniform("useSpecular"), phongSpecular ? 1 : 0);
+        GL.Uniform1(activeProgram.GetUniform("shadingPhong"), shadingPhong ? 1 : 0);
+        GL.Uniform1(activeProgram.GetUniform("shadingSmooth"), shadingSmooth ? 1 : 0);
+        GL.Uniform1(activeProgram.GetUniform("useAmbient"), style.useAmbient ? 1 : 0);
+        GL.Uniform1(activeProgram.GetUniform("useDiffuse"), style.useDiffuse ? 1 : 0);
+        GL.Uniform1(activeProgram.GetUniform("useSpecular"), style.useSpecular ? 1 : 0);
         GlInfo.LogError("set-uniforms");
 
-        // Texture handling.
-        GL.Uniform1(activeProgram.GetUniform("useTexture"), useTexture ? 1 : 0);
+        // Color texture in slot #0.
+        bool okTexture = style.texture && haveTexture;
+        GL.Uniform1(activeProgram.GetUniform("useTexture"), okTexture ? 1 : 0);
         GL.Uniform1(activeProgram.GetUniform("texSurface"), 0);
-        if (useTexture)
+        if (okTexture)
         {
           GL.ActiveTexture(TextureUnit.Texture0);
           GL.BindTexture(TextureTarget.Texture2D, texName);
@@ -568,17 +576,17 @@ namespace _113graph
 
         if (activeProgram.HasAttribute("texCoords"))
           GL.VertexAttribPointer(activeProgram.GetAttribute("texCoords"), 2, VertexAttribPointerType.Float, false, stride, p);
-        if (useTexture)
+        if (haveTexture)
           p += Vector2.SizeInBytes;
 
         if (activeProgram.HasAttribute("color"))
           GL.VertexAttribPointer(activeProgram.GetAttribute("color"), 3, VertexAttribPointerType.Float, false, stride, p);
-        if (useColors)
+        if (haveColors)
           p += Vector3.SizeInBytes;
 
         if (activeProgram.HasAttribute("normal"))
           GL.VertexAttribPointer(activeProgram.GetAttribute("normal"), 3, VertexAttribPointerType.Float, false, stride, p);
-        if (useNormals)
+        if (haveNormals)
           p += Vector3.SizeInBytes;
 
         GL.VertexAttribPointer(activeProgram.GetAttribute("position"), 3, VertexAttribPointerType.Float, false, stride, p);
@@ -587,13 +595,20 @@ namespace _113graph
         // Index buffer.
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, VBOid[1]);
 
-        // Engage!
+        // Draw!
 
         // !!!{{ CHANGE THIS PART if you want to add axes, legend, etc...
 
         // Triangle part of the scene.
+        // Draw total 'vertices' vertices from the beginning of the index-buffer,
+        // that gives us 'vertices/3' triangles.
         GL.DrawElements(PrimitiveType.Triangles, vertices, DrawElementsType.UnsignedInt, IntPtr.Zero);
         GlInfo.LogError("draw-elements-shader");
+
+        // How to draw lines (e.g. coordinate axes):
+        //GL.DrawElements(PrimitiveType.Lines, lineVertices, DrawElementsType.UnsignedInt, lineOffset);
+        // lineVertices ... number of vertex indices for lines (e.g. 'lineVertices/2' lines)
+        // lineOffset   ... start offset in the index-buffer
 
         primitiveCounter += vertices / 3;
 
@@ -601,7 +616,7 @@ namespace _113graph
 
         // Cleanup.
         GL.UseProgram(0);
-        if (useTexture)
+        if (okTexture)
           GL.BindTexture(TextureTarget.Texture2D, 0);
       }
       else

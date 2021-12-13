@@ -12,30 +12,106 @@ using Utilities;
 namespace _113graph
 {
   /// <summary>
-  /// Container for appearance/material attributes.
+  /// Container for rendering style and appearance/material attributes.
   /// </summary>
-  public class Appearance
+  public class RenderingStyle
   {
+    /// <summary>
+    /// Draw two-sided triangles? (if on, you don't need to worry about face orientation,
+    /// but it is a good habit to keep all faces regularly oriented)
+    /// </summary>
+    public bool twoSided = true;
+
+    /// <summary>
+    /// Use wire-frame style? (no fill)
+    /// </summary>
+    public bool wireframe = false;
+
+    /// <summary>
+    /// Use color texture? (we are limited to single color texture in this example)
+    /// </summary>
+    public bool texture = false;
+
+    /// <summary>
+    /// Use lighting? (light source lits the surface at vertices or at every pixel)
+    /// </summary>
+    public bool lighting = false;
+
+    /// <summary>
+    /// Use smooth interpolation from vertices to pixels? (color interpolation or normal interpolation if 'phong' is on)
+    /// </summary>
+    public bool smooth = false;
+
+    /// <summary>
+    /// Use Phong-style interpolation? (relevant only if both 'lighting' and 'smooth' are on)
+    /// </summary>
+    public bool phong = false;
+
+    /// <summary>
+    /// Use ambient component in lighting? (Ka)
+    /// </summary>
+    public bool useAmbient = true;
+
+    /// <summary>
+    /// Use diffuse component in lighting? (Kd)
+    /// </summary>
+    public bool useDiffuse = true;
+
+    /// <summary>
+    /// Use specular component in lighting? (Ks)
+    /// </summary>
+    public bool useSpecular = true;
+
+    /// <summary>
+    /// Use global color instead of vertex-defined color?
+    /// </summary>
+    public bool useGlobalColor = false;
+
+    /// <summary>
+    /// Color of the ambient (Ka) lighting component. [R, G, B]
+    /// </summary>
     public Vector3 globalAmbient = new Vector3(  0.2f,  0.2f,  0.2f);
-    public Vector3 matAmbient    = new Vector3(  0.8f,  0.6f,  0.2f);
-    public Vector3 matDiffuse    = new Vector3(  0.8f,  0.6f,  0.2f);
-    public Vector3 matSpecular   = new Vector3(  0.8f,  0.8f,  0.8f);
-    public float   matShininess  = 100.0f;
-    public Vector3 whiteLight    = new Vector3(  1.0f,  1.0f,  1.0f);
+
+    /// <summary>
+    /// Ambient color contribution (Ka * C). [R, G, B]
+    /// </summary>
+    public Vector3 matAmbient = new Vector3(  0.8f,  0.6f,  0.2f);
+
+    /// <summary>
+    /// Diffuse reflection contribution (Kd * C). [R, G, B]
+    /// </summary>
+    public Vector3 matDiffuse = new Vector3(  0.8f,  0.6f,  0.2f);
+
+    /// <summary>
+    /// Specular reflection contribution (Ks * C_l). [R, G, B]
+    /// </summary>
+    public Vector3 matSpecular = new Vector3(  0.8f,  0.8f,  0.8f);
+
+    /// <summary>
+    /// Specular exponent = shineness.
+    /// </summary>
+    public float   matShininess = 100.0f;
+
+    /// <summary>
+    /// Light source color. [R, G, B]
+    /// </summary>
+    public Vector3 whiteLight = new Vector3(  1.0f,  1.0f,  1.0f);
+
+    /// <summary>
+    /// Light source position in the world coordinate space. [x, y, z]
+    /// </summary>
     public Vector3 lightPosition = new Vector3(-20.0f, 10.0f, 10.0f);
 
     /// <summary>
-    /// Light source direction.
+    /// Light source direction in world space. [x, y, z]
     /// </summary>
-    public Vector3 light         = new Vector3(-2, 1, 1);
-
-    public bool    useGlobalColor = false;
+    public Vector3 lightDirection = new Vector3(-2, 1, 1);
 
     /// <summary>
     /// Set light-source coordinate in the world-space.
     /// </summary>
     /// <param name="size">Relative size (based on the scene size).</param>
-    /// <param name="light">Relative light position (default=[-2,1,1],viewer=[0,0,1]).</param>
+    /// <param name="light">Light source direction (default=[-2,1,1],viewer=[0,0,1]).</param>
     public void SetLight (float size, ref Vector3 light)
     {
       lightPosition = 2.0f * size * light;
@@ -57,7 +133,7 @@ namespace _113graph
     /// </summary>
     bool pointDirty = false;
 
-    /// <summary>
+    /// <summary
     /// Clicked point on the screen (z = 0.0)
     /// </summary>
     Vector3? pointOrigin = null;
@@ -101,17 +177,17 @@ namespace _113graph
         long now = DateTime.Now.Ticks;
         if (now - lastFpsTime > 8000000)      // more than 0.8 sec
         {
-          lastFps = 0.5 * lastFps + 0.5 * (frameCounter * 1.0e7 / (now - lastFpsTime));
+          lastFps = 0.5 * lastFps + 0.5 * (frameCounter     * 1.0e7 / (now - lastFpsTime));
           lastPps = 0.5 * lastPps + 0.5 * (primitiveCounter * 1.0e7 / (now - lastFpsTime));
           lastFpsTime = now;
           frameCounter = 0;
           primitiveCounter = 0L;
 
           if (lastPps < 5.0e5)
-            labelFps.Text = string.Format(CultureInfo.InvariantCulture, "Fps: {0:f1}, Pps: {1:f0}k",
+            labelFps.Text = string.Format(CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f0}k",
                                           lastFps, (lastPps * 1.0e-3));
           else
-            labelFps.Text = string.Format(CultureInfo.InvariantCulture, "Fps: {0:f1}, Pps: {1:f1}m",
+            labelFps.Text = string.Format(CultureInfo.InvariantCulture, "Fps: {0:f1}, Tps: {1:f1}m",
                                           lastFps, (lastPps * 1.0e-6));
         }
 
@@ -119,8 +195,8 @@ namespace _113graph
         if (pointOrigin != null &&
             pointDirty)
         {
-          Vector3d p0 = new Vector3d( pointOrigin.Value.X, pointOrigin.Value.Y, pointOrigin.Value.Z );
-          Vector3d p1 = new Vector3d( pointTarget.X,       pointTarget.Y,       pointTarget.Z ) - p0;
+          Vector3d p0 = new Vector3d(pointOrigin.Value.X, pointOrigin.Value.Y, pointOrigin.Value.Z);
+          Vector3d p1 = new Vector3d(pointTarget.X,       pointTarget.Y,       pointTarget.Z      ) - p0;
           double nearest = double.PositiveInfinity;
 
           if (gr != null)
@@ -138,6 +214,23 @@ namespace _113graph
     }
 
     /// <summary>
+    /// Update rendering style ('style') from the application form.
+    /// </summary>
+    private void UpdateStyle ()
+    {
+      style.twoSided       = checkTwosided.Checked;
+      style.wireframe      = checkWireframe.Checked;
+      style.texture        = checkTexture.Checked;
+      style.useGlobalColor = checkGlobalColor.Checked;
+      style.lighting       = checkLighting.Checked;
+      style.useAmbient     = checkAmbient.Checked;
+      style.useDiffuse     = checkDiffuse.Checked;
+      style.useSpecular    = checkSpecular.Checked;
+      style.smooth         = checkSmooth.Checked;
+      style.phong          = checkPhong.Checked;
+    }
+
+    /// <summary>
     /// Render one frame.
     /// </summary>
     private void Render ()
@@ -147,18 +240,23 @@ namespace _113graph
 
       frameCounter++;
 
+      // Update rendering style from the form.
+      UpdateStyle();
+
       GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-      GL.ShadeModel(checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat);
-      GL.PolygonMode(checkTwosided.Checked ? MaterialFace.FrontAndBack : MaterialFace.Front,
-                     checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill);
-      if (checkTwosided.Checked)
+      //GL.ShadeModel(style.smooth ? ShadingModel.Smooth : ShadingModel.Flat);
+      GL.PolygonMode(style.twoSided  ? MaterialFace.FrontAndBack : MaterialFace.Front,
+                     style.wireframe ? PolygonMode.Line : PolygonMode.Fill);
+      if (style.twoSided)
         GL.Disable(EnableCap.CullFace);
       else
         GL.Enable(EnableCap.CullFace);
 
       tb.GLsetCamera();
+
       if (gr != null)
-        gr.RenderScene(tb, appearance, ref primitiveCounter);
+        gr.RenderScene(tb, style, ref primitiveCounter);
+
       Decorate();
 
       glControl1.SwapBuffers();
@@ -260,9 +358,9 @@ namespace _113graph
     }
 
     /// <summary>
-    /// Global appearance params object.
+    /// Global rendering-style object.
     /// </summary>
-    Appearance appearance = new Appearance();
+    RenderingStyle style = new RenderingStyle();
 
     /// <summary>
     /// Update rendering/trackball parameters.
@@ -295,7 +393,7 @@ namespace _113graph
 
       // Rendering: vertical field-of-view.
       float fov = tb.Fov;
-      if (!Util.TryParse(p, "fov", ref fov))
+      if (Util.TryParse(p, "fov", ref fov))
       {
         fov = (float)Arith.DegreeToRadian(Arith.Clamp(fov, 0.001f, 170.0f));
         if (fov != tb.Fov)
@@ -318,28 +416,28 @@ namespace _113graph
       if (Util.TryParse(p, "line", ref fov))
         GL.LineWidth(Math.Max(0.0f, fov));
 
-      // Shading: relative light position.
-      if (Geometry.TryParse(p, "light", ref appearance.light))
+      // Shading: light source direction => position.
+      if (Geometry.TryParse(p, "light", ref style.lightDirection))
       {
-        if (appearance.light.Length < 1.0e-3f)
-          appearance.light = new Vector3(-2, 1, 1);
-        appearance.SetLight(tb.Eye.Z * 0.5f, ref appearance.light);
+        if (style.lightDirection.Length < 1.0e-3f)
+          style.lightDirection = new Vector3(-2, 1, 1);
+        style.SetLight(tb.Eye.Z * 0.5f, ref style.lightDirection);
       }
 
       // Shading: global material color.
-      if (Geometry.TryParse(p, "color", ref appearance.matAmbient))
-        appearance.matDiffuse = appearance.matAmbient;
+      if (Geometry.TryParse(p, "color", ref style.matAmbient))
+        style.matDiffuse = style.matAmbient;
 
       // Shading: global ambient coeff.
       fov = 0.2f;
       if (Util.TryParse(p, "Ka", ref fov))
-        appearance.globalAmbient.X =
-        appearance.globalAmbient.Y =
-        appearance.globalAmbient.Z = Util.Clamp(fov, 0.0f, 1.0f);
+        style.globalAmbient.X =
+        style.globalAmbient.Y =
+        style.globalAmbient.Z = Util.Clamp(fov, 0.0f, 1.0f);
 
       // Shading: shininess.
-      if (!Util.TryParse(p, "shininess", ref appearance.matShininess))
-        appearance.matShininess = Arith.Clamp(appearance.matShininess, 1.0f, 1.0e4f);
+      if (!Util.TryParse(p, "shininess", ref style.matShininess))
+        style.matShininess = Arith.Clamp(style.matShininess, 1.0f, 1.0e4f);
     }
   }
 }

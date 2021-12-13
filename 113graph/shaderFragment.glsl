@@ -1,6 +1,6 @@
 //---------------------------------------------------------------
 // Simple fragment shader utilizing single texture
-//   normal vector, single point light-source, switchable shading components,
+//   normal vector, single point light-source, configurable shading components,
 //   flat/smooth shading (Gouraud/Phong)
 //   @version $Rev$
 //---------------------------------------------------------------
@@ -27,13 +27,24 @@ uniform bool useAmbient;
 uniform bool useDiffuse;
 uniform bool useSpecular;
 uniform bool shadingPhong;
-uniform bool shadingGouraud;
+uniform bool shadingSmooth;
 
 out vec3 fragColor;
 
 void main ()
 {
-  if (shadingPhong)
+  vec3 diffuseColor, ambientColor;
+  if (globalColor)
+  {
+    diffuseColor = Kd;
+    ambientColor = Ka;
+  }
+  else
+    diffuseColor =
+    ambientColor =
+      useTexture ? vec3(texture2D(texSurface, varTexCoords)) : varColor;
+
+  if (shadingPhong)           // Phong shading (interpolation of normals from vertices)
   {
     // Phong shading (interpolation of normals).
     vec3 P = varWorld;
@@ -49,33 +60,17 @@ void main ()
     else
       cosa = 0.0;
 
-    vec3 ka, kd;
-    if (useTexture)
-    {
-      ka = kd = vec3(texture2D(texSurface, varTexCoords));
-    }
-    else
-      if (globalColor)
-      {
-        ka = Ka;
-        kd = Kd;
-      }
-      else
-      {
-        ka = kd = varColor;
-      }
-
     fragColor = vec3(0.0);
     if (useAmbient)
-      fragColor += ka * globalAmbient;
+      fragColor += ambientColor * globalAmbient;
     if (useDiffuse)
-      fragColor += kd * lightColor * cosa;
+      fragColor += diffuseColor * lightColor * cosa;
     if (useSpecular)
       fragColor += Ks * lightColor * cosb;
   }
   else
-    if (shadingGouraud)       // Gouraud shading (interpolation of colors):
-      fragColor = varColor;
-    else                      // flat shading (constant color):
+    if (shadingSmooth)        // Gouraud shading (interpolation of colors from vertices)
+      fragColor = diffuseColor;
+    else                      // flat shading (constant color)
       fragColor = flatColor;
 }

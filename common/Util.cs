@@ -20,7 +20,7 @@ namespace Utilities
   {
     static Util ()
     {
-      SetVersion("$Rev$");
+      SetVersion("$Rev: 980 $");
     }
 
     /// <summary>
@@ -517,6 +517,28 @@ namespace Utilities
       foreach (char c in s)
         if (c == ch)
           count++;
+      return count;
+    }
+
+    public static int EolnsInString (string s)
+    {
+      if (string.IsNullOrEmpty(s))
+        return 0;
+
+      int count = 0;
+      bool prev = false;
+      for (int i = 0; i < s.Length; i++)
+      {
+        if ((s[i] == '\r' || s[i] == '\n' ) &&
+            (!prev || s[i - 1] == s[i]))
+        {
+          count++;
+          prev = true;
+          continue;
+        }
+        prev = false;
+      }
+
       return count;
     }
 
