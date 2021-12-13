@@ -29,3 +29,4 @@ imageInfo = 051-Leaf.png,            &copy; Josef Pelikan
 imageInfo = 051-OculusQuest-BeatSaber.png, &copy; Beat Games
 imageInfo = 051-Venecek.png,         &copy; Josef Pelikan
 imageInfo = 051-black.png,           Solid black color
+imageInfo = 051-pumpkin2.png,        &copy; Josef Pelikan
