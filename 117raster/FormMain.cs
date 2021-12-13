@@ -15,7 +15,7 @@ namespace _117raster
 {
   public partial class FormMain : Form
   {
-    static readonly string rev = Util.SetVersion("$Rev$");
+    static readonly string rev = Util.SetVersion("$Rev: 978 $");
 
     /// <summary>
     /// Input image read from disk / drag-and-dropped.
@@ -181,7 +181,7 @@ namespace _117raster
     /// <summary>
     /// Sets label text (async support).
     /// </summary>
-    /// <param name="text"></param>
+    /// <param name="text">New label text.</param>
     private void SetText (string text)
     {
       if (labelStatus.InvokeRequired)
@@ -191,6 +191,21 @@ namespace _117raster
       }
       else
         labelStatus.Text = text;
+    }
+
+    /// <summary>
+    /// Sets Param text (async support).
+    /// </summary>
+    /// <param name="text">New Param text.</param>
+    private void SetParamText (string text)
+    {
+      if (labelStatus.InvokeRequired)
+      {
+        SetTextCallback st = new SetTextCallback(SetParamText);
+        BeginInvoke(st, new object[] { text });
+      }
+      else
+        textBoxParam.Text = text;
     }
 
     public void UpdateTooltip ()
@@ -546,7 +561,8 @@ namespace _117raster
     private void textBoxParam_MouseHover (object sender, EventArgs e)
     {
       tt.Show(tooltip, (IWin32Window)sender,
-              10, -24 - 15 * Util.CharsInString(tooltip, '\r'), 3000);
+              10, -24 - 15 * (Util.CharsInString(tooltip, '\r') + Util.CharsInString(tooltip, '\n')),
+              3000);
     }
 
     private void labelStatus_MouseHover (object sender, EventArgs e)
@@ -766,7 +782,7 @@ namespace _117raster
       IRasterModule cm = currModuleSafe();
 
       if (module == cm)
-        textBoxParam.Text = cm.Param;
+        SetParamText(module.Param);
     }
 
     private void deactivateRequest (IRasterModule module)
