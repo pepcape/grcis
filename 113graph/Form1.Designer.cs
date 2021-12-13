@@ -41,13 +41,14 @@ namespace _113graph
       this.textExpression = new System.Windows.Forms.TextBox();
       this.label1 = new System.Windows.Forms.Label();
       this.buttonRegenerate = new System.Windows.Forms.Button();
+      this.checkTexture = new System.Windows.Forms.CheckBox();
       this.SuspendLayout();
       // 
       // labelStatus
       // 
       this.labelStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelStatus.AutoSize = true;
-      this.labelStatus.Location = new System.Drawing.Point(636, 397);
+      this.labelStatus.Location = new System.Drawing.Point(636, 417);
       this.labelStatus.Name = "labelStatus";
       this.labelStatus.Size = new System.Drawing.Size(37, 13);
       this.labelStatus.TabIndex = 6;
@@ -58,7 +59,7 @@ namespace _113graph
       // 
       this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label3.AutoSize = true;
-      this.label3.Location = new System.Drawing.Point(319, 398);
+      this.label3.Location = new System.Drawing.Point(117, 418);
       this.label3.Name = "label3";
       this.label3.Size = new System.Drawing.Size(40, 13);
       this.label3.TabIndex = 13;
@@ -73,7 +74,7 @@ namespace _113graph
       this.glControl1.BackColor = System.Drawing.Color.Black;
       this.glControl1.Location = new System.Drawing.Point(13, 12);
       this.glControl1.Name = "glControl1";
-      this.glControl1.Size = new System.Drawing.Size(762, 365);
+      this.glControl1.Size = new System.Drawing.Size(762, 355);
       this.glControl1.TabIndex = 17;
       this.glControl1.VSync = false;
       this.glControl1.Load += new System.EventHandler(this.glControl1_Load);
@@ -91,7 +92,7 @@ namespace _113graph
       // 
       this.labelFps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.labelFps.AutoSize = true;
-      this.labelFps.Location = new System.Drawing.Point(636, 430);
+      this.labelFps.Location = new System.Drawing.Point(636, 450);
       this.labelFps.Name = "labelFps";
       this.labelFps.Size = new System.Drawing.Size(27, 13);
       this.labelFps.TabIndex = 18;
@@ -102,7 +103,7 @@ namespace _113graph
       // 
       this.checkSmooth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkSmooth.AutoSize = true;
-      this.checkSmooth.Location = new System.Drawing.Point(13, 396);
+      this.checkSmooth.Location = new System.Drawing.Point(13, 385);
       this.checkSmooth.Name = "checkSmooth";
       this.checkSmooth.Size = new System.Drawing.Size(62, 17);
       this.checkSmooth.TabIndex = 21;
@@ -114,7 +115,7 @@ namespace _113graph
       // 
       this.checkWireframe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkWireframe.AutoSize = true;
-      this.checkWireframe.Location = new System.Drawing.Point(80, 396);
+      this.checkWireframe.Location = new System.Drawing.Point(80, 385);
       this.checkWireframe.Name = "checkWireframe";
       this.checkWireframe.Size = new System.Drawing.Size(48, 17);
       this.checkWireframe.TabIndex = 22;
@@ -125,9 +126,9 @@ namespace _113graph
       // 
       this.textParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.textParam.Location = new System.Drawing.Point(361, 394);
+      this.textParam.Location = new System.Drawing.Point(172, 414);
       this.textParam.Name = "textParam";
-      this.textParam.Size = new System.Drawing.Size(265, 20);
+      this.textParam.Size = new System.Drawing.Size(454, 20);
       this.textParam.TabIndex = 23;
       this.textParam.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textParam_KeyPress);
       this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
@@ -138,7 +139,7 @@ namespace _113graph
       this.checkTwosided.AutoSize = true;
       this.checkTwosided.Checked = true;
       this.checkTwosided.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkTwosided.Location = new System.Drawing.Point(133, 396);
+      this.checkTwosided.Location = new System.Drawing.Point(133, 385);
       this.checkTwosided.Name = "checkTwosided";
       this.checkTwosided.Size = new System.Drawing.Size(57, 17);
       this.checkTwosided.TabIndex = 24;
@@ -149,7 +150,7 @@ namespace _113graph
       // 
       this.checkDebug.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.checkDebug.AutoSize = true;
-      this.checkDebug.Location = new System.Drawing.Point(257, 396);
+      this.checkDebug.Location = new System.Drawing.Point(473, 385);
       this.checkDebug.Name = "checkDebug";
       this.checkDebug.Size = new System.Drawing.Size(58, 17);
       this.checkDebug.TabIndex = 47;
@@ -162,7 +163,7 @@ namespace _113graph
       this.checkVsync.AutoSize = true;
       this.checkVsync.Checked = true;
       this.checkVsync.CheckState = System.Windows.Forms.CheckState.Checked;
-      this.checkVsync.Location = new System.Drawing.Point(195, 396);
+      this.checkVsync.Location = new System.Drawing.Point(411, 385);
       this.checkVsync.Name = "checkVsync";
       this.checkVsync.Size = new System.Drawing.Size(57, 17);
       this.checkVsync.TabIndex = 46;
@@ -174,9 +175,9 @@ namespace _113graph
       // 
       this.textExpression.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.textExpression.Location = new System.Drawing.Point(150, 426);
+      this.textExpression.Location = new System.Drawing.Point(172, 446);
       this.textExpression.Name = "textExpression";
-      this.textExpression.Size = new System.Drawing.Size(476, 20);
+      this.textExpression.Size = new System.Drawing.Size(454, 20);
       this.textExpression.TabIndex = 48;
       this.textExpression.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textExpression_KeyPress);
       this.textExpression.MouseHover += new System.EventHandler(this.textExpression_MouseHover);
@@ -185,7 +186,7 @@ namespace _113graph
       // 
       this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point(116, 430);
+      this.label1.Location = new System.Drawing.Point(116, 450);
       this.label1.Name = "label1";
       this.label1.Size = new System.Drawing.Size(31, 13);
       this.label1.TabIndex = 49;
@@ -194,19 +195,31 @@ namespace _113graph
       // buttonRegenerate
       // 
       this.buttonRegenerate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.buttonRegenerate.Location = new System.Drawing.Point(13, 425);
+      this.buttonRegenerate.Location = new System.Drawing.Point(13, 414);
       this.buttonRegenerate.Name = "buttonRegenerate";
-      this.buttonRegenerate.Size = new System.Drawing.Size(94, 23);
+      this.buttonRegenerate.Size = new System.Drawing.Size(94, 54);
       this.buttonRegenerate.TabIndex = 50;
       this.buttonRegenerate.Text = "Regenerate";
       this.buttonRegenerate.UseVisualStyleBackColor = true;
       this.buttonRegenerate.Click += new System.EventHandler(this.buttonRegenerate_Click);
       // 
+      // checkTexture
+      //
+      this.checkTexture.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.checkTexture.AutoSize = true;
+      this.checkTexture.Location = new System.Drawing.Point(196, 385);
+      this.checkTexture.Name = "checkTexture";
+      this.checkTexture.Size = new System.Drawing.Size(62, 17);
+      this.checkTexture.TabIndex = 51;
+      this.checkTexture.Text = "Texture";
+      this.checkTexture.UseVisualStyleBackColor = true;
+      //
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(794, 461);
+      this.ClientSize = new System.Drawing.Size(794, 481);
+      this.Controls.Add(this.checkTexture);
       this.Controls.Add(this.buttonRegenerate);
       this.Controls.Add(this.label1);
       this.Controls.Add(this.textExpression);
@@ -243,6 +256,7 @@ namespace _113graph
     private System.Windows.Forms.TextBox textExpression;
     private System.Windows.Forms.Label label1;
     private System.Windows.Forms.Button buttonRegenerate;
+    private System.Windows.Forms.CheckBox checkTexture;
   }
 }
 

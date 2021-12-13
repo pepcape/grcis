@@ -20,7 +20,7 @@ namespace OpenglSupport
     {
       // 0. .NET, OpenTK
       Util.LogFormat("{0} ({1}), OpenTK {2}",
-                       Util.TargetFramework, Util.RunningFramework, Util.AssemblyVersion(typeof(Vector3)));
+                     Util.TargetFramework, Util.RunningFramework, Util.AssemblyVersion(typeof(Vector3)));
 
       // 1. OpenGL version, vendor, ..
       string version  = GL.GetString(StringName.Version);
@@ -61,13 +61,15 @@ namespace OpenglSupport
     /// Checks OpenGL error and logs a message eventually.
     /// </summary>
     /// <param name="checkpoint">Optional checkpoint identification.</param>
-    public static void LogError (string checkpoint = "?")
+    /// <returns>True in case of error.</returns>
+    public static bool LogError (string checkpoint = "?")
     {
       ErrorCode err = GL.GetError ();
       if (err == ErrorCode.NoError)
-        return;
+        return false;
 
       Util.LogFormat("OpenGL error {0} at {1}", err, checkpoint);
+      return true;
     }
   }
 
@@ -91,7 +93,7 @@ namespace OpenglSupport
     /// </summary>
     public static void ResetFrameNumber ()
     {
-      lock ( frameLock )
+      lock (frameLock)
         frameCounter = 0;
     }
 
@@ -122,7 +124,7 @@ namespace OpenglSupport
     /// </summary>
     public static void SaveScreenshot (GLControl glc, string fileNameTemplate = "out{0:00000}.png")
     {
-      Bitmap bmp = TakeScreenshot ( glc );
+      Bitmap bmp = TakeScreenshot(glc);
       if (bmp != null)
       {
         // save the image file:
@@ -185,8 +187,8 @@ namespace OpenglSupport
       get
       {
         int size = 0;
-        lock ( this )
-          if ( queue != null )
+        lock (this)
+          if (queue != null)
             size = queue.Count;
         return size;
       }
@@ -540,7 +542,7 @@ namespace OpenglSupport
     /// </summary>
     public bool CompileShader (ShaderType type, string fileName, string folderHint)
     {
-      string fn = Util.FindSourceFile ( fileName, folderHint );
+      string fn = Util.FindSourceFile(fileName, folderHint);
       if (fn == null)
       {
         Status  = 0;
