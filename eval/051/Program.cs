@@ -302,7 +302,7 @@ namespace _051
     /// </summary>
     static Program ()
     {
-      Util.SetVersion( "$Rev$" );
+      Util.SetVersion( "$Rev: 975 $" );
     }
 
     static void Main ( string[] args )
@@ -486,7 +486,17 @@ namespace _051
           Options.LogFormat( "Invalid format of source file name '{0}', ignored.", fn );
           continue;
         }
-        name = name.Substring( end + 1 );
+
+        // "XY\SurnameName.XX" or "XY\Colormap.NameSurname"
+        if (name.Length - end == 3)
+        {
+          name = name.Substring(0, end);
+          end = name.LastIndexOf('\\');
+          if (end >= 0)
+            name = name.Substring(end + 1);
+        }
+        else
+          name = name.Substring(end + 1);
 
         files++;
 
