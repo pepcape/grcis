@@ -154,20 +154,32 @@ namespace _113graph
       double x = -0.5, z = -0.5;
       Expression e = null;
       double result;
+
+      // Checking expression syntax first (only once).
       try
       {
         e = new Expression(expr);
-        e.Parameters["x"] = x;
-        e.Parameters["y"] = z;
-        e.Parameters["z"] = z;
+        e.Options |= EvaluateOptions.IgnoreCase;
+        e.Parameters["x"] = 0.0;
+        e.Parameters["y"] = 0.0;
+        e.Parameters["z"] = 0.0;
         result = (double)e.Evaluate();
-        if (double.IsNaN(result))
-          throw new Exception("NCalc: NaN");
       }
       catch (Exception ex)
       {
+        // Error message displayed on the form.
         return ex.Message;
       }
+
+      // Example of regular expression evaluation
+      // (no need to use try-catch block here)
+      e.Parameters["x"] = x;
+      e.Parameters["y"] = z;
+      e.Parameters["z"] = z;
+      result = (double)e.Evaluate();
+      if (double.IsNaN(result) ||       // e.g. 0/0 or asin(1.1)
+          double.IsInfinity(result))    // e.g. 1/0
+        result = 0.0;
 
       // Everything seems to be OK.
       expression = expr;
