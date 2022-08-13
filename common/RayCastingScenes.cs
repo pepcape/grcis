@@ -27,7 +27,7 @@ namespace Rendering
   /// Some interesting scenes created mostly by MFF UK students.
   /// http://cgg.mff.cuni.cz/~pepca/gr/grcis/
   /// </summary>
-  public class Scenes
+  public partial class Scenes
   {
     /// <summary>
     /// Scene repository: sceneName -> {sceneDelegate | scriptFileContent}
@@ -48,6 +48,7 @@ namespace Rendering
       staticRepository[ "Circus" ]               = new InitSceneDelegate( Circus );
       staticRepository[ "Toroids" ]              = new InitSceneDelegate( Toroids );
       staticRepository[ "Bezier" ]               = new InitSceneDelegate( Bezier );
+      staticRepository["Implicit"] = new InitSceneParamDelegate(Implicit);
     }
 
     /// <summary>
@@ -496,6 +497,7 @@ namespace Rendering
       double n = 1.6;
       Util.TryParse( p, "n", ref n );
 
+      var node = new CSGInnerNode(SetOperation.Intersection);
       // Transparent sphere:
       Sphere s;
       s = new Sphere();
@@ -503,11 +505,13 @@ namespace Rendering
       pm.n = n;
       pm.Kt = 0.9;
       s.SetAttribute( PropertyName.MATERIAL, pm );
-      root.InsertChild( s, Matrix4d.Identity );
+      node.InsertChild( s, Matrix4d.Identity );
 
       // Opaque sphere:
       s = new Sphere();
-      root.InsertChild( s, Matrix4d.Scale( 1.2 ) * Matrix4d.CreateTranslation( 1.5, 0.2, 2.4 ) );
+      node.InsertChild( s, Matrix4d.Scale( 1.2 ) * Matrix4d.CreateTranslation( 0.7, 0.0, 0.0 ) );
+
+      root.InsertChild(node, Matrix4d.Identity);
 
       // Infinite plane with checker:
       Plane pl = new Plane();
@@ -1062,6 +1066,61 @@ namespace Rendering
         root.InsertChild( t, Matrix4d.CreateRotationX( 0.5 * i ) * Matrix4d.CreateTranslation( 10.0 * (1.0 * i / number) - 4.7, -2.5, 0 ) );
       }
     }
+
+    public static void Implicit (IRayScene sc, string param)
+    {
+      // CSG scene:
+      CSGInnerNode root = new CSGInnerNode( SetOperation.Union );
+      root.SetAttribute( PropertyName.REFLECTANCE_MODEL, new PhongModel() );
+      root.SetAttribute( PropertyName.MATERIAL, new PhongMaterial( new double[] { 1.0, 0.8, 0.1 }, 0.1, 0.6, 0.4, 128 ) );
+      sc.Intersectable = root;
+
+      // Background color:
+      sc.BackgroundColor = new double[] { 0.5, 0.05, 0.07 };
+
+      // Camera:
+      sc.Camera = new StaticCamera( new Vector3d( 0.7, 0.5, -5.0 ),
+                                    new Vector3d( 0.0, -0.18, 1.0 ),
+                                    50.0 );
+
+      // Light sources:
+      sc.Sources = new LinkedList<ILightSource>();
+      sc.Sources.Add( new AmbientLightSource( 0.8 ) );
+      sc.Sources.Add( new PointLightSource( new Vector3d( -5.0, 4.0, -3.0 ), 1.2 ) );
+
+      // --- NODE DEFINITIONS ----------------------------------------------------
+
+      // Params dictionary:
+      Dictionary<string, string> p = Util.ParseKeyValueList( param );
+
+      // n = <index-of-refraction>
+      double n = 1.6;
+      Util.TryParse( p, "n", ref n );
+
+      var node = new CSGInnerNode(SetOperation.Intersection);
+      // Transparent sphere:
+      Sphere s;
+      s = new Sphere();
+      PhongMaterial pm = new PhongMaterial( new double[] { 0.0, 0.2, 0.1 }, 0.05, 0.05, 0.1, 128 );
+      pm.n = n;
+      pm.Kt = 0.9;
+      s.SetAttribute( PropertyName.MATERIAL, pm );
+      node.InsertChild( s, Matrix4d.Identity );
+
+      // Opaque sphere:
+      s = new Sphere();
+      node.InsertChild( s, Matrix4d.Scale( 1.2 ) * Matrix4d.CreateTranslation( 0.7, 0.0, 0.0 ) );
+
+      root.InsertChild(node, Matrix4d.Identity);
+
+      // Infinite plane with checker:
+      Plane pl = new Plane();
+      pl.SetAttribute( PropertyName.COLOR, new double[] { 0.3, 0.0, 0.0 } );
+      pl.SetAttribute( PropertyName.TEXTURE, new CheckerTexture( 0.6, 0.6, new double[] { 1.0, 1.0, 1.0 } ) );
+      root.InsertChild( pl, Matrix4d.RotateX( -MathHelper.PiOver2 ) * Matrix4d.CreateTranslation( 0.0, -1.0, 0.0 ) );
+
+    }
+
 
     /// <summary>
     /// Test scene for BezierSurface.

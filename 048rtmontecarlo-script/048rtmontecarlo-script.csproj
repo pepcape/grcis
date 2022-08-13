@@ -264,6 +264,15 @@
     <Compile Include="..\common\WorkloadDistribution.cs">
       <Link>WorkloadDistribution.cs</Link>
     </Compile>
+    <Compile Include="..\newmodules\EduardHopfer-ImplicitSufraces\DistanceField.cs">
+      <Link>DistanceField.cs</Link>
+    </Compile>
+    <Compile Include="..\newmodules\EduardHopfer-ImplicitSufraces\ImplicitCommon.cs">
+      <Link>ImplicitCommon.cs</Link>
+    </Compile>
+    <Compile Include="..\newmodules\EduardHopfer-ImplicitSufraces\ImplicitInnerNode.cs">
+      <Link>ImplicitInnerNode.cs</Link>
+    </Compile>
     <Compile Include="AdditionalViewsForm.cs">
       <SubType>Form</SubType>
     </Compile>
