@@ -273,6 +273,9 @@
     <Compile Include="..\newmodules\EduardHopfer-ImplicitSufraces\ImplicitInnerNode.cs">
       <Link>ImplicitInnerNode.cs</Link>
     </Compile>
+    <Compile Include="..\newmodules\EduardHopfer-ImplicitSufraces\SphereTracing.cs">
+      <Link>SphereTracing.cs</Link>
+    </Compile>
     <Compile Include="AdditionalViewsForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -24,12 +24,12 @@ namespace EduardHopfer
   interface IImplicitOperation
   {
     // false -> choose left; true -> choose right
-    bool Result (double leftSdfResult, double rightSdfResult);
+    bool Result (ref double leftSdfResult, ref double rightSdfResult);
   }
 
   public sealed class ImplicitIntersection : IImplicitOperation
   {
-    public bool Result (double leftSdfResult, double rightSdfResult)
+    public bool Result (ref double leftSdfResult, ref double rightSdfResult)
     {
       return rightSdfResult > leftSdfResult;
       //return Math.Max(leftSdfResult, rightSdfResult);
@@ -39,7 +39,7 @@ namespace EduardHopfer
   // TODO: add blending
   public sealed class ImplicitUnion : IImplicitOperation
   {
-    public bool Result (double leftSdfResult, double rightSdfResult)
+    public bool Result (ref double leftSdfResult, ref double rightSdfResult)
     {
       return rightSdfResult < leftSdfResult;
       //return Math.Min(leftSdfResult, rightSdfResult);
@@ -48,15 +48,17 @@ namespace EduardHopfer
 
   public sealed class ImplicitDifference : IImplicitOperation
   {
-    public bool Result (double leftSdfResult, double rightSdfResult)
+    public bool Result (ref double leftSdfResult, ref double rightSdfResult)
     {
-      return (rightSdfResult * -1) > leftSdfResult;
+      rightSdfResult *= -1; // invert the shape
+      return rightSdfResult > leftSdfResult;
       //return Math.Max(leftSdfResult, rightSdfResult * -1);
     }
   }
 
   public sealed class ImplicitInnerNode : DefaultSceneNode
   {
+    private static   double             correction = Intersection.RAY_EPSILON2;
     private readonly IImplicitOperation bop;
     private          List<ISceneNode>   relevantChildren;
     private          List<double>       lastDistancesToBound;
@@ -98,6 +100,10 @@ namespace EduardHopfer
       this.relevantChildren = this.children.ToList();
       this.lastDistancesToBound = Enumerable.Repeat(INFINITY_PLACEHOLDER, this.relevantChildren.Count).ToList();
 
+      // TODO: is this transform needed?
+      // var localPos = Vector3d.TransformPosition(p0, FromParent);
+      // var localDir = Vector3d.TransformVector(p1, FromParent);
+
       var result = new LinkedList<Intersection>();
 
       while (true)
@@ -124,29 +130,13 @@ namespace EduardHopfer
       double positionOnRay = initialPosition;
       double initialDistance = this.CompoundSDF(origin, dir, positionOnRay, out var chosen);
       bool isInside = initialDistance <= 0.0;
-      bool invalid = Math.Abs(initialDistance) <= Intersection.RAY_EPSILON;
-      // if (invalid)
-      // {
-      //   isInside = !isInside;
-      //   positionOnRay += Intersection.RAY_EPSILON;
-      // }
-      if (invalid)
-      {
-        double nextD = this.CompoundSDF(origin, dir, positionOnRay + Intersection.RAY_EPSILON, out chosen);
-        bool nextInside = nextD <= 0;
-        if (isInside != nextInside)
-        {
-          // probably just a numeric error, avoid self intersection
-          positionOnRay += Intersection.RAY_EPSILON;
-          isInside = !isInside;
-        }
-      }
 
       while (this.relevantChildren.Count != 0)
       {
         double distance = this.CompoundSDF(origin, dir, positionOnRay, out chosen);
 
-        bool crossedBoundary = (isInside && distance >= 0.0) || (!isInside && distance <= 0.0);
+        const double treshold = 0.0;
+        bool crossedBoundary = (isInside && distance >= treshold) || (!isInside && distance <= -treshold);
         if (crossedBoundary)
         {
           var originLocal = Vector3d.TransformPosition(origin, chosen.FromParent);
@@ -160,8 +150,10 @@ namespace EduardHopfer
             T = positionOnRay,
             Enter = !isInside,
             Front = !isInside,
-            NormalLocal = df.CalculateNormal(rayLocal),
-            CoordLocal = rayLocal
+            // TODO: is this right? it works but shouldn't the normal point the other way?
+            NormalLocal = this.CalculateNormal(origin, dir, positionOnRay),
+            CoordLocal = rayLocal,
+            SolidData = new ImplicitData {distance = distance}
           };
         }
 
@@ -192,6 +184,10 @@ namespace EduardHopfer
           double distance = df.boundingSdf(localOrigin + t * localDir);
           double lastDistance = this.lastDistancesToBound[i];
 
+          //distance = i == 0 ? distance : distance * -1;
+          //bool leavingBB = i == 0
+          //  ? distance > 0.0 && lastDistance > 0.0 && distance > lastDistance
+          //  : distance < 0.0 && lastDistance < 0.0 && distance < lastDistance;
           if (distance > 0.0 && lastDistance > 0.0 && distance > lastDistance)
           {
             toRemove.Add(i);
@@ -211,21 +207,28 @@ namespace EduardHopfer
         }
       }
 
-      this.relevantChildren = this.relevantChildren
-        .Where((sn, inx) => !toRemove.Contains(inx))
-        .ToList();
-      this.lastDistancesToBound = this.lastDistancesToBound
-        .Where((d, inx) => !toRemove.Contains(inx))
-        .ToList();
+      // only kill the ray when no children will be hit
+      // TODO: find a better way to handle intersections
+      if (toRemove.Count == this.relevantChildren.Count)
+      {
+        this.relevantChildren.Clear();
+      }
+      // this.relevantChildren = this.relevantChildren
+      //   .Where((sn, inx) => !toRemove.Contains(inx))
+      //   .ToList();
+      // this.lastDistancesToBound = this.lastDistancesToBound
+      //   .Where((d, inx) => !toRemove.Contains(inx))
+      //   .ToList();
     }
 
-    private double CompoundSDF (Vector3d origin, Vector3d dir, double t, out ISceneNode chosen)
+    private double CompoundSDF (Vector3d origin, Vector3d dir, double t, out ISceneNode chosen, Vector3d? offset = null)
     {
       this.relevantChildren = this.relevantChildren ?? this.children.ToList();
 
       chosen = null;
       double result = 0D;
       bool first = true;
+      Vector3d _offset = offset ?? Vector3d.Zero;
 
       foreach (var child in this.relevantChildren)
       {
@@ -237,16 +240,16 @@ namespace EduardHopfer
 
         if (child is ImplicitInnerNode inner)
         {
-          tmpResult = inner.CompoundSDF(localOrigin, localDir, t, out tmpChosen);
+          tmpResult = inner.CompoundSDF(localOrigin, localDir, t, out tmpChosen, offset);
         }
         else
         {
           tmpChosen = child;
           DistanceField leaf = child as DistanceField;
-          tmpResult = leaf.sdf(localOrigin + t * localDir);
+          tmpResult = leaf.sdf(localOrigin + t * localDir + _offset);
         }
 
-        bool update = first || this.bop.Result(result, tmpResult);
+        bool update = first || this.bop.Result(ref result, ref tmpResult);
         first = false;
 
         result = update ? tmpResult : result;
@@ -254,6 +257,21 @@ namespace EduardHopfer
       }
 
       return result;
+    }
+
+    public Vector3d CalculateNormal (Vector3d origin, Vector3d dir, double positionOnRay)
+    {
+      const double h = 0.0001;
+      Vector2d k = new Vector2d(1.0,-1.0);
+      Vector3d xyy = new Vector3d(k.X, k.Y, k.Y);
+      Vector3d yyx = new Vector3d(k.Y, k.Y, k.X);
+      Vector3d yxy = new Vector3d(k.Y, k.X, k.Y);
+      Vector3d xxx = new Vector3d(k.X, k.X, k.X);
+
+      return xyy * this.CompoundSDF(origin, dir, positionOnRay, out _, offset: xyy * h) +
+             yyx * this.CompoundSDF(origin, dir, positionOnRay, out _, offset: yyx * h) +
+             yxy * this.CompoundSDF(origin, dir, positionOnRay, out _, offset: yxy * h) +
+             xxx * this.CompoundSDF(origin, dir, positionOnRay, out _, offset: xxx * h);
     }
   }
 }

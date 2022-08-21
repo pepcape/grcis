@@ -5,6 +5,7 @@ using Rendering;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
+using Utilities;
 
 namespace EduardHopfer
 {
@@ -13,6 +14,7 @@ namespace EduardHopfer
   // TODO: implement CSG operations on implicits
   public static class ImplicitCommon
   {
+    private static readonly double EpsMin = 1e-03;
     public delegate double SignedDistanceFunction (Vector3d point);
 
     public static readonly SignedDistanceFunction Sphere =
@@ -30,6 +32,32 @@ namespace EduardHopfer
         return Vector3d.ComponentMax(pp, Vector3d.Zero).Length + magic;
       };
 
+    public static Vector3d GetNextRayOrigin (Intersection i, RayType type)
+    {
+      if (i.Solid is DistanceField == false || type == RayType.REFRACT)
+      {
+        return i.CoordWorld;
+      }
+
+      var iData = i.SolidData as ImplicitData;
+      Debug.Assert(iData is null == false, "Implicit had no data");
+
+      double epsDynamic = 2 * Math.Max(Math.Abs(iData.distance), EpsMin);
+      return i.CoordWorld + i.Normal * epsDynamic;
+    }
+  }
+
+  public enum RayType
+  {
+    SHADOW,
+    REFLECT,
+    REFRACT
+  }
+
+
+  public class ImplicitData
+  {
+    public double distance { get; set; }
   }
 
 }
