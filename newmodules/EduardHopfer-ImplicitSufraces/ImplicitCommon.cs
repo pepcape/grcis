@@ -14,7 +14,8 @@ namespace EduardHopfer
   // TODO: implement CSG operations on implicits
   public static class ImplicitCommon
   {
-    private static readonly double EpsMin = 1e-03;
+    private static readonly double EpsMin   = 1e-03;
+    public static readonly  double MIN_STEP = Intersection.RAY_EPSILON;
     public delegate double SignedDistanceFunction (Vector3d point);
 
     public static readonly SignedDistanceFunction Sphere =
