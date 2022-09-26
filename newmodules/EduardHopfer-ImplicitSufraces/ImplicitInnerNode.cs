@@ -1,21 +1,18 @@
-
 using OpenTK;
 using Rendering;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace EduardHopfer
 {
-  public sealed class ImplicitInnerNode : DefaultSceneNode
+  public sealed class ImplicitInnerNode : DefaultSceneNode, ITimeDependent
   {
-    private readonly IImplicitOperation                       bop;
-    private          ConcurrentDictionary<Ray, IList<double>> boundingBoxDistances;
+    private readonly IImplicitOperation bop;
+    private          IList<double>      boundingBoxDistances;
+    private          List<ISceneNode>   _lChildren = null;
 
-    private List<ISceneNode> _lChildren = null;
-
+    // For convenience
     private List<ISceneNode> ListChildren
     {
       get
@@ -33,14 +30,17 @@ namespace EduardHopfer
     {
       this.bop = op;
 
-      int concurrencyLevel = Environment.ProcessorCount * 2;
-      boundingBoxDistances = new ConcurrentDictionary<Ray, IList<double>>(concurrencyLevel, concurrencyLevel);
+      boundingBoxDistances = new List<double>();
     }
 
     public override void InsertChild (ISceneNode ch, Matrix4d toParent)
     {
       bool isImplicit = ch is DistanceField || ch is ImplicitInnerNode;
-      if (!isImplicit)
+      // For AnimatedCSGInnerNode mainly
+      bool hasSingleImplicitChild = ch.Children.Count == 1 &&
+                                    (ch.Children.First() is DistanceField || ch.Children.First() is ImplicitInnerNode);
+
+      if (!isImplicit && !hasSingleImplicitChild)
       {
         throw new ArgumentException("ImplicitInnerNode can only have other implicits as children!");
       }
@@ -51,7 +51,8 @@ namespace EduardHopfer
     public override LinkedList<Intersection> Intersect (Vector3d p0, Vector3d p1)
     {
       double positionOnRay = 0D;
-      var ray = this.InitializeRayData(p0, p1);
+      this.boundingBoxDistances = Enumerable.Repeat(INFINITY_PLACEHOLDER, this.children.Count).ToList();
+      var ray = new Ray {Origin = p0, Dir = p1,};
 
       var result = new LinkedList<Intersection>();
 
@@ -68,11 +69,14 @@ namespace EduardHopfer
         result.AddLast(intersection);
       }
 
-      this.boundingBoxDistances.TryRemove(ray, out _);
       bool foundIntersection = result.Count > 1;
       return foundIntersection ? result : null;
     }
 
+    // Sphere tracing implementation
+    // Intersection is found when the sign of the scene SDF changes
+    // TODO: go back to traditional implementation with epsilon based intersections
+    //       That way we can get glow and soft shadows for free
     private Intersection CompoundIntersection (Ray ray,
                                                double initialPosition = 0D)
     {
@@ -96,7 +100,6 @@ namespace EduardHopfer
           var dirLocal = Vector3d.TransformVector(ray.Dir, chosen.FromParent);
           var rayLocal = originLocal + positionOnRay * dirLocal;
 
-          // chosen should always be a solid
           return new Intersection(chosen)
           {
             T = positionOnRay,
@@ -123,8 +126,7 @@ namespace EduardHopfer
 
     private bool IntersectionPossible (Ray ray, double t)
     {
-      var lastDistances = this.boundingBoxDistances.GetOrAdd(ray,
-                                                          _ => Enumerable.Repeat(INFINITY_PLACEHOLDER, this.children.Count).ToList());
+      //var lastDistances = this.boundingBoxDistances;
       for (int i = 0; i < this.ListChildren.Count; i++)
       {
         var child = this.ListChildren[i];
@@ -136,14 +138,14 @@ namespace EduardHopfer
           case DistanceField df:
           {
             double distance = df.boundingSdf(localOrigin + t * localDir);
-            double lastDistance = lastDistances[i];
+            double lastDistance = this.boundingBoxDistances[i];
 
             if (distance < 0.0 || lastDistance < 0.0 || distance < lastDistance)
             {
               return true;
             }
 
-            lastDistances[i] = distance;
+            this.boundingBoxDistances[i] = distance;
             break;
           }
           case ImplicitInnerNode inner:
@@ -157,13 +159,27 @@ namespace EduardHopfer
             break;
           }
           default:
-            throw new Exception("bad node type");
+            // TODO: move into a function and allow ImplicitInnerNode as well
+            var next = child.Children.Single();
+            var nextLeaf = next as DistanceField;
+            double d = nextLeaf.boundingSdf(localOrigin + t * localDir);
+            double ld = this.boundingBoxDistances[i];
+
+            if (d < 0.0 || ld < 0.0 || d < ld)
+            {
+              return true;
+            }
+
+            this.boundingBoxDistances[i] = d;
+            break;
         }
       }
 
       return false;
     }
 
+    // Compute the SDF of the whole scene by applying the CSG operation
+    // on the child SDFs
     private SDFResult CompoundSDF (Ray ray, double t, Vector3d? offset = null)
     {
       Vector3d _offset = offset ?? Vector3d.Zero;
@@ -175,7 +191,6 @@ namespace EduardHopfer
       for (int i = 0; i < this.ListChildren.Count; i++)
       {
         bool first = i == 0;
-        bool second = i == 1;
         var child = this.ListChildren[i];
 
         var tmpWeights = Enumerable.Empty<WeightedSurface>();
@@ -186,35 +201,50 @@ namespace EduardHopfer
         var localOrigin = Vector3d.TransformPosition(ray.Origin, child.FromParent);
         var localDir = Vector3d.TransformVector(ray.Dir, child.FromParent);
 
-        if (child is ImplicitInnerNode inner)
+        switch (child)
         {
-          var localRay = new Ray()
-          {
-            Origin = localOrigin,
-            Dir = localDir,
-          };
+          case ImplicitInnerNode inner:
+            var localRay = new Ray()
+            {
+              Origin = localOrigin,
+              Dir = localDir,
+            };
 
-          var innerResult = inner.CompoundSDF(localRay, t, offset);
+            var innerCopy = inner.Clone() as ImplicitInnerNode;
+            var innerResult = innerCopy.CompoundSDF(localRay, t, offset);
 
-          // Use the inner distance field instead of the inner node
-          tmpChosen = innerResult.Chosen;
-          distToChild = innerResult.Distance;
-          tmpWeights = innerResult.Weights;
-        }
-        else
-        {
-          DistanceField leaf = child as DistanceField;
-          Debug.Assert(leaf != null);
+            // Use the inner distance field instead of the inner node
+            tmpChosen = innerResult.Chosen;
+            distToChild = innerResult.Distance;
+            tmpWeights = innerResult.Weights;
+            break;
+          case DistanceField leaf:
+            distToChild = leaf.sdf(localOrigin + t * localDir + _offset);
+            tmpChosen = leaf;
 
-          distToChild = leaf.sdf(localOrigin + t * localDir + _offset);
-          tmpChosen = leaf;
+            double childWeight = this.bop.GetWeightRight(0.0, distToChild);
+            tmpWeights = Enumerable.Repeat(new WeightedSurface()
+            {
+              Solid = leaf,
+              Weight = childWeight,
+            }, 1);
+            break;
+          default:
+            var nextChild = child.Children.Single();
+            var nextLeaf = nextChild as DistanceField;
+            nextLeaf.FromParent = child.FromParent;
+            nextLeaf.ToParent = child.ToParent;
 
-          double childWeight = this.bop.GetWeightRight(0.0, distToChild);
-          tmpWeights = Enumerable.Repeat(new WeightedSurface()
-          {
-            Solid = leaf,
-            Weight = childWeight,
-          }, 1);
+            distToChild = nextLeaf.sdf(localOrigin + t * localDir + _offset);
+            tmpChosen = nextLeaf;
+
+            double cWeight = this.bop.GetWeightRight(0.0, distToChild);
+            tmpWeights = Enumerable.Repeat(new WeightedSurface()
+            {
+              Solid = nextLeaf,
+              Weight = cWeight,
+            }, 1);
+            break;
         }
 
         double resultLocal = distToScene; // not really needed but I like it better
@@ -226,11 +256,10 @@ namespace EduardHopfer
         }
 
         childWeights = childWeights.Concat(tmpWeights);
-        // the first weight is 1.0 which sucks dick
+
         if (update)
         {
           distToScene = distToChild;
-
           chosen = tmpChosen;
         }
         else
@@ -247,6 +276,8 @@ namespace EduardHopfer
       };
     }
 
+    // Normal vector approximation using the CompoundSDF
+    // see DistanceField.CalculateNormal
     private Vector3d CalculateNormal (Ray ray, double positionOnRay)
     {
       const double h = 0.0001; // 0.0001
@@ -268,14 +299,40 @@ namespace EduardHopfer
              xxx * sdf(ray, positionOnRay, offset: xxx * h);
     }
 
-    private Ray InitializeRayData (Vector3d origin, Vector3d dir)
+    public object Clone ()
     {
-      var rayKey = new Ray {Origin = origin, Dir = dir,};
-      var rayData = Enumerable.Repeat(INFINITY_PLACEHOLDER, this.children.Count).ToList();
+      ImplicitInnerNode clone = new ImplicitInnerNode(this.bop);
+      ShareCloneAttributes(clone);
+      ShareCloneChildren(clone);
+      clone.Time = time;
+      return clone;
+    }
 
-      // add or overwrite the data in the dictionary
-      this.boundingBoxDistances.AddOrUpdate(rayKey, _ => rayData, (_, __) => rayData);
-      return rayKey;
+    public double Start { get; set; }
+    public double End   { get; set; }
+
+    private double time { get; set; }
+
+    /// <summary>
+    /// Propagates time to descendants.
+    /// </summary>
+    private void setTime (double newTime)
+    {
+      time = newTime;
+
+      // set time in relevant children:
+      foreach (ISceneNode child in children)
+        if (child is ITimeDependent cha)
+          cha.Time = newTime;
+    }
+
+    /// <summary>
+    /// Current time in seconds.
+    /// </summary>
+    public double Time
+    {
+      get => time;
+      set => setTime(value);
     }
   }
 }

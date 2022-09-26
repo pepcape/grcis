@@ -2,7 +2,6 @@ using OpenTK;
 using Rendering;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace EduardHopfer
@@ -112,7 +111,7 @@ namespace EduardHopfer
     // This implementation only evaluates the SDF 4 times,
     // as opposed to 6 needed for classic gradient approximation.
     // source: https://iquilezles.org/articles/normalsSDF/
-    public Vector3d CalculateNormal (Vector3d p)
+    private Vector3d CalculateNormal (Vector3d p)
     {
       const double h = 0.0001;
       Vector2d k = new Vector2d(1.0,-1.0);

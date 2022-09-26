@@ -1,21 +1,22 @@
 using System;
-using MathSupport;
 using OpenTK;
 using Rendering;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Windows.Forms;
-using Utilities;
 
 namespace EduardHopfer
 {
-
-  // TODO: also make a static class for all the different SDFs
-  // TODO: implement CSG operations on implicits
   public static class ImplicitCommon
   {
-    private static readonly double EpsMin   = 1e-03;
-    public static readonly  double MIN_STEP = Intersection.RAY_EPSILON;
+    private const          double EPS_MIN   = 1e-03;
+    public static readonly double MIN_STEP = Intersection.RAY_EPSILON;
+
+    // Signed distance function
+    // returns signed distance to surface of object
+    // positive values on the outside, negative on the inside
+    //
+    // In object space
+    // Should fit inside a unit cube (used as a bounding box)
     public delegate double SignedDistanceFunction (Vector3d point);
 
     public static readonly SignedDistanceFunction Sphere =
@@ -33,6 +34,8 @@ namespace EduardHopfer
         return Vector3d.ComponentMax(pp, Vector3d.Zero).Length + magic;
       };
 
+    // TODO: need to add support for colors calculated via sdf for this to work
+    // TODO: does this fit into the unit cube?
     public static readonly SignedDistanceFunction MandelBulb =
       p =>
       {
@@ -59,7 +62,9 @@ namespace EduardHopfer
 
           m = Vector3d.Dot(w, w);
           if (m > 256.0)
+          {
             break;
+          }
         }
 
         //resColor = vec4(m,trap.yzw);
@@ -78,6 +83,10 @@ namespace EduardHopfer
         return q.Length - t.Y;
       };
 
+    // Offset intersection point along the surface normal using
+    // a dynamic epsilon to avoid self intersections
+    // source: Enhanced sphere tracing (2014)
+    // https://erleuchtet.org/~cupe/permanent/enhanced_sphere_tracing.pdf
     public static Vector3d GetNextRayOrigin (Intersection i, RayType type)
     {
       if (i.Solid is DistanceField == false || type == RayType.REFRACT)
@@ -88,7 +97,7 @@ namespace EduardHopfer
       var iData = i.SolidData as ImplicitData;
       Debug.Assert(iData is null == false, "Implicit had no data");
 
-      double epsDynamic = 2 * Math.Max(Math.Abs(iData.Distance), EpsMin);
+      double epsDynamic = 2 * Math.Max(Math.Abs(iData.Distance), EPS_MIN);
       return i.CoordWorld + i.Normal * epsDynamic;
     }
   }
@@ -126,12 +135,17 @@ namespace EduardHopfer
     public IEnumerable<WeightedSurface> Weights { get; set; }
   }
 
+  // Binary operation on SDF function values
   public interface IImplicitOperation
   {
+    // Checks which of the 2 values better satisfies the operation criteria
     bool ChooseRight (double leftSdfResult, double rightSdfResult);
 
+    // Optional transformation of the SDF values
     void Transform (ref double left, ref double right);
 
+    // How much does the right SDF contribute to the resulting color
+    // used in blending of materials
     double GetWeightRight (double left, double right);
   }
 
@@ -153,7 +167,6 @@ namespace EduardHopfer
     }
   }
 
-  // TODO: add blending
   public sealed class ImplicitUnion : IImplicitOperation
   {
     private readonly double blendCoefficient;
@@ -170,6 +183,10 @@ namespace EduardHopfer
       return right < left;
     }
 
+    // Transform the value to achieve smooth minimum
+    // Uses the exponential smooth minimum implementation
+    // because it is order independent
+    // source: https://iquilezles.org/articles/smin/
     public void Transform (ref double left, ref double right)
     {
       if (this.blendCoefficient <= 0.0)
@@ -178,34 +195,27 @@ namespace EduardHopfer
       }
 
       double res = Math.Exp( -this.blendCoefficient * left ) + Math.Exp( -this.blendCoefficient * right );
-      double smoothness = -Math.Log(res) / this.blendCoefficient;
-      //return -log2( res )/k;
-
-      //double h = Math.Max(this.blendCoefficient - Math.Abs(left - right), 0.0) / this.blendCoefficient;
-      //double smoothness = h * h * this.blendCoefficient * (1.0 / 4.0);
+      double result = -Math.Log(res) / this.blendCoefficient;
 
       if (right < left)
       {
-        //right -= smoothness;
-        right = smoothness;
+        right = result;
       }
       else
       {
-        //left -= smoothness;
-        left = smoothness;
+        left = result;
       }
     }
 
+    // Get the weight from the smin equation
     public double GetWeightRight (double left, double right)
     {
       double weight = Math.Exp(-this.blendCoefficient * right);
       return Math.Min(Math.Max(0.0, weight), 1.0);
-
-      //double h = Math.Max(this.blendCoefficient - Math.Abs(left - right), 0.0) / this.blendCoefficient;
-      //return 1.0 - (h * h * 0.5);
     }
   }
 
+  // Implemented as intersection of the left shape with the inverse of the right shape
   public sealed class ImplicitDifference : IImplicitOperation
   {
     public bool ChooseRight (double leftSdfResult, double rightSdfResult)

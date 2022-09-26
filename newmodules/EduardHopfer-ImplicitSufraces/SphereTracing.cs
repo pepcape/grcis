@@ -11,8 +11,8 @@ namespace EduardHopfer
 {
   /// <summary>
   /// Ray-tracing rendering (w all secondary rays).
-  /// Modified shade function that accounts for the quirks of sphere casting
-  /// used to render implicits
+  /// Modified shade function that accounts for the quirks of sphere tracing
+  /// which is used to render distance fields
   /// </summary>
   [Serializable]
   public sealed class SphereTracing : RayTracing
@@ -27,38 +27,15 @@ namespace EduardHopfer
       DoRecursion   = true;
     }
 
-
-    /// <summary>
-    /// Computes one image sample. Internal integration support.
-    /// </summary>
-    /// <param name="x">Horizontal coordinate.</param>
-    /// <param name="y">Vertical coordinate.</param>
-    /// <param name="color">Computed sample color.</param>
-    /// <returns>Hash-value used for adaptive subsampling.</returns>
-    // public override long GetSample (double x, double y, double[] color)
-    // {
-    //   MT.doubleX = x;
-    //   MT.doubleY = y;
-    //
-    //   // initial color = black
-    //   Array.Clear(color, 0, color.Length);
-    //
-    //   Vector3d p0, p1;
-    //   if (MT.scene.Camera.GetRay(x, y, out p0, out p1))
-    //   {
-    //     long hash = shade(0, 1.0, ref p0, ref p1, color);
-    //
-    //     return hash;
-    //   }
-    //
-    //   return 11L;
-    // }
-
     /// <summary>
     /// Recursive shading function - computes color contribution of the given ray (shot from the
     /// origin 'p0' into direction vector 'p1''). Recursion is stopped
     /// by a hybrid method: 'importance' and 'level' are checked.
     /// Internal integration support.
+    ///
+    /// Distance fields specific:
+    /// - blending of colors used with smooth minimum
+    /// - offsetting of the intersection point to avoid self intersection
     /// </summary>
     /// <param name="depth">Current recursion depth.</param>
     /// <param name="importance">Importance of the current ray.</param>
@@ -186,6 +163,8 @@ namespace EduardHopfer
             double[] fullReflection = new double[bands];
             bool doit = false;
 
+            // Blend the materials according to the weights calculated in the intersection
+            // Mainly used with smooth minimum based blending of shapes
             if (weights != null)
             {
               double fullIntensity = 0.0;
@@ -251,7 +230,8 @@ namespace EduardHopfer
       {
         // Shooting a reflected ray.
         Geometry.SpecularReflection(ref i.Normal, ref dir, out r);
-        // TODO: get all materials from solid data and interpolate between them
+
+        // TODO: Should interpolate between materials here also, but the effect is barely noticeable and there is no time
         double[] ks = i.ReflectanceModel.ColorReflection(i, dir, r, ReflectionComponent.SPECULAR_REFLECTION);
         if (ks != null)
         {
