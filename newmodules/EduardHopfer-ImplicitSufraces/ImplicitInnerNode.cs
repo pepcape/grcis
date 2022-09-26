@@ -4,76 +4,19 @@ using Rendering;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace EduardHopfer
 {
-  class Ray
-  {
-    public Vector3d Origin { get; set; }
-    public Vector3d Dir    { get; set; }
-  }
-
-  struct NodeDistance
-  {
-    public ISceneNode Node     { get; set; }
-    public double LastDistance { get; set; }
-  }
-
-  public enum ImplicitOperation
-  {
-    Intersection,
-    Union,
-    Difference
-  }
-
-  interface IImplicitOperation
-  {
-    // false -> choose left; true -> choose right
-    bool Result (ref double leftSdfResult, ref double rightSdfResult);
-  }
-
-  public sealed class ImplicitIntersection : IImplicitOperation
-  {
-    public bool Result (ref double leftSdfResult, ref double rightSdfResult)
-    {
-      return rightSdfResult > leftSdfResult;
-      //return Math.Max(leftSdfResult, rightSdfResult);
-    }
-  }
-
-  // TODO: add blending
-  public sealed class ImplicitUnion : IImplicitOperation
-  {
-    public bool Result (ref double leftSdfResult, ref double rightSdfResult)
-    {
-      return rightSdfResult < leftSdfResult;
-      //return Math.Min(leftSdfResult, rightSdfResult);
-    }
-  }
-
-  public sealed class ImplicitDifference : IImplicitOperation
-  {
-    public bool Result (ref double leftSdfResult, ref double rightSdfResult)
-    {
-      rightSdfResult *= -1; // invert the shape
-      return rightSdfResult > leftSdfResult;
-      //return Math.Max(leftSdfResult, rightSdfResult * -1);
-    }
-  }
-
-
   public sealed class ImplicitInnerNode : DefaultSceneNode
   {
-    private static   double                                         correction = Intersection.RAY_EPSILON2;
-    private readonly IImplicitOperation                             bop;
-    //private          List<ISceneNode>                               relevantChildren;
-    //private          List<double>                                   lastDistancesToBound;
-    private ConcurrentDictionary<Ray, IList<double>> boundingBoxDistances;
+    private readonly IImplicitOperation                       bop;
+    private          ConcurrentDictionary<Ray, IList<double>> boundingBoxDistances;
 
     private List<ISceneNode> _lChildren = null;
 
-    public List<ISceneNode> ListChildren
+    private List<ISceneNode> ListChildren
     {
       get
       {
@@ -86,23 +29,9 @@ namespace EduardHopfer
       }
     }
 
-    public ImplicitInnerNode ( ImplicitOperation op)
+    public ImplicitInnerNode (IImplicitOperation op)
     {
-      switch (op)
-      {
-        case ImplicitOperation.Intersection:
-          bop = new ImplicitIntersection();
-          break;
-        case ImplicitOperation.Difference:
-          bop = new ImplicitDifference();
-          break;
-        case ImplicitOperation.Union:
-          bop = new ImplicitUnion();
-          break;
-        default:
-          bop = new ImplicitUnion();
-          break;
-      }
+      this.bop = op;
 
       int concurrencyLevel = Environment.ProcessorCount * 2;
       boundingBoxDistances = new ConcurrentDictionary<Ray, IList<double>>(concurrencyLevel, concurrencyLevel);
@@ -124,10 +53,6 @@ namespace EduardHopfer
       double positionOnRay = 0D;
       var ray = this.InitializeRayData(p0, p1);
 
-      // TODO: is this transform needed?
-      // var localPos = Vector3d.TransformPosition(p0, FromParent);
-      // var localDir = Vector3d.TransformVector(p1, FromParent);
-
       var result = new LinkedList<Intersection>();
 
       while (true)
@@ -143,6 +68,7 @@ namespace EduardHopfer
         result.AddLast(intersection);
       }
 
+      this.boundingBoxDistances.TryRemove(ray, out _);
       bool foundIntersection = result.Count > 1;
       return foundIntersection ? result : null;
     }
@@ -151,24 +77,27 @@ namespace EduardHopfer
                                                double initialPosition = 0D)
     {
       double positionOnRay = initialPosition;
-      double initialDistance = this.CompoundSDF(ray, positionOnRay, out var chosen);
-      bool isInside = initialDistance <= 0.0;
+
+      var initialResult = this.CompoundSDF(ray, positionOnRay);
+      bool isInside = initialResult.Distance <= 0.0;
 
       while (this.IntersectionPossible(ray, positionOnRay))
       {
-        double distance = this.CompoundSDF(ray, positionOnRay, out chosen);
+        var result = this.CompoundSDF(ray, positionOnRay);
 
-        const double treshold = 0.0;
-        bool crossedBoundary = (isInside && distance >= treshold) || (!isInside && distance <= -treshold);
+        double distance = result.Distance;
+        DistanceField chosen = result.Chosen;
+
+        const double threshold = 0.0;
+        bool crossedBoundary = (isInside && distance >= threshold) || (!isInside && distance <= -threshold);
         if (crossedBoundary)
         {
           var originLocal = Vector3d.TransformPosition(ray.Origin, chosen.FromParent);
           var dirLocal = Vector3d.TransformVector(ray.Dir, chosen.FromParent);
           var rayLocal = originLocal + positionOnRay * dirLocal;
 
-          var df = chosen as DistanceField;
           // chosen should always be a solid
-          return new Intersection(df)
+          return new Intersection(chosen)
           {
             T = positionOnRay,
             Enter = !isInside,
@@ -176,11 +105,16 @@ namespace EduardHopfer
             // TODO: is this right? it works but shouldn't the normal point the other way?
             NormalLocal = this.CalculateNormal(ray, positionOnRay),
             CoordLocal = rayLocal,
-            SolidData = new ImplicitData {distance = distance},
+            SolidData = new ImplicitData
+            {
+              Distance = distance,
+              Weights = result.Weights,
+            },
           };
         }
 
-        double stepSize = Math.Max(Math.Abs(distance), Intersection.RAY_EPSILON); // Distance function is negative on the inside
+        // Distance function is negative on the inside
+        double stepSize = Math.Max(Math.Abs(distance), ImplicitCommon.MIN_STEP);
         positionOnRay += stepSize;
       }
 
@@ -230,56 +164,108 @@ namespace EduardHopfer
       return false;
     }
 
-    private double CompoundSDF (Ray ray, double t, out ISceneNode chosen, Vector3d? offset = null)
+    private SDFResult CompoundSDF (Ray ray, double t, Vector3d? offset = null)
     {
-      chosen = null;
-      double result = 0D;
-      bool first = true;
       Vector3d _offset = offset ?? Vector3d.Zero;
 
-      foreach (var child in this.ListChildren)
+      double distToScene = 0D;
+      DistanceField chosen = null;
+      var childWeights = Enumerable.Empty<WeightedSurface>();
+
+      for (int i = 0; i < this.ListChildren.Count; i++)
       {
-        ISceneNode tmpChosen;
-        double tmpResult;
+        bool first = i == 0;
+        bool second = i == 1;
+        var child = this.ListChildren[i];
+
+        var tmpWeights = Enumerable.Empty<WeightedSurface>();
+        DistanceField tmpChosen;
+
+        double distToChild;
 
         var localOrigin = Vector3d.TransformPosition(ray.Origin, child.FromParent);
         var localDir = Vector3d.TransformVector(ray.Dir, child.FromParent);
 
         if (child is ImplicitInnerNode inner)
         {
-          var localRay = new Ray() {Origin = localOrigin, Dir = localDir,};
-          tmpResult = inner.CompoundSDF(localRay, t, out tmpChosen, offset);
+          var localRay = new Ray()
+          {
+            Origin = localOrigin,
+            Dir = localDir,
+          };
+
+          var innerResult = inner.CompoundSDF(localRay, t, offset);
+
+          // Use the inner distance field instead of the inner node
+          tmpChosen = innerResult.Chosen;
+          distToChild = innerResult.Distance;
+          tmpWeights = innerResult.Weights;
         }
         else
         {
-          tmpChosen = child;
           DistanceField leaf = child as DistanceField;
-          tmpResult = leaf.sdf(localOrigin + t * localDir + _offset);
+          Debug.Assert(leaf != null);
+
+          distToChild = leaf.sdf(localOrigin + t * localDir + _offset);
+          tmpChosen = leaf;
+
+          double childWeight = this.bop.GetWeightRight(0.0, distToChild);
+          tmpWeights = Enumerable.Repeat(new WeightedSurface()
+          {
+            Solid = leaf,
+            Weight = childWeight,
+          }, 1);
         }
 
-        bool update = first || this.bop.Result(ref result, ref tmpResult);
-        first = false;
+        double resultLocal = distToScene; // not really needed but I like it better
+        bool update = first;
+        if (!update)
+        {
+          this.bop.Transform(ref resultLocal, ref distToChild);
+          update = this.bop.ChooseRight(resultLocal, distToChild);
+        }
 
-        result = update ? tmpResult : result;
-        chosen = update ? tmpChosen : chosen;
+        childWeights = childWeights.Concat(tmpWeights);
+        // the first weight is 1.0 which sucks dick
+        if (update)
+        {
+          distToScene = distToChild;
+
+          chosen = tmpChosen;
+        }
+        else
+        {
+          distToScene = resultLocal;
+        }
       }
 
-      return result;
+      return new SDFResult()
+      {
+        Weights = childWeights,
+        Distance = distToScene,
+        Chosen = chosen,
+      };
     }
 
     private Vector3d CalculateNormal (Ray ray, double positionOnRay)
     {
-      const double h = 0.0001;
+      const double h = 0.0001; // 0.0001
       Vector2d k = new Vector2d(1.0,-1.0);
       Vector3d xyy = new Vector3d(k.X, k.Y, k.Y);
       Vector3d yyx = new Vector3d(k.Y, k.Y, k.X);
       Vector3d yxy = new Vector3d(k.Y, k.X, k.Y);
       Vector3d xxx = new Vector3d(k.X, k.X, k.X);
 
-      return xyy * this.CompoundSDF(ray, positionOnRay, out _, offset: xyy * h) +
-             yyx * this.CompoundSDF(ray, positionOnRay, out _, offset: yyx * h) +
-             yxy * this.CompoundSDF(ray, positionOnRay, out _, offset: yxy * h) +
-             xxx * this.CompoundSDF(ray, positionOnRay, out _, offset: xxx * h);
+      double sdf (Ray r, double t, Vector3d? offset = null)
+      {
+        var sdfResult = this.CompoundSDF(r, t, offset);
+        return sdfResult.Distance;
+      }
+
+      return xyy * sdf(ray, positionOnRay, offset: xyy * h) +
+             yyx * sdf(ray, positionOnRay, offset: yyx * h) +
+             yxy * sdf(ray, positionOnRay, offset: yxy * h) +
+             xxx * sdf(ray, positionOnRay, offset: xxx * h);
     }
 
     private Ray InitializeRayData (Vector3d origin, Vector3d dir)
