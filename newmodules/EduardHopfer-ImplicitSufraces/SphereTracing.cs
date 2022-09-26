@@ -4,6 +4,8 @@ using OpenTK;
 using MathSupport;
 using Utilities;
 using Rendering;
+using System.Linq;
+using System.Net;
 
 namespace EduardHopfer
 {
@@ -90,6 +92,12 @@ namespace EduardHopfer
 
       // There was at least one intersection
       i.Complete();
+      // Complete distance field specific deferred data
+      List<WeightedSurface> weights = null;
+      if (i.SolidData is ImplicitData data)
+      {
+        weights = data.Weights.ToList();
+      }
 
       rayRegisterer?.RegisterRay(AbstractRayRegisterer.RayType.unknown, depth, origin, i);
 
@@ -175,10 +183,53 @@ namespace EduardHopfer
               }
             }
 
-            double[] reflection = i.ReflectanceModel.ColorReflection(i, toLight, dir, ReflectionComponent.ALL);
-            if (reflection != null)
+            double[] fullReflection = new double[bands];
+            bool doit = false;
+
+            if (weights != null)
             {
-              Util.ColorAdd(intensity, reflection, color);
+              double fullIntensity = 0.0;
+
+              foreach (var ws in weights)
+              {
+                // Reflectance Model.
+                var reflectanceModel = (IReflectanceModel)ws.Solid.GetAttribute(PropertyName.REFLECTANCE_MODEL);
+                if (reflectanceModel == null)
+                  reflectanceModel = new PhongModel();
+
+                // Material.
+                var material = (IMaterial)ws.Solid.GetAttribute(PropertyName.MATERIAL);
+                if (material == null)
+                  material = reflectanceModel.DefaultMaterial();
+
+                double[] col = (double[]) ws.Solid.GetAttribute(PropertyName.COLOR);
+                if (col != null)
+                {
+                  material.Color = (double[]) col.Clone();
+                }
+
+                double[] reflection = reflectanceModel.ColorReflection(material, i.Normal, toLight, dir, ReflectionComponent.ALL);
+                if (reflection == null)
+                {
+                  continue;
+                }
+
+                doit = true;
+                fullIntensity += ws.Weight;
+                Util.ColorAdd(reflection, ws.Weight, fullReflection);
+              }
+
+              Util.ColorMul(1.0 / fullIntensity, fullReflection);
+            }
+            else
+            {
+              fullReflection = i.ReflectanceModel.ColorReflection(i, toLight, dir, ReflectionComponent.ALL);
+              doit = fullReflection != null;
+            }
+
+            if (doit)
+            {
+              Util.ColorAdd(fullReflection, intensity, color);
               hash = hash * HASH_LIGHT + source.GetHashCode();
             }
           }
@@ -200,6 +251,7 @@ namespace EduardHopfer
       {
         // Shooting a reflected ray.
         Geometry.SpecularReflection(ref i.Normal, ref dir, out r);
+        // TODO: get all materials from solid data and interpolate between them
         double[] ks = i.ReflectanceModel.ColorReflection(i, dir, r, ReflectionComponent.SPECULAR_REFLECTION);
         if (ks != null)
         {
