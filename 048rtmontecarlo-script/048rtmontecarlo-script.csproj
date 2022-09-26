@@ -276,6 +276,12 @@
     <Compile Include="..\newmodules\EduardHopfer-ImplicitSufraces\SphereTracing.cs">
       <Link>SphereTracing.cs</Link>
     </Compile>
+    <Compile Include="..\newmodules\JosefPelikan-AnimatedNodeTranslate\AnimatedNodeTranslate.cs">
+      <Link>AnimatedNodeTranslate.cs</Link>
+    </Compile>
+    <Compile Include="..\newmodules\JosefPelikan-CatmullRomAnimator\CatmullRomAnimator.cs">
+      <Link>CatmullRomAnimator.cs</Link>
+    </Compile>
     <Compile Include="AdditionalViewsForm.cs">
       <SubType>Form</SubType>
     </Compile>
