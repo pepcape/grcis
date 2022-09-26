@@ -3,12 +3,13 @@ using Rendering;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace EduardHopfer
 {
   public sealed class DistanceField : DefaultSceneNode, ISolid
   {
-    private const    double                                MIN_STEP = Intersection.RAY_EPSILON;
+    private const   double                                MIN_STEP = Intersection.RAY_EPSILON;
     public readonly ImplicitCommon.SignedDistanceFunction sdf;
     public readonly ImplicitCommon.SignedDistanceFunction boundingSdf = ImplicitCommon.Box;
 
@@ -44,7 +45,16 @@ namespace EduardHopfer
             Enter = !isInside,
             Front = !isInside,
             NormalLocal = this.CalculateNormal(ray),
-            CoordLocal = ray
+            CoordLocal = ray,
+            SolidData = new ImplicitData
+            {
+              Distance = distance,
+              Weights = Enumerable.Repeat(new WeightedSurface()
+              {
+                Solid = this,
+                Weight = 1.0,
+              }, 1),
+            },
           };
         }
 
