@@ -3,7 +3,8 @@
 # run 098svg.exe application with command-line:
 # 098svg -c config.txt
 
-html   = 1
+html    = 1
+columns = 20
 
 output = out.html
 generate
