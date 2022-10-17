@@ -344,40 +344,43 @@ namespace MathSupport
       Color color,
       out double L, out double A, out double B)
     {
-      // adopted from http://www.brucelindbloom.com
+      // Adopted from http://www.brucelindbloom.com
 
       double fx, fy, fz, xr, yr, zr;
       double eps = 216.0 / 24389.0;
       double k   = 24389.0 / 27.0;
 
-      double Xr = 0.964221; // reference white D50
+      // Reference white D50
+      double Xr = 0.964221; 
       double Yr = 1.0;
       double Zr = 0.825211;
 
       // RGB to XYZ
+
       double r = color.R / 255.0;
       double g = color.G / 255.0;
       double b = color.B / 255.0;
 
-      // assuming sRGB (D65)
+      // Inverse Companding
       if (r <= 0.04045)
-        r = r / 12;
+        r = r / 12.92;
       else
         r = Math.Pow((r + 0.055) / 1.055, 2.4);
 
       if (g <= 0.04045)
-        g = g / 12;
+        g = g / 12.92;
       else
         g = Math.Pow((g + 0.055) / 1.055, 2.4);
 
       if (b <= 0.04045)
-        b = b / 12;
+        b = b / 12.92;
       else
-        b = (float)Math.Pow((b + 0.055) / 1.055, 2.4);
+        b = Math.Pow((b + 0.055) / 1.055, 2.4);
 
-      double X = 0.436052025 * r + 0.385081593 * g + 0.143087414 * b;
-      double Y = 0.222491598 * r + 0.71688606  * g + 0.060621486 * b;
-      double Z = 0.013929122 * r + 0.097097002 * g + 0.71418547  * b;
+      // Assuming sRGB (D50)
+      double X = 0.4360747 * r + 0.3850649 * g + 0.1430804 * b;
+      double Y = 0.2225045 * r + 0.7168786 * g + 0.0606169 * b;
+      double Z = 0.0139322 * r + 0.0971045 * g + 0.7141733 * b;
 
       // XYZ to L*a*b*
       xr = X / Xr;
@@ -402,6 +405,83 @@ namespace MathSupport
       L = (116.0 * fy) - 16.0;
       A = 500.0 * (fx - fy);
       B = 200.0 * (fy - fz);
+    }
+
+    /// <summary>
+    /// Creates .NET Color object from the given L*a*b* triple.
+    /// See http://www.brucelindbloom.com for details and formulae.
+    /// </summary>
+    /// <param name="L">L* component.</param>
+    /// <param name="A">a* component.</param>
+    /// <param name="B">b* component.</param>
+    public static Color CIELabToColor (double L, double A, double B)
+    {
+      // Adopted from http://www.brucelindbloom.com
+
+      // Reference white D50
+      double Xr = 0.964221;
+      double Yr = 1.0;
+      double Zr = 0.825211;
+
+      // L*a*b* to XYZ
+      double fx, fy, fz, xr, yr, zr;
+      double eps = 216.0 / 24389.0;
+      double k   = 24389.0 / 27.0;
+
+      fy = (L + 16.0) / 116.0;
+      fx = A / 500.0 + fy;
+      fz = fy - B / 200.0;
+
+      if (Math.Pow(fx, 3.0) > eps)
+        xr = Math.Pow(fx, 3.0);
+      else
+        xr = (116.0 * fx - 16.0) / k;
+
+      if (L > k * eps)
+        yr = Math.Pow((L + 16.0) / 116.0, 3.0);
+      else
+        yr = L / k;
+
+      if (Math.Pow(fz, 3.0) > eps)
+        zr = Math.Pow(fz, 3.0);
+      else
+        zr = (116.0 * fz - 16.0) / k;
+
+      double X = xr * Xr;
+      double Y = yr * Yr;
+      double Z = zr * Zr;
+
+      // XYZ to linear RGB
+
+      // Assuming sRGB (D50)
+      double lR =  3.1338561 * X - 1.6168667 * Y - 0.4906146 * Z;
+      double lG = -0.9787684 * X + 1.9161415 * Y + 0.0334540 * Z;
+      double lB =  0.0719453 * X - 0.2289914 * Y + 1.4052427 * Z;
+
+      // sRGB Companding
+      double gR, gG, gB;
+
+      if (lR <= 0.0031308)
+        gR = 12.92 * lR;
+      else
+        gR = 1.055 * Math.Pow(lR, 1.0 / 2.4) - 0.055;
+
+      if (lG <= 0.0031308)
+        gG = 12.92 * lG;
+      else
+        gG = 1.055 * Math.Pow(lG, 1.0 / 2.4) - 0.055;
+
+      if (lB <= 0.0031308)
+        gB = 12.92 * lB;
+      else
+        gB = 1.055 * Math.Pow(lB, 1.0 / 2.4) - 0.055;
+
+      // (Return) RGB values in 8bit representation
+      int rR = Clamp((int)Math.Round(gR * 255.0), 0, 255);
+      int rG = Clamp((int)Math.Round(gG * 255.0), 0, 255);
+      int rB = Clamp((int)Math.Round(gB * 255.0), 0, 255);
+
+      return Color.FromArgb(rR, rG, rB);
     }
 
     /// <summary>
