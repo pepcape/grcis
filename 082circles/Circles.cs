@@ -118,8 +118,8 @@ namespace _082circles
     /// CGG logo colors.
     /// </summary>
     protected static Color[] COLORS = {
-      Color.FromArgb( 0x71, 0x21, 0x6d ),
-      Color.FromArgb( 0xe8, 0x75, 0x05 ) };
+      Color.FromArgb(0x71, 0x21, 0x6d),
+      Color.FromArgb(0xe8, 0x75, 0x05) };
 
     /// <summary>
     /// CGG logo geometry { cx, cy, radius }.
