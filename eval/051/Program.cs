@@ -20,20 +20,20 @@ namespace _051
     /// </summary>
     public static new EvalOptions options = (EvalOptions)(Options.options = new EvalOptions());
 
-    public override void StringStatistics ( long[] result )
+    public override void StringStatistics (long[] result)
     {
-      if ( result == null || result.Length < 4 )
+      if (result == null || result.Length < 4)
         return;
 
-      Util.StringStat( commands, result );
+      Util.StringStat(commands, result);
     }
 
     static EvalOptions ()
     {
       project = "eval051";
-      TextPersistence.Register( new EvalOptions(), 0 );
+      TextPersistence.Register(new EvalOptions(), 0);
 
-      RegisterMsgModes( "debug" );
+      RegisterMsgModes("debug");
     }
 
     public EvalOptions ()
@@ -41,16 +41,17 @@ namespace _051
       // default values of structured members:
       baseDir = @".\input\";
 
-      references.Add( @"System.dll" );
-      references.Add( @"System.Core.dll" );
-      references.Add( @"System.Linq.dll" );
-      references.Add( @"System.Drawing.dll" );
+      references.Add(@"System.dll");
+      references.Add(@"System.Core.dll");
+      references.Add(@"System.Linq.dll");
+      references.Add(@"System.Drawing.dll");
+      references.Add(@"System.Numerics.dll");
     }
 
     public static void Touch ()
     {
-      if ( options == null )
-        Util.Log( "EvalOptions not initialized!" );
+      if (options == null)
+        Util.Log("EvalOptions not initialized!");
     }
 
     //--- project-specific options ---
@@ -115,99 +116,99 @@ namespace _051
     /// <param name="key">Key string (non-empty, trimmed).</param>
     /// <param name="value">Value string (non-null, trimmed).</param>
     /// <returns>True if recognized.</returns>
-    public override bool AdditionalKey ( string key, string value, string line )
+    public override bool AdditionalKey (string key, string value, string line)
     {
-      if ( base.AdditionalKey( key, value, line ) )
+      if (base.AdditionalKey(key, value, line))
         return true;
 
       int newInt = 0;
       double newDouble = 0.0;
 
-      switch ( key )
+      switch (key)
       {
         case "outDir":
           outDir = value;
           break;
 
         case "image":
-          if ( File.Exists( value ) )
-            inputFiles.Add( value );
+          if (File.Exists(value))
+            inputFiles.Add(value);
           else
-          if ( File.Exists( baseDir + value ) )
-            inputFiles.Add( baseDir + value );
+          if (File.Exists(baseDir + value))
+            inputFiles.Add(baseDir + value);
           else
-            Console.WriteLine( $"Warning: ignoring nonexistent image '{value}' ({FileLineNo()})" );
+            Console.WriteLine($"Warning: ignoring nonexistent image '{value}' ({FileLineNo()})");
           break;
 
         case "imageInfo":
           {
-            string[] info = Util.ParseList( value );
-            if ( info.Length > 1 )
+            string[] info = Util.ParseList(value);
+            if (info.Length > 1)
             {
-              List<string> l = new List<string>( info );
-              l.RemoveAt( 0 );
-              imageInfo[ info[ 0 ] ] = l.ToArray();
+              List<string> l = new List<string>(info);
+              l.RemoveAt(0);
+              imageInfo[info[0]] = l.ToArray();
             }
           }
           break;
 
         case "imageLocal":
-          imageLocal = Util.positive( value );
+          imageLocal = Util.positive(value);
           break;
 
         case "bestOnly":
-          bestOnly = Util.positive( value );
+          bestOnly = Util.positive(value);
           break;
 
         case "source":
-          if ( File.Exists( value ) )
-            sourceFiles.Add( value );
+          if (File.Exists(value))
+            sourceFiles.Add(value);
           else
-          if ( File.Exists( baseDir + value ) )
-            sourceFiles.Add( baseDir + value );
+          if ( File.Exists(baseDir + value))
+            sourceFiles.Add(baseDir + value);
           else
-            Console.WriteLine( $"Warning: ignoring nonexistent source '{value}' ({FileLineNo()})" );
+            Console.WriteLine($"Warning: ignoring nonexistent source '{value}' ({FileLineNo()})");
           break;
 
         case "headerFile":
-          if ( File.Exists( value ) )
+          if (File.Exists(value))
             headerFile = value;
           else
-            Console.WriteLine( $"Warning: ignoring nonexistent file '{value}' ({FileLineNo()})" );
+            Console.WriteLine($"Warning: ignoring nonexistent file '{value}' ({FileLineNo()})");
           break;
 
         case "footerFile":
-          if ( File.Exists( value ) )
+          if (File.Exists(value))
             footerFile = value;
           else
-            Console.WriteLine( $"Warning: ignoring nonexistent file '{value}' ({FileLineNo()})" );
+            Console.WriteLine($"Warning: ignoring nonexistent file '{value}' ({FileLineNo()})");
           break;
 
         case "reference":
-          references.Add( value );
+          references.Add(value);
           break;
 
         case "library":
-          libraries.Add( value );
+          libraries.Add(value);
           break;
 
         case "ban":
-          bans.Add( value );
+          bans.Add(value);
           break;
 
         case "best":
-          best.Add( value );
+          best.Add(value);
           break;
 
         case "imageWidth":
-          if ( int.TryParse( value, out newInt ) &&
-               newInt > 10 )
+          if (int.TryParse(value, out newInt) &&
+              newInt > 10)
             imageWidth = newInt;
           break;
 
         case "colormapSize":
-          if ( int.TryParse( value, out newInt ) &&
-               newInt > 0 && newInt <= 10 )
+          if (int.TryParse(value, out newInt) &&
+              newInt > 0 && newInt <= 10)
             colormapSize = newInt;
           break;
 
@@ -216,20 +217,20 @@ namespace _051
           break;
 
         case "uniqueColors":
-          uniqueColors = Util.positive( value );
+          uniqueColors = Util.positive(value);
           break;
 
         case "sortColors":
-          sortColors = Util.positive( value );
+          sortColors = Util.positive(value);
           break;
 
         case "minV":
-          if ( double.TryParse( value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble ) )
+          if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble))
             minV = newDouble;
           break;
 
         case "maxV":
-          if ( double.TryParse( value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble ) )
+          if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out newDouble))
             maxV = newDouble;
           break;
 
@@ -249,9 +250,9 @@ namespace _051
     /// How to handle the "key=" config line?
     /// </summary>
     /// <returns>True if config line was handled.</returns>
-    public override bool HandleEmptyValue ( string key )
+    public override bool HandleEmptyValue (string key)
     {
-      switch ( key )
+      switch (key)
       {
         case "image":
           inputFiles.Clear();
@@ -282,9 +283,9 @@ namespace _051
     /// </summary>
     /// <param name="line">The nonempty config line.</param>
     /// <returns>True if config line was handled.</returns>
-    public override bool HandleCommand ( string line )
+    public override bool HandleCommand (string line)
     {
-      switch ( line )
+      switch (line)
       {
         case "eval":
           Program.Evaluate();
@@ -302,39 +303,39 @@ namespace _051
     /// </summary>
     static Program ()
     {
-      Util.SetVersion( "$Rev: 975 $" );
+      Util.SetVersion("$Rev: 988 $");
     }
 
-    static void Main ( string[] args )
+    static void Main (string[] args)
     {
       EvalOptions.Touch();
 
-      if ( args.Length < 1 )
-        Console.WriteLine( "Warning: no command-line options, using default values!" );
+      if (args.Length < 1)
+        Console.WriteLine("Warning: no command-line options, using default values!");
       else
-        for ( int i = 0; i < args.Length; i++ )
-          if ( !string.IsNullOrEmpty( args[ i ] ) )
+        for (int i = 0; i < args.Length; i++)
+          if (!string.IsNullOrEmpty(args[i]))
           {
             // sample custom command-line option:
-            string opt = args[ i ];
-            if ( opt == "-x" &&
-                 i + 1 < args.Length )
+            string opt = args[i];
+            if (opt == "-x" &&
+                i + 1 < args.Length)
             {
-              if ( !string.IsNullOrEmpty( args[ ++i ] ) ) // potentially valid file-name
+              if (!string.IsNullOrEmpty(args[++i])) // potentially valid file-name
               {
-                string xFile = Path.GetFullPath( args[ i ] );
-                // do_anything_with( xFile );
+                string xFile = Path.GetFullPath(args[i]);
+                // do_anything_with(xFile);
               }
               else
-                Console.WriteLine( "Warning: invalid x-file '{0}'!", args[ i ] ?? "-" );
+                Console.WriteLine("Warning: invalid x-file '{0}'!", args[i] ?? "-");
             }
             else
-              if ( !EvalOptions.options.ParseOption( args, ref i ) )
-                Console.WriteLine( $"Warning: invalid option '{opt}'!" );
+              if (!EvalOptions.options.ParseOption(args, ref i))
+                Console.WriteLine($"Warning: invalid option '{opt}'!");
           }
 
       //--- do the job ---
-      if ( !wasEvaluated )
+      if (!wasEvaluated)
         Evaluate();
     }
 
@@ -360,130 +361,130 @@ namespace _051
       wasEvaluated = true;
       try
       {
-        using ( TextWriter wri = new StreamWriter( Path.Combine( EvalOptions.options.outDir, EvalOptions.options.outputFileName ), false, Encoding.UTF8 ) )
+        using (TextWriter wri = new StreamWriter(Path.Combine(EvalOptions.options.outDir, EvalOptions.options.outputFileName), false, Encoding.UTF8))
         {
           string part;
 
           // compile all source files:
-          if ( !wasCompiled )
+          if (!wasCompiled)
           {
-            Options.Log( null );
-            CompileSources( EvalOptions.options.sourceFiles );
+            Options.Log(null);
+            CompileSources(EvalOptions.options.sourceFiles);
             wasCompiled = true;
           }
           int images = EvalOptions.options.inputFiles.Count;
-          Console.WriteLine( Options.LogFormat( "Configuration - assemblies: {0}, bans: {1}, best: {2}, images: {3}, output: '{4}'",
-                                                assemblies.Count, EvalOptions.options.bans.Count, EvalOptions.options.best.Count,
-                                                images, EvalOptions.options.outputFileName ) );
+          Console.WriteLine(Options.LogFormat("Configuration - assemblies: {0}, bans: {1}, best: {2}, images: {3}, output: '{4}'",
+                                              assemblies.Count, EvalOptions.options.bans.Count, EvalOptions.options.best.Count,
+                                              images, EvalOptions.options.outputFileName));
 
           // HTML file header:
-          if ( Util.ReadTextFile( EvalOptions.options.headerFile, out part ) )
-            wri.Write( part );
+          if (Util.ReadTextFile(EvalOptions.options.headerFile, out part))
+            wri.Write(part);
 
-          wri.WriteLine( "<table class=\"nb\">" );
-          wri.WriteLine( "<tr><th>Name</th><th>Time</th><th>Var</th><th>Image / colors</th></tr>" );
+          wri.WriteLine("<table class=\"nb\">");
+          wri.WriteLine("<tr><th>Name</th><th>Time</th><th>Var</th><th>Image / colors</th></tr>");
 
           int ord = 0;
-          foreach ( var imageFn in EvalOptions.options.inputFiles )
+          foreach (var imageFn in EvalOptions.options.inputFiles)
           {
-            wri.WriteLine( "<tr><td>&nbsp;</td></tr>" );
+            wri.WriteLine("<tr><td>&nbsp;</td></tr>");
 
             string relative = EvalOptions.options.imageLocal ?
-                                Path.GetFileName( imageFn ) :
-                                Util.MakeRelativePath( EvalOptions.options.outDir, imageFn );
+                                Path.GetFileName(imageFn) :
+                                Util.MakeRelativePath(EvalOptions.options.outDir, imageFn);
             string[] desctiption;
-            EvalOptions.options.imageInfo.TryGetValue( Path.GetFileName( imageFn ), out desctiption );
-            wri.WriteLine( "<tr><td colspan=\"3\" class=\"b p r\">{0}</td>",
-                           (desctiption == null) ? "&nbsp;" : string.Join( ", ", desctiption ) );
-            wri.WriteLine( $"<td><img src=\"{relative}\" width=\"{EvalOptions.options.imageWidth}\"/></td>" );
-            wri.WriteLine( "</tr>" );
+            EvalOptions.options.imageInfo.TryGetValue(Path.GetFileName(imageFn), out desctiption);
+            wri.WriteLine("<tr><td colspan=\"3\" class=\"b p r\">{0}</td>",
+                          (desctiption == null) ? "&nbsp;" : string.Join(", ", desctiption));
+            wri.WriteLine($"<td><img src=\"{relative}\" width=\"{EvalOptions.options.imageWidth}\"/></td>");
+            wri.WriteLine("</tr>");
 
-            Bitmap image = (Bitmap)Image.FromFile( imageFn );
-            Options.LogFormatMode( "debug", "Input image '{0}':", imageFn );
+            Bitmap image = (Bitmap)Image.FromFile(imageFn);
+            Options.LogFormatMode("debug", "Input image '{0}':", imageFn);
 
             qtime.Clear();
             qvariance.Clear();
 
-            List<string> names = new List<string>( assemblies.Keys );
+            List<string> names = new List<string>(assemblies.Keys);
             names.Sort();
-            foreach ( var name in names )
-              if ( !EvalOptions.options.bans.Contains( name ) &&
-                   (!EvalOptions.options.bestOnly || EvalOptions.options.best.Contains( name )) )
-                EvaluateSolution( name, assemblies[ name ], image, EvalOptions.options.colormapSize, wri );
+            foreach (var name in names)
+              if (!EvalOptions.options.bans.Contains(name) &&
+                  (!EvalOptions.options.bestOnly || EvalOptions.options.best.Contains(name)))
+                EvaluateSolution(name, assemblies[name], image, EvalOptions.options.colormapSize, wri);
 
             image.Dispose();
 
-            wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><th class=\"l\">Time [s]</th><td class=\"p t r\">{0:f2}s</td><td class=\"p t r\">{1:f2}</td>",
-                                      qtime.Mean, qtime.Variance ) );
-            wri.WriteLine( string.Format( CultureInfo.InvariantCulture, "<td class=\"p\">{0:f2} - {1:f2} - {2:f2} - {3:f2} - {4:f2}</td></tr>",
-                                          qtime.Min, qtime.Quartile( 1 ), qtime.Median, qtime.Quartile( 3 ), qtime.Max ) );
+            wri.Write(string.Format(CultureInfo.InvariantCulture, "<tr><th class=\"l\">Time [s]</th><td class=\"p t r\">{0:f2}s</td><td class=\"p t r\">{1:f2}</td>",
+                                    qtime.Mean, qtime.Variance));
+            wri.WriteLine(string.Format(CultureInfo.InvariantCulture, "<td class=\"p\">{0:f2} - {1:f2} - {2:f2} - {3:f2} - {4:f2}</td></tr>",
+                                        qtime.Min, qtime.Quartile(1), qtime.Median, qtime.Quartile(3), qtime.Max));
 
-            wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><th class=\"l\">Variance [La*b*]</th><td class=\"p t r\">{0:f1}</td><td class=\"p t r\">{1:f1}</td>",
-                                      qvariance.Mean, qvariance.Variance ) );
-            wri.WriteLine( string.Format( CultureInfo.InvariantCulture, "<td class=\"p\">{0:f1} - {1:f1} - {2:f1} - {3:f1} - {4:f1}</td></tr>",
-                                          qvariance.Min, qvariance.Quartile( 1 ), qvariance.Median, qvariance.Quartile( 3 ), qvariance.Max ) );
+            wri.Write(string.Format(CultureInfo.InvariantCulture, "<tr><th class=\"l\">Variance [La*b*]</th><td class=\"p t r\">{0:f1}</td><td class=\"p t r\">{1:f1}</td>",
+                                    qvariance.Mean, qvariance.Variance));
+            wri.WriteLine(string.Format(CultureInfo.InvariantCulture, "<td class=\"p\">{0:f1} - {1:f1} - {2:f1} - {3:f1} - {4:f1}</td></tr>",
+                                        qvariance.Min, qvariance.Quartile(1), qvariance.Median, qvariance.Quartile(3), qvariance.Max));
 
-            Console.WriteLine( Options.LogFormat( "Finished image #{0}/{1} '{2}'", ++ord, images, relative ) );
+            Console.WriteLine(Options.LogFormat("Finished image #{0}/{1} '{2}'", ++ord, images, relative));
           }
-          wri.WriteLine( "</table>" );
+          wri.WriteLine("</table>");
 
           // HTML file footer:
-          if ( Util.ReadTextFile( EvalOptions.options.footerFile, out part ) )
-            wri.Write( part );
+          if (Util.ReadTextFile(EvalOptions.options.footerFile, out part))
+            wri.Write(part);
         }
       }
-      catch ( IOException e )
+      catch (IOException e)
       {
-        Console.WriteLine( Options.LogFormat( "I/O error: {0}", e.Message ) );
+        Console.WriteLine(Options.LogFormat("I/O error: {0}", e.Message));
       }
     }
 
-    static void CompileSources ( IEnumerable<string> sources )
+    static void CompileSources (IEnumerable<string> sources)
     {
       sw.Restart();
 
       CodeDomProvider P = new CSharpCodeProvider();
       CompilerParameters Opt = new CompilerParameters();
       Opt.GenerateInMemory = true;
-      foreach ( string refName in EvalOptions.options.references )
-        Opt.ReferencedAssemblies.Add( refName );
+      foreach (string refName in EvalOptions.options.references)
+        Opt.ReferencedAssemblies.Add(refName);
       Opt.IncludeDebugInformation = false;
       Opt.CompilerOptions = EvalOptions.options.compilerOptions;
 
       // Common optional library files ..
       string source;
       List<string> globalSources = new List<string>();
-      foreach ( var libName in EvalOptions.options.libraries )
-        if ( Util.ReadTextFile( libName, out source ) )
-          globalSources.Add( source );
+      foreach (var libName in EvalOptions.options.libraries)
+        if (Util.ReadTextFile(libName, out source))
+          globalSources.Add(source);
         else
-          Options.LogFormat( "Error reading library source file '{0}', ignored.", libName );
+          Options.LogFormat("Error reading library source file '{0}', ignored.", libName);
 
       int files = 0;
       int errors = 0;
 
-      foreach ( var fn in sources )
+      foreach (var fn in sources)
       {
         // read original source file ..
-        if ( !Util.ReadTextFile( fn, out source ) )
+        if (!Util.ReadTextFile(fn, out source))
         {
-          Options.LogFormat( "Error reading source file '{0}', ignored.", fn );
+          Options.LogFormat("Error reading source file '{0}', ignored.", fn);
           continue;
         }
 
         // .. determine the name ..
-        int end = fn.LastIndexOf( ".cs" );
-        if ( end < 1 )
+        int end = fn.LastIndexOf(".cs");
+        if (end < 1)
         {
-          Options.LogFormat( "Invalid format of source file name '{0}', ignored.", fn );
+          Options.LogFormat("Invalid format of source file name '{0}', ignored.", fn);
           continue;
         }
 
-        string name = fn.Substring( 0, end );
-        end = name.LastIndexOf( '.' );
-        if ( end < 0 )
+        string name = fn.Substring(0, end);
+        end = name.LastIndexOf('.');
+        if (end < 0)
         {
-          Options.LogFormat( "Invalid format of source file name '{0}', ignored.", fn );
+          Options.LogFormat("Invalid format of source file name '{0}', ignored.", fn);
           continue;
         }
 
@@ -501,37 +502,37 @@ namespace _051
         files++;
 
         // .. change its namespace ..
-        source = source.Replace( "_051colormap", "cmap" + name );
-        List<string> localSources = new List<string>( globalSources );
-        localSources.Add( source );
+        source = source.Replace("_051colormap", "cmap" + name);
+        List<string> localSources = new List<string>(globalSources);
+        localSources.Add(source);
 
         // .. and finally compile it all:
-        CompilerResults R = P.CompileAssemblyFromSource( Opt, localSources.ToArray() );
-        if ( R.Errors.Count > 0 )
+        CompilerResults R = P.CompileAssemblyFromSource(Opt, localSources.ToArray());
+        if (R.Errors.Count > 0)
         {
           errors += R.Errors.Count;
-          Options.LogFormat( "Source: {0}, name: {1}, errors:", fn, name );
-          foreach ( var err in R.Errors )
-            Options.Log( " " + err );
+          Options.LogFormat("Source: {0}, name: {1}, errors:", fn, name);
+          foreach (var err in R.Errors)
+            Options.Log(" " + err);
           continue;
         }
 
-        Options.LogFormat( "Source: {0}, name: {1}, OK", fn, name );
-        assemblies[ name ] = R.CompiledAssembly;
+        Options.LogFormat("Source: {0}, name: {1}, OK", fn, name);
+        assemblies[name] = R.CompiledAssembly;
       }
 
       sw.Stop();
-      Console.WriteLine( Options.LogFormat( "Compile finished, files: {0}, time: {1:f2}s, errors: {2}",
-                                            files, sw.ElapsedMilliseconds * 0.001, errors ) );
+      Console.WriteLine(Options.LogFormat("Compile finished, files: {0}, time: {1:f2}s, errors: {2}",
+                                          files, sw.ElapsedMilliseconds * 0.001, errors));
     }
 
-    static void EvaluateSolution ( string name, Assembly ass, Bitmap image, int colormapSize, TextWriter wri )
+    static void EvaluateSolution (string name, Assembly ass, Bitmap image, int colormapSize, TextWriter wri)
     {
       Color[] colors = null;
-      object[] arguments = new object[] { image, colormapSize, colors };
+      object[] arguments = new object[] {image, colormapSize, colors};
 
       // memory cleanup and report:
-      long memOccupied = GC.GetTotalMemory( true );
+      long memOccupied = GC.GetTotalMemory(true);
       Process procObj = Process.GetCurrentProcess();
       Options.LogFormatMode( "debug", $"Evaluating '{name}' [{(memOccupied >> 20)}M - {(procObj.PrivateMemorySize64 >> 20)}M - {(procObj.VirtualMemorySize64 >> 20)}M - {(procObj.WorkingSet64 >> 20)}M - {(procObj.PagedMemorySize64 >> 20)}M - {(procObj.PagedSystemMemorySize64 >> 10)}K - {(procObj.NonpagedSystemMemorySize64 >> 10)}K]" );
       string msg = null;
@@ -540,15 +541,15 @@ namespace _051
       sw.Restart();
       try
       {
-        ass.GetType( "cmap" + name + ".Colormap" ).GetMethod( "Generate" ).Invoke( null, arguments );
+        ass.GetType("cmap" + name + ".Colormap").GetMethod("Generate").Invoke(null, arguments);
       }
-      catch ( Exception e )
+      catch (Exception e)
       {
         msg = (e.InnerException ?? e).Message;
       }
       sw.Stop();
 
-      colors = arguments[ 2 ] as Color[];
+      colors = arguments[2] as Color[];
       double minS = EvalOptions.options.minS;
       double minV = EvalOptions.options.minV;
       double maxV = EvalOptions.options.maxV;
@@ -558,90 +559,90 @@ namespace _051
 
       double sumVar = 0.0;
       int N = 1;
-      if ( colors != null &&
-           colors.Length > 1 )
+      if (colors != null &&
+          colors.Length > 1)
       {
-        qtime.Add( elapsed );
+        qtime.Add(elapsed);
         N = 0;
 
-        for ( int i = 0; i < colors.Length - 1; i++ )
-          for ( int j = i + 1; j < colors.Length; j++ )
+        for (int i = 0; i < colors.Length - 1; i++)
+          for (int j = i + 1; j < colors.Length; j++)
           {
             N++;
             double La, Lb, Aa, Ab, Ba, Bb;
-            Arith.ColorToCIELab( colors[ i ], out La, out Aa, out Ba );
-            Arith.ColorToCIELab( colors[ j ], out Lb, out Ab, out Bb );
+            Arith.ColorToCIELab(colors[i], out La, out Aa, out Ba);
+            Arith.ColorToCIELab(colors[j], out Lb, out Ab, out Bb);
             La -= Lb; Aa -= Ab; Ba -= Bb;
-            sumVar += Math.Sqrt( La * La + Aa * Aa + Ba * Ba );
+            sumVar += Math.Sqrt(La * La + Aa * Aa + Ba * Ba);
           }
-        qvariance.Add( sumVar / N );
+        qvariance.Add(sumVar / N);
       }
 
       // report:
-      bool best = EvalOptions.options.best.Contains( name );
-      wri.Write( string.Format( CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}{1}{2}</td><td class=\"p t r\">{3:f2}s</td><td class=\"p t r\">{4:f1}</td>",
-                                best ? "<b>" : "", name, best ? "</b>" : "",
-                                elapsed, sumVar / N ) );
+      bool best = EvalOptions.options.best.Contains(name);
+      wri.Write(string.Format(CultureInfo.InvariantCulture, "<tr><td class=\"t\">{0}{1}{2}</td><td class=\"p t r\">{3:f2}s</td><td class=\"p t r\">{4:f1}</td>",
+                              best ? "<b>" : "", name, best ? "</b>" : "",
+                              elapsed, sumVar / N));
 
-      if ( !string.IsNullOrEmpty( msg ) ||
-           colors == null ||
-           colors.Length == 0 )
+      if (!string.IsNullOrEmpty(msg) ||
+          colors == null ||
+          colors.Length == 0)
       {
-        Util.Log( $"Error: '{msg}'" );
-        wri.WriteLine( $"<td>Error: {msg}</td>" );
-        wri.WriteLine( "</tr>" );
+        Util.Log($"Error: '{msg}'");
+        wri.WriteLine($"<td>Error: {msg}</td>");
+        wri.WriteLine("</tr>");
         return;
       }
 
       // optional color unification:
-      if ( EvalOptions.options.uniqueColors )
+      if (EvalOptions.options.uniqueColors)
       {
         List<Color> nc = new List<Color>();
-        foreach ( Color c in colors )
+        foreach (Color c in colors)
         {
           bool isNew = true;
-          foreach ( Color oc in nc )
-            if ( oc.R == c.R &&       // ignoring the 'alpha' channel
-                 oc.G == c.G &&
-                 oc.B == c.B )
+          foreach (Color oc in nc)
+            if (oc.R == c.R &&       // ignoring the 'alpha' channel
+                oc.G == c.G &&
+                oc.B == c.B )
             {
               isNew = false;
               break;
             }
-          if ( isNew )
-            nc.Add( c );
+          if (isNew)
+            nc.Add(c);
         }
         colors = nc.ToArray();
       }
 
       // optional color ordering:
-      if ( EvalOptions.options.sortColors )
-        Array.Sort( colors, ( a, b ) =>
+      if (EvalOptions.options.sortColors)
+        Array.Sort(colors, (a, b) =>
         {
           double La, Lb, A, B;
-          Arith.ColorToCIELab( a, out La, out A, out B );
-          Arith.ColorToCIELab( b, out Lb, out A, out B );
-          return La.CompareTo( Lb );
+          Arith.ColorToCIELab(a, out La, out A, out B);
+          Arith.ColorToCIELab(b, out Lb, out A, out B);
+          return La.CompareTo(Lb);
         } );
 
       // SVG color visualization:
       int width = EvalOptions.options.imageWidth;
-      int widthBin = width / Math.Max( 6, colormapSize );
+      int widthBin = width / Math.Max(6, colormapSize);
       int height = 50;
       int border = 2;
-      wri.WriteLine( $"<td><svg width=\"{width}\" height=\"{height}\">" );
+      wri.WriteLine($"<td><svg width=\"{width}\" height=\"{height}\">");
       int x = 0;
-      foreach ( var col in colors )
+      foreach (var col in colors)
       {
         string rgb = string.Format( "#{0:X2}{1:X2}{2:X2}", col.R, col.G, col.B );
-        wri.WriteLine( "<rect x=\"{0}\" y=\"{1}\" width=\"{2}\" height=\"{3}\" fill=\"{4}\" />",
-                        x + border, border, widthBin - 2 * border, height - 2 * border - 14, rgb );
-        wri.WriteLine( "<text x=\"{0}\" y=\"{1}\" class=\"rgb\" text-anchor=\"middle\">{2}</text>",
-                        x + widthBin / 2, height - border, rgb );
+        wri.WriteLine("<rect x=\"{0}\" y=\"{1}\" width=\"{2}\" height=\"{3}\" fill=\"{4}\" />",
+                      x + border, border, widthBin - 2 * border, height - 2 * border - 14, rgb);
+        wri.WriteLine("<text x=\"{0}\" y=\"{1}\" class=\"rgb\" text-anchor=\"middle\">{2}</text>",
+                      x + widthBin / 2, height - border, rgb);
         x += widthBin;
       }
-      wri.WriteLine( "</svg></td>" );
-      wri.WriteLine( "</tr>" );
+      wri.WriteLine("</svg></td>");
+      wri.WriteLine("</tr>");
     }
   }
 }
