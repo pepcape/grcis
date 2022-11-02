@@ -102,7 +102,8 @@ namespace _082circles
 
     private void textParam_MouseHover (object sender, EventArgs e)
     {
-      tt.Show(tooltip, (IWin32Window)sender, 10, -25, 2000);
+      tt.Show(tooltip, (IWin32Window)sender,
+              10, -24 - 15 * Util.EolnsInString(tooltip), 4000);
     }
 
     private void textParam_KeyPress (object sender, KeyPressEventArgs e)
