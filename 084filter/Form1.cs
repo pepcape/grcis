@@ -12,7 +12,7 @@ namespace _084filter
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = Util.SetVersion( "$Rev$" );
+    static readonly string rev = Util.SetVersion("$Rev$");
 
     protected Bitmap inputImage = null;
     protected Bitmap outputImage = null;
@@ -37,7 +37,7 @@ namespace _084filter
       InitializeComponent();
 
       string par, name;
-      Filter.InitParams( out name, out par, out tooltip );
+      Filter.InitParams(out name, out par, out tooltip);
       textParam.Text = par;
 
       titlePrefix = (Text += " (" + rev + ") '" + name + '\'');
@@ -55,65 +55,65 @@ namespace _084filter
     /// </summary>
     public static Color imageBoxBackground = Color.White;
 
-    private void setImage ( ref Bitmap bakImage, Bitmap newImage )
+    private void setImage (ref Bitmap bakImage, Bitmap newImage)
     {
-      if ( bakImage != null )
+      if (bakImage != null)
         bakImage.Dispose();
       bakImage = newImage;
     }
 
-    delegate void SetImageCallback ( Bitmap newImage );
+    delegate void SetImageCallback (Bitmap newImage);
 
-    protected void SetImage ( Bitmap newImage )
+    protected void SetImage (Bitmap newImage)
     {
-      if ( pictureBox1.InvokeRequired )
+      if (pictureBox1.InvokeRequired)
       {
-        SetImageCallback si = new SetImageCallback( SetImage );
-        BeginInvoke( si, new object[] { newImage } );
+        SetImageCallback si = new SetImageCallback(SetImage);
+        BeginInvoke(si, new object[] {newImage});
       }
       else
       {
         pictureBox1.Image = newImage;
         pictureBox1.BackColor = imageBoxBackground;
-        setImage( ref outputImage, newImage );
+        setImage(ref outputImage, newImage);
       }
     }
 
-    delegate void SetTextCallback ( string text );
+    delegate void SetTextCallback (string text);
 
-    protected void SetText ( string text )
+    protected void SetText (string text)
     {
-      if ( labelElapsed.InvokeRequired )
+      if (labelElapsed.InvokeRequired)
       {
-        SetTextCallback st = new SetTextCallback( SetText );
-        BeginInvoke( st, new object[] { text } );
+        SetTextCallback st = new SetTextCallback(SetText);
+        BeginInvoke(st, new object[] {text});
       }
       else
         labelElapsed.Text = text;
     }
 
-    private void imageProbe ( int x, int y )
+    private void imageProbe (int x, int y)
     {
-      if ( outputImage == null )
+      if (outputImage == null)
         return;
 
-      x = Util.Clamp( x, 0, outputImage.Width - 1 );
-      y = Util.Clamp( y, 0, outputImage.Height - 1 );
+      x = Util.Clamp(x, 0, outputImage.Width - 1);
+      y = Util.Clamp(y, 0, outputImage.Height - 1);
 
-      Color c = outputImage.GetPixel( x, y );
-      StringBuilder sb = new StringBuilder( titlePrefix );
-      sb.AppendFormat( " image[{0},{1}] = ", x, y );
-      if ( outputImage.PixelFormat == PixelFormat.Format32bppArgb ||
-           outputImage.PixelFormat == PixelFormat.Format64bppArgb ||
-           outputImage.PixelFormat == PixelFormat.Format16bppArgb1555 )
-        sb.AppendFormat( "[{0},{1},{2},{3}] = #{0:X02}{1:X02}{2:X02}{3:X02}", c.R, c.G, c.B, c.A );
+      Color c = outputImage.GetPixel(x, y);
+      StringBuilder sb = new StringBuilder(titlePrefix);
+      sb.AppendFormat(" image[{0},{1}] = ", x, y);
+      if (outputImage.PixelFormat == PixelFormat.Format32bppArgb ||
+          outputImage.PixelFormat == PixelFormat.Format64bppArgb ||
+          outputImage.PixelFormat == PixelFormat.Format16bppArgb1555 )
+        sb.AppendFormat("[{0},{1},{2},{3}] = #{0:X02}{1:X02}{2:X02}{3:X02}", c.R, c.G, c.B, c.A);
       else
-        sb.AppendFormat( "[{0},{1},{2}] = #{0:X02}{1:X02}{2:X02}", c.R, c.G, c.B );
+        sb.AppendFormat("[{0},{1},{2}] = #{0:X02}{1:X02}{2:X02}", c.R, c.G, c.B);
 
       Text = sb.ToString();
     }
 
-    private void buttonOpen_Click ( object sender, EventArgs e )
+    private void buttonOpen_Click (object sender, EventArgs e)
     {
       OpenFileDialog ofd = new OpenFileDialog();
 
@@ -127,40 +127,40 @@ namespace _084filter
 
       ofd.FilterIndex = 6;
       ofd.FileName = "";
-      if ( ofd.ShowDialog() != DialogResult.OK )
+      if (ofd.ShowDialog() != DialogResult.OK)
         return;
 
-      newImage( ofd.FileName );
+      newImage(ofd.FileName);
     }
 
     /// <summary>
     /// Sets the new image defined by its file-name. Does all the checks.
     /// </summary>
-    private bool newImage ( string fn )
+    private bool newImage (string fn)
     {
       Bitmap inp = null;
       try
       {
-        inp = (Bitmap)Image.FromFile( fn );
+        inp = (Bitmap)Image.FromFile(fn);
       }
-      catch ( Exception )
+      catch (Exception)
       {
         return false;
       }
 
-      if ( inp == null )
+      if (inp == null)
         return false;
 
       pictureBox1.Image = null;
-      setImage( ref inputImage, inp );
-      setImage( ref outputImage, null );
+      setImage(ref inputImage, inp);
+      setImage(ref outputImage, null);
 
       recompute();
 
       return true;
     }
 
-    protected void EnableGUI ( bool enable )
+    protected void EnableGUI (bool enable)
     {
       buttonRedraw.Enabled =
       buttonOpen.Enabled   =
@@ -173,13 +173,13 @@ namespace _084filter
 
     protected void StopComputation ()
     {
-      if ( aThread == null )
+      if (aThread == null)
         return;
 
-      if ( buttonRedraw.InvokeRequired )
+      if (buttonRedraw.InvokeRequired)
       {
-        StopComputationCallback ea = new StopComputationCallback( StopComputation );
-        BeginInvoke( ea );
+        StopComputationCallback ea = new StopComputationCallback(StopComputation);
+        BeginInvoke(ea);
       }
       else
       {
@@ -189,7 +189,7 @@ namespace _084filter
         aThread = null;
 
         // GUI stuff:
-        EnableGUI( true );
+        EnableGUI(true);
       }
     }
 
@@ -198,33 +198,33 @@ namespace _084filter
       Stopwatch sw = new Stopwatch();
       sw.Start();
 
-      Bitmap bmp = Filter.Recompute( inputImage, textParam.Text );
+      Bitmap bmp = Filter.Recompute(inputImage, textParam.Text);
 
       sw.Stop();
       float elapsed = 1.0e-3f * sw.ElapsedMilliseconds;
 
-      SetImage( bmp );
-      SetText( string.Format( CultureInfo.InvariantCulture, "Elapsed: {0:f3}s ({1})", elapsed, bmp.PixelFormat.ToString() ) );
+      SetImage(bmp);
+      SetText(string.Format(CultureInfo.InvariantCulture, "Elapsed: {0:f3}s ({1})", elapsed, bmp.PixelFormat.ToString()));
 
       StopComputation();
     }
 
     private void recompute ()
     {
-      if ( aThread != null ||
-           inputImage == null )
+      if (aThread != null ||
+          inputImage == null)
         return;
 
-      EnableGUI( false );
+      EnableGUI(false);
       cont = true;
 
-      aThread = new Thread( new ThreadStart( this.transform ) );
+      aThread = new Thread(new ThreadStart(this.transform));
       aThread.Start();
     }
 
-    private void buttonSave_Click ( object sender, EventArgs e )
+    private void buttonSave_Click (object sender, EventArgs e)
     {
-      if ( outputImage == null ) return;
+      if (outputImage == null) return;
 
       SaveFileDialog sfd = new SaveFileDialog();
       sfd.Title = "Save PNG file";
@@ -232,71 +232,72 @@ namespace _084filter
       sfd.AddExtension = true;
       sfd.FileName = "";
 
-      if ( sfd.ShowDialog() != DialogResult.OK )
+      if (sfd.ShowDialog() != DialogResult.OK)
         return;
 
-      outputImage.Save( sfd.FileName, ImageFormat.Png );
+      outputImage.Save(sfd.FileName, ImageFormat.Png);
     }
 
-    private void buttonRedraw_Click ( object sender, EventArgs e )
+    private void buttonRedraw_Click (object sender, EventArgs e)
     {
       recompute();
     }
 
-    private void buttonStop_Click ( object sender, EventArgs e )
+    private void buttonStop_Click (object sender, EventArgs e)
     {
       StopComputation();
     }
 
-    private void Form1_DragDrop ( object sender, DragEventArgs e )
+    private void Form1_DragDrop (object sender, DragEventArgs e)
     {
-      string[] strFiles = (string[])e.Data.GetData( DataFormats.FileDrop );
-      newImage( strFiles[ 0 ] );
+      string[] strFiles = (string[])e.Data.GetData(DataFormats.FileDrop);
+      newImage(strFiles[0]);
     }
 
-    private void Form1_DragEnter ( object sender, DragEventArgs e )
+    private void Form1_DragEnter (object sender, DragEventArgs e)
     {
-      if ( e.Data.GetDataPresent( DataFormats.FileDrop ) )
+      if (e.Data.GetDataPresent(DataFormats.FileDrop))
         e.Effect = DragDropEffects.Copy;
     }
 
-    private void Form1_FormClosing ( object sender, FormClosingEventArgs e )
+    private void Form1_FormClosing (object sender, FormClosingEventArgs e)
     {
       StopComputation();
     }
 
-    private void pictureBox1_MouseDown ( object sender, MouseEventArgs e )
+    private void pictureBox1_MouseDown (object sender, MouseEventArgs e)
     {
-      if ( aThread == null &&
-           e.Button == MouseButtons.Left )
-        imageProbe( e.X, e.Y );
+      if (aThread == null &&
+          e.Button == MouseButtons.Left)
+        imageProbe(e.X, e.Y);
     }
 
-    private void pictureBox1_MouseMove ( object sender, MouseEventArgs e )
+    private void pictureBox1_MouseMove (object sender, MouseEventArgs e)
     {
-      if ( aThread == null &&
-           e.Button == MouseButtons.Left )
-        imageProbe( e.X, e.Y );
+      if (aThread == null &&
+          e.Button == MouseButtons.Left)
+        imageProbe(e.X, e.Y);
     }
 
-    private void textParam_KeyPress ( object sender, KeyPressEventArgs e )
+    private void textParam_KeyPress (object sender, KeyPressEventArgs e)
     {
-      if ( e.KeyChar == (char)Keys.Enter )
+      if (e.KeyChar == (char)Keys.Enter)
       {
         e.Handled = true;
         recompute();
       }
     }
 
-    private void textParam_MouseHover ( object sender, EventArgs e )
+    private void textParam_MouseHover (object sender, EventArgs e)
     {
-      tt.Show( tooltip, (IWin32Window)sender, 10, -25, 2000 );
+      tt.Show(tooltip, (IWin32Window)sender,
+              10, -24 - 15 * Util.EolnsInString(tooltip), 3000);
     }
 
-    private void labelElapsed_MouseHover ( object sender, EventArgs e )
+    private void labelElapsed_MouseHover (object sender, EventArgs e)
     {
-      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + ')',
-               (IWin32Window)sender, 10, -25, 2000 );
+      tt.Show(Util.TargetFramework + " (" + Util.RunningFramework + ')',
+              (IWin32Window)sender, 10, -25, 3000);
     }
   }
 }
