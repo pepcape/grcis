@@ -8,7 +8,7 @@ namespace _039terrain
 {
   public partial class Form1 : Form
   {
-    static readonly string rev = Util.SetVersion( "$Rev$" );
+    static readonly string rev = Util.SetVersion("$Rev$");
 
     SceneBrep scene = new SceneBrep();
 
@@ -18,6 +18,7 @@ namespace _039terrain
     bool loaded = false;
 
     ToolTip tt = new ToolTip();
+    string tooltip = "";
 
     #region FPS counter
 
@@ -37,7 +38,7 @@ namespace _039terrain
       float rough;
       string param;
       string name;
-      InitParams( out iter, out rough, out param, out name );
+      InitParams(out iter, out rough, out param, out tooltip, out name);
       textParam.Text = param ?? "";
       upDownIterations.Value = iter;
       upDownRoughness.Value = (decimal)rough;
@@ -45,7 +46,7 @@ namespace _039terrain
       Text += " (" + rev + ") '" + name + '\'';
     }
 
-    private void buttonSave_Click ( object sender, EventArgs e )
+    private void buttonSave_Click (object sender, EventArgs e)
     {
 #if false
       SaveFileDialog sfd = new SaveFileDialog();
@@ -53,59 +54,65 @@ namespace _039terrain
       sfd.Filter = "PNG Files|*.png";
       sfd.AddExtension = true;
       sfd.FileName = "";
-      if ( sfd.ShowDialog() != DialogResult.OK )
+      if (sfd.ShowDialog() != DialogResult.OK)
         return;
 
-      outputImage.Save( sfd.FileName, System.Drawing.Imaging.ImageFormat.Png );
+      outputImage.Save(sfd.FileName, System.Drawing.Imaging.ImageFormat.Png);
 #endif
     }
 
-    private void glControl1_Resize ( object sender, EventArgs e )
+    private void glControl1_Resize (object sender, EventArgs e)
     {
-      if ( !loaded ) return;
+      if (!loaded) return;
 
       SetupViewport();
       glControl1.Invalidate();
     }
 
-    private void upDownIterations_ValueChanged ( object sender, EventArgs e )
+    private void upDownIterations_ValueChanged (object sender, EventArgs e)
     {
-      if ( !loaded ) return;
+      if (!loaded) return;
 
       int iterations  = (int)upDownIterations.Value;
       float roughness = (float)upDownRoughness.Value;
-      Regenerate( iterations, roughness, textParam.Text );
+      Regenerate(iterations, roughness, textParam.Text);
       labelStatus.Text = "Triangles: " + scene.Triangles;
     }
 
-    private void buttonResetCam_Click ( object sender, EventArgs e )
+    private void buttonResetCam_Click (object sender, EventArgs e)
     {
       ResetCamera();
     }
 
-    private void checkVsync_CheckedChanged ( object sender, EventArgs e )
+    private void checkVsync_CheckedChanged (object sender, EventArgs e)
     {
       glControl1.VSync = checkVsync.Checked;
     }
 
-    private void checkAnim_CheckedChanged ( object sender, EventArgs e )
+    private void checkAnim_CheckedChanged (object sender, EventArgs e)
     {
-      if ( checkAnim.Checked )
-        InitSimulation( false );
+      if (checkAnim.Checked)
+        InitSimulation(false);
     }
 
-    private void buttonRegenerate_Click ( object sender, EventArgs e )
+    private void buttonRegenerate_Click (object sender, EventArgs e)
     {
       int iterations = (int)upDownIterations.Value;
       float roughness = (float)upDownRoughness.Value;
-      Regenerate( iterations, roughness, textParam.Text );
+      Regenerate(iterations, roughness, textParam.Text);
       labelStatus.Text = "Triangles: " + scene.Triangles;
     }
 
-    private void labelStatus_MouseHover ( object sender, EventArgs e )
+    private void labelStatus_MouseHover (object sender, EventArgs e)
     {
-      tt.Show( Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion( typeof( Vector3 ) ),
-               (IWin32Window)sender, 10, -25, 4000 );
+      tt.Show(Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion(typeof(Vector3)),
+              (IWin32Window)sender, 10, -25, 4000);
+    }
+
+    private void textParam_MouseHover (object sender, EventArgs e)
+    {
+      tt.Show(tooltip, (IWin32Window)sender,
+              10, -24 - 15 * Util.EolnsInString(tooltip), 4000);
     }
   }
 }

@@ -1,7 +1,4 @@
-﻿// Author: 
-// Original authors: Jan Benes, Josef Pelikan
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -19,12 +16,14 @@ namespace _039terrain
     /// <summary>
     /// Optional data initialization.
     /// </summary>
-    static void InitParams ( out int iterations, out float roughness, out string param, out string name )
+    static void InitParams (out int iterations, out float roughness, out string param, out string tooltip, out string name)
     {
+      name       = "Josef Pelikán";
+
       iterations = 0;
       roughness  = 0.2f;
       param      = "";
-      name       = "pilot";
+      tooltip    = "tooltip";
     }
 
     #region GPU data
@@ -34,7 +33,7 @@ namespace _039terrain
     /// </summary>
     private int textureId = 0;
 
-    private uint[] VBOid = new uint[ 2 ];   // [ 0 ] .. vertex array, [ 1 ] .. index buffer
+    private uint[] VBOid = new uint[2];   // [0] .. vertex array, [1] .. index buffer
 
     // vertex-buffer offsets:
     private int textureCoordOffset = 0;
@@ -48,15 +47,15 @@ namespace _039terrain
     #region Lighting data
 
     // light:
-    float[] ambientColor  = { 0.1f, 0.1f, 0.1f };
-    float[] diffuseColor  = { 1.0f, 1.0f, 1.0f };
-    float[] specularColor = { 1.0f, 1.0f, 1.0f };
-    float[] lightPosition = { 1.0f, 1.0f, 0.0f, };
+    float[] ambientColor  = {0.1f, 0.1f, 0.1f};
+    float[] diffuseColor  = {1.0f, 1.0f, 1.0f};
+    float[] specularColor = {1.0f, 1.0f, 1.0f};
+    float[] lightPosition = {1.0f, 1.0f, 0.0f};
 
     // material:
-    float[] materialAmbient  = { 0.1f, 0.1f, 0.1f };
-    float[] materialDiffuse  = { 0.8f, 0.8f, 0.8f };
-    float[] materialSpecular = { 0.5f, 0.5f, 0.5f };
+    float[] materialAmbient  = {0.1f, 0.1f, 0.1f};
+    float[] materialDiffuse  = {0.8f, 0.8f, 0.8f};
+    float[] materialSpecular = {0.5f, 0.5f, 0.5f};
     float  materialShininess = 60.0f;
 
     /// <summary>
@@ -81,20 +80,20 @@ namespace _039terrain
 
       // OpenGL init code:
       glControl1.VSync = true;
-      GL.ClearColor( Color.DarkBlue );
-      GL.Enable( EnableCap.DepthTest );
+      GL.ClearColor(Color.DarkBlue);
+      GL.Enable(EnableCap.DepthTest);
 
       // VBO init:
-      GL.GenBuffers( 2, VBOid ); // two buffers, one for vertex data, one for index data
-      if ( GL.GetError() != ErrorCode.NoError )
-        throw new Exception( "Couldn't create VBOs" );
+      GL.GenBuffers(2, VBOid); // two buffers, one for vertex data, one for index data
+      if (GL.GetError() != ErrorCode.NoError)
+        throw new Exception("Couldn't create VBOs");
 
-      GL.Light( LightName.Light0, LightParameter.Ambient,  ambientColor );
-      GL.Light( LightName.Light0, LightParameter.Diffuse,  diffuseColor );
-      GL.Light( LightName.Light0, LightParameter.Specular, specularColor );
+      GL.Light(LightName.Light0, LightParameter.Ambient,  ambientColor);
+      GL.Light(LightName.Light0, LightParameter.Diffuse,  diffuseColor);
+      GL.Light(LightName.Light0, LightParameter.Specular, specularColor);
     }
 
-    private void glControl1_Load ( object sender, EventArgs e )
+    private void glControl1_Load (object sender, EventArgs e)
     {
       // cold start
       InitOpenGL();
@@ -105,14 +104,14 @@ namespace _039terrain
       // initialize the scene
       int iterations  = (int)upDownIterations.Value;
       float roughness = (float)upDownRoughness.Value;
-      Regenerate( iterations, roughness, textParam.Text );
+      Regenerate(iterations, roughness, textParam.Text);
       labelStatus.Text = "Triangles: " + scene.Triangles;
 
       // initialize the simulation
-      InitSimulation( true );
+      InitSimulation(true);
 
       loaded = true;
-      Application.Idle += new EventHandler( Application_Idle );
+      Application.Idle += new EventHandler(Application_Idle);
     }
 
     /// <summary>
@@ -121,7 +120,7 @@ namespace _039terrain
     /// <param name="iterations">Number of subdivision iteratons.</param>
     /// <param name="roughness">Roughness parameter.</param>
     /// <param name="param">Optional text parameter.</param>
-    private void Regenerate ( int iterations, float roughness, string param )
+    private void Regenerate (int iterations, float roughness, string param)
     {
       // !!!{{ TODO: add terrain regeneration code here (to reflect the given terrain parameters)
 
@@ -130,43 +129,43 @@ namespace _039terrain
       // dummy rectangle, facing to the camera
       // notice that your terrain is supposed to be placed
       // in the XZ plane (elevation increases along the positive Y axis)
-      scene.AddVertex( new Vector3( -0.5f, roughness, -0.5f ) );   // 0
-      scene.AddVertex( new Vector3( -0.5f, 0.0f, +0.5f ) );        // 1
-      scene.AddVertex( new Vector3( +0.5f, 0.0f, -0.5f ) );        // 2
-      scene.AddVertex( new Vector3( +0.5f, 0.0f, +0.5f ) );        // 3
+      scene.AddVertex(new Vector3(-0.5f, roughness, -0.5f));   // 0
+      scene.AddVertex(new Vector3(-0.5f, 0.0f, +0.5f));        // 1
+      scene.AddVertex(new Vector3(+0.5f, 0.0f, -0.5f));        // 2
+      scene.AddVertex(new Vector3(+0.5f, 0.0f, +0.5f));        // 3
 
-      scene.SetNormal( 0, (Vector3.UnitY + roughness * (Vector3.UnitX + Vector3.UnitZ)).Normalized() );
-      scene.SetNormal( 1, (Vector3.UnitY + roughness * 0.5f * (Vector3.UnitX + Vector3.UnitZ)).Normalized() );
-      scene.SetNormal( 2, (Vector3.UnitY + roughness * 0.5f * (Vector3.UnitX + Vector3.UnitZ)).Normalized() );
-      scene.SetNormal( 3, Vector3.UnitY );
+      scene.SetNormal(0, (Vector3.UnitY + roughness * (Vector3.UnitX + Vector3.UnitZ)).Normalized());
+      scene.SetNormal(1, (Vector3.UnitY + roughness * 0.5f * (Vector3.UnitX + Vector3.UnitZ)).Normalized());
+      scene.SetNormal(2, (Vector3.UnitY + roughness * 0.5f * (Vector3.UnitX + Vector3.UnitZ)).Normalized());
+      scene.SetNormal(3, Vector3.UnitY );
 
       float txtExtreme = 1.0f + iterations;
-      scene.SetTxtCoord( 0, new Vector2( 0.0f, 0.0f ) );
-      scene.SetTxtCoord( 1, new Vector2( 0.0f, txtExtreme ) );
-      scene.SetTxtCoord( 2, new Vector2( txtExtreme, 0.0f ) );
-      scene.SetTxtCoord( 3, new Vector2( txtExtreme, txtExtreme ) );
+      scene.SetTxtCoord(0, new Vector2(0.0f, 0.0f));
+      scene.SetTxtCoord(1, new Vector2(0.0f, txtExtreme));
+      scene.SetTxtCoord(2, new Vector2(txtExtreme, 0.0f));
+      scene.SetTxtCoord(3, new Vector2(txtExtreme, txtExtreme));
 
-      scene.SetColor( 0, Vector3.UnitX );                    // red
-      scene.SetColor( 1, Vector3.UnitY );                    // green
-      scene.SetColor( 2, Vector3.UnitZ );                    // blue
-      scene.SetColor( 3, new Vector3( 1.0f, 1.0f, 1.0f ) );  // white
+      scene.SetColor(0, Vector3.UnitX);                    // red
+      scene.SetColor(1, Vector3.UnitY);                    // green
+      scene.SetColor(2, Vector3.UnitZ);                    // blue
+      scene.SetColor(3, new Vector3(1.0f, 1.0f, 1.0f));    // white
 
-      scene.AddTriangle( 1, 2, 0 );                          // last vertex is red
-      scene.AddTriangle( 2, 1, 3 );                          // last vertex is white
+      scene.AddTriangle(1, 2, 0);                          // last vertex is red
+      scene.AddTriangle(2, 1, 3);                          // last vertex is white
 
       // this function uploads the data to the graphics card
       PrepareData();
 
       // load a texture
-      if ( textureId > 0 )
+      if (textureId > 0)
       {
-        GL.DeleteTexture( textureId );
+        GL.DeleteTexture(textureId);
         textureId = 0;
       }
-      textureId = TexUtil.CreateTextureFromFile( "cgg256.png", "../../cgg256.png" );
+      textureId = TexUtil.CreateTextureFromFile("cgg256.png", "../../cgg256.png");
 
       // simulation / hovercraft [re]initialization?
-      InitSimulation( false );
+      InitSimulation(false);
 
       // !!!}}
     }
@@ -185,16 +184,16 @@ namespace _039terrain
     /// Init of animation / hovercraft simulation, ...
     /// </summary>
     /// <param name="cold">True for global reset (including light-source/vehicle position..)</param>
-    private void InitSimulation ( bool cold )
+    private void InitSimulation (bool cold)
     {
-      if ( hovercraft )
+      if (hovercraft)
       {
         // !!! TODO: hovercraft init
       }
       else
-        if ( cold )
+        if (cold)
         {
-          lightPos = new Vector4( lightPosition[ 0 ], lightPosition[ 1 ], lightPosition[ 2 ], 1.0f );
+          lightPos = new Vector4(lightPosition[0], lightPosition[1], lightPosition[2], 1.0f);
           lightAngle = 0.0;
         }
 
@@ -202,10 +201,10 @@ namespace _039terrain
       simTime = nowTicks* 1.0e-7;
     }
 
-    private void glControl1_Paint ( object sender, PaintEventArgs e )
+    private void glControl1_Paint (object sender, PaintEventArgs e)
     {
-      if ( checkAnim.Checked )
-        Simulate( DateTime.Now.Ticks * 1.0e-7 );
+      if (checkAnim.Checked)
+        Simulate(DateTime.Now.Ticks * 1.0e-7);
 
       Render();
     }
@@ -214,23 +213,23 @@ namespace _039terrain
     /// One step of animation / hovercraft simulation.
     /// </summary>
     /// <param name="time"></param>
-    private void Simulate ( double time )
+    private void Simulate (double time)
     {
-      if ( !loaded ||
-           time <= simTime )
+      if (!loaded ||
+          time <= simTime)
         return;
 
       double dt = time - simTime;   // delta-time in seconds
 
-      if ( hovercraft )
+      if (hovercraft)
       {
         // !!! TODO: hovercraft simulation
       }
 
       lightAngle += dt;             // one radian per second..
       Matrix4 m;
-      Matrix4.CreateRotationY( (float)lightAngle, out m );
-      lightPos = Vector4.Transform( m, new Vector4( lightPosition[ 0 ], lightPosition[ 1 ], lightPosition[ 2 ], 1.0f ) );
+      Matrix4.CreateRotationY((float)lightAngle, out m);
+      lightPos = Vector4.Transform(m, new Vector4(lightPosition[0], lightPosition[1], lightPosition[2], 1.0f));
 
       simTime = time;
     }
@@ -240,86 +239,86 @@ namespace _039terrain
     /// </summary>
     private void Render ()
     {
-      if ( !loaded ) return;
+      if (!loaded) return;
 
       frameCounter++;
 
       // frame init:
-      GL.Clear( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
-      GL.ShadeModel( checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat );
-      GL.PolygonMode( MaterialFace.FrontAndBack,
-                      checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill );
+      GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+      GL.ShadeModel(checkSmooth.Checked ? ShadingModel.Smooth : ShadingModel.Flat);
+      GL.PolygonMode(MaterialFace.FrontAndBack,
+                     checkWireframe.Checked ? PolygonMode.Line : PolygonMode.Fill);
 
       // camera:
       SetCamera();
 
       // OpenGL lighting:
-      GL.MatrixMode( MatrixMode.Modelview );
-      GL.Light( LightName.Light0, LightParameter.Position, lightPos );
-      GL.Enable( EnableCap.Light0 );
-      GL.Enable( EnableCap.Lighting );
+      GL.MatrixMode(MatrixMode.Modelview);
+      GL.Light(LightName.Light0, LightParameter.Position, lightPos);
+      GL.Enable(EnableCap.Light0);
+      GL.Enable(EnableCap.Lighting);
 
       // texturing:
       bool useTexture = scene.HasTxtCoords() &&
                         checkTexture.Checked &&
                         textureId > 0;
-      if ( useTexture )
+      if (useTexture)
       {
         // set up the texture:
-        GL.BindTexture( TextureTarget.Texture2D, textureId );
-        GL.Enable( EnableCap.Texture2D );
+        GL.BindTexture(TextureTarget.Texture2D, textureId);
+        GL.Enable(EnableCap.Texture2D);
       }
       else
       {
-        GL.Disable( EnableCap.Texture2D );
+        GL.Disable(EnableCap.Texture2D);
 
-        GL.ColorMaterial( MaterialFace.Front, ColorMaterialParameter.AmbientAndDiffuse );
-        GL.Enable( EnableCap.ColorMaterial );
+        GL.ColorMaterial(MaterialFace.Front, ColorMaterialParameter.AmbientAndDiffuse);
+        GL.Enable(EnableCap.ColorMaterial);
       }
 
       // common lighting colors/parameters:
-      GL.Material( MaterialFace.Front, MaterialParameter.Ambient,   materialAmbient );
-      GL.Material( MaterialFace.Front, MaterialParameter.Diffuse,   materialDiffuse );
-      GL.Material( MaterialFace.Front, MaterialParameter.Specular,  materialSpecular );
-      GL.Material( MaterialFace.Front, MaterialParameter.Shininess, materialShininess );
+      GL.Material(MaterialFace.Front, MaterialParameter.Ambient,   materialAmbient);
+      GL.Material(MaterialFace.Front, MaterialParameter.Diffuse,   materialDiffuse);
+      GL.Material(MaterialFace.Front, MaterialParameter.Specular,  materialSpecular);
+      GL.Material(MaterialFace.Front, MaterialParameter.Shininess, materialShininess);
 
       // scene -> vertex buffer & index buffer
 
       // bind the vertex buffer:
-      GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
+      GL.BindBuffer(BufferTarget.ArrayBuffer, VBOid[0]);
 
       // tell OGL what sort of data we have and where in the buffer they could be found
       // the buffers we get from SceneBrep are interleaved => stride != 0
-      if ( useTexture )
-        GL.TexCoordPointer( 2, TexCoordPointerType.Float, stride, textureCoordOffset );
+      if (useTexture)
+        GL.TexCoordPointer(2, TexCoordPointerType.Float, stride, textureCoordOffset);
 
-      if ( scene.HasColors() )
-        GL.ColorPointer( 3, ColorPointerType.Float, stride, colorOffset );
+      if (scene.HasColors())
+        GL.ColorPointer(3, ColorPointerType.Float, stride, colorOffset);
 
-      if ( scene.HasNormals() )
-        GL.NormalPointer( NormalPointerType.Float, stride, normalOffset );
+      if (scene.HasNormals())
+        GL.NormalPointer(NormalPointerType.Float, stride, normalOffset);
 
-      GL.VertexPointer( 3, VertexPointerType.Float, stride, vertexOffset );
+      GL.VertexPointer(3, VertexPointerType.Float, stride, vertexOffset);
 
       // bind the index buffer:
-      GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+      GL.BindBuffer(BufferTarget.ElementArrayBuffer, VBOid[1]);
 
       // draw the geometry:
       triangleCounter += scene.Triangles;
-      GL.DrawElements( BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, 0 );
+      GL.DrawElements(BeginMode.Triangles, scene.Triangles * 3, DrawElementsType.UnsignedInt, 0);
 
-      if ( useTexture )
-        GL.BindTexture( TextureTarget.Texture2D, 0 );
+      if (useTexture)
+        GL.BindTexture(TextureTarget.Texture2D, 0);
       else
-        GL.Disable( EnableCap.ColorMaterial );
-      GL.Disable( EnableCap.Light0 );
-      GL.Disable( EnableCap.Lighting );
+        GL.Disable(EnableCap.ColorMaterial);
+      GL.Disable(EnableCap.Light0);
+      GL.Disable(EnableCap.Lighting);
 
       // light-source rendering (small white rectangle):
-      GL.PointSize( 3.0f );
-      GL.Begin( PrimitiveType.Points );
-      GL.Color3( 1.0f, 1.0f, 1.0f );
-      GL.Vertex4( lightPos );
+      GL.PointSize(3.0f);
+      GL.Begin(PrimitiveType.Points);
+      GL.Color3(1.0f, 1.0f, 1.0f);
+      GL.Vertex4(lightPos);
       GL.End();
 
       // swap buffers:
@@ -368,14 +367,14 @@ namespace _039terrain
     /// <summary>
     /// Function called whenever the main application is idle..
     /// </summary>
-    private void Application_Idle ( object sender, EventArgs e )
+    private void Application_Idle (object sender, EventArgs e)
     {
-      while ( glControl1.IsIdle )
+      while (glControl1.IsIdle)
       {
         glControl1.Invalidate();                // causes the GLcontrol 'repaint' action
 
         long now = DateTime.Now.Ticks;
-        if ( now - lastFpsTime > 5000000 )      // more than 0.5 sec
+        if (now - lastFpsTime > 5000000)        // more than 0.5 sec
         {
           lastFps = 0.5 * lastFps + 0.5 * (frameCounter    * 1.0e7 / (now - lastFpsTime));
           lastTps = 0.5 * lastTps + 0.5 * (triangleCounter * 1.0e7 / (now - lastFpsTime));
@@ -383,12 +382,12 @@ namespace _039terrain
           frameCounter = 0;
           triangleCounter = 0L;
 
-          if ( lastTps < 5.0e5 )
-            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, tps: {1:f0}k",
-                                           lastFps, (lastTps * 1.0e-3) );
+          if (lastTps < 5.0e5)
+            labelFps.Text = string.Format(CultureInfo.InvariantCulture, "Fps: {0:f1}, tps: {1:f0}k",
+                                          lastFps, (lastTps * 1.0e-3));
           else
-            labelFps.Text = string.Format( CultureInfo.InvariantCulture, "Fps: {0:f1}, tps: {1:f1}m",
-                                           lastFps, (lastTps * 1.0e-6) );
+            labelFps.Text = string.Format(CultureInfo.InvariantCulture, "Fps: {0:f1}, tps: {1:f1}m",
+                                          lastFps, (lastTps * 1.0e-6));
         }
       }
     }
@@ -402,12 +401,12 @@ namespace _039terrain
       int height = glControl1.Height;
 
       // 1. set ViewPort transform:
-      GL.Viewport( 0, 0, width, height );
+      GL.Viewport(0, 0, width, height);
 
       // 2. set projection matrix
-      GL.MatrixMode( MatrixMode.Projection );
-      Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView( fov, width / (float)height, near, far );
-      GL.LoadMatrix( ref proj );
+      GL.MatrixMode(MatrixMode.Projection);
+      Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(fov, width / (float)height, near, far);
+      GL.LoadMatrix(ref proj);
     }
 
     private void ResetCamera ()
@@ -422,24 +421,24 @@ namespace _039terrain
     /// </summary>
     private void SetCamera ()
     {
-      if ( hovercraft )
+      if (hovercraft)
       {
         // !!! TODO: hovercraft camera
       }
       else
       {
-        Vector3 cameraPosition = new Vector3( 0.0f, 0, (float)zoom );
+        Vector3 cameraPosition = new Vector3(0.0f, 0, (float)zoom);
 
-        Matrix4 rotateX = Matrix4.CreateRotationX( (float)-elevationAngle );
-        Matrix4 rotateY = Matrix4.CreateRotationY( (float)azimuthAngle );
+        Matrix4 rotateX = Matrix4.CreateRotationX((float)-elevationAngle);
+        Matrix4 rotateY = Matrix4.CreateRotationY((float)azimuthAngle);
 
-        cameraPosition = Vector3.TransformPosition( cameraPosition, rotateX );
-        cameraPosition = Vector3.TransformPosition( cameraPosition, rotateY );
+        cameraPosition = Vector3.TransformPosition(cameraPosition, rotateX);
+        cameraPosition = Vector3.TransformPosition(cameraPosition, rotateY);
 
-        GL.MatrixMode( MatrixMode.Modelview );
-        Matrix4 lookAt = Matrix4.LookAt( cameraPosition, Vector3.Zero, up );
+        GL.MatrixMode(MatrixMode.Modelview);
+        Matrix4 lookAt = Matrix4.LookAt(cameraPosition, Vector3.Zero, up);
 
-        GL.LoadMatrix( ref lookAt );
+        GL.LoadMatrix(ref lookAt);
       }
     }
 
@@ -449,35 +448,35 @@ namespace _039terrain
     /// </summary>
     private void PrepareData ()
     {
-      Debug.Assert( scene != null, "Missing scene" );
+      Debug.Assert(scene != null, "Missing scene");
 
-      if ( scene.Triangles == 0 )
+      if (scene.Triangles == 0)
         return;
 
       // enable the respective client states
-      GL.EnableClientState( ArrayCap.VertexArray );   // vertex array (positions?)
+      GL.EnableClientState(ArrayCap.VertexArray);   // vertex array (positions?)
 
-      if ( scene.HasColors() )                        // colors, if any
-        GL.EnableClientState( ArrayCap.ColorArray );
+      if (scene.HasColors())                        // colors, if any
+        GL.EnableClientState(ArrayCap.ColorArray);
 
-      if ( scene.HasNormals() )                       // normals, if any
-        GL.EnableClientState( ArrayCap.NormalArray );
+      if (scene.HasNormals())                       // normals, if any
+        GL.EnableClientState(ArrayCap.NormalArray);
 
-      if ( scene.HasTxtCoords() )                     // textures, if any
-        GL.EnableClientState( ArrayCap.TextureCoordArray );
+      if (scene.HasTxtCoords())                     // textures, if any
+        GL.EnableClientState(ArrayCap.TextureCoordArray);
 
       // bind the vertex array (interleaved)
-      GL.BindBuffer( BufferTarget.ArrayBuffer, VBOid[ 0 ] );
+      GL.BindBuffer(BufferTarget.ArrayBuffer, VBOid[0]);
 
       // query the size of the buffer in bytes
       int vertexBufferSize = scene.VertexBufferSize(
           true, // we always have vertex data
           scene.HasTxtCoords(),
           scene.HasColors(),
-          scene.HasNormals() );
+          scene.HasNormals());
 
       // fill vertexData with data we will upload to the (vertex) buffer on the graphics card
-      float[] vertexData = new float[ vertexBufferSize / sizeof( float ) ];
+      float[] vertexData = new float[vertexBufferSize / sizeof(float)];
 
       // calculate the offsets in the interleaved array
       textureCoordOffset = 0;
@@ -488,53 +487,53 @@ namespace _039terrain
       // convert data from SceneBrep to float[] (interleaved array)
       unsafe
       {
-        fixed ( float* fixedVertexData = vertexData )
+        fixed (float* fixedVertexData = vertexData)
         {
           stride = scene.FillVertexBuffer(
               fixedVertexData,
               true,
               scene.HasTxtCoords(),
               scene.HasColors(),
-              scene.HasNormals() );
+              scene.HasNormals());
 
           // upload vertex data to the graphics card
           GL.BufferData(
               BufferTarget.ArrayBuffer,
               (IntPtr)vertexBufferSize,
               (IntPtr)fixedVertexData,        // still pinned down to fixed address..
-              BufferUsageHint.StaticDraw );
+              BufferUsageHint.StaticDraw);
         }
       }
 
       // index buffer:
-      GL.BindBuffer( BufferTarget.ElementArrayBuffer, VBOid[ 1 ] );
+      GL.BindBuffer(BufferTarget.ElementArrayBuffer, VBOid[1]);
 
       // convert indices from SceneBrep to uint[]
-      uint[] indexData = new uint[ scene.Triangles * 3 ];
+      uint[] indexData = new uint[scene.Triangles * 3];
 
       unsafe
       {
-        fixed ( uint* unsafeIndexData = indexData )
+        fixed (uint* unsafeIndexData = indexData)
         {
-          scene.FillIndexBuffer( unsafeIndexData );
+          scene.FillIndexBuffer(unsafeIndexData);
 
           // upload index data to video memory
           GL.BufferData(
               BufferTarget.ElementArrayBuffer,
-              (IntPtr)(scene.Triangles * 3 * sizeof( uint )),
+              (IntPtr)(scene.Triangles * 3 * sizeof(uint)),
               (IntPtr)unsafeIndexData,        // still pinned down to fixed address..
-              BufferUsageHint.StaticDraw );
+              BufferUsageHint.StaticDraw);
         }
       }
     }
 
-    private void glControl1_KeyDown ( object sender, KeyEventArgs e )
+    private void glControl1_KeyDown (object sender, KeyEventArgs e)
     {
       // !!!{{ TODO: add the event handler here
       // !!!}}
     }
 
-    private void glControl1_KeyUp ( object sender, KeyEventArgs e )
+    private void glControl1_KeyUp (object sender, KeyEventArgs e)
     {
       // !!!{{ TODO: add the event handler here
       // !!!}}
@@ -544,9 +543,9 @@ namespace _039terrain
     private int dragFromY = 0;
     private bool dragging = false;
 
-    private void glControl1_MouseDown ( object sender, MouseEventArgs e )
+    private void glControl1_MouseDown (object sender, MouseEventArgs e)
     {
-      if ( hovercraft )
+      if (hovercraft)
       {
         // !!! TODO: hovercraft
       }
@@ -558,9 +557,9 @@ namespace _039terrain
       }
     }
 
-    private void glControl1_MouseUp ( object sender, MouseEventArgs e )
+    private void glControl1_MouseUp (object sender, MouseEventArgs e)
     {
-      if ( hovercraft )
+      if (hovercraft)
       {
         // !!! TODO: hovercraft
       }
@@ -570,45 +569,45 @@ namespace _039terrain
       }
     }
 
-    private void glControl1_MouseMove ( object sender, MouseEventArgs e )
+    private void glControl1_MouseMove (object sender, MouseEventArgs e)
     {
-      if ( hovercraft )
+      if (hovercraft)
       {
         // !!! TODO: hovercraft
       }
       else
       {
-        if ( !dragging ) return;
+        if (!dragging) return;
 
         int delta;
-        if ( e.X != dragFromX )       // change the azimuth angle
+        if (e.X != dragFromX)       // change the azimuth angle
         {
           delta = e.X - dragFromX;
           dragFromX = e.X;
           azimuthAngle -= delta * 4.0 / glControl1.Width;
         }
 
-        if ( e.Y != dragFromY )       // change the elevation angle
+        if (e.Y != dragFromY)       // change the elevation angle
         {
           delta = e.Y - dragFromY;
           dragFromY = e.Y;
           elevationAngle += delta * 2.0 / glControl1.Height;
-          elevationAngle = Arith.Clamp( elevationAngle, -1.0, 1.5 );
+          elevationAngle = Arith.Clamp(elevationAngle, -1.0, 1.5);
         }
       }
     }
 
-    private void glControl1_MouseWheel ( object sender, MouseEventArgs e )
+    private void glControl1_MouseWheel (object sender, MouseEventArgs e)
     {
-      if ( e.Delta != 0 )
-        if ( hovercraft )
+      if (e.Delta != 0)
+        if (hovercraft)
         {
           // !!! TODO: hovercraft
         }
         else
         {
           float change = e.Delta / 120.0f;
-          zoom = Arith.Clamp( zoom * Math.Pow( 1.05, change ), 0.5, 100.0 );
+          zoom = Arith.Clamp(zoom * Math.Pow(1.05, change), 0.5, 100.0);
         }
     }
   }

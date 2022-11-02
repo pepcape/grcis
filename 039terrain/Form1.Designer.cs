@@ -214,6 +214,7 @@
       this.textParam.Name = "textParam";
       this.textParam.Size = new System.Drawing.Size(347, 20);
       this.textParam.TabIndex = 35;
+      this.textParam.MouseHover += new System.EventHandler(this.textParam_MouseHover);
       // 
       // checkTexture
       // 
