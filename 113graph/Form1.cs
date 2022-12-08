@@ -268,7 +268,7 @@ namespace _113graph
     private void textParam_MouseHover (object sender, EventArgs e)
     {
       tt.Show(tooltip, (IWin32Window)sender,
-        10, -24 - 15 * Util.EolnsInString(tooltip), 4000);
+        10, -25 - 15 * Util.EolnsInString(tooltip), 3000);
     }
 
     private void textExpression_MouseHover (object sender, EventArgs e)
@@ -278,7 +278,7 @@ namespace _113graph
 
     private void labelStatus_MouseHover (object sender, EventArgs e)
     {
-      tt.Show(labelStatus.Text, (IWin32Window)sender, 10, -25, 4000);
+      tt.Show(labelStatus.Text, (IWin32Window)sender, 10, -25, 3000);
     }
 
     private void labelFps_MouseHover (object sender, EventArgs e)

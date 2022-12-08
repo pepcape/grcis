@@ -291,7 +291,7 @@ namespace _084filter
     private void textParam_MouseHover (object sender, EventArgs e)
     {
       tt.Show(tooltip, (IWin32Window)sender,
-              10, -24 - 15 * Util.EolnsInString(tooltip), 3000);
+              10, -25 - 15 * Util.EolnsInString(tooltip), 3000);
     }
 
     private void labelElapsed_MouseHover (object sender, EventArgs e)

@@ -479,13 +479,13 @@ namespace _086shader
     private void labelFile_MouseHover (object sender, EventArgs e)
     {
       tt.Show(Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion(typeof(Vector3)),
-              (IWin32Window)sender, 10, -24, 4000);
+              (IWin32Window)sender, 10, -25, 3000);
     }
 
     private void textParam_MouseHover (object sender, EventArgs e)
     {
       tt.Show(tooltip, (IWin32Window)sender,
-              10, -24 - 15 * Util.EolnsInString(tooltip), 4000);
+              10, -25 - 15 * Util.EolnsInString(tooltip), 3000);
     }
 
     private void buttonLoadCamera_Click (object sender, EventArgs e)
