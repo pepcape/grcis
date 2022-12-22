@@ -28,18 +28,18 @@ out vec4 fragColor;
 void main ()
 {
   vec3 P = varWorld;
-  vec3 N = normalize( varNormal );
-  vec3 L = normalize( lightPosition - P );
-  vec3 V = normalize( eyePosition - P );
-  vec3 H = normalize( L + V );
+  vec3 N = normalize(varNormal);
+  vec3 L = normalize(lightPosition - P);
+  vec3 V = normalize(eyePosition - P);
+  vec3 H = normalize(L + V);
 
   vec3 ka, kd, ks;
-  if ( useTexture )
+  if (useTexture)
   {
-    ka = kd = vec3( texture2D( texSurface, varTexCoords ) );
+    ka = kd = vec3(texture2D(texSurface, varTexCoords));
   }
   else
-    if ( globalColor )
+    if (globalColor)
     {
       ka = Ka;
       kd = Kd;
@@ -52,12 +52,12 @@ void main ()
   float cosa;
   float cosb = 0.0;
 
-  if ( useNormal )
+  if (useNormal)
   {
     ks = Ks;
-    cosa = dot( N, L );
-    if ( cosa > 0.0 )
-      cosb = pow( max( dot( N, H ), 0.0 ), shininess );
+    cosa = dot(N, L);
+    if (cosa > 0.0)
+      cosb = pow(max(dot(N, H), 0.0), shininess);
     else
       cosa = 0.0;
   }

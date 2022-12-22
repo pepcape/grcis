@@ -197,12 +197,13 @@ namespace _087fireworks
     private void labelStat_MouseHover (object sender, EventArgs e)
     {
       tt.Show(Util.TargetFramework + " (" + Util.RunningFramework + "), OpenTK " + Util.AssemblyVersion(typeof(Vector3)),
-              (IWin32Window)sender, 10, -25, 4000);
+              (IWin32Window)sender, 10, -25, 3000);
     }
 
     private void textParam_MouseHover (object sender, EventArgs e)
     {
-      tt.Show(tooltip, (IWin32Window)sender, 10, -25, 4000);
+      tt.Show(tooltip, (IWin32Window)sender,
+              10, -25 - 15 * Util.EolnsInString(tooltip), 3000);
     }
 
     private void glControl1_PreviewKeyDown (object sender, PreviewKeyDownEventArgs e)

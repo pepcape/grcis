@@ -22,7 +22,7 @@ uniform float sizeMul;
 
 void main ()
 {
-  gl_Position = matrixProjection * matrixModelView * vec4( position, 1.0 );
+  gl_Position = matrixProjection * matrixModelView * vec4(position, 1.0);
   gl_PointSize = ptSize * sizeMul;
   varTexCoords = texCoords;
   varNormal = normal;
